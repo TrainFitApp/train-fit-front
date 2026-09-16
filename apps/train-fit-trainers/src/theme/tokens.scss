@@ -68,6 +68,16 @@
   // introducir un azul/gris genérico ajeno a la paleta de marca.
   --tf-secondary: var(--ion-color-secondary, #ffc455);
 
+  // --- Macros: los MISMOS colores que el diario del cliente
+  // (shared-features diets/macros-bars: kcal naranja, proteína azul, carbos
+  // verde, grasa amarillo) para que entrenador y cliente lean igual un mismo
+  // número. Como TEXTO sobre --tf-bg…--tf-surface-3 todos pasan AA (el azul,
+  // el más justo, 4,5–5,2:1 medido); con texto encima, usar negro.
+  --tf-macro-kcal: #fe9000;
+  --tf-macro-protein: #3880ff;
+  --tf-macro-carbs: #2dd36f;
+  --tf-macro-fat: #ffc409;
+
   // --- Semánticos ---
   // Verde intencionalmente distinto de --ion-color-success (#2dd36f) — más
   // cercano al verde "success" de iOS, mejor contraste sobre fondo oscuro.

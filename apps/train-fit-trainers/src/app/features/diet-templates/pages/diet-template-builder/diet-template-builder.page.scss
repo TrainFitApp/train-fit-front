@@ -1023,15 +1023,15 @@ $clipboard-panel-width: 320px;
   transition: flex-grow var(--tf-duration-base) var(--tf-ease-out);
 
   &--protein {
-    background: #60a5fa;
+    background: var(--tf-macro-protein);
   }
 
   &--carbs {
-    background: #34d399;
+    background: var(--tf-macro-carbs);
   }
 
   &--fat {
-    background: #f472b6;
+    background: var(--tf-macro-fat);
   }
 }
 
@@ -1075,19 +1075,19 @@ $clipboard-panel-width: 320px;
   font-variant-numeric: tabular-nums;
 
   &--kcal {
-    color: var(--tf-text);
+    color: var(--tf-macro-kcal);
   }
 
   &--protein {
-    color: #60a5fa;
+    color: var(--tf-macro-protein);
   }
 
   &--carbs {
-    color: #34d399;
+    color: var(--tf-macro-carbs);
   }
 
   &--fat {
-    color: #f472b6;
+    color: var(--tf-macro-fat);
   }
 }
 

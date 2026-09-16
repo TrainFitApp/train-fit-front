@@ -197,18 +197,17 @@
   border-radius: 50%;
   flex-shrink: 0;
 
-  // Mismo hex que el resto del trío de macro en la app (tema oscuro: estos
-  // tonos claros son los que se leen bien sobre --tf-surface-2).
+  // Colores de macro del cliente (tokens --tf-macro-*).
   &--protein {
-    background: #60a5fa;
+    background: var(--tf-macro-protein);
   }
 
   &--carbs {
-    background: #34d399;
+    background: var(--tf-macro-carbs);
   }
 
   &--fat {
-    background: #f472b6;
+    background: var(--tf-macro-fat);
   }
 }
 
@@ -221,15 +220,15 @@
   white-space: nowrap;
 
   &--protein {
-    color: #60a5fa;
+    color: var(--tf-macro-protein);
   }
 
   &--carbs {
-    color: #34d399;
+    color: var(--tf-macro-carbs);
   }
 
   &--fat {
-    color: #f472b6;
+    color: var(--tf-macro-fat);
   }
 
   em {
@@ -265,15 +264,15 @@
   transition: width var(--tf-duration-base, 180ms) var(--tf-ease-out, ease);
 
   &--protein {
-    background: #60a5fa;
+    background: var(--tf-macro-protein);
   }
 
   &--carbs {
-    background: #34d399;
+    background: var(--tf-macro-carbs);
   }
 
   &--fat {
-    background: #f472b6;
+    background: var(--tf-macro-fat);
   }
 }
 

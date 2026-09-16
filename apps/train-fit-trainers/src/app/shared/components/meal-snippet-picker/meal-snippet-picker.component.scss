@@ -169,19 +169,19 @@
     flex-shrink: 0;
 
     &.kcal {
-      background: var(--ion-color-primary);
+      background: var(--tf-macro-kcal);
     }
 
     &.protein {
-      background: var(--ion-color-alternative);
+      background: var(--tf-macro-protein);
     }
 
     &.carbs {
-      background: var(--ion-color-success);
+      background: var(--tf-macro-carbs);
     }
 
     &.fat {
-      background: var(--ion-color-secondary);
+      background: var(--tf-macro-fat);
     }
   }
 

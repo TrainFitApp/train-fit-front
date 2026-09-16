@@ -912,65 +912,6 @@
   }
 }
 
-// Ciclos PASADOS de la fase, el más reciente a la izquierda. Máximo 5 a la
-// vez (ver visibleCyclesLimit); "+N" suma otros 5 en vez de destaparlos
-// todos. La fila siempre puede deslizarse en horizontal — así la tarjeta
-// nunca crece hacia abajo ni empuja el resto del plan.
-.cycle-chips {
-  display: flex;
-  align-items: stretch;
-  gap: 6px;
-  min-width: 0;
-  overflow-x: auto;
-
-  // Sin esto, los chips se encogerían para caber en vez de desbordar.
-  > * {
-    flex-shrink: 0;
-  }
-}
-
-.cycle-chip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  min-width: 42px;
-  padding: 5px 6px;
-  border: 1px solid var(--tf-border-strong);
-  border-radius: 9px;
-  background: var(--tf-surface-2);
-  color: var(--tf-text-secondary);
-  cursor: pointer;
-  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
-    background var(--tf-duration-fast) var(--tf-ease-out);
-
-  &:hover {
-    border-color: var(--phase-color, var(--tf-accent));
-  }
-}
-
-.cycle-chip__number {
-  font-size: 0.8rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-
-.cycle-chip__kcal {
-  font-size: 0.6rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--tf-text-muted);
-  line-height: 1.1;
-}
-
-.cycle-chip--more {
-  justify-content: center;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--tf-text-muted);
-}
-
 .active-plan-weekdays {
   display: flex;
   flex-wrap: wrap;
@@ -2130,6 +2071,7 @@
   gap: var(--tf-space-3);
   overflow-x: auto;
   padding-bottom: var(--tf-space-2);
+  margin-bottom: 12px;
   scroll-snap-type: x proximity;
 
   // Solo el pulgar, sin la canaleta gris del navegador: es una fila de
@@ -2157,8 +2099,12 @@
 
 // La vigente conserva todo su detalle y manda en el ancho; las programadas
 // son fichas estrechas, porque de ellas solo importa qué plan y cuándo.
+// Sin margin-bottom propio: con align-items: stretch ese margen entra en la
+// altura de la fila y las fichas de al lado ("Siguiente fase") salían 12px
+// más altas que la fase. El hueco inferior lo pone ahora .plan-track.
 .plan-track > .active-plan-card {
   flex: 1 0 320px;
+  margin-bottom: 0;
   scroll-snap-align: start;
 }
 
@@ -2418,15 +2364,28 @@
 // abre el propio cuadradito al pulsarlo (ya no hace falta un icono aparte).
 // El actual va en el color de la fase; el siguiente, neutro hasta que se
 // prepara, y en acento cuando ya está editado.
+// Siguiente, actual y pasados en UNA fila, más reciente a la izquierda.
+// Las tarjetas reparten el ancho a partes iguales y se estrechan hasta su
+// min-width; a partir de ahí la fila desliza en horizontal en vez de
+// envolver — la tarjeta de fase nunca crece hacia abajo.
 .cycle-tiles {
   display: flex;
   gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  // Hueco para el foco (outline-offset) y la barra de scroll, que si no
+  // recorta el borde inferior de las tarjetas.
+  padding: 3px 3px 6px;
+  margin: -3px -3px -6px;
 }
 
 .cycle-tile {
   position: relative;
   flex: 1 1 0;
-  min-width: 92px;
+  min-width: 128px;
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -2468,9 +2427,10 @@
   // como una etiqueta del propio título, no como un aviso separado.
   &__title-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: 6px;
+    gap: 0 6px;
     width: 100%;
   }
 
@@ -2501,6 +2461,7 @@
 
   &__dates {
     font-size: var(--tf-font-size-xs);
+    white-space: nowrap;
     color: var(--tf-text-secondary);
   }
 

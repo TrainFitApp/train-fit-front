@@ -1,0 +1,128 @@
+<section class="macros-adjust" [class.is-open]="open">
+  <button type="button" class="macros-adjust__toggle" [attr.aria-expanded]="open" (click)="open = !open">
+    <ion-icon [name]="open ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+    <span class="macros-adjust__label">Ajustar macros</span>
+    <span class="macros-adjust__summary">
+      <span class="macro-chip macro-chip--protein">P {{ grams('protein') }}</span>
+      <span class="macro-chip macro-chip--carbs">C {{ grams('carbs') }}</span>
+      <span class="macro-chip macro-chip--fat">G {{ grams('fat') }}</span>
+      <span class="macro-chip macro-chip--touched" *ngIf="touched && balanced">ajustado</span>
+      <span class="macro-chip macro-chip--off" *ngIf="!balanced">descuadrado</span>
+    </span>
+  </button>
+
+  <div class="macros-adjust__body" *ngIf="open">
+    <!-- Barra de % — la del editor de objetivos del cliente: dos tiradores
+         (proteína | carbos | grasa). Arrastrar siempre reparte el 100 % de
+         las kcal. Un tirador se apaga si lo que movería está bloqueado. -->
+    <div
+      class="macro-slider"
+      [class.is-dragging]="dragging"
+      (pointerdown)="onTrackPointerDown($event)"
+      (pointermove)="onTrackPointerMove($event)"
+      (pointerup)="onTrackPointerUp($event)"
+      (pointercancel)="onTrackPointerUp($event)"
+    >
+      <div class="macro-slider__track">
+        <div class="macro-slider__segments">
+          <span class="macro-slider__seg macro-slider__seg--protein" [style.left.%]="0" [style.width.%]="rawPct('protein')">
+            <span *ngIf="rawPct('protein') > 12">{{ rawPct('protein') | number: '1.0-0' }} %</span>
+          </span>
+          <span class="macro-slider__seg macro-slider__seg--carbs" [style.left.%]="h1Pos" [style.width.%]="rawPct('carbs')">
+            <span *ngIf="rawPct('carbs') > 12">{{ rawPct('carbs') | number: '1.0-0' }} %</span>
+          </span>
+          <span class="macro-slider__seg macro-slider__seg--fat" [style.left.%]="h2Pos" [style.width.%]="rawPct('fat')">
+            <span *ngIf="rawPct('fat') > 12">{{ rawPct('fat') | number: '1.0-0' }} %</span>
+          </span>
+        </div>
+        <span
+          class="macro-slider__handle"
+          role="slider"
+          tabindex="0"
+          aria-label="Reparto entre proteína y carbohidratos"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="h1Pos | number: '1.0-0'"
+          [attr.aria-valuetext]="'Proteína ' + (rawPct('protein') | number: '1.0-0') + ' %'"
+          [attr.aria-disabled]="handleBlocked('h1')"
+          [class.is-blocked]="handleBlocked('h1')"
+          [style.left.%]="h1Pos"
+          (keydown)="onHandleKeydown('h1', $event)"
+        ></span>
+        <span
+          class="macro-slider__handle"
+          role="slider"
+          tabindex="0"
+          aria-label="Reparto entre carbohidratos y grasa"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="h2Pos | number: '1.0-0'"
+          [attr.aria-valuetext]="'Grasa ' + (rawPct('fat') | number: '1.0-0') + ' %'"
+          [attr.aria-disabled]="handleBlocked('h2')"
+          [class.is-blocked]="handleBlocked('h2')"
+          [style.left.%]="h2Pos"
+          (keydown)="onHandleKeydown('h2', $event)"
+        ></span>
+      </div>
+    </div>
+
+    <div class="macro-row" *ngFor="let m of macroRows" [class.is-locked]="locks[m.key]">
+      <div class="macro-row__head">
+        <span class="macro-dot macro-dot--{{ m.key }}"></span>
+        <span class="macro-row__name">{{ m.label }}</span>
+        <span class="macro-row__kcal">{{ kcalOf(m.key) }} kcal · {{ pct(m.key) | number: '1.0-0' }} %</span>
+        <span
+          class="macro-row__delta"
+          [class.is-up]="macroDelta(m.key) > 0"
+          [class.is-down]="macroDelta(m.key) < 0"
+          *ngIf="macroDelta(m.key) !== 0"
+        >
+          {{ deltaLabel(macroDelta(m.key)) }} g
+          <ng-container *ngIf="macroDeltaPct(m.key) !== null">({{ pctLabel(macroDeltaPct(m.key)) }})</ng-container>
+        </span>
+        <button
+          type="button"
+          class="lock-toggle"
+          [class.is-locked]="locks[m.key]"
+          [attr.aria-label]="locks[m.key] ? 'Desbloquear ' + m.label : 'Bloquear ' + m.label"
+          [title]="locks[m.key] ? 'Desbloquear: vuelve a repartirse al tocar otros' : 'Bloquear: no cambia al tocar otros'"
+          (click)="toggleLock(m.key)"
+        >
+          <ion-icon [name]="locks[m.key] ? 'lock-closed' : 'lock-open-outline'" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <div class="macro-row__inputs">
+        <label class="macro-input">
+          <input type="number" min="0" step="1" [value]="fieldValue(m.key, 'g')" [readonly]="locks[m.key]" (focus)="onFieldFocus(m.key, 'g')" (blur)="onFieldBlur()" (input)="onGramsInput(m.key, $event)" />
+          <span>g</span>
+        </label>
+        <label class="macro-input" *ngIf="weightKg">
+          <input type="number" min="0" step="0.1" [value]="fieldValue(m.key, 'kg')" [readonly]="locks[m.key]" (focus)="onFieldFocus(m.key, 'kg')" (blur)="onFieldBlur()" (input)="onPerKgInput(m.key, $event)" />
+          <span>g/kg</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Como en el editor de objetivos del cliente: se puede teclear lo que
+         sea, pero si no cuadra con las kcal se avisa, y al intentar guardar
+         el aviso pasa a error (validate()). -->
+    <div class="macros-adjust__warning" [class.is-error]="saveBlocked" role="alert" *ngIf="!balanced">
+      <ion-icon [name]="saveBlocked ? 'alert-circle' : 'warning-outline'" aria-hidden="true"></ion-icon>
+      <p>
+        <strong>{{ saveBlocked ? 'No se puede guardar: los macros no cuadran' : 'Los macros no cuadran con las kcal' }}</strong>
+        {{ imbalanceMessage }}
+      </p>
+    </div>
+
+    <p class="macros-adjust__foot">
+      Macros: <strong [class.is-off]="!balanced">{{ macrosKcal }} kcal</strong>
+      <ng-container *ngIf="macroBudget !== targetKcal"> de {{ targetKcal }} de la dieta (el resto no es macro: fibra, alcohol, redondeos)</ng-container>
+      <ng-container *ngIf="weightKg"> · g/kg sobre {{ weightKg | number: '1.0-1' }} kg</ng-container>
+      <span *ngIf="!weightKg"> · sin peso del cliente, no hay g/kg</span>
+      <button type="button" class="macros-adjust__reset" *ngIf="touched" (click)="reset()">
+        {{ resetLabel }}
+      </button>
+    </p>
+    <p class="macros-adjust__hint" *ngIf="hint">{{ hint }}</p>
+  </div>
+</section>

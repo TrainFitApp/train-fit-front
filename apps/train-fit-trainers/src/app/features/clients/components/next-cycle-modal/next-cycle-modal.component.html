@@ -93,81 +93,15 @@
   <!-- Ajustar macros — reparto del ciclo en g / g·kg / %, con candados
        (mismo juego que el editor de objetivos del cliente). Plegado: sin
        tocarlo, los macros siguen al escalado proporcional de las kcal. -->
-  <section class="macros-adjust" [class.is-open]="showMacros">
-    <button type="button" class="macros-adjust__toggle" (click)="showMacros = !showMacros">
-      <ion-icon [name]="showMacros ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
-      <span class="macros-adjust__label">Ajustar macros</span>
-      <span class="macros-adjust__summary">
-        <span class="macro-chip macro-chip--protein">P {{ grams('protein') }}</span>
-        <span class="macro-chip macro-chip--carbs">C {{ grams('carbs') }}</span>
-        <span class="macro-chip macro-chip--fat">G {{ grams('fat') }}</span>
-        <span class="macro-chip macro-chip--touched" *ngIf="macrosTouched">ajustado</span>
-      </span>
-    </button>
-
-    <div class="macros-adjust__body" *ngIf="showMacros">
-      <div class="macro-bar" aria-hidden="true">
-        <span class="macro-bar__seg macro-bar__seg--protein" [style.width.%]="pct('protein')"></span>
-        <span class="macro-bar__seg macro-bar__seg--carbs" [style.width.%]="pct('carbs')"></span>
-        <span class="macro-bar__seg macro-bar__seg--fat" [style.width.%]="pct('fat')"></span>
-      </div>
-
-      <div class="macro-row" *ngFor="let m of macroRows" [class.is-locked]="locks[m.key]">
-        <div class="macro-row__head">
-          <span class="macro-dot macro-dot--{{ m.key }}"></span>
-          <span class="macro-row__name">{{ m.label }}</span>
-          <span class="macro-row__kcal">{{ kcalOf(m.key) }} kcal</span>
-          <span
-            class="macro-row__delta"
-            [class.is-up]="macroDelta(m.key) > 0"
-            [class.is-down]="macroDelta(m.key) < 0"
-            *ngIf="macroDelta(m.key) !== 0"
-          >
-            {{ deltaLabel(macroDelta(m.key)) }} g
-            <ng-container *ngIf="macroDeltaPct(m.key) !== null">({{ pctLabel(macroDeltaPct(m.key)) }})</ng-container>
-          </span>
-          <button
-            type="button"
-            class="lock-toggle"
-            [class.is-locked]="locks[m.key]"
-            [attr.aria-label]="locks[m.key] ? 'Desbloquear ' + m.label : 'Bloquear ' + m.label"
-            [title]="locks[m.key] ? 'Desbloquear: vuelve a repartirse al tocar otros' : 'Bloquear: no cambia al tocar otros'"
-            (click)="toggleLock(m.key)"
-          >
-            <ion-icon [name]="locks[m.key] ? 'lock-closed' : 'lock-open-outline'" aria-hidden="true"></ion-icon>
-          </button>
-        </div>
-        <div class="macro-row__inputs">
-          <label class="macro-input">
-            <input type="number" min="0" step="1" [value]="grams(m.key)" [readonly]="locks[m.key]" (change)="onGramsInput(m.key, $event)" />
-            <span>g</span>
-          </label>
-          <label class="macro-input" *ngIf="weightKg">
-            <input type="number" min="0" step="0.1" [value]="perKg(m.key)" [readonly]="locks[m.key]" (change)="onPerKgInput(m.key, $event)" />
-            <span>g/kg</span>
-          </label>
-          <label class="macro-input">
-            <input type="number" min="0" max="100" step="1" [value]="pct(m.key) | number: '1.0-0'" [readonly]="locks[m.key]" (change)="onPctInput(m.key, $event)" />
-            <span>%</span>
-          </label>
-        </div>
-      </div>
-
-      <p class="macros-adjust__foot">
-        Macros: <strong>{{ macrosKcal }} kcal</strong>
-        <ng-container *ngIf="macroBudget !== targetKcal"> de {{ targetKcal }} de la dieta (el resto no es macro: fibra, alcohol, redondeos)</ng-container>
-        <ng-container *ngIf="weightKg"> · g/kg sobre {{ weightKg | number: '1.0-1' }} kg</ng-container>
-        <span *ngIf="!weightKg"> · sin peso del cliente, no hay g/kg</span>
-        <button type="button" class="macros-adjust__reset" *ngIf="macrosTouched" (click)="resetMacrosProportional()">
-          Volver al reparto proporcional
-        </button>
-      </p>
-      <p class="muted">
-        Al tocar un macro, los que no están bloqueados absorben la diferencia. Con todos bloqueados, las kcal
-        siguen a la suma. El reparto ajustado viaja al editor como objetivo del ciclo.
-      </p>
-    </div>
-  </section>
+  <app-macro-adjust
+    [targetKcal]="targetKcal"
+    [defaultMacros]="proportionalMacros"
+    [base]="base"
+    [macroRatio]="macroRatio"
+    [weightKg]="weightKg"
+    hint="Al tocar un macro, los que no están bloqueados absorben la diferencia. Si los macros no cuadran con las kcal del ciclo, no se puede preparar. El reparto ajustado viaja al editor como objetivo del ciclo."
+    (macrosChange)="adjustedMacros = $event"
+  ></app-macro-adjust>
 
   <p class="muted">
     Al preparar, todas las cantidades del ciclo actual se escalan en proporción a estas kcal y se abren

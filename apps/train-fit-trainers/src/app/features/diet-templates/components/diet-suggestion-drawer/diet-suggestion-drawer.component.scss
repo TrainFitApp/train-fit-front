@@ -30,6 +30,7 @@
 .field-label {
   display: block;
   font-size: var(--tf-font-size-xs);
+  line-height: var(--tf-line-height-base);
   font-weight: 600;
   color: var(--tf-text-muted);
   text-transform: uppercase;
@@ -91,6 +92,157 @@
 
 .field {
   margin-bottom: var(--tf-space-1);
+}
+
+// "Ajustar macros" (app-macro-adjust) debajo de la fila de kcal.
+.macros {
+  margin-top: var(--tf-space-4);
+}
+
+// Etiqueta + icono de info. El bocadillo se ancla al borde DERECHO de la
+// columna (la de ritmo es la derecha): así crece hacia dentro del panel y
+// no se sale por el lado en móvil.
+.label-with-info {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  margin: var(--tf-space-4) 0 var(--tf-space-2);
+
+  .field-label {
+    margin: 0;
+  }
+}
+
+.info-tip {
+  // 18px: la misma altura que la línea de texto de field-label
+  // (font-size-xs 0.76rem × line-height-base 1.5 ≈ 18.2px, medido). Así la
+  // fila ".label-with-info" mide lo mismo que un field-label suelto y el
+  // input de "Ritmo por ciclo" queda a la misma altura que el de "Ajuste de
+  // kcal" — antes el botón de 24px alargaba la fila ~6px y lo desalineaba.
+  // El expansor (fuera de flujo, no afecta a la altura) lleva el tap target
+  // a los 44px reales igualmente.
+  @include tf-touch-expander(13px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--tf-text-muted);
+  cursor: help;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    color: var(--tf-accent-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+@mixin info-tip-shown {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.info-tip__bubble {
+  position: absolute;
+  top: calc(100% + var(--tf-space-2));
+  right: 0;
+  z-index: 20;
+  width: min(300px, calc(100vw - 32px));
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+  color: var(--tf-text-secondary);
+  text-transform: none;
+  letter-spacing: normal;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out),
+    transform var(--tf-duration-fast) var(--tf-ease-out),
+    visibility 0s linear var(--tf-duration-fast);
+  pointer-events: none;
+
+  &.is-open,
+  .info-tip:focus-visible + & {
+    @include info-tip-shown;
+  }
+
+  // Hover solo con ratón: en táctil el :hover se queda pegado tras el toque
+  // y el segundo toque no podría cerrarlo.
+  @media (hover: hover) {
+    .info-tip:hover + & {
+      @include info-tip-shown;
+    }
+  }
+
+  p {
+    margin: 0;
+
+    & + p,
+    & + ul + p {
+      margin-top: var(--tf-space-2);
+    }
+  }
+
+  strong {
+    color: var(--tf-text);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    transform: none;
+  }
+}
+
+.info-tip__example-title {
+  margin-top: var(--tf-space-2) !important;
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+// La rampa semana a semana: números tabulares para que se lea la bajada.
+.info-tip__example {
+  list-style: none;
+  margin: var(--tf-space-1) 0 0;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-2);
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--tf-space-3);
+    padding: 2px 0;
+  }
+
+  strong {
+    color: var(--tf-accent-text);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.info-tip__note {
+  color: var(--tf-text-muted);
 }
 
 // Selector EXCLUSIVO (definir / mantener / volumen): la decisión que manda
@@ -232,13 +384,31 @@
   .target-kcal {
     font-size: 1.35rem;
     font-weight: 800;
-    color: var(--tf-accent-text);
+    color: var(--tf-macro-kcal);
     letter-spacing: -0.02em;
   }
 
   .target-macros {
     font-size: var(--tf-font-size-base);
-    color: var(--tf-text-secondary);
+    color: var(--tf-text-muted);
+  }
+
+  // Colores de macro del cliente (tokens --tf-macro-*).
+  .macro {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+
+    &--protein {
+      color: var(--tf-macro-protein);
+    }
+
+    &--carbs {
+      color: var(--tf-macro-carbs);
+    }
+
+    &--fat {
+      color: var(--tf-macro-fat);
+    }
   }
 
   .target-source {

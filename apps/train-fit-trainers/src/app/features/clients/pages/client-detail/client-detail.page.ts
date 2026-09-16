@@ -2042,27 +2042,14 @@ export class ClientDetailPage implements OnInit {
   // (getPhaseCycles), que se repite tras guardar.
   public phaseCycles: PhaseCyclesResponse | null = null;
 
-  private readonly cyclesPageSize = 5;
-  // Cuántos ciclos pasados se enseñan de golpe. "+N" suma otra página en vez
-  // de destaparlos todos — con fases largas (20+ ciclos) volcar todo junto
-  // sería una cuadrícula ilegible.
-  public visibleCyclesLimit = this.cyclesPageSize;
-
-  // Pasados, el más reciente a la izquierda.
+  // Pasados, el más reciente a la izquierda. Van todos en la misma fila que
+  // siguiente/actual; con muchos, la fila hace scroll horizontal (.cycle-tiles).
   public get pastCycles(): PhaseCyclesResponse['past'] {
     return (this.phaseCycles?.past || []).slice().reverse();
   }
 
-  public get visiblePastCycles(): PhaseCyclesResponse['past'] {
-    return this.pastCycles.slice(0, this.visibleCyclesLimit);
-  }
-
-  public get hiddenCyclesCount(): number {
-    return Math.max(0, this.pastCycles.length - this.visibleCyclesLimit);
-  }
-
-  public showMoreCycles(): void {
-    this.visibleCyclesLimit += this.cyclesPageSize;
+  public trackByCycleNumber(_index: number, entry: { number: number }): number {
+    return entry.number;
   }
 
   // Las kcal que va a tener el siguiente: las del ciclo ya preparado, si lo

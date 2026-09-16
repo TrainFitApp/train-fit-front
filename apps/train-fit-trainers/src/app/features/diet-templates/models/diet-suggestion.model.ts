@@ -46,6 +46,8 @@ export interface DietSuggestionResponse {
   // `from: 'anthropometry'` trae `date`; `from: 'signup'` no (viene del
   // registro del cliente, sin fecha).
   weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
+  // Peso sobre el que se aplican los g/kg (el ajustado si IMC ≥ 30).
+  macroWeightKg?: number | null;
   // Objetivo del cliente al registrarse (delta kcal con signo). El cajón lo
   // usa para arrancar en el focus correcto.
   clientObjetive?: number | null;

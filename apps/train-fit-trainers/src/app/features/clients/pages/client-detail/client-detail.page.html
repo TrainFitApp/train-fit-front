@@ -1052,27 +1052,21 @@
                     <span class="cycle-tile__dates">{{ cycleDateRange(pc.current) }}</span>
                     <span class="cycle-tile__kcal">{{ pc.current.override.profile.kcal || '—' }} kcal</span>
                   </button>
-                </div>
 
-                <div class="cycle-chips" *ngIf="visiblePastCycles.length">
+                  <!-- Pasados: misma tarjeta, misma fila, a continuación. -->
                   <button
                     type="button"
-                    class="cycle-chip"
-                    *ngFor="let entry of visiblePastCycles"
+                    class="cycle-tile cycle-tile--past"
+                    *ngFor="let entry of pastCycles; trackBy: trackByCycleNumber"
                     [attr.aria-label]="'Ver el resumen del ciclo ' + entry.number"
                     (click)="openCycleSummary(entry)"
                   >
-                    <span class="cycle-chip__number">{{ entry.number }}</span>
-                    <span class="cycle-chip__kcal" *ngIf="entry.profile.kcal">{{ entry.profile.kcal }}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    class="cycle-chip cycle-chip--more"
-                    *ngIf="hiddenCyclesCount"
-                    (click)="showMoreCycles()"
-                  >
-                    +{{ hiddenCyclesCount }}
+                    <span class="cycle-tile__title-row">
+                      <span class="cycle-tile__label">Ciclo {{ entry.number }}</span>
+                      <span class="cycle-tile__tag">ANTERIOR</span>
+                    </span>
+                    <span class="cycle-tile__dates">{{ cycleDateRange(entry) }}</span>
+                    <span class="cycle-tile__kcal">{{ entry.profile.kcal || '—' }} kcal</span>
                   </button>
                 </div>
               </ng-container>

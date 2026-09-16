@@ -1,0 +1,388 @@
+// "Ajustar macros" — sacado de next-cycle-modal para compartirlo con el
+// panel de "Empezar fase". Tokens --tf-* (tema oscuro).
+
+:host {
+  display: block;
+}
+
+// --- Ajustar macros ---
+// Colores de macro del cliente (tokens --tf-macro-* en theme/tokens.scss).
+
+.macros-adjust {
+  margin: 14px 0 0;
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  background: var(--tf-surface-2);
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  &__label {
+    font-weight: 600;
+  }
+
+  &__summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  &__body {
+    padding: 4px 12px 12px;
+  }
+
+  &__foot {
+    margin: 10px 0 0;
+    font-size: 0.8rem;
+    color: var(--tf-text-muted);
+
+    strong {
+      color: var(--tf-text);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &__reset {
+    display: block;
+    margin-top: 4px;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--tf-accent-text);
+    cursor: pointer;
+  }
+}
+
+.macro-chip {
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #0b0b0b;
+
+  &--protein {
+    background: var(--tf-macro-protein);
+  }
+
+  &--carbs {
+    background: var(--tf-macro-carbs);
+  }
+
+  &--fat {
+    background: var(--tf-macro-fat);
+  }
+
+  &--touched {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  &--off {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+}
+
+// Barra de % — misma pieza que el "slider unificado" del editor de
+// objetivos del cliente (nutrition-editor.page.scss), con los tokens de aquí.
+.macro-slider {
+  position: relative;
+  margin: 6px 0 12px;
+  // Área pulsable más alta que la barra, como en el cliente.
+  padding: 12px 0;
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+
+  &__track {
+    position: relative;
+    height: 22px;
+    border: 1px solid var(--tf-border);
+    border-radius: 999px;
+    background: var(--tf-surface-3);
+  }
+
+  &__segments {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
+  }
+
+  &__seg {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #0b0b0b;
+    font-size: 0.68rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+
+    &--protein {
+      background: var(--tf-macro-protein);
+    }
+
+    &--carbs {
+      background: var(--tf-macro-carbs);
+    }
+
+    &--fat {
+      background: var(--tf-macro-fat);
+    }
+  }
+
+  &__handle {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 3px solid var(--tf-surface-4);
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    transform: translate(-50%, -50%);
+    cursor: grab;
+
+    // Área pulsable ampliada para el dedo.
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -10px;
+    }
+
+    // Muesca central, como en el cliente.
+    &::after {
+      content: '';
+      width: 3px;
+      height: 10px;
+      border-radius: 2px;
+      background: #b8b8b8;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-border-focus);
+      outline-offset: 2px;
+    }
+
+    &.is-blocked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+  }
+
+  &.is-dragging {
+    cursor: grabbing;
+
+    .macro-slider__handle {
+      cursor: grabbing;
+    }
+  }
+}
+
+.macro-row {
+  padding: 8px 0;
+
+  & + .macro-row {
+    border-top: 1px solid var(--tf-border);
+  }
+
+  &.is-locked .macro-input input {
+    opacity: 0.55;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: var(--tf-font-size-sm);
+  }
+
+  &__name {
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
+  &__kcal {
+    font-size: 0.76rem;
+    color: var(--tf-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__delta {
+    margin-left: auto;
+    font-size: 0.76rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--tf-text-secondary);
+
+    &.is-up {
+      color: var(--tf-success);
+    }
+
+    &.is-down {
+      color: var(--tf-danger-text);
+    }
+  }
+
+  &__inputs {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.macro-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--protein {
+    background: var(--tf-macro-protein);
+  }
+
+  &--carbs {
+    background: var(--tf-macro-carbs);
+  }
+
+  &--fat {
+    background: var(--tf-macro-fat);
+  }
+}
+
+.macro-input {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+  padding: 0 8px;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  background: var(--tf-surface-1);
+
+  &:focus-within {
+    border-color: var(--tf-accent);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    padding: 8px 0;
+    border: none;
+    background: none;
+    color: var(--tf-text);
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  span {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    color: var(--tf-text-muted);
+  }
+}
+
+.lock-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 2px;
+  border: 1px solid var(--tf-border);
+  border-radius: 8px;
+  background: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &.is-locked {
+    border-color: var(--tf-accent-soft-border);
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+  }
+}
+
+.macros-adjust__warning {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: 0.8rem;
+  line-height: 1.4;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  strong {
+    display: block;
+  }
+
+  &.is-error {
+    border-color: var(--tf-danger-border);
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+}
+
+.macros-adjust__foot strong.is-off {
+  color: var(--tf-danger-text);
+}
+
+.macros-adjust__hint {
+  margin: 8px 0 0;
+  color: var(--tf-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
