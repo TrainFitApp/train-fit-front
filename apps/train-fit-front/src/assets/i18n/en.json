@@ -1233,6 +1233,7 @@
     "DELETE_WORKOUTS": "Delete workouts",
     "DELETE_WORKOUTS_CONFIRM": "All {{name}} workouts will be deleted from all micro-cycles",
     "WORKOUT_DELETED_SUCCESS": "{{name}} deleted successfully!",
+    "WORKOUT_DELETE_ERROR": "Couldn't delete {{name}}. Try again.",
     "SKIP_WORKOUT": "Skip day",
     "SKIP_WORKOUT_CONFIRM": "Skip {{name}}? It will be marked as skipped.",
     "SKIP_BTN": "SKIP",

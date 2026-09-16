@@ -78,9 +78,9 @@
   </div>
   <div class="planner-pain" *ngIf="painEnabled" aria-live="polite">
     <ion-icon name="bandage-outline" aria-hidden="true"></ion-icon>
-    <span class="pain-label">Dolor · últimos 7 días</span>
+    <span class="pain-label">Dolor</span>
     <span *ngIf="painState === 'loading'">Actualizando registros…</span>
-    <span *ngIf="painState === 'loaded' && !clientPain.length">Sin registros en los últimos 7 días.</span>
+    <span *ngIf="painState === 'loaded' && !clientPain.length">Sin registros recientes.</span>
     <span *ngIf="painState === 'loaded' && clientPain.length && !activeClientPain.length">Últimos registros: 0/10 · {{ clientPain[0].date | date: 'd MMM' }}</span>
     <span *ngFor="let pain of activeClientPain" class="pain-entry" [class.pain-entry--over]="pain.overThreshold"
       [title]="pain.note || ''">

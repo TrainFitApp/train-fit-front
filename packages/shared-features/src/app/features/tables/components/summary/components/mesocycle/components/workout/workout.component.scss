@@ -1082,6 +1082,33 @@ ion-buttons ion-button {
   }
 }
 
+// reps/rir: mín y máx en dos cajas separadas en vez de un único campo de
+// texto con guion (ambiguo con el "-1" de FALLO en RIR, y no dejaba claro
+// qué número era cuál).
+.tf-inline-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .tf-inline-input--range {
+    // flex-basis 0 reparte el espacio a partes iguales; min-width es el
+    // suelo real que deja sitio a 2 dígitos sin que se vean apretados
+    // (antes width:0 sin suelo los dejaba tan finos como el resto de la
+    // fila permitiera, y con la tabla completa reps/rir/rest exprimidos,
+    // dos dígitos casi tocaban el borde del campo).
+    flex: 1 1 0;
+    min-width: 30px;
+    padding: 5px 3px;
+    font-size: 12px;
+  }
+
+  .tf-inline-range-sep {
+    flex: 0 0 auto;
+    font-weight: 700;
+    color: var(--ion-color-medium);
+  }
+}
+
 .quick-add-set-btn {
   display: flex;
   align-items: center;

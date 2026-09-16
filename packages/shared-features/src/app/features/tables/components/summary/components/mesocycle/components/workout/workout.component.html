@@ -306,7 +306,8 @@
                         }}</ng-container>
                       <input *ngIf="isEditingCell(set, 'weight')" type="text" inputmode="decimal" appNumericKeypad
                         class="tf-inline-input" [id]="'tf-cell-' + set._id + '-weight'"
-                        [(ngModel)]="editingCellValue" (click)="$event.stopPropagation()"
+                        [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput('weight')"
+                        (click)="$event.stopPropagation()"
                         (keydown.enter)="commitEditCell(entry.exercise, set, 'weight')"
                         (keydown.escape)="cancelEditCell()"
                         (blur)="commitEditCell(entry.exercise, set, 'weight')" />
@@ -318,14 +319,22 @@
                         ? set.reps || "—"
                         : formatExpectedReps(set.expectedReps)
                         }}</ng-container>
-                      <!-- reps/RIR admiten rango ("8-10", parseRangeInput) y el teclado a
-                           medida no tiene "-": sin appNumericKeypad, a diferencia de peso/descanso. -->
-                      <input *ngIf="isEditingCell(set, 'reps')" type="text" inputmode="numeric"
-                        class="tf-inline-input" [id]="'tf-cell-' + set._id + '-reps'" placeholder="8-10"
-                        [(ngModel)]="editingCellValue" (click)="$event.stopPropagation()"
-                        (keydown.enter)="commitEditCell(entry.exercise, set, 'reps')"
-                        (keydown.escape)="cancelEditCell()"
-                        (blur)="commitEditCell(entry.exercise, set, 'reps')" />
+                      <div *ngIf="isEditingCell(set, 'reps')" class="tf-inline-range"
+                        (click)="$event.stopPropagation()">
+                        <input type="text" inputmode="numeric" class="tf-inline-input tf-inline-input--range"
+                          [id]="'tf-cell-' + set._id + '-reps-min'" placeholder="Mín"
+                          [(ngModel)]="editingCellMin" (ngModelChange)="sanitizeRangePart('reps', 'min')"
+                          (keydown.enter)="commitEditCell(entry.exercise, set, 'reps')"
+                          (keydown.escape)="cancelEditCell()"
+                          (blur)="onRangeInputBlur(entry.exercise, set, 'reps')" />
+                        <span class="tf-inline-range-sep">–</span>
+                        <input type="text" inputmode="numeric" class="tf-inline-input tf-inline-input--range"
+                          [id]="'tf-cell-' + set._id + '-reps-max'" placeholder="Máx"
+                          [(ngModel)]="editingCellMax" (ngModelChange)="sanitizeRangePart('reps', 'max')"
+                          (keydown.enter)="commitEditCell(entry.exercise, set, 'reps')"
+                          (keydown.escape)="cancelEditCell()"
+                          (blur)="onRangeInputBlur(entry.exercise, set, 'reps')" />
+                      </div>
                     </td>
                     <td class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'rir')"
                       (click)="startEditCell(entry.exercise, set, 'rir', $event)">
@@ -357,12 +366,22 @@
                             !set.restPause
                           ">—</span>
                       </ng-container>
-                      <input *ngIf="isEditingCell(set, 'rir')" type="text" inputmode="numeric"
-                        class="tf-inline-input" [id]="'tf-cell-' + set._id + '-rir'" placeholder="2"
-                        [(ngModel)]="editingCellValue" (click)="$event.stopPropagation()"
-                        (keydown.enter)="commitEditCell(entry.exercise, set, 'rir')"
-                        (keydown.escape)="cancelEditCell()"
-                        (blur)="commitEditCell(entry.exercise, set, 'rir')" />
+                      <div *ngIf="isEditingCell(set, 'rir')" class="tf-inline-range"
+                        (click)="$event.stopPropagation()">
+                        <input type="text" inputmode="numeric" class="tf-inline-input tf-inline-input--range"
+                          [id]="'tf-cell-' + set._id + '-rir-min'" placeholder="Mín"
+                          [(ngModel)]="editingCellMin" (ngModelChange)="sanitizeRangePart('rir', 'min')"
+                          (keydown.enter)="commitEditCell(entry.exercise, set, 'rir')"
+                          (keydown.escape)="cancelEditCell()"
+                          (blur)="onRangeInputBlur(entry.exercise, set, 'rir')" />
+                        <span class="tf-inline-range-sep">–</span>
+                        <input type="text" inputmode="numeric" class="tf-inline-input tf-inline-input--range"
+                          [id]="'tf-cell-' + set._id + '-rir-max'" placeholder="Máx"
+                          [(ngModel)]="editingCellMax" (ngModelChange)="sanitizeRangePart('rir', 'max')"
+                          (keydown.enter)="commitEditCell(entry.exercise, set, 'rir')"
+                          (keydown.escape)="cancelEditCell()"
+                          (blur)="onRangeInputBlur(entry.exercise, set, 'rir')" />
+                      </div>
                     </td>
                     <td *ngIf="plannerMode" class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'rest')"
                       (click)="startEditCell(entry.exercise, set, 'rest', $event)">
@@ -370,7 +389,8 @@
                         "—" }}</ng-container>
                       <input *ngIf="isEditingCell(set, 'rest')" type="text" inputmode="numeric" appNumericKeypad
                         class="tf-inline-input" [id]="'tf-cell-' + set._id + '-rest'" placeholder="90"
-                        [(ngModel)]="editingCellValue" (click)="$event.stopPropagation()"
+                        [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput('rest')"
+                        (click)="$event.stopPropagation()"
                         (keydown.enter)="commitEditCell(entry.exercise, set, 'rest')"
                         (keydown.escape)="cancelEditCell()"
                         (blur)="commitEditCell(entry.exercise, set, 'rest')" />

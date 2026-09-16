@@ -1239,6 +1239,7 @@
     "DELETE_WORKOUTS": "Eliminar entrenamientos",
     "DELETE_WORKOUTS_CONFIRM": "Se borrarán todos los entrenamientos {{name}} de todos los micro-ciclos",
     "WORKOUT_DELETED_SUCCESS": "¡{{name}} eliminado con éxito!",
+    "WORKOUT_DELETE_ERROR": "No se pudo eliminar {{name}}. Inténtalo de nuevo.",
     "SKIP_WORKOUT": "Saltar día",
     "SKIP_WORKOUT_CONFIRM": "¿Seguro que quieres saltar {{name}}? Se marcará como saltado.",
     "SKIP_BTN": "SALTAR",

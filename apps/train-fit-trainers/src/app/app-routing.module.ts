@@ -41,22 +41,6 @@ const routes: Routes = [
       import('src/app/features/shell/shell.module').then((m) => m.ShellPageModule),
   },
   {
-    // Redirect, no ruta real: NavigationService.goToConfiguration() y los
-    // sub-destinos de ConfigurationPage (Diccionario/Reportes y sugerencias/
-    // Referencias: gotoConcepts()/goToSuggestions()/goToReferences(), todos
-    // en shared-core, compartido por las 3 apps) navegan con rutas absolutas
-    // hardcodeadas 'configuration', 'configuration/concepts', etc. — este
-    // redirect las reenvía a la ubicación real dentro del shell sin obligar
-    // a shared-core a saber que en esta app concreta la ruta vive anidada.
-    // SIN pathMatch:'full' a propósito (antes lo tenía): con 'full' solo
-    // interceptaba la ruta exacta 'configuration' y dejaba sin match
-    // 'configuration/concepts'/'configuration/suggestions' (NG04002) — en
-    // modo prefijo (por defecto) Angular conserva los segmentos sobrantes
-    // tras el redirect.
-    path: 'configuration',
-    redirectTo: 'tabs/configuration',
-  },
-  {
     // MVP-trainers F02 — redirect: ConfigurationPage#goToTrainerSubscription()
     // (shared-features) navega con ruta absoluta hardcodeada '/subscription'.
     path: 'subscription',

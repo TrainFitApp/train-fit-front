@@ -160,6 +160,12 @@ export class WorkoutComponent implements OnDestroy {
   // celda puede estar en edición a la vez en toda la tarjeta.
   public editingCellKey: string | null = null;
   public editingCellValue = "";
+  // reps/rir editan con 2 inputs (mín/máx) en vez de un único campo de
+  // texto con guion — antes "8-10" en una sola caja no dejaba claro qué
+  // tecleabas ni en qué orden, y encima colisionaba con el guion de un
+  // RIR de fallo (-1). weight/rest siguen usando editingCellValue.
+  public editingCellMin = "";
+  public editingCellMax = "";
   public quickAddingSetId: string | null = null;
 
   @Output()
@@ -664,6 +670,13 @@ export class WorkoutComponent implements OnDestroy {
           cssClass: "danger",
           handler: () => {
             const workoutsToDelete: Workout[] = [];
+            // Snapshot pre-borrado: si el backend falla, se restaura tal
+            // cual — antes se quitaba la card local sin más, sin importar
+            // si el borrado real había funcionado o no.
+            const previousSplits = this.tableInUse.splits.map((splitTemp) => ({
+              ...splitTemp,
+              workouts: [...splitTemp.workouts],
+            }));
 
             this.tableInUse.splits.forEach((splitTemp) => {
               const workoutTemp = splitTemp.workouts[workoutIndex];
@@ -675,15 +688,17 @@ export class WorkoutComponent implements OnDestroy {
             });
             this.tableService.setCurrentTable = this.tableInUse;
 
-            if (this.user.workoutInUse) {
+            // `user` no llega en plannerMode (el entrenador edita la tabla de
+            // OTRO, no hay "usuario actual" cuyo workoutInUse tocar) — mismo
+            // guard opcional que ya usa stopWorkout() más arriba.
+            if (this.user?.workoutInUse) {
               delete this.user.workoutInUse;
               this.workoutService.setCurrentWorkout = undefined;
               this.userService.updateUser(this.user).subscribe();
             }
 
-            this.workoutService
-              .deleteWorkouts(workoutsToDelete)
-              .subscribe(() => {
+            this.workoutService.deleteWorkouts(workoutsToDelete).subscribe({
+              next: () => {
                 const toastOptions: ToastOptions = {
                   message: this.translate.instant(
                     "TABLES.WORKOUT_DELETED_SUCCESS",
@@ -692,7 +707,19 @@ export class WorkoutComponent implements OnDestroy {
                   duration: 2000,
                 };
                 this.ionicUtilService.showToast(toastOptions);
-              });
+              },
+              error: () => {
+                this.tableInUse.splits = previousSplits;
+                this.tableService.setCurrentTable = this.tableInUse;
+                this.ionicUtilService.showToast({
+                  message: this.translate.instant(
+                    "TABLES.WORKOUT_DELETE_ERROR",
+                    { name: workoutsToDelete[0].name },
+                  ),
+                  duration: 2500,
+                });
+              },
+            });
           },
         },
       ],
@@ -749,7 +776,8 @@ export class WorkoutComponent implements OnDestroy {
         workout.rest = rest;
         if (rest) {
           delete workout.date;
-          if (this.user.workoutInUse === workout._id) {
+          // `user` no llega en plannerMode — ver deleteWorkouts() más arriba.
+          if (this.user?.workoutInUse === workout._id) {
             delete this.user.workoutInUse;
           }
         }
@@ -1874,9 +1902,17 @@ export class WorkoutComponent implements OnDestroy {
     event.stopPropagation();
 
     this.editingCellKey = `${set._id}-${field}`;
-    this.editingCellValue = this.rawCellValue(set, field);
 
-    const inputId = `tf-cell-${set._id}-${field}`;
+    let inputId = `tf-cell-${set._id}-${field}`;
+    if (field === "reps" || field === "rir") {
+      const range = field === "reps" ? set.expectedReps : set.expectedRir;
+      this.editingCellMin = this.rangePartToInput(range?.[0]);
+      this.editingCellMax = this.rangePartToInput(range?.[1]);
+      inputId += "-min"; // foco arranca en mínimo, como al leer el rango
+    } else {
+      this.editingCellValue = this.rawCellValue(set, field);
+    }
+
     setTimeout(() => {
       const el = document.getElementById(inputId) as HTMLInputElement | null;
       el?.focus();
@@ -1888,6 +1924,53 @@ export class WorkoutComponent implements OnDestroy {
     this.editingCellKey = null;
   }
 
+  // Blur de un input dentro del par mín/máx: si el foco se movió AL OTRO
+  // input del mismo par (tab, o clic directo), no se confirma todavía —
+  // solo al salir del par entero. Sin esto, pasar de mín a máx con Tab
+  // guardaba el cambio a medias y cerraba la edición antes de escribir el
+  // máximo.
+  public onRangeInputBlur(
+    exercise: CustomExercise,
+    set: ExerciseSet,
+    field: "reps" | "rir",
+  ): void {
+    const key = `${set._id}-${field}`;
+    const pairPrefix = `tf-cell-${set._id}-${field}`;
+    setTimeout(() => {
+      if (this.editingCellKey !== key) return; // ya confirmado o cancelado
+      const active = document.activeElement as HTMLElement | null;
+      if (active?.id?.startsWith(pairPrefix)) return; // saltó al otro input del par
+      this.commitEditCell(exercise, set, field);
+    });
+  }
+
+  private rangePartToInput(value: number | null | undefined): string {
+    return value !== null && value !== undefined && !isNaN(value) ? `${value}` : "";
+  }
+
+  // Antes el input era type="text" sin ninguna restricción real
+  // (inputmode solo cambia el teclado táctil, no bloquea nada) — se podía
+  // escribir cualquier letra o símbolo y commitEditCell la descartaba en
+  // silencio al confirmar. Se filtra aquí, tecla a tecla y también en
+  // pegado (ngModelChange se dispara igual con paste): dígitos y coma/punto
+  // decimal — weight/rest son un único número, sin guion de rango.
+  public sanitizeCellInput(field: "weight" | "rest"): void {
+    const cleaned = this.editingCellValue.replace(/[^0-9,.]/g, "");
+    if (cleaned !== this.editingCellValue) this.editingCellValue = cleaned;
+  }
+
+  // reps/rir: cada input es un único número, no un rango con guion — solo
+  // el RIR admite "-" (para -1, el centinela de FALLO). Mismo filtro
+  // tecla-a-tecla + pegado que sanitizeCellInput.
+  public sanitizeRangePart(field: "reps" | "rir", part: "min" | "max"): void {
+    const disallowed = field === "rir" ? /[^0-9,.\-]/g : /[^0-9,.]/g;
+    const current = part === "min" ? this.editingCellMin : this.editingCellMax;
+    const cleaned = current.replace(disallowed, "");
+    if (cleaned === current) return;
+    if (part === "min") this.editingCellMin = cleaned;
+    else this.editingCellMax = cleaned;
+  }
+
   public commitEditCell(
     exercise: CustomExercise,
     set: ExerciseSet,
@@ -1897,11 +1980,11 @@ export class WorkoutComponent implements OnDestroy {
     if (this.editingCellKey !== key) return; // ya comprometido o cancelado (Escape)
     this.editingCellKey = null;
 
-    const raw = this.editingCellValue.trim();
     const updatedSet: ExerciseSet = { ...set };
     let changed = false;
 
     if (field === "weight" || field === "rest") {
+      const raw = this.editingCellValue.trim();
       const parsed = raw === "" ? undefined : Number(raw.replace(",", "."));
       if (raw !== "" && (parsed === undefined || isNaN(parsed))) return;
 
@@ -1915,8 +1998,8 @@ export class WorkoutComponent implements OnDestroy {
         updatedSet.restSeconds = rounded;
       }
     } else {
-      const range = this.parseRangeInput(raw);
-      if (range === null) return; // texto no numérico: se ignora, no se guarda basura
+      const range = this.parseRangeParts(this.editingCellMin, this.editingCellMax);
+      if (range === null) return; // texto no numérico en algún lado: se ignora, no se guarda basura
 
       if (field === "reps") {
         updatedSet.expectedReps = range;
@@ -1979,48 +2062,36 @@ export class WorkoutComponent implements OnDestroy {
       });
   }
 
-  private rawCellValue(
-    set: ExerciseSet,
-    field: "weight" | "reps" | "rir" | "rest",
-  ): string {
-    switch (field) {
-      case "weight":
-        return set.weight != null ? `${set.weight}` : "";
-      case "rest":
-        return set.restSeconds != null ? `${set.restSeconds}` : "";
-      case "reps":
-        return this.formatRangeForInput(set.expectedReps);
-      case "rir":
-        return this.formatRangeForInput(set.expectedRir);
-      default:
-        return "";
-    }
+  // Solo weight/rest la usan — reps/rir arrancan directo desde
+  // expectedReps/expectedRir en startEditCell (2 inputs, no 1 con guion).
+  private rawCellValue(set: ExerciseSet, field: "weight" | "rest"): string {
+    return field === "weight"
+      ? set.weight != null
+        ? `${set.weight}`
+        : ""
+      : set.restSeconds != null
+      ? `${set.restSeconds}`
+      : "";
   }
 
-  private formatRangeForInput(range: number[]): string {
-    if (!range || range.length === 0) return "";
-    const [a, b] = range;
-    const hasA = a !== null && a !== undefined && !isNaN(a);
-    const hasB = b !== null && b !== undefined && !isNaN(b);
-    if (hasA && hasB && a !== b) return `${a}-${b}`;
-    if (hasA) return `${a}`;
-    if (hasB) return `${b}`;
-    return "";
-  }
+  // "" + "" => [] (borra el rango); solo uno relleno => [ese valor], igual
+  // que antes con un único input (formatExpectedReps/Rir pintan un array de
+  // un solo elemento como número plano, no como rango); los dos rellenos =>
+  // [min, max] en ese orden, tal cual están en los campos. null = alguno de
+  // los dos campos tiene texto no numérico: el llamador ignora el cambio en
+  // vez de guardar basura.
+  private parseRangeParts(minRaw: string, maxRaw: string): number[] | null {
+    const parse = (raw: string): number | null => {
+      const trimmed = raw.trim();
+      return trimmed === "" ? null : Number(trimmed.replace(",", "."));
+    };
+    const min = parse(minRaw);
+    const max = parse(maxRaw);
+    if ((min !== null && isNaN(min)) || (max !== null && isNaN(max))) return null;
 
-  // "" => borra el rango; "8" => [8] (formatExpectedReps ya pinta un array
-  // de un solo valor como número plano, no como rango); "8-10" => [8, 10].
-  // null es la señal de "no es un número", para que el llamador ignore el
-  // cambio en vez de guardar basura.
-  private parseRangeInput(raw: string): number[] | null {
-    if (raw === "") return [];
-    const parts = raw
-      .split(/[-–—]/)
-      .map((p) => p.trim())
-      .filter((p) => p !== "");
-    const nums = parts.map((p) => Number(p.replace(",", ".")));
-    if (nums.length === 0 || nums.some((n) => isNaN(n))) return null;
-    return nums.length === 1 ? [nums[0]] : [nums[0], nums[1]];
+    const values = [min, max].filter((v): v is number => v !== null);
+    if (values.length === 0) return [];
+    return values.length === 1 ? [values[0]] : values;
   }
 
   private persistSetUpdate(

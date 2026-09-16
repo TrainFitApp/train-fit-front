@@ -25,6 +25,7 @@ import { NutritionPreferencesPanelComponent } from './pages/client-detail/compon
 import { TrainingCalendarComponent } from './pages/client-detail/components/training-calendar/training-calendar.component';
 import { TrainingComparisonChartComponent } from './pages/client-detail/components/training-comparison-chart/training-comparison-chart.component';
 import { TrainingDayDetailComponent } from './pages/client-detail/components/training-day-detail/training-day-detail.component';
+import { PhaseScheduleCalendarComponent } from './components/phase-schedule-calendar/phase-schedule-calendar.component';
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
 
 @NgModule({
@@ -58,6 +59,7 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     TrainingCalendarComponent,
     TrainingComparisonChartComponent,
     TrainingDayDetailComponent,
+    PhaseScheduleCalendarComponent,
   ],
 })
 export class ClientsPageModule {}

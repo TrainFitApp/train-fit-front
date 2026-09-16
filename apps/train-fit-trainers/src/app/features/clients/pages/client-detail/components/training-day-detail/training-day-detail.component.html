@@ -8,7 +8,7 @@
   </div>
 
   <ng-container *ngIf="summaries.length; else emptyState">
-    <div class="day-detail__card" *ngFor="let s of summaries">
+    <div class="day-detail__card" *ngFor="let s of summaries; trackBy: trackBySummary">
       <div class="day-detail__card-header">
         <span class="list-card-title">{{ s.workout.name }}</span>
         <span
@@ -41,7 +41,7 @@
       <ion-icon [name]="p.isPlannedRestDay ? 'moon-outline' : 'time-outline'"></ion-icon>
       <p *ngIf="p.isPlannedRestDay">Descanso previsto — sin sesión este día.</p>
       <p *ngIf="!p.isPlannedRestDay">
-        Previsto: {{ p.name }}<ng-container *ngIf="p.splitName"> · {{ p.splitName }}</ng-container> — todavía sin registrar.
+        Previsto: {{ p.name }}<ng-container *ngIf="p.phaseName"> · {{ p.phaseName }}</ng-container> — todavía sin registrar.
       </p>
     </div>
     <ng-template #noPlan>

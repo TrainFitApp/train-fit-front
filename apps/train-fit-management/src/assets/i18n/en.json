@@ -1188,6 +1188,7 @@
     "DELETE_WORKOUTS": "Delete workouts",
     "DELETE_WORKOUTS_CONFIRM": "All {{name}} workouts will be deleted from all micro-cycles",
     "WORKOUT_DELETED_SUCCESS": "{{name}} deleted successfully!",
+    "WORKOUT_DELETE_ERROR": "Couldn't delete {{name}}. Try again.",
     "DELETE_EXERCISE": "Delete exercise",
     "DELETE_EXERCISE_CONFIRM": "Are you sure you want to delete {{name}}? This will also remove it from all micro-cycles.",
     "CREATE_ROUTINE_MSG_MESO": "Enter the routine name",

@@ -1,0 +1,121 @@
+// Mismo lenguaje visual que manage-set.component.scss (modal hermano, misma
+// familia de acciones sobre series) para que no se sienta como una pantalla
+// distinta dentro del mismo flujo.
+
+.qsm-header {
+  --background: var(--ion-background-color, #000);
+
+  .qsm-toolbar {
+    --background: transparent;
+    --color: var(--ion-text-color);
+    --border-color: transparent;
+    --padding-start: 0;
+    --padding-end: 0;
+    min-height: 64px;
+    padding: 1rem;
+
+    .header-content {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      height: 100%;
+
+      .title-section {
+        grid-column: 2;
+        justify-self: center;
+
+        .qsm-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: var(--ion-text-color);
+          white-space: nowrap;
+        }
+      }
+
+      ion-buttons {
+        grid-column: 3;
+        justify-self: end;
+      }
+
+      .close-action-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+}
+
+.qsm-content {
+  --background: var(--ion-background-color, #0e0e0e);
+}
+
+.form-container {
+  padding: 1rem;
+}
+
+.qsm-intro {
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.field-section {
+  margin-bottom: 1.5rem;
+}
+
+.field-label {
+  margin-bottom: 0.5rem;
+
+  .label-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.input-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.input-field {
+  flex: 1;
+
+  ion-input {
+    width: 100%;
+    --border-radius: 8px;
+    --padding-start: 1rem;
+    --padding-end: 1rem;
+    --color: #ffffff;
+  }
+}
+
+// Texto de ayuda FIJO bajo cada campo — antes era solo un placeholder que
+// desaparecía al escribir (el motivo real por el que "no se entendía nada").
+.help-text {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.5);
+}

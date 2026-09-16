@@ -9,20 +9,111 @@
       <span class="account-name">{{ fullName }}</span>
       <span class="account-email" *ngIf="user()?.email">{{ user()?.email }}</span>
     </div>
+    <button type="button" class="edit-profile-button" (click)="openEditPanel()">
+      <ion-icon name="pencil-outline"></ion-icon>
+      Editar perfil
+    </button>
   </div>
 
-  <nav class="account-menu">
-    <button type="button" class="account-menu-item" (click)="openEditPanel()">
-      <ion-icon name="person-outline"></ion-icon>
-      <span>Editar perfil</span>
-      <ion-icon name="chevron-forward-outline" class="account-menu-chevron"></ion-icon>
-    </button>
-    <button type="button" class="account-menu-item" (click)="goToSubscription()">
-      <ion-icon name="card-outline"></ion-icon>
-      <span>Suscripción</span>
-      <ion-icon name="chevron-forward-outline" class="account-menu-chevron"></ion-icon>
-    </button>
-  </nav>
+  <div class="account-grid">
+    <!-- Perfil profesional -->
+    <div class="section-card">
+      <div class="section-title">Perfil profesional</div>
+      <div class="profile-grid">
+        <div class="profile-field">
+          <span class="profile-field-label">Nombre</span>
+          <span class="profile-field-value">{{ user()?.name || '—' }}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Apellidos</span>
+          <span class="profile-field-value">{{ user()?.lastname || '—' }}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Email</span>
+          <span class="profile-field-value">{{ user()?.email || '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clientes -->
+    <div class="stats-row">
+      <div class="stat-tile">
+        <span class="stat-value">{{ clientsCount ?? '—' }}</span>
+        <span class="stat-label">Clientes</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-value">{{ lifetimeClientsCount ?? '—' }}</span>
+        <span class="stat-label">Número de cambios</span>
+      </div>
+    </div>
+
+    <!-- Privacidad y seguridad -->
+    <div class="section-card">
+      <div class="section-title">Privacidad y seguridad</div>
+      <button
+        type="button"
+        class="row-item"
+        *ngFor="let item of securityItems"
+        (click)="item.action()"
+      >
+        <ion-icon [name]="item.icon" [class.danger]="item.danger"></ion-icon>
+        <div class="row-item-text">
+          <span class="row-item-label" [class.danger]="item.danger">{{ item.label }}</span>
+          <span class="row-item-sub">{{ item.sub }}</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="row-item-chevron"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Plan / suscripción (real) -->
+    <div class="section-card plan-card">
+      <div class="plan-card-head">
+        <div class="plan-card-info">
+          <span class="plan-card-eyebrow">Plan actual</span>
+          <div class="plan-card-name">{{ planName }}</div>
+          <span class="plan-card-renewal" *ngIf="entitlements?.isPremium && entitlements?.expiresAt">
+            <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+            Se renueva el {{ entitlements?.expiresAt | date: 'd MMM yyyy' }}
+          </span>
+        </div>
+        <button type="button" class="plan-card-cta" (click)="goToSubscription()">Gestionar suscripción</button>
+      </div>
+      <div class="plan-card-usage" *ngIf="entitlements">
+        <div class="usage-header">
+          <span class="usage-title">Clientes</span>
+          <span class="usage-count">
+            {{ entitlements.usage.clients }}<span *ngIf="entitlements.limits.clients"> / {{ entitlements.limits.clients }}</span>
+          </span>
+        </div>
+        <div class="usage-bar" *ngIf="entitlements.limits.clients">
+          <div class="usage-bar-fill" [style.width.%]="usagePercent"></div>
+        </div>
+        <span class="usage-unlimited" *ngIf="!entitlements.limits.clients">Clientes ilimitados</span>
+      </div>
+    </div>
+
+    <!-- Soporte -->
+    <div class="section-card">
+      <div class="section-title">Soporte</div>
+      <button type="button" class="row-item" *ngFor="let link of supportLinks" (click)="link.action()">
+        <ion-icon [name]="link.icon"></ion-icon>
+        <span class="row-item-label flex-1">{{ link.label }}</span>
+        <ion-icon name="chevron-forward-outline" class="row-item-chevron"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Acerca de (real) -->
+    <div class="section-card">
+      <div class="section-title">Acerca de</div>
+      <div class="about-row">
+        <span>Versión</span>
+        <span class="about-value">{{ appVersion }}</span>
+      </div>
+      <a [href]="LINKS.privacyAndPolicy" target="_blank" rel="noopener" class="about-link">Política de privacidad</a>
+      <a [href]="LINKS.termsAndConditions" target="_blank" rel="noopener" class="about-link">Términos y condiciones</a>
+      <a [href]="LINKS.us" target="_blank" rel="noopener" class="about-link">Sobre TrainFit</a>
+    </div>
+  </div>
 
   <button type="button" class="logout-button" (click)="confirmLogout()">
     <ion-icon name="log-out-outline"></ion-icon>
@@ -59,6 +150,49 @@
       <ng-container *ngIf="isSavingProfile">
         <ion-spinner name="dots" aria-hidden="true"></ion-spinner>
         <span class="sr-only">Guardando cambios</span>
+      </ng-container>
+    </button>
+  </div>
+
+  <div class="panel-backdrop" *ngIf="showSuggestionPanel" (click)="closeSuggestionPanel()"></div>
+  <div class="panel-sheet" *ngIf="showSuggestionPanel">
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">Enviar sugerencia o incidencia</h3>
+    <p class="panel-subtitle">Cuéntanos qué falla o qué te gustaría ver en la app.</p>
+
+    <div class="suggestion-category-row">
+      <button
+        type="button"
+        *ngFor="let category of suggestionCategories"
+        class="suggestion-category-chip"
+        [class.active]="suggestionCategory === category.key"
+        (click)="selectSuggestionCategory(category.key)"
+      >
+        <ion-icon [name]="category.icon"></ion-icon>
+        {{ category.label }}
+      </button>
+    </div>
+
+    <textarea
+      class="suggestion-textarea"
+      rows="5"
+      placeholder="Escribe aquí tu mensaje..."
+      [(ngModel)]="suggestionMessage"
+    ></textarea>
+    <div class="suggestion-counter" [class.ok]="suggestionMessage.trim().length >= suggestionMinLength">
+      {{ suggestionMessage.trim().length }} / {{ suggestionMinLength }} mínimo
+    </div>
+
+    <button
+      class="submit-button"
+      (click)="submitSuggestion()"
+      [disabled]="suggestionMessage.trim().length < suggestionMinLength || isSendingSuggestion"
+      [attr.aria-busy]="isSendingSuggestion"
+    >
+      <span *ngIf="!isSendingSuggestion">Enviar</span>
+      <ng-container *ngIf="isSendingSuggestion">
+        <ion-spinner name="dots" aria-hidden="true"></ion-spinner>
+        <span class="sr-only">Enviando</span>
       </ng-container>
     </button>
   </div>

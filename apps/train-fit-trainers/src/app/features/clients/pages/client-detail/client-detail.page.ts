@@ -868,7 +868,11 @@ export class ClientDetailPage implements OnInit {
   // resto de la app: series con expectedReps[], no todas las series (una
   // serie sin rango prescrito no es incumplimiento, es un dato que no
   // aplica).
-  public get completedDaysMap(): Map<string, CompletedDay> {
+  // Se recalcula SOLO cuando cambian los entrenamientos (ver
+  // computeCompletedWorkouts), no en cada lectura.
+  public completedDaysMap = new Map<string, CompletedDay>();
+
+  private buildCompletedDaysMap(): Map<string, CompletedDay> {
     const map = new Map<string, CompletedDay>();
     for (const workout of this.completedWorkouts) {
       if (!workout.date) continue;
@@ -898,15 +902,20 @@ export class ClientDetailPage implements OnInit {
   // nueva (ver <app-training-day-detail>).
   public trainingSelectedDay: string | null = null;
 
-  public get trainingSelectedDayWorkouts(): CompletedWorkoutEntry[] {
-    if (!this.trainingSelectedDay) return [];
-    return this.completedWorkouts.filter(
-      (w) => w.date && new Date(w.date as Date).toISOString().slice(0, 10) === this.trainingSelectedDay
-    );
-  }
+  // Campo, no getter: un getter aquí devuelve un array NUEVO en cada ciclo de
+  // detección de cambios (Angular lo llama varias veces por ciclo), y ese
+  // array alimenta el *ngFor de <app-training-day-detail> sin trackBy — con
+  // referencias distintas cada vez, Angular lo trata como "todo ha cambiado"
+  // y destruye/recrea las tarjetas en cada ciclo, sin parar. Al calcularlo
+  // solo aquí (una vez por selección real), la referencia se mantiene estable
+  // entre ciclos.
+  public trainingSelectedDayWorkouts: CompletedWorkoutEntry[] = [];
 
   public onTrainingDaySelected(date: string): void {
     this.trainingSelectedDay = date;
+    this.trainingSelectedDayWorkouts = this.completedWorkouts.filter(
+      (w) => w.date && new Date(w.date as Date).toISOString().slice(0, 10) === date
+    );
   }
 
   public loadTrainingBlocks(): void {
@@ -1138,40 +1147,46 @@ export class ClientDetailPage implements OnInit {
   }
 
   // Tarea 4bis (2026-09) — "me he equivocado" / cliente lesionado: quitar
-  // una fase programada antes de que empiece. Mismo patrón de confirmación
-  // que confirmDeleteTable (showAlert con botón de peligro).
+  // una fase programada antes de que empiece.
+  //
+  // 2026-09 — mismo criterio que confirmCancelPlanPhase en Nutrición: la
+  // confirmación pasó de `ion-alert` (diálogo aparte, tapando el resto de
+  // la ficha) a dos botones pequeños INLINE en el propio sitio de "Quitar
+  // fase" — pedir confirmación sobre UNA fila de una lista no necesita
+  // interrumpir toda la pantalla.
   public cancellingRoutinePhaseId: string | null = null;
+  // Fase para la que están abiertos los botones "Cancelar/Quitar" — como
+  // mucho una a la vez (pedir para otra cierra la anterior sin tocarla).
+  public confirmingCancelRoutinePhaseId: string | null = null;
 
-  public async confirmCancelRoutinePhase(phase: RoutineAssignment, event: Event): Promise<void> {
+  public requestCancelRoutinePhase(phase: RoutineAssignment, event: Event): void {
     event.stopPropagation();
-    await this.ionicUtilService.showAlert({
-      header: 'Quitar fase programada',
-      message: `¿Seguro que quieres quitar "${phase.tableName}", programada para el ${this.formatShortDate(phase.startDate)}?`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Quitar',
-          cssClass: 'alert-button-danger',
-          handler: () => {
-            this.cancellingRoutinePhaseId = phase._id;
-            this.routineAssignmentApi.cancel(this.clientId, phase._id).subscribe({
-              next: () => {
-                this.cancellingRoutinePhaseId = null;
-                this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
-                this.loadActiveRoutine();
-                this.loadTraining();
-              },
-              error: (err) => {
-                this.cancellingRoutinePhaseId = null;
-                this.ionicUtilService.showToast({
-                  message: err?.error?.message || 'No se pudo quitar la fase',
-                  duration: 2500,
-                });
-              },
-            });
-          },
-        },
-      ],
+    this.confirmingCancelRoutinePhaseId = phase._id;
+  }
+
+  public dismissCancelRoutinePhase(event: Event): void {
+    event.stopPropagation();
+    this.confirmingCancelRoutinePhaseId = null;
+  }
+
+  public confirmCancelRoutinePhase(phase: RoutineAssignment, event: Event): void {
+    event.stopPropagation();
+    this.confirmingCancelRoutinePhaseId = null;
+    this.cancellingRoutinePhaseId = phase._id;
+    this.routineAssignmentApi.cancel(this.clientId, phase._id).subscribe({
+      next: () => {
+        this.cancellingRoutinePhaseId = null;
+        this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
+        this.loadActiveRoutine();
+        this.loadTraining();
+      },
+      error: (err) => {
+        this.cancellingRoutinePhaseId = null;
+        this.ionicUtilService.showToast({
+          message: err?.error?.message || 'No se pudo quitar la fase',
+          duration: 2500,
+        });
+      },
     });
   }
 
@@ -1191,6 +1206,7 @@ export class ClientDetailPage implements OnInit {
         assignmentId: phase._id,
         fixedTableName: phase.tableName || '',
         suggestedStartDate: phase.startDate,
+        phases: this.routinePhases,
       },
     });
     await modal.present();
@@ -1214,14 +1230,6 @@ export class ClientDetailPage implements OnInit {
     );
   }
 
-  private formatShortDate(iso: string): string {
-    return new Date(`${iso}T00:00:00.000Z`).toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short',
-      timeZone: 'UTC',
-    });
-  }
-
   public async openApplyRoutinePhaseModal(): Promise<void> {
     // Sin endDate del que encadenar: si ya hay una última fase, se sugiere
     // "mañana" (una rutina se presume vigente hasta que se sustituya, no
@@ -1238,6 +1246,7 @@ export class ClientDetailPage implements OnInit {
         clientName: this.name,
         suggestedStartDate: ultima ? manana.toISOString().slice(0, 10) : null,
         previousPhaseName: ultima?.tableName || '',
+        phases: this.routinePhases,
       },
     });
     await modal.present();
@@ -1250,66 +1259,67 @@ export class ClientDetailPage implements OnInit {
   }
 
   // --- Tarea 4 (2026-09): proyección de la rutina sobre el calendario ---
-  // splitId/splitName (2026-09, ver plan de rediseño visual): derivados en
-  // frontend cruzando workoutId (ya presente en RoutineScheduleDay) contra
-  // splits[].workouts[] de la tabla en uso — null si no hay match (días de
-  // descanso, o mientras faltan tables/routinePhases por llegar).
+  // Fase A2 (2026-09) — phaseId/phaseName/phaseColor (no splitId/splitName):
+  // antes esto se derivaba cruzando workoutId contra la tabla de la fase
+  // EN USO nada más, así que en cuanto /active/schedule empezó a devolver
+  // días de VARIAS fases (ver routine-assignment-projection.js), los días de
+  // cualquier otra fase se quedaban sin match — de ahí que solo se viera "la
+  // fase que acabas de programar". Ahora cada día ya trae su assignmentId
+  // (de qué fase salió) directamente del backend, y aquí solo se resuelve
+  // contra `routineHistory` — mismo color que ya pintan las tarjetas de
+  // "Fases de entrenamiento" (routinePhaseColor), consistente en toda la
+  // ficha en vez de un algoritmo de color aparte solo para el calendario.
   public projectedTrainingDays: Map<
     string,
-    { isPlannedRestDay: boolean; name: string; splitId: string | null; splitName: string | null }
+    { isPlannedRestDay: boolean; name: string; phaseId: string | null; phaseName: string | null; phaseColor: string | null }
   > = new Map();
   private rawScheduleDays: RoutineScheduleDay[] = [];
+  // Ventana YA pedida al backend — solo crece (unión con cada rango nuevo),
+  // nunca se encoge. Sin esto, elegir un rango de comparación más estrecho
+  // que el actual volvía a pedir el schedule SOLO para ese rango y el fetch
+  // más amplio anterior se perdía: en el propio calendario (que sigue
+  // enseñando el mes de siempre, no el rango elegido) los días que quedaban
+  // fuera del nuevo rango se veían "en blanco" de golpe, aunque un momento
+  // antes sí tenían información.
+  private scheduleWindow: { start: string; end: string } | null = null;
 
   private loadTrainingSchedule(range: { start: string; end: string }): void {
-    this.routineAssignmentApi.getActiveSchedule(this.clientId, range.start, range.end).subscribe({
+    const start = this.scheduleWindow && this.scheduleWindow.start < range.start ? this.scheduleWindow.start : range.start;
+    const end = this.scheduleWindow && this.scheduleWindow.end > range.end ? this.scheduleWindow.end : range.end;
+    this.scheduleWindow = { start, end };
+
+    this.routineAssignmentApi.getActiveSchedule(this.clientId, start, end).subscribe({
       next: (days: RoutineScheduleDay[]) => {
         this.rawScheduleDays = days || [];
         this.rebuildProjectedTrainingDays();
       },
-      error: () => {
-        this.rawScheduleDays = [];
-        this.rebuildProjectedTrainingDays();
-      },
+      // Fallo de red puntual — se conserva lo que ya había cargado en vez de
+      // vaciarlo: un error no debe borrar del calendario información que ya
+      // se había visto.
+      error: () => undefined,
     });
   }
 
-  // tables (loadTraining) y routinePhases (loadActiveRoutine) llegan por
-  // fetches async independientes del schedule: se reconstruye cada vez que
-  // cualquiera de las tres piezas cambia, para no depender del orden de
-  // llegada entre ellas.
+  // routineHistory (loadActiveRoutine) llega por un fetch async
+  // independiente del schedule: se reconstruye cada vez que cualquiera de
+  // los dos cambia, para no depender del orden de llegada entre ellos.
   private rebuildProjectedTrainingDays(): void {
-    const splitByWorkoutId = this.buildWorkoutSplitMap();
+    const phaseById = new Map(this.routineHistory.map((phase) => [phase._id, phase]));
     this.projectedTrainingDays = new Map(
       this.rawScheduleDays.map((d) => {
-        const split = d.workoutId ? splitByWorkoutId.get(d.workoutId) : undefined;
+        const phase = phaseById.get(d.assignmentId) ?? null;
         return [
           d.date,
           {
             isPlannedRestDay: d.isPlannedRestDay,
             name: d.name,
-            splitId: split?.splitId ?? null,
-            splitName: split?.splitName ?? null,
+            phaseId: phase?._id ?? null,
+            phaseName: phase?.tableName ?? null,
+            phaseColor: phase ? this.routinePhaseColor(phase) : null,
           },
         ];
       })
     );
-  }
-
-  // Deriva el split de cada workout de la tabla EN USO cruzando workoutId
-  // (ya presente en RoutineScheduleDay) contra splits[].workouts[] — sin
-  // endpoint nuevo. Mismo patrón de iteración que computeCompletedWorkouts().
-  private buildWorkoutSplitMap(): Map<string, { splitId: string; splitName: string }> {
-    const map = new Map<string, { splitId: string; splitName: string }>();
-    const tableId = this.currentRoutinePhase?.tableId;
-    if (!tableId) return map;
-    const table = this.tables.find((t) => t._id === tableId);
-    if (!table) return map;
-    for (const split of table.splits || []) {
-      for (const workout of split.workouts || []) {
-        map.set(workout._id, { splitId: split._id, splitName: split.name || 'Microciclo' });
-      }
-    }
-    return map;
   }
 
   // --- Medidas (antropometría) ---
@@ -1539,6 +1549,7 @@ export class ClientDetailPage implements OnInit {
       (a, b) =>
         new Date(b.date as Date).getTime() - new Date(a.date as Date).getTime()
     );
+    this.completedDaysMap = this.buildCompletedDaysMap();
   }
 
   // Movimiento 2 Coach Pro — "Cuádriceps 4 · Glúteo 3". Devuelve cadena
