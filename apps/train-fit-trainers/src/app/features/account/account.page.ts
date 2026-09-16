@@ -28,26 +28,25 @@ interface SecurityItem {
   danger?: boolean;
 }
 
-interface NotificationItem {
-  label: string;
-  on: boolean;
-}
-
-interface NotificationGroup {
-  title: string;
-  items: NotificationItem[];
-}
-
-interface IntegrationItem {
-  name: string;
-  icon: string;
-}
-
 interface SupportLink {
   label: string;
   icon: string;
   action: () => void;
 }
+
+type SuggestionCategoryKey = 'suggestion' | 'bug' | 'other';
+
+interface SuggestionCategory {
+  key: SuggestionCategoryKey;
+  label: string;
+  icon: string;
+}
+
+const SUGGESTION_CATEGORY_TAG: Record<SuggestionCategoryKey, string> = {
+  suggestion: 'Sugerencia',
+  bug: 'Error',
+  other: 'Otro',
+};
 
 // "Mi cuenta" — antes reutilizaba el ProfilePage compartido con
 // train-fit-front/train-fit-management (pantalla de macros/dieta/premium del
@@ -56,12 +55,13 @@ interface SupportLink {
 // nunca el componente de pantalla compartido — así no afecta a las otras 2
 // apps del monorepo. Ver MVP-trainers/tareas-grandes/TAREA5.
 //
-// Rediseño 2026-09 (mockup "TrainFit Panel"): las secciones nuevas mezclan
-// datos reales (perfil básico, nº de clientes, plan/suscripción) con
-// funciones que todavía no existen en el backend (disponibilidad,
-// integraciones, 2FA, notificaciones propias de trainer). Estas últimas se
-// muestran solo a nivel visual — el tap dispara comingSoon() en vez de
-// fingir una acción que no hace nada, mismo patrón que ya usa
+// Rediseño 2026-09 (mockup "TrainFit Panel"): las secciones mezclan datos
+// reales (perfil básico, nº de clientes, plan/suscripción, cambiar
+// contraseña, eliminar cuenta, enviar sugerencia) con la disponibilidad
+// semanal y algunos ítems de seguridad que todavía no existen en el backend
+// (2FA, dispositivos conectados, exportar datos). Estos últimos se muestran
+// solo a nivel visual — el tap dispara comingSoon() en vez de fingir una
+// acción que no hace nada, mismo patrón que ya usa
 // SubscriptionPage.subscribe() para los pagos in-app.
 @Component({
   selector: 'app-account',
@@ -87,23 +87,20 @@ export class AccountPage implements OnInit {
   public formLastname = '';
   public formEmail = '';
 
-  public clientsCount: number | null = null;
-  public entitlements: TrainerEntitlements | null = null;
-
-  // Campos de perfil profesional que el modelo de usuario aún no tiene
-  // (teléfono, ciudad, país, especialidad, años de experiencia,
-  // certificaciones) — se muestran como "Sin definir" en vez de inventar un
-  // valor, hasta que el backend los soporte.
-  public readonly professionalPlaceholderFields = [
-    'Teléfono',
-    'Ciudad',
-    'País',
-    'Especialidad principal',
-    'Años de experiencia',
-    'Certificaciones',
+  public showSuggestionPanel = false;
+  public isSendingSuggestion = false;
+  public suggestionCategory: SuggestionCategoryKey = 'suggestion';
+  public suggestionMessage = '';
+  public readonly suggestionMinLength = 20;
+  public readonly suggestionCategories: SuggestionCategory[] = [
+    { key: 'suggestion', label: 'Sugerencia', icon: 'bulb-outline' },
+    { key: 'bug', label: 'Error', icon: 'bug-outline' },
+    { key: 'other', label: 'Otro', icon: 'chatbubble-ellipses-outline' },
   ];
 
-  public readonly weekDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  public clientsCount: number | null = null;
+  public lifetimeClientsCount: number | null = null;
+  public entitlements: TrainerEntitlements | null = null;
 
   public readonly securityItems: SecurityItem[] = [
     {
@@ -145,52 +142,12 @@ export class AccountPage implements OnInit {
     },
   ];
 
-  public readonly notificationGroups: NotificationGroup[] = [
-    {
-      title: 'Clientes',
-      items: [
-        { label: 'Nuevo cliente', on: true },
-        { label: 'Cliente vinculado', on: true },
-        { label: 'Cliente desvinculado', on: false },
-      ],
-    },
-    {
-      title: 'Check-ins',
-      items: [
-        { label: 'Check-in recibido', on: true },
-        { label: 'Check-in pendiente', on: true },
-        { label: 'Check-in atrasado', on: true },
-      ],
-    },
-    {
-      title: 'Mensajes',
-      items: [
-        { label: 'Nuevo mensaje', on: true },
-        { label: 'Recordatorios', on: false },
-      ],
-    },
-    {
-      title: 'Sistema',
-      items: [
-        { label: 'Actualizaciones', on: true },
-        { label: 'Novedades', on: false },
-      ],
-    },
-  ];
-
-  public readonly integrations: IntegrationItem[] = [
-    { name: 'Apple Health', icon: 'heart-outline' },
-    { name: 'Google Fit', icon: 'fitness-outline' },
-    { name: 'Garmin', icon: 'watch-outline' },
-    { name: 'Strava', icon: 'bicycle-outline' },
-  ];
-
   public readonly supportLinks: SupportLink[] = [
     { label: 'Centro de ayuda', icon: 'help-circle-outline', action: () => this.comingSoon() },
     {
       label: 'Enviar sugerencia o incidencia',
       icon: 'chatbubbles-outline',
-      action: () => this.sendSupportMessage(),
+      action: () => this.openSuggestionPanel(),
     },
   ];
 
@@ -232,6 +189,11 @@ export class AccountPage implements OnInit {
     this.trainerClientsApi.getMyClients().subscribe({
       next: (clients) => (this.clientsCount = clients.length),
       error: () => (this.clientsCount = null),
+    });
+
+    this.trainerClientsApi.getLifetimeClientsCount().subscribe({
+      next: ({ total }) => (this.lifetimeClientsCount = total),
+      error: () => (this.lifetimeClientsCount = null),
     });
 
     this.trainerBillingApi.getEntitlements().subscribe({
@@ -314,54 +276,47 @@ export class AccountPage implements OnInit {
     });
   }
 
-  public sendSupportMessage(): void {
-    void this.ionicUtilService.showAlert({
-      header: 'Enviar sugerencia o incidencia',
-      message: 'Cuéntanos qué falla o qué te gustaría ver en la app.',
-      inputs: [
-        {
-          name: 'message',
-          type: 'textarea',
-          placeholder: 'Escribe aquí tu mensaje (mínimo 20 caracteres)',
-        },
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Enviar',
-          cssClass: 'alert-button-primary',
-          handler: (data) => {
-            const message = (data?.message || '').trim();
-            if (message.length < 20) {
-              void this.ionicUtilService.showToast({
-                message: 'Escribe al menos 20 caracteres',
-                color: 'warning',
-                duration: 2000,
-              });
-              return false;
-            }
+  public openSuggestionPanel(): void {
+    this.suggestionCategory = 'suggestion';
+    this.suggestionMessage = '';
+    this.showSuggestionPanel = true;
+  }
 
-            const email = this.user()?.email || '';
-            this.userService.sendSuggestions(email, message).subscribe({
-              next: () => {
-                void this.ionicUtilService.showToast({
-                  message: '¡Gracias por tu mensaje!',
-                  color: 'success',
-                  duration: 2000,
-                });
-              },
-              error: () => {
-                void this.ionicUtilService.showToast({
-                  message: 'No se pudo enviar, inténtalo de nuevo',
-                  color: 'danger',
-                  duration: 2500,
-                });
-              },
-            });
-            return true;
-          },
-        },
-      ],
+  public closeSuggestionPanel(): void {
+    if (this.isSendingSuggestion) return;
+    this.showSuggestionPanel = false;
+  }
+
+  public selectSuggestionCategory(key: SuggestionCategoryKey): void {
+    this.suggestionCategory = key;
+  }
+
+  public submitSuggestion(): void {
+    const trimmed = this.suggestionMessage.trim();
+    if (trimmed.length < this.suggestionMinLength || this.isSendingSuggestion) return;
+
+    const tag = SUGGESTION_CATEGORY_TAG[this.suggestionCategory];
+    const email = this.user()?.email || '';
+
+    this.isSendingSuggestion = true;
+    this.userService.sendSuggestions(email, `[${tag}] ${trimmed}`).subscribe({
+      next: () => {
+        this.isSendingSuggestion = false;
+        this.showSuggestionPanel = false;
+        void this.ionicUtilService.showToast({
+          message: '¡Gracias por tu mensaje!',
+          color: 'success',
+          duration: 2000,
+        });
+      },
+      error: () => {
+        this.isSendingSuggestion = false;
+        void this.ionicUtilService.showToast({
+          message: 'No se pudo enviar, inténtalo de nuevo',
+          color: 'danger',
+          duration: 2500,
+        });
+      },
     });
   }
 

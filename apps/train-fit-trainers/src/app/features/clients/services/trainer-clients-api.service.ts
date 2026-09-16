@@ -30,4 +30,11 @@ export class TrainerClientsApiService {
       `${TrainerClientsApiService.ENDPOINT}/paginated?${params.toString()}`
     );
   }
+
+  // "Mi cuenta" > tarjeta "Número de cambios" — clientes distintos que en
+  // algún momento llegaron a estar activos con este trainer, sigan vinculados
+  // hoy o no (turnover). Ruta propia y aditiva, no toca getMyClients().
+  public getLifetimeClientsCount(): Observable<{ total: number }> {
+    return this.http.get<{ total: number }>(`${TrainerClientsApiService.ENDPOINT}/lifetime-count`);
+  }
 }

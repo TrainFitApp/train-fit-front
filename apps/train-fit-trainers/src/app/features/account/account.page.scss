@@ -98,29 +98,31 @@
   }
 }
 
-// --- Resumen (clientes, experiencia, valoración) ---
+// --- Resumen (clientes actuales / histórico) — ocupa el hueco que antes
+// era la tarjeta "Disponibilidad" dentro de account-grid ---
 .stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   gap: var(--tf-space-3);
-  margin-bottom: var(--tf-space-5);
 }
 
 .stat-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-md);
-  padding: var(--tf-space-3);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-4) var(--tf-space-3);
   @include tf-card-in-animation;
   animation-delay: 20ms;
 }
 
 .stat-value {
-  font-size: var(--tf-font-size-lg);
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--tf-text);
 }
@@ -140,12 +142,6 @@
 
   @media (min-width: 768px) {
     grid-template-columns: 1fr 1fr;
-  }
-}
-
-.span-2 {
-  @media (min-width: 768px) {
-    grid-column: 1 / -1;
   }
 }
 
@@ -195,55 +191,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-
-  &.placeholder {
-    color: var(--tf-text-faint);
-    font-style: italic;
-  }
-}
-
-// --- Disponibilidad ---
-.availability-row {
-  display: flex;
-  gap: var(--tf-space-1);
-  margin-bottom: var(--tf-space-4);
-}
-
-.availability-day {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 36px;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border-subtle);
-  border-radius: var(--tf-radius-sm);
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  color: var(--tf-text-secondary);
-}
-
-.secondary-button {
-  width: 100%;
-  height: var(--tf-touch-min);
-  background: var(--tf-surface-3);
-  color: var(--tf-text);
-  border: 1px solid var(--tf-border-strong);
-  border-radius: var(--tf-radius-md);
-  font-size: var(--tf-font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background var(--tf-duration-fast) var(--tf-ease-out);
-
-  &:active {
-    background: var(--tf-surface-4);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--tf-accent);
-    outline-offset: 2px;
-  }
 }
 
 // --- Plan actual (datos reales de TrainerBillingApiService) ---
@@ -415,110 +362,6 @@
   flex-shrink: 0;
 }
 
-// --- Notificaciones ---
-.notif-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--tf-space-4);
-
-  @media (min-width: 560px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.notif-group-title {
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  color: var(--tf-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: var(--tf-space-2);
-}
-
-.notif-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--tf-space-2);
-  padding: 6px 0;
-}
-
-.notif-label {
-  font-size: var(--tf-font-size-sm);
-  color: var(--tf-text-secondary);
-}
-
-// --- Integraciones ---
-.integrations-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--tf-space-3);
-
-  @media (min-width: 560px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.integration-row {
-  display: flex;
-  align-items: center;
-  gap: var(--tf-space-3);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-md);
-  padding: var(--tf-space-3);
-
-  > ion-icon {
-    font-size: 22px;
-    color: var(--tf-text-secondary);
-    flex-shrink: 0;
-  }
-}
-
-.integration-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-}
-
-.integration-name {
-  font-size: var(--tf-font-size-sm);
-  font-weight: 500;
-  color: var(--tf-text);
-}
-
-.integration-status {
-  font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-muted);
-}
-
-.integration-connect {
-  flex-shrink: 0;
-  height: 32px;
-  padding: 0 var(--tf-space-3);
-  background: var(--tf-accent);
-  color: var(--tf-accent-contrast);
-  border: none;
-  border-radius: var(--tf-radius-sm);
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-
-  &:active {
-    opacity: 0.85;
-  }
-}
-
 // --- Acerca de (datos reales) ---
 .about-row {
   display: flex;
@@ -610,6 +453,90 @@
   font-weight: 700;
   color: var(--tf-text);
   margin: 0 0 14px;
+}
+
+.panel-subtitle {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+  margin: -8px 0 16px;
+}
+
+// --- Panel: enviar sugerencia (bottom sheet) ---
+.suggestion-category-row {
+  display: flex;
+  gap: var(--tf-space-2);
+  margin-bottom: 14px;
+}
+
+.suggestion-category-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--tf-space-2) var(--tf-space-1);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &.active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.suggestion-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  padding: var(--tf-space-3);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: var(--tf-line-height-base);
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible,
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.suggestion-counter {
+  text-align: right;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  margin: 6px 0 14px;
+
+  &.ok {
+    color: var(--tf-success);
+  }
 }
 
 .input-wrapper {

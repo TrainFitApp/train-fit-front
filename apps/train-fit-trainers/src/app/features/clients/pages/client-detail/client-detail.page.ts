@@ -1147,40 +1147,46 @@ export class ClientDetailPage implements OnInit {
   }
 
   // Tarea 4bis (2026-09) — "me he equivocado" / cliente lesionado: quitar
-  // una fase programada antes de que empiece. Mismo patrón de confirmación
-  // que confirmDeleteTable (showAlert con botón de peligro).
+  // una fase programada antes de que empiece.
+  //
+  // 2026-09 — mismo criterio que confirmCancelPlanPhase en Nutrición: la
+  // confirmación pasó de `ion-alert` (diálogo aparte, tapando el resto de
+  // la ficha) a dos botones pequeños INLINE en el propio sitio de "Quitar
+  // fase" — pedir confirmación sobre UNA fila de una lista no necesita
+  // interrumpir toda la pantalla.
   public cancellingRoutinePhaseId: string | null = null;
+  // Fase para la que están abiertos los botones "Cancelar/Quitar" — como
+  // mucho una a la vez (pedir para otra cierra la anterior sin tocarla).
+  public confirmingCancelRoutinePhaseId: string | null = null;
 
-  public async confirmCancelRoutinePhase(phase: RoutineAssignment, event: Event): Promise<void> {
+  public requestCancelRoutinePhase(phase: RoutineAssignment, event: Event): void {
     event.stopPropagation();
-    await this.ionicUtilService.showAlert({
-      header: 'Quitar fase programada',
-      message: `¿Seguro que quieres quitar "${phase.tableName}", programada para el ${this.formatShortDate(phase.startDate)}?`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Quitar',
-          cssClass: 'alert-button-danger',
-          handler: () => {
-            this.cancellingRoutinePhaseId = phase._id;
-            this.routineAssignmentApi.cancel(this.clientId, phase._id).subscribe({
-              next: () => {
-                this.cancellingRoutinePhaseId = null;
-                this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
-                this.loadActiveRoutine();
-                this.loadTraining();
-              },
-              error: (err) => {
-                this.cancellingRoutinePhaseId = null;
-                this.ionicUtilService.showToast({
-                  message: err?.error?.message || 'No se pudo quitar la fase',
-                  duration: 2500,
-                });
-              },
-            });
-          },
-        },
-      ],
+    this.confirmingCancelRoutinePhaseId = phase._id;
+  }
+
+  public dismissCancelRoutinePhase(event: Event): void {
+    event.stopPropagation();
+    this.confirmingCancelRoutinePhaseId = null;
+  }
+
+  public confirmCancelRoutinePhase(phase: RoutineAssignment, event: Event): void {
+    event.stopPropagation();
+    this.confirmingCancelRoutinePhaseId = null;
+    this.cancellingRoutinePhaseId = phase._id;
+    this.routineAssignmentApi.cancel(this.clientId, phase._id).subscribe({
+      next: () => {
+        this.cancellingRoutinePhaseId = null;
+        this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
+        this.loadActiveRoutine();
+        this.loadTraining();
+      },
+      error: (err) => {
+        this.cancellingRoutinePhaseId = null;
+        this.ionicUtilService.showToast({
+          message: err?.error?.message || 'No se pudo quitar la fase',
+          duration: 2500,
+        });
+      },
     });
   }
 
@@ -1222,14 +1228,6 @@ export class ClientDetailPage implements OnInit {
         (phase) => phase.tableId === tableId && !this.isCurrentRoutinePhase(phase)
       ) || null
     );
-  }
-
-  private formatShortDate(iso: string): string {
-    return new Date(`${iso}T00:00:00.000Z`).toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short',
-      timeZone: 'UTC',
-    });
   }
 
   public async openApplyRoutinePhaseModal(): Promise<void> {

@@ -518,10 +518,9 @@
 }
 
 // Cabecera de la fase EN USO — mismo lenguaje visual que .active-plan-header
-// de Nutrición (icono + nombre/fecha apilados en una sola fila), pero sin
-// convertir la fila en botón: la única acción de la cabecera es "Quitar
-// fase" (icono a la derecha); "Abrir en el Planificador" ya es su propio
-// botón, debajo.
+// de Nutrición (icono + nombre/fecha apilados en una sola fila), sin
+// convertir la fila en botón. "Quitar fase" ya no vive aquí — es
+// .phase-remove-link, al pie de la tarjeta (ver client-detail.page.html).
 .routine-phase-header {
   display: flex;
   align-items: center;
@@ -556,14 +555,33 @@
   color: var(--tf-text-muted);
 }
 
+// Reutiliza .phase-remove-link/.phase-remove-confirm (ver más abajo) en vez
+// de un segundo icono danger — mismo criterio que Nutrición. "Cambiar
+// fecha" ya no comparte flex:1 con un icono gemelo: ahora es el único icono
+// de la fila, así que se queda a su ancho natural y el enlace de texto
+// ocupa el resto (space-between). Confirmando, "Cambiar fecha" se oculta
+// (ver *ngIf en la plantilla) y .phase-remove-confirm coge la fila entera.
 .next-phase-card__actions {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--tf-space-2);
   margin-top: auto;
   padding-top: var(--tf-space-2);
 
   .bulk-apply-btn {
-    flex: 1;
+    flex: 0 0 auto;
+  }
+
+  // .phase-remove-link/.phase-remove-confirm traen `align-self: flex-end`
+  // pensado para su contenedor de origen (.active-plan-actions, en
+  // columna: ahí "flex-end" empuja a la derecha). Esta fila es en fila, no
+  // en columna — ahí ese mismo align-self empujaría hacia ABAJO en vez de
+  // a la derecha. Se neutraliza aquí; space-between en el padre ya coloca
+  // "Quitar fase" al final de la fila.
+  .phase-remove-link,
+  .phase-remove-confirm {
+    align-self: center;
   }
 }
 
@@ -763,8 +781,8 @@
 .open-planner-btn {
   display: flex;
   align-items: center;
+  align-self: flex-start;
   gap: 8px;
-  width: 100%;
   min-height: var(--tf-touch-min);
   padding: 0 12px;
   border: 1px solid var(--tf-accent);

@@ -243,10 +243,10 @@
                 En curso
               </span>
               <!-- Icono + nombre/fecha apilados en una sola fila — mismo
-                   patrón que .active-plan-header de Nutrición (ver ahí), pero
-                   sin convertir la fila en botón: aquí la única acción de la
-                   cabecera es "Quitar fase" (icono a la derecha); "Abrir en
-                   el Planificador" ya es su propio botón, debajo. -->
+                   patrón que .active-plan-header de Nutrición, sin convertir
+                   la fila en botón. "Quitar fase" ya no vive aquí como icono
+                   danger: es una acción secundaria, va al pie de la tarjeta
+                   como texto (ver más abajo) — mismo criterio que Nutrición. -->
               <div class="routine-phase-header">
                 <ion-icon name="checkmark-circle" color="success" aria-hidden="true"></ion-icon>
                 <div class="routine-phase-info">
@@ -258,20 +258,6 @@
                     </ng-container>
                   </span>
                 </div>
-                <!-- Borrado coherente de fases/rutinas — quitar la fase EN USO
-                     ahora mismo ya es una acción válida (el backend restaura
-                     la anterior, o limpia tableInUse si no había ninguna):
-                     mismo botón/handler que las demás filas del historial. -->
-                <button
-                  class="bulk-apply-btn bulk-apply-btn--danger"
-                  title="Quitar fase"
-                  aria-label="Quitar fase"
-                  [disabled]="cancellingRoutinePhaseId === phase._id"
-                  (click)="confirmCancelRoutinePhase(phase, $event)"
-                >
-                  <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
-                  <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
-                </button>
               </div>
 
               <!-- 2026-09 — el Planificador de la rutina EN USO estaba solo
@@ -285,6 +271,37 @@
                 <span>Abrir en el Planificador</span>
                 <ion-icon name="chevron-forward-outline" class="open-planner-chevron" aria-hidden="true"></ion-icon>
               </button>
+
+              <!-- Acción secundaria y destructiva: texto discreto, no un
+                   icono danger compitiendo con "editar"/"abrir". Un segundo
+                   click pide confirmación EN EL SITIO — dos botones pequeños
+                   en vez de un ion-alert tapando la ficha entera. Mismo
+                   patrón que .phase-remove-link/.phase-remove-confirm de
+                   Nutrición — quitar la fase EN USO ahora mismo ya es una
+                   acción válida (el backend restaura la anterior, o limpia
+                   tableInUse si no había ninguna). -->
+              <ng-container *ngIf="confirmingCancelRoutinePhaseId !== phase._id; else confirmActiveRoutineRemove">
+                <button
+                  type="button"
+                  class="phase-remove-link"
+                  [disabled]="cancellingRoutinePhaseId === phase._id"
+                  (click)="requestCancelRoutinePhase(phase, $event)"
+                >
+                  <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
+                  <span *ngIf="cancellingRoutinePhaseId !== phase._id">Quitar fase</span>
+                </button>
+              </ng-container>
+              <ng-template #confirmActiveRoutineRemove>
+                <div class="phase-remove-confirm">
+                  <span class="phase-remove-confirm__label">¿Quitar esta fase?</span>
+                  <button type="button" class="phase-remove-confirm__cancel" (click)="dismissCancelRoutinePhase($event)">
+                    Cancelar
+                  </button>
+                  <button type="button" class="phase-remove-confirm__confirm" (click)="confirmCancelRoutinePhase(phase, $event)">
+                    Quitar
+                  </button>
+                </div>
+              </ng-template>
             </div>
 
             <!-- Tarea 4bis (2026-09) — tarjeta accionable (título + badge +
@@ -304,26 +321,47 @@
                     <br />→ {{ phase.estimatedEndDate | date: 'd MMM' }}
                   </ng-container>
                 </p>
+                <!-- "Quitar fase programada" reutiliza el mismo enlace
+                     inline + confirmación en el sitio que la fase vigente
+                     de arriba (.phase-remove-link/.phase-remove-confirm) en
+                     vez del icono solo-icono de antes — una sola forma de
+                     quitar una fase en toda la ficha, igual que Nutrición.
+                     "Cambiar fecha" se oculta mientras se confirma: la fila
+                     de confirmación necesita el ancho de la tarjeta (180px)
+                     para sí sola. -->
                 <div class="next-phase-card__actions">
                   <button
                     class="bulk-apply-btn"
                     title="Cambiar fecha"
                     aria-label="Cambiar fecha"
+                    *ngIf="confirmingCancelRoutinePhaseId !== phase._id"
                     [disabled]="cancellingRoutinePhaseId === phase._id"
                     (click)="openRescheduleRoutinePhaseModal(phase, $event)"
                   >
                     <ion-icon name="calendar-outline"></ion-icon>
                   </button>
-                  <button
-                    class="bulk-apply-btn bulk-apply-btn--danger"
-                    title="Quitar fase programada"
-                    aria-label="Quitar fase programada"
-                    [disabled]="cancellingRoutinePhaseId === phase._id"
-                    (click)="confirmCancelRoutinePhase(phase, $event)"
-                  >
-                    <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
-                    <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
-                  </button>
+                  <ng-container *ngIf="confirmingCancelRoutinePhaseId !== phase._id; else confirmScheduledRoutineRemove">
+                    <button
+                      type="button"
+                      class="phase-remove-link"
+                      [disabled]="cancellingRoutinePhaseId === phase._id"
+                      (click)="requestCancelRoutinePhase(phase, $event)"
+                    >
+                      <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
+                      <span *ngIf="cancellingRoutinePhaseId !== phase._id">Quitar fase</span>
+                    </button>
+                  </ng-container>
+                  <ng-template #confirmScheduledRoutineRemove>
+                    <div class="phase-remove-confirm">
+                      <span class="phase-remove-confirm__label">¿Quitar esta fase?</span>
+                      <button type="button" class="phase-remove-confirm__cancel" (click)="dismissCancelRoutinePhase($event)">
+                        Cancelar
+                      </button>
+                      <button type="button" class="phase-remove-confirm__confirm" (click)="confirmCancelRoutinePhase(phase, $event)">
+                        Quitar
+                      </button>
+                    </div>
+                  </ng-template>
                 </div>
               </div>
             </ng-container>
