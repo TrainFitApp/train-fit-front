@@ -41,4 +41,10 @@ export interface RoutineScheduleDay {
   workoutId: string;
   name: string;
   isPlannedRestDay: boolean;
+  // Fase A2 (2026-09) — qué RoutineAssignment produjo este día. Antes
+  // /active/schedule solo proyectaba "la fase activa" sobre todo el rango
+  // pedido; ahora recorre TODAS las fases del cliente y cada día lleva la
+  // suya, para poder colorear el calendario por fase de verdad (no
+  // adivinarlo cruzando workoutId contra una sola tabla).
+  assignmentId: string;
 }

@@ -90,12 +90,6 @@ export class ShellPage implements OnInit, OnDestroy {
         { label: 'Mi método', path: '/tabs/method', icon: 'construct-outline', matchPrefix: true },
       ]),
     },
-    {
-      label: null,
-      items: buildMenuItems([
-        { label: 'Configuración', path: '/tabs/configuration', icon: 'settings-outline' },
-      ]),
-    },
   ];
 
   // Acceso plano para la lógica de badges — recorrer grupos cada vez que

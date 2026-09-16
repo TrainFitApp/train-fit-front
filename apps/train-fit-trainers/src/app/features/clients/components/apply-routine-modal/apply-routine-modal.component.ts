@@ -31,6 +31,12 @@ export class ApplyRoutineModalComponent implements OnInit {
   @Input() public mode: 'apply' | 'reschedule' = 'apply';
   @Input() public assignmentId: string | null = null;
   @Input() public fixedTableName = '';
+  // Fase A1 (2026-09) — fases ya programadas de este cliente, para pintarlas
+  // en <app-phase-schedule-calendar> al elegir fecha. En modo reschedule se
+  // excluye la propia fase que se está moviendo (ver `phasesForPicker`): de
+  // lo contrario el calendario mostraría "ocupado" justo el hueco que se
+  // está reprogramando.
+  @Input() public phases: RoutineAssignment[] = [];
 
   // Sin endDate del que encadenar: si ya hay una última fase, se sugiere
   // "mañana" (una rutina se presume vigente hasta que se sustituya, no hay
@@ -70,6 +76,31 @@ export class ApplyRoutineModalComponent implements OnInit {
 
   public select(table: ClientTable): void {
     this.selectedTableId = table._id;
+  }
+
+  public get phasesForPicker(): RoutineAssignment[] {
+    return this.mode === 'reschedule'
+      ? this.phases.filter((phase) => phase._id !== this.assignmentId)
+      : this.phases;
+  }
+
+  public onDateSelected(date: string): void {
+    this.startDate = date;
+  }
+
+  // Angular DatePipe con 'EEEE'/'MMM' sale en inglés sin LOCALE_ID registrado
+  // (no lo está en esta app — ver formatShortDate en client-detail.page.ts,
+  // que por eso mismo ya usa Intl a mano en vez del pipe). Mismo criterio
+  // aquí: nombres de día/mes en español SIEMPRE en minúscula (no es un
+  // inicio de frase), así que no hace falta ni text-transform:capitalize.
+  public get selectedDateLabel(): string {
+    return new Date(`${this.startDate}T00:00:00.000Z`).toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
   }
 
   public trackByTableId(_index: number, table: ClientTable): string {

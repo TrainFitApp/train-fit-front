@@ -1,0 +1,42 @@
+<div class="phase-calendar">
+  <div class="phase-calendar__header">
+    <button type="button" class="phase-calendar__nav-btn" aria-label="Mes anterior" (click)="previousMonth()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+    <span class="phase-calendar__month-label">{{ monthLabel }}</span>
+    <button type="button" class="phase-calendar__nav-btn" aria-label="Mes siguiente" (click)="nextMonth()">
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+  </div>
+
+  <div class="phase-calendar__weekdays">
+    <span *ngFor="let label of weekdayLabels">{{ label }}</span>
+  </div>
+
+  <div class="phase-calendar__grid">
+    <button
+      type="button"
+      class="phase-calendar__cell"
+      *ngFor="let cell of cells; trackBy: trackByCell"
+      [class.is-blank]="!cell.date"
+      [class.is-today]="!!cell.date && cell.date === todayIso"
+      [class.is-past]="!!cell.date && cell.date < todayIso"
+      [class.is-selected]="!!cell.date && cell.date === selectedDate"
+      [class.has-phase]="!!cell.phase"
+      [disabled]="!cell.date"
+      [style.--phase-color]="phaseColor(cell)"
+      [style.--phase-bg]="phaseSoftBackground(cell)"
+      [attr.title]="cellTitle(cell)"
+      (click)="selectDay(cell)"
+    >
+      <span class="phase-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
+    </button>
+  </div>
+
+  <div class="phase-calendar__legend" *ngIf="legend.length">
+    <span class="legend-item" *ngFor="let item of legend">
+      <span class="legend-swatch" [style.background]="item.color"></span>
+      {{ item.label }}
+    </span>
+  </div>
+</div>

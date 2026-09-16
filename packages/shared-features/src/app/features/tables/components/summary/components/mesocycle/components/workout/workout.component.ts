@@ -688,7 +688,10 @@ export class WorkoutComponent implements OnDestroy {
             });
             this.tableService.setCurrentTable = this.tableInUse;
 
-            if (this.user.workoutInUse) {
+            // `user` no llega en plannerMode (el entrenador edita la tabla de
+            // OTRO, no hay "usuario actual" cuyo workoutInUse tocar) — mismo
+            // guard opcional que ya usa stopWorkout() más arriba.
+            if (this.user?.workoutInUse) {
               delete this.user.workoutInUse;
               this.workoutService.setCurrentWorkout = undefined;
               this.userService.updateUser(this.user).subscribe();
@@ -773,7 +776,8 @@ export class WorkoutComponent implements OnDestroy {
         workout.rest = rest;
         if (rest) {
           delete workout.date;
-          if (this.user.workoutInUse === workout._id) {
+          // `user` no llega en plannerMode — ver deleteWorkouts() más arriba.
+          if (this.user?.workoutInUse === workout._id) {
             delete this.user.workoutInUse;
           }
         }

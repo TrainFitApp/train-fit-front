@@ -198,17 +198,6 @@ const routes: Routes = [
           ),
       },
       {
-        // Alcanzable desde el menú lateral. Código compartido
-        // (NavigationService.goToConfiguration en shared-core) navega con la
-        // ruta absoluta 'configuration' — resuelta aquí vía redirect en
-        // app-routing.module.ts, no rompe al vivir anidada.
-        path: 'configuration',
-        loadChildren: () =>
-          import(
-            'src/app/features/profile/components/configuration/configuration.module'
-          ).then((m) => m.ConfigurationPageModule),
-      },
-      {
         // MVP-trainers F02 — paywall/suscripción del profesional.
         path: 'subscription',
         data: { parent: '/tabs/account' },

@@ -1087,6 +1087,7 @@ export class ClientDetailPage implements OnInit {
         assignmentId: phase._id,
         fixedTableName: phase.tableName || '',
         suggestedStartDate: phase.startDate,
+        phases: this.routinePhases,
       },
     });
     await modal.present();
@@ -1134,6 +1135,7 @@ export class ClientDetailPage implements OnInit {
         clientName: this.name,
         suggestedStartDate: ultima ? manana.toISOString().slice(0, 10) : null,
         previousPhaseName: ultima?.tableName || '',
+        phases: this.routinePhases,
       },
     });
     await modal.present();
@@ -1146,66 +1148,67 @@ export class ClientDetailPage implements OnInit {
   }
 
   // --- Tarea 4 (2026-09): proyección de la rutina sobre el calendario ---
-  // splitId/splitName (2026-09, ver plan de rediseño visual): derivados en
-  // frontend cruzando workoutId (ya presente en RoutineScheduleDay) contra
-  // splits[].workouts[] de la tabla en uso — null si no hay match (días de
-  // descanso, o mientras faltan tables/routinePhases por llegar).
+  // Fase A2 (2026-09) — phaseId/phaseName/phaseColor (no splitId/splitName):
+  // antes esto se derivaba cruzando workoutId contra la tabla de la fase
+  // EN USO nada más, así que en cuanto /active/schedule empezó a devolver
+  // días de VARIAS fases (ver routine-assignment-projection.js), los días de
+  // cualquier otra fase se quedaban sin match — de ahí que solo se viera "la
+  // fase que acabas de programar". Ahora cada día ya trae su assignmentId
+  // (de qué fase salió) directamente del backend, y aquí solo se resuelve
+  // contra `routineHistory` — mismo color que ya pintan las tarjetas de
+  // "Fases de entrenamiento" (routinePhaseColor), consistente en toda la
+  // ficha en vez de un algoritmo de color aparte solo para el calendario.
   public projectedTrainingDays: Map<
     string,
-    { isPlannedRestDay: boolean; name: string; splitId: string | null; splitName: string | null }
+    { isPlannedRestDay: boolean; name: string; phaseId: string | null; phaseName: string | null; phaseColor: string | null }
   > = new Map();
   private rawScheduleDays: RoutineScheduleDay[] = [];
+  // Ventana YA pedida al backend — solo crece (unión con cada rango nuevo),
+  // nunca se encoge. Sin esto, elegir un rango de comparación más estrecho
+  // que el actual volvía a pedir el schedule SOLO para ese rango y el fetch
+  // más amplio anterior se perdía: en el propio calendario (que sigue
+  // enseñando el mes de siempre, no el rango elegido) los días que quedaban
+  // fuera del nuevo rango se veían "en blanco" de golpe, aunque un momento
+  // antes sí tenían información.
+  private scheduleWindow: { start: string; end: string } | null = null;
 
   private loadTrainingSchedule(range: { start: string; end: string }): void {
-    this.routineAssignmentApi.getActiveSchedule(this.clientId, range.start, range.end).subscribe({
+    const start = this.scheduleWindow && this.scheduleWindow.start < range.start ? this.scheduleWindow.start : range.start;
+    const end = this.scheduleWindow && this.scheduleWindow.end > range.end ? this.scheduleWindow.end : range.end;
+    this.scheduleWindow = { start, end };
+
+    this.routineAssignmentApi.getActiveSchedule(this.clientId, start, end).subscribe({
       next: (days: RoutineScheduleDay[]) => {
         this.rawScheduleDays = days || [];
         this.rebuildProjectedTrainingDays();
       },
-      error: () => {
-        this.rawScheduleDays = [];
-        this.rebuildProjectedTrainingDays();
-      },
+      // Fallo de red puntual — se conserva lo que ya había cargado en vez de
+      // vaciarlo: un error no debe borrar del calendario información que ya
+      // se había visto.
+      error: () => undefined,
     });
   }
 
-  // tables (loadTraining) y routinePhases (loadActiveRoutine) llegan por
-  // fetches async independientes del schedule: se reconstruye cada vez que
-  // cualquiera de las tres piezas cambia, para no depender del orden de
-  // llegada entre ellas.
+  // routineHistory (loadActiveRoutine) llega por un fetch async
+  // independiente del schedule: se reconstruye cada vez que cualquiera de
+  // los dos cambia, para no depender del orden de llegada entre ellos.
   private rebuildProjectedTrainingDays(): void {
-    const splitByWorkoutId = this.buildWorkoutSplitMap();
+    const phaseById = new Map(this.routineHistory.map((phase) => [phase._id, phase]));
     this.projectedTrainingDays = new Map(
       this.rawScheduleDays.map((d) => {
-        const split = d.workoutId ? splitByWorkoutId.get(d.workoutId) : undefined;
+        const phase = phaseById.get(d.assignmentId) ?? null;
         return [
           d.date,
           {
             isPlannedRestDay: d.isPlannedRestDay,
             name: d.name,
-            splitId: split?.splitId ?? null,
-            splitName: split?.splitName ?? null,
+            phaseId: phase?._id ?? null,
+            phaseName: phase?.tableName ?? null,
+            phaseColor: phase ? this.routinePhaseColor(phase) : null,
           },
         ];
       })
     );
-  }
-
-  // Deriva el split de cada workout de la tabla EN USO cruzando workoutId
-  // (ya presente en RoutineScheduleDay) contra splits[].workouts[] — sin
-  // endpoint nuevo. Mismo patrón de iteración que computeCompletedWorkouts().
-  private buildWorkoutSplitMap(): Map<string, { splitId: string; splitName: string }> {
-    const map = new Map<string, { splitId: string; splitName: string }>();
-    const tableId = this.currentRoutinePhase?.tableId;
-    if (!tableId) return map;
-    const table = this.tables.find((t) => t._id === tableId);
-    if (!table) return map;
-    for (const split of table.splits || []) {
-      for (const workout of split.workouts || []) {
-        map.set(workout._id, { splitId: split._id, splitName: split.name || 'Microciclo' });
-      }
-    }
-    return map;
   }
 
   // --- Medidas (antropometría) ---

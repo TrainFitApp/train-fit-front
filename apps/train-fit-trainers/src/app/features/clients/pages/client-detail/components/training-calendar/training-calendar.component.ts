@@ -1,20 +1,25 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
 
 interface ProjectedDay {
   isPlannedRestDay: boolean;
   name: string;
-  // 2026-09 (rediseño visual Plan->Entrenamiento) — derivado por el padre
-  // cruzando workoutId (ya presente en RoutineScheduleDay) contra
-  // splits[].workouts[] de la tabla en uso. null en días sin match (p.ej.
-  // descanso, o mientras faltan datos por llegar).
-  splitId: string | null;
-  splitName: string | null;
+  // Fase A2 (2026-09) — antes splitId/splitName, derivado cruzando
+  // workoutId contra la tabla de la fase EN USO nada más: en cuanto
+  // /active/schedule empezó a devolver días de VARIAS fases (programar una
+  // siguiente ya no tapa la anterior, ver routine-assignment-projection.js
+  // en el backend), esos días se quedaban sin match. Ahora el padre resuelve
+  // la fase completa (id/nombre/color) por el assignmentId que cada día ya
+  // trae — mismo color en toda la ficha, no un algoritmo aparte solo para
+  // este calendario. null en días sin fase resuelta (mientras faltan datos
+  // por llegar).
+  phaseId: string | null;
+  phaseName: string | null;
+  phaseColor: string | null;
 }
 
-// Leyenda dinámica de splits visibles en el mes actual — mismo patrón que
+// Leyenda dinámica de fases visibles en el mes actual — mismo patrón que
 // PhaseLegendItem en <app-nutrition-calendar>.
-export interface SplitLegendItem {
+export interface PhaseLegendItem {
   id: string;
   color: string;
   label: string;
@@ -140,43 +145,21 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   public activePreset: number | null = 90;
   public hoverDate: string | null = null;
 
-  // Color por split/microciclo + leyenda dinámica — mismo patrón que
-  // phaseColorMap/visiblePhaseLegend en <app-nutrition-calendar>, pero
-  // derivado de @Input() projectedDays en vez de una llamada a API propia.
-  public splitColorMap = new Map<string, string>();
-  public visibleSplitLegend: SplitLegendItem[] = [];
+  // Leyenda dinámica de fases visibles — el color YA llega resuelto por
+  // celda (phaseColor, ver ProjectedDay), no hay mapa propio que mantener
+  // aquí (evita que este calendario invente un color distinto al que ya usa
+  // el resto de la ficha para la misma fase).
+  public visiblePhaseLegend: PhaseLegendItem[] = [];
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['projectedDays']) {
-      this.splitColorMap = this.buildSplitColorMap();
-    }
     if (changes['completedDays'] || changes['projectedDays']) {
       this.cells = this.applyOverlays(this.cells.length ? this.cells : buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
     }
   }
 
   public ngOnInit(): void {
-    this.splitColorMap = this.buildSplitColorMap();
     this.cells = this.applyOverlays(buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
     this.selectPresetRange(this.activePreset ?? 90);
-  }
-
-  // Orden por fecha de primera aparición del split en projectedDays — mismo
-  // criterio que buildPhaseColorMap ya asume para fases (ver
-  // phase-color.util.ts), así el color no cambia de un mes a otro dentro de
-  // la misma sesión.
-  private buildSplitColorMap(): Map<string, string> {
-    const orderedIds: string[] = [];
-    const seen = new Set<string>();
-    const entries = Array.from(this.projectedDays.entries()).sort(([dateA], [dateB]) =>
-      dateA.localeCompare(dateB)
-    );
-    for (const [, day] of entries) {
-      if (!day.splitId || seen.has(day.splitId)) continue;
-      seen.add(day.splitId);
-      orderedIds.push(day.splitId);
-    }
-    return buildPhaseColorMap(orderedIds);
   }
 
   public get monthLabel(): string {
@@ -204,23 +187,23 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
       completed: (cell.date && this.completedDays.get(cell.date)) || null,
       projected: (cell.date && this.projectedDays.get(cell.date)) || null,
     }));
-    this.visibleSplitLegend = this.buildVisibleSplitLegend(mapped);
+    this.visiblePhaseLegend = this.buildVisiblePhaseLegend(mapped);
     return mapped;
   }
 
   // Deduplica por id conservando el orden de aparición en el mes visible —
   // mismo patrón que buildVisiblePhaseLegend en <app-nutrition-calendar>.
-  private buildVisibleSplitLegend(cells: TrainingCalendarCell[]): SplitLegendItem[] {
+  private buildVisiblePhaseLegend(cells: TrainingCalendarCell[]): PhaseLegendItem[] {
     const seen = new Set<string>();
-    const legend: SplitLegendItem[] = [];
+    const legend: PhaseLegendItem[] = [];
     for (const cell of cells) {
-      const splitId = cell.projected?.splitId;
-      if (!splitId || seen.has(splitId)) continue;
-      seen.add(splitId);
+      const phaseId = cell.projected?.phaseId;
+      if (!phaseId || seen.has(phaseId)) continue;
+      seen.add(phaseId);
       legend.push({
-        id: splitId,
-        color: this.splitColorMap.get(splitId) ?? PHASE_COLORS[0],
-        label: cell.projected?.splitName || 'Microciclo',
+        id: phaseId,
+        color: cell.projected?.phaseColor || 'var(--tf-accent)',
+        label: cell.projected?.phaseName || 'Rutina',
       });
     }
     return legend;

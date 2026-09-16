@@ -25,9 +25,15 @@
       </div>
     </div>
 
-    <div class="input-wrapper">
-      <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-      <input type="date" class="input-field" [(ngModel)]="startDate" />
+    <div class="date-picker-block">
+      <span class="date-picker-label">
+        Empieza el <strong>{{ selectedDateLabel }}</strong>
+      </span>
+      <app-phase-schedule-calendar
+        [phases]="phasesForPicker"
+        [selectedDate]="startDate"
+        (dateSelected)="onDateSelected($event)"
+      ></app-phase-schedule-calendar>
     </div>
 
     <p class="overlap-error" *ngIf="overlapError">
@@ -55,14 +61,19 @@
       <ion-icon class="selected-check" *ngIf="selectedTableId === table._id" name="checkmark-circle"></ion-icon>
     </div>
 
-    <div class="input-wrapper" *ngIf="selectedTableId">
-      <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-      <input type="date" class="input-field" [(ngModel)]="startDate" />
+    <div class="date-picker-block">
+      <span class="date-picker-label">
+        Empieza el <strong>{{ selectedDateLabel }}</strong>
+      </span>
+      <p class="date-hint" *ngIf="selectedTableId && previousPhaseName">
+        Encadena con <strong>{{ previousPhaseName }}</strong>.
+      </p>
+      <app-phase-schedule-calendar
+        [phases]="phasesForPicker"
+        [selectedDate]="startDate"
+        (dateSelected)="onDateSelected($event)"
+      ></app-phase-schedule-calendar>
     </div>
-
-    <p class="date-hint" *ngIf="selectedTableId && previousPhaseName">
-      Encadena con <strong>{{ previousPhaseName }}</strong>.
-    </p>
 
     <p class="overlap-error" *ngIf="overlapError">
       <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
@@ -71,11 +82,9 @@
   </ng-container>
 </ion-content>
 
-<ion-footer class="ion-no-border" *ngIf="state === 'loaded' || state === 'applying'">
-  <ion-toolbar>
-    <button class="confirm-button" [disabled]="!canConfirm || state === 'applying'" (click)="confirm()">
-      <span *ngIf="state !== 'applying'">{{ mode === 'reschedule' ? 'Guardar nueva fecha' : 'Aplicar a ' + clientName }}</span>
-      <ion-spinner name="dots" *ngIf="state === 'applying'"></ion-spinner>
-    </button>
-  </ion-toolbar>
+<ion-footer class="apply-modal-footer" *ngIf="state === 'loaded' || state === 'applying'">
+  <button class="submit-button" [disabled]="!canConfirm || state === 'applying'" (click)="confirm()">
+    <span *ngIf="state !== 'applying'">{{ mode === 'reschedule' ? 'Guardar nueva fecha' : 'Aplicar a ' + clientName }}</span>
+    <ion-spinner name="dots" *ngIf="state === 'applying'"></ion-spinner>
+  </button>
 </ion-footer>

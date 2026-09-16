@@ -1,0 +1,142 @@
+// Mismo lenguaje visual que <app-training-calendar> (grid de 7 columnas,
+// celda cuadrada, leyenda con swatch) — un solo patrón de "mes calendario"
+// en toda la app, no uno reinventado por pantalla.
+.phase-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.phase-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.phase-calendar__month-label {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+  text-transform: capitalize;
+}
+
+.phase-calendar__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-3);
+  color: var(--tf-text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-4);
+    color: var(--tf-text);
+  }
+}
+
+.phase-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+
+  span {
+    text-align: center;
+    font-size: 0.68rem;
+    color: var(--tf-text-muted);
+  }
+}
+
+.phase-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.phase-calendar__cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-sm);
+  padding: 0;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out), transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:not(.is-blank):hover {
+    border-color: var(--tf-accent);
+    transform: translateY(-1px);
+  }
+
+  &.is-blank {
+    background: transparent !important;
+    border-color: transparent !important;
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  // Identidad de fase — mismo criterio que .training-calendar__cell.is-
+  // projected-training: fondo suave con el color de esa fase, para verla de
+  // un vistazo sin abrir nada.
+  &.has-phase {
+    background: var(--phase-bg, var(--tf-surface-2));
+    border-color: var(--phase-color, transparent);
+  }
+
+  &.is-today {
+    box-shadow: inset 0 0 0 1px var(--tf-border-strongest);
+  }
+
+  &.is-past:not(.has-phase) {
+    opacity: 0.55;
+  }
+
+  // Selección — mismo lenguaje que .training-calendar__cell.is-range-
+  // endpoint: relleno sólido de acento, no solo un borde.
+  &.is-selected {
+    background: var(--tf-accent) !important;
+    border-color: var(--tf-accent) !important;
+    color: var(--tf-accent-contrast);
+    box-shadow: none;
+  }
+}
+
+.phase-calendar__day-number {
+  position: relative;
+  z-index: 1;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+}
+
+.phase-calendar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2) var(--tf-space-3);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  color: var(--tf-text-muted);
+}
+
+.legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}

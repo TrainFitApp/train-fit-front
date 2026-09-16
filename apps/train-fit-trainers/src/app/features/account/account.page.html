@@ -9,20 +9,161 @@
       <span class="account-name">{{ fullName }}</span>
       <span class="account-email" *ngIf="user()?.email">{{ user()?.email }}</span>
     </div>
+    <button type="button" class="edit-profile-button" (click)="openEditPanel()">
+      <ion-icon name="pencil-outline"></ion-icon>
+      Editar perfil
+    </button>
   </div>
 
-  <nav class="account-menu">
-    <button type="button" class="account-menu-item" (click)="openEditPanel()">
-      <ion-icon name="person-outline"></ion-icon>
-      <span>Editar perfil</span>
-      <ion-icon name="chevron-forward-outline" class="account-menu-chevron"></ion-icon>
-    </button>
-    <button type="button" class="account-menu-item" (click)="goToSubscription()">
-      <ion-icon name="card-outline"></ion-icon>
-      <span>Suscripción</span>
-      <ion-icon name="chevron-forward-outline" class="account-menu-chevron"></ion-icon>
-    </button>
-  </nav>
+  <div class="stats-row">
+    <div class="stat-tile">
+      <span class="stat-value">{{ clientsCount ?? '—' }}</span>
+      <span class="stat-label">Clientes</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-value">—</span>
+      <span class="stat-label">Años de experiencia</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-value">—</span>
+      <span class="stat-label">Valoración media</span>
+    </div>
+  </div>
+
+  <div class="account-grid">
+    <!-- Perfil profesional -->
+    <div class="section-card">
+      <div class="section-title">Perfil profesional</div>
+      <div class="profile-grid">
+        <div class="profile-field">
+          <span class="profile-field-label">Nombre</span>
+          <span class="profile-field-value">{{ user()?.name || '—' }}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Apellidos</span>
+          <span class="profile-field-value">{{ user()?.lastname || '—' }}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Email</span>
+          <span class="profile-field-value">{{ user()?.email || '—' }}</span>
+        </div>
+        <div class="profile-field" *ngFor="let field of professionalPlaceholderFields">
+          <span class="profile-field-label">{{ field }}</span>
+          <span class="profile-field-value placeholder">Sin definir</span>
+        </div>
+      </div>
+      <p class="section-caption">Podrás completar tu perfil profesional próximamente.</p>
+    </div>
+
+    <!-- Disponibilidad -->
+    <div class="section-card">
+      <div class="section-title">Disponibilidad</div>
+      <p class="section-caption">Próximamente podrás configurar tu horario semanal.</p>
+      <div class="availability-row">
+        <div class="availability-day" *ngFor="let day of weekDays">
+          <span class="availability-day-label">{{ day }}</span>
+        </div>
+      </div>
+      <button type="button" class="secondary-button" (click)="comingSoon()">Configurar horario</button>
+    </div>
+
+    <!-- Plan / suscripción (real) -->
+    <div class="section-card plan-card span-2">
+      <div class="plan-card-head">
+        <div class="plan-card-info">
+          <span class="plan-card-eyebrow">Plan actual</span>
+          <div class="plan-card-name">{{ planName }}</div>
+          <span class="plan-card-renewal" *ngIf="entitlements?.isPremium && entitlements?.expiresAt">
+            <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+            Se renueva el {{ entitlements?.expiresAt | date: 'd MMM yyyy' }}
+          </span>
+        </div>
+        <button type="button" class="plan-card-cta" (click)="goToSubscription()">Gestionar suscripción</button>
+      </div>
+      <div class="plan-card-usage" *ngIf="entitlements">
+        <div class="usage-header">
+          <span class="usage-title">Clientes</span>
+          <span class="usage-count">
+            {{ entitlements.usage.clients }}<span *ngIf="entitlements.limits.clients"> / {{ entitlements.limits.clients }}</span>
+          </span>
+        </div>
+        <div class="usage-bar" *ngIf="entitlements.limits.clients">
+          <div class="usage-bar-fill" [style.width.%]="usagePercent"></div>
+        </div>
+        <span class="usage-unlimited" *ngIf="!entitlements.limits.clients">Clientes ilimitados</span>
+      </div>
+    </div>
+
+    <!-- Privacidad y seguridad -->
+    <div class="section-card">
+      <div class="section-title">Privacidad y seguridad</div>
+      <button
+        type="button"
+        class="row-item"
+        *ngFor="let item of securityItems"
+        (click)="item.action()"
+      >
+        <ion-icon [name]="item.icon" [class.danger]="item.danger"></ion-icon>
+        <div class="row-item-text">
+          <span class="row-item-label" [class.danger]="item.danger">{{ item.label }}</span>
+          <span class="row-item-sub">{{ item.sub }}</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="row-item-chevron"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Notificaciones -->
+    <div class="section-card span-2">
+      <div class="section-title">Notificaciones</div>
+      <p class="section-caption">Próximamente podrás personalizar qué avisos recibir.</p>
+      <div class="notif-grid">
+        <div class="notif-group" *ngFor="let group of notificationGroups">
+          <div class="notif-group-title">{{ group.title }}</div>
+          <div class="notif-row" *ngFor="let item of group.items">
+            <span class="notif-label">{{ item.label }}</span>
+            <ion-toggle [checked]="item.on" [disabled]="true"></ion-toggle>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Integraciones -->
+    <div class="section-card span-2">
+      <div class="section-title">Integraciones</div>
+      <div class="integrations-grid">
+        <div class="integration-row" *ngFor="let ig of integrations">
+          <ion-icon [name]="ig.icon"></ion-icon>
+          <div class="integration-info">
+            <span class="integration-name">{{ ig.name }}</span>
+            <span class="integration-status">No conectado</span>
+          </div>
+          <button type="button" class="integration-connect" (click)="comingSoon()">Conectar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Soporte -->
+    <div class="section-card">
+      <div class="section-title">Soporte</div>
+      <button type="button" class="row-item" *ngFor="let link of supportLinks" (click)="link.action()">
+        <ion-icon [name]="link.icon"></ion-icon>
+        <span class="row-item-label flex-1">{{ link.label }}</span>
+        <ion-icon name="chevron-forward-outline" class="row-item-chevron"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Acerca de (real) -->
+    <div class="section-card">
+      <div class="section-title">Acerca de</div>
+      <div class="about-row">
+        <span>Versión</span>
+        <span class="about-value">{{ appVersion }}</span>
+      </div>
+      <a [href]="LINKS.privacyAndPolicy" target="_blank" rel="noopener" class="about-link">Política de privacidad</a>
+      <a [href]="LINKS.termsAndConditions" target="_blank" rel="noopener" class="about-link">Términos y condiciones</a>
+      <a [href]="LINKS.us" target="_blank" rel="noopener" class="about-link">Sobre TrainFit</a>
+    </div>
+  </div>
 
   <button type="button" class="logout-button" (click)="confirmLogout()">
     <ion-icon name="log-out-outline"></ion-icon>

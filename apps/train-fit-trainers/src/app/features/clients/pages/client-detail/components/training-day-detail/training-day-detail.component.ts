@@ -8,7 +8,7 @@ import { CompletedWorkoutEntry } from '../../models/client-detail.model';
 export interface DayProjection {
   isPlannedRestDay: boolean;
   name: string;
-  splitName: string | null;
+  phaseName: string | null;
 }
 
 interface WorkoutDaySummary {

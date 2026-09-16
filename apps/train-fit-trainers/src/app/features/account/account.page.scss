@@ -21,7 +21,7 @@
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
   padding: var(--tf-space-5);
-  margin-bottom: var(--tf-space-5);
+  margin-bottom: var(--tf-space-4);
   @include tf-card-in-animation;
 }
 
@@ -42,10 +42,6 @@
   flex-shrink: 0;
 }
 
-// La info de perfil ocupa el resto de la fila (antes quedaba centrada en
-// columna dentro de la card completa, dejando huecos vacíos a los lados en
-// pantallas anchas) — mismo patrón "icono + contenido flex:1" que ya usa
-// .account-menu-item más abajo.
 .account-info {
   display: flex;
   flex-direction: column;
@@ -71,30 +67,292 @@
   white-space: nowrap;
 }
 
-.account-menu {
+.edit-profile-button {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  flex-shrink: 0;
+  height: 38px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    background: var(--tf-surface-4);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 15px;
+  }
+}
+
+// --- Resumen (clientes, experiencia, valoración) ---
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-5);
+}
+
+.stat-tile {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  padding: var(--tf-space-3);
+  @include tf-card-in-animation;
+  animation-delay: 20ms;
+}
+
+.stat-value {
+  font-size: var(--tf-font-size-lg);
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.stat-label {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  text-align: center;
+}
+
+// --- Grid de secciones ---
+.account-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--tf-space-4);
+  margin-bottom: var(--tf-space-5);
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.span-2 {
+  @media (min-width: 768px) {
+    grid-column: 1 / -1;
+  }
+}
+
+.section-card {
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
-  overflow: hidden;
-  margin-bottom: var(--tf-space-5);
+  padding: var(--tf-space-5);
   @include tf-card-in-animation;
-  animation-delay: 35ms;
 }
 
-.account-menu-item {
+.section-title {
+  font-size: var(--tf-font-size-md);
+  font-weight: 600;
+  color: var(--tf-text);
+  margin-bottom: var(--tf-space-3);
+}
+
+.section-caption {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  margin: 0 0 var(--tf-space-3);
+}
+
+// --- Perfil profesional ---
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tf-space-3) var(--tf-space-4);
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-field-label {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.profile-field-value {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.placeholder {
+    color: var(--tf-text-faint);
+    font-style: italic;
+  }
+}
+
+// --- Disponibilidad ---
+.availability-row {
+  display: flex;
+  gap: var(--tf-space-1);
+  margin-bottom: var(--tf-space-4);
+}
+
+.availability-day {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: var(--tf-radius-sm);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.secondary-button {
+  width: 100%;
+  height: var(--tf-touch-min);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    background: var(--tf-surface-4);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// --- Plan actual (datos reales de TrainerBillingApiService) ---
+.plan-card {
+  background: linear-gradient(135deg, var(--tf-surface-2), var(--tf-surface-1));
+  border-color: var(--tf-accent-soft-border);
+}
+
+.plan-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+}
+
+.plan-card-eyebrow {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-accent-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.plan-card-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  margin-top: 2px;
+}
+
+.plan-card-renewal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    color: var(--tf-success);
+  }
+}
+
+.plan-card-cta {
+  @include tf-gradient-button;
+  height: 40px;
+  padding: 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-sm);
+  flex-shrink: 0;
+}
+
+.plan-card-usage {
+  margin-top: var(--tf-space-4);
+  padding-top: var(--tf-space-4);
+  border-top: 1px solid var(--tf-border);
+}
+
+.usage-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--tf-space-2);
+}
+
+.usage-title {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  font-weight: 600;
+}
+
+.usage-count {
+  font-size: var(--tf-font-size-md);
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.usage-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--tf-surface-5);
+  overflow: hidden;
+}
+
+.usage-bar-fill {
+  height: 100%;
+  background: var(--tf-accent-gradient);
+  border-radius: 3px;
+  transition: width var(--tf-duration-slow) var(--tf-ease-out);
+}
+
+.usage-unlimited {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-accent-text);
+}
+
+// --- Filas de acción (seguridad / soporte) ---
+.row-item {
   display: flex;
   align-items: center;
   gap: var(--tf-space-3);
+  width: 100%;
   min-height: var(--tf-touch-min);
-  padding: 0 var(--tf-space-4);
+  padding: var(--tf-space-2) 0;
   background: none;
   border: none;
-  border-top: 1px solid var(--tf-border);
+  border-top: 1px solid var(--tf-border-subtle);
   color: var(--tf-text);
-  font-size: var(--tf-font-size-base);
-  font-weight: 500;
   text-align: left;
   cursor: pointer;
   font-family: inherit;
@@ -102,10 +360,6 @@
 
   &:first-child {
     border-top: none;
-  }
-
-  &:hover {
-    background: var(--tf-surface-2);
   }
 
   &:active {
@@ -117,21 +371,179 @@
     outline-offset: -2px;
   }
 
-  ion-icon:first-child {
-    font-size: 19px;
-    color: var(--tf-accent);
+  > ion-icon:first-child {
+    font-size: 18px;
+    color: var(--tf-text-secondary);
     flex-shrink: 0;
+
+    &.danger {
+      color: var(--tf-danger);
+    }
+  }
+}
+
+.row-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.row-item-label {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 500;
+  color: var(--tf-text);
+
+  &.danger {
+    color: var(--tf-danger);
   }
 
-  span {
+  &.flex-1 {
     flex: 1;
   }
 }
 
-.account-menu-chevron {
+.row-item-sub {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.row-item-chevron {
   color: var(--tf-text-faint);
   font-size: 16px;
   flex-shrink: 0;
+}
+
+// --- Notificaciones ---
+.notif-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--tf-space-4);
+
+  @media (min-width: 560px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.notif-group-title {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--tf-space-2);
+}
+
+.notif-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  padding: 6px 0;
+}
+
+.notif-label {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+}
+
+// --- Integraciones ---
+.integrations-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--tf-space-3);
+
+  @media (min-width: 560px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.integration-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  padding: var(--tf-space-3);
+
+  > ion-icon {
+    font-size: 22px;
+    color: var(--tf-text-secondary);
+    flex-shrink: 0;
+  }
+}
+
+.integration-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.integration-name {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 500;
+  color: var(--tf-text);
+}
+
+.integration-status {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.integration-connect {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-accent);
+  color: var(--tf-accent-contrast);
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+// --- Acerca de (datos reales) ---
+.about-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+  padding: var(--tf-space-2) 0;
+  border-bottom: 1px solid var(--tf-border-subtle);
+  margin-bottom: var(--tf-space-2);
+}
+
+.about-value {
+  color: var(--tf-text-muted);
+}
+
+.about-link {
+  display: block;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+  padding: var(--tf-space-2) 0;
+  text-decoration: none;
+
+  &:active {
+    color: var(--tf-accent-text);
+  }
 }
 
 .logout-button {
