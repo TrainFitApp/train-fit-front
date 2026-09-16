@@ -150,17 +150,6 @@ const routes: Routes = [
       import('src/app/features/pain/my-pain.module').then((m) => m.MyPainPageModule),
   },
   {
-    // Fase 5 Coach Pro (§16) — qué puede comer en lugar de qué, según lo que
-    // haya definido su profesional. Solo lectura: las equivalencias son una
-    // prescripción, no algo que el cliente ajuste.
-    path: 'my-food-exchanges',
-    canMatch: [authMatchGuard, onboardingMatchGuard],
-    loadChildren: () =>
-      import(
-        'src/app/features/food-exchanges/my-food-exchanges.module'
-      ).then((m) => m.MyFoodExchangesPageModule),
-  },
-  {
     // MVP-trainers F29 — preferencias nutricionales del cliente (alergias,
     // favoritos, no le gusta, si cocina en casa), solicitadas por su
     // nutricionista y rellenadas/editadas por el propio cliente.

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import {
+  CycleNeedResponse,
   DietSuggestionRequest,
   DietSuggestionResponse,
   PhaseCyclesResponse,
@@ -27,6 +28,13 @@ export class DietSuggestionApiService {
   // pasados de una fase, en una sola llamada.
   public getPhaseCycles(clientId: string, phaseId: string): Observable<PhaseCyclesResponse> {
     return this.http.get<PhaseCyclesResponse>(`trainer/clients/${clientId}/nutrition-phases/${phaseId}/cycles`);
+  }
+
+  // Cómo se calculó la necesidad de un ciclo (docs/plan-info-calculo-fase.md).
+  public getCycleNeed(clientId: string, phaseId: string, cycleNumber: number): Observable<CycleNeedResponse> {
+    return this.http.get<CycleNeedResponse>(
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/cycles/${cycleNumber}/need`
+    );
   }
 
   // Contenido del ciclo vigente escalado a `kcal` (no escribe nada).

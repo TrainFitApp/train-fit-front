@@ -479,6 +479,13 @@
     "DELETE_PRODUCT_CONFIRM": "¿Estás seguro de que quieres eliminar {{name}}?",
     "PASTE_HEADER": "Pegar",
     "PASTE_MERGE_MESSAGE": "¿Desea fusionar ambas comidas?",
+    "ALTERNATIVES_LABEL": "Opciones de tu profesional",
+    "ALTERNATIVE_DEFAULT_LABEL": "Opción {{n}}",
+    "ALTERNATIVE_SWITCH_HEADER": "Cambiar a {{label}}",
+    "ALTERNATIVE_SWITCH_MESSAGE": "Se desmarcarán los alimentos de la opción actual que ya tenías marcados. Lo que añadiste por tu cuenta no cambia.",
+    "ALTERNATIVE_SWITCH_CONFIRM": "Cambiar",
+    "ALTERNATIVE_CHOOSE_ERROR": "No se pudo aplicar la opción elegida",
+    "ALTERNATIVE_CHANGED": "Cambiado a {{label}} en {{meal}}",
     "PASTE_REPLACE": "REEMPLAZAR",
     "PASTE_MERGE": "FUSIONAR",
     "PRODUCTS_COPIED": "Productos copiados",
@@ -1474,10 +1481,7 @@
     "LIMIT_REACHED_PRO": "Has alcanzado el máximo de 10 objetivos nutricionales.",
     "LOCKED": "Pro",
     "LOCKED_FREE": "Este objetivo está bloqueado en el modo Free. Activa Pro para usar y modificar hasta 10 objetivos nutricionales.",
-    "MINIMUM_ONE_MSG": "Debes tener al menos un objetivo nutricional. Crea otro antes de eliminar este.",
-    "TRAINER_ASSIGNED": "Pautado",
-    "TRAINER_ASSIGNED_ALERT_HEADER": "Objetivo pautado",
-    "TRAINER_ASSIGNED_ALERT_MSG": "Este objetivo lo definió tu entrenador. Si quieres cambiarlo, coméntaselo directamente."
+    "MINIMUM_ONE_MSG": "Debes tener al menos un objetivo nutricional. Crea otro antes de eliminar este."
   },
   "MAINTENANCE": {
     "MODAL": {
@@ -1848,8 +1852,7 @@
     "OMEGA_3": "Omega-3",
     "OMEGA_6": "Omega-6",
     "OMEGA_9": "Omega-9",
-    "GOAL": "Objetivo Nutricional",
-    "TRAINER_ASSIGNED": "Pautado por tu entrenador"
+    "GOAL": "Objetivo Nutricional"
   },
   "SUGGESTIONS": {
     "TITLE": "Reportes y sugerencias",

@@ -29,7 +29,10 @@
   <ng-container *ngIf="state === 'ready'">
     <!-- 1. Qué se pautó. Todo esto ya viaja en el propio ciclo, sin pedir nada -->
     <section class="summary-block">
-      <p class="summary-block__title">Lo pautado</p>
+      <p class="summary-block__title summary-block__title--planned">
+        <span class="summary-block__icon"><ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon></span>
+        Lo pautado
+      </p>
       <p class="cycle-dates">
         {{ from }} → {{ isRunning ? 'en curso' : to }}
         <span class="cycle-days" *ngIf="cycle.daysCount">· dieta de {{ cycle.daysCount }} día{{ cycle.daysCount === 1 ? '' : 's' }}</span>
@@ -48,9 +51,38 @@
       </p>
     </section>
 
+    <!-- 1b. Cómo se calculó la necesidad (docs/plan-info-calculo-fase.md):
+         qué datos del cliente entraron y la cuenta. C1 = lo guardado al
+         empezar la fase; C2+ = a fecha de inicio del ciclo con el último
+         peso y los pasos del check-in del anterior. -->
+    <section class="summary-block">
+      <p class="summary-block__title summary-block__title--need">
+        <span class="summary-block__icon"><ion-icon name="calculator-outline" aria-hidden="true"></ion-icon></span>
+        Cómo se calculó la necesidad
+      </p>
+      <div class="skeleton-block" style="height: 90px" *ngIf="needState === 'loading'"></div>
+      <p class="summary-empty" *ngIf="needState === 'error'">No se pudo cargar el cálculo de este ciclo.</p>
+      <ng-container *ngIf="needState === 'ready' && cycleNeed as cn">
+        <p class="summary-hint need-source" *ngIf="cn.source === 'computed'">
+          Con los datos del cliente a {{ cn.start }}: último peso hasta esa fecha y pasos del check-in del ciclo anterior.
+        </p>
+        <p class="summary-hint need-source" *ngIf="cn.source === 'snapshot'">
+          Guardado al empezar la fase.
+        </p>
+        <app-need-breakdown
+          [need]="cn.need"
+          [stepsDone]="cn.stepsDone"
+          [plannedKcal]="plannedAvg.kcal || cn.plannedKcal"
+        ></app-need-breakdown>
+      </ng-container>
+    </section>
+
     <!-- 2. Macros: lo pautado contra lo que marcó como comido -->
     <section class="summary-block">
-      <p class="summary-block__title">Macros · media por día</p>
+      <p class="summary-block__title summary-block__title--macros">
+        <span class="summary-block__icon"><ion-icon name="pie-chart-outline" aria-hidden="true"></ion-icon></span>
+        Macros · media por día
+      </p>
       <p class="summary-empty" *ngIf="!daysWithPlan">
         No hubo ningún día con comidas pautadas en este ciclo.
       </p>
@@ -100,7 +132,10 @@
 
     <!-- 3. Alimentos: qué cumplió y qué se salta -->
     <section class="summary-block">
-      <p class="summary-block__title">Alimentos · qué cumplió</p>
+      <p class="summary-block__title summary-block__title--foods">
+        <span class="summary-block__icon"><ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon></span>
+        Alimentos · qué cumplió
+      </p>
       <p class="summary-empty" *ngIf="!foods.length">
         No hay alimentos pautados en este ciclo.
       </p>
@@ -123,15 +158,18 @@
 
     <!-- 4. Lo que el cliente metió en su check-in dentro de este rango -->
     <section class="summary-block">
-      <p class="summary-block__title">Check-ins del ciclo</p>
+      <p class="summary-block__title summary-block__title--checkins">
+        <span class="summary-block__icon"><ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon></span>
+        Check-ins del ciclo
+      </p>
       <p class="summary-empty" *ngIf="!checkins.length">
         El cliente no respondió ningún check-in en estas fechas.
       </p>
 
-      <div class="checkin-card" *ngFor="let checkin of checkins">
-        <p class="checkin-date">{{ checkin.respondedAt | date: 'd MMM y' }}</p>
+      <div class="checkin-card" *ngFor="let checkin of checkins; trackBy: trackByCheckinId">
+        <p class="checkin-date">{{ checkin.entry.respondedAt | date: 'd MMM y' }}</p>
         <div class="checkin-values">
-          <span class="checkin-value" *ngFor="let entry of checkinValues(checkin)">
+          <span class="checkin-value" *ngFor="let entry of checkin.values; trackBy: trackByKey">
             <span class="checkin-value__key">{{ fieldLabel(entry.key) }}</span>
             <span class="checkin-value__number">{{ valueLabel(entry.value) }}</span>
           </span>

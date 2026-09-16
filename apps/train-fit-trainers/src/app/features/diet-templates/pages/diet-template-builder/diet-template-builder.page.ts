@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -29,8 +29,9 @@ import { PlanAssignmentApiService } from '../../../../shared/services/plan-assig
 import { PhasePayload } from '../../../../shared/models/plan-assignment.model';
 import { DietSuggestionApiService } from '../../services/diet-suggestion-api.service';
 import { PhaseFocus } from '../../models/diet-suggestion.model';
-import { ClientDetailApiService } from '../../../clients/pages/client-detail/services/client-detail-api.service';
-import { switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { alternativeTotals, MacroTotals } from '../../utils/alternative-macros';
 import { computeItemMicros, TOTALS_NUTRIENT_FIELDS } from '../../utils/nutrient-fields';
 
 type ViewState = 'loading' | 'error' | 'loaded';
@@ -97,6 +98,14 @@ interface BoardCellRef {
   mealIndex: number;
 }
 
+// Portapapeles del tablero — una COMIDA (celda) o un DÍA/patrón entero.
+// Mientras hay algo copiado el tablero entra en "modo copia": solo se ofrece
+// pegar en el mismo tipo de destino (comida -> comidas, día -> días) y el
+// resto de iconos/inputs quedan bloqueados hasta pegar o cancelar.
+type BoardClipboard =
+  | { kind: 'meal'; source: BoardCellRef; label: string; alternatives: TemplateMealAlternative[] }
+  | { kind: 'day'; sourceIndex: number; label: string; meals: TemplateMeal[] };
+
 // Replanteamiento MVP (nutrición) — constructor de la plantilla: días con sus
 // 6 comidas fijas (mismo enum que DietDay real), cada comida con una o varias
 // alternativas (Fase 9 — mismo patrón multi-alternativa que client-detail.page.ts
@@ -107,7 +116,7 @@ interface BoardCellRef {
   templateUrl: 'diet-template-builder.page.html',
   styleUrls: ['diet-template-builder.page.scss'],
 })
-export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent {
+export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy, PendingChangesComponent {
   public state: ViewState = 'loading';
 
   // Referencia de "lo último guardado" (pendingChangesGuard): el builder no
@@ -144,12 +153,16 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   // entrenador ve de un vistazo dónde estaba sin tener que releer la rejilla.
   public activeCell: BoardCellRef | null = null;
 
-  // Portapapeles de copiar/pegar una celda — ver copyCell()/pasteCell() más
-  // abajo para el porqué (icono de pegar en todos los huecos, unificar vs
-  // sobrescribir si el destino ya tiene comida).
-  public clipboard: TemplateMealAlternative[] | null = null;
-  private clipboardSource: BoardCellRef | null = null;
+  // Portapapeles de copiar/pegar — ver copyCell()/copyDay() y pasteCell()/
+  // pasteDay() más abajo (unificar vs sobrescribir si el destino ya tiene
+  // comida). Se pinta en el panel lateral derecho del tablero.
+  public clipboard: BoardClipboard | null = null;
   private readonly maxAlternatives = 4;
+
+  // Panel lateral del portapapeles. Se traslada al body al montar (mismo
+  // patrón que supplements-panel): dentro de ion-content su position:fixed
+  // lo captura el `contain` del scroll y no se pega al borde de la ventana.
+  @ViewChild('clipboardHost', { static: true }) private clipboardHost!: ElementRef<HTMLElement>;
 
   // Sugerencias de dieta — aptitud dietética. `suitableForDerived` lo calcula
   // el backend en cada guardado (solo lectura aquí); `suitableForOverride`
@@ -185,6 +198,10 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   public phaseFocus: PhaseFocus = 'maintain';
   public phaseKcalDelta = 0;
   public phaseRatePerCycle = 0;
+  // g/kg del cajón de sugerencias (docs/plan-info-calculo-fase.md): aquí no
+  // se editan, se pasan tal cual al aplicar.
+  private phaseProteinPerKg: number | null = null;
+  private phaseFatPerKg: number | null = null;
   public readonly focusOptions: { key: PhaseFocus; label: string }[] = (
     ['cut', 'maintain', 'bulk'] as PhaseFocus[]
   ).map((key) => ({ key, label: FOCUS_DEFAULTS[key].label }));
@@ -198,6 +215,8 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   // nada — el servidor responde 204).
   public isPreparingNextCycle = false;
   private nextCyclePhaseId = '';
+  // Reparto elegido en el modal (kcal de referencia + gramos), o null.
+  private nextCycleTarget: MacroTarget | null = null;
   public nextCycleNumber = 0;
   public nextCycleRange = '';
   public nextCycleKcal = 0;
@@ -244,7 +263,6 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     private navigation: TrainerNavigationService,
     private dietTemplateApi: DietTemplateApiService,
     private planAssignmentApi: PlanAssignmentApiService,
-    private clientDetailApi: ClientDetailApiService,
     private ionicUtilService: IonicUtilService,
     private customProductService: CustomProductService,
     private recipeService: RecipeService,
@@ -311,13 +329,15 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
       this.phaseFocus = nav.phase.focus || 'maintain';
       this.phaseKcalDelta = nav.phase.targetKcalDelta || 0;
       this.phaseRatePerCycle = nav.phase.ratePerCycle || 0;
+      this.phaseProteinPerKg = nav.phase.proteinPerKg ?? null;
+      this.phaseFatPerKg = nav.phase.fatPerKg ?? null;
     }
     this.clientContextKind = 'new';
     this.clientContextName = this.clientName;
     // Si se llegó desde el cajón ("empezar de cero"), el objetivo del ciclo 1
-    // ya viene calculado y todavía NO existe como objetivo del cliente: la
-    // fase no se ha aplicado. Si se llegó por "Crear dieta" a secas, no hay
-    // tal cálculo y la referencia es el objetivo que ya tenga en uso.
+    // ya viene calculado: la fase todavía no se ha aplicado. Si se llegó por
+    // "Crear dieta" a secas, la referencia es la necesidad del ciclo en curso
+    // de su fase activa, si tiene.
     if (nav.cycleTarget) {
       this.clientTarget = {
         kcal: nav.cycleTarget.kcal,
@@ -352,10 +372,10 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
     this.clientContextKind = 'assigned';
     this.clientContextName = this.clientName;
-    this.loadClientTarget(clientId);
 
     this.planAssignmentApi.getContent(clientId, planId).subscribe({
       next: (plan) => {
+        this.loadClientTarget(clientId, plan.phaseId || plan._id, plan.startDate);
         this.applyTemplate(plan as unknown as DietTemplate);
         this.savedSnapshot = this.snapshot();
         this.state = 'loaded';
@@ -375,8 +395,33 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
     this.clientContextKind = 'next-cycle';
     this.clientContextName = this.clientName;
-    const kcal = Number(this.route.snapshot.queryParamMap.get('kcal')) || 0;
+    const query = this.route.snapshot.queryParamMap;
+    const kcal = Number(query.get('kcal')) || 0;
+    // Reparto ajustado en el modal "Siguiente ciclo" (p/c/f en gramos):
+    // se enseña como objetivo del ciclo, con deltas por fila. Sin él, el
+    // escalado proporcional ya lo cumple todo y no hay nada que comparar.
+    const protein = Number(query.get('p'));
+    const carbs = Number(query.get('c'));
+    const fat = Number(query.get('f'));
+    this.nextCycleTarget =
+      kcal > 0 && [protein, carbs, fat].every((n) => Number.isFinite(n) && n >= 0) && protein + carbs + fat > 0
+        ? { kcal, protein, carbs, fat }
+        : null;
     this.loadScaledNextCycle(kcal);
+  }
+
+  // Al reescalar a otras kcal, el objetivo del ciclo se mueve en la misma
+  // proporción: el reparto (%) que eligió el entrenador se mantiene.
+  private nextCycleTargetAt(kcal: number): MacroTarget | null {
+    const t = this.nextCycleTarget;
+    if (!t || !(t.kcal > 0) || !(kcal > 0)) return null;
+    const factor = kcal / t.kcal;
+    return {
+      kcal: Math.round(kcal),
+      protein: Math.round(t.protein * factor),
+      carbs: Math.round(t.carbs * factor),
+      fat: Math.round(t.fat * factor),
+    };
   }
 
   private loadScaledNextCycle(kcal: number): void {
@@ -394,7 +439,8 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
           days: scaled.content.days as DietTemplateDayPayload[],
           dayPatterns: scaled.content.dayPatterns as DietTemplateDayPatternPayload[],
         } as unknown as DietTemplate);
-        this.clientTarget = null;
+        this.clientTarget = this.nextCycleTargetAt(this.nextCycleKcal);
+        this.clientTargetLabel = `Objetivo del ciclo ${scaled.cycleNumber}`;
         this.rescaling = false;
         this.savedSnapshot = this.snapshot();
         this.state = 'loaded';
@@ -449,29 +495,38 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     });
   }
 
-  // El objetivo del ciclo de una fase empezada desde el cajón ES el objetivo
-  // EN USO del cliente: al aplicar la fase, el backend lo crea y lo activa de
-  // una vez (plan-assignment-service.js -> nutritionalGoalService
-  // .assignToClient). Por eso este único endpoint sirve para las dos
-  // referencias posibles, y `phaseId` distingue cuál de las dos se está
-  // mostrando sin tener que adivinarlo.
-  private loadClientTarget(clientId: string): void {
-    this.clientDetailApi.getNutritionalGoals(clientId).subscribe({
-      next: (goals) => {
-        const enUso = (goals || []).find((goal) => goal.isInUse);
-        if (!enUso) return;
-        this.clientTarget = {
-          kcal: enUso.kcalTotal,
-          protein: enUso.proteinsGTotal,
-          carbs: enUso.carbohydratesGTotal,
-          fat: enUso.fatGTotal,
-        };
-        this.clientTargetLabel = `Objetivo en uso · ${enUso.name}`;
-      },
-      // En silencio: la referencia ayuda a ajustar, no hace falta para
-      // editar. Un error aquí no debe estorbar el trabajo de la pantalla.
-      error: () => undefined,
-    });
+  // Referencia contra la que ajustar: la necesidad calculada del ciclo (misma
+  // cuenta que ve el entrenador en el resumen de ciclo). Sin `phaseId`, la de
+  // la fase activa del cliente; `date` elige el ciclo que la contiene (una
+  // copia asignada), si no el ciclo en curso. Sin fase, no hay referencia.
+  private loadClientTarget(clientId: string, phaseId?: string | null, date?: string | null): void {
+    const phaseId$ = phaseId
+      ? of(phaseId)
+      : this.planAssignmentApi.getActive(clientId).pipe(map((active) => (active ? active.phaseId || active._id : null)));
+    phaseId$
+      .pipe(
+        switchMap((id) => {
+          if (!id) return of(null);
+          return this.dietSuggestionApi.getPhaseCycles(clientId, id).pipe(
+            switchMap((cycles) => {
+              const windows = cycles.windows || [];
+              const number = (date && windows.find((w) => w.start <= date && date <= w.end)?.number) || cycles.current.number;
+              return this.dietSuggestionApi.getCycleNeed(clientId, id, number);
+            })
+          );
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          const target = res?.need?.target;
+          if (!res || !target) return;
+          this.clientTarget = { kcal: target.kcal, protein: target.protein, carbs: target.carbs, fat: target.fat };
+          this.clientTargetLabel = `Necesidad del ciclo ${res.cycleNumber}`;
+        },
+        // En silencio: la referencia ayuda a ajustar, no hace falta para
+        // editar. Un error aquí no debe estorbar el trabajo de la pantalla.
+        error: () => undefined,
+      });
   }
 
   private applyTemplate(template: DietTemplate): void {
@@ -524,6 +579,15 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   // elegidos por el cliente), según el modo. Ambos comparten forma
   // {meals: TemplateMeal[]}, así que el resto de métodos (editor de celda,
   // drag&drop, snippets...) operan sobre esta lista sin duplicarse por modo. ---
+  public ngAfterViewInit(): void {
+    document.body.appendChild(this.clipboardHost.nativeElement);
+  }
+
+  // El portal ya no cuelga de la página: hay que retirarlo a mano.
+  public ngOnDestroy(): void {
+    this.clipboardHost?.nativeElement?.remove();
+  }
+
   public get activeRows(): (TemplateDay | TemplateDayPattern)[] {
     return this.mode === 'sequential' ? this.days : this.dayPatterns;
   }
@@ -558,12 +622,10 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   public setMode(mode: TemplateMode): void {
     this.mode = mode;
     // 'sequential' usa days[] y 'recurring'/'choice' usan dayPatterns[] —
-    // un dayIndex de uno no significa nada en el otro. El contenido ya
-    // copiado (this.clipboard) es una copia de datos, no una referencia, así
-    // que puede seguir pegándose tras el cambio de modo — solo se limpia la
-    // celda de origen (para no ocultar "Pegar" en una celda que ya no es esa).
+    // un dayIndex de uno no significa nada en el otro. En modo copia el
+    // selector está deshabilitado, pero por si acaso se vacía el portapapeles.
     this.activeCell = null;
-    this.clipboardSource = null;
+    this.clipboard = null;
   }
 
   public rowLabel(row: TemplateDay | TemplateDayPattern): string {
@@ -766,16 +828,12 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   public removeRow(index: number): void {
     this.activeRows.splice(index, 1);
 
+    // El botón de eliminar no existe en modo copia (ver html), así que el
+    // portapapeles nunca apunta a una fila que se esté quitando.
     if (this.activeCell?.dayIndex === index) {
       this.activeCell = null;
     } else if (this.activeCell && this.activeCell.dayIndex > index) {
       this.activeCell = { ...this.activeCell, dayIndex: this.activeCell.dayIndex - 1 };
-    }
-
-    if (this.clipboardSource?.dayIndex === index) {
-      this.clipboardSource = null;
-    } else if (this.clipboardSource && this.clipboardSource.dayIndex > index) {
-      this.clipboardSource = { ...this.clipboardSource, dayIndex: this.clipboardSource.dayIndex - 1 };
     }
   }
 
@@ -885,27 +943,10 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   // La celda del tablero ya no pinta un contador ("3 alimentos") sino lo que
   // hay dentro: nombre y gramos de cada alimento más los macros de esa
   // alternativa — que es justo lo que se quiere comparar de un vistazo entre
-  // columnas sin abrir el editor. Mismo criterio que dayTotals(): los macros
-  // de cada TemplateFoodItem ya vienen calculados para su quantity actual.
-  // Devuelve null (y no un total de ceros) cuando la alternativa aún no tiene
-  // ningún alimento elegido — así la fila de macros no aparece vacía en la
-  // celda mientras se está componiendo la comida.
-  public alternativeTotals(alt: TemplateMealAlternative): {
-    kcal: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-  } | null {
-    const items = (alt.items || []).filter((item) => item.productId || item.recipeId);
-    if (!items.length) return null;
-    const totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-    for (const item of items) {
-      totals.kcal += item.kcal || 0;
-      totals.protein += item.protein || 0;
-      totals.carbs += item.carbs || 0;
-      totals.fat += item.fat || 0;
-    }
-    return totals;
+  // columnas sin abrir el editor. Mismo cálculo que el editor de comida
+  // (utils/alternative-macros.ts).
+  public alternativeTotals(alt: TemplateMealAlternative): MacroTotals | null {
+    return alternativeTotals(alt);
   }
 
   public itemLabel(item: TemplateFoodItem): string {
@@ -927,12 +968,21 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     return meal.alternatives.some((alt) => alt.items.some((item) => item.productId || item.recipeId));
   }
 
+  // Igual que mealHasFood pero para la fila entera — hasAnyItems() no sirve
+  // aquí porque cuenta el placeholder `{}` que deja abrir el editor.
+  public rowHasFood(row: TemplateDay | TemplateDayPattern): boolean {
+    return row.meals.some((meal) => this.mealHasFood(meal));
+  }
+
   // --- Editor de celda (día × comida) ---
   // meal se pasa por referencia al modal: las mutaciones que haga dentro
   // (añadir/quitar alternativas, alimentos...) se reflejan directamente
   // aquí, en el mismo objeto que vive dentro de days/dayPatterns — no hace
   // falta releer nada al cerrar.
   public async openMealEditor(dayIndex: number, mealIndex: number): Promise<void> {
+    // En modo copia la celda solo admite "Pegar" (icono propio) — el click
+    // en el cuerpo no abre el editor.
+    if (this.copyMode) return;
     const row = this.activeRows[dayIndex];
     const meal = row.meals[mealIndex];
     // Siempre se edita con al menos una alternativa visible en pantalla,
@@ -957,7 +1007,7 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   // un arrastre accidental sería un desastre silencioso. ---
   public onCellDragStart(dayIndex: number, mealIndex: number, event: DragEvent): void {
     const meal = this.activeRows[dayIndex].meals[mealIndex];
-    if (!meal.alternatives.length) {
+    if (this.copyMode || !meal.alternatives.length) {
       event.preventDefault();
       return;
     }
@@ -1007,48 +1057,135 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   }
 
   // --- Copiar/pegar (portapapeles) ---
-  // Copiar solo guarda una copia local (no mueve ni toca nada). Mientras
-  // haya algo copiado, todos los huecos muestran el icono de pegar — no
-  // hace falta que el destino sea del mismo tipo de comida ni del mismo
-  // día/patrón. Si el destino ya tiene comida real, se pregunta si se
-  // unifica (se añade como alternativa más) o se sobrescribe.
+  // Copiar solo guarda una copia local (no mueve ni toca nada) y entra en
+  // "modo copia": el panel lateral muestra lo copiado, y en el tablero solo
+  // queda el icono de pegar en los destinos del mismo tipo (comida -> otras
+  // comidas, día -> otros días); el resto de iconos e inputs se bloquean
+  // hasta pegar y cancelar (o Escape). Si el destino ya tiene comida real,
+  // se pregunta si se unifica (se añade como alternativa más) o se
+  // sobrescribe.
+  public get copyMode(): boolean {
+    return this.clipboard !== null;
+  }
+
+  public get copyingMeal(): boolean {
+    return this.clipboard?.kind === 'meal';
+  }
+
+  public get copyingDay(): boolean {
+    return this.clipboard?.kind === 'day';
+  }
+
+  @HostListener('document:keydown.escape')
+  public clearClipboard(): void {
+    this.clipboard = null;
+  }
+
   public copyCell(dayIndex: number, mealIndex: number, event: Event): void {
     event.stopPropagation();
-    const meal = this.activeRows[dayIndex].meals[mealIndex];
+    const row = this.activeRows[dayIndex];
+    const meal = row.meals[mealIndex];
     if (!this.mealHasFood(meal)) return;
-    this.clipboard = this.cloneAlternatives(meal.alternatives);
-    this.clipboardSource = { dayIndex, mealIndex };
-    this.ionicUtilService.showToast({
-      message: 'Comida copiada — pulsa "Pegar" en el hueco destino',
-      duration: 2000,
-    });
+    this.clipboard = {
+      kind: 'meal',
+      source: { dayIndex, mealIndex },
+      label: `${this.rowLabel(row)} · ${meal.slot}`,
+      alternatives: this.cloneAlternatives(meal.alternatives),
+    };
+  }
+
+  public copyDay(dayIndex: number, event: Event): void {
+    event.stopPropagation();
+    const row = this.activeRows[dayIndex];
+    if (!this.rowHasFood(row)) return;
+    this.clipboard = {
+      kind: 'day',
+      sourceIndex: dayIndex,
+      label: this.rowLabel(row),
+      meals: row.meals.map((meal) => ({ slot: meal.slot, alternatives: this.cloneAlternatives(meal.alternatives) })),
+    };
   }
 
   public isClipboardSource(dayIndex: number, mealIndex: number): boolean {
-    return this.clipboardSource?.dayIndex === dayIndex && this.clipboardSource?.mealIndex === mealIndex;
+    return (
+      this.clipboard?.kind === 'meal' &&
+      this.clipboard.source.dayIndex === dayIndex &&
+      this.clipboard.source.mealIndex === mealIndex
+    );
+  }
+
+  public isDayClipboardSource(dayIndex: number): boolean {
+    return this.clipboard?.kind === 'day' && this.clipboard.sourceIndex === dayIndex;
+  }
+
+  // Comidas del portapapeles que tienen algo — para el panel lateral en
+  // modo día (los huecos vacíos del día copiado no aportan nada ahí).
+  public get clipboardMeals(): TemplateMeal[] {
+    return this.clipboard?.kind === 'day' ? this.clipboard.meals.filter((meal) => this.mealHasFood(meal)) : [];
   }
 
   public async pasteCell(dayIndex: number, mealIndex: number, event: Event): Promise<void> {
     event.stopPropagation();
-    if (!this.clipboard) return;
+    const clip = this.clipboard;
+    if (clip?.kind !== 'meal') return;
     const targetMeal = this.activeRows[dayIndex].meals[mealIndex];
 
     if (!this.mealHasFood(targetMeal)) {
-      targetMeal.alternatives = this.cloneAlternatives(this.clipboard);
+      targetMeal.alternatives = this.cloneAlternatives(clip.alternatives);
       return;
     }
 
     await this.ionicUtilService.showActionSheet({
       header: `"${targetMeal.slot}" ya tiene comida`,
       buttons: [
-        { text: 'Unificar (añadir como alternativa)', handler: () => this.mergeClipboardInto(targetMeal) },
+        {
+          text: 'Unificar (añadir como alternativa)',
+          handler: () => this.mergeAlternativesInto(targetMeal, clip.alternatives),
+        },
         {
           text: 'Sobrescribir',
           role: 'destructive',
           handler: () => {
-            targetMeal.alternatives = this.cloneAlternatives(this.clipboard);
+            targetMeal.alternatives = this.cloneAlternatives(clip.alternatives);
           },
         },
+        { text: 'Cancelar', role: 'cancel' },
+      ],
+    });
+  }
+
+  // Pegar un día entero: comida a comida, por posición de hueco (los slots
+  // son fijos y van en el mismo orden en todas las filas, ver addRow).
+  public async pasteDay(dayIndex: number, event: Event): Promise<void> {
+    event.stopPropagation();
+    const clip = this.clipboard;
+    if (clip?.kind !== 'day') return;
+    const row = this.activeRows[dayIndex];
+
+    const overwrite = (): void => {
+      row.meals.forEach((meal, i) => {
+        meal.alternatives = this.cloneAlternatives(clip.meals[i]?.alternatives || []);
+      });
+    };
+
+    if (!this.rowHasFood(row)) {
+      overwrite();
+      return;
+    }
+
+    await this.ionicUtilService.showActionSheet({
+      header: `"${this.rowLabel(row)}" ya tiene comida`,
+      buttons: [
+        {
+          text: 'Unificar (añadir como alternativas)',
+          handler: () => {
+            row.meals.forEach((meal, i) => {
+              const source = clip.meals[i]?.alternatives || [];
+              if (source.length) this.mergeAlternativesInto(meal, source);
+            });
+          },
+        },
+        { text: 'Sobrescribir', role: 'destructive', handler: overwrite },
         { text: 'Cancelar', role: 'cancel' },
       ],
     });
@@ -1058,8 +1195,8 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     return alternatives.map((alt) => ({ label: alt.label, items: alt.items.map((item) => ({ ...item })) }));
   }
 
-  private mergeClipboardInto(targetMeal: TemplateMeal): void {
-    const merged = [...targetMeal.alternatives, ...this.cloneAlternatives(this.clipboard || [])];
+  private mergeAlternativesInto(targetMeal: TemplateMeal, alternatives: TemplateMealAlternative[]): void {
+    const merged = [...targetMeal.alternatives, ...this.cloneAlternatives(alternatives)];
     if (merged.length > this.maxAlternatives) {
       this.ionicUtilService.showToast({
         message: `Solo se han añadido hasta ${this.maxAlternatives} alternativas por comida.`,
@@ -1207,6 +1344,8 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
       focus: this.phaseFocus,
       targetKcalDelta: Number(this.phaseKcalDelta) || 0,
       ratePerCycle: Number(this.phaseRatePerCycle) || 0,
+      proteinPerKg: this.phaseProteinPerKg,
+      fatPerKg: this.phaseFatPerKg,
     };
 
     this.dietTemplateApi

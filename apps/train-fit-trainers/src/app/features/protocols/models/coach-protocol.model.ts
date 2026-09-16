@@ -9,19 +9,10 @@ export interface ProtocolDailyTask {
   unit: string;
 }
 
-export interface ProtocolNutritionalGoal {
-  // null = este protocolo no toca los macros. Distinto de 0 kcal.
-  kcalTotal: number | null;
-  proteinsGTotal: number | null;
-  carbohydratesGTotal: number | null;
-  fatGTotal: number | null;
-}
-
 export interface CoachProtocol {
   _id: string;
   name: string;
   description: string;
-  nutritionalGoal: ProtocolNutritionalGoal;
   checkinTemplateId: string | null;
   dietTemplateId: string | null;
   routineTemplateId: string | null;

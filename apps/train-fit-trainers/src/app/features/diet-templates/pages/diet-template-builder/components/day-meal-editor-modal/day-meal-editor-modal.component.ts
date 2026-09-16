@@ -34,10 +34,14 @@ import {
 } from '../../../../../../shared/components/recipe-ingredients-editor-modal/recipe-ingredients-editor-modal.component';
 import { ProductDetailPanelComponent } from '../../../../../../shared/components/product-detail-panel/product-detail-panel.component';
 import {
-  ExchangeGeneratorModalComponent,
-  ExchangeGeneratorResult,
-} from '../../../../../../shared/components/exchange-generator-modal/exchange-generator-modal.component';
-import { FoodExchangeItem } from '../../../../../food-exchanges/models/food-exchange.model';
+  AlternativeDeviation,
+  alternativeTotals,
+  DEVIATION_PCT_TOLERANCE,
+  MACRO_KEYS,
+  MacroKey,
+  MacroTotals,
+  macroDeviation,
+} from '../../../../utils/alternative-macros';
 import { computeItemMicros } from '../../../../utils/nutrient-fields';
 
 // Extraído de diet-template-builder.page.ts a un modal standalone real —
@@ -99,6 +103,83 @@ export class DayMealEditorModalComponent {
     return (this.meal?.alternatives.length || 0) >= 2;
   }
 
+  // --- Totales por opción y desviación entre opciones ---
+  //
+  // Las opciones de una comida deberían ser intercambiables (el cliente
+  // elige por gusto, no por macros), así que cada card enseña su total y,
+  // con 2+ opciones con comida, cuánto se separa de la referencia. La
+  // referencia es "Opción 1" (la de número más bajo con comida — la que se
+  // compuso primero, con la que el trainer va igualando las demás); con
+  // 2 opciones es exactamente "la otra".
+  public readonly macroKeys = MACRO_KEYS;
+  public readonly deviationTolerancePct = Math.round(DEVIATION_PCT_TOLERANCE * 100);
+
+  public alternativeTotals(alt: TemplateMealAlternative): MacroTotals | null {
+    return alternativeTotals(alt);
+  }
+
+  public macroFormat(key: MacroKey): string {
+    return key === 'kcal' ? '1.0-0' : '1.0-1';
+  }
+
+  public macroUnit(key: MacroKey): string {
+    return key === 'kcal' ? '' : 'g';
+  }
+
+  // Opción 1 es la ÚLTIMA del array (numeración descendente en la
+  // plantilla: `Opción {{ length - i }}`), de ahí buscar desde el final.
+  public get referenceIndex(): number {
+    if (!this.isMultiple) return -1;
+    for (let i = this.meal.alternatives.length - 1; i >= 0; i--) {
+      if (alternativeTotals(this.meal.alternatives[i])) return i;
+    }
+    return -1;
+  }
+
+  public isReference(altIndex: number): boolean {
+    return altIndex === this.referenceIndex && this.comparableCount >= 2;
+  }
+
+  private get comparableCount(): number {
+    return this.meal.alternatives.filter((alt) => alternativeTotals(alt)).length;
+  }
+
+  public alternativeName(altIndex: number): string {
+    const alt = this.meal.alternatives[altIndex];
+    return alt?.label?.trim() || `Opción ${this.meal.alternatives.length - altIndex}`;
+  }
+
+  public deviationOf(altIndex: number): AlternativeDeviation | null {
+    const refIndex = this.referenceIndex;
+    if (refIndex < 0 || refIndex === altIndex) return null;
+    const totals = alternativeTotals(this.meal.alternatives[altIndex]);
+    const reference = alternativeTotals(this.meal.alternatives[refIndex]);
+    if (!totals || !reference) return null;
+    return macroDeviation(totals, reference);
+  }
+
+  // Una línea por opción que se sale de la tolerancia, solo con los macros
+  // que se salen: "Opción 3: +60 kcal · +8 g P".
+  public deviationWarnings(): string[] {
+    const warnings: string[] = [];
+    this.meal.alternatives.forEach((_alt, i) => {
+      const deviation = this.deviationOf(i);
+      if (!deviation) return;
+      const parts = MACRO_KEYS.filter((key) => deviation[key].flagged).map((key) =>
+        this.formatDelta(deviation[key].delta, key)
+      );
+      if (parts.length) warnings.push(`${this.alternativeName(i)}: ${parts.join(' · ')}`);
+    });
+    return warnings;
+  }
+
+  private formatDelta(delta: number, key: MacroKey): string {
+    const short: Record<MacroKey, string> = { kcal: 'kcal', protein: 'g P', carbs: 'g C', fat: 'g G' };
+    const digits = key === 'kcal' ? 0 : 1;
+    const value = Math.abs(delta).toFixed(digits).replace('.', ',');
+    return `${delta > 0 ? '+' : '-'}${value} ${short[key]}`;
+  }
+
   private emptyFoodItem(): TemplateFoodItem {
     return {};
   }
@@ -134,76 +215,6 @@ export class DayMealEditorModalComponent {
   public removeAlternative(altIndex: number): void {
     if (this.meal.alternatives.length <= 1) return;
     this.meal.alternatives.splice(altIndex, 1);
-  }
-
-  // --- Generar alternativas desde un grupo de intercambio ---
-  //
-  // El paso siguiente de duplicateAlternative: casi todas las alternativas de
-  // una comida cambian UN alimento, y qué se puede poner en su lugar y en qué
-  // cantidad el coach ya lo escribió en su grupo de intercambio. Antes de esto
-  // volvía a teclearlo aquí, una búsqueda por opción.
-  //
-  // No inventa equivalencias — sigue sin haber ninguna regla que convierta un
-  // alimento en otro. Las cantidades salen tal cual del grupo.
-  public async generateFromExchange(altIndex: number, itemIndex: number): Promise<void> {
-    const source = this.meal.alternatives[altIndex];
-    const pivot = source?.items[itemIndex];
-    if (!source || !pivot) return;
-
-    const slotsAvailable = this.maxAlternatives - this.meal.alternatives.length;
-    if (slotsAvailable <= 0) {
-      void this.ionicUtilService.showWarningToast(
-        `Esta comida ya tiene ${this.maxAlternatives} alternativas. Quita alguna para generar otras.`
-      );
-      return;
-    }
-
-    const modal = await this.modalController.create({
-      component: ExchangeGeneratorModalComponent,
-      componentProps: {
-        pivotName: pivot.productName || pivot.recipeName || '',
-        pivotProductId: pivot.productId || null,
-        slotsAvailable,
-      },
-      cssClass: 'tf-panel-modal',
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss<ExchangeGeneratorResult>();
-    if (role !== 'confirm' || !data?.items.length) return;
-
-    // La etiqueta se pide a partir de 2 alternativas (isMultiple), y generar
-    // siempre deja 2+: si la de origen no tenía, se le pone la del alimento que
-    // la distingue — es lo que el cliente va a leer para elegir.
-    if (!source.label.trim()) source.label = pivot.productName || pivot.recipeName || '';
-
-    const generated = data.items.map((exchangeItem) =>
-      this.alternativeSwapping(source, itemIndex, exchangeItem)
-    );
-    // Justo detrás de la de origen: las alternativas generadas y la que las
-    // originó se leen juntas, y al final de la lista habría que buscarlas.
-    this.meal.alternatives.splice(altIndex + 1, 0, ...generated);
-  }
-
-  // Copia la alternativa entera y sustituye SOLO el alimento pivote — el resto
-  // de la comida (arroz, ensalada, aceite) se mantiene, que es justo lo que
-  // hacía a mano el ciclo duplicar + volver a buscar.
-  private alternativeSwapping(
-    source: TemplateMealAlternative,
-    itemIndex: number,
-    exchangeItem: FoodExchangeItem
-  ): TemplateMealAlternative {
-    const items = source.items.map((item) => ({ ...item }));
-    const swapped: TemplateFoodItem = {
-      productId: exchangeItem.productId || undefined,
-      // El nombre que escribió el coach en el grupo ("Pechuga de pollo, sin
-      // piel"), no el del catálogo: es el que él decidió que lea su cliente.
-      productName: exchangeItem.name,
-      quantity: exchangeItem.quantity,
-      product: exchangeItem.product || undefined,
-    };
-    this.recalculateItemMacros(swapped);
-    items[itemIndex] = swapped;
-    return { label: exchangeItem.name, items };
   }
 
   // Va directo al buscador real (mismo criterio que "Buscar producto o

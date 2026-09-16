@@ -24,7 +24,7 @@
     <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
     <h2>Tu metodología, en un solo paso</h2>
     <p>
-      Un protocolo agrupa lo que le pones a un cliente cuando entra en una fase: macros, plantilla de
+      Un protocolo agrupa lo que le pones a un cliente cuando entra en una fase: plantilla de
       check-in, plan de dieta, rutina, automatizaciones y hábitos. Créalo una vez —
       <em>Definición</em>, <em>Volumen</em>, <em>Recomposición</em>— y aplícalo entero cada vez que
       lo necesites.
@@ -114,29 +114,6 @@
   <label class="field-label" for="protocol-description">Descripción <span class="field-optional">(opcional)</span></label>
   <div class="input-wrapper">
     <input id="protocol-description" class="input-field" type="text" maxlength="500" placeholder="Fase de déficit moderado" [(ngModel)]="description" />
-  </div>
-
-  <!-- Macros. Vacío = "este protocolo no toca los macros", que no es lo
-       mismo que 0 kcal — de ahí el texto de ayuda. -->
-  <h3 class="section-title">Objetivo nutricional</h3>
-  <p class="section-hint">Déjalo vacío si este protocolo no cambia los macros del cliente.</p>
-  <div class="macro-grid">
-    <div class="macro-field">
-      <label class="field-label" for="protocol-kcal">Calorías</label>
-      <input id="protocol-kcal" class="builder-input" type="number" min="0" [(ngModel)]="kcalTotal" />
-    </div>
-    <div class="macro-field">
-      <label class="field-label" for="protocol-protein">Proteínas (g)</label>
-      <input id="protocol-protein" class="builder-input" type="number" min="0" [(ngModel)]="proteinsGTotal" />
-    </div>
-    <div class="macro-field">
-      <label class="field-label" for="protocol-carbs">Carbohidratos (g)</label>
-      <input id="protocol-carbs" class="builder-input" type="number" min="0" [(ngModel)]="carbohydratesGTotal" />
-    </div>
-    <div class="macro-field">
-      <label class="field-label" for="protocol-fat">Grasas (g)</label>
-      <input id="protocol-fat" class="builder-input" type="number" min="0" [(ngModel)]="fatGTotal" />
-    </div>
   </div>
 
   <h3 class="section-title">Plantillas</h3>

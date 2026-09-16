@@ -56,7 +56,6 @@ import { Theme, THEMES } from 'src/app/shared/models/theme';
 import { VideoModalComponent } from './video-modal/video-modal.component';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { CustomExerciseComponent } from './custom-exercise/custom-exercise.component';
-import { NumericKeypadService } from 'src/app/shared/components/numeric-keypad/numeric-keypad.service';
 import { WorkoutSummaryModalComponent } from './workout-summary-modal/workout-summary-modal.component';
 import {
   WorkoutSummary,
@@ -144,7 +143,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly adMobService = inject(AdMobService);
   private readonly exerciseHistoryService = inject(ExerciseHistoryService);
   public readonly restTimerService = inject(RestTimerService);
-  public readonly numericKeypadService = inject(NumericKeypadService);
 
   constructor(
     private navigationService: NavigationService,

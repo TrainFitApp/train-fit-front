@@ -1,7 +1,7 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { skip } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
+import { catchError, skip } from 'rxjs/operators';
+import { of, Subscription } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -44,7 +44,6 @@ import {
   BlockReadiness,
   ClientBodyProfile,
   ClientTrainingProgress,
-  GoalMeal,
   SessionAdherence,
   SessionExerciseProgress,
   SessionMuscleGroup,
@@ -57,7 +56,6 @@ import {
 } from './models/client-progress.model';
 import { TrainingFilterPanelComponent, TrainingFilterResult } from './components/training-filter-panel/training-filter-panel.component';
 import { CompletedDay } from './components/training-calendar/training-calendar.component';
-import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { NextCycleModalComponent } from '../../components/next-cycle-modal/next-cycle-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
@@ -69,17 +67,13 @@ import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal
 import { WEEKDAYS } from '../../../diet-templates/models/diet-template.model';
 import {
   CycleWindow,
-  MissingBiometricsError,
-  NutritionTarget,
   PhaseCyclesResponse,
 } from '../../../diet-templates/models/diet-suggestion.model';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
 import { checkinFieldLabel, checkinValueLabel } from '../../checkin-labels.util';
 import { CycleSummaryPanelComponent } from '../../components/cycle-summary-panel/cycle-summary-panel.component';
-import {
-  DietException,
-  PlanAssignment,
-} from '../../../../shared/models/plan-assignment.model';
+import { NutritionHistoryEvent, PlanAssignment } from '../../../../shared/models/plan-assignment.model';
+import { dietaryFlagUi } from '../../../../shared/utils/dietary-flag-ui.util';
 import { cycleWindowsUntil } from './cycle-label.util';
 import { forkJoin } from 'rxjs';
 import { UserService } from 'src/app/core/services/user/user.service';
@@ -89,7 +83,6 @@ import {
   AnthropometryEntry,
   AnthropometryRequest,
   AnthropometryRequestCadence,
-  BulkApplyResult,
   CheckinConfig,
   CheckinResponseEntry,
   ClientDetailSection,
@@ -104,7 +97,6 @@ import {
   CompletedWorkoutEntry,
   TrainingGoal,
   TrainingGoalType,
-  NutritionalGoal,
   NutritionComplianceSummary,
   TrainerNote,
   TrainerPayment,
@@ -277,54 +269,11 @@ export class ClientDetailPage implements OnInit {
   // --- Nutrición ---
   public nutritionState: SectionState = 'loading';
   public nutritionDate: string = new Date().toISOString().slice(0, 10);
-  public goals: NutritionalGoal[] = [];
   public adherence: AdherenceSummary | null = null;
   // F20-bis — cumplimiento del plan (distinto de adherence, ver
   // client-detail.model.ts), ventana fija de 30 días terminando hoy
   // (independiente del día que se esté viendo abajo).
   public complianceSummary: NutritionComplianceSummary | null = null;
-  public showGoalPanel = false;
-  public goalForm: FormGroup = new FormGroup({
-    name: new FormControl('Objetivo asignado', Validators.required),
-    kcalTotal: new FormControl(null, [Validators.required, Validators.min(1)]),
-    proteinsGTotal: new FormControl(null, [
-      Validators.required,
-      Validators.min(0),
-    ]),
-    carbohydratesGTotal: new FormControl(null, [
-      Validators.required,
-      Validators.min(0),
-    ]),
-    fatGTotal: new FormControl(null, [Validators.required, Validators.min(0)]),
-    // Fase 5 Coach Pro — "fibra si procede" (§15). SIN Validators.required:
-    // dejarlo vacío significa "este objetivo no pauta fibra", que no es lo
-    // mismo que 0 g. Los objetivos anteriores siguen siendo válidos.
-    fiberGTotal: new FormControl(null, [Validators.min(0)]),
-    // Fase 4 Coach Pro — el porqué del cambio (§18). Opcional: obligarlo en
-    // una acción que un coach repite a diario acabaría rellenándose con
-    // basura.
-    reason: new FormControl(''),
-  });
-  public isAssigningGoal = false;
-  // Calculadora de recomendación del panel "Asignar objetivos" — mismo
-  // cálculo que el cajón de sugerencias de dieta (computeNutritionTarget),
-  // pero compacta: sin editar peso/altura/actividad del cliente, solo el
-  // foco (déficit/mantenimiento/superávit) + delta. El entrenador retoca los
-  // 4 campos después si quiere.
-  public readonly nutritionObjectivePresets: { key: 'deficit' | 'maintain' | 'surplus'; label: string; delta: number }[] = [
-    { key: 'deficit', label: 'Déficit', delta: -500 },
-    { key: 'maintain', label: 'Mantenimiento', delta: 0 },
-    { key: 'surplus', label: 'Superávit', delta: 300 },
-  ];
-  public nutritionObjectivePreset: 'deficit' | 'maintain' | 'surplus' = 'deficit';
-  public nutritionObjectiveDelta = -500;
-  public isCalculatingNutritionTarget = false;
-  public nutritionTargetPreview: NutritionTarget | null = null;
-  public nutritionTargetMissing: string[] | null = null;
-  // Tocar una card de objetivo ya EXISTENTE la pone en uso. Id (no un
-  // booleano suelto) porque varias cards viven en la misma lista y solo una
-  // debe mostrarse "en progreso" a la vez.
-  public activatingGoalId: string | null = null;
   public isRevoking = false;
 
   // --- Preferencias nutricionales (F29, transversal a nutrición) ---
@@ -334,15 +283,6 @@ export class ClientDetailPage implements OnInit {
   // El profesional puede rellenarlas/editarlas directamente en vez de
   // esperar a que el cliente responda el cuestionario. Mismos campos que
   // el editor del propio cliente (packages/shared-features/nutrition-preferences).
-  public showNutritionPreferencesPanel = false;
-  public isSavingNutritionPreferences = false;
-  public readonly nutritionPrefMealSlots = ['Desayuno', 'Almuerzo', 'Comida', 'Merienda', 'Cena', 'Recena'];
-  public nutritionPrefAllergies = '';
-  public nutritionPrefFavoriteFoods = '';
-  public nutritionPrefDislikedFoods = '';
-  public nutritionPrefCooksAtHome: 'yes' | 'no' | 'sometimes' | null = null;
-  public nutritionPrefDisabledMealSlots: Record<string, boolean> = {};
-  public nutritionPrefMealSlotLabels: Record<string, string> = {};
 
   // Auditoría de arquitectura (nutrición, Fase 8) — plan vigente del cliente,
   // resuelto vía PlanAssignment en vez de inferido de los DietDay ya escritos.
@@ -528,8 +468,12 @@ export class ClientDetailPage implements OnInit {
   public showNutritionHistory = false;
   public nutritionHistoryLoaded = false;
   public nutritionHistoryState: 'loading' | 'error' | 'loaded' = 'loading';
-  public nutritionHistory: PlanAssignment[] = [];
-  public dietExceptions: DietException[] = [];
+  // Feed de eventos (fases, ciclos, check-ins, excepciones) — ver
+  // nutrition-history-feed.component.ts.
+  public nutritionHistory: NutritionHistoryEvent[] = [];
+  // Color de fase para el feed: misma paleta que la fila de fases (phaseColorMap).
+  public readonly phaseColorForFeed = (phaseId: string): string =>
+    this.phaseColorMap.get(phaseId) ?? 'var(--tf-accent)';
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -1770,21 +1714,15 @@ export class ClientDetailPage implements OnInit {
     this.nutritionDate = date;
     this.nutritionState = 'loading';
 
-    this.clientDetailApi
-      .getNutritionalGoals(this.clientId)
-      .toPromise()
-      .then((goals) => {
-        this.goals = goals || [];
-        this.nutritionState = 'loaded';
-      })
-      .catch(() => {
-        this.nutritionState = 'error';
-      });
-
-    // F20 — no bloquea el resto de la sección si falla, es un widget aparte.
     this.clientDetailApi.getAdherence(this.clientId).subscribe({
-      next: (adherence) => (this.adherence = adherence),
-      error: () => (this.adherence = null),
+      next: (adherence) => {
+        this.adherence = adherence;
+        this.nutritionState = 'loaded';
+      },
+      error: () => {
+        this.adherence = null;
+        this.nutritionState = 'error';
+      },
     });
 
     // F20-bis — ventana fija de 30 días terminando hoy, no la fecha que se
@@ -1850,7 +1788,7 @@ export class ClientDetailPage implements OnInit {
   //
   // Ya no pide nada al cambiar de día (antes releía el dietDay para poder
   // pautar comida a comida desde aquí — ver Replanteamiento MVP en
-  // client-detail.page.html): goals/adherence/complianceSummary/
+  // client-detail.page.html): adherence/complianceSummary/
   // nutritionPreferences/activePlan tampoco cambian según el día que se
   // esté mirando, así que no queda nada de verdad que releer.
   public onNutritionDateSelected(date: string): void {
@@ -1886,6 +1824,12 @@ export class ClientDetailPage implements OnInit {
     const date = new Date();
     date.setDate(date.getDate() - days);
     return this.formatLocalIsoDate(date);
+  }
+
+  // Sin días con plan no hay adherencia que medir (percentage null), que no
+  // es lo mismo que un 0%.
+  public get hasAdherenceData(): boolean {
+    return this.adherence?.percentage !== null && this.adherence?.percentage !== undefined;
   }
 
   // F20-bis — % medio de cumplimiento (días con plan) de la ventana de 30
@@ -2074,14 +2018,6 @@ export class ClientDetailPage implements OnInit {
     return 'indefinido';
   }
 
-  // Igual pero sin la preposición — para el formato "inicio → fin".
-  public phaseEndShort(phase: PlanAssignment | null): string {
-    if (!phase) return '';
-    if (phase.endDate) return phase.endDate;
-    if (this.phaseHasScheduledSuccessor(phase)) return '';
-    return 'indefinido';
-  }
-
   // ¿Hay alguna fase que empiece más tarde que esta? (programada, o ya en
   // marcha si "esta" es una fase antigua superada). Ver phaseEndLabel.
   private phaseHasScheduledSuccessor(phase: PlanAssignment): boolean {
@@ -2201,8 +2137,16 @@ export class ClientDetailPage implements OnInit {
     const { data, role } = await modal.onDidDismiss();
 
     if (role === 'prepare' && data?.kcal) {
+      // Los macros ajustados en el modal viajan como query params (igual que
+      // kcal) para que un F5 en el builder no los pierda. Sin ajustar, no van:
+      // el builder escala proporcional y no enseña objetivo.
+      const m = data.macros;
       void this.router.navigate(['/tabs/diet-templates/next-cycle', this.clientId, phaseId], {
-        queryParams: { kcal: data.kcal, name: this.name },
+        queryParams: {
+          kcal: data.kcal,
+          name: this.name,
+          ...(m ? { p: m.protein, c: m.carbs, f: m.fat } : {}),
+        },
       });
       return;
     }
@@ -2268,11 +2212,8 @@ export class ClientDetailPage implements OnInit {
       next: () => {
         this.cancellingPlanPhaseId = null;
         this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
-        // loadNutrition (no solo loadActivePlan): quitar una fase también
-        // borra el objetivo de su ciclo en el backend (cancelPhase ->
-        // cleanupCycleGoal), así que la lista de OBJETIVOS NUTRICIONALES
-        // hay que recargarla o queda un objetivo fantasma "En uso" hasta el
-        // próximo refresco.
+        // loadNutrition (no solo loadActivePlan): la adherencia se mide
+        // contra lo pautado, y quitar la fase lo cambia.
         this.loadNutrition();
         // El historial de abajo es de carga perezosa (toggleNutritionHistory)
         // — solo se refresca si ya estaba abierto, para no disparar una
@@ -2305,13 +2246,15 @@ export class ClientDetailPage implements OnInit {
   public loadNutritionHistory(): void {
     this.nutritionHistoryState = 'loading';
     forkJoin({
-      history: this.planAssignmentApi.getHistory(this.clientId),
-      exceptions: this.planAssignmentApi.getExceptions(this.clientId),
+      history: this.planAssignmentApi.getNutritionHistory(this.clientId),
+      // Para nombrar las preguntas propias del coach en los check-ins del
+      // feed; sin config se cae al catálogo (catchError, no bloquea).
+      config: this.clientDetailApi.getCheckinConfig(this.clientId).pipe(catchError(() => of(null))),
     }).subscribe({
-      next: ({ history, exceptions }) => {
-        // Del más reciente al más antiguo, una entrada por fase.
-        this.nutritionHistory = groupPhaseDocs(history || []).reverse();
-        this.dietExceptions = exceptions || [];
+      next: ({ history, config }) => {
+        // Ya viene ordenado del más reciente al más antiguo.
+        this.nutritionHistory = history?.events || [];
+        this.checkinConfig = config || this.checkinConfig;
         this.nutritionHistoryLoaded = true;
         this.nutritionHistoryState = 'loaded';
       },
@@ -2415,71 +2358,10 @@ export class ClientDetailPage implements OnInit {
     });
   }
 
-  public openNutritionPreferencesPanel(): void {
-    this.nutritionPrefAllergies = this.nutritionPreferences?.allergies || '';
-    this.nutritionPrefFavoriteFoods = this.nutritionPreferences?.favoriteFoods || '';
-    this.nutritionPrefDislikedFoods = this.nutritionPreferences?.dislikedFoods || '';
-    this.nutritionPrefCooksAtHome = this.nutritionPreferences?.cooksAtHome ?? null;
-    this.nutritionPrefDisabledMealSlots = this.nutritionPrefMealSlots.reduce(
-      (acc, slot) => ({
-        ...acc,
-        [slot]: !!this.nutritionPreferences?.disabledMealSlots?.includes(slot),
-      }),
-      {} as Record<string, boolean>
-    );
-    this.nutritionPrefMealSlotLabels = { ...(this.nutritionPreferences?.mealSlotLabels || {}) };
-    this.showNutritionPreferencesPanel = true;
-  }
-
-  public closeNutritionPreferencesPanel(): void {
-    this.showNutritionPreferencesPanel = false;
-  }
-
-  public toggleNutritionPrefMealSlot(slot: string): void {
-    this.nutritionPrefDisabledMealSlots[slot] = !this.nutritionPrefDisabledMealSlots[slot];
-  }
-
-  public setNutritionPrefCooksAtHome(value: 'yes' | 'no' | 'sometimes'): void {
-    this.nutritionPrefCooksAtHome = value;
-  }
-
-  public saveNutritionPreferences(): void {
-    if (this.isSavingNutritionPreferences) return;
-    this.isSavingNutritionPreferences = true;
-    this.clientDetailApi
-      .updateNutritionPreferences(this.clientId, {
-        allergies: this.nutritionPrefAllergies.trim(),
-        favoriteFoods: this.nutritionPrefFavoriteFoods.trim(),
-        dislikedFoods: this.nutritionPrefDislikedFoods.trim(),
-        cooksAtHome: this.nutritionPrefCooksAtHome,
-        disabledMealSlots: this.nutritionPrefMealSlots.filter(
-          (slot) => this.nutritionPrefDisabledMealSlots[slot]
-        ),
-        mealSlotLabels: Object.fromEntries(
-          Object.entries(this.nutritionPrefMealSlotLabels).filter(
-            ([, label]) => (label || '').trim().length > 0
-          )
-        ),
-      })
-      .subscribe({
-        next: (preferences) => {
-          this.isSavingNutritionPreferences = false;
-          this.nutritionPreferences = preferences;
-          this.showNutritionPreferencesPanel = false;
-          this.ionicUtilService.showToast({
-            message: 'Preferencias nutricionales guardadas',
-            duration: 2500,
-          });
-        },
-        error: (err) => {
-          this.isSavingNutritionPreferences = false;
-          this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudieron guardar las preferencias',
-            'Error',
-            3000
-          );
-        },
-      });
+  // El editor vive en app-nutrition-preferences-panel (panel lateral colgado
+  // del body); aquí solo se recoge el resultado para refrescar la tarjeta.
+  public onNutritionPreferencesSaved(preferences: ClientNutritionPreferences): void {
+    this.nutritionPreferences = preferences;
   }
 
   public cooksAtHomeLabel(value: 'yes' | 'no' | 'sometimes' | null): string {
@@ -2489,185 +2371,9 @@ export class ClientDetailPage implements OnInit {
     return 'Sin especificar';
   }
 
-  private readonly dietaryFlagLabels: Record<string, string> = {
-    vegan: 'Vegana',
-    vegetarian: 'Vegetariana',
-    lactoseFree: 'Sin lactosa',
-    glutenFree: 'Sin gluten',
-  };
-
-  public dietaryFlagsLabel(flags: string[] | undefined): string {
-    if (!flags?.length) return 'Ninguna';
-    return flags.map((f) => this.dietaryFlagLabels[f] ?? f).join(', ');
-  }
-
-  // Movimiento 5 Coach Pro — reparto por comidas en intercambios. Fuera del
-  // FormGroup a propósito: es una estructura anidada (comidas -> raciones)
-  // que se edita con su propio componente, y meterla en un FormArray dentro
-  // de un formulario de cinco números solo añadiría ceremonia.
-  public goalMealExchanges: GoalMeal[] = [];
-
-  /**
-   * Los gramos del formulario, con los nombres que entiende el cuadre.
-   *
-   * Se lee del FormGroup en vivo y no de una copia: el entrenador sube las
-   * kcal y el cuadre de abajo tiene que moverse con ellas, que es justo lo
-   * que hace que las dos formas de pautar dejen de ir cada una por su lado.
-   */
-  public get goalMacroTargets(): {
-    kcal: number | null;
-    protein: number | null;
-    carbs: number | null;
-    fat: number | null;
-  } {
-    const value = this.goalForm.value;
-    const read = (raw: unknown): number | null => {
-      const parsed = Number(raw);
-      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-    };
-    return {
-      kcal: read(value.kcalTotal),
-      protein: read(value.proteinsGTotal),
-      carbs: read(value.carbohydratesGTotal),
-      fat: read(value.fatGTotal),
-    };
-  }
-
-  // El objetivo vigente del cliente. Se deriva de la lista en vez de
-  // guardarse aparte: dos copias del "cuál está activo" se desincronizan en
-  // cuanto se activa otro.
-  public get activeGoal(): NutritionalGoal | null {
-    return this.goals.find((goal) => goal.isInUse) || null;
-  }
-
-  public openGoalPanel(): void {
-    this.showGoalPanel = true;
-    this.goalForm.reset({
-      name: 'Objetivo asignado',
-      kcalTotal: null,
-      proteinsGTotal: null,
-      carbohydratesGTotal: null,
-      fatGTotal: null,
-    });
-    // Se parte del reparto que ya tuviera el objetivo activo: pautar los
-    // intercambios de cero cada vez que se retocan las kcal sería
-    // inaceptable.
-    this.goalMealExchanges = (this.activeGoal?.mealExchanges || []).map((meal) => ({
-      name: meal.name,
-      exchanges: [...(meal.exchanges || [])],
-    }));
-
-    this.nutritionObjectivePreset = 'deficit';
-    this.nutritionObjectiveDelta = -500;
-    this.nutritionTargetPreview = null;
-    this.nutritionTargetMissing = null;
-  }
-
-  public selectNutritionObjectivePreset(preset: { key: 'deficit' | 'maintain' | 'surplus'; delta: number }): void {
-    this.nutritionObjectivePreset = preset.key;
-    this.nutritionObjectiveDelta = preset.delta;
-    this.calculateNutritionTarget();
-  }
-
-  public calculateNutritionTarget(): void {
-    if (this.isCalculatingNutritionTarget) return;
-
-    this.isCalculatingNutritionTarget = true;
-    this.nutritionTargetMissing = null;
-    this.clientDetailApi
-      .getNutritionTarget(this.clientId, this.nutritionObjectiveDelta)
-      .subscribe({
-        next: (res) => {
-          this.isCalculatingNutritionTarget = false;
-          this.nutritionTargetPreview = res.target;
-          this.goalForm.patchValue({
-            kcalTotal: res.target.kcal,
-            proteinsGTotal: res.target.protein,
-            carbohydratesGTotal: res.target.carbs,
-            fatGTotal: res.target.fat,
-          });
-        },
-        error: (err) => {
-          this.isCalculatingNutritionTarget = false;
-          this.nutritionTargetPreview = null;
-          const body: MissingBiometricsError | undefined = err?.error;
-          if (body?.code === 'MISSING_BIOMETRICS') {
-            this.nutritionTargetMissing = body.missing;
-            return;
-          }
-          this.ionicUtilService.showErrorToast(
-            'No se pudo calcular la recomendación',
-            'Error',
-            3000
-          );
-        },
-      });
-  }
-
-  public closeGoalPanel(): void {
-    this.showGoalPanel = false;
-  }
-
-  public submitGoal(): void {
-    if (this.goalForm.invalid || this.isAssigningGoal) {
-      this.goalForm.markAllAsTouched();
-      return;
-    }
-
-    this.isAssigningGoal = true;
-    this.clientDetailApi
-      .assignNutritionalGoal(this.clientId, {
-        ...this.goalForm.value,
-        // Movimiento 5 Coach Pro — viaja junto a los gramos, en la misma
-        // petición: son dos formas de pautar EL MISMO objetivo, y guardarlas
-        // por separado abriría la puerta a que una se guardase y la otra no.
-        mealExchanges: this.goalMealExchanges,
-      })
-      .subscribe({
-        next: () => {
-          this.isAssigningGoal = false;
-          this.showGoalPanel = false;
-          this.ionicUtilService.showToast({
-            message: `Objetivos actualizados para ${this.name}`,
-            duration: 3000,
-          });
-          this.loadNutrition();
-        },
-        error: (err) => {
-          this.isAssigningGoal = false;
-          this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudieron asignar los objetivos',
-            'Error',
-            3500
-          );
-        },
-      });
-  }
-
-  public activateGoal(goal: NutritionalGoal): void {
-    if (goal.isInUse || this.activatingGoalId) return;
-
-    this.activatingGoalId = goal._id;
-    this.clientDetailApi
-      .activateNutritionalGoal(this.clientId, goal._id)
-      .subscribe({
-        next: () => {
-          this.activatingGoalId = null;
-          this.goals = this.goals.map((g) => ({
-            ...g,
-            isInUse: g._id === goal._id,
-          }));
-        },
-        error: (err) => {
-          this.activatingGoalId = null;
-          this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo activar el objetivo',
-            'Error',
-            3500
-          );
-        },
-      });
-  }
+  // Icono + color por restricción, compartido con diet-card y el cajón de
+  // sugerencias.
+  public readonly dietaryFlagUi = dietaryFlagUi;
 
   // Replanteamiento MVP (nutrición) — aplicar una plantilla de dieta ya
   // construida a este cliente, eligiendo solo la fecha de inicio.
@@ -2808,10 +2514,6 @@ export class ClientDetailPage implements OnInit {
 
   public trackByTableId(_index: number, table: ClientTable): string {
     return table._id;
-  }
-
-  public trackByGoalId(_index: number, goal: NutritionalGoal): string {
-    return goal._id;
   }
 
   // --- F08: finalizar relación (lado profesional) ---
@@ -3220,70 +2922,5 @@ export class ClientDetailPage implements OnInit {
 
   public trackByTaskId(_index: number, task: TrainerTask): string {
     return task._id;
-  }
-
-  // --- F30: aplicar en bloque (reutiliza F11/F12/F13, nunca duplica su lógica) ---
-  private async selectTargetClients(
-    scope: ClientScope,
-    title: string
-  ): Promise<string[] | null> {
-    const modal = await this.modalController.create({
-      component: SelectClientsModalComponent,
-      componentProps: {
-        excludeClientId: this.clientId,
-        requiredScope: scope,
-        title,
-      },
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss();
-    if (role !== 'confirm' || !data?.targetClientIds?.length) return null;
-    return data.targetClientIds;
-  }
-
-  private showBulkResultToast(results: BulkApplyResult[]): void {
-    const successCount = results.filter((r) => r.success).length;
-    const total = results.length;
-    if (successCount === total) {
-      this.ionicUtilService.showToast({
-        message: `Aplicado a ${successCount} de ${total} clientes`,
-        duration: 3000,
-      });
-      return;
-    }
-    const failed = results.filter((r) => !r.success);
-    this.ionicUtilService.showToast({
-      message: `Aplicado a ${successCount} de ${total} clientes; ${failed.length} falló: ${failed[0].error}`,
-      duration: 4500,
-      color: 'warning',
-    });
-  }
-
-  public async bulkApplyGoal(): Promise<void> {
-    if (this.goalForm.invalid) {
-      this.goalForm.markAllAsTouched();
-      return;
-    }
-    const targetClientIds = await this.selectTargetClients(
-      'nutrition',
-      'Aplicar objetivos a otros clientes'
-    );
-    if (!targetClientIds) return;
-
-    this.clientDetailApi
-      .applyGoalToClients(this.clientId, this.goalForm.value, targetClientIds)
-      .subscribe({
-        next: (results) => {
-          this.showBulkResultToast(results);
-          this.showGoalPanel = false;
-          this.loadNutrition();
-        },
-        error: () =>
-          this.ionicUtilService.showErrorToast(
-            'No se pudieron aplicar los objetivos en bloque',
-            'Error',
-            3000
-          ),
-      });
   }
 }

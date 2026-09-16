@@ -32,9 +32,6 @@
       "src/app/features/shopping-list/*": [
         "../../packages/shared-features/src/app/features/shopping-list/*"
       ],
-      "src/app/features/food-exchanges/*": [
-        "../../packages/shared-features/src/app/features/food-exchanges/*"
-      ],
       "src/app/features/nutrition-preferences/*": [
         "../../packages/shared-features/src/app/features/nutrition-preferences/*"
       ],

@@ -5,14 +5,17 @@
   [class.shimmer-run]="shimmerAnimationState === 'animate'"
 >
   <span class="input-label" *ngIf="label">{{ label }}</span>
+  <!-- appNumericKeypad: teclado a medida en nativo (y centrar la serie
+       entera, no solo la casilla, si queda tapada); en web, inputmode
+       decimal con el teclado del sistema. -->
   <input
     type="text"
-    [attr.inputmode]="inputMode"
+    inputmode="decimal"
+    appNumericKeypad
+    appNumericKeypadScrollTarget="app-set"
     class="numeric-value-input"
     [attr.maxlength]="maxLength"
     [value]="displayValue"
-    (focus)="onInputFocus($event)"
-    (blur)="onInputBlur()"
     (input)="onInputChange($event)"
     (click)="onInputClick()"
     [placeholder]="placeholder || '-'"

@@ -22,6 +22,9 @@ export interface MyCheckinConfig {
   closesAt?: string | null;
   trainerId: string;
   enabledFields: string[];
+  // Subconjunto de enabledFields que hay que responder sí o sí. Ausente en
+  // configuraciones anteriores a esta opción: todo opcional.
+  requiredFields?: string[];
   // Ausente en las configuraciones aplicadas antes de la Fase 5 — de ahí el
   // opcional, y de ahí que todo el código las trate como lista vacía.
   customQuestions?: CustomCheckinQuestion[];

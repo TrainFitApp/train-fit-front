@@ -1,0 +1,189 @@
+:host {
+  display: block;
+}
+
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Misma familia visual que .history-card (client-detail.page.scss); la banda
+// izquierda lleva el color de la fase, como la fila de fases de arriba.
+.feed-item {
+  position: relative;
+  padding: 12px 14px 12px 18px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--phase-color, var(--tf-accent));
+  }
+
+  &--minor {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    background: var(--tf-surface-2);
+  }
+
+  &--cycle {
+    padding: 0;
+  }
+}
+
+.feed-item__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.feed-item__title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.feed-item__date {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+}
+
+.feed-item__subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+
+  &:empty {
+    display: none;
+  }
+}
+
+// El ciclo entero es un botón (abre el resumen), sin aspecto de botón.
+.cycle {
+  display: block;
+  width: 100%;
+  padding: 12px 14px 12px 18px;
+  margin: 0;
+  background: none;
+  border: 0;
+  border-radius: 12px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.cycle__number {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--phase-color, var(--tf-accent));
+}
+
+.cycle__phase {
+  font-weight: 500;
+  color: var(--tf-text-secondary);
+}
+
+.cycle__status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--tf-surface-2);
+  color: var(--tf-text-muted);
+
+  &--running {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent);
+  }
+
+  &--met {
+    background: var(--tf-success-soft);
+    color: var(--tf-success);
+  }
+
+  &--missed {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+}
+
+.cycle__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px 16px;
+  margin: 10px 0 0;
+
+  dt {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--tf-text-muted);
+  }
+
+  dd {
+    margin: 2px 0 0;
+    font-size: 0.84rem;
+    color: var(--tf-text);
+  }
+}
+
+.cycle__fact--wide {
+  grid-column: 1 / -1;
+}
+
+.cycle__delta,
+.cycle__muted {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+.cycle__values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 2px;
+}
+
+.cycle__value {
+  font-size: 0.78rem;
+  color: var(--tf-text-secondary);
+
+  strong {
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+}

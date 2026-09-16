@@ -27,10 +27,6 @@
                     <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
                 </div>
             </button>
-            <div class="trainer-assigned-note" *ngIf="activeGoal?.assignedByTrainerId">
-                <ion-icon name="person-outline"></ion-icon>
-                {{ 'NUTRITIONAL_OBJECTIVES.TRAINER_ASSIGNED' | translate }}
-            </div>
             <ion-select
                 class="goal-select-hidden"
                 [value]="activeGoal?._id"
@@ -40,7 +36,7 @@
                 [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
             >
                 <ion-select-option *ngFor="let g of goals" [value]="g._id" [class]="g._id === user?.goalInUse ? 'active-goal-option' : ''">
-                    {{ g.name }}<span *ngIf="g.assignedByTrainerId"> · {{ 'NUTRITIONAL_OBJECTIVES.TRAINER_ASSIGNED' | translate }}</span><span *ngIf="g._id === user?.goalInUse"> ✓</span>
+                    {{ g.name }}<span *ngIf="g._id === user?.goalInUse"> ✓</span>
                 </ion-select-option>
             </ion-select>
         </div>

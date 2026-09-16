@@ -13,6 +13,9 @@ import {
 } from '../../pages/client-detail/models/client-detail.model';
 import { PlanAssignment } from '../../../../shared/models/plan-assignment.model';
 import { checkinFieldLabel, checkinValueLabel } from '../../checkin-labels.util';
+import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
+import { CycleNeedResponse } from '../../../diet-templates/models/diet-suggestion.model';
+import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
 
 type ViewState = 'loading' | 'ready' | 'error';
 
@@ -30,7 +33,7 @@ type ViewState = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-cycle-summary-panel',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, NeedBreakdownComponent],
   templateUrl: './cycle-summary-panel.component.html',
   styleUrls: ['./cycle-summary-panel.component.scss'],
 })
@@ -50,13 +53,24 @@ export class CycleSummaryPanelComponent implements OnInit {
   public plannedAvg: NutritionMacroTotals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   public consumedAvg: NutritionMacroTotals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   public daysWithPlan = 0;
-  public checkins: CheckinResponseEntry[] = [];
+  // Cada check-in con sus valores ya desplegados. Se calcula UNA vez al
+  // llegar los datos, no en la plantilla: una función que devuelve un array
+  // nuevo en cada detección de cambios hace que *ngFor recree el DOM, eso
+  // despierta a los observadores de Ionic, que disparan otra detección… y la
+  // pestaña se queda colgada (pasó en cuanto hubo un check-in dentro del
+  // ciclo). Mismo motivo que trackByCheckinValueKey en client-detail.page.ts.
+  public checkins: { entry: CheckinResponseEntry; values: { key: string; value: number | string | boolean }[] }[] = [];
   // Solo para poder nombrar las preguntas propias del coach ("custom:<id>").
   private checkinConfig: CheckinConfig | null = null;
+  // Cómo se calculó la necesidad de este ciclo
+  // (docs/plan-info-calculo-fase.md). null mientras carga o si falló.
+  public cycleNeed: CycleNeedResponse | null = null;
+  public needState: 'loading' | 'ready' | 'error' = 'loading';
 
   constructor(
     private modalController: ModalController,
-    private api: ClientDetailApiService
+    private api: ClientDetailApiService,
+    private suggestionApi: DietSuggestionApiService
   ) {}
 
   // Un ciclo vigente no tiene fin: se mira hasta hoy. El backend vuelve a
@@ -81,6 +95,7 @@ export class CycleSummaryPanelComponent implements OnInit {
   }
 
   public ngOnInit(): void {
+    this.loadNeed();
     forkJoin({
       tracking: this.api
         .getNutritionTracking(this.clientId, this.from, this.to)
@@ -99,11 +114,33 @@ export class CycleSummaryPanelComponent implements OnInit {
         this.foods = foods?.items || [];
         this.applyTracking(tracking?.dailyTracking || []);
         this.checkinConfig = config;
-        this.checkins = this.checkinsInRange(checkins || []);
+        this.checkins = this.checkinsInRange(checkins || []).map((entry) => ({
+          entry,
+          values: Object.entries(entry?.values || {}).map(([key, value]) => ({ key, value })),
+        }));
         this.state = 'ready';
       },
       error: () => {
         this.state = 'error';
+      },
+    });
+  }
+
+  // Aparte del resto: si falla, el ciclo se sigue viendo y solo este bloque
+  // dice que no cargó.
+  private loadNeed(): void {
+    const phaseId = this.cycle?.phaseId;
+    if (!phaseId) {
+      this.needState = 'error';
+      return;
+    }
+    this.suggestionApi.getCycleNeed(this.clientId, phaseId, this.cycleNumber).subscribe({
+      next: (need) => {
+        this.cycleNeed = need;
+        this.needState = 'ready';
+      },
+      error: () => {
+        this.needState = 'error';
       },
     });
   }
@@ -159,10 +196,12 @@ export class CycleSummaryPanelComponent implements OnInit {
     return this.consumedAvg.kcal - this.plannedAvg.kcal;
   }
 
-  public checkinValues(
-    entry: CheckinResponseEntry
-  ): { key: string; value: number | string | boolean }[] {
-    return Object.entries(entry?.values || {}).map(([key, value]) => ({ key, value }));
+  public trackByCheckinId(_index: number, row: { entry: CheckinResponseEntry }): string {
+    return row.entry._id;
+  }
+
+  public trackByKey(_index: number, row: { key: string }): string {
+    return row.key;
   }
 
   public fieldLabel(key: string): string {

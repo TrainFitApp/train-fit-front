@@ -1,5 +1,8 @@
 <div class="supplements-panel">
   <div class="panel-header">
+    <span class="panel-icon" aria-hidden="true">
+      <ion-icon name="flask-outline"></ion-icon>
+    </span>
     <h3 class="panel-heading">Suplementación</h3>
     <button
       type="button"
@@ -22,22 +25,34 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <p class="panel-empty" *ngIf="!supplements.length">
-      Todavía no le has pautado ningún suplemento. Lo que añadas aquí lo ve el cliente en su app,
-      con la dosis, el momento y el porqué.
-    </p>
+    <div class="panel-empty panel-empty--icon" *ngIf="!supplements.length">
+      <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>
+      <p>
+        Todavía no le has pautado ningún suplemento. Lo que añadas aquí lo ve el cliente en su app,
+        con la dosis, el momento y el porqué.
+      </p>
+    </div>
 
     <div class="supplement" *ngFor="let supplement of supplements; trackBy: trackById">
       <div class="supplement-main">
+        <span class="supplement-timing-icon" aria-hidden="true">
+          <ion-icon [name]="timingIcon(supplement)"></ion-icon>
+        </span>
+
         <div class="supplement-info">
           <span class="supplement-name">{{ supplement.name }}</span>
           <span class="supplement-meta">
             {{ timingLabel(supplement) }}
-            <span class="supplement-days" *ngIf="weekdaysLabel(supplement) as days">· {{ days }}</span>
+            <span class="supplement-days" *ngIf="weekdaysLabel(supplement) as days">
+              · <ion-icon name="calendar-clear-outline" aria-hidden="true"></ion-icon> {{ days }}
+            </span>
           </span>
         </div>
 
-        <span class="supplement-dose">{{ supplement.dose }}</span>
+        <span class="supplement-dose">
+          <ion-icon name="beaker-outline" aria-hidden="true"></ion-icon>
+          {{ supplement.dose }}
+        </span>
 
         <div class="supplement-actions">
           <button type="button" class="row-action" (click)="openPanel(supplement)">Editar</button>
@@ -52,7 +67,10 @@
         </div>
       </div>
 
-      <p class="supplement-reason" *ngIf="supplement.reason">{{ supplement.reason }}</p>
+      <p class="supplement-reason" *ngIf="supplement.reason">
+        <ion-icon name="bulb-outline" aria-hidden="true"></ion-icon>
+        <span>{{ supplement.reason }}</span>
+      </p>
     </div>
   </ng-container>
 </div>

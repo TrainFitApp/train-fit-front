@@ -741,11 +741,11 @@
              ancho completo a medio llenar. -->
         <div class="nutrition-sidebar">
           <!-- F20 / F20-bis — dos métricas distintas, nunca mezcladas en un
-               solo número: adherencia = ¿la comida pautada cuadraba con el
-               objetivo de kcal?; cumplimiento = ¿el cliente marcó lo pautado
+               solo número: adherencia = ¿lo que comió cuadraba con las
+               kcal pautadas?; cumplimiento = ¿el cliente marcó lo pautado
                como hecho? -->
-          <div class="fidelity-card" *ngIf="adherence?.status === 'ok' || compliancePercentage !== null">
-            <div class="fidelity-metric" *ngIf="adherence?.status === 'ok'">
+          <div class="fidelity-card" *ngIf="hasAdherenceData || compliancePercentage !== null">
+            <div class="fidelity-metric" *ngIf="hasAdherenceData">
               <div class="fidelity-value">
                 {{ adherence?.percentage !== null && adherence?.percentage !== undefined ? adherence?.percentage + '%' : '—' }}
               </div>
@@ -772,10 +772,10 @@
           </div>
           <div
             class="fidelity-card fidelity-card--empty"
-            *ngIf="adherence?.status === 'no_goal' && compliancePercentage === null"
+            *ngIf="!hasAdherenceData && compliancePercentage === null"
           >
             <ion-icon name="pie-chart-outline"></ion-icon>
-            <span>Asigna objetivos nutricionales para ver la adherencia de este cliente.</span>
+            <span>Aplica un plan de dieta para ver la adherencia de este cliente.</span>
           </div>
 
           <!-- Movimiento 5 Coach Pro — suplementación. En la columna fija de
@@ -799,7 +799,7 @@
             <div class="section-row-actions">
               <!-- Editar directamente en vez de esperar a que el cliente
                    responda el cuestionario. -->
-              <button class="add-button" (click)="openNutritionPreferencesPanel()">
+              <button class="add-button" (click)="nutritionPreferencesPanel.open()">
                 <ion-icon name="create-outline"></ion-icon>
                 Editar
               </button>
@@ -836,8 +836,15 @@
               <p class="preferences-value">{{ nutritionPreferences?.dislikedFoods || 'Sin especificar' }}</p>
             </div>
             <div class="preferences-field" *ngIf="nutritionPreferences?.dietaryFlags?.length">
-              <span class="preferences-label">Dieta especial</span>
-              <p class="preferences-value">{{ dietaryFlagsLabel(nutritionPreferences.dietaryFlags) }}</p>
+              <span class="preferences-label">Restricciones dietéticas</span>
+              <!-- Mismo icono y color por flag que diet-card y el cajón de
+                   sugerencias (dietary-flag-ui.util). -->
+              <div class="preferences-flags">
+                <span *ngFor="let flag of nutritionPreferences.dietaryFlags" [class]="dietaryFlagUi(flag).colorClass">
+                  <ion-icon [name]="dietaryFlagUi(flag).icon" aria-hidden="true"></ion-icon>
+                  {{ dietaryFlagUi(flag).label }}
+                </span>
+              </div>
             </div>
             <div class="preferences-field">
               <span class="preferences-label">¿Cocina en casa?</span>
@@ -853,128 +860,15 @@
             </div>
           </div>
 
-          <!-- Panel: editar preferencias nutricionales (el profesional las
-               rellena/edita directamente en vez de esperar la respuesta del
-               cliente). Mismos campos que el editor del propio cliente. -->
-          <div class="panel-backdrop" *ngIf="showNutritionPreferencesPanel" (click)="closeNutritionPreferencesPanel()"></div>
-          <div class="panel-sheet" *ngIf="showNutritionPreferencesPanel">
-            <div class="panel-handle"></div>
-            <h3 class="panel-title">Editar preferencias nutricionales</h3>
-
-            <span class="measurement-field-group-label">Alergias / intolerancias</span>
-            <textarea
-              class="note-textarea"
-              rows="2"
-              placeholder="p. ej. Alergia a los frutos secos, intolerancia a la lactosa..."
-              maxlength="1000"
-              [(ngModel)]="nutritionPrefAllergies"
-            ></textarea>
-
-            <span class="measurement-field-group-label">Alimentos favoritos</span>
-            <textarea
-              class="note-textarea"
-              rows="2"
-              placeholder="p. ej. Pollo, arroz, plátano..."
-              maxlength="1000"
-              [(ngModel)]="nutritionPrefFavoriteFoods"
-            ></textarea>
-
-            <span class="measurement-field-group-label">Alimentos que no le gustan</span>
-            <textarea
-              class="note-textarea"
-              rows="2"
-              placeholder="p. ej. Brócoli, pescado azul..."
-              maxlength="1000"
-              [(ngModel)]="nutritionPrefDislikedFoods"
-            ></textarea>
-
-            <span class="measurement-field-group-label">¿Cocina en casa habitualmente?</span>
-            <div class="cadence-options">
-              <button
-                type="button"
-                class="cadence-option"
-                [class.cadence-option--active]="nutritionPrefCooksAtHome === 'yes'"
-                (click)="setNutritionPrefCooksAtHome('yes')"
-              >
-                Sí
-              </button>
-              <button
-                type="button"
-                class="cadence-option"
-                [class.cadence-option--active]="nutritionPrefCooksAtHome === 'sometimes'"
-                (click)="setNutritionPrefCooksAtHome('sometimes')"
-              >
-                A veces
-              </button>
-              <button
-                type="button"
-                class="cadence-option"
-                [class.cadence-option--active]="nutritionPrefCooksAtHome === 'no'"
-                (click)="setNutritionPrefCooksAtHome('no')"
-              >
-                No
-              </button>
-            </div>
-
-            <span class="measurement-field-group-label">Comidas al día</span>
-            <p class="empty-hint">Desmarca las que no haga (p. ej. ayuno intermitente) y, si quieres, cámbiales el nombre.</p>
-            <div class="cadence-options">
-              <button
-                type="button"
-                class="cadence-option"
-                *ngFor="let slot of nutritionPrefMealSlots"
-                [class.cadence-option--active]="!nutritionPrefDisabledMealSlots[slot]"
-                (click)="toggleNutritionPrefMealSlot(slot)"
-              >
-                {{ slot }}
-              </button>
-            </div>
-
-            <button
-              type="submit"
-              class="submit-button"
-              [disabled]="isSavingNutritionPreferences"
-              (click)="saveNutritionPreferences()"
-            >
-              <span *ngIf="!isSavingNutritionPreferences">Guardar preferencias</span>
-              <ion-spinner name="dots" *ngIf="isSavingNutritionPreferences"></ion-spinner>
-            </button>
-          </div>
-
-          <div class="section-row">
-            <h2 class="section-heading">Objetivos nutricionales</h2>
-            <button class="add-button" (click)="openGoalPanel()">
-              <ion-icon name="add-outline"></ion-icon>
-              Asignar objetivos
-            </button>
-          </div>
-
-          <p class="empty-hint" *ngIf="!goals.length">Este cliente todavía no tiene objetivos configurados.</p>
-          <p class="empty-hint" *ngIf="goals.length">Toca un objetivo para ponerlo en uso.</p>
-
-          <button
-            type="button"
-            class="goal-card"
-            [class.goal-card--in-use]="goal.isInUse"
-            [disabled]="goal.isInUse || !!activatingGoalId"
-            (click)="activateGoal(goal)"
-            *ngFor="let goal of goals; trackBy: trackByGoalId"
-          >
-            <div class="goal-header">
-              <span class="list-card-title">{{ goal.name }}</span>
-              <span class="goal-badges">
-                <ion-spinner name="dots" *ngIf="activatingGoalId === goal._id"></ion-spinner>
-                <span class="in-use-badge" *ngIf="goal.isInUse">En uso</span>
-                <span class="assigned-badge" *ngIf="goal.assignedByTrainerId">Asignado por ti</span>
-              </span>
-            </div>
-            <div class="goal-macros">
-              <span>{{ goal.kcalTotal }} kcal</span>
-              <span>P {{ goal.proteinsGTotal }}g</span>
-              <span>C {{ goal.carbohydratesGTotal }}g</span>
-              <span>G {{ goal.fatGTotal }}g</span>
-            </div>
-          </button>
+          <!-- Panel lateral: editar preferencias nutricionales (el profesional
+               las rellena/edita directamente en vez de esperar la respuesta
+               del cliente). Se renderiza colgado del body — ver el componente. -->
+          <app-nutrition-preferences-panel
+            #nutritionPreferencesPanel
+            [clientId]="clientId"
+            [preferences]="nutritionPreferences"
+            (saved)="onNutritionPreferencesSaved($event)"
+          ></app-nutrition-preferences-panel>
         </div>
 
         <!-- Columna principal: el plan en sí (medidas, calendario, fase
@@ -1457,18 +1351,25 @@
                   [customRange]="customTrackingRange"
                 ></app-weight-adherence-chart>
               </div>
+
+              <!-- F20-duovicies — ciclo vs. ciclo (lo pautado): en el hueco
+                   bajo la gráfica, dos cards con selector propio. Solo con
+                   fase con ciclos (phaseCycles) — sin fase no hay nada que
+                   comparar. Van por libre respecto al rango de arriba. -->
+              <ng-container *ngIf="phaseCycles">
+                <div class="section-row">
+                  <h2 class="section-heading">Ciclo a ciclo</h2>
+                </div>
+                <app-cycle-comparison-cards [phaseCycles]="phaseCycles"></app-cycle-comparison-cards>
+              </ng-container>
             </div>
           </div>
 
-          <!-- TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones
-               puntuales. No es un log de contenido exacto día a día (ver
-               DECISIONS.md) — muestra QUÉ plan/excepción rigió cuándo, no el
-               contenido literal de cada DietDay tras una edición manual.
-               Fuera de .nutrition-charts-row (antes vivía dentro de la
-               columna del gráfico, compartiendo su mitad de ancho) — a
-               todo el ancho de .nutrition-main, debajo de calendario +
-               gráfico, para aprovechar el espacio en vez de quedarse
-               comprimido en media columna. -->
+          <!-- Historial de nutrición: feed de eventos que desglosa fases y
+               ciclos — en qué ciclo estaba el cliente, si lo cumplió, si
+               metió check-in, excepciones. No es un log de contenido exacto
+               día a día (eso exigiría versionar cada DietDay). A todo el
+               ancho de .nutrition-main, debajo de calendario + gráfico. -->
           <div class="section-row nutrition-history-toggle" (click)="toggleNutritionHistory()">
             <h2 class="section-heading">Historial de nutrición</h2>
             <ion-icon [name]="showNutritionHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
@@ -1489,37 +1390,13 @@
               <p class="empty-hint" *ngIf="!nutritionHistory.length">
                 Este cliente todavía no ha tenido ningún plan asignado.
               </p>
-
-              <!-- Registro cronológico, del más reciente al más antiguo.
-                   La SECUENCIA de fases (vigente + programadas) vive arriba,
-                   junto al plan; aquí interesa lo que ya pasó. -->
-              <div class="history-card" *ngFor="let phase of nutritionHistory">
-                <div class="history-card-header">
-                  <span class="list-card-title">{{ phase.planName || 'Plan aplicado' }}</span>
-                  <span class="history-date">
-                    <ng-container *ngIf="!isSingleDayPhase(phase); else historySingleDay">
-                      {{ phase.startDate }}<ng-container *ngIf="phaseEndShort(phase) as endShort"> → {{ endShort }}</ng-container>
-                    </ng-container>
-                    <ng-template #historySingleDay>{{ phase.startDate }}</ng-template>
-                  </span>
-                </div>
-                <p class="history-subtitle">
-                  {{ phase.status === 'active' ? 'Activo' : phase.status === 'superseded' ? 'Sustituido por otra fase' : 'Finalizado' }}
-                </p>
-              </div>
-
-              <ng-container *ngIf="dietExceptions.length">
-                <p class="empty-hint exceptions-heading">Excepciones puntuales</p>
-                <div class="history-card" *ngFor="let exception of dietExceptions">
-                  <div class="history-card-header">
-                    <span class="list-card-title">
-                      {{ exception.action === 'skip' ? 'Día saltado' : 'Comida sustituida' }}
-                    </span>
-                    <span class="history-date">{{ exception.date }}</span>
-                  </div>
-                  <p class="history-subtitle" *ngIf="exception.mealSlot">{{ exception.mealSlot }}</p>
-                </div>
-              </ng-container>
+              <app-nutrition-history-feed
+                *ngIf="nutritionHistory.length"
+                [events]="nutritionHistory"
+                [phaseColorOf]="phaseColorForFeed"
+                [checkinConfig]="checkinConfig"
+                (openCycle)="openCycleSummary($event)"
+              ></app-nutrition-history-feed>
             </ng-container>
           </ng-container>
 
@@ -1529,121 +1406,6 @@
         </div>
       </div>
     </ng-container>
-
-    <!-- Panel: Asignar objetivos -->
-    <div class="panel-backdrop" *ngIf="showGoalPanel" (click)="closeGoalPanel()"></div>
-    <div class="panel-sheet" *ngIf="showGoalPanel">
-      <div class="panel-handle"></div>
-      <h3 class="panel-title">Asignar objetivos nutricionales</h3>
-
-      <form [formGroup]="goalForm" (ngSubmit)="submitGoal()">
-        <div class="input-wrapper">
-          <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
-          <input type="text" formControlName="name" class="input-field" placeholder="Nombre del objetivo" />
-        </div>
-
-        <!-- Recomendación — mismo cálculo que el cajón de sugerencias de
-             dieta (Mifflin + gasto + reparto de macros), a partir de los
-             datos biométricos ya guardados del cliente. Rellena los 4
-             campos de abajo; el entrenador los puede retocar después. -->
-        <div class="nutrition-target-calculator">
-          <div class="preset-buttons">
-            <button
-              type="button"
-              *ngFor="let preset of nutritionObjectivePresets"
-              class="preset-button"
-              [class.is-active]="nutritionObjectivePreset === preset.key"
-              (click)="selectNutritionObjectivePreset(preset)"
-            >
-              {{ preset.label }}
-            </button>
-          </div>
-          <div class="input-wrapper">
-            <ion-icon name="calculator-outline" class="input-icon"></ion-icon>
-            <input
-              type="number"
-              class="input-field"
-              placeholder="Delta kcal (déficit negativo, superávit positivo)"
-              [(ngModel)]="nutritionObjectiveDelta"
-              [ngModelOptions]="{ standalone: true }"
-              (change)="calculateNutritionTarget()"
-            />
-          </div>
-          <div class="calc-hint" *ngIf="isCalculatingNutritionTarget">Calculando…</div>
-          <div class="calc-hint calc-hint--warning" *ngIf="nutritionTargetMissing?.length">
-            Al cliente le falta: {{ nutritionTargetMissing?.join(', ') }} — no se puede calcular una
-            recomendación hasta que lo complete.
-          </div>
-          <div class="calc-hint calc-hint--result" *ngIf="nutritionTargetPreview && !isCalculatingNutritionTarget">
-            Recomendado: {{ nutritionTargetPreview.kcal }} kcal · P{{ nutritionTargetPreview.protein }}
-            C{{ nutritionTargetPreview.carbs }} G{{ nutritionTargetPreview.fat }}
-          </div>
-        </div>
-
-        <div class="macro-grid">
-          <div class="input-wrapper">
-            <ion-icon name="flame-outline" class="input-icon"></ion-icon>
-            <input type="number" formControlName="kcalTotal" class="input-field" placeholder="Kcal" />
-          </div>
-          <div class="input-wrapper">
-            <ion-icon name="fitness-outline" class="input-icon"></ion-icon>
-            <input type="number" formControlName="proteinsGTotal" class="input-field" placeholder="Proteína (g)" />
-          </div>
-          <div class="input-wrapper">
-            <ion-icon name="nutrition-outline" class="input-icon"></ion-icon>
-            <input type="number" formControlName="carbohydratesGTotal" class="input-field" placeholder="Carbohidratos (g)" />
-          </div>
-          <div class="input-wrapper">
-            <ion-icon name="water-outline" class="input-icon"></ion-icon>
-            <input type="number" formControlName="fatGTotal" class="input-field" placeholder="Grasas (g)" />
-          </div>
-          <!-- Fase 5 Coach Pro (§15) — opcional: vacío significa "este
-               objetivo no pauta fibra", no 0 g. -->
-          <div class="input-wrapper">
-            <ion-icon name="leaf-outline" class="input-icon"></ion-icon>
-            <input type="number" formControlName="fiberGTotal" class="input-field" placeholder="Fibra (g, opcional)" />
-          </div>
-        </div>
-
-        <!-- Movimiento 5 Coach Pro — reparto por comidas en intercambios.
-             CONVIVE con los gramos de arriba, no los sustituye: son dos
-             formas de pautar lo mismo y cada entrenador usa la suya. Un
-             objetivo sin reparto se comporta exactamente como hasta ahora. -->
-        <app-meal-exchanges-editor
-          [meals]="goalMealExchanges"
-          [targets]="goalMacroTargets"
-          (mealsChange)="goalMealExchanges = $event"
-        ></app-meal-exchanges-editor>
-
-        <!-- Fase 4 Coach Pro (§18) — el porqué del cambio. Opcional, pero
-             ofrecido: es lo que responde dentro de tres semanas a "¿por qué
-             está en estas calorías?". -->
-        <div class="input-wrapper">
-          <ion-icon name="chatbox-ellipses-outline" class="input-icon"></ion-icon>
-          <input
-            type="text"
-            formControlName="reason"
-            class="input-field"
-            maxlength="500"
-            placeholder="Motivo del cambio (opcional)"
-          />
-        </div>
-
-        <button type="submit" class="submit-button" [disabled]="goalForm.invalid || isAssigningGoal">
-          <span *ngIf="!isAssigningGoal">Guardar objetivos</span>
-          <ion-spinner name="dots" *ngIf="isAssigningGoal"></ion-spinner>
-        </button>
-        <button
-          type="button"
-          class="bulk-link-button"
-          [disabled]="goalForm.invalid || isAssigningGoal"
-          (click)="bulkApplyGoal()"
-        >
-          <ion-icon name="people-outline"></ion-icon>
-          Aplicar también a otros clientes
-        </button>
-      </form>
-    </div>
   </div>
 
   <!-- === SESIONES HECHAS (F09; antes "Historial") === -->

@@ -10,13 +10,63 @@
   margin-bottom: var(--tf-space-5);
 }
 
+// Cada bloque con su color e icono: en un panel oscuro con cinco secciones
+// seguidas, los títulos en gris se fundían con el resto y no se veía dónde
+// acababa una cosa y empezaba la otra. Mismo trío de macro (azul/verde/rosa)
+// que diet-card, el acento para lo pautado y violeta para los check-ins.
 .summary-block__title {
-  margin: 0 0 8px;
+  --block-color: var(--tf-accent);
+  --block-soft: var(--tf-accent-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
   font-size: var(--tf-font-size-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--tf-text-faint);
+  color: var(--block-color);
+
+  &--planned {
+    --block-color: var(--tf-accent);
+    --block-soft: var(--tf-accent-soft);
+  }
+
+  &--need {
+    --block-color: #60a5fa;
+    --block-soft: rgba(96, 165, 250, 0.16);
+  }
+
+  &--macros {
+    --block-color: #34d399;
+    --block-soft: rgba(52, 211, 153, 0.16);
+  }
+
+  &--foods {
+    --block-color: #f472b6;
+    --block-soft: rgba(244, 114, 182, 0.16);
+  }
+
+  &--checkins {
+    --block-color: #a78bfa;
+    --block-soft: rgba(167, 139, 250, 0.16);
+  }
+}
+
+.summary-block__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: var(--block-soft);
+  color: var(--block-color);
+
+  ion-icon {
+    font-size: 14px;
+  }
 }
 
 .summary-empty,
@@ -55,6 +105,10 @@
 .target-macros {
   font-size: 0.8rem;
   color: var(--tf-text-muted);
+}
+
+.need-source {
+  margin: 0 0 8px;
 }
 
 // --- Macros ---

@@ -1,0 +1,106 @@
+<!-- Fase anterior a guardar el cálculo: no hay cuenta que enseñar, pero los
+     pasos del check-in del ciclo existen igual. -->
+<ng-container *ngIf="!need">
+  <p class="need-empty">Esta fase se creó antes de guardar el cálculo de la necesidad.</p>
+  <p class="need-empty" *ngIf="stepsDone?.avg">
+    Pasos del check-in: {{ n(stepsDone!.avg) }} de media
+  </p>
+</ng-container>
+
+<ng-container *ngIf="need">
+  <!-- No se pudo calcular: se dice qué faltó, y lo que sí había. -->
+  <p class="need-missing" *ngIf="missing.length">
+    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+    No se pudo calcular: faltaba <strong>{{ missing.join(', ') }}</strong> del cliente.
+  </p>
+
+  <!-- Resultado + comparación con lo pautado -->
+  <div class="need-result" *ngIf="target as t">
+    <span class="need-result__kcal">{{ n(t.kcal) }} kcal</span>
+    <span class="need-result__macros">P {{ n(t.protein) }} g · C {{ n(t.carbs) }} g · G {{ n(t.fat) }} g</span>
+    <span class="need-result__planned" *ngIf="plannedKcal">
+      pautado {{ n(plannedKcal) }} kcal
+      <span class="need-result__delta" *ngIf="plannedDelta !== null && plannedDelta !== 0">({{ signed(plannedDelta) }})</span>
+    </span>
+  </div>
+
+  <!-- Datos que entraron -->
+  <dl class="need-inputs" *ngIf="inputs as i">
+    <div class="need-inputs__row">
+      <dt>Peso</dt>
+      <dd>
+        {{ weightLine }}
+        <span class="need-note" *ngIf="breakdown?.adjustedWeightKg as adj">
+          · ajustado a {{ n(adj, 1) }} kg (IMC ≥ 30)
+        </span>
+      </dd>
+    </div>
+    <div class="need-inputs__row">
+      <dt>Altura · edad · sexo</dt>
+      <dd>{{ i.heightCm ? n(i.heightCm) + ' cm' : '—' }} · {{ i.age !== null ? i.age + ' años' : '—' }} · {{ sexLabel }}</dd>
+    </div>
+    <div class="need-inputs__row">
+      <dt>Pasos</dt>
+      <dd>
+        {{ stepsLine }}
+        <span class="need-note" *ngIf="stepsDone?.avg">
+          · check-in de este ciclo: {{ n(stepsDone!.avg) }} de media
+        </span>
+      </dd>
+    </div>
+    <div class="need-inputs__row">
+      <dt>Entrenamiento</dt>
+      <dd>{{ trainingLine }}</dd>
+    </div>
+    <div class="need-inputs__row" *ngIf="breakdown?.usesActivity">
+      <dt>Actividad</dt>
+      <dd>factor {{ n(i.activity, 2) }} (el perfil no cuenta pasos)</dd>
+    </div>
+    <div class="need-inputs__row">
+      <dt>Objetivo</dt>
+      <dd>
+        {{ deltaLabel }} kcal
+        <ng-container *ngIf="breakdown as b">
+          · proteína {{ n(b.proteinPerKg, 2) }} g/kg · grasa {{ n(b.fatPerKg, 2) }} g/kg
+          <span class="need-note">{{ i.proteinPerKg || i.fatPerKg ? '(fijados por ti)' : '(fórmula por defecto)' }}</span>
+        </ng-container>
+      </dd>
+    </div>
+  </dl>
+
+  <!-- La cuenta, paso a paso -->
+  <ng-container *ngIf="breakdown as b">
+    <button type="button" class="need-math__toggle" (click)="showMath = !showMath">
+      <ion-icon [name]="showMath ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+      {{ showMath ? 'Ocultar la cuenta' : 'Ver la cuenta' }}
+    </button>
+    <ol class="need-math" *ngIf="showMath">
+      <li>
+        <span class="need-math__label">Metabolismo basal (Mifflin-St Jeor)</span>
+        <span class="need-math__value">{{ n(b.bmr) }} kcal</span>
+      </li>
+      <li>
+        <span class="need-math__label">× factor {{ n(b.factor, 3) }} ({{ factorLine }}) = gasto</span>
+        <span class="need-math__value">{{ n(b.expenditure) }} kcal</span>
+      </li>
+      <li>
+        <span class="need-math__label">{{ deltaLabel }} kcal de objetivo</span>
+        <span class="need-math__value need-math__value--total">{{ n(target?.kcal) }} kcal</span>
+      </li>
+      <li>
+        <span class="need-math__label">Proteína {{ n(b.proteinPerKg, 2) }} g/kg × {{ n(proteinWeight, 1) }} kg</span>
+        <span class="need-math__value">{{ n(target?.protein, 1) }} g</span>
+      </li>
+      <li>
+        <span class="need-math__label">Grasa {{ n(b.fatPerKg, 2) }} g/kg × {{ n(proteinWeight, 1) }} kg</span>
+        <span class="need-math__value">{{ n(target?.fat, 1) }} g</span>
+      </li>
+      <li>
+        <span class="need-math__label">Carbohidratos = el resto de las kcal</span>
+        <span class="need-math__value">{{ n(target?.carbs, 1) }} g</span>
+      </li>
+    </ol>
+  </ng-container>
+
+  <p class="need-computed" *ngIf="need.computedAt">Calculado el {{ fmtDate(need.computedAt) }}.</p>
+</ng-container>

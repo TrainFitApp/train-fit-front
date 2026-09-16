@@ -1,0 +1,451 @@
+@import '../../../../../../../theme/panel-sheet';
+@import '../../../../../../../theme/buttons';
+
+// El host no pinta nada: todo el contenido vive en .panel-portal, que se
+// traslada al body al montar.
+:host {
+  display: contents;
+}
+
+// --- Portal ---
+
+// Contenedor trasladado al body. No debe ocupar sitio ni capturar clics
+// cuando el panel está cerrado: sus hijos son fixed y se posicionan solos.
+.panel-portal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tf-z-modal, 500);
+  pointer-events: none;
+}
+
+.panel-portal > * {
+  pointer-events: auto;
+}
+
+.panel-backdrop {
+  @include tf-side-panel-backdrop;
+}
+
+.panel-sheet {
+  // Panel lateral en escritorio, hoja inferior en móvil. Se rellena mirando
+  // el calendario y las gráficas del tab Nutrición, que quedan al lado.
+  @include tf-side-panel(440px);
+  // El pie se queda abajo aunque el formulario sea corto, y el contenido
+  // desplaza por dentro en vez de arrastrar el pie fuera de la pantalla.
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.panel-handle {
+  @include tf-side-panel-handle;
+}
+
+// --- Cabecera ---
+.sheet-header {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-4);
+}
+
+.panel-title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--tf-font-size-lg);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.close-button {
+  @include tf-icon-button;
+  flex-shrink: 0;
+}
+
+// --- Agrupación ---
+.form-group {
+  padding-bottom: var(--tf-space-4);
+  margin-bottom: var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: var(--tf-space-2);
+  }
+}
+
+// Alergias: superficie propia en rojo suave. Es el único bloque que puede
+// hacer daño si se pasa por alto, así que no compite en igualdad con el resto.
+.form-group--critical {
+  padding: var(--tf-space-3);
+  background: var(--tf-danger-soft);
+  border: 1px solid var(--tf-danger-border);
+  border-radius: var(--tf-radius-lg);
+}
+
+.group-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-text);
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--tf-accent-text);
+  }
+}
+
+.group-count {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-3);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
+.field + .field {
+  margin-top: var(--tf-space-3);
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 6px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.field-label--critical {
+  color: var(--tf-danger-text);
+}
+
+.field-hint {
+  margin: -2px 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-text-faint);
+}
+
+.note-field {
+  width: 100%;
+  // Explícito y no heredado del reset: con content-box, el relleno y el
+  // borde se suman al 100% y el textarea se salía por la derecha.
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.45;
+  resize: vertical;
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.note-field--critical {
+  background: var(--tf-surface-1);
+  border-color: var(--tf-danger-border);
+
+  &:focus {
+    border-color: var(--tf-danger);
+  }
+}
+
+// --- Restricciones: chips con icono y color por flag ---
+// Mismo patrón y misma paleta que .flag-chips del cajón de sugerencias
+// (diet-suggestion-drawer) y .card-flags de diet-card: lo que se marca aquí
+// es exactamente lo que luego filtra y se lee allí.
+.flag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+
+  button {
+    @include tf-touch-expander-y(5px);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    padding: var(--tf-space-2) var(--tf-space-3);
+    border-radius: var(--tf-radius-pill);
+    border: 1px solid var(--tf-border);
+    background: var(--tf-surface-2);
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+    color: var(--tf-text-muted);
+    cursor: pointer;
+    transition: background var(--tf-duration-fast) var(--tf-ease-out),
+      border-color var(--tf-duration-fast) var(--tf-ease-out),
+      color var(--tf-duration-fast) var(--tf-ease-out);
+
+    ion-icon {
+      font-size: 1.05rem;
+    }
+
+    // La marca de "seleccionado" solo aparece activa: con el color ya se
+    // distingue, pero el check quita la duda en el chip amarillo/verde.
+    .chip-check {
+      display: none;
+      font-size: 0.9rem;
+    }
+
+    &:hover:not(.is-active) {
+      color: var(--tf-text);
+    }
+
+    &.is-active {
+      background: var(--tf-accent-soft);
+      border-color: var(--tf-accent);
+      color: var(--tf-accent-text);
+
+      .chip-check {
+        display: inline-block;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  button.flag-vegan.is-active {
+    background: rgba(52, 211, 153, 0.14);
+    border-color: #34d399;
+    color: #34d399;
+  }
+
+  button.flag-vegetarian.is-active {
+    background: rgba(45, 212, 191, 0.14);
+    border-color: #2dd4bf;
+    color: #2dd4bf;
+  }
+
+  button.flag-lactose-free.is-active {
+    background: rgba(96, 165, 250, 0.14);
+    border-color: #60a5fa;
+    color: #60a5fa;
+  }
+
+  button.flag-gluten-free.is-active {
+    background: rgba(255, 196, 85, 0.16);
+    border-color: var(--tf-secondary, #ffc455);
+    color: var(--tf-secondary, #ffc455);
+  }
+}
+
+// --- ¿Cocina en casa?: tres tarjetas con icono ---
+.option-row {
+  display: flex;
+  gap: var(--tf-space-2);
+}
+
+.option-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 60px;
+  padding: var(--tf-space-2);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--tf-text-muted);
+  }
+
+  &:hover:not(.is-active) {
+    color: var(--tf-text);
+  }
+
+  &.is-active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-text);
+
+    ion-icon {
+      color: var(--tf-accent-text);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// --- Comidas al día: fila por comida, con check + icono + renombrado ---
+.meal-slot-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.is-off {
+    .meal-slot-icon,
+    .meal-slot-name {
+      color: var(--tf-text-faint);
+      text-decoration: line-through;
+    }
+  }
+}
+
+.meal-slot-toggle {
+  flex: 0 0 150px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tf-touch-min, 44px);
+  padding: 0 4px;
+  background: none;
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.meal-slot-check {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: var(--tf-accent);
+
+  .is-off & {
+    color: var(--tf-text-faint);
+  }
+}
+
+.meal-slot-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-muted);
+  text-decoration: none;
+}
+
+.meal-slot-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meal-slot-label-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+// --- Pie ---
+.sheet-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: var(--tf-space-3);
+  margin-top: auto;
+  padding: var(--tf-space-3) 0 var(--tf-space-5);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.ghost-button {
+  min-height: 46px;
+  padding: 0 var(--tf-space-5);
+  background: none;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  flex: 1;
+  min-height: 46px;
+  margin: 0;
+  font-size: var(--tf-font-size-base);
+}

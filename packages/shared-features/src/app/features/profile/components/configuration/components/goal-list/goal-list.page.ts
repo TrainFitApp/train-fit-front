@@ -130,16 +130,7 @@ export class GoalListPage implements OnInit, OnDestroy {
     this.newGoalName = '';
   }
 
-  public isTrainerAssigned(goal: NutritionalGoal): boolean {
-    return Boolean(goal.assignedByTrainerId);
-  }
-
   async openEditor(goal: NutritionalGoal) {
-    if (this.isTrainerAssigned(goal)) {
-      await this.showTrainerAssignedAlert();
-      return;
-    }
-
     if (this.isGoalLocked(goal)) {
       await this.showLockedGoalAlert();
       return;
@@ -158,11 +149,6 @@ export class GoalListPage implements OnInit, OnDestroy {
 
   async deleteGoal(goal: NutritionalGoal, event: Event) {
     event.stopPropagation();
-
-    if (this.isTrainerAssigned(goal)) {
-      await this.showTrainerAssignedAlert();
-      return;
-    }
 
     if (this.goals.length <= 1) {
       const alert = await this.alertController.create({
@@ -277,15 +263,5 @@ export class GoalListPage implements OnInit, OnDestroy {
       message: this.translate.instant('NUTRITION_GOALS.LOCKED_FREE'),
       onUpgrade: () => this.navigationService.goToPremium(),
     });
-  }
-
-  private async showTrainerAssignedAlert(): Promise<void> {
-    const alert = await this.alertController.create({
-      header: this.translate.instant('NUTRITION_GOALS.TRAINER_ASSIGNED_ALERT_HEADER'),
-      message: this.translate.instant('NUTRITION_GOALS.TRAINER_ASSIGNED_ALERT_MSG'),
-      cssClass: 'custom-alert',
-      buttons: [{ text: this.translate.instant('COMMON.OK'), role: 'cancel' }],
-    });
-    await alert.present();
   }
 }

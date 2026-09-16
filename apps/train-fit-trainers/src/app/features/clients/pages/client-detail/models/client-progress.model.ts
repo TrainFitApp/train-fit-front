@@ -117,15 +117,7 @@ export interface ClientSummary {
   latestWeightDate: string | null;
   lastCheckinAt: string | null;
   checkinCadence: string | null;
-  activePlan: { _id: string; startDate: string; endDate: string | null } | null;
-  goal: {
-    _id: string;
-    name: string;
-    kcalTotal: number;
-    proteinsGTotal: number;
-    carbohydratesGTotal: number;
-    fatGTotal: number;
-  } | null;
+  activePlan: { _id: string; name: string; startDate: string; endDate: string | null } | null;
   routine: { _id: string; name: string } | null;
 }
 
@@ -135,36 +127,6 @@ export interface ClientSummary {
 // Medidas a pagar las ~9 consultas que sirven a Resumen para leer tres
 // campos. El backend no manda ningún resultado calculado: las fórmulas son
 // puras y corren aquí (core/utils/body-metrics.util.ts).
-// Movimiento 5 Coach Pro — reparto del día en INTERCAMBIOS por comida.
-// Convive con los gramos, no los sustituye: son dos formas de pautar lo
-// mismo y cada entrenador usa la suya. Array vacío = objetivo pautado solo
-// en gramos, que es lo que hacían todos hasta ahora.
-export interface GoalMealExchange {
-  groupId: string;
-  // Copiado al pautar: si el grupo se renombra o se borra, la pauta que el
-  // cliente ya tiene sigue siendo legible.
-  groupName: string;
-  // Decimal a propósito: media ración es una pauta real.
-  count: number;
-  // El perfil de la ración CONGELADO al pautar, mismo motivo que groupName
-  // llevado un paso más lejos: si el profesional retoca el grupo, la pauta
-  // que el cliente ya tiene no puede cambiar de significado sola. Lo estampa
-  // el backend al guardar (trainer-client-data-controller.js); el front lo
-  // rellena también al añadir, para poder cuadrar en vivo mientras edita.
-  serving?: { kcal: number | null; protein: number | null; carbs: number | null; fat: number | null } | null;
-  servingFrozenAt?: string | null;
-  // El grupo que no se pesa: no suma en el cuadre, y eso NO es lo mismo que
-  // faltarle el perfil.
-  freeQuantity?: boolean;
-}
-
-export interface GoalMeal {
-  // Nombre libre: cada entrenador reparte el día a su manera y un enum de
-  // cinco comidas dejaría fuera la mitad.
-  name: string;
-  exchanges: GoalMealExchange[];
-}
-
 export interface ClientBodyProfile {
   heightCm: number | null;
   // 0 = femenino, 1 = masculino (SEX_TYPES).

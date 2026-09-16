@@ -178,9 +178,21 @@ div {
 ion-col {
   position: relative;
 
-  &.has-cycle {
+  // Misma especificidad que `.selected` de arriba y va después: sin el
+  // `:not(.selected)` pisaba el estado seleccionado y el día con ciclo no se
+  // distinguía al pulsarlo.
+  &.has-cycle:not(.selected):not(.active) {
     border-color: color-mix(in srgb, var(--cycle-color) 55%, #2a2a2a);
     background: color-mix(in srgb, var(--cycle-color) 12%, #111111);
+  }
+
+  // Seleccionado con ciclo: color del ciclo a tope (borde sólido + fondo
+  // más cargado + resplandor) para que se note frente a los vecinos.
+  &.has-cycle.selected,
+  &.has-cycle.active {
+    border-color: var(--cycle-color);
+    background: color-mix(in srgb, var(--cycle-color) 32%, #111111);
+    box-shadow: 0 0 0 1px var(--cycle-color), 0 0 10px color-mix(in srgb, var(--cycle-color) 45%, transparent);
   }
 
   .cycle-badge {

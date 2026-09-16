@@ -1,7 +1,7 @@
 // Armazón de las pantallas del cliente que abre desde el tab Coach
-// (check-ins, dolor, intercambios, suplementos, lista de la compra).
+// (check-ins, dolor, suplementos, lista de la compra).
 //
-// Las cinco repetían literalmente el mismo bloque: barra superior, botón de
+// Las cuatro repetían literalmente el mismo bloque: barra superior, botón de
 // volver, esqueleto de carga, estado vacío/error y botón de reintentar.
 // Unas 120 líneas × 5 ficheros, con las derivas que eso trae — un back-btn
 // de 40 px aquí y de 44 allá, un shimmer con otra duración.
@@ -123,7 +123,7 @@
 }
 
 // Un solo keyframes para todas: antes había uno por pantalla
-// (exchange-shimmer, pain-shimmer, supplement-shimmer, shopping-shimmer),
+// (pain-shimmer, supplement-shimmer, shopping-shimmer),
 // idénticos y con nombres distintos.
 @keyframes tf-client-shimmer {
   100% {

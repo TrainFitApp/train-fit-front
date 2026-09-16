@@ -57,6 +57,10 @@ export interface PhasePayload {
   focus: 'cut' | 'maintain' | 'bulk' | null;
   targetKcalDelta: number;
   ratePerCycle: number;
+  // Info de cálculo de fase (docs/plan-info-calculo-fase.md): g/kg que el
+  // entrenador tocó en el cajón (ausentes = fórmula por defecto).
+  proteinPerKg?: number | null;
+  fatPerKg?: number | null;
 }
 
 export interface ApplyPlanRequest {
@@ -64,14 +68,83 @@ export interface ApplyPlanRequest {
   phase?: PhasePayload;
 }
 
-// TASK-045 (MASTER_BACKLOG.md) — excepción puntual sobre una fecha exacta
-// de un plan activo (ver train-fit-back/components/dietExceptions).
-export interface DietException {
-  _id: string;
-  assignmentId: string;
-  clientId: string;
+// Historial de nutrición de la ficha — feed de eventos que desglosa fases y
+// ciclos (espejo de train-fit-back/components/planAssignments/nutrition-history.js).
+export type NutritionHistoryEventType = 'phase_started' | 'phase_ended' | 'cycle' | 'checkin' | 'exception';
+// met/missed = ciclo acabado con adherencia >= / < 75 %; no_data = acabado
+// sin ningún día registrado; running = todavía en marcha.
+export type NutritionCycleStatus = 'running' | 'met' | 'missed' | 'no_data';
+
+export interface NutritionHistoryCheckin {
+  id: string;
+  respondedAt: string;
+  values: Record<string, number | string | boolean>;
+}
+
+export interface NutritionHistoryException {
+  id: string;
   date: string;
-  mealSlot: string | null;
   action: 'override' | 'skip';
-  createdAt: string;
+  mealSlot: string | null;
+}
+
+interface NutritionHistoryEventBase {
+  type: NutritionHistoryEventType;
+  // "YYYY-MM-DD" — la fecha por la que se ordena el feed.
+  date: string;
+  phaseId: string;
+  phaseName: string | null;
+  phaseFocus: 'cut' | 'maintain' | 'bulk' | null;
+}
+
+export interface NutritionPhaseStartedEvent extends NutritionHistoryEventBase {
+  type: 'phase_started';
+  mode: DietTemplateMode | null;
+}
+
+export interface NutritionPhaseEndedEvent extends NutritionHistoryEventBase {
+  type: 'phase_ended';
+  status: 'superseded' | 'finished';
+  cyclesCount: number;
+}
+
+export interface NutritionCycleEvent extends NutritionHistoryEventBase {
+  type: 'cycle';
+  number: number;
+  start: string;
+  end: string;
+  // La fase se cortó antes de que este ciclo llegara a su fin natural.
+  truncated: boolean;
+  overrideId: string;
+  profile: { kcal: number; protein: number; carbs: number; fat: number };
+  kcalDelta: number | null;
+  adherencePct: number | null;
+  adherenceDays: number;
+  periodDays: number;
+  status: NutritionCycleStatus;
+  checkin: NutritionHistoryCheckin | null;
+  exceptions: NutritionHistoryException[];
+}
+
+export interface NutritionCheckinEvent extends NutritionHistoryEventBase {
+  type: 'checkin';
+  number: number;
+  checkin: NutritionHistoryCheckin;
+}
+
+export interface NutritionExceptionEvent extends NutritionHistoryEventBase {
+  type: 'exception';
+  number: number;
+  exception: NutritionHistoryException;
+}
+
+export type NutritionHistoryEvent =
+  | NutritionPhaseStartedEvent
+  | NutritionPhaseEndedEvent
+  | NutritionCycleEvent
+  | NutritionCheckinEvent
+  | NutritionExceptionEvent;
+
+export interface NutritionHistoryResponse {
+  events: NutritionHistoryEvent[];
 }

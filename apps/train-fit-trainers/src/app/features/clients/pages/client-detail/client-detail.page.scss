@@ -453,15 +453,6 @@
   }
 }
 
-.exceptions-heading {
-  margin-top: 12px !important;
-  text-align: left !important;
-  font-size: 0.76rem !important;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
 // F20-bis — el HTML ya traía el comentario "medidas y calendario lado a
 // lado" pero nunca llegó el CSS: sin esto .nutrition-charts-row no es un
 // row, son <div> apilados a ancho completo, y el calendario (celdas a
@@ -545,9 +536,7 @@
 // de Nutrición (icono + nombre/fecha apilados en una sola fila), pero sin
 // convertir la fila en botón: la única acción de la cabecera es "Quitar
 // fase" (icono a la derecha); "Abrir en el Planificador" ya es su propio
-// botón, debajo. Antes reutilizaba .goal-header (pensado para filas de
-// lista estrechas) con nombre+badge+botón en una sola línea apretada — de
-// ahí que se viera desalineada dentro de una card de 320px.
+// botón, debajo.
 .routine-phase-header {
   display: flex;
   align-items: center;
@@ -836,7 +825,7 @@
 
 // F20-quinquies — <button>, no <div>: toda la cabecera abre el editor de la
 // plantilla aplicada (ver openActivePlanTemplate()). Reset de estilos de
-// botón nativo + mismos estados táctiles que .goal-card/.template-row-main.
+// botón nativo + mismos estados táctiles que .template-row-main.
 .active-plan-header {
   display: flex;
   align-items: center;
@@ -1110,13 +1099,6 @@
   color: var(--tf-text);
 }
 
-.goal-badges {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 6px;
-}
-
 .assigned-badge {
   flex-shrink: 0;
   font-size: 0.68rem;
@@ -1127,9 +1109,8 @@
   padding: 2px 8px;
 }
 
-// Estado ACTUAL (goal.isInUse) — deliberadamente distinto en color de
-// "Asignado por ti" (quién lo creó): son dos hechos independientes, ver
-// comentario en client-detail.model.ts#NutritionalGoal.
+// Estado ACTUAL (table.isActive) — deliberadamente distinto en color de
+// "Asignada por ti" (quién la creó): son dos hechos independientes.
 .in-use-badge {
   flex-shrink: 0;
   font-size: 0.68rem;
@@ -1168,69 +1149,6 @@
   }
 }
 
-// Tocar la card entera activa ese objetivo — de ahí <button>, no <div>: el
-// target táctil es la tarjeta completa (≥44px de alto ya de sobra con el
-// padding actual), no un botón aparte encima.
-.goal-card {
-  display: block;
-  width: 100%;
-  min-height: var(--tf-touch-min);
-  padding: 14px;
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border);
-  border-radius: 12px;
-  margin-bottom: 8px;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  transition: border-color 160ms var(--tf-ease-out), background 160ms var(--tf-ease-out);
-
-  &:not(:disabled):hover {
-    border-color: var(--tf-border-strong);
-  }
-
-  &:not(:disabled):active {
-    transform: scale(0.99);
-  }
-
-  &--in-use {
-    border-color: var(--tf-success-border);
-    background: var(--tf-success-soft);
-  }
-
-  // En uso ya está deshabilitada (no hay a dónde activarla); mientras se
-  // activa OTRA card, el resto se deshabilita para evitar dobles envíos —
-  // pero sin el opacity apagado de un disabled normal, que aquí leería como
-  // "objetivo desactivado" en vez de "ocupado un segundo".
-  &:disabled {
-    cursor: default;
-  }
-}
-
-.goal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.goal-badges {
-  ion-spinner {
-    width: 14px;
-    height: 14px;
-    color: var(--tf-text-muted);
-  }
-}
-
-.goal-macros {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  font-size: 0.82rem;
-  color: var(--tf-text-secondary);
-}
-
 // --- Panel (bottom sheet) ---
 .panel-backdrop {
   @include tf-panel-backdrop;
@@ -1265,67 +1183,6 @@
 .input-field {
   @include tf-input-field;
   font-size: 0.95rem;
-}
-
-.macro-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0 10px;
-}
-
-// Recomendación del panel "Asignar objetivos" — mismo patrón visual que
-// .focus-buttons del cajón de sugerencias de dieta (diet-suggestion-drawer):
-// selector exclusivo con acento sólido en el activo.
-.nutrition-target-calculator {
-  margin-bottom: 12px;
-
-  .preset-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .preset-button {
-    flex: 1 1 auto;
-    min-width: 90px;
-    min-height: var(--tf-touch-min, 44px);
-    padding: 0 12px;
-    border-radius: 999px;
-    border: 1px solid var(--tf-border-strong);
-    background: var(--tf-surface-2);
-    font-family: inherit;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--tf-text-muted);
-    cursor: pointer;
-
-    &:hover:not(.is-active) {
-      background: var(--tf-surface-3);
-      color: var(--tf-text);
-    }
-
-    &.is-active {
-      background: var(--tf-accent);
-      border-color: var(--tf-accent);
-      color: var(--tf-accent-contrast);
-    }
-  }
-
-  .calc-hint {
-    font-size: 0.78rem;
-    color: var(--tf-text-muted);
-    padding: 0 2px 8px;
-  }
-
-  .calc-hint--warning {
-    color: var(--ion-color-warning, #ffc409);
-  }
-
-  .calc-hint--result {
-    color: var(--tf-accent);
-    font-weight: 600;
-  }
 }
 
 .submit-button {
@@ -1391,36 +1248,6 @@
     &:not(:disabled):hover {
       background: var(--tf-success-soft);
     }
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-}
-
-.bulk-link-button {
-  width: 100%;
-  height: 40px;
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: transparent;
-  border: none;
-  color: var(--tf-text-muted);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 160ms var(--tf-ease-out);
-
-  ion-icon {
-    font-size: 16px;
-  }
-
-  &:not(:disabled):hover {
-    color: var(--tf-accent);
   }
 
   &:disabled {
@@ -1853,7 +1680,11 @@
 .nutrition-main {
   min-width: 0;
 
-  .nutrition-charts-row .section-row {
+  // Solo la cabecera de arriba del todo de cada columna (Dieta/Seguimiento)
+  // — :first-child para no pillar también "Ciclo a ciclo" (section-row que
+  // viene DESPUÉS de .nutrition-card, no al principio de .nutrition-chart-col)
+  // y acabar pegándolo sin margen contra la gráfica de encima.
+  .nutrition-charts-row > * > .section-row:first-child {
     margin-top: 0;
   }
 }
@@ -2163,6 +1994,52 @@
   font-size: 0.88rem;
   color: var(--tf-text);
   white-space: pre-wrap;
+}
+
+// Restricciones dietéticas en la tarjeta de solo lectura: un chip por flag
+// con el mismo icono y color que diet-card (.card-flags) y el cajón de
+// sugerencias, en vez de la lista de texto plano de antes.
+.preferences-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: var(--tf-radius-pill);
+    background: var(--tf-surface-2);
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    color: var(--tf-text-secondary);
+
+    ion-icon {
+      font-size: 0.95rem;
+    }
+  }
+
+  .flag-vegan {
+    background: rgba(52, 211, 153, 0.14);
+    color: #34d399;
+  }
+
+  .flag-vegetarian {
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+  }
+
+  .flag-lactose-free {
+    background: rgba(96, 165, 250, 0.14);
+    color: #60a5fa;
+  }
+
+  .flag-gluten-free {
+    background: rgba(255, 196, 85, 0.16);
+    color: var(--tf-secondary, #ffc455);
+  }
 }
 
 // --- Medidas: petición de antropometría vigente ---

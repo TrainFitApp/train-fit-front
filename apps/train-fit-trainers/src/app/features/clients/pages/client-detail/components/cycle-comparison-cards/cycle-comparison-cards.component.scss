@@ -1,0 +1,182 @@
+:host {
+  display: block;
+}
+
+// Dos cards a la par; en estrecho se apilan (mismo criterio flex-wrap que
+// .nutrition-charts-row en client-detail.page.scss).
+.compare-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3);
+  align-items: stretch;
+}
+
+// Mismo aspecto que .nutrition-card (client-detail.page.scss) — misma
+// familia visual que la tarjeta de la gráfica justo encima.
+// flex-basis bajo a propósito: la columna de la gráfica ronda los 380px
+// incluso en pantalla ancha (el calendario se lleva la otra mitad), y las
+// dos cards tienen que caber a la par ahí — con 240px cada una se apilaban
+// siempre. Las filas de cifras envuelven (ver .compare-card__metric) para
+// que quepan en ~170px sin recortar nada.
+.compare-card {
+  flex: 1 1 170px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  padding: 12px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 14px;
+
+  &--reference {
+    background: var(--tf-surface-2);
+  }
+}
+
+.compare-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-border-subtle);
+}
+
+.compare-card__title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.compare-card__kicker {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tf-text-muted);
+}
+
+.compare-card__cycle {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--tf-text);
+
+  &--muted {
+    color: var(--tf-text-faint);
+  }
+}
+
+// Mismo lenguaje que las etiquetas EN CURSO / PRÓXIMO de las tarjetas de
+// ciclo de la fase: el "en curso" en acento, el resto apagado.
+.compare-card__status {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tf-text-muted);
+
+  &--current {
+    color: var(--tf-accent);
+  }
+}
+
+.compare-card__dates {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.compare-card__picker {
+  display: block;
+  margin-top: 4px;
+
+  select {
+    width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    padding: 0 var(--tf-space-3);
+    background: var(--tf-surface-2);
+    border: 1px solid var(--tf-border);
+    border-radius: 8px;
+    color: var(--tf-text);
+    font-family: inherit;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.compare-card--reference .compare-card__picker select {
+  background: var(--tf-surface-1);
+}
+
+.compare-card__metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.compare-card__metric {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+
+  dt {
+    font-size: 0.78rem;
+    color: var(--tf-text-muted);
+  }
+
+  dd {
+    margin: 0 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    text-align: right;
+  }
+}
+
+.compare-card__value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  white-space: nowrap;
+}
+
+// Neutro a propósito: flecha + signo, sin verde/rojo — subir kcal no es
+// bueno ni malo por sí solo, depende del objetivo de la fase.
+.compare-card__delta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+
+  &--same {
+    color: var(--tf-text-faint);
+  }
+}
+
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+  margin: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

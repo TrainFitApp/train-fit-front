@@ -129,6 +129,66 @@ export interface CycleOverrideSummary {
   profile: MacroSet & { kcal: number };
 }
 
+// --- Info de cálculo de fase (docs/plan-info-calculo-fase.md) ---
+
+// Cómo se calculó la necesidad del cliente: lo que entró y la cuenta. Es la
+// misma forma para el snapshot del C1 (persistido) y para los ciclos 2+
+// (calculados al vuelo). `missing` con contenido = no se pudo calcular.
+export interface CycleNeed {
+  computedAt: string;
+  missing?: string[] | null;
+  inputs: {
+    weightKg: number | null;
+    weightFrom: 'anthropometry' | 'signup' | null;
+    weightDate: string | null;
+    heightCm: number | null;
+    age: number | null;
+    sex: 0 | 1 | null;
+    activity: number | null;
+    stepsValue: number | null;
+    stepsLabel: string | null;
+    // profile = rango declarado en el perfil; logged = media diaria que el
+    // cliente declaró en el check-in del ciclo anterior.
+    stepsFrom: 'profile' | 'logged';
+    stepsAvg: number | null;
+    stepsFallbackReason?: 'profile_unresolved';
+    trainingValue: number | null;
+    // exact false = el factor del perfil no casa con ninguna columna de la
+    // tabla (dato viejo): se tomó la más cercana.
+    trainingDays: { id: number; key: string; label: string; exact: boolean } | null;
+    objetiveKcalDelta: number;
+    proteinPerKg: number | null;
+    fatPerKg: number | null;
+  };
+  breakdown: {
+    weightKg: number;
+    adjustedWeightKg: number | null;
+    bmr: number;
+    usesActivity: boolean;
+    activityFactor: number | null;
+    trainingFactor: number;
+    factor: number;
+    expenditure: number;
+    delta: number;
+    proteinPerKg: number;
+    fatPerKg: number;
+  } | null;
+  target: (MacroSet & { kcal: number }) | null;
+}
+
+export interface CycleNeedResponse {
+  cycleNumber: number;
+  start: string;
+  end: string;
+  isCurrent: boolean;
+  // snapshot = guardado al empezar la fase (C1); computed = al vuelo (C2+);
+  // null = fase anterior a guardar el cálculo.
+  source: 'snapshot' | 'computed' | null;
+  need: CycleNeed | null;
+  stepsDone: { avg: number | null; respondedAt: string | null };
+  plannedKcal: number | null;
+}
+
 export interface CycleWindow {
   number: number;
   start: string;
@@ -151,6 +211,9 @@ export interface PhaseCyclesResponse {
     // Lo que heredará si nadie toca nada (null si hay override).
     inherits: CycleOverrideSummary | null;
     suggestion: NextCycleSuggestion;
+    // Necesidad con los datos de HOY (último peso, pasos del ciclo en
+    // curso) — referencia para el modal; no cambia la sugerencia de kcal.
+    needNow: CycleNeed | null;
   };
   past: (CycleWindow & { profile: MacroSet & { kcal: number }; overrideId: string })[];
 }

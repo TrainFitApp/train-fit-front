@@ -412,18 +412,26 @@ export class DietDayService {
     return recipeRef?._id?.toString?.() || recipeRef?.toString?.() || null;
   }
 
+  // Lo pautado por el trainer solo cuenta como ingesta cuando el cliente lo
+  // marca como consumido; lo que añade por su cuenta suma siempre.
+  private countsAsIntake(item: { assignedByTrainerId?: string | null; consumed?: boolean }): boolean {
+    return !item.assignedByTrainerId || !!item.consumed;
+  }
+
   public getDietDayKcal(dietDay: DietDay): number {
     let kcal = 0;
     dietDay.meals?.forEach((meal) => {
       // Sum products
       kcal +=
         meal.customProducts?.reduce((total, cp) => {
+          if (!this.countsAsIntake(cp)) return total;
           return total + this.customProductService.getMacros(cp).kcal;
         }, 0) || 0;
 
       // Sum recipes
       kcal +=
         meal.customRecipes?.reduce((total, instance) => {
+          if (!this.countsAsIntake(instance)) return total;
           return total + this.calculateInstanceMacros(instance).kcal;
         }, 0) || 0;
     });
@@ -435,11 +443,13 @@ export class DietDayService {
     dietDay.meals?.forEach((meal) => {
       protein +=
         meal.customProducts?.reduce((total, cp) => {
+          if (!this.countsAsIntake(cp)) return total;
           return total + this.customProductService.getMacros(cp).protein;
         }, 0) || 0;
 
       protein +=
         meal.customRecipes?.reduce((total, instance) => {
+          if (!this.countsAsIntake(instance)) return total;
           return total + this.calculateInstanceMacros(instance).protein;
         }, 0) || 0;
     });
@@ -451,11 +461,13 @@ export class DietDayService {
     dietDay.meals?.forEach((meal) => {
       carbs +=
         meal.customProducts?.reduce((total, cp) => {
+          if (!this.countsAsIntake(cp)) return total;
           return total + this.customProductService.getMacros(cp).carbs;
         }, 0) || 0;
 
       carbs +=
         meal.customRecipes?.reduce((total, instance) => {
+          if (!this.countsAsIntake(instance)) return total;
           return total + this.calculateInstanceMacros(instance).carbs;
         }, 0) || 0;
     });
@@ -467,11 +479,13 @@ export class DietDayService {
     dietDay.meals?.forEach((meal) => {
       fat +=
         meal.customProducts?.reduce((total, cp) => {
+          if (!this.countsAsIntake(cp)) return total;
           return total + this.customProductService.getMacros(cp).fat;
         }, 0) || 0;
 
       fat +=
         meal.customRecipes?.reduce((total, instance) => {
+          if (!this.countsAsIntake(instance)) return total;
           return total + this.calculateInstanceMacros(instance).fat;
         }, 0) || 0;
     });

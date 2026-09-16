@@ -24,7 +24,7 @@ interface TimingGroup {
  * pensando "¿qué me toca ahora?". El orden del catálogo de momentos va de la
  * mañana a la noche, así que el grupo que busca está donde espera.
  *
- * Solo lectura. Es una prescripción, como los intercambios.
+ * Solo lectura. Es una prescripción.
  */
 @Component({
   selector: 'app-my-supplements',

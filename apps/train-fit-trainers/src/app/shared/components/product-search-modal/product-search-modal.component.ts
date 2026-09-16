@@ -42,11 +42,6 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
   // búsqueda.
   @Input() preselectedProduct?: IProduct;
   @Input() preselectedRecipe?: Recipe;
-  // Oculta la pestaña "Recetas". Para quien solo puede quedarse con un
-  // producto — un alimento de un grupo de intercambio guarda `productId`, no
-  // hay campo donde meter una receta, así que ofrecerlas sería ofrecer algo
-  // que al confirmar no se puede guardar.
-  @Input() productsOnly = false;
 
   private readonly productApi = inject(ProductAPIService);
   private readonly recipeApi = inject(RecipeApiService);
@@ -182,8 +177,7 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
   // Antes reimplementaba un formulario reducido propio (nombre + 4 macros),
   // duplicando lo que ya hace CreateProductPage (la pantalla real y completa:
   // macros+micros+alérgenos+vegano+escáner) — un producto creado desde aquí
-  // (p.ej. al vincular un alimento de un grupo de intercambio) se guardaba
-  // con menos datos que uno creado desde cualquier otro sitio de la app.
+  // se guardaba con menos datos que uno creado desde cualquier otro sitio de la app.
   // Mismo patrón que pickCreateProduct en day-meal-editor-modal: se abre la
   // pantalla real como modal (modalMode:true) y, al guardar, se cierra con
   // {kind:'product', product, quantity:100} — el propio CreateProductPage ya

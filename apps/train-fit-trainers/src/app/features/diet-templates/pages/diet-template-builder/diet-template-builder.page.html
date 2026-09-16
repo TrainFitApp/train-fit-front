@@ -4,7 +4,7 @@
   ></app-page-header>
 </ion-header>
 
-<ion-content class="builder-content">
+<ion-content class="builder-content" [class.has-clipboard]="copyMode">
   <div class="detail-skeleton" *ngIf="state === 'loading'">
     <div class="skeleton-block" style="height: 60px;"></div>
     <div class="skeleton-block" style="height: 60px;"></div>
@@ -176,13 +176,13 @@
          Cambiar de modo no borra los otros conjuntos de columnas. -->
     <p class="section-hint">¿Cómo se repite esta plantilla?</p>
     <div class="end-mode-options">
-      <button type="button" class="end-mode-option" [class.selected]="mode === 'sequential'" (click)="setMode('sequential')">
+      <button type="button" class="end-mode-option" [class.selected]="mode === 'sequential'" [disabled]="copyMode" (click)="setMode('sequential')">
         Días (1, 2, 3...)
       </button>
-      <button type="button" class="end-mode-option" [class.selected]="mode === 'recurring'" (click)="setMode('recurring')">
+      <button type="button" class="end-mode-option" [class.selected]="mode === 'recurring'" [disabled]="copyMode" (click)="setMode('recurring')">
         Por día de la semana
       </button>
-      <button type="button" class="end-mode-option" [class.selected]="mode === 'choice'" (click)="setMode('choice')">
+      <button type="button" class="end-mode-option" [class.selected]="mode === 'choice'" [disabled]="copyMode" (click)="setMode('choice')">
         El cliente elige cada día
       </button>
     </div>
@@ -220,26 +220,65 @@
     <!-- TAREA5 (auditoría UX, Fase C) — tablero semanal: columnas en días o
          menús, comidas en filas. Cada celda se arrastra entera (con todas
          sus alternativas) a otra celda para moverla; el icono de copiar la
-         duplica sin moverla del origen. Click en la celda abre el editor. -->
-    <div class="board-scroll" *ngIf="activeRows.length">
+         duplica sin moverla del origen. Click en la celda abre el editor.
+
+         Modo copia (copyMode): con algo en el portapapeles solo queda el
+         icono de pegar en los destinos del mismo tipo — copiar un DÍA
+         muestra pegar en las cabeceras de los otros días; copiar una COMIDA,
+         en las otras celdas. Todo lo demás (vaciar/copiar/eliminar, inputs,
+         chips de semana, click y arrastre de celda) se bloquea hasta
+         cancelar en el sidenav derecho (.clipboard-portal, al final). -->
+    <div class="board-scroll" *ngIf="activeRows.length" [class.is-copy-mode]="copyMode">
       <div class="board-grid" [style.grid-template-columns]="'128px repeat(' + activeRows.length + ', minmax(160px, 1fr))'">
         <div class="board-corner"></div>
-        <div class="board-day-header" *ngFor="let row of activeRows; let d = index; trackBy: trackByIndex">
+        <div
+          class="board-day-header"
+          *ngFor="let row of activeRows; let d = index; trackBy: trackByIndex"
+          [class.is-clipboard-source]="isDayClipboardSource(d)"
+          [class.is-paste-target]="copyingDay && !isDayClipboardSource(d)"
+        >
           <div class="board-day-header-row">
             <input
               type="text"
               class="day-label-input"
               [ngModel]="rowLabel(row)"
+              [disabled]="copyMode"
               (ngModelChange)="setRowLabel(row, $event)"
             />
-            <button
-              type="button"
-              class="board-day-remove"
-              [attr.aria-label]="'Eliminar ' + rowNoun"
-              (click)="removeRow(d)"
-            >
-              <ion-icon name="trash-outline"></ion-icon>
-            </button>
+            <!-- Iconos en vertical, mismo criterio que .board-cell-actions. -->
+            <div class="board-day-actions">
+              <ng-container *ngIf="!copyMode">
+                <button
+                  type="button"
+                  class="board-day-action board-day-action--danger"
+                  [attr.aria-label]="'Eliminar ' + rowNoun"
+                  [title]="'Eliminar ' + rowNoun"
+                  (click)="removeRow(d)"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+                <button
+                  type="button"
+                  class="board-day-action"
+                  *ngIf="rowHasFood(row)"
+                  [attr.aria-label]="'Copiar ' + rowNoun"
+                  [title]="'Copiar ' + rowNoun"
+                  (click)="copyDay(d, $event)"
+                >
+                  <ion-icon name="copy-outline"></ion-icon>
+                </button>
+              </ng-container>
+              <button
+                type="button"
+                class="board-day-action board-day-action--paste"
+                *ngIf="copyingDay && !isDayClipboardSource(d)"
+                title="Pegar aquí"
+                aria-label="Pegar aquí"
+                (click)="pasteDay(d, $event)"
+              >
+                <ion-icon name="clipboard-outline"></ion-icon>
+              </button>
+            </div>
           </div>
           <div class="weekday-picker" *ngIf="mode === 'recurring'">
             <button
@@ -247,6 +286,7 @@
               class="weekday-chip"
               *ngFor="let w of weekdays"
               [class.selected]="asPattern(row).appliesTo.includes(w.value)"
+              [disabled]="copyMode"
               (click)="toggleWeekday(asPattern(row), w.value)"
             >
               {{ w.short }}
@@ -263,7 +303,10 @@
             [class.has-items]="mealHasFood(row.meals[s])"
             [class.drag-over]="dragOverCell?.dayIndex === d && dragOverCell?.mealIndex === s"
             [class.active-cell]="activeCell?.dayIndex === d && activeCell?.mealIndex === s"
-            [attr.draggable]="row.meals[s].alternatives.length > 0"
+            [class.is-locked]="copyMode"
+            [class.is-clipboard-source]="isClipboardSource(d, s)"
+            [class.is-paste-target]="copyingMeal && !isClipboardSource(d, s)"
+            [attr.draggable]="!copyMode && row.meals[s].alternatives.length > 0"
             (dragstart)="onCellDragStart(d, s, $event)"
             (dragover)="onCellDragOver(d, s, $event)"
             (dragleave)="onCellDragLeave()"
@@ -299,31 +342,31 @@
                 <span class="macro-tag macro-tag--fat">G {{ t.fat | number: '1.0-0' }}g</span>
               </span>
             </div>
-            <div class="board-cell-actions" *ngIf="mealHasFood(row.meals[s]) || clipboard">
+            <div class="board-cell-actions" *ngIf="(!copyMode && mealHasFood(row.meals[s])) || (copyingMeal && !isClipboardSource(d, s))">
+              <ng-container *ngIf="!copyMode">
+                <button
+                  type="button"
+                  class="board-cell-action board-cell-action--danger"
+                  title="Vaciar comida"
+                  aria-label="Vaciar comida"
+                  (click)="clearCell(d, s, $event)"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+                <button
+                  type="button"
+                  class="board-cell-action"
+                  title="Copiar a otro hueco"
+                  aria-label="Copiar a otro hueco"
+                  (click)="copyCell(d, s, $event)"
+                >
+                  <ion-icon name="copy-outline"></ion-icon>
+                </button>
+              </ng-container>
               <button
                 type="button"
-                class="board-cell-action board-cell-action--danger"
-                *ngIf="mealHasFood(row.meals[s])"
-                title="Vaciar comida"
-                aria-label="Vaciar comida"
-                (click)="clearCell(d, s, $event)"
-              >
-                <ion-icon name="trash-outline"></ion-icon>
-              </button>
-              <button
-                type="button"
-                class="board-cell-action"
-                *ngIf="mealHasFood(row.meals[s])"
-                title="Copiar a otro hueco"
-                aria-label="Copiar a otro hueco"
-                (click)="copyCell(d, s, $event)"
-              >
-                <ion-icon name="copy-outline"></ion-icon>
-              </button>
-              <button
-                type="button"
-                class="board-cell-action"
-                *ngIf="clipboard && !isClipboardSource(d, s)"
+                class="board-cell-action board-cell-action--paste"
+                *ngIf="copyingMeal && !isClipboardSource(d, s)"
                 title="Pegar aquí"
                 aria-label="Pegar aquí"
                 (click)="pasteCell(d, s, $event)"
@@ -400,7 +443,7 @@
       </div>
     </div>
 
-    <button type="button" class="add-alternative-btn" (click)="addRow()" [disabled]="activeRows.length >= activeRowsLimit">
+    <button type="button" class="add-alternative-btn" (click)="addRow()" [disabled]="copyMode || activeRows.length >= activeRowsLimit">
       <ion-icon name="add-outline"></ion-icon>
       {{ 'Añadir ' + rowNoun }}
     </button>
@@ -411,3 +454,67 @@
     </button>
   </ng-container>
 </ion-content>
+
+<!-- Panel lateral (sidenav derecho) del portapapeles: qué se ha copiado y
+     cómo salir del modo copia. Sin velo: hay que poder pulsar "Pegar" en el
+     tablero con el panel abierto. El contenedor se traslada al body al
+     montar (ngAfterViewInit) para que el fixed no lo capture ion-content. -->
+<div class="clipboard-portal" #clipboardHost>
+  <aside class="clipboard-panel" *ngIf="clipboard as clip" role="complementary" aria-label="Portapapeles">
+    <header class="clipboard-panel__header">
+      <div class="clipboard-panel__head">
+        <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+        <span>{{ clip.kind === 'day' ? (rowNoun | titlecase) + ' copiado' : 'Comida copiada' }}</span>
+      </div>
+      <button type="button" class="clipboard-panel__close" (click)="clearClipboard()" aria-label="Cancelar copia">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </header>
+    <p class="clipboard-panel__label">{{ clip.label }}</p>
+    <p class="clipboard-panel__hint">
+      Pulsa <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+      en {{ clip.kind === 'day' ? 'otro ' + rowNoun : 'otra comida' }} para pegar.
+    </p>
+
+    <div class="clipboard-panel__body">
+      <!-- Comida: sus alternativas con alimentos y macros, mismo look que
+           la celda del tablero. -->
+      <ng-container *ngIf="clip.kind === 'meal'">
+        <div class="cell-alt" *ngFor="let alt of clip.alternatives; let a = index; trackBy: trackByIndex">
+          <span class="cell-alt-header" *ngIf="clip.alternatives.length > 1">
+            <ion-icon name="swap-horizontal-outline"></ion-icon>
+            <span class="cell-alt-label">{{ alternativeLabel(alt, a, clip.alternatives.length) }}</span>
+          </span>
+          <ng-container *ngFor="let item of alt.items; trackBy: trackByIndex">
+            <span class="cell-food" *ngIf="item.productId || item.recipeId">
+              <span class="cell-food-name">{{ itemLabel(item) }}</span>
+              <span class="cell-food-qty" *ngIf="item.quantity">{{ item.quantity }}g</span>
+            </span>
+          </ng-container>
+          <span class="cell-macros" *ngIf="alternativeTotals(alt) as t">
+            <span class="macro-tag macro-tag--kcal">{{ t.kcal | number: '1.0-0' }} kcal</span>
+            <span class="macro-tag macro-tag--protein">P {{ t.protein | number: '1.0-0' }}g</span>
+            <span class="macro-tag macro-tag--carbs">C {{ t.carbs | number: '1.0-0' }}g</span>
+            <span class="macro-tag macro-tag--fat">G {{ t.fat | number: '1.0-0' }}g</span>
+          </span>
+        </div>
+      </ng-container>
+
+      <!-- Día: una línea por comida con contenido. -->
+      <ng-container *ngIf="clip.kind === 'day'">
+        <div class="clipboard-meal" *ngFor="let meal of clipboardMeals; trackBy: trackByIndex">
+          <span class="clipboard-meal__slot">{{ meal.slot }}</span>
+          <span class="clipboard-meal__summary">{{ mealSummary(meal) }}</span>
+          <span class="clipboard-meal__kcal" *ngIf="alternativeTotals(meal.alternatives[0]) as t">
+            {{ t.kcal | number: '1.0-0' }} kcal
+          </span>
+        </div>
+      </ng-container>
+    </div>
+
+    <button type="button" class="clipboard-panel__cancel" (click)="clearClipboard()">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      Cancelar
+    </button>
+  </aside>
+</div>

@@ -520,8 +520,12 @@ export class DietsPage implements OnInit {
   }
 
   public goToCycleCheckin(): void {
+    // returnUrl: el botón atrás de Mis check-ins vuelve aquí, no al tab Coach.
     void this.router.navigate(['/my-checkins'], {
-      queryParams: this.cycleCheckinTrainerId ? { trainerId: this.cycleCheckinTrainerId } : {},
+      queryParams: {
+        returnUrl: '/tabs/diets',
+        ...(this.cycleCheckinTrainerId ? { trainerId: this.cycleCheckinTrainerId } : {}),
+      },
     });
   }
 
@@ -610,6 +614,22 @@ export class DietsPage implements OnInit {
   public onProposalChosen(event: { proposalId: string; chosenIndex: number }): void {
     const proposal = this.mealProposals.find((p) => p._id === event.proposalId);
     if (proposal) proposal.chosenIndex = event.chosenIndex;
+    this.refreshPlannedTarget();
+  }
+
+  // Opciones de comida — la meta del día (máximo a consumir, ver
+  // macros-bars) es lo que suma lo PAUTADO y la calcula el backend; al
+  // cambiar de opción cambia lo pautado, así que se vuelve a pedir el día
+  // solo para refrescar plannedTarget, sin recargar la pantalla entera.
+  private refreshPlannedTarget(): void {
+    this.dietDayService
+      .getDietDayByIdDietAndDate(this.user.dietInUse, this.selectedDate)
+      .subscribe((fresh) => {
+        if (!fresh || !this.dietDay || fresh.date !== this.dietDay.date) return;
+        this.dietDay.plannedTarget = fresh.plannedTarget ?? null;
+        this.dietDayService.setCurrentDietDay = { ...this.dietDay };
+        this.cdr.detectChanges();
+      });
   }
 
   public onAnthropometrySaved(anthropometry: Anthropometry): void {

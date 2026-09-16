@@ -59,7 +59,7 @@ export class MyPainPage implements OnInit {
     this.load();
   }
 
-  // Mismo destino de vuelta que my-checkins y my-food-exchanges: el único
+  // Mismo destino de vuelta que my-checkins: el único
   // punto de entrada es la tarjeta del tab Coach.
   public close(): void {
     void this.router.navigate(['/tabs/coach']);

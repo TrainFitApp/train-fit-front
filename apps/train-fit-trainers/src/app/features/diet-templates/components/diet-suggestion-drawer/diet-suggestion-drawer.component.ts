@@ -277,6 +277,11 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
         focus: this.focus,
         targetKcalDelta: Number(this.kcalDelta) || 0,
         ratePerCycle: Number(this.ratePerCycle) || 0,
+        // Solo si el entrenador los tocó: sin tocar, el backend aplica su
+        // fórmula por defecto (misma que rellena estos campos) y así el
+        // resumen de ciclo puede decir "fórmula por defecto".
+        proteinPerKg: this.userTouchedMacroRatio && this.proteinPerKg ? Number(this.proteinPerKg) : null,
+        fatPerKg: this.userTouchedMacroRatio && this.fatPerKg ? Number(this.fatPerKg) : null,
       },
       cycleTarget: {
         kcal: t.kcal,

@@ -5,6 +5,7 @@ import { AppComponent } from './app.component';
 import { CoreModule } from 'src/app/core/core.module';
 import { AppUpdateModule } from 'src/app/features/app-update/app-update.module';
 import { MaintenanceModule } from 'src/app/features/maintenance/maintenance.module';
+import { NumericKeypadModule } from 'src/app/shared/components/numeric-keypad/numeric-keypad.module';
 import { ExerciseScoreEditHandler } from 'src/app/core/services/exercise/exercise-score-edit-handler';
 import { TrainerExerciseScoreEditHandlerService } from 'src/app/features/exercise-scores/services/trainer-exercise-score-edit-handler.service';
 
@@ -15,6 +16,7 @@ import { TrainerExerciseScoreEditHandlerService } from 'src/app/features/exercis
     CoreModule,
     AppUpdateModule,
     MaintenanceModule,
+    NumericKeypadModule,
     AppRoutingModule,
   ],
   providers: [

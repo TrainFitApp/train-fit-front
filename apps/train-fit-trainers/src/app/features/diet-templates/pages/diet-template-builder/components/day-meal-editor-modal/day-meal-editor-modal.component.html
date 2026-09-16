@@ -25,9 +25,26 @@
     cuál come ese día.
   </p>
 
+  <!-- Aviso cuando alguna opción se sale de la tolerancia respecto a la de
+       referencia (ver deviationOf): las opciones deberían ser intercambiables. -->
+  <ng-container *ngIf="deviationWarnings() as warnings">
+    <div class="deviation-warning" *ngIf="warnings.length" role="status">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <div class="deviation-warning-body">
+        <span class="deviation-warning-title">
+          Opciones desiguales (más de un {{ deviationTolerancePct }} % respecto a {{ alternativeName(referenceIndex) }})
+        </span>
+        <span class="deviation-warning-line" *ngFor="let line of warnings">{{ line }}</span>
+      </div>
+    </div>
+  </ng-container>
+
   <div class="alternative-card" *ngFor="let alt of meal.alternatives; let i = index; trackBy: trackByIndex">
     <div class="alternative-header" *ngIf="isMultiple">
-      <span class="alternative-title">Opción {{ meal.alternatives.length - i }}</span>
+      <div class="alternative-title-group">
+        <span class="alternative-title">Opción {{ meal.alternatives.length - i }}</span>
+        <span class="alternative-ref-badge" *ngIf="isReference(i)">referencia</span>
+      </div>
       <div class="alternative-actions">
         <button
           type="button"
@@ -86,18 +103,6 @@
             (click)="editRecipeIngredients(i, j)"
           >
             <ion-icon name="options-outline"></ion-icon>
-          </button>
-          <!-- Solo sobre un producto: un grupo de intercambio lista productos,
-               no recetas, así que sobre una receta no habría nada que ofrecer. -->
-          <button
-            type="button"
-            class="remove-alternative-btn"
-            aria-label="Generar alternativas desde un intercambio"
-            title="Generar alternativas cambiando solo este alimento"
-            *ngIf="item.productId"
-            (click)="generateFromExchange(i, j)"
-          >
-            <ion-icon name="swap-horizontal-outline"></ion-icon>
           </button>
           <button
             type="button"
@@ -167,6 +172,31 @@
         </button>
       </div>
     </ng-container>
+
+    <!-- Total de la opción + desviación por macro respecto a la referencia
+         (solo con 2+ opciones con comida). La desviación va como superíndice
+         a la derecha del valor, en fuente pequeña: en fila normal
+         "274,7g +67,2" no cabía en el ancho del panel y se montaba. -->
+    <div class="alternative-totals" *ngIf="alternativeTotals(alt) as totals">
+      <span class="alternative-totals-title">Total</span>
+      <ng-container *ngIf="{ deviation: deviationOf(i) } as ctx">
+        <div class="alternative-totals-grid">
+          <div class="alternative-totals-cell" *ngFor="let key of macroKeys">
+            <span class="alternative-totals-value">
+              <span class="macro-dot {{ key }}"></span>
+              {{ totals[key] | number : macroFormat(key) }}{{ macroUnit(key) }}
+            </span>
+            <span
+              class="macro-delta"
+              *ngIf="ctx.deviation"
+              [class.flagged]="ctx.deviation[key].flagged"
+            >
+              {{ ctx.deviation[key].delta > 0 ? '+' : '' }}{{ ctx.deviation[key].delta | number : macroFormat(key) }}
+            </span>
+          </div>
+        </div>
+      </ng-container>
+    </div>
 
     <div class="snippet-actions-row">
       <button

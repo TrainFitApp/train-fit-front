@@ -30,17 +30,29 @@
       Ninguno de tus profesionales te ha pedido un check-in todavía.
     </p>
 
-    <div class="checkin-card" *ngFor="let config of configs; trackBy: trackByTrainerId">
+    <div
+      class="checkin-card"
+      [class]="'checkin-card--' + cardKind(config)"
+      [class.is-done]="isDone(config)"
+      [class.is-open]="expandedTrainerId === configKey(config)"
+      *ngFor="let config of configs; trackBy: trackByTrainerId"
+    >
       <button class="checkin-card-header" (click)="toggleExpand(config)">
+        <span class="checkin-card-badge" aria-hidden="true">
+          <ion-icon [name]="cardIcon(config)"></ion-icon>
+        </span>
         <div class="checkin-card-title-group">
-          <span class="list-card-title">{{ config.name || trainerName(config) }}</span>
+          <span class="checkin-card-title-row">
+            <span class="list-card-title">{{ config.name || trainerName(config) }}</span>
+            <span class="checkin-card-pill">{{ isDone(config) ? 'Respondido' : 'Pendiente' }}</span>
+          </span>
           <span class="checkin-card-subtitle" *ngIf="config.name">{{ trainerName(config) }}</span>
           <span class="checkin-card-subtitle">
             {{ cadenceLabel(config) }} · {{ fieldsFor(config).length }} campos
-            <ion-icon name="checkmark-circle" class="submitted-icon" *ngIf="submittedTrainerIds.has(configKey(config))"></ion-icon>
           </span>
         </div>
         <ion-icon
+          class="checkin-card-chevron"
           [name]="expandedTrainerId === configKey(config) ? 'chevron-up-outline' : 'chevron-down-outline'"
         ></ion-icon>
       </button>
@@ -61,6 +73,7 @@
           <input
             *ngIf="field.type === 'number'"
             type="number"
+            appNumericKeypad
             class="checkin-input"
             [placeholder]="numberPlaceholder(field)"
             [(ngModel)]="formValues[field.key]"
@@ -155,27 +168,62 @@
     </div>
 
     <!-- coach-tab FASE2 — "formularios completados" -->
-    <div class="mp-section" *ngIf="history.length">
-      <button class="history-toggle" (click)="toggleHistory()">
-        <h2 class="section-heading">Formularios completados</h2>
-        <ion-icon [name]="showHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+    <section class="history-section" [class.is-open]="showHistory" *ngIf="history.length">
+      <button class="history-toggle" (click)="toggleHistory()" [attr.aria-expanded]="showHistory">
+        <span class="history-badge" aria-hidden="true">
+          <ion-icon name="document-text"></ion-icon>
+        </span>
+        <span class="history-toggle__text">
+          <span class="list-card-title">Formularios completados</span>
+          <span class="checkin-card-subtitle">{{ history.length }} {{ history.length === 1 ? 'respuesta enviada' : 'respuestas enviadas' }}</span>
+        </span>
+        <ion-icon class="checkin-card-chevron" [name]="showHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
       </button>
 
-      <ng-container *ngIf="showHistory">
-        <div class="history-card" *ngFor="let entry of history; trackBy: trackByHistoryId">
-          <h3 *ngIf="entry.name">{{ entry.name }}</h3>
-          <div class="history-card-header">
-            <span class="mp-name">{{ historyTrainerName(entry) }}</span>
-            <span class="history-date">{{ entry.respondedAt | date: 'd MMM y' }}</span>
-          </div>
-          <div class="history-values">
-            <span class="history-value" *ngFor="let item of historyEntries(entry)">
-              <strong>{{ item.label }}:</strong> {{ item.value }}
+      <div class="history-list" *ngIf="showHistory">
+        <article
+          class="history-card"
+          [class.is-open]="expandedHistoryId === entry._id"
+          [class.is-reviewed]="entry.status === 'reviewed'"
+          *ngFor="let entry of history; trackBy: trackByHistoryId"
+        >
+          <button class="history-card-header" (click)="toggleHistoryEntry(entry)" [attr.aria-expanded]="expandedHistoryId === entry._id">
+            <span class="history-card-date" aria-hidden="true">
+              <span class="history-card-date__day">{{ entry.respondedAt | date: 'd' }}</span>
+              <span class="history-card-date__month">{{ entry.respondedAt | date: 'MMM' }}</span>
             </span>
+            <span class="history-card-text">
+              <span class="checkin-card-title-row">
+                <span class="list-card-title">{{ entry.name || historyTrainerName(entry) }}</span>
+                <span class="checkin-card-pill history-pill" *ngIf="entry.status === 'reviewed'">
+                  <ion-icon name="checkmark-done"></ion-icon> Revisado
+                </span>
+              </span>
+              <span class="checkin-card-subtitle" *ngIf="entry.name">{{ historyTrainerName(entry) }}</span>
+              <span class="checkin-card-subtitle">
+                {{ entry.respondedAt | date: 'd MMM y' }} · {{ historyEntries(entry).length }} respuestas
+              </span>
+            </span>
+            <ion-icon class="checkin-card-chevron" [name]="expandedHistoryId === entry._id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </button>
+
+          <div class="history-card-body" *ngIf="expandedHistoryId === entry._id">
+            <div class="history-values">
+              <div class="history-value" [class.history-value--wide]="item.wide" *ngFor="let item of historyEntries(entry)">
+                <span class="history-value__label">{{ item.label }}</span>
+                <span class="history-value__value">{{ item.value }}</span>
+              </div>
+            </div>
+            <div class="checkin-review" *ngIf="entry.status === 'reviewed'">
+              <span class="checkin-review__title">
+                <ion-icon name="checkmark-done-circle"></ion-icon>
+                Revisado por tu profesional · {{ entry.reviewedAt | date: 'd MMM y' }}
+              </span>
+              <p *ngIf="entry.reviewComment">{{ entry.reviewComment }}</p>
+            </div>
           </div>
-          <div class="checkin-review" *ngIf="entry.status === 'reviewed'"><strong>Revisado por tu profesional · {{ entry.reviewedAt | date: 'd MMM y' }}</strong><p *ngIf="entry.reviewComment">{{ entry.reviewComment }}</p></div>
-        </div>
-      </ng-container>
-    </div>
+        </article>
+      </div>
+    </section>
   </ng-container>
 </ion-content>

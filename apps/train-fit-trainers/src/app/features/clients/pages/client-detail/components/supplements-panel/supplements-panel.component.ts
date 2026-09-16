@@ -23,6 +23,20 @@ const WEEKDAYS = [
   { value: 0, label: 'D' },
 ];
 
+// Un icono por momento del día: se reconoce antes que la etiqueta y
+// distingue las filas de un vistazo. Las claves son las de
+// SUPPLEMENT_TIMINGS en el backend.
+const TIMING_ICONS: Record<string, string> = {
+  waking: 'sunny-outline',
+  breakfast: 'cafe-outline',
+  pre_workout: 'barbell-outline',
+  intra_workout: 'fitness-outline',
+  post_workout: 'flame-outline',
+  with_meal: 'restaurant-outline',
+  before_bed: 'moon-outline',
+  custom: 'time-outline',
+};
+
 /**
  * Movimiento 5 Coach Pro — suplementación pautada: qué, cuánto, cuándo, por
  * qué y dónde comprarlo.
@@ -93,6 +107,10 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
         this.state = 'error';
       },
     });
+  }
+
+  public timingIcon(supplement: Supplement): string {
+    return TIMING_ICONS[supplement.timing] || TIMING_ICONS['custom'];
   }
 
   public timingLabel(supplement: Supplement): string {

@@ -18,11 +18,13 @@ export class CheckinTemplatesApiService {
   public create(
     name: string,
     enabledFields: string[],
-    customQuestions: CustomCheckinQuestion[] = []
+    customQuestions: CustomCheckinQuestion[] = [],
+    requiredFields: string[] = []
   ): Observable<CheckinTemplateDefinition> {
     return this.http.post<CheckinTemplateDefinition>('trainer/checkin-templates', {
       name,
       enabledFields,
+      requiredFields,
       customQuestions,
     });
   }
@@ -32,6 +34,7 @@ export class CheckinTemplatesApiService {
     updates: {
       name?: string;
       enabledFields?: string[];
+      requiredFields?: string[];
       customQuestions?: CustomCheckinQuestion[];
     }
   ): Observable<CheckinTemplateDefinition> {
