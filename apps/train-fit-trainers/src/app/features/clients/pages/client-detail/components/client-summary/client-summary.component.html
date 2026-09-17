@@ -1,34 +1,194 @@
+<!-- La cabecera (avatar/nombre/badge/programa/Mensaje/Cambiar cliente) vive
+     ahora en client-detail.page.html — persistente en las 4 secciones, no
+     solo aquí (ver client-detail.page.ts#onSummaryStatus para el badge). -->
+
+<!-- ================= LIMITACIÓN DE DOLOR VIGENTE ================= -->
+<!-- Aproxima "limitación vigente" con el peor dato REAL de dolor cruzado con
+     el umbral que el propio entrenador fijó para esa zona — no hay campo de
+     "autor" ni "fecha de revisión" en el modelo, así que no se inventan. -->
+<section class="pain-banner" *ngIf="painState === 'loaded' && limitingPain as pain">
+  <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
+  <div class="pain-banner-text">
+    <strong>{{ pain.zone }}</strong> en nivel de dolor limitante: {{ pain.level }}/10
+    (a partir de {{ pain.threshold.painLevel }} se para el entrenamiento en esta zona)
+    · registrado por {{ clientName }}, última vez el {{ pain.lastDate | date: 'd MMM' }}
+  </div>
+  <button type="button" class="pain-banner-link" (click)="openTab.emit('pain')">Ver dolor</button>
+</section>
+
 <!-- ================= ALERTAS DE ESTE CLIENTE ================= -->
 <!-- Solo aparece la sección si hay algo: un panel "0 alertas" ocuparía el
      sitio más valioso de la pantalla para decir que no pasa nada. -->
 <section class="summary-card alerts-card" *ngIf="summaryState === 'loaded' && summary?.alerts?.length">
   <div class="summary-card-header">
-    <h2 class="summary-card-title">Requiere acción</h2>
+    <h2 class="summary-card-title">Requiere tu atención</h2>
     <span class="alerts-count">{{ summary?.alerts?.length }}</span>
   </div>
 
   <ul class="alert-list">
     <li class="alert-row" *ngFor="let alert of summary?.alerts; trackBy: trackByAlertId">
-      <div class="alert-body">
-        <span class="priority-chip" [class.priority-chip--high]="alert.priority === 'high'">
-          {{ priorityLabel(alert.priority) }}
-        </span>
-        <span class="alert-reason">{{ alert.reason }}</span>
+      <div class="alert-icon-wrap" [class.alert-icon-wrap--high]="alert.priority === 'high'">
+        <ion-icon [name]="alertIcon(alert)" aria-hidden="true"></ion-icon>
       </div>
-      <button
-        type="button"
-        class="alert-resolve"
-        (click)="resolveAlert(alert)"
-        [disabled]="isResolving(alert)"
-        [attr.aria-label]="'Marcar como resuelta: ' + alert.reason"
-        title="Marcar resuelta"
-      >
-        <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
-      </button>
+      <div class="alert-body">
+        <div class="alert-title-row">
+          <span class="alert-reason">{{ alert.reason }}</span>
+          <span class="priority-chip" [class.priority-chip--high]="alert.priority === 'high'">
+            {{ priorityLabel(alert.priority) }}
+          </span>
+          <span class="owner-chip">{{ ownerLabel(alert) }}</span>
+        </div>
+        <span class="alert-age">{{ alertAge(alert) }}</span>
+      </div>
+      <div class="alert-actions">
+        <button
+          type="button"
+          class="alert-nav-button"
+          *ngIf="alertNavTab(alert) as tab"
+          (click)="openTab.emit(tab)"
+        >
+          Ver
+        </button>
+        <button
+          type="button"
+          class="alert-resolve"
+          (click)="resolveAlert(alert)"
+          [disabled]="isResolving(alert)"
+          [attr.aria-label]="'Marcar como resuelta: ' + alert.reason"
+          title="Marcar resuelta"
+        >
+          <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
     </li>
   </ul>
 </section>
 
+<!-- ================= SEGUIMIENTO RECIENTE (3 tarjetas) ================= -->
+<!-- Capa de "un vistazo": mismos números que ya calcula el bloque de
+     Adherencia de más abajo (percentage/detail por dimensión) y que Progreso
+     (weightTrend), solo que compactados en 3 tarjetas — no se piden datos
+     nuevos ni se inventa ninguna comparación que el backend no dé ya. -->
+<section class="recent-tracking" *ngIf="summaryState === 'loaded' && summary as data">
+  <h2 class="recent-tracking-title">Seguimiento reciente</h2>
+
+  <div class="tracking-grid">
+    <div class="tracking-card">
+      <div class="tracking-card-header">
+        <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+        <span>Entrenamiento</span>
+      </div>
+      <ng-container *ngIf="data.adherence.dimensions.training.applicable; else trackingTrainingEmpty">
+        <div class="tracking-value">{{ data.adherence.dimensions.training.percentage }}%</div>
+        <div class="tracking-detail">{{ data.adherence.dimensions.training.detail }}</div>
+        <!-- Delta real de NÚMERO de sesiones (no hay % de plan cumplido
+             comparado entre periodos todavía) — se muestra tal como es, sin
+             disfrazarlo de puntos porcentuales. -->
+        <div class="tracking-delta" *ngIf="progress?.comparison?.sessions as delta">
+          <ion-icon [name]="deltaIcon(delta)" aria-hidden="true"></ion-icon>
+          {{ deltaSign(delta) }}{{ formatValue(delta.absolute, 0) }} sesion{{ delta.absolute === 1 || delta.absolute === -1 ? '' : 'es' }}
+          vs. la semana anterior
+        </div>
+        <!-- Tendencia de sesiones/semana en la ventana de Evolución
+             (progress.series, ya cargado) — mismo patrón de barras que las
+             otras 2 tarjetas, para leer "¿va a más o a menos?" sin bajar a
+             la tabla semana a semana. -->
+        <div class="tracking-sparkline" *ngIf="trainingSparkline.length > 1" aria-hidden="true">
+          <span class="tracking-sparkline-bar" *ngFor="let bar of trainingSparkline">
+            <span class="tracking-sparkline-fill" [style.height.%]="bar.height ?? 6" [class.tracking-sparkline-fill--empty]="bar.height === null"></span>
+          </span>
+        </div>
+        <!-- "Última semana con registro" va DENTRO de la rama aplicable a
+             propósito (auditoría 2026-09): fuera de aquí podía leerse junto
+             al mensaje de "sin fase en curso" como si se contradijeran —
+             sesiones de una fase YA terminada no son "esta fase sin datos". -->
+        <div class="tracking-sub" *ngIf="lastTrainingWeek as week">
+          Última semana con registro: {{ formatValue(week.volume, 0) }} kg · {{ week.sessions }} sesión{{ week.sessions === 1 ? '' : 'es' }}
+        </div>
+      </ng-container>
+      <ng-template #trackingTrainingEmpty>
+        <p class="tracking-empty">
+          {{ unavailableLabel(data.adherence.dimensions.training) }}
+          <ng-container *ngIf="lastTrainingWeek as week">
+            — última actividad registrada: {{ formatValue(week.volume, 0) }} kg, {{ week.sessions }} sesión{{ week.sessions === 1 ? '' : 'es' }}
+          </ng-container>
+        </p>
+      </ng-template>
+      <button type="button" class="tracking-link" (click)="openTab.emit('training')">Ver entrenamiento →</button>
+    </div>
+
+    <div class="tracking-card">
+      <div class="tracking-card-header">
+        <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
+        <span>Nutrición</span>
+      </div>
+      <ng-container *ngIf="data.adherence.dimensions.nutrition.applicable; else trackingNutritionEmpty">
+        <div class="tracking-value">{{ data.adherence.dimensions.nutrition.percentage }}%</div>
+        <div class="tracking-detail">{{ data.adherence.dimensions.nutrition.detail }}</div>
+        <div class="tracking-delta" *ngIf="progress?.comparison?.nutritionAdherence as delta">
+          <ion-icon [name]="deltaIcon(delta)" aria-hidden="true"></ion-icon>
+          {{ deltaSign(delta) }}{{ formatValue(delta.absolute, 0) }} p.p. vs. la semana anterior
+        </div>
+        <div class="tracking-sparkline" *ngIf="nutritionSparkline.length > 1" aria-hidden="true">
+          <span class="tracking-sparkline-bar" *ngFor="let bar of nutritionSparkline">
+            <span class="tracking-sparkline-fill" [style.height.%]="bar.height ?? 6" [class.tracking-sparkline-fill--empty]="bar.height === null"></span>
+          </span>
+        </div>
+        <!-- Plan activo — ya viaja en getSummary() (data.activePlan) y hoy
+             solo se veía más abajo, en el contexto de Adherencia. Dentro de
+             la rama aplicable a propósito (auditoría 2026-09): un plan
+             "activo" en BD puede estar programado para el futuro y no tener
+             aún ningún día registrado — mostrarlo suelto junto a "sin datos
+             suficientes" leía como contradicción. -->
+        <div class="tracking-sub" *ngIf="data.activePlan">
+          Plan: {{ data.activePlan.name }}
+        </div>
+      </ng-container>
+      <ng-template #trackingNutritionEmpty>
+        <p class="tracking-empty">
+          {{ unavailableLabel(data.adherence.dimensions.nutrition) }}
+          <ng-container *ngIf="data.activePlan"> — plan asignado: {{ data.activePlan.name }}</ng-container>
+        </p>
+      </ng-template>
+      <button type="button" class="tracking-link" (click)="openTab.emit('nutrition')">Ver nutrición →</button>
+    </div>
+
+    <div class="tracking-card">
+      <div class="tracking-card-header">
+        <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
+        <span>Progreso</span>
+      </div>
+      <ng-container *ngIf="data.weightTrend as trend; else trackingProgressEmpty">
+        <div class="tracking-value">{{ formatValue(trend.toWeek.average, 1) }} kg</div>
+        <div class="tracking-delta">
+          <ion-icon
+            [name]="trend.absolute > 0 ? 'arrow-up-outline' : trend.absolute < 0 ? 'arrow-down-outline' : 'remove-outline'"
+            aria-hidden="true"
+          ></ion-icon>
+          {{ trend.absolute > 0 ? '+' : '' }}{{ formatValue(trend.absolute, 1) }} kg en {{ trend.weeksCovered }} semana{{ trend.weeksCovered === 1 ? '' : 's' }}
+        </div>
+        <div class="tracking-sparkline" *ngIf="weightSparkline.length > 1" aria-hidden="true">
+          <span class="tracking-sparkline-bar" *ngFor="let bar of weightSparkline">
+            <span class="tracking-sparkline-fill" [style.height.%]="bar.height ?? 6" [class.tracking-sparkline-fill--empty]="bar.height === null"></span>
+          </span>
+        </div>
+      </ng-container>
+      <ng-template #trackingProgressEmpty>
+        <p class="tracking-empty">Hacen falta pesajes en al menos dos semanas distintas.</p>
+      </ng-template>
+      <div class="tracking-sub" *ngIf="firstMeasurementDelta as delta">
+        {{ delta.label }}: {{ deltaSign(delta) }}{{ formatValue(delta.absolute, 1) }} cm
+      </div>
+      <button type="button" class="tracking-link" (click)="openTab.emit('measurements')">Ver progreso →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ADHERENCIA + PERÍMETROS (misma fila en desktop) =================
+     Misma pantalla de decisión, dos ángulos del mismo periodo: dónde falla
+     (Adherencia) y cómo evolucionan las medidas (Perímetros). Apiladas en
+     móvil/tablet — .summary-row solo las pone en fila a partir del breakpoint. -->
+<div class="summary-row">
 <!-- ================= ADHERENCIA MULTIDIMENSIONAL ================= -->
 <section class="summary-card">
   <div class="summary-card-header">
@@ -158,10 +318,15 @@
   </ng-container>
 </section>
 
-<!-- ================= EVOLUCIÓN ================= -->
+<!-- ================= PERÍMETROS =================
+     Solo circunferencias — peso, nutrición, sesiones y hábitos ya viven en
+     Adherencia y en "Seguimiento reciente" de arriba, repetirlos aquí era
+     ruido. Principales elegidos por el entrenador (modal, hasta
+     MAX_PRIMARY_PERIMETERS) siempre visibles; el resto detrás de "Ver más"
+     para no volver a ser la pared de filas que esto vino a arreglar. -->
 <section class="summary-card">
   <div class="summary-card-header">
-    <h2 class="summary-card-title">Evolución</h2>
+    <h2 class="summary-card-title">Perímetros</h2>
     <div class="week-switch" role="group" aria-label="Ventana de análisis">
       <button
         type="button"
@@ -178,84 +343,114 @@
 
   <div class="section-skeleton" *ngIf="progressState === 'loading'">
     <div class="skeleton-block" style="height: 64px"></div>
-    <div class="skeleton-block" style="height: 180px"></div>
+    <div class="skeleton-block" style="height: 120px"></div>
   </div>
 
   <div class="section-state" *ngIf="progressState === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <p>No se pudo cargar la evolución de este cliente.</p>
+    <p>No se pudo cargar la evolución de perímetros de este cliente.</p>
     <button type="button" class="retry-button" (click)="loadProgress()">Reintentar</button>
   </div>
 
   <ng-container *ngIf="progressState === 'loaded'">
-    <!-- La única frase que resume {{ selectedWeeks }} semanas de datos. -->
-    <p class="weight-trend" *ngIf="progress?.weightTrend as trend">
-      De {{ formatValue(trend.fromWeek.average, 1) }} a
-      {{ formatValue(trend.toWeek.average, 1) }} kg en
-      {{ trend.weeksCovered }} semana{{ trend.weeksCovered === 1 ? '' : 's' }} con pesajes:
-      <strong>{{ trend.absolute > 0 ? '+' : '' }}{{ formatValue(trend.absolute, 1) }} kg</strong>
-      <span *ngIf="trend.percentage !== null">
-        ({{ trend.percentage > 0 ? '+' : '' }}{{ formatValue(trend.percentage, 1) }}%)
-      </span>
-    </p>
-    <p class="weight-trend weight-trend--empty" *ngIf="!progress?.weightTrend">
-      Hacen falta pesajes en al menos dos semanas distintas para calcular una tendencia.
-    </p>
+    <div class="section-state section-state--calm" *ngIf="!perimeterOptions.length">
+      <ion-icon name="resize-outline" aria-hidden="true"></ion-icon>
+      <p>Sin perímetros registrados en esta ventana todavía.</p>
+    </div>
 
-    <!-- Semana vs semana anterior -->
-    <ng-container *ngIf="comparisonRows.length">
-      <h3 class="subsection-title">Esta semana vs. la anterior</h3>
-      <ul class="delta-list">
-        <li class="delta-row" *ngFor="let row of comparisonRows; trackBy: trackByRowLabel">
-          <span class="delta-label">{{ row.label }}</span>
-          <span class="delta-current">
-            {{ formatValue(row.delta.current, row.decimals) }}{{ row.unit }}
-          </span>
-          <span class="delta-change">
-            <ion-icon [name]="deltaIcon(row.delta)" aria-hidden="true"></ion-icon>
-            {{ deltaSign(row.delta) }}{{ formatValue(row.delta.absolute, row.decimals) }}{{ row.unit }}
-            <span class="delta-pct" *ngIf="row.delta.percentage !== null">
-              ({{ row.delta.percentage > 0 ? '+' : '' }}{{ formatValue(row.delta.percentage, 1) }}%)
-            </span>
-          </span>
-        </li>
-      </ul>
-    </ng-container>
-
-    <p class="empty-hint" *ngIf="!comparisonRows.length">
-      No hay ninguna métrica presente en las dos últimas semanas, así que no hay nada que comparar
-      todavía.
-    </p>
-
-    <!-- Tabla semana a semana. Solo filas con algún dato. -->
-    <ng-container *ngIf="trendRows.length && progress as data">
-      <h3 class="subsection-title">Semana a semana</h3>
-      <div class="trend-scroll">
-        <table class="trend-table">
-          <caption class="sr-only">
-            Evolución de {{ clientName }} durante las últimas {{ selectedWeeks }} semanas
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col" class="trend-metric-head">Métrica</th>
-              <th scope="col" *ngFor="let week of data.series; let i = index">
-                {{ weekLabel(week, i, data.series.length) }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of trendRows; trackBy: trackByRowLabel">
-              <th scope="row" class="trend-metric-head">{{ row.label }}</th>
-              <td *ngFor="let value of row.values">
-                {{ formatValue(value, row.decimals) }}<span class="trend-unit" *ngIf="value !== null">{{ row.unit }}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <ng-container *ngIf="perimeterOptions.length">
+      <!-- Una línea, no una tira de chips: quién son los principales y un
+           botón para cambiarlos vía modal (checkboxes reales con tope, igual
+           que "Comparar por" del entrenamiento — un ion-alert nativo no
+           puede embeber esa lista). -->
+      <div class="perimeter-primary-bar">
+        <span class="perimeter-primary-label">
+          <ng-container *ngIf="selectedPerimeters.size; else perimeterNonePicked">
+            Principales: {{ primaryPerimeterLabels }}
+          </ng-container>
+          <ng-template #perimeterNonePicked>Sin perímetros principales elegidos</ng-template>
+        </span>
+        <button type="button" class="perimeter-edit-button" (click)="openPerimeterFilterPanel()">
+          <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
+          Elegir
+        </button>
       </div>
+
+      <!-- Tabla simple del/de los principal(es). Solo filas con algún dato. -->
+      <ng-container *ngIf="primaryTrendRows.length && progress as data">
+        <div class="trend-scroll">
+          <table class="trend-table">
+            <caption class="sr-only">
+              Perímetros principales de {{ clientName }} durante las últimas {{ selectedWeeks }} semanas
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col" class="trend-metric-head">Perímetro</th>
+                <th scope="col" *ngFor="let week of data.series; let i = index">
+                  {{ weekLabel(week, i, data.series.length) }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of primaryTrendRows; trackBy: trackByRowLabel">
+                <th scope="row" class="trend-metric-head">{{ row.label }}</th>
+                <td *ngFor="let value of row.values">
+                  {{ formatValue(value, row.decimals) }}<span class="trend-unit" *ngIf="value !== null">{{ row.unit }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+      <p class="empty-hint" *ngIf="!primaryTrendRows.length">
+        <ng-container *ngIf="selectedPerimeters.size; else perimeterPickSome">
+          Los principales elegidos no tienen dato en esta ventana.
+        </ng-container>
+        <ng-template #perimeterPickSome>Elige perímetros principales para verlos aquí.</ng-template>
+      </p>
+
+      <!-- El resto, colapsado por defecto: existe para no perder datos, no
+           para ocupar altura por defecto. -->
+      <ng-container *ngIf="otherTrendRows.length">
+        <button
+          type="button"
+          class="perimeter-more-toggle"
+          [attr.aria-expanded]="showMorePerimeters"
+          (click)="showMorePerimeters = !showMorePerimeters"
+        >
+          <ion-icon [name]="showMorePerimeters ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+          {{ showMorePerimeters ? 'Ocultar' : 'Ver' }} {{ otherTrendRows.length }} perímetro{{ otherTrendRows.length === 1 ? '' : 's' }} más
+        </button>
+
+        <div class="trend-scroll" *ngIf="showMorePerimeters">
+          <table class="trend-table">
+            <caption class="sr-only">
+              Resto de perímetros de {{ clientName }} durante las últimas {{ selectedWeeks }} semanas
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col" class="trend-metric-head">Perímetro</th>
+                <th scope="col" *ngFor="let week of progress?.series; let i = index">
+                  {{ weekLabel(week, i, (progress?.series || []).length) }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of otherTrendRows; trackBy: trackByRowLabel">
+                <th scope="row" class="trend-metric-head">{{ row.label }}</th>
+                <td *ngFor="let value of row.values">
+                  {{ formatValue(value, row.decimals) }}<span class="trend-unit" *ngIf="value !== null">{{ row.unit }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
     </ng-container>
   </ng-container>
 </section>
+</div>
 
 
 <!-- ================= ENTRENAMIENTO (Fase 6) =================

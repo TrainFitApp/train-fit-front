@@ -43,6 +43,25 @@ export class TrainerInvitesApiService {
     return this.http.get<ClientIntake | null>(`trainer/clients/${clientId}/intake`);
   }
 
+  // El profesional corrige el cuestionario ya enviado por el cliente (ver
+  // updateClientIntake en trainer-client-controller.js) — mismos campos que
+  // ClientIntake, sin trainerId/clientId/submittedAt (los pone el backend).
+  public updateClientIntake(
+    clientId: string,
+    intake: Pick<
+      ClientIntake,
+      | 'goals'
+      | 'healthConditions'
+      | 'experienceLevel'
+      | 'availability'
+      | 'trainingLocation'
+      | 'equipmentTags'
+      | 'customAnswers'
+    >
+  ): Observable<ClientIntake> {
+    return this.http.put<ClientIntake>(`trainer/clients/${clientId}/intake`, intake);
+  }
+
   public confirmClient(clientId: string): Observable<TrainerInvite[]> {
     return this.http.post<TrainerInvite[]>(`trainer/clients/${clientId}/confirm`, {});
   }

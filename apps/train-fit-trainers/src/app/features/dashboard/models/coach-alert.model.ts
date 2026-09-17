@@ -11,7 +11,8 @@ export type CoachAlertType =
   | 'weight_change'
   | 'measurement_change'
   | 'low_adherence'
-  | 'inactive_client';
+  | 'inactive_client'
+  | 'no_training_activity';
 
 export type CoachAlertPriority = 'high' | 'medium' | 'low';
 
@@ -32,6 +33,8 @@ export interface CoachAlertContext {
   daysWithData?: number;
   daysLeft?: number;
   overdueCycles?: number;
+  daysSinceLastSession?: number;
+  lastSessionAt?: string | null;
   cadence?: string;
   lastResponseAt?: string | null;
   endDate?: string | null;

@@ -33,6 +33,7 @@ const ALERT_ICONS: Record<CoachAlertType, string> = {
   measurement_change: 'resize-outline',
   low_adherence: 'pie-chart-outline',
   inactive_client: 'moon-outline',
+  no_training_activity: 'barbell-outline',
 };
 
 const PRIORITY_LABELS: Record<CoachAlertPriority, string> = {
@@ -53,6 +54,7 @@ const TASK_TITLE_BY_ALERT: Record<CoachAlertType, string> = {
   measurement_change: 'Revisar las medidas',
   low_adherence: 'Contactar para revisar adherencia',
   inactive_client: 'Contactar con el cliente',
+  no_training_activity: 'Revisar por qué no entrena',
 };
 
 const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];

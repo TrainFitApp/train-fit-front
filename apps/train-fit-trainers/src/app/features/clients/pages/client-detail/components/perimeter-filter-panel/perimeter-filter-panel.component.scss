@@ -1,0 +1,87 @@
+@import '../../../../../../../theme/buttons';
+
+.filter-panel-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+}
+
+.panel-subtitle {
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 14px;
+}
+
+.empty-hint {
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+}
+
+.metric-option-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  margin-bottom: 4px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--tf-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+    color: var(--tf-text-faint);
+  }
+
+  &--selected {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+
+    ion-icon {
+      color: var(--tf-accent);
+    }
+  }
+
+  // Tope de MAX_PRIMARY_PERIMETERS: los no elegidos se deshabilitan al
+  // llegar al máximo, para que quede claro que hay que quitar uno antes de
+  // añadir otro (mismo criterio que el panel de comparación de ejercicios).
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.filter-panel-footer {
+  --background: var(--tf-surface-1);
+  padding: 12px 16px;
+  border-top: 1px solid var(--tf-border);
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

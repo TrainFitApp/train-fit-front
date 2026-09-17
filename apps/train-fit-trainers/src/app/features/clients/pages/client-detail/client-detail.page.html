@@ -1,5 +1,8 @@
 <ion-header class="ion-no-border">
-  <app-page-header [title]="name"></app-page-header>
+  <!-- Sin [title]: el nombre ya lo muestra la cabecera persistente de abajo
+       (.summary-header, avatar+nombre+badge+programa) — repetirlo aquí
+       arriba era el mismo dato dos veces en dos cabeceras distintas. -->
+  <app-page-header></app-page-header>
 </ion-header>
 
 <!-- Layout de 2 columnas (mockup "TrainFit Panel" > Perfil cliente): tarjeta
@@ -30,6 +33,248 @@
 
   <div class="profile-layout" *ngIf="headerState === 'loaded'">
     <div class="profile-main">
+      <!-- Breadcrumb "Cliente Resumen" (mockup claude.ai/design) — solo en
+           esta página, sin tocar app-page-header (compartido con el resto
+           de la app): reutiliza goToClientsList(), ya usado en el estado
+           de error de arriba. -->
+      <nav class="summary-breadcrumb" aria-label="Ruta">
+        <button type="button" class="breadcrumb-link" (click)="goToClientsList()">
+          <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+          Clientes
+        </button>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">{{ name }}</span>
+      </nav>
+
+      <!-- Cabecera persistente (avatar/nombre/badge/programa) — visible en
+           las 4 secciones, no solo Resumen, así que va ANTES de la barra de
+           pestañas y no dentro de app-client-summary (ver
+           client-detail.page.ts#onSummaryStatus para el badge). -->
+      <section class="summary-header">
+        <div class="summary-header-avatar">{{ initials }}</div>
+        <div class="summary-header-info">
+          <div class="summary-header-name-row">
+            <span class="summary-header-name">{{ name }}</span>
+            <span
+              class="status-badge"
+              *ngIf="clientStatus as status"
+              [class.status-badge--attention]="status === 'attention'"
+              [class.status-badge--ok]="status === 'ok'"
+              [class.status-badge--insufficient]="status === 'insufficient'"
+            >
+              <ion-icon
+                [name]="status === 'attention' ? 'alert-circle' : status === 'ok' ? 'checkmark-circle' : 'help-circle'"
+                aria-hidden="true"
+              ></ion-icon>
+              {{ status === 'attention' ? 'Requiere atención' : status === 'ok' ? 'Sin incidencias detectadas' : 'Datos insuficientes' }}
+            </span>
+          </div>
+          <!-- Nota fijada (Notas, F19) — mismo sitio en la cabecera que
+               ocupaba la frase de objetivo en el mockup "Cliente Resumen"
+               (claude.ai/design), reestilizado para leerse como nota del
+               entrenador y no como un dato del cliente: icono de marcador +
+               cursiva + comillas, sin fondo de tarjeta. Backend garantiza
+               como mucho una nota fijada (ver pinnedNote). -->
+          <button
+            type="button"
+            class="summary-header-note"
+            *ngIf="pinnedNote as note"
+            (click)="goToNotesTab()"
+          >
+            <ion-icon name="bookmark" aria-hidden="true"></ion-icon>
+            <span class="summary-header-note-text">"{{ note.text }}"</span>
+          </button>
+          <div class="summary-header-program" *ngIf="currentRoutinePhase as phase">
+            <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+            <span *ngIf="trainingGoal?.trainingGoalType as goalType">{{ trainingGoalTypeLabel(goalType) }} · </span>
+            <span>{{ phase.tableName }}</span>
+            <span *ngIf="currentPhaseWeekLabel"> · {{ currentPhaseWeekLabel }}</span>
+            <span class="summary-header-activity" *ngIf="lastActivityLabel as activity">
+              <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
+              Última actividad: {{ activity }}
+            </span>
+          </div>
+        </div>
+        <div class="summary-header-actions">
+          <button type="button" class="header-action-button" (click)="messageComingSoon()">
+            <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+            Mensaje
+          </button>
+          <button type="button" class="header-action-button" (click)="openIntakePanel()">
+            <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+            Ver intake
+          </button>
+          <button type="button" class="header-action-button" (click)="openClientSwitcher()">
+            Cambiar cliente
+            <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+      </section>
+
+      <div class="panel-backdrop" *ngIf="showClientSwitcher" (click)="closeClientSwitcher()"></div>
+      <div class="panel-sheet client-switcher-sheet" *ngIf="showClientSwitcher">
+        <div class="panel-handle"></div>
+        <h3 class="panel-title">Cambiar de cliente</h3>
+
+        <div class="detail-skeleton" *ngIf="otherClientsState === 'loading'">
+          <div class="skeleton-block" style="height: 48px"></div>
+          <div class="skeleton-block" style="height: 48px"></div>
+        </div>
+        <p class="empty-hint" *ngIf="otherClientsState === 'loaded' && !otherClients.length">
+          No tienes más clientes todavía.
+        </p>
+        <p class="empty-hint" *ngIf="otherClientsState === 'error'">No se pudo cargar tu lista de clientes.</p>
+
+        <button
+          type="button"
+          class="client-switcher-row"
+          *ngFor="let client of otherClients"
+          (click)="switchToClient(client)"
+        >
+          <span>{{ clientDisplayName(client) }}</span>
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Panel "Ver intake" (botón junto a Mensaje, cabecera persistente) —
+           mismo clientIntake/clientIntakeState que ya carga loadClientIntake()
+           para "Equipamiento utilizado" en Entrenamiento; aquí se muestra
+           completo, con edición inline (PUT /trainer/clients/:id/intake). -->
+      <div class="panel-backdrop" *ngIf="showIntakePanel" (click)="closeIntakePanel()"></div>
+      <div class="panel-sheet intake-panel-sheet" *ngIf="showIntakePanel">
+        <div class="panel-handle"></div>
+        <div class="panel-title-row">
+          <h3 class="panel-title">Cuestionario inicial</h3>
+          <button
+            type="button"
+            class="add-button"
+            *ngIf="!isEditingIntake && clientIntake"
+            (click)="startEditIntake()"
+          >
+            <ion-icon name="create-outline"></ion-icon>
+            Editar
+          </button>
+        </div>
+
+        <div class="detail-skeleton" *ngIf="clientIntakeState === 'loading'">
+          <div class="skeleton-block" style="height: 40px"></div>
+          <div class="skeleton-block" style="height: 80px"></div>
+        </div>
+        <p class="empty-hint" *ngIf="clientIntakeState === 'error'">
+          No se pudo cargar el cuestionario inicial.
+        </p>
+        <p class="empty-hint" *ngIf="clientIntakeState === 'loaded' && !clientIntake">
+          Este cliente todavía no ha respondido su cuestionario inicial.
+        </p>
+
+        <ng-container *ngIf="clientIntakeState === 'loaded' && clientIntake as intake">
+          <!-- Modo lectura -->
+          <ng-container *ngIf="!isEditingIntake">
+            <div class="intake-field">
+              <span class="intake-field-label">Objetivos</span>
+              <p class="intake-field-value">{{ intake.goals || 'Sin especificar' }}</p>
+            </div>
+            <div class="intake-field">
+              <span class="intake-field-label">Salud / lesiones</span>
+              <p class="intake-field-value">{{ intake.healthConditions || 'Ninguna indicada' }}</p>
+            </div>
+            <div class="intake-field">
+              <span class="intake-field-label">Experiencia</span>
+              <p class="intake-field-value">{{ experienceLabel(intake.experienceLevel) }}</p>
+            </div>
+            <div class="intake-field">
+              <span class="intake-field-label">Disponibilidad</span>
+              <p class="intake-field-value">{{ intake.availability || 'Sin especificar' }}</p>
+            </div>
+            <div class="intake-field">
+              <span class="intake-field-label">Lugar de entrenamiento</span>
+              <p class="intake-field-value">{{ trainingLocationLabel(intake.trainingLocation) }}</p>
+            </div>
+            <div class="intake-field" *ngIf="intake.equipmentTags?.length">
+              <span class="intake-field-label">Equipamiento</span>
+              <div class="equipment-tags">
+                <span class="scope-chip" *ngFor="let tag of intake.equipmentTags">{{ equipmentTagLabel(tag) }}</span>
+              </div>
+            </div>
+            <div class="intake-field" *ngFor="let answer of intake.customAnswers">
+              <span class="intake-field-label">{{ answer.label }}</span>
+              <p class="intake-field-value">{{ answer.value || 'Sin responder' }}</p>
+            </div>
+            <p class="intake-submitted-at" *ngIf="intake.submittedAt">
+              Enviado el {{ intake.submittedAt | date: 'd MMM y' }}
+            </p>
+          </ng-container>
+
+          <!-- Modo edición -->
+          <div class="intake-edit-form" *ngIf="isEditingIntake && intakeDraft as draft">
+            <label class="intake-edit-label">
+              Objetivos
+              <textarea class="textarea-field" [(ngModel)]="draft.goals" rows="3" maxlength="1000"></textarea>
+            </label>
+            <label class="intake-edit-label">
+              Salud / lesiones
+              <textarea class="textarea-field" [(ngModel)]="draft.healthConditions" rows="3" maxlength="1000"></textarea>
+            </label>
+            <label class="intake-edit-label">
+              Experiencia
+              <select class="training-goal-type-select" [(ngModel)]="draft.experienceLevel">
+                <option *ngFor="let opt of experienceLevelOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+              </select>
+            </label>
+            <label class="intake-edit-label">
+              Disponibilidad
+              <textarea class="textarea-field" [(ngModel)]="draft.availability" rows="2" maxlength="500"></textarea>
+            </label>
+
+            <span class="measurement-field-group-label">Lugar de entrenamiento</span>
+            <div class="cadence-options">
+              <button
+                type="button"
+                class="cadence-option"
+                *ngFor="let opt of trainingLocationOptions"
+                [class.cadence-option--active]="draft.trainingLocation === opt.value"
+                (click)="draft.trainingLocation = opt.value"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+
+            <span class="measurement-field-group-label">Equipamiento disponible</span>
+            <div class="cadence-options">
+              <button
+                type="button"
+                class="cadence-option"
+                *ngFor="let opt of equipmentTagOptions"
+                [class.cadence-option--active]="draft.equipmentTags.includes(opt.value)"
+                (click)="toggleIntakeEquipmentTag(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+
+            <label class="intake-edit-label" *ngFor="let answer of draft.customAnswers">
+              {{ answer.label }}
+              <textarea class="textarea-field" [(ngModel)]="answer.value" rows="2" maxlength="1000"></textarea>
+            </label>
+
+            <div class="training-goal-edit-actions">
+              <button type="button" class="add-button" (click)="saveIntake()" [disabled]="isSavingIntake">
+                <ion-spinner name="dots" *ngIf="isSavingIntake"></ion-spinner>
+                <span *ngIf="!isSavingIntake">Guardar</span>
+              </button>
+              <button
+                type="button"
+                class="manage-templates-link"
+                (click)="cancelEditIntake()"
+                [disabled]="isSavingIntake"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
       <!-- Movimiento 1 Coach Pro — 9 pestañas en fila pasan a 4 secciones
            (Resumen · Plan · Progreso · Gestión) con una subbarra dentro. La
            subbarra solo aparece si la sección tiene más de una subpestaña
@@ -69,6 +314,7 @@
       [clientName]="name"
       [hasTrainingScope]="scopes.includes('training')"
       (openTab)="selectTab($event)"
+      (statusChange)="onSummaryStatus($event)"
     ></app-client-summary>
   </div>
 
@@ -1694,6 +1940,13 @@
           <span *ngIf="!isSavingNote">Guardar nota</span>
           <ion-spinner name="dots" *ngIf="isSavingNote"></ion-spinner>
         </button>
+        <!-- La cabecera del cliente solo tiene sitio para una nota — sin
+             esto, fijar una segunda desfijaba la primera sin explicación
+             visible en ningún sitio. -->
+        <p class="note-composer-hint">
+          <ion-icon name="bookmark-outline" aria-hidden="true"></ion-icon>
+          Solo puede haber una nota fijada a la vez — se muestra en la cabecera del cliente.
+        </p>
       </div>
 
       <p class="empty-hint" *ngIf="!notes.length">Todavía no tienes notas sobre este cliente.</p>
@@ -1711,11 +1964,57 @@
           <span class="previous-relation-badge" *ngIf="isFromPreviousRelation(note.createdAt)">
             De una relación anterior
           </span>
-          <button class="pin-button" (click)="togglePin(note)" [attr.aria-label]="note.pinned ? 'Desfijar nota' : 'Fijar nota'">
-            <ion-icon [name]="note.pinned ? 'bookmark' : 'bookmark-outline'"></ion-icon>
-          </button>
+          <div class="note-card-actions" *ngIf="editingNoteId !== note._id">
+            <ng-container *ngIf="confirmingDeleteNoteId !== note._id; else confirmNoteRemove">
+              <button type="button" class="note-icon-button" (click)="startEditNote(note)" aria-label="Editar nota">
+                <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+              </button>
+              <button type="button" class="note-icon-button" (click)="requestDeleteNote(note._id)" aria-label="Borrar nota">
+                <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+              </button>
+              <button class="pin-button" (click)="togglePin(note)" [attr.aria-label]="note.pinned ? 'Desfijar nota' : 'Fijar nota'">
+                <ion-icon [name]="note.pinned ? 'bookmark' : 'bookmark-outline'" aria-hidden="true"></ion-icon>
+              </button>
+            </ng-container>
+            <ng-template #confirmNoteRemove>
+              <div class="note-delete-confirm">
+                <span class="note-delete-confirm__label">¿Borrar?</span>
+                <button type="button" class="note-delete-confirm__cancel" (click)="dismissDeleteNote()">
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  class="note-delete-confirm__confirm"
+                  [disabled]="isDeletingNoteId === note._id"
+                  (click)="confirmDeleteNote(note)"
+                >
+                  <ion-spinner name="dots" *ngIf="isDeletingNoteId === note._id"></ion-spinner>
+                  <span *ngIf="isDeletingNoteId !== note._id">Borrar</span>
+                </button>
+              </div>
+            </ng-template>
+          </div>
         </div>
-        <p class="note-text">{{ note.text }}</p>
+
+        <p class="note-text" *ngIf="editingNoteId !== note._id">{{ note.text }}</p>
+
+        <div class="note-edit-form" *ngIf="editingNoteId === note._id">
+          <textarea class="note-textarea" [(ngModel)]="editingNoteText" maxlength="2000" rows="3"></textarea>
+          <div class="note-edit-actions">
+            <button
+              type="button"
+              class="submit-button"
+              (click)="saveEditNote(note)"
+              [disabled]="!editingNoteText.trim() || isSavingNoteEdit"
+            >
+              <span *ngIf="!isSavingNoteEdit">Guardar</span>
+              <ion-spinner name="dots" *ngIf="isSavingNoteEdit"></ion-spinner>
+            </button>
+            <button type="button" class="manage-templates-link" (click)="cancelEditNote()" [disabled]="isSavingNoteEdit">
+              Cancelar
+            </button>
+          </div>
+        </div>
       </div>
     </ng-container>
   </div>

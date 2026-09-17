@@ -10,9 +10,11 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { ClientDetailApiService } from './services/client-detail-api.service';
 import { TrainerClientsApiService } from '../../services/trainer-clients-api.service';
+import { TrainerClientSummary } from '../../models/trainer-client-summary.model';
 import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
 import {
   ClientIntake,
+  ClientIntakeCustomAnswer,
   EQUIPMENT_TAG_LABELS,
   EquipmentTag,
   TRAINING_LOCATION_LABELS,
@@ -150,6 +152,78 @@ export class ClientDetailPage implements OnInit {
   // trae. headerState refleja si hubo que resolverlos con una llamada de
   // respaldo a getMyClients().
   public headerState: SectionState = 'loaded';
+
+  // --- Cabecera persistente (avatar/badge/programa) — visible en las 4
+  // secciones, no solo Resumen. El badge de estado lo calcula
+  // ClientSummaryComponent (necesita summary.alerts, que solo él pide) y lo
+  // emite aquí vía (statusChange); por eso queda en blanco hasta que Resumen
+  // termine de cargar, aunque se esté viendo otra sección.
+  public clientStatus: 'attention' | 'ok' | 'insufficient' | null = null;
+
+  public onSummaryStatus(status: 'attention' | 'ok' | 'insufficient'): void {
+    this.clientStatus = status;
+  }
+
+  public get initials(): string {
+    const parts = (this.name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    const first = parts[0].charAt(0);
+    const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
+    return (first + last).toUpperCase();
+  }
+
+  public messageComingSoon(): void {
+    void this.ionicUtilService.showToast({
+      message: 'La mensajería con clientes estará disponible próximamente',
+      duration: 2000,
+    });
+  }
+
+  public showClientSwitcher = false;
+  public otherClientsState: SectionState = 'loading';
+  public otherClients: TrainerClientSummary[] = [];
+
+  // La lista completa de clientes se pide solo al abrir el selector, no en
+  // ngOnInit: la mayoría de las visitas a una ficha nunca lo abren.
+  public openClientSwitcher(): void {
+    this.showClientSwitcher = true;
+    // otherClientsState arranca en 'loading' (no hay estado "idle" en
+    // SectionState), así que comprobar "!== 'loading'" aquí nunca disparaba
+    // la carga la primera vez que se abría el selector: se quedaba en el
+    // skeleton para siempre. Con "!== 'loaded'" carga la primera vez y
+    // permite reintentar si el estado anterior fue 'error'.
+    if (!this.otherClients.length && this.otherClientsState !== 'loaded') {
+      this.otherClientsState = 'loading';
+      this.trainerClientsApi.getMyClients().subscribe({
+        next: (clients) => {
+          this.otherClients = clients.filter((c) => c.user?._id !== this.clientId);
+          this.otherClientsState = 'loaded';
+        },
+        error: () => {
+          this.otherClientsState = 'error';
+        },
+      });
+    }
+  }
+
+  public closeClientSwitcher(): void {
+    this.showClientSwitcher = false;
+  }
+
+  public switchToClient(client: TrainerClientSummary): void {
+    if (!client.user) return;
+    this.showClientSwitcher = false;
+    void this.router.navigate(['/tabs/clients', client.user._id], {
+      queryParams: {
+        name: `${client.user.name} ${client.user.lastname}`.trim(),
+        scopes: client.scopes.join(','),
+      },
+    });
+  }
+
+  public clientDisplayName(client: TrainerClientSummary): string {
+    return client.user ? `${client.user.name} ${client.user.lastname}`.trim() : 'Cliente';
+  }
 
   // --- Notas (F19, transversal a los scopes) ---
   public notesState: SectionState = 'loading';
@@ -563,6 +637,10 @@ export class ClientDetailPage implements OnInit {
   // pantalla en blanco sin ninguna pestaña cargada.
   private resolveClientIdentityFallback(): void {
     this.headerState = 'loading';
+    // "Cambiar cliente" reutiliza esta misma instancia de página (ver
+    // TASK-051/TASK-073 más arriba): sin este reset, el badge de estado del
+    // cliente ANTERIOR seguiría visible mientras carga el nuevo Resumen.
+    this.clientStatus = null;
     this.trainerClientsApi.getMyClients().subscribe({
       next: (clients) => {
         const match = clients.find((c) => c.user?._id === this.clientId);
@@ -1024,8 +1102,44 @@ export class ClientDetailPage implements OnInit {
     return this.completedWorkouts.slice(0, 3);
   }
 
+  // Cabecera persistente ("Cliente Resumen") — completedWorkouts ya viene
+  // ordenado desc. por fecha desde computeCompletedWorkouts(), así que el
+  // primero es la última sesión completada. Sin scope de entrenamiento el
+  // array queda vacío y esto se oculta solo.
+  public get lastActivityLabel(): string | null {
+    const workout = this.completedWorkouts[0];
+    if (!workout?.date) return null;
+    return `registró "${workout.name}" · ${this.relativeDayTime(new Date(workout.date as Date))}`;
+  }
+
+  // Cabecera persistente — nota fijada (Notas, F19). notes ya se carga sin
+  // condición en initTabsAndLoadSections(), y el backend garantiza como
+  // mucho una nota con pinned=true por cliente (ver trainer-note-dao.js#setPinned),
+  // así que basta con encontrar la primera.
+  public get pinnedNote(): TrainerNote | null {
+    return this.notes.find((n) => n.pinned) || null;
+  }
+
+  private relativeDayTime(date: Date): string {
+    const now = new Date();
+    const isSameDay = (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    if (isSameDay(date, now)) return `hoy, ${time}`;
+    if (isSameDay(date, yesterday)) return `ayer, ${time}`;
+    return `${date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}, ${time}`;
+  }
+
   public goToSessionsTab(): void {
     this.selectTab('history');
+  }
+
+  public goToNotesTab(): void {
+    this.selectTab('notes');
   }
 
   // Tarea 3 — mismo endpoint que ClientsPage usa al revisar un cliente
@@ -1050,6 +1164,104 @@ export class ClientDetailPage implements OnInit {
 
   public equipmentTagLabel(tag: EquipmentTag): string {
     return EQUIPMENT_TAG_LABELS[tag] || tag;
+  }
+
+  // --- "Ver intake" (botón junto a Mensaje, cabecera persistente) ---
+  // Reutiliza clientIntake/clientIntakeState, ya cargados por
+  // loadClientIntake() (ver initTabsAndLoadSections) — no dispara ninguna
+  // carga nueva al abrir el panel salvo que aún no hubiera terminado.
+  public showIntakePanel = false;
+  public isEditingIntake = false;
+  public isSavingIntake = false;
+  public intakeDraft: {
+    goals: string;
+    healthConditions: string;
+    experienceLevel: ClientIntake['experienceLevel'];
+    availability: string;
+    trainingLocation: TrainingLocation | null;
+    equipmentTags: EquipmentTag[];
+    customAnswers: ClientIntakeCustomAnswer[];
+  } | null = null;
+
+  public readonly experienceLevelOptions: { value: ClientIntake['experienceLevel']; label: string }[] = [
+    { value: null, label: 'Sin declarar' },
+    { value: 'none', label: 'Sin experiencia' },
+    { value: 'beginner', label: 'Principiante' },
+    { value: 'intermediate', label: 'Intermedio' },
+    { value: 'advanced', label: 'Avanzado' },
+  ];
+
+  public readonly trainingLocationOptions = (
+    Object.keys(TRAINING_LOCATION_LABELS) as TrainingLocation[]
+  ).map((value) => ({ value, label: TRAINING_LOCATION_LABELS[value] }));
+
+  public readonly equipmentTagOptions = (Object.keys(EQUIPMENT_TAG_LABELS) as EquipmentTag[]).map(
+    (value) => ({ value, label: EQUIPMENT_TAG_LABELS[value] })
+  );
+
+  public experienceLabel(level: ClientIntake['experienceLevel']): string {
+    return this.experienceLevelOptions.find((o) => o.value === level)?.label || 'No indicado';
+  }
+
+  public openIntakePanel(): void {
+    this.showIntakePanel = true;
+    this.isEditingIntake = false;
+    if (this.clientIntakeState === 'error') this.loadClientIntake();
+  }
+
+  public closeIntakePanel(): void {
+    this.showIntakePanel = false;
+    this.isEditingIntake = false;
+    this.intakeDraft = null;
+  }
+
+  public startEditIntake(): void {
+    if (!this.clientIntake) return;
+    const intake = this.clientIntake;
+    this.intakeDraft = {
+      goals: intake.goals || '',
+      healthConditions: intake.healthConditions || '',
+      experienceLevel: intake.experienceLevel,
+      availability: intake.availability || '',
+      trainingLocation: intake.trainingLocation,
+      equipmentTags: [...(intake.equipmentTags || [])],
+      customAnswers: (intake.customAnswers || []).map((a) => ({ ...a })),
+    };
+    this.isEditingIntake = true;
+  }
+
+  public cancelEditIntake(): void {
+    this.isEditingIntake = false;
+    this.intakeDraft = null;
+  }
+
+  public toggleIntakeEquipmentTag(tag: EquipmentTag): void {
+    if (!this.intakeDraft) return;
+    const tags = this.intakeDraft.equipmentTags;
+    const idx = tags.indexOf(tag);
+    if (idx === -1) tags.push(tag);
+    else tags.splice(idx, 1);
+  }
+
+  public saveIntake(): void {
+    if (!this.intakeDraft || this.isSavingIntake) return;
+    this.isSavingIntake = true;
+    this.trainerInvitesApi.updateClientIntake(this.clientId, this.intakeDraft).subscribe({
+      next: (intake) => {
+        this.clientIntake = intake;
+        this.isSavingIntake = false;
+        this.isEditingIntake = false;
+        this.intakeDraft = null;
+        this.ionicUtilService.showToast({ message: 'Cuestionario actualizado', duration: 2500 });
+      },
+      error: () => {
+        this.isSavingIntake = false;
+        this.ionicUtilService.showToast({
+          message: 'No se pudo guardar el cuestionario',
+          duration: 3000,
+        });
+      },
+    });
   }
 
   // F09 — detalle de rutina en modo lectura: expandir/colapsar splits/workouts
@@ -1136,6 +1348,20 @@ export class ClientDetailPage implements OnInit {
     const hoy = new Date().toISOString().slice(0, 10);
     const vigentes = this.routinePhases.filter((p) => p.startDate <= hoy);
     return vigentes[vigentes.length - 1] || null;
+  }
+
+  // "Semana 5 de 8" para la cabecera persistente — calculado de verdad a
+  // partir de startDate/estimatedEndDate de la fase vigente, ningún número
+  // declarado a mano.
+  public get currentPhaseWeekLabel(): string | null {
+    const phase = this.currentRoutinePhase;
+    if (!phase) return null;
+    const start = new Date(phase.startDate + 'T00:00:00Z').getTime();
+    const currentWeek = Math.max(1, Math.floor((Date.now() - start) / (7 * 86400000)) + 1);
+    if (!phase.estimatedEndDate) return `Semana ${currentWeek}`;
+    const end = new Date(phase.estimatedEndDate + 'T00:00:00Z').getTime();
+    const totalWeeks = Math.max(currentWeek, Math.ceil((end - start) / (7 * 86400000)));
+    return `Semana ${currentWeek} de ${totalWeeks}`;
   }
 
   public toggleRoutineHistory(): void {
@@ -2603,21 +2829,35 @@ export class ClientDetailPage implements OnInit {
     });
   }
 
+  private resortNotes(): void {
+    this.notes = [...this.notes].sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+
   public togglePin(note: TrainerNote): void {
     const nextPinned = !note.pinned;
     this.clientDetailApi
-      .setNotePinned(this.clientId, note._id, nextPinned)
+      .updateNote(this.clientId, note._id, { pinned: nextPinned })
       .subscribe({
         next: (updated) => {
-          this.notes = this.notes
-            .map((n) => (n._id === updated._id ? updated : n))
-            .sort((a, b) => {
-              if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-              return (
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime()
-              );
+          this.notes = this.notes.map((n) => {
+            if (n._id === updated._id) return updated;
+            // Fijado exclusivo (trainer-note-dao.js#update): el backend ya
+            // desfijó cualquier otra nota al fijar esta. Sin esto, la que
+            // quedó pinned=true solo en el objeto local seguía pintándose
+            // como fijada (dos notas "fijadas" a la vez en pantalla) hasta
+            // el próximo loadNotes().
+            return nextPinned && n.pinned ? { ...n, pinned: false } : n;
+          });
+          this.resortNotes();
+          if (nextPinned) {
+            this.ionicUtilService.showToast({
+              message: 'Nota fijada — visible en la cabecera del cliente',
+              duration: 2500,
             });
+          }
         },
         error: () => {
           this.ionicUtilService.showErrorToast(
@@ -2627,6 +2867,70 @@ export class ClientDetailPage implements OnInit {
           );
         },
       });
+  }
+
+  // --- Editar texto (en el sitio, mismo textarea del composer) ---
+  public editingNoteId: string | null = null;
+  public editingNoteText = '';
+  public isSavingNoteEdit = false;
+
+  public startEditNote(note: TrainerNote): void {
+    this.editingNoteId = note._id;
+    this.editingNoteText = note.text;
+  }
+
+  public cancelEditNote(): void {
+    this.editingNoteId = null;
+    this.editingNoteText = '';
+  }
+
+  public saveEditNote(note: TrainerNote): void {
+    const text = this.editingNoteText.trim();
+    if (!text || this.isSavingNoteEdit) return;
+    if (text === note.text) {
+      this.cancelEditNote();
+      return;
+    }
+    this.isSavingNoteEdit = true;
+    this.clientDetailApi.updateNote(this.clientId, note._id, { text }).subscribe({
+      next: (updated) => {
+        this.isSavingNoteEdit = false;
+        this.notes = this.notes.map((n) => (n._id === updated._id ? updated : n));
+        this.cancelEditNote();
+      },
+      error: () => {
+        this.isSavingNoteEdit = false;
+        this.ionicUtilService.showErrorToast('No se pudo guardar el cambio', 'Error', 2500);
+      },
+    });
+  }
+
+  // --- Borrar (confirmación en el sitio, mismo patrón que "Quitar fase" en
+  // Entrenamiento — ver phase-remove-link/phase-remove-confirm) ---
+  public confirmingDeleteNoteId: string | null = null;
+  public isDeletingNoteId: string | null = null;
+
+  public requestDeleteNote(noteId: string): void {
+    this.confirmingDeleteNoteId = noteId;
+  }
+
+  public dismissDeleteNote(): void {
+    this.confirmingDeleteNoteId = null;
+  }
+
+  public confirmDeleteNote(note: TrainerNote): void {
+    this.isDeletingNoteId = note._id;
+    this.clientDetailApi.deleteNote(this.clientId, note._id).subscribe({
+      next: () => {
+        this.isDeletingNoteId = null;
+        this.confirmingDeleteNoteId = null;
+        this.notes = this.notes.filter((n) => n._id !== note._id);
+      },
+      error: () => {
+        this.isDeletingNoteId = null;
+        this.ionicUtilService.showErrorToast('No se pudo borrar la nota', 'Error', 2500);
+      },
+    });
   }
 
   public trackByNoteId(_index: number, note: TrainerNote): string {

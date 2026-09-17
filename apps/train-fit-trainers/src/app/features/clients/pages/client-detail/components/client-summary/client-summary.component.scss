@@ -128,6 +128,49 @@
 }
 
 // ---------------------------------------------------------------------------
+// Franja de dolor
+// ---------------------------------------------------------------------------
+.pain-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  background: var(--tf-danger-soft);
+  border: 1px solid var(--tf-danger-border);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-3) var(--tf-space-4);
+
+  > ion-icon {
+    font-size: 18px;
+    color: var(--tf-danger);
+    flex-shrink: 0;
+  }
+}
+
+.pain-banner-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+  line-height: var(--tf-line-height-base);
+
+  strong {
+    color: var(--tf-text);
+  }
+}
+
+.pain-banner-link {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------------------
 // Alertas del cliente
 // ---------------------------------------------------------------------------
 .alerts-count {
@@ -162,9 +205,36 @@
   }
 }
 
+.alert-icon-wrap {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--tf-surface-4);
+  color: var(--tf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &--high {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+
+  ion-icon {
+    font-size: 15px;
+  }
+}
+
 .alert-body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alert-title-row {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
@@ -179,6 +249,53 @@
   font-size: var(--tf-font-size-sm);
   line-height: var(--tf-line-height-base);
   color: var(--tf-text-secondary);
+}
+
+// Quién tiene que mover ficha — derivado del tipo de alerta, no un dato
+// nuevo (ver OWNER_BY_TYPE en el componente).
+.owner-chip {
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-3);
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.alert-age {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-faint);
+}
+
+.alert-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.alert-nav-button {
+  height: 32px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--tf-surface-4);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
 }
 
 // La prioridad se nombra con palabra, no solo con color.
@@ -230,6 +347,136 @@
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Seguimiento reciente (3 tarjetas)
+// ---------------------------------------------------------------------------
+.recent-tracking-title {
+  margin: 0 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-md);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.tracking-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--tf-space-3);
+
+  @media (min-width: 720px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.tracking-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-4);
+}
+
+.tracking-card-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  ion-icon {
+    font-size: 15px;
+    color: var(--tf-text-muted);
+  }
+}
+
+.tracking-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  line-height: 1.1;
+}
+
+.tracking-detail {
+  margin-top: 3px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.tracking-delta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
+.tracking-empty {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+  line-height: var(--tf-line-height-base);
+}
+
+.tracking-sub {
+  margin-top: var(--tf-space-3);
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-border-subtle);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+}
+
+// Mini-tendencia por semana, misma forma en las 3 tarjetas (ver
+// buildSparkline en el componente) — altura relativa al máximo de su propia
+// serie, sin meta común entre sesiones/adherencia/kg.
+.tracking-sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 28px;
+  margin-top: var(--tf-space-3);
+}
+
+.tracking-sparkline-bar {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.tracking-sparkline-fill {
+  width: 100%;
+  min-height: 3px;
+  border-radius: 2px 2px 0 0;
+  background: var(--tf-accent);
+  opacity: 0.85;
+
+  &--empty {
+    background: var(--tf-surface-4);
+    opacity: 1;
+  }
+}
+
+.tracking-link {
+  margin-top: var(--tf-space-3);
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
 }
 
 // ---------------------------------------------------------------------------
@@ -458,6 +705,22 @@
 }
 
 // ---------------------------------------------------------------------------
+// Fila Adherencia + Perímetros
+// ---------------------------------------------------------------------------
+.summary-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--tf-space-5);
+  align-items: start;
+
+  // Adherencia es la más alta de las dos — se apilan hasta que hay sitio
+  // real para partir 50/50 sin apretar la tabla de perímetros.
+  @media (min-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Contexto (qué tiene asignado)
 // ---------------------------------------------------------------------------
 .context-grid {
@@ -531,7 +794,7 @@
 }
 
 // ---------------------------------------------------------------------------
-// Evolución
+// Perímetros
 // ---------------------------------------------------------------------------
 .week-switch {
   display: flex;
@@ -584,27 +847,6 @@
   }
 }
 
-// La frase que resume N semanas. Va primero y en grande porque es la única
-// respuesta a "¿hacia dónde va esto?" — la tabla de abajo la sustenta, no
-// la sustituye.
-.weight-trend {
-  margin: 0;
-  padding: var(--tf-space-5);
-  font-size: var(--tf-font-size-base);
-  line-height: var(--tf-line-height-base);
-  color: var(--tf-text-secondary);
-
-  strong {
-    color: var(--tf-text);
-    font-variant-numeric: tabular-nums;
-  }
-
-  &--empty {
-    color: var(--tf-text-muted);
-    font-size: var(--tf-font-size-sm);
-  }
-}
-
 .delta-row {
   display: flex;
   align-items: center;
@@ -652,6 +894,89 @@
 
 .delta-pct {
   font-weight: 400;
+}
+
+// Una línea: quiénes son los principales y un botón para cambiarlos por
+// modal (ver PerimeterFilterPanelComponent) — nada de chips de catálogo
+// completo, que era el ancho/alto que esta pantalla vino a recortar.
+.perimeter-primary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-5);
+}
+
+.perimeter-primary-label {
+  min-width: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.perimeter-edit-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &:hover {
+    background: var(--tf-surface-4);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// Disclosure del resto de perímetros — colapsado por defecto: existe para no
+// perder datos, no para sumar altura a la pantalla por defecto.
+.perimeter-more-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-5);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--tf-border-subtle);
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 15px;
+  }
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
 }
 
 // Tabla densa: es la forma correcta de comparar N semanas × M métricas, y

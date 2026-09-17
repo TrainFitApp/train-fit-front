@@ -138,8 +138,18 @@ export class ClientDetailApiService {
     return this.http.post<TrainerNote>(`${this.base(clientId)}/notes`, { text });
   }
 
-  public setNotePinned(clientId: string, noteId: string, pinned: boolean): Observable<TrainerNote> {
-    return this.http.patch<TrainerNote>(`${this.base(clientId)}/notes/${noteId}`, { pinned });
+  // Un solo endpoint para fijar/desfijar y/o corregir el texto — pasa solo
+  // lo que cambia (ver trainer-client-data-controller.js#updateNote).
+  public updateNote(
+    clientId: string,
+    noteId: string,
+    changes: { text?: string; pinned?: boolean }
+  ): Observable<TrainerNote> {
+    return this.http.patch<TrainerNote>(`${this.base(clientId)}/notes/${noteId}`, changes);
+  }
+
+  public deleteNote(clientId: string, noteId: string): Observable<{ success: boolean }> {
+    return this.http.delete<{ success: boolean }>(`${this.base(clientId)}/notes/${noteId}`);
   }
 
   public getCheckinConfig(clientId: string): Observable<CheckinConfig | null> {

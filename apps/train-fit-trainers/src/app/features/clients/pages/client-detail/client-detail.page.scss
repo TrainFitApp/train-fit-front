@@ -82,6 +82,276 @@
   min-width: 0;
 }
 
+// ---------------------------------------------------------------------------
+// Cabecera persistente (avatar/nombre/badge/programa) — rediseño "Cliente
+// Resumen" 2026-09, movida aquí desde client-summary.component para que se
+// vea igual en las 4 secciones, no solo en Resumen.
+// ---------------------------------------------------------------------------
+.summary-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--tf-space-3);
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+.breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 14px;
+    margin-right: 2px;
+  }
+
+  &:hover {
+    color: var(--tf-text-secondary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+    border-radius: var(--tf-radius-sm);
+  }
+}
+
+.breadcrumb-sep {
+  color: var(--tf-text-faint);
+}
+
+.breadcrumb-current {
+  color: var(--tf-text-secondary);
+}
+
+.summary-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--tf-space-4);
+}
+
+.summary-header-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--tf-surface-4);
+  color: var(--tf-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tf-font-size-md);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.summary-header-info {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-header-name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+}
+
+.summary-header-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &--attention {
+    background: rgba(255, 196, 9, 0.14);
+    color: var(--tf-warning, #ffc409);
+  }
+
+  &--ok {
+    background: var(--tf-success-soft);
+    color: var(--tf-success);
+  }
+
+  &--insufficient {
+    background: var(--tf-surface-4);
+    color: var(--tf-text-secondary);
+  }
+}
+
+.summary-header-program {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    font-size: 14px;
+    color: var(--tf-text-muted);
+    flex-shrink: 0;
+  }
+}
+
+// Nota fijada — mismo sitio que la frase de objetivo del mockup, pero con
+// tratamiento propio (icono + cursiva) para que no se lea como un dato del
+// cliente, sino como una anotación del entrenador. Mismo naranja que ya usa
+// .note-card--pinned en la pestaña Notas para "esta nota está fijada" — dos
+// sitios distintos, un solo color para el mismo concepto.
+.summary-header-note {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--tf-accent-text);
+  }
+
+  &:hover .summary-header-note-text {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+    border-radius: var(--tf-radius-sm);
+  }
+}
+
+.summary-header-note-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--tf-font-size-sm);
+  font-style: italic;
+  color: var(--tf-text-secondary);
+}
+
+.summary-header-activity {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 4px;
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 13px;
+    color: var(--tf-text-muted);
+  }
+}
+
+.summary-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex-shrink: 0;
+}
+
+.header-action-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    transform 120ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 15px;
+  }
+
+  &:hover {
+    background: var(--tf-surface-4);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// --- Selector "Cambiar cliente" (panel-backdrop/panel-sheet/panel-handle/
+// panel-title ya están definidos más abajo en este mismo archivo) ---
+.client-switcher-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-2);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--tf-border-subtle);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
+  text-align: left;
+  cursor: pointer;
+
+  &:first-of-type {
+    border-top: none;
+  }
+
+  &:active {
+    background: var(--tf-surface-2);
+  }
+
+  ion-icon {
+    color: var(--tf-text-faint);
+    font-size: 16px;
+  }
+}
+
 .detail-tabbar {
   display: flex;
   gap: var(--tf-space-5);
@@ -1112,6 +1382,97 @@
   margin: 0 0 16px;
 }
 
+.panel-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: 16px;
+
+  .panel-title {
+    margin: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Panel "Ver intake" (cabecera persistente > botón junto a Mensaje)
+// ---------------------------------------------------------------------------
+.intake-panel-sheet {
+  display: flex;
+  flex-direction: column;
+}
+
+.intake-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.intake-field-label {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.intake-field-value {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-secondary);
+  white-space: pre-wrap;
+}
+
+.intake-submitted-at {
+  margin: 12px 0 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-faint);
+}
+
+.intake-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.intake-edit-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.textarea-field {
+  resize: vertical;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  padding: 10px 12px;
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: var(--tf-line-height-base);
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
 .input-wrapper {
   @include tf-input-wrapper(var(--tf-surface-2));
   height: 50px;
@@ -1203,6 +1564,20 @@
   margin-bottom: 20px;
 }
 
+.note-composer-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-faint);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+}
+
 .note-textarea {
   width: 100%;
   background: var(--tf-surface-2);
@@ -1270,13 +1645,111 @@
   white-space: nowrap;
 }
 
+// Editar/borrar/fijar viven juntos en .note-card-actions — el margen
+// negativo que compensa el target de 44px (WCAG) de CADA botón ahora se
+// concentra a la derecha del contenedor (ver .note-card-actions), no en cada
+// botón por separado, o se acumularía un hueco entre iconos.
+.note-card-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: -13px;
+}
+
+.note-icon-button {
+  flex-shrink: 0;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  margin: -13px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  transition: color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: var(--tf-text-secondary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+    border-radius: var(--tf-radius-sm);
+  }
+}
+
+.note-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  white-space: nowrap;
+
+  &__label {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+
+  &__cancel,
+  &__confirm {
+    min-height: 32px;
+    padding: 4px 10px;
+    border-radius: var(--tf-radius-sm);
+    font-family: inherit;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  &__cancel {
+    background: none;
+    border: 1px solid var(--tf-border-strong);
+    color: var(--tf-text-secondary);
+  }
+
+  &__confirm {
+    background: var(--tf-danger-soft);
+    border: 1px solid var(--tf-danger-border);
+    color: var(--tf-danger-text);
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+}
+
+.note-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+
+  .submit-button {
+    width: auto;
+    height: 38px;
+    padding: 0 16px;
+  }
+}
+
 .pin-button {
   flex-shrink: 0;
   width: var(--tf-touch-min);
   height: var(--tf-touch-min);
   // Compensa visualmente el target ampliado a 44px (WCAG) para que no
   // empuje la fila de la cabecera de la nota — el icono real sigue en 18px.
-  margin: -13px -13px -13px 0;
+  margin: -13px 0;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -11,6 +11,16 @@ export type AdherenceDimensionKey = 'nutrition' | 'training' | 'habits' | 'check
 export type AdherenceUnavailableReason =
   | 'sin_datos'
   | 'sin_plan'
+  // Auditoría 2026-09 — distinto de "sin_plan": hay una fase de entrenamiento
+  // vigente y con proyección, pero en la ventana medida todos los días
+  // proyectados son de descanso planificado (típico al arrancar una fase
+  // cuyo primer día de rutina es de descanso). Ver adherence-service.js#trainingDimension.
+  | 'sin_sesiones_en_ventana'
+  // Auditoría 2026-09 — nutrición: NO hay ningún plan de dieta activo. Antes
+  // este caso y "hay plan pero <3 días con datos" decían los dos "sin_datos"
+  // — mismo tipo de bug que sin_plan/sin_sesiones_en_ventana de arriba. Ver
+  // adherence-service.js#nutritionDimension.
+  | 'sin_plan_nutricion'
   | 'sin_tareas'
   | 'sin_cadencia'
   | 'periodo_corto';

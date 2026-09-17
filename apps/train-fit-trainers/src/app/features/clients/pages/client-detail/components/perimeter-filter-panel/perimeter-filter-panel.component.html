@@ -1,0 +1,46 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Perímetros principales</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="filter-panel-content">
+  <p class="panel-subtitle">
+    Cuáles ver siempre en Resumen (hasta {{ max }}).
+    <ng-container *ngIf="selected.length">{{ selected.length }}/{{ max }}</ng-container>
+  </p>
+
+  <p class="empty-hint" *ngIf="!options.length">
+    Sin perímetros con datos en esta ventana todavía.
+  </p>
+
+  <div class="metric-option-list" *ngIf="options.length">
+    <button
+      type="button"
+      class="metric-option"
+      *ngFor="let option of options"
+      [class.metric-option--selected]="selected.includes(option.key)"
+      [disabled]="!selected.includes(option.key) && selected.length >= max"
+      (click)="toggle(option.key)"
+    >
+      <span>{{ option.label }}</span>
+      <ion-icon
+        [name]="selected.includes(option.key) ? 'checkmark-circle' : 'ellipse-outline'"
+      ></ion-icon>
+    </button>
+  </div>
+</ion-content>
+
+<ion-footer class="filter-panel-footer">
+  <button class="submit-button" (click)="confirm()">Aplicar</button>
+</ion-footer>
