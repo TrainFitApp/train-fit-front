@@ -1,0 +1,100 @@
+@import '../../../../../theme/buttons';
+
+ion-header ion-toolbar {
+  --background: var(--tf-bg);
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  ion-button {
+    @include tf-icon-button;
+  }
+}
+
+.exercise-form-content {
+  --background: var(--tf-bg);
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-3);
+  --padding-bottom: var(--tf-space-5);
+}
+
+.field {
+  margin-bottom: var(--tf-space-4);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--tf-text-muted);
+}
+
+.field-input {
+  --background: var(--tf-surface-3);
+  --color: var(--tf-text);
+  --placeholder-color: var(--tf-text-muted);
+  --padding-start: var(--tf-space-3);
+  --padding-end: var(--tf-space-3);
+  --padding-top: var(--tf-space-2);
+  --padding-bottom: var(--tf-space-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+}
+
+ion-segment {
+  --background: var(--tf-surface-3);
+  border-radius: var(--tf-radius-md);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  background: var(--tf-surface-4);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover:not(.is-active) {
+    color: var(--tf-text);
+  }
+
+  &.is-active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.exercise-form-footer {
+  background: var(--tf-bg);
+  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);
+}
+
+.save-button {
+  @include tf-gradient-button;
+
+  width: 100%;
+  min-height: 48px;
+}

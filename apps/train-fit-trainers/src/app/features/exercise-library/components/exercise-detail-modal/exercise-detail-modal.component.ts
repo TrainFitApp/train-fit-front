@@ -2,12 +2,14 @@ import { Component, Input, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ModalController } from '@ionic/angular';
 import { Exercise } from 'src/app/core/models/exercise';
+import { UserService } from 'src/app/core/services/user/user.service';
 
 // TASK-042 (MASTER_BACKLOG.md) — vista de solo lectura de un ejercicio del
 // catálogo, para la Biblioteca de ejercicios (fuera del flujo de construir
 // una rutina). A diferencia de ConfigExercisePage (que exige contexto de
 // `workout`/`tableInUse` real para poder guardar cambios), este modal no
-// guarda nada — solo muestra descripción, vídeo y taxonomía.
+// guarda nada: muestra descripción, vídeo y taxonomía, y si el ejercicio es
+// propio delega editar/borrar en la página que lo abrió.
 @Component({
   selector: 'app-exercise-detail-modal',
   templateUrl: './exercise-detail-modal.component.html',
@@ -18,13 +20,30 @@ export class ExerciseDetailModalComponent implements OnInit {
 
   public videoEmbedSrcSafe: SafeResourceUrl | null = null;
 
+  // Los ejercicios del catálogo global no tienen userId: editar y borrar solo
+  // se ofrecen sobre los creados por este entrenador (el backend lo vuelve a
+  // comprobar en PATCH/DELETE /exercises/:id).
+  public isOwnExercise = false;
+
   constructor(
     private modalController: ModalController,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private userService: UserService
   ) {}
 
   public ngOnInit(): void {
     this.videoEmbedSrcSafe = this.buildVideoEmbedSrc(this.exercise?.videoUrl);
+
+    const userId = this.userService.getLocalUser?._id;
+    this.isOwnExercise = !!userId && this.exercise?.userId === userId;
+  }
+
+  public requestEdit(): void {
+    this.modalController.dismiss({ action: 'edit' });
+  }
+
+  public requestDelete(): void {
+    this.modalController.dismiss({ action: 'delete' });
   }
 
   public get muscleGroups(): string[] {

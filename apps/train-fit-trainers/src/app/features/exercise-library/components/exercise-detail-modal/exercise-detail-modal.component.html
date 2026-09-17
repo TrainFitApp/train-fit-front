@@ -2,7 +2,18 @@
   <ion-toolbar>
     <ion-title>{{ exercise?.name }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="close()">
+      <ion-button *ngIf="isOwnExercise" (click)="requestEdit()" aria-label="Editar ejercicio">
+        <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button
+        *ngIf="isOwnExercise"
+        color="danger"
+        (click)="requestDelete()"
+        aria-label="Eliminar ejercicio"
+      >
+        <ion-icon name="trash-bin-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button (click)="close()" aria-label="Cerrar">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>

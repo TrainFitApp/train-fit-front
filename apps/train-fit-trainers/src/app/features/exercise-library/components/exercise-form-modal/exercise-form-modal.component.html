@@ -1,0 +1,129 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ isEdit ? 'Editar ejercicio' : 'Nuevo ejercicio' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()" aria-label="Cerrar">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="exercise-form-content">
+  <div class="field">
+    <label class="field-label" for="exercise-name">Nombre</label>
+    <ion-input
+      id="exercise-name"
+      class="field-input"
+      placeholder="Press banca con mancuernas"
+      maxlength="100"
+      [(ngModel)]="name"
+    ></ion-input>
+  </div>
+
+  <div class="field">
+    <label class="field-label">Tipo</label>
+    <ion-segment mode="ios" [(ngModel)]="mode">
+      <ion-segment-button value="fuerza">
+        <ion-label>Fuerza</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="cardio">
+        <ion-label>Cardio</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="isometrico">
+        <ion-label>Isométrico</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <div class="field">
+    <label class="field-label" for="exercise-description">Descripción</label>
+    <ion-textarea
+      id="exercise-description"
+      class="field-input"
+      placeholder="Cómo ejecutarlo: una indicación por línea"
+      [autoGrow]="true"
+      rows="3"
+      [(ngModel)]="description"
+    ></ion-textarea>
+  </div>
+
+  <div class="field">
+    <label class="field-label" for="exercise-video">Vídeo (YouTube)</label>
+    <ion-input
+      id="exercise-video"
+      class="field-input"
+      type="url"
+      inputmode="url"
+      placeholder="https://youtube.com/watch?v=..."
+      [(ngModel)]="videoUrl"
+    ></ion-input>
+  </div>
+
+  <div class="field">
+    <label class="field-label">Categorías</label>
+    <div class="chip-row">
+      <button
+        type="button"
+        class="chip"
+        *ngFor="let category of categories"
+        [class.is-active]="selectedCategories.includes(category)"
+        (click)="toggle(selectedCategories, category)"
+      >
+        {{ category }}
+      </button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field-label">Músculos principales</label>
+    <div class="chip-row">
+      <button
+        type="button"
+        class="chip"
+        *ngFor="let muscle of muscleGroups"
+        [class.is-active]="selectedMuscleGroups1.includes(muscle)"
+        (click)="toggle(selectedMuscleGroups1, muscle)"
+      >
+        {{ muscle }}
+      </button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field-label">Músculos secundarios</label>
+    <div class="chip-row">
+      <button
+        type="button"
+        class="chip"
+        *ngFor="let muscle of muscleGroups"
+        [class.is-active]="selectedMuscleGroups2.includes(muscle)"
+        (click)="toggle(selectedMuscleGroups2, muscle)"
+      >
+        {{ muscle }}
+      </button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field-label">Equipamiento</label>
+    <div class="chip-row">
+      <button
+        type="button"
+        class="chip"
+        *ngFor="let item of equipment"
+        [class.is-active]="selectedEquipment.includes(item)"
+        (click)="toggle(selectedEquipment, item)"
+      >
+        {{ item }}
+      </button>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="exercise-form-footer">
+  <button type="button" class="save-button" [disabled]="!canSave" (click)="save()">
+    <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
+    <span *ngIf="!saving">{{ isEdit ? 'Guardar cambios' : 'Crear ejercicio' }}</span>
+  </button>
+</ion-footer>
