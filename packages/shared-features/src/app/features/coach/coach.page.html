@@ -159,12 +159,12 @@
       <button
         class="action-card"
         *ngFor="let item of d.pendingCheckins; trackBy: trackByCheckinId"
-        (click)="goToCheckins(item.requestId)"
+        (click)="goToCheckins(item.scheduleId)"
       >
         <ion-icon name="clipboard-outline" class="action-icon"></ion-icon>
         <div class="action-info">
           <span class="action-title">{{ item.name || 'Check-in pendiente' }}</span>
-          <span class="action-subtitle">Pedido por {{ item.trainerName }}</span>
+          <span class="action-subtitle">{{ checkinPeriodLabel(item) }}</span>
         </div>
         <ion-icon name="chevron-forward-outline" class="action-chevron"></ion-icon>
       </button>
@@ -307,7 +307,7 @@
       <ion-icon [name]="task.completedToday ? 'checkmark-circle' : 'ellipse-outline'" class="task-check"></ion-icon>
       <div class="action-info">
         <span class="action-title">{{ task.label }}</span>
-        <span class="action-subtitle">{{ task.target }} {{ task.unit }} · {{ task.trainerName }}</span>
+        <span class="action-subtitle">{{ taskTargetLabel(task) }} · {{ task.trainerName }}</span>
       </div>
     </button>
   </div>

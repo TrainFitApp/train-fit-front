@@ -15,12 +15,6 @@ export class AnthropometryModalComponent implements OnInit {
   @Input() existingData: Anthropometry | null = null;
   @Input() selectedDate: string = '';
   @Input() allAnthropometryData: Anthropometry[] = [];
-  // Cuando el trainer pide medidas concretas (ver AnthropometryRequestApiService),
-  // solo esos campos deben aparecer para rellenar — sin trainer, o con
-  // trainer pero sin ninguna petición activa, se ve el catálogo completo
-  // (null/vacío = sin filtro).
-  @Input() visibleFieldKeys: string[] | null = null;
-
   form: FormGroup;
   isLoading = false;
   maxDate = new Date().toISOString();
@@ -54,15 +48,6 @@ export class AnthropometryModalComponent implements OnInit {
     { key: 'ankleL', label: 'ANTHROPOMETRY.ANKLE_L', unit: 'cm', step: 0.1 },
     { key: 'ankleR', label: 'ANTHROPOMETRY.ANKLE_R', unit: 'cm', step: 0.1 },
   ];
-
-  // Lo que el *ngFor del template realmente pinta — measurementFields (todos
-  // los campos posibles) se mantiene intacto para el guardado/carga, que
-  // nunca deben perder datos ya registrados en un campo que hoy no toca
-  // mostrar.
-  get visibleMeasurementFields(): typeof this.measurementFields {
-    if (!this.visibleFieldKeys?.length) return this.measurementFields;
-    return this.measurementFields.filter((f) => this.visibleFieldKeys!.includes(f.key));
-  }
 
   async openDatePicker(): Promise<void> {
     if (this.form.dirty) {

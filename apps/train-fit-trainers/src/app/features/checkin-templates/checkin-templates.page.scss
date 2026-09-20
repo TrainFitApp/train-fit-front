@@ -23,6 +23,36 @@
   gap: 12px;
 }
 
+// Crear desde la propia rejilla. Mismo patrón que .next-phase-card--add de
+// la ficha del cliente: borde discontinuo, sin contenido que competir con
+// las plantillas reales de al lado.
+.template-card--add {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 132px;
+  border-style: dashed;
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover {
+    color: var(--tf-accent);
+    border-color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
 .skeleton-block {
   @include tf-skeleton-shimmer;
   border-radius: 12px;

@@ -15,6 +15,10 @@ export type CheckinFieldType =
   | 'select'
   | 'frequency';
 export type CheckinFieldStorage = 'anthropometry' | 'wellbeing';
+
+// Los PASOS no son un campo de check-in: se pautan como hábito diario
+// (TrainerTask type "steps") y el cliente los marca bajo sus comidas.
+// Ver docs/plan-revisiones.md §12.
 export type CheckinFieldGroup = 'composicion_corporal' | 'perimetros' | 'bienestar';
 
 export interface CheckinField {
@@ -225,7 +229,6 @@ export const CHECKIN_FIELDS: CheckinField[] = [
       "Agotado: me cuesta hacer vida normal",
     ],
   },
-  { key: "daily_steps", label: "Pasos diarios (media semanal)", type: "number", unit: "pasos", group: "bienestar", storage: "wellbeing", hint: "La media diaria que te dé el móvil o el reloj desde el último check-in. Tu entrenador la usa para calcular el siguiente ciclo.", min: 0, max: 100000 },
   {
     key: "nutrition_plan_adherence",
     label: "Seguimiento del plan nutricional",

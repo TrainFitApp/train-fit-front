@@ -9,10 +9,9 @@ import {
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 import {
-  CheckinCadence,
   CheckinHistoryEntry,
   FREQUENCY_OPTIONS,
-  MyCheckinConfig,
+  MyCheckin,
   customQuestionKey,
   isCustomQuestionKey,
 } from './models/my-checkin.model';
@@ -24,12 +23,6 @@ type ViewState = 'loading' | 'error' | 'loaded';
 // de estrangularse en media columna.
 interface HistoryRow { label: string; value: string; wide: boolean }
 
-const CADENCE_LABELS: Record<CheckinCadence, string> = {
-  weekly: 'Semanal',
-  biweekly: 'Quincenal',
-  once: 'Una vez',
-};
-
 @Component({
   selector: 'app-my-checkins',
   templateUrl: 'my-checkins.page.html',
@@ -38,10 +31,10 @@ const CADENCE_LABELS: Record<CheckinCadence, string> = {
 export class MyCheckinsPage implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
-  private requestedId: string | null = null;
+  private requestedScheduleId: string | null = null;
   private returnUrl = '/tabs/coach';
   public state: ViewState = 'loading';
-  public configs: MyCheckinConfig[] = [];
+  public checkins: MyCheckin[] = [];
 
   public expandedTrainerId: string | null = null;
   public formValues: Record<string, number | string | boolean | null> = {};
@@ -65,7 +58,7 @@ export class MyCheckinsPage implements OnInit {
 
   public ngOnInit(): void {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
-      this.requestedId = params.get('requestId');
+      this.requestedScheduleId = params.get('scheduleId');
       // Solo rutas internas absolutas: nada de '//host' ni URLs externas.
       const returnUrl = params.get('returnUrl');
       if (returnUrl?.startsWith('/') && !returnUrl.startsWith('//')) this.returnUrl = returnUrl;
@@ -75,39 +68,36 @@ export class MyCheckinsPage implements OnInit {
   }
 
   private focusRequested(): void {
-    if (!this.requestedId) return;
-    const pending = this.configs.find(c => c.requestId === this.requestedId);
-    if (pending) { this.expandedTrainerId = this.configKey(pending); this.formValues = {}; }
-    else this.showHistory = true;
-  }
-
-  public configKey(config: MyCheckinConfig): string { return config.requestId || config.trainerId; }
-
-  // Tipo visual de la tarjeta: icono y color en la cabecera para distinguir
-  // de un vistazo el check-in del ciclo, una solicitud puntual y el
-  // periódico por cadencia.
-  public cardKind(config: MyCheckinConfig): 'cycle' | 'request' | 'periodic' {
-    if (config.cycleCheckin) return 'cycle';
-    if (config.requestId) return 'request';
-    return 'periodic';
-  }
-
-  public cardIcon(config: MyCheckinConfig): string {
-    if (this.isDone(config)) return 'checkmark-circle';
-    switch (this.cardKind(config)) {
-      case 'cycle': return 'sync-circle';
-      case 'request': return 'calendar';
-      default: return 'repeat';
+    if (!this.requestedScheduleId) return;
+    const pending = this.checkins.find((c) => c.scheduleId === this.requestedScheduleId);
+    if (pending) {
+      this.expandedTrainerId = this.checkinKey(pending);
+      this.formValues = this.valuesOf(pending);
+    } else {
+      this.showHistory = true;
     }
   }
 
-  public isDone(config: MyCheckinConfig): boolean {
-    return this.submittedTrainerIds.has(this.configKey(config)) || !!config.cycleCheckin?.hasResponse;
+  public checkinKey(checkin: MyCheckin): string { return checkin._id; }
+
+  // Lo ya respondido, para corregirlo sin volver a teclearlo todo mientras
+  // la revisión siga abierta.
+  private valuesOf(checkin: MyCheckin): Record<string, number | string | boolean | null> {
+    return { ...(checkin.values || {}) };
+  }
+
+  public cardIcon(checkin: MyCheckin): string {
+    if (this.isDone(checkin)) return 'checkmark-circle';
+    return checkin.revision ? 'sync-circle' : 'calendar';
+  }
+
+  public isDone(checkin: MyCheckin): boolean {
+    return this.submittedTrainerIds.has(this.checkinKey(checkin)) || !!checkin.respondedAt;
   }
 
   // Por defecto vuelve a la tarjeta "Mis check-ins" del tab Coach (ver
   // coach.page.html). Otros puntos de entrada (la tarjeta del check-in de
-  // ciclo en Dietas) pasan ?returnUrl para volver a donde estaban.
+  // aviso en Dietas) pasan ?returnUrl para volver a donde estaban.
   public close(): void {
     void this.router.navigateByUrl(this.returnUrl);
   }
@@ -115,11 +105,11 @@ export class MyCheckinsPage implements OnInit {
   public load(): void {
     this.state = 'loading';
     this.myCheckinsApi.getMine().subscribe({
-      next: (configs) => {
+      next: (checkins) => {
         // Fase 5 — un check-in compuesto SOLO de preguntas propias del coach
         // (sin ningún campo del catálogo) es perfectamente válido; antes
         // este filtro lo descartaba y el cliente no veía nada que responder.
-        this.configs = (configs || []).filter(
+        this.checkins = (checkins || []).filter(
           (c) => c.enabledFields?.length || c.customQuestions?.some((q) => q.enabled !== false)
         );
         this.state = 'loaded';
@@ -183,8 +173,8 @@ export class MyCheckinsPage implements OnInit {
   // de mostrar "custom:507f1f…" en el historial del cliente.
   public historyFieldLabel(key: string): string {
     if (isCustomQuestionKey(key)) {
-      for (const config of this.configs) {
-        const question = (config.customQuestions || []).find(
+      for (const checkin of this.checkins) {
+        const question = (checkin.customQuestions || []).find(
           (q) => customQuestionKey(q._id) === key
         );
         if (question) return question.label;
@@ -209,20 +199,22 @@ export class MyCheckinsPage implements OnInit {
     return entry._id;
   }
 
-  public trainerName(config: MyCheckinConfig): string {
-    if (!config.trainer) return 'Tu entrenador';
-    return `${config.trainer.name} ${config.trainer.lastname}`.trim();
+  public trainerName(checkin: MyCheckin): string {
+    if (!checkin.trainer) return 'Tu entrenador';
+    return `${checkin.trainer.name} ${checkin.trainer.lastname}`.trim();
   }
 
-  public cadenceLabel(config: MyCheckinConfig): string {
-    if (config.requestId) return config.closesAt ? `Disponible hasta ${new Date(config.closesAt).toLocaleDateString('es-ES')}` : 'Solicitud puntual';
-    // Ciclos por contenido — con fase de dieta el check-in va por ciclo, no
-    // por cadencia.
-    if (config.cycleCheckin) {
-      const c = config.cycleCheckin;
-      return `Ciclo ${c.number} · ${this.shortDay(c.start)} – ${this.shortDay(c.end)}`;
+  // De qué periodo es este check-in: la revisión de su fase de dieta si la
+  // tiene, y hasta cuándo se puede responder.
+  public periodLabel(checkin: MyCheckin): string {
+    if (checkin.revision) {
+      const r = checkin.revision;
+      const fin = r.end ? ` – ${this.shortDay(r.end)}` : '';
+      return `Revisión ${r.number} · ${this.shortDay(r.start)}${fin}`;
     }
-    return CADENCE_LABELS[config.cadence!] || config.cadence!;
+    return checkin.closesDate
+      ? `Del ${this.shortDay(checkin.date)} al ${this.shortDay(checkin.closesDate)}`
+      : `Desde el ${this.shortDay(checkin.date)}`;
   }
 
   private shortDay(iso: string): string {
@@ -233,16 +225,16 @@ export class MyCheckinsPage implements OnInit {
   // misma lista: convertir las segundas a la forma de CheckinField deja que
   // la plantilla las pinte con el mismo código, en vez de duplicar todo el
   // formulario para un segundo tipo de pregunta.
-  public fieldsFor(config: MyCheckinConfig): CheckinField[] {
+  public fieldsFor(checkin: MyCheckin): CheckinField[] {
     // El catálogo no marca obligatorios: lo decide el coach por plantilla
     // (requiredFields), igual que `required` en sus preguntas propias.
-    const required = new Set(config.requiredFields || []);
-    const catalogFields = config.enabledFields
+    const required = new Set(checkin.requiredFields || []);
+    const catalogFields = checkin.enabledFields
       .map((key) => CHECKIN_FIELDS_BY_KEY.get(key))
       .filter((f): f is CheckinField => !!f)
       .map((f) => (required.has(f.key) ? { ...f, required: true } : f));
 
-    const customFields: CheckinField[] = (config.customQuestions || [])
+    const customFields: CheckinField[] = (checkin.customQuestions || [])
       .filter((question) => question.enabled !== false)
       .map((question) => ({
         key: customQuestionKey(question._id),
@@ -312,8 +304,8 @@ export class MyCheckinsPage implements OnInit {
 
   // Una obligatoria sin responder bloquea el envío. Se dice cuál falta en
   // vez de dejar un botón desactivado sin explicación.
-  public missingRequiredLabel(config: MyCheckinConfig): string | null {
-    for (const field of this.fieldsFor(config)) {
+  public missingRequiredLabel(checkin: MyCheckin): string | null {
+    for (const field of this.fieldsFor(checkin)) {
       if (!field.required) continue;
       const value = this.formValues[field.key];
       if (value === null || value === undefined || value === '') return field.label;
@@ -321,13 +313,15 @@ export class MyCheckinsPage implements OnInit {
     return null;
   }
 
-  public toggleExpand(config: MyCheckinConfig): void {
-    if (this.expandedTrainerId === this.configKey(config)) {
+  public toggleExpand(checkin: MyCheckin): void {
+    if (this.expandedTrainerId === this.checkinKey(checkin)) {
       this.expandedTrainerId = null;
       return;
     }
-    this.expandedTrainerId = this.configKey(config);
-    this.formValues = {};
+    this.expandedTrainerId = this.checkinKey(checkin);
+    // Arranca con lo que ya respondió: mientras la revisión siga abierta,
+    // enviar otra vez es CORREGIR, no empezar de cero.
+    this.formValues = this.valuesOf(checkin);
   }
 
   // Acepta boolean además de number: sí/no reutiliza este mismo control de
@@ -344,10 +338,10 @@ export class MyCheckinsPage implements OnInit {
     return Object.values(this.formValues).some((v) => v !== null && v !== undefined && v !== ('' as unknown));
   }
 
-  public submitResponse(config: MyCheckinConfig): void {
+  public submitResponse(checkin: MyCheckin): void {
     if (this.isSubmitting || !this.hasAnyValue()) return;
 
-    const missing = this.missingRequiredLabel(config);
+    const missing = this.missingRequiredLabel(checkin);
     if (missing) {
       this.ionicUtilService.showErrorToast(`"${missing}" es obligatoria`, 'Falta una respuesta', 3000);
       return;
@@ -357,7 +351,7 @@ export class MyCheckinsPage implements OnInit {
     // se casteaba con Number(); con los tipos de la Fase 5 eso convertiría
     // "Casa" en NaN y el campo se perdería en silencio.
     const values: Record<string, number | string | boolean> = {};
-    for (const field of this.fieldsFor(config)) {
+    for (const field of this.fieldsFor(checkin)) {
       const value = this.formValues[field.key];
       if (value === null || value === undefined || value === '') continue;
 
@@ -373,30 +367,29 @@ export class MyCheckinsPage implements OnInit {
     }
     if (!Object.keys(values).length) return;
 
-    // Ciclos por contenido — un check-in por ciclo: si ya hay uno, este lo
-    // sobreescribe. Se avisa antes, con la fecha del que se va a pisar.
-    if (config.cycleCheckin?.hasResponse) {
-      void this.confirmOverwrite(config).then((ok) => ok && this.send(config, values));
+    // Una respuesta por check-in: mientras su periodo siga abierto, volver a
+    // enviar lo CORRIGE. Se avisa antes, con la fecha de lo que se va a
+    // pisar.
+    if (checkin.respondedAt) {
+      void this.confirmOverwrite(checkin).then((ok) => ok && this.send(checkin, values));
       return;
     }
-    this.send(config, values);
+    this.send(checkin, values);
   }
 
-  private async confirmOverwrite(config: MyCheckinConfig): Promise<boolean> {
-    const cycle = config.cycleCheckin!;
-    const when = cycle.respondedAt
-      ? new Date(cycle.respondedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
-      : null;
+  private async confirmOverwrite(checkin: MyCheckin): Promise<boolean> {
+    const when = checkin.updatedAt || checkin.respondedAt;
+    const fecha = when ? new Date(when).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : null;
     const res = await this.ionicUtilService.showModal({
       component: ConfirmSheetComponent,
       componentProps: {
         icon: 'sync-circle-outline',
         iconColor: 'primary',
-        title: `Ya respondiste el ciclo ${cycle.number}`,
-        message: when
-          ? `Este check-in sobreescribirá el que enviaste el ${when}. ¿Enviar igualmente?`
-          : 'Este check-in sobreescribirá el que guardaste para este ciclo. ¿Enviar igualmente?',
-        confirmText: 'Sobreescribir',
+        title: checkin.revision ? `Ya respondiste la revisión ${checkin.revision.number}` : 'Ya respondiste este check-in',
+        message: fecha
+          ? `Se actualizará lo que enviaste el ${fecha}. ¿Guardar los cambios?`
+          : 'Se actualizará lo que ya habías enviado. ¿Guardar los cambios?',
+        confirmText: 'Actualizar',
         cancelText: 'Cancelar',
       },
       cssClass: 'confirm-sheet-modal',
@@ -406,16 +399,16 @@ export class MyCheckinsPage implements OnInit {
     return res.data === true;
   }
 
-  private send(config: MyCheckinConfig, values: Record<string, number | string | boolean>): void {
+  private send(checkin: MyCheckin, values: Record<string, number | string | boolean>): void {
     this.isSubmitting = true;
-    this.myCheckinsApi.respond(config.trainerId, values, config.requestId).subscribe({
+    this.myCheckinsApi.respond(checkin.scheduleId, values).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.expandedTrainerId = null;
-        this.submittedTrainerIds.add(this.configKey(config));
+        this.submittedTrainerIds.add(this.checkinKey(checkin));
         this.load();
         this.ionicUtilService.showToast({
-          message: `Check-in enviado a ${this.trainerName(config)}`,
+          message: `Check-in enviado a ${this.trainerName(checkin)}`,
           duration: 3000,
         });
       },
@@ -430,9 +423,9 @@ export class MyCheckinsPage implements OnInit {
     });
   }
 
-  public trackByTrainerId(_index: number, config: MyCheckinConfig): string {
+  public trackByCheckinId(_index: number, checkin: MyCheckin): string {
     // NgFor ejecuta este callback sin el contexto de la página.
-    return config.requestId || config.trainerId;
+    return checkin._id;
   }
 
   public trackByFieldKey(_index: number, field: CheckinField): string {

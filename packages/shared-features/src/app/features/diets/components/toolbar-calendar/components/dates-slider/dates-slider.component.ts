@@ -14,16 +14,16 @@ import { DietTimeline } from 'src/app/core/models/dietDay';
 // Removed direct Swiper type import; use `any` for type flexibility
 import { WEEK_DAYS } from 'src/app/shared/constants/week-days';
 
-// Ciclos por contenido — misma paleta que el calendario del entrenador
+// Misma paleta que el calendario del entrenador
 // (phase-color.util.ts#PHASE_COLORS): fase N → color N, cíclico.
 const PHASE_COLORS: readonly string[] = ['#5db530', '#7b72ee', '#4cf6df', '#e49ab8', '#f4cd2f', '#12b7f3'];
 
-interface DayCycleInfo {
+interface DayRevisionInfo {
   phaseId: string;
   phaseName: string;
   phaseColor: string;
-  cycleNumber: number;
-  cycleColor: string;
+  revisionNumber: number;
+  revisionColor: string;
 }
 
 // Un tramo de la línea de fase encima de una semana: cuántos días abarca
@@ -68,9 +68,9 @@ export class DatesSliderComponent implements AfterViewInit {
 
   public today: Date = new Date();
 
-  // Ciclos por contenido — qué fase y qué ciclo cae en cada día visible
+  // Qué fase y qué revisión cae en cada día visible
   // (clave "YYYY-MM-DD"). Se recarga al cambiar de semana.
-  private dayInfo = new Map<string, DayCycleInfo>();
+  private dayInfo = new Map<string, DayRevisionInfo>();
   public segmentsBySlide: PhaseSegment[][] = [];
 
   constructor(
@@ -130,7 +130,7 @@ export class DatesSliderComponent implements AfterViewInit {
     this.loadTimeline();
   }
 
-  // Fases + ciclos de las tres semanas visibles. En silencio si falla: el
+  // Fases + revisiones de las tres semanas visibles. En silencio si falla: el
   // slider funciona igual sin colores.
   private loadTimeline(): void {
     const first = this.allDateSlides[0]?.[0];
@@ -152,16 +152,22 @@ export class DatesSliderComponent implements AfterViewInit {
   private indexTimeline(timeline: DietTimeline): void {
     this.dayInfo.clear();
     const phaseById = new Map(timeline.phases.map((p) => [p.id, p]));
-    for (const cycle of timeline.cycles) {
-      const phase = phaseById.get(cycle.phaseId);
+    for (const revision of timeline.revisions) {
+      const phase = phaseById.get(revision.phaseId);
       if (!phase) continue;
       const phaseColor = PHASE_COLORS[phase.colorIndex % PHASE_COLORS.length];
-      // El ciclo va rotando dentro de la fase, empezando por el color de la
+      // La revisión va rotando dentro de la fase, empezando por el color de la
       // fase: C1 = color de la fase, C2 el siguiente de la paleta, etc.
-      const cycleColor = PHASE_COLORS[(phase.colorIndex + cycle.number - 1) % PHASE_COLORS.length];
-      let day = cycle.start;
-      while (day <= cycle.end) {
-        this.dayInfo.set(day, { phaseId: phase.id, phaseName: phase.name, phaseColor, cycleNumber: cycle.number, cycleColor });
+      const revisionColor = PHASE_COLORS[(phase.colorIndex + revision.number - 1) % PHASE_COLORS.length];
+      let day = revision.start;
+      while (day <= revision.end) {
+        this.dayInfo.set(day, {
+          phaseId: phase.id,
+          phaseName: phase.name,
+          phaseColor,
+          revisionNumber: revision.number,
+          revisionColor,
+        });
         day = this.addDay(day);
       }
     }
@@ -191,7 +197,7 @@ export class DatesSliderComponent implements AfterViewInit {
     return segments;
   }
 
-  public infoFor(day: Date): DayCycleInfo | null {
+  public infoFor(day: Date): DayRevisionInfo | null {
     return this.dayInfo.get(this._utilService.formatDateToYYYYMMDD(day)) || null;
   }
 

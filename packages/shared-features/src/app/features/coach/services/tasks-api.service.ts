@@ -7,11 +7,16 @@ import { CoachTask } from '../models/coach-dashboard.model';
 export class TasksApiService {
   constructor(private http: HttpService) {}
 
-  public getMine(): Observable<CoachTask[]> {
-    return this.http.get<CoachTask[]>('trainer/tasks/mine');
+  // Los hábitos del cliente con el cumplimiento de ESE día resuelto (hoy por
+  // defecto): la pantalla de dieta los pinta bajo las comidas del día que se
+  // está mirando.
+  public getMine(date?: string): Observable<CoachTask[]> {
+    return this.http.get<CoachTask[]>(
+      date ? `trainer/tasks/mine?date=${encodeURIComponent(date)}` : 'trainer/tasks/mine'
+    );
   }
 
-  public toggle(taskId: string, completed: boolean): Observable<unknown> {
-    return this.http.post(`trainer/tasks/${taskId}/toggle`, { completed });
+  public toggle(taskId: string, completed: boolean, date?: string): Observable<unknown> {
+    return this.http.post(`trainer/tasks/${taskId}/toggle`, { completed, ...(date ? { date } : {}) });
   }
 }

@@ -228,7 +228,7 @@
     border-color: var(--tf-border-strongest);
   }
 
-  &.has-exception.is-skip-exception {
+  &.is-skipped {
     background: var(--tf-danger-soft);
   }
 
@@ -323,13 +323,13 @@
   background: var(--phase-color);
 }
 
-// Vuelta de la fase (C1, C2…), arriba a la derecha. Va por debajo de la
+// Revisión de la fase (R1, R2…), arriba a la derecha. Va por debajo de la
 // franja de fase (3px) para no taparla, y en la esquina OPUESTA al punto de
-// excepción y al ›› de tramo indefinido, que viven abajo a la derecha.
+// día saltado y al ›› de tramo indefinido, que viven abajo a la derecha.
 //
 // Deliberadamente discreto: es un dato de contexto, no el contenido de la
 // celda — el número del día tiene que seguir siendo lo primero que se lee.
-.nutrition-calendar__cycle-badge {
+.nutrition-calendar__revision-badge {
   position: absolute;
   top: 4px;
   right: 3px;
@@ -344,8 +344,8 @@
 
 // Sobre el día seleccionado / hoy el fondo se vuelve acento: el gris apagado
 // se perdería, así que hereda el color del texto de la celda.
-.nutrition-calendar__cell.is-selected .nutrition-calendar__cycle-badge,
-.nutrition-calendar__cell.is-today .nutrition-calendar__cycle-badge {
+.nutrition-calendar__cell.is-selected .nutrition-calendar__revision-badge,
+.nutrition-calendar__cell.is-today .nutrition-calendar__revision-badge {
   color: currentColor;
   opacity: 0.75;
 }
@@ -357,12 +357,23 @@
 // columna se estrecha por el layout de la ficha, no por el tamaño de
 // pantalla, y una media query acertaría solo por casualidad.
 @container nutrition-grid (max-width: 330px) {
-  .nutrition-calendar__cycle-badge {
+  .nutrition-calendar__revision-badge {
     display: none;
   }
 }
 
-.nutrition-calendar__exception-dot {
+// Icono de suplementación del día: esquina inferior izquierda, para no
+// chocar con el badge de revisión (arriba a la derecha).
+.nutrition-calendar__supplement {
+  position: absolute;
+  bottom: 2px;
+  left: 3px;
+  font-size: 10px;
+  color: var(--tf-text-muted);
+  pointer-events: none;
+}
+
+.nutrition-calendar__skipped-dot {
   position: absolute;
   bottom: 3px;
   right: 3px;
@@ -435,7 +446,7 @@
     background: var(--tf-accent);
   }
 
-  &--exception {
+  &--skipped {
     background: var(--tf-danger);
     border-radius: 50%;
   }
@@ -502,7 +513,7 @@
 
 // Acción del día seleccionado, bajo la leyenda. Ancho completo: es la única
 // acción de la tarjeta y partirla en un botón pequeño la escondería.
-.exception-btn {
+.skip-day-btn {
   display: flex;
   align-items: center;
   justify-content: center;

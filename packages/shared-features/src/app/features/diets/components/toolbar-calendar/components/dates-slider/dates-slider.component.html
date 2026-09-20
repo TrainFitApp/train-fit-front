@@ -1,6 +1,6 @@
 <swiper-container class="t-dates-slider" #dateSlides>
   <swiper-slide *ngFor="let slide of allDateSlides; let s = index">
-    <!-- Ciclos por contenido: línea fina por FASE encima de los días, con su
+    <!-- Línea fina por FASE encima de los días, con su
          nombre; corta donde empieza la siguiente. -->
     <div class="phase-line" *ngIf="segmentsBySlide[s]?.length">
       <div
@@ -21,11 +21,11 @@
           (click)="sendSelectedDate(day)"
           [class.selected]="datesAreOnSameDay(currentDate, day)"
           [class.today]="today.getDate() === day.getDate() && today.getMonth() === day.getMonth()"
-          [class.has-cycle]="!!infoFor(day)"
-          [style.--cycle-color]="infoFor(day)?.cycleColor"
+          [class.has-revision]="!!infoFor(day)"
+          [style.--revision-color]="infoFor(day)?.revisionColor"
         >
-          <!-- En qué ciclo cae el día, en pequeño arriba a la derecha. -->
-          <span class="cycle-badge" *ngIf="infoFor(day) as info">C{{ info.cycleNumber }}</span>
+          <!-- En qué revisión cae el día, en pequeño arriba a la derecha. -->
+          <span class="revision-badge" *ngIf="infoFor(day) as info">R{{ info.revisionNumber }}</span>
           <div>{{ day | date : "dd" }}</div>
           <div>{{ getDayAbbreviation(day) }}</div>
         </ion-col>

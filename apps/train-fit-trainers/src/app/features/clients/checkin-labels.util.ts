@@ -1,7 +1,7 @@
 import { CHECKIN_FIELDS_BY_KEY } from 'src/app/core/constants/checkin-fields';
 
 // Cómo se lee una respuesta de check-in. Vivía suelto en client-detail.page.ts
-// hasta que el panel de resumen de ciclo necesitó lo mismo: se extrae aquí en
+// hasta que el panel de resumen de revisión necesitó lo mismo: se extrae aquí en
 // vez de copiarlo, que es exactamente como se desincronizaron en su día las
 // tres copias de la paleta de fases (ver phase-color.util.ts).
 

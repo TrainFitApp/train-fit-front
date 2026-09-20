@@ -26,39 +26,40 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <p class="empty-hint" *ngIf="!configs.length">
-      Ninguno de tus profesionales te ha pedido un check-in todavía.
+    <p class="empty-hint" *ngIf="!checkins.length">
+      No tienes ningún check-in abierto ahora mismo. Aparecerá cuando llegue la fecha que haya marcado tu
+      profesional.
     </p>
 
     <div
       class="checkin-card"
-      [class]="'checkin-card--' + cardKind(config)"
-      [class.is-done]="isDone(config)"
-      [class.is-open]="expandedTrainerId === configKey(config)"
-      *ngFor="let config of configs; trackBy: trackByTrainerId"
+      [class]="'checkin-card--' + (checkin.revision ? 'revision' : 'request')"
+      [class.is-done]="isDone(checkin)"
+      [class.is-open]="expandedTrainerId === checkinKey(checkin)"
+      *ngFor="let checkin of checkins; trackBy: trackByCheckinId"
     >
-      <button class="checkin-card-header" (click)="toggleExpand(config)">
+      <button class="checkin-card-header" (click)="toggleExpand(checkin)">
         <span class="checkin-card-badge" aria-hidden="true">
-          <ion-icon [name]="cardIcon(config)"></ion-icon>
+          <ion-icon [name]="cardIcon(checkin)"></ion-icon>
         </span>
         <div class="checkin-card-title-group">
           <span class="checkin-card-title-row">
-            <span class="list-card-title">{{ config.name || trainerName(config) }}</span>
-            <span class="checkin-card-pill">{{ isDone(config) ? 'Respondido' : 'Pendiente' }}</span>
+            <span class="list-card-title">{{ checkin.name || trainerName(checkin) }}</span>
+            <span class="checkin-card-pill">{{ isDone(checkin) ? 'Respondido' : 'Pendiente' }}</span>
           </span>
-          <span class="checkin-card-subtitle" *ngIf="config.name">{{ trainerName(config) }}</span>
+          <span class="checkin-card-subtitle" *ngIf="checkin.name">{{ trainerName(checkin) }}</span>
           <span class="checkin-card-subtitle">
-            {{ cadenceLabel(config) }} · {{ fieldsFor(config).length }} campos
+            {{ periodLabel(checkin) }} · {{ fieldsFor(checkin).length }} campos
           </span>
         </div>
         <ion-icon
           class="checkin-card-chevron"
-          [name]="expandedTrainerId === configKey(config) ? 'chevron-up-outline' : 'chevron-down-outline'"
+          [name]="expandedTrainerId === checkinKey(checkin) ? 'chevron-up-outline' : 'chevron-down-outline'"
         ></ion-icon>
       </button>
 
-      <div class="checkin-form" *ngIf="expandedTrainerId === configKey(config)">
-        <div class="checkin-field" *ngFor="let field of fieldsFor(config); trackBy: trackByFieldKey">
+      <div class="checkin-form" *ngIf="expandedTrainerId === checkinKey(checkin)">
+        <div class="checkin-field" *ngFor="let field of fieldsFor(checkin); trackBy: trackByFieldKey">
           <span class="checkin-field-label">
             {{ field.label }}<span *ngIf="field.unit"> ({{ field.unit }})</span
             ><span class="required-mark" *ngIf="field.required" aria-hidden="true">*</span>
@@ -152,13 +153,13 @@
           </div>
         </div>
 
-        <p class="required-hint" *ngIf="missingRequiredLabel(config) as missing">
+        <p class="required-hint" *ngIf="missingRequiredLabel(checkin) as missing">
           Falta responder: <strong>{{ missing }}</strong>
         </p>
 
         <button
           class="submit-button"
-          (click)="submitResponse(config)"
+          (click)="submitResponse(checkin)"
           [disabled]="!hasAnyValue() || isSubmitting"
         >
           <span *ngIf="!isSubmitting">Enviar check-in</span>

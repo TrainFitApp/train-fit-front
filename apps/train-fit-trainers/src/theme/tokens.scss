@@ -88,6 +88,13 @@
   --tf-success-rgb: 52, 199, 89;
   --tf-success-soft: rgba(52, 199, 89, 0.08);
   --tf-success-border: rgba(52, 199, 89, 0.35);
+  // Aviso: falta un dato o algo va a quedarse corto, pero nada está roto
+  // todavía — por debajo de --tf-danger. Mismo ámbar que ya venía usándose
+  // como valor de respaldo en las tres pantallas que referenciaban este
+  // token sin que existiera (objetivo nutricional, desglose de necesidad).
+  --tf-warning: #ffc409;
+  --tf-warning-soft: rgba(255, 196, 9, 0.1);
+  --tf-warning-border: rgba(255, 196, 9, 0.35);
   // Mismo rojo que --ion-color-danger en shared-theme — referenciado, no repetido.
   // Reservado para acciones destructivas (eliminar, revocar).
   --tf-danger: var(--ion-color-danger, #eb445a);

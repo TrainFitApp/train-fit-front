@@ -17,12 +17,12 @@ export class DietDay {
   fatG?: number;
   fatGTotal?: number;
 
-  // Plan "choice": qué menú eligió el cliente ese día (null = sin elegir).
-  dayTypeName?: string | null;
-  // Ciclos por contenido — lo que suma lo PAUTADO ese día: es la meta que
+  // Qué menú del plan eligió el cliente ese día (null = sin elegir).
+  menuName?: string | null;
+  // Lo que suma lo PAUTADO ese día: es la meta que
   // ve el cliente (no un objetivo guardado aparte). null = nada pautado.
   plannedTarget?: PlannedTarget | null;
-  // En qué ciclo de qué fase cae este día (null = sin fase de dieta).
+  // En qué revisión de qué fase cae este día (null = sin fase de dieta).
   cycle?: DietDayCycle | null;
 }
 
@@ -40,8 +40,10 @@ export interface DietDayCycle {
   end: string;
 }
 
-// Fases y ciclos del cliente en un rango — para pintar el slider de días.
+// Fases y revisiones del cliente en un rango — para pintar el slider de días.
+// Fases del plan del cliente y sus REVISIONES (las ventanas que marcan sus
+// check-ins, ver docs/plan-revisiones.md) en un rango de fechas.
 export interface DietTimeline {
   phases: { id: string; name: string; start: string; end: string | null; colorIndex: number }[];
-  cycles: { phaseId: string; number: number; start: string; end: string; colorIndex: number }[];
+  revisions: { phaseId: string; number: number; start: string; end: string; colorIndex: number }[];
 }

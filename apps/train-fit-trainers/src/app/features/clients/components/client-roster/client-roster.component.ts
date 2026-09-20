@@ -61,7 +61,9 @@ const DIMENSION_TAB: Record<AdherenceDimensionKey, ClientDetailTab> = {
   nutrition: 'nutrition',
   training: 'training',
   habits: 'tasks',
-  checkins: 'checkins',
+  // "Medidas y check-ins" es un solo panel desde la fusión de las dos
+  // subpestañas.
+  checkins: 'measurements',
 };
 
 // Mismas etiquetas que la pestaña Resumen de la ficha
@@ -85,10 +87,6 @@ const UNAVAILABLE_LABELS: Record<string, string> = {
 const ADHERENCE_LOW = 70;
 const ADHERENCE_CRITICAL = 50;
 
-// Espejo de CHECKIN_CADENCE_DAYS (components/trainerCheckins/checkin-due.js).
-// "once" no está a propósito: un check-in de una sola vez no se puede
-// "atrasar", igual que en el backend.
-const CHECKIN_CADENCE_DAYS: Record<string, number> = { weekly: 7, biweekly: 14 };
 
 /**
  * Movimiento 1 Coach Pro — la CARTERA.
@@ -130,7 +128,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       }
       if (this.filterWeakest && row.adherence.weakest !== this.filterWeakest) return false;
       if (this.filterOnlyWithAlerts && !row.openAlerts) return false;
-      // "Vencido" = más de un ciclo sin responder. El dato exacto lo tiene el
+      // "Vencido" = pasó la fecha del siguiente check-in. El dato exacto lo tiene el
       // motor de alertas; aquí basta con el umbral visible de la columna.
       if (this.filterOnlyOverdueCheckin && (row.daysSinceCheckin ?? 0) <= 7) return false;
       return true;
@@ -345,13 +343,11 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     return `Hace ${row.daysSinceCheckin} días`;
   }
 
-  // Un check-in "atrasado" solo tiene sentido si hay cadencia periódica
-  // configurada: sin ella (o con cadencia "once") no hay nada que incumplir.
-  // Mismos días que CHECKIN_CADENCE_DAYS en checkin-due.js.
+  // Atrasado = ya pasó la fecha del siguiente check-in programado y sigue
+  // sin responder. Sin programación no hay nada que incumplir.
   public isCheckinOverdue(row: RosterClient): boolean {
-    const cadenceDays = CHECKIN_CADENCE_DAYS[row.checkinCadence || ''];
-    if (!cadenceDays) return false;
-    return row.daysSinceCheckin === null || row.daysSinceCheckin > cadenceDays;
+    if (!row.nextCheckinDate) return false;
+    return row.nextCheckinDate < new Date().toISOString().slice(0, 10);
   }
 
   public toggleRow(row: RosterClient): void {

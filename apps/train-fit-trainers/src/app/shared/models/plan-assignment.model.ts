@@ -2,7 +2,6 @@
 // "este plan aplica a este cliente desde tal fecha, hasta tal otra o
 // indefinidamente". Ver MVP-trainers/tareas-grandes/TAREA5 (Fase 8).
 export type PlanAssignmentStatus = 'active' | 'superseded' | 'ended';
-export type DietTemplateMode = 'sequential' | 'recurring' | 'choice';
 
 export interface PlanAssignment {
   // La copia congelada de la plantilla ES la asignación — un solo documento,
@@ -16,49 +15,46 @@ export interface PlanAssignment {
   trainerId: string;
   startDate: string;
   // Fin REAL: null mientras la fase sigue corriendo, con fecha en cuanto otra
-  // la corta. No hay fin estimado (ciclos por contenido: una fase acaba
-  // cuando empieza otra).
+  // la corta o el entrenador se lo pone a mano (editar fechas de la fase).
   endDate: string | null;
   status: PlanAssignmentStatus;
-  // Nº de días de contenido del doc (days[]). 0 en recurring/choice.
-  daysCount?: number | null;
-  // Días que dura un ciclo de ESTE doc (contenido): days.length, 7, o
-  // choiceCycleDays. Ver cycle-window.js en el backend.
-  cycleDays?: number | null;
-  choiceCycleDays?: number | null;
+  // Nº de menús de contenido del doc.
+  menusCount?: number | null;
   supersededBy: string | null;
   createdAt: string;
   planName?: string | null;
-  // TASK-044 (MASTER_BACKLOG.md) — mode ya existía en el plan, solo faltaba
-  // exponerlo aquí. stuckDaysCount solo se calcula (no-null) cuando
-  // mode === 'choice': cuántos días desde startDate el cliente nunca eligió
-  // menú (DietDay.dayTypeName sigue null).
-  mode?: DietTemplateMode | null;
+  // TASK-044 (MASTER_BACKLOG.md) — cuántos días desde startDate el cliente
+  // nunca eligió menú (DietDay.menuName sigue null).
   stuckDaysCount?: number | null;
-  // F20-octies — solo para mode === 'recurring': cada dayPattern del plan
-  // con nombre + sus weekdays (0=domingo…6=sábado, ver WEEKDAYS en
-  // diet-template.model.ts), para distinguir "patrón A cubre L/M/S, patrón
-  // B cubre X/D" en vez de una única lista mezclada. null para
-  // sequential/choice.
-  recurringPatterns?: { name: string; appliesTo: number[] }[] | null;
-  // Sugerencias de dieta — la fase a la que pertenece este ciclo. `phaseId`
-  // apunta al primer ciclo de la fase; phaseName/phaseFocus solo vienen
-  // rellenos en ese primer ciclo.
+  // La fase a la que pertenece este contenido. `phaseId` apunta al primer
+  // documento de la fase; phaseName/phaseTarget solo vienen rellenos ahí.
   phaseId?: string | null;
   phaseName?: string | null;
-  phaseFocus?: 'cut' | 'maintain' | 'bulk' | null;
+  // Objetivo con el que se pauta la fase (calculado del cliente o tecleado
+  // a mano en el cajón).
+  phaseTarget?: {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    source: 'calculated' | 'manual';
+  } | null;
 }
 
-// El bloque con el que nace toda fase (objetivo elegido en el builder al
-// crear el C1, o en el cajón de sugerencias). Sin él la copia es un plan
-// "de siempre", sin ciclos.
+// El bloque con el que nace toda fase: su nombre y con qué números se
+// pauta. Sin él la copia es un plan suelto, sin revisiones.
 export interface PhasePayload {
   name: string;
-  focus: 'cut' | 'maintain' | 'bulk' | null;
-  targetKcalDelta: number;
-  ratePerCycle: number;
-  // Info de cálculo de fase (docs/plan-info-calculo-fase.md): g/kg que el
-  // entrenador tocó en el cajón (ausentes = fórmula por defecto).
+  // kcal/macros de la fase: los calculados del cliente o los que el
+  // entrenador tecleó encima (source 'manual').
+  target: {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    source: 'calculated' | 'manual';
+  } | null;
+  // g/kg que el entrenador tocó en el cajón (ausentes = fórmula por defecto).
   proteinPerKg?: number | null;
   fatPerKg?: number | null;
 }
@@ -69,23 +65,16 @@ export interface ApplyPlanRequest {
 }
 
 // Historial de nutrición de la ficha — feed de eventos que desglosa fases y
-// ciclos (espejo de train-fit-back/components/planAssignments/nutrition-history.js).
-export type NutritionHistoryEventType = 'phase_started' | 'phase_ended' | 'cycle' | 'checkin' | 'exception';
-// met/missed = ciclo acabado con adherencia >= / < 75 %; no_data = acabado
-// sin ningún día registrado; running = todavía en marcha.
-export type NutritionCycleStatus = 'running' | 'met' | 'missed' | 'no_data';
+// revisiones (espejo de train-fit-back/components/planAssignments/nutrition-history.js).
+export type NutritionHistoryEventType = 'phase_started' | 'phase_ended' | 'revision' | 'checkin' | 'skipped_day';
+// met/missed = revisión acabada con adherencia >= / < 75 %; no_data =
+// acabada sin ningún día registrado; running = todavía en marcha.
+export type NutritionRevisionStatus = 'running' | 'met' | 'missed' | 'no_data';
 
 export interface NutritionHistoryCheckin {
   id: string;
   respondedAt: string;
   values: Record<string, number | string | boolean>;
-}
-
-export interface NutritionHistoryException {
-  id: string;
-  date: string;
-  action: 'override' | 'skip';
-  mealSlot: string | null;
 }
 
 interface NutritionHistoryEventBase {
@@ -94,26 +83,24 @@ interface NutritionHistoryEventBase {
   date: string;
   phaseId: string;
   phaseName: string | null;
-  phaseFocus: 'cut' | 'maintain' | 'bulk' | null;
 }
 
 export interface NutritionPhaseStartedEvent extends NutritionHistoryEventBase {
   type: 'phase_started';
-  mode: DietTemplateMode | null;
 }
 
 export interface NutritionPhaseEndedEvent extends NutritionHistoryEventBase {
   type: 'phase_ended';
   status: 'superseded' | 'finished';
-  cyclesCount: number;
+  revisionsCount: number;
 }
 
-export interface NutritionCycleEvent extends NutritionHistoryEventBase {
-  type: 'cycle';
+export interface NutritionRevisionEvent extends NutritionHistoryEventBase {
+  type: 'revision';
   number: number;
   start: string;
   end: string;
-  // La fase se cortó antes de que este ciclo llegara a su fin natural.
+  // La fase se cortó antes de que esta revisión llegara a su fin natural.
   truncated: boolean;
   overrideId: string;
   profile: { kcal: number; protein: number; carbs: number; fat: number };
@@ -121,9 +108,10 @@ export interface NutritionCycleEvent extends NutritionHistoryEventBase {
   adherencePct: number | null;
   adherenceDays: number;
   periodDays: number;
-  status: NutritionCycleStatus;
+  status: NutritionRevisionStatus;
   checkin: NutritionHistoryCheckin | null;
-  exceptions: NutritionHistoryException[];
+  // Fechas de la revisión en las que el cliente se saltó el plan.
+  skippedDays: string[];
 }
 
 export interface NutritionCheckinEvent extends NutritionHistoryEventBase {
@@ -132,18 +120,17 @@ export interface NutritionCheckinEvent extends NutritionHistoryEventBase {
   checkin: NutritionHistoryCheckin;
 }
 
-export interface NutritionExceptionEvent extends NutritionHistoryEventBase {
-  type: 'exception';
+export interface NutritionSkippedDayEvent extends NutritionHistoryEventBase {
+  type: 'skipped_day';
   number: number;
-  exception: NutritionHistoryException;
 }
 
 export type NutritionHistoryEvent =
   | NutritionPhaseStartedEvent
   | NutritionPhaseEndedEvent
-  | NutritionCycleEvent
+  | NutritionRevisionEvent
   | NutritionCheckinEvent
-  | NutritionExceptionEvent;
+  | NutritionSkippedDayEvent;
 
 export interface NutritionHistoryResponse {
   events: NutritionHistoryEvent[];

@@ -25,7 +25,6 @@ import { DietTemplateApiService } from '../../services/diet-template-api.service
 export class DietPhasePickerPage {
   public clientId = '';
   public clientName = 'este cliente';
-  public suggestedStartDate: string | null = null;
 
   private drawer: HTMLIonModalElement | null = null;
 
@@ -49,7 +48,6 @@ export class DietPhasePickerPage {
   public ionViewWillEnter(): void {
     this.clientId = this.route.snapshot.paramMap.get('clientId') || '';
     this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
-    this.suggestedStartDate = this.route.snapshot.queryParamMap.get('start');
     this.leaving = false;
     void this.openDrawer();
   }
@@ -73,7 +71,6 @@ export class DietPhasePickerPage {
       componentProps: {
         clientId: this.clientId,
         clientName: this.clientName,
-        suggestedStartDate: this.suggestedStartDate,
       },
     });
     this.drawer = modal;
@@ -94,7 +91,6 @@ export class DietPhasePickerPage {
           name: data.phase?.name || 'Nueva dieta',
           startDate: data.startDate,
           phase: data.phase,
-          cycleTarget: data.cycleTarget,
         },
       });
       return;
@@ -112,13 +108,7 @@ export class DietPhasePickerPage {
           name: data.phase?.name || template.name || 'Nueva dieta',
           startDate: data.startDate,
           phase: data.phase,
-          cycleTarget: data.cycleTarget,
-          prefill: {
-            name: template.name,
-            mode: template.mode,
-            days: template.days,
-            dayPatterns: template.dayPatterns,
-          },
+          prefill: { name: template.name, menus: template.menus },
         },
       });
       return;

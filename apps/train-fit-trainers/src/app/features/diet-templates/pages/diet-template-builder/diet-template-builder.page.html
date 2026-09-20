@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <app-page-header
-    [title]="isPreparingNextCycle ? ('Preparar ciclo ' + nextCycleNumber) : (isCreatingForClient ? 'Crear dieta' : (isEditingAssignedCopy ? 'Editar dieta' : 'Editar plantilla'))"
+    [title]="isPreparingNextRevision ? ('Preparar R' + nextRevisionNumber) : (isCreatingForClient ? 'Crear dieta' : (isEditingAssignedCopy ? 'Editar dieta' : 'Editar plantilla'))"
   ></app-page-header>
 </ion-header>
 
@@ -10,14 +10,14 @@
     <div class="skeleton-block" style="height: 60px;"></div>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy && !isPreparingNextCycle">
+  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy && !isPreparingNextRevision">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>No se pudo cargar la plantilla</h2>
     <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && (isEditingAssignedCopy || isPreparingNextCycle)">
+  <div class="state-message" *ngIf="state === 'error' && (isEditingAssignedCopy || isPreparingNextRevision)">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>No se pudo cargar la dieta</h2>
     <p>Comprueba tu conexión e inténtalo de nuevo desde la ficha del cliente.</p>
@@ -32,27 +32,23 @@
          El aviso de alcance NO es decorativo: la fase que el cliente tiene
          aplicada es una copia congelada (ver diet-template-schema.js), así
          que editar la plantilla no cambia lo que come hoy. -->
-    <div class="client-context" *ngIf="clientContextKind as kind">
-      <p class="client-context__title">
-        <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>
-        <span [ngSwitch]="kind">
-          <ng-container *ngSwitchCase="'new'">
-            Nueva dieta para <strong>{{ clientContextName }}</strong>
-          </ng-container>
-          <ng-container *ngSwitchCase="'own'">
-            Dieta de <strong>{{ clientContextName }}</strong>
-          </ng-container>
-          <ng-container *ngSwitchCase="'assigned'">
-            Editando la dieta ya asignada a <strong>{{ clientContextName }}</strong>
-          </ng-container>
-          <ng-container *ngSwitchCase="'next-cycle'">
-            Ciclo {{ nextCycleNumber }} de <strong>{{ clientContextName }}</strong> · {{ nextCycleRange }}
-          </ng-container>
-          <ng-container *ngSwitchDefault>
-            Plantilla general, abierta desde la ficha de <strong>{{ clientContextName }}</strong>
-          </ng-container>
-        </span>
-      </p>
+    <div class="client-context" [class.client-context--new]="clientContextKind === 'new'" *ngIf="clientContextKind as kind">
+      <!-- Cabecera: avatar con iniciales + de quién es la dieta. El nombre
+           sube a una línea propia porque es el dato que identifica la
+           pantalla; el modo (nueva / asignada / revisión) queda de antetítulo. -->
+      <div class="client-context__head">
+        <span class="client-context__avatar" aria-hidden="true">{{ clientInitials }}</span>
+        <p class="client-context__heading">
+          <span class="client-context__eyebrow" [ngSwitch]="kind">
+            <ng-container *ngSwitchCase="'new'">Nueva dieta para</ng-container>
+            <ng-container *ngSwitchCase="'own'">Dieta de</ng-container>
+            <ng-container *ngSwitchCase="'assigned'">Editando la dieta ya asignada a</ng-container>
+            <ng-container *ngSwitchCase="'next-revision'">R{{ nextRevisionNumber }} · {{ nextRevisionRange }} · de</ng-container>
+            <ng-container *ngSwitchDefault>Plantilla general, abierta desde la ficha de</ng-container>
+          </span>
+          <span class="client-context__name">{{ clientContextName }}</span>
+        </p>
+      </div>
 
       <p class="client-context__scope" *ngIf="kind !== 'new'">
         <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
@@ -68,38 +64,110 @@
           Esto es lo que {{ clientContextName }} tiene aplicado ahora mismo — los
           cambios no tocan ninguna plantilla de biblioteca, solo esta fase.
         </span>
-        <span *ngIf="kind === 'next-cycle'">
-          Contenido del ciclo actual con las cantidades escaladas. Retoca lo que
-          quieras y guarda: si no cambias nada, el ciclo repetirá el actual.
+        <span *ngIf="kind === 'next-revision'">
+          Contenido vigente con las cantidades escaladas. Retoca lo que quieras y guarda: si no
+          cambias nada, la revisión repetirá lo actual.
         </span>
       </p>
 
-      <!-- Preparar siguiente ciclo — las kcal objetivo, reescalables desde
-           aquí (mismo % a todos los alimentos, pisa los retoques a mano). -->
-      <div class="next-cycle-kcal" *ngIf="kind === 'next-cycle'">
-        <label class="next-cycle-kcal__label" for="next-cycle-kcal">kcal del ciclo</label>
-        <div class="next-cycle-kcal__row">
-          <input id="next-cycle-kcal" type="number" step="50" min="1" class="input-field" [(ngModel)]="nextCycleKcal" />
-          <button type="button" class="next-cycle-kcal__btn" [disabled]="rescaling || !(nextCycleKcal > 0)" (click)="rescaleNextCycle()">
+      <!-- Preparar la siguiente revisión — las kcal objetivo, reescalables
+           desde aquí (mismo % a todos los alimentos, pisa los retoques a
+           mano). -->
+      <div class="next-revision-kcal" *ngIf="kind === 'next-revision'">
+        <label class="next-revision-kcal__label" for="next-revision-kcal">kcal de la revisión</label>
+        <div class="next-revision-kcal__row">
+          <input id="next-revision-kcal" type="number" step="50" min="1" class="input-field" [(ngModel)]="nextRevisionKcal" />
+          <button
+            type="button"
+            class="next-revision-kcal__btn"
+            [disabled]="rescaling || !(nextRevisionKcal > 0)"
+            (click)="rescaleNextRevision()"
+          >
             {{ rescaling ? 'Escalando…' : 'Reescalar' }}
           </button>
         </div>
-        <p class="next-cycle-kcal__hint">Ciclo actual: {{ nextCycleBaseKcal | number: '1.0-0' }} kcal de media diaria.</p>
+        <p class="next-revision-kcal__hint">
+          Pautado ahora: {{ nextRevisionBaseKcal | number: '1.0-0' }} kcal de media diaria.
+        </p>
       </div>
 
+      <!-- Objetivo del cliente, EDITABLE al crear su dieta: es contra lo que
+           se monta la comida, y el entrenador puede fijar otros números sin
+           salir de aquí (docs/plan-revisiones.md §4/§7). En los demás modos
+           es solo referencia. -->
       <div class="client-context__target" *ngIf="clientTarget as target">
-        <span class="client-context__target-label">{{ clientTargetLabel }}</span>
-        <span class="client-context__target-values">
-          <strong>{{ target.kcal | number: '1.0-0' }} kcal</strong>
-          <span class="macro-tag macro-tag--protein">P {{ target.protein | number: '1.0-0' }}g</span>
-          <span class="macro-tag macro-tag--carbs">C {{ target.carbs | number: '1.0-0' }}g</span>
-          <span class="macro-tag macro-tag--fat">G {{ target.fat | number: '1.0-0' }}g</span>
+        <span class="client-context__target-label">
+          {{ clientTargetLabel }}
+          <span
+            class="client-context__target-source"
+            [class.is-manual]="clientTargetSource === 'manual'"
+            *ngIf="kind === 'new'"
+          >
+            {{ clientTargetSource === 'manual' ? 'manual' : 'calculado' }}
+          </span>
         </span>
+        <span class="client-context__target-values" *ngIf="kind !== 'new'">
+          <span class="macro-tag macro-tag--kcal"><strong>{{ target.kcal | number: '1.0-0' }}</strong> kcal</span>
+          <span class="macro-tag macro-tag--protein"><strong>{{ target.protein | number: '1.0-0' }}</strong> P</span>
+          <span class="macro-tag macro-tag--carbs"><strong>{{ target.carbs | number: '1.0-0' }}</strong> C</span>
+          <span class="macro-tag macro-tag--fat"><strong>{{ target.fat | number: '1.0-0' }}</strong> G</span>
+        </span>
+        <!-- Cada macro con el color con el que se lee en el resto de la app
+             (kcal naranja, P azul, C verde, G amarillo): el color hace de
+             etiqueta, así el campo cabe en cuatro columnas sin leer nada. -->
+        <span class="client-context__target-fields" *ngIf="kind === 'new'">
+          <label class="macro-field macro-field--kcal">
+            <span class="macro-field__label">kcal</span>
+            <input type="number" step="10" [(ngModel)]="target.kcal" (ngModelChange)="onClientTargetEdited()" />
+          </label>
+          <label class="macro-field macro-field--protein">
+            <span class="macro-field__label">P (g)</span>
+            <input type="number" step="1" [(ngModel)]="target.protein" (ngModelChange)="onClientTargetEdited()" />
+          </label>
+          <label class="macro-field macro-field--carbs">
+            <span class="macro-field__label">C (g)</span>
+            <input type="number" step="1" [(ngModel)]="target.carbs" (ngModelChange)="onClientTargetEdited()" />
+          </label>
+          <label class="macro-field macro-field--fat">
+            <span class="macro-field__label">G (g)</span>
+            <input type="number" step="1" [(ngModel)]="target.fat" (ngModelChange)="onClientTargetEdited()" />
+          </label>
+        </span>
+      </div>
+
+      <!-- Alergias, gustos y suplementación: lo que condiciona QUÉ se puede
+           pautar. Sin esto había que salir a la ficha a mirarlo. -->
+      <div class="client-context__prefs" *ngIf="kind === 'new' && (clientPreferences || clientSupplements.length)">
+        <p class="ctx-chip ctx-chip--danger" *ngIf="clientPreferences?.allergies">
+          <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+          <span><b>Alergias</b> {{ clientPreferences?.allergies }}</span>
+        </p>
+        <p class="ctx-chip ctx-chip--warning" *ngIf="clientPreferences?.dislikedFoods">
+          <ion-icon name="thumbs-down-outline" aria-hidden="true"></ion-icon>
+          <span><b>No le gustan</b> {{ clientPreferences?.dislikedFoods }}</span>
+        </p>
+        <p class="ctx-chip ctx-chip--success" *ngIf="clientPreferences?.favoriteFoods">
+          <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
+          <span><b>Favoritos</b> {{ clientPreferences?.favoriteFoods }}</span>
+        </p>
+        <p class="ctx-chip ctx-chip--accent" *ngIf="clientPreferences?.dietaryFlags?.length">
+          <ion-icon name="leaf-outline" aria-hidden="true"></ion-icon>
+          <span><b>Restricciones</b> {{ clientPreferences?.dietaryFlags?.join(', ') }}</span>
+        </p>
+        <p class="ctx-chip ctx-chip--accent" *ngIf="clientSupplements.length">
+          <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>
+          <span>
+            <b>Suplementos</b>
+            <span *ngFor="let supplement of clientSupplements; let last = last">
+              {{ supplement.name }} ({{ supplement.dose }}){{ last ? '' : ', ' }}
+            </span>
+          </span>
+        </p>
       </div>
     </div>
 
-    <!-- Los ciclos no se nombran (plan §4): al preparar uno no hay campo. -->
-    <div class="input-wrapper" *ngIf="!isPreparingNextCycle">
+    <!-- Las revisiones no se nombran: al preparar una no hay campo. -->
+    <div class="input-wrapper" *ngIf="!isPreparingNextRevision">
       <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
       <input
         type="text"
@@ -109,43 +177,11 @@
       />
     </div>
 
-    <!-- Objetivo de la fase (plan ciclos por contenido §8) — solo al crear el
-         C1. Es lo que usa la sugerencia del siguiente ciclo para saber qué
-         esperaba el entrenador ("bajas como esperabas" / "vas lento"). -->
-    <div class="phase-objective" *ngIf="isCreatingForClient">
-      <p class="section-hint">Objetivo de la fase</p>
-      <div class="end-mode-options">
-        <button
-          type="button"
-          class="end-mode-option"
-          *ngFor="let opt of focusOptions"
-          [class.selected]="phaseFocus === opt.key"
-          (click)="setPhaseFocus(opt.key)"
-        >
-          {{ opt.label }}
-        </button>
-      </div>
-      <div class="phase-objective__row">
-        <label class="phase-objective__field">
-          <span>Ajuste de kcal</span>
-          <input type="number" step="50" class="input-field" [(ngModel)]="phaseKcalDelta" />
-        </label>
-        <label class="phase-objective__field">
-          <span>Ritmo por ciclo (kcal)</span>
-          <input type="number" step="50" class="input-field" [(ngModel)]="phaseRatePerCycle" />
-        </label>
-      </div>
-      <p class="section-hint phase-objective__hint">
-        Déficit/superávit respecto al gasto del cliente, y cuánto se moverán las kcal de un ciclo al siguiente
-        si va según lo previsto. Se puede ajustar en cada ciclo.
-      </p>
-    </div>
-
     <!-- Sugerencias de dieta — aptitud dietética. La deriva el backend de los
          alimentos; el entrenador solo puede FORZAR las que la deriva no da
          (productos sin el flag rellenado). Solo al editar una plantilla ya
          guardada. -->
-    <div class="suitable-for" *ngIf="!isCreatingForClient && !isPreparingNextCycle">
+    <div class="suitable-for" *ngIf="!isCreatingForClient && !isPreparingNextRevision">
       <p class="section-hint">Apta para</p>
       <div class="suitable-chips">
         <button
@@ -169,65 +205,34 @@
       </p>
     </div>
 
-    <!-- Auditoría de arquitectura (Fase 8/9) — mismo tablero, tres maneras de
-         indexar las columnas: días secuenciales (Día 1..N), patrones fijos
-         por día de la semana ("Entre semana"/"Fin de semana"), o menús que
-         el propio cliente elige cada día ("Entrenamiento"/"Descanso").
-         Cambiar de modo no borra los otros conjuntos de columnas. -->
-    <p class="section-hint">¿Cómo se repite esta plantilla?</p>
-    <div class="end-mode-options">
-      <button type="button" class="end-mode-option" [class.selected]="mode === 'sequential'" [disabled]="copyMode" (click)="setMode('sequential')">
-        Días (1, 2, 3...)
-      </button>
-      <button type="button" class="end-mode-option" [class.selected]="mode === 'recurring'" [disabled]="copyMode" (click)="setMode('recurring')">
-        Por día de la semana
-      </button>
-      <button type="button" class="end-mode-option" [class.selected]="mode === 'choice'" [disabled]="copyMode" (click)="setMode('choice')">
-        El cliente elige cada día
-      </button>
-    </div>
-    <p class="section-hint mode-hint" *ngIf="mode === 'choice'">
-      El cliente marcará cada día cuál de estos menús le toca (p. ej. "Entrenamiento" / "Descanso") —
-      no hace falta asignar días de la semana.
+    <!-- Una plantilla es SIEMPRE una lista de menús intercambiables: el
+         cliente marca cada día cuál le toca. No hay secuencia Día 1..N ni
+         patrones atados al día de la semana. -->
+    <p class="section-hint mode-hint">
+      El cliente marcará cada día cuál de estos menús le toca (p. ej. "Entrenamiento" / "Descanso").
     </p>
-    <!-- Ciclos por contenido: en días/semana la longitud del ciclo sale sola
-         (los días de la dieta / la semana); aquí el cliente elige cada día,
-         así que hay que decirla. -->
-    <div class="choice-cycle-days" *ngIf="mode === 'choice'">
-      <label class="choice-cycle-days__field" for="choice-cycle-days">
-        <span>Días por ciclo</span>
-        <input id="choice-cycle-days" type="number" min="1" max="60" class="input-field" [(ngModel)]="choiceCycleDays" />
-      </label>
-      <p class="section-hint">Cada cuántos días se revisa el ciclo (check-in y sugerencia del siguiente).</p>
-    </div>
-
     <p class="empty-hint" *ngIf="!activeRows.length">
       {{ emptyRowsHint }}
     </p>
 
-    <p class="empty-hint uncovered-hint" *ngIf="mode === 'recurring' && activeRows.length && uncoveredWeekdays">
-      Sin patrón asignado: {{ uncoveredWeekdays }}. Esos días no se tocará la dieta del cliente.
-    </p>
-
-    <!-- Caso contrario a uncoveredWeekdays: un día marcado en 2+ patrones a
-         la vez. No bloquea guardar (puede ser algo temporal mientras se
-         reorganiza) pero deja claro cuál de los dos gana en la práctica. -->
-    <p class="empty-hint duplicate-hint" *ngIf="mode === 'recurring' && activeRows.length && duplicateWeekdaysWarning">
+    <!-- El nombre es la clave con la que el cliente elige: repetirlo dejaría
+         dos menús indistinguibles en su app. Bloquea guardar. -->
+    <p class="empty-hint duplicate-hint" *ngIf="duplicateMenuNamesWarning">
       <ion-icon name="alert-circle-outline"></ion-icon>
-      Día repetido en varios patrones: {{ duplicateWeekdaysWarning }}.
+      Hay menús con el mismo nombre: {{ duplicateMenuNamesWarning }}. El cliente los elige por su nombre.
     </p>
 
-    <!-- TAREA5 (auditoría UX, Fase C) — tablero semanal: columnas en días o
-         menús, comidas en filas. Cada celda se arrastra entera (con todas
-         sus alternativas) a otra celda para moverla; el icono de copiar la
-         duplica sin moverla del origen. Click en la celda abre el editor.
+    <!-- TAREA5 (auditoría UX, Fase C) — tablero: menús en columnas, comidas
+         en filas. Cada celda se arrastra entera (con todas sus alternativas)
+         a otra celda para moverla; el icono de copiar la duplica sin moverla
+         del origen. Click en la celda abre el editor.
 
          Modo copia (copyMode): con algo en el portapapeles solo queda el
-         icono de pegar en los destinos del mismo tipo — copiar un DÍA
-         muestra pegar en las cabeceras de los otros días; copiar una COMIDA,
-         en las otras celdas. Todo lo demás (vaciar/copiar/eliminar, inputs,
-         chips de semana, click y arrastre de celda) se bloquea hasta
-         cancelar en el sidenav derecho (.clipboard-portal, al final). -->
+         icono de pegar en los destinos del mismo tipo — copiar un MENÚ
+         muestra pegar en las cabeceras de los otros menús; copiar una
+         COMIDA, en las otras celdas. Todo lo demás (vaciar/copiar/eliminar,
+         inputs, click y arrastre de celda) se bloquea hasta cancelar en el
+         sidenav derecho (.clipboard-portal, al final). -->
     <div class="board-scroll" *ngIf="activeRows.length" [class.is-copy-mode]="copyMode">
       <div class="board-grid" [style.grid-template-columns]="'128px repeat(' + activeRows.length + ', minmax(160px, 1fr))'">
         <div class="board-corner"></div>
@@ -251,8 +256,8 @@
                 <button
                   type="button"
                   class="board-day-action board-day-action--danger"
-                  [attr.aria-label]="'Eliminar ' + rowNoun"
-                  [title]="'Eliminar ' + rowNoun"
+                  [attr.aria-label]="'Eliminar menú'"
+                  [title]="'Eliminar menú'"
                   (click)="removeRow(d)"
                 >
                   <ion-icon name="trash-outline"></ion-icon>
@@ -261,8 +266,8 @@
                   type="button"
                   class="board-day-action"
                   *ngIf="rowHasFood(row)"
-                  [attr.aria-label]="'Copiar ' + rowNoun"
-                  [title]="'Copiar ' + rowNoun"
+                  [attr.aria-label]="'Copiar menú'"
+                  [title]="'Copiar menú'"
                   (click)="copyDay(d, $event)"
                 >
                   <ion-icon name="copy-outline"></ion-icon>
@@ -279,18 +284,6 @@
                 <ion-icon name="clipboard-outline"></ion-icon>
               </button>
             </div>
-          </div>
-          <div class="weekday-picker" *ngIf="mode === 'recurring'">
-            <button
-              type="button"
-              class="weekday-chip"
-              *ngFor="let w of weekdays"
-              [class.selected]="asPattern(row).appliesTo.includes(w.value)"
-              [disabled]="copyMode"
-              (click)="toggleWeekday(asPattern(row), w.value)"
-            >
-              {{ w.short }}
-            </button>
           </div>
         </div>
 
@@ -445,11 +438,11 @@
 
     <button type="button" class="add-alternative-btn" (click)="addRow()" [disabled]="copyMode || activeRows.length >= activeRowsLimit">
       <ion-icon name="add-outline"></ion-icon>
-      {{ 'Añadir ' + rowNoun }}
+      Añadir menú
     </button>
 
     <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()">
-      <span *ngIf="!isSaving">{{ isPreparingNextCycle ? ('Preparar ciclo ' + nextCycleNumber) : (isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla')) }}</span>
+      <span *ngIf="!isSaving">{{ isPreparingNextRevision ? ('Preparar R' + nextRevisionNumber) : (isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla')) }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </ng-container>
@@ -464,7 +457,7 @@
     <header class="clipboard-panel__header">
       <div class="clipboard-panel__head">
         <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
-        <span>{{ clip.kind === 'day' ? (rowNoun | titlecase) + ' copiado' : 'Comida copiada' }}</span>
+        <span>{{ clip.kind === 'day' ? 'Menú copiado' : 'Comida copiada' }}</span>
       </div>
       <button type="button" class="clipboard-panel__close" (click)="clearClipboard()" aria-label="Cancelar copia">
         <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
@@ -473,7 +466,7 @@
     <p class="clipboard-panel__label">{{ clip.label }}</p>
     <p class="clipboard-panel__hint">
       Pulsa <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
-      en {{ clip.kind === 'day' ? 'otro ' + rowNoun : 'otra comida' }} para pegar.
+      en {{ clip.kind === 'day' ? 'otro menú' : 'otra comida' }} para pegar.
     </p>
 
     <div class="clipboard-panel__body">

@@ -4,11 +4,10 @@ import { HttpService } from 'src/app/core/services/http/http.service';
 import {
   AdherenceSummary,
   AnthropometryEntry,
-  AnthropometryRequest,
-  AnthropometryRequestCadence,
   BulkApplyResult,
-  CheckinConfig,
   CheckinResponseEntry,
+  ClientNutritionalGoal,
+  ClientNutritionalGoalResponse,
   ClientNutritionPreferences,
   ClientScope,
   ClientTable,
@@ -105,21 +104,6 @@ export class ClientDetailApiService {
     return this.http.delete(`trainer/clients/${clientId}?scope=${scope}`);
   }
 
-  public getAnthropometryRequest(clientId: string): Observable<AnthropometryRequest | null> {
-    return this.http.get<AnthropometryRequest | null>(`${this.base(clientId)}/anthropometry-request`);
-  }
-
-  public upsertAnthropometryRequest(
-    clientId: string,
-    body: { fields: string[]; notes: string; cadence: AnthropometryRequestCadence; customIntervalDays: number | null }
-  ): Observable<AnthropometryRequest> {
-    return this.http.put<AnthropometryRequest>(`${this.base(clientId)}/anthropometry-request`, body);
-  }
-
-  public cancelAnthropometryRequest(clientId: string): Observable<unknown> {
-    return this.http.delete(`${this.base(clientId)}/anthropometry-request`);
-  }
-
   public getNotes(clientId: string): Observable<TrainerNote[]> {
     return this.http.get<TrainerNote[]>(`${this.base(clientId)}/notes`);
   }
@@ -152,10 +136,6 @@ export class ClientDetailApiService {
     return this.http.delete<{ success: boolean }>(`${this.base(clientId)}/notes/${noteId}`);
   }
 
-  public getCheckinConfig(clientId: string): Observable<CheckinConfig | null> {
-    return this.http.get<CheckinConfig | null>(`${this.base(clientId)}/checkin-config`);
-  }
-
   public getCheckinResponses(clientId: string): Observable<CheckinResponseEntry[]> {
     return this.http.get<CheckinResponseEntry[]>(`${this.base(clientId)}/checkin-responses`);
   }
@@ -182,6 +162,21 @@ export class ClientDetailApiService {
   // Movimiento 5 Coach Pro — suplementación pautada. El catálogo de momentos
   // lo decide el backend, igual que el de dolor y el de reglas: así es
   // imposible que la interfaz ofrezca uno que el validador no conoce.
+  // Objetivo nutricional del cliente + cómo se calcularía hoy. El
+  // profesional lo ve y lo edita desde Plan > Nutrición.
+  public getNutritionalGoal(clientId: string): Observable<ClientNutritionalGoalResponse> {
+    return this.http.get<ClientNutritionalGoalResponse>(`trainer/clients/${clientId}/nutritional-goal`);
+  }
+
+  // Con `recalculate` vuelve al valor calculado del perfil; con kcal/macros,
+  // lo fija a mano (y deja de recalcularse solo).
+  public updateNutritionalGoal(
+    clientId: string,
+    body: { recalculate: true } | { kcalTotal: number; proteinsGTotal: number; carbohydratesGTotal: number; fatGTotal: number }
+  ): Observable<ClientNutritionalGoal> {
+    return this.http.put<ClientNutritionalGoal>(`trainer/clients/${clientId}/nutritional-goal`, body);
+  }
+
   public getSupplementTimings(): Observable<{ timings: SupplementTiming[] }> {
     return this.http.get<{ timings: SupplementTiming[] }>('supplements/timings');
   }
@@ -324,7 +319,7 @@ export class ClientDetailApiService {
     );
   }
 
-  // Cumplimiento alimento a alimento del rango — panel de resumen de un ciclo.
+  // Cumplimiento alimento a alimento del rango — panel de resumen de una revisión.
   // El backend acota `to` a hoy: los días futuros aún no materializados se
   // resuelven con consumed:false y falsearían el cumplimiento.
   public getNutritionFoods(
@@ -359,7 +354,7 @@ export class ClientDetailApiService {
 
   public createTask(
     clientId: string,
-    task: { type: TrainerTaskType; label?: string; target: number; unit: string }
+    task: { type: TrainerTaskType; label?: string; target: number; targetMax?: number | null; unit: string }
   ): Observable<TrainerTask> {
     return this.http.post<TrainerTask>(`${this.base(clientId)}/tasks`, task);
   }

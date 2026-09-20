@@ -4,35 +4,35 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
-import { DailyDeviation, MacroSet, PhaseCyclesResponse } from '../../../diet-templates/models/diet-suggestion.model';
+import { DailyDeviation, MacroSet, PhaseRevisionsResponse } from '../../../diet-templates/models/diet-suggestion.model';
 import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
 import { KCAL_PER_G, MacroAdjustComponent, MacroKey } from '../../../../shared/components/macro-adjust/macro-adjust.component';
 
 const MACRO_KEYS: MacroKey[] = ['protein', 'carbs', 'fat'];
 
-// Ciclos por contenido (docs/plan-ciclos-por-contenido.md) — el siguiente
-// ciclo de la fase: qué dice la sugerencia (peso + adherencia del ciclo
-// actual, con los desvíos día a día) y con qué kcal se quiere preparar. No
-// guarda nada: "Preparar" lleva al builder con el contenido ya escalado, y
-// es el builder quien persiste (o no, si no cambia nada). "Descartar" borra
-// un ciclo ya preparado para volver a heredar.
+// La siguiente REVISIÓN de la fase (docs/plan-revisiones.md): qué dice la
+// sugerencia (peso + adherencia de la revisión en curso, con los desvíos día
+// a día) y con qué kcal se quiere preparar. No guarda nada: "Preparar" lleva
+// al builder con el contenido ya escalado, y es el builder quien persiste (o
+// no, si no cambia nada). "Descartar" borra una revisión ya preparada para
+// volver a heredar.
 //
 // "Ajustar macros" (app-macro-adjust, compartido con "Empezar fase"): sin
 // tocarlo, los macros siguen al escalado proporcional de las kcal. Si se
-// toca, viajan al builder como objetivo del ciclo (referencia con deltas
+// toca, viajan al builder como objetivo de la revisión (referencia con deltas
 // por fila) — el escalado de alimentos sigue siendo por kcal.
 @Component({
-  selector: 'app-next-cycle-modal',
+  selector: 'app-next-revision-modal',
   standalone: true,
   imports: [CommonModule, FormsModule, IonicModule, NeedBreakdownComponent, MacroAdjustComponent],
-  templateUrl: './next-cycle-modal.component.html',
-  styleUrls: ['./next-cycle-modal.component.scss'],
+  templateUrl: './next-revision-modal.component.html',
+  styleUrls: ['./next-revision-modal.component.scss'],
 })
-export class NextCycleModalComponent implements OnInit {
+export class NextRevisionModalComponent implements OnInit {
   @Input() public clientId!: string;
   @Input() public phaseId!: string;
   @Input() public clientName = 'este cliente';
-  @Input() public cycles!: PhaseCyclesResponse;
+  @Input() public revisions!: PhaseRevisionsResponse;
 
   public targetKcal = 0;
   public discarding = false;
@@ -40,7 +40,7 @@ export class NextCycleModalComponent implements OnInit {
   public showNeed = false;
 
   // --- Ajustar macros ---
-  // Reparto del ciclo actual escalado a las kcal elegidas (lo que hará el
+  // Reparto de lo pautado hoy escalado a las kcal elegidas (lo que hará el
   // builder con los alimentos). Se recalcula al cambiar las kcal, no en un
   // getter: un objeto nuevo en cada ciclo de detección dispararía el
   // ngOnChanges del componente sin parar.
@@ -56,21 +56,23 @@ export class NextCycleModalComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
-    const next = this.cycles.next;
-    this.targetKcal = next.override?.profile.kcal ?? (next.suggestion.hasData ? next.suggestion.nextCycleKcal : next.inherits?.profile.kcal ?? 0);
+    const next = this.next;
+    this.targetKcal =
+      next?.override?.profile.kcal ??
+      (next?.suggestion?.hasData ? next.suggestion.nextKcal : next?.inherits?.profile.kcal ?? 0);
     this.onKcalChange();
   }
 
-  public get next(): PhaseCyclesResponse['next'] {
-    return this.cycles.next;
+  public get next(): NonNullable<PhaseRevisionsResponse['next']> {
+    return this.revisions.next as NonNullable<PhaseRevisionsResponse['next']>;
   }
 
-  public get suggestion(): PhaseCyclesResponse['next']['suggestion'] {
-    return this.cycles.next.suggestion;
+  public get suggestion(): NonNullable<PhaseRevisionsResponse['next']>['suggestion'] {
+    return this.next.suggestion;
   }
 
-  public get needNow(): PhaseCyclesResponse['next']['needNow'] {
-    return this.cycles.next.needNow;
+  public get needNow(): NonNullable<PhaseRevisionsResponse['next']>['needNow'] {
+    return this.next.needNow;
   }
 
   // Peso real del cliente para los g/kg (el mismo que enseña la referencia).
@@ -79,12 +81,12 @@ export class NextCycleModalComponent implements OnInit {
   }
 
   public get alreadyPrepared(): boolean {
-    return !!this.cycles.next.override;
+    return !!this.next.override;
   }
 
-  // Contra qué se compara el cambio: el ciclo actual.
+  // Contra qué se compara el cambio: lo que rige en la revisión en curso.
   public get base(): MacroSet & { kcal: number } {
-    return this.cycles.current.override.profile;
+    return this.revisions.current?.override.profile || { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   }
 
   public get baseKcal(): number {
@@ -92,7 +94,7 @@ export class NextCycleModalComponent implements OnInit {
   }
 
   // Las kcal de una dieta no son la suma Atwater de sus macros (fibra,
-  // alcohol, redondeos del catálogo): en el ciclo actual, macros y kcal
+  // alcohol, redondeos del catálogo): en lo pautado hoy, macros y kcal
   // guardan una proporción, y el reparto se mueve dentro de ESA parte para
   // no inventar kcal de macro que la dieta no tiene.
   public get macroRatio(): number {
@@ -104,17 +106,19 @@ export class NextCycleModalComponent implements OnInit {
     return Math.round(this.targetKcal - this.baseKcal);
   }
 
-  // Cambio en % respecto al ciclo actual (null sin base).
+  // Cambio en % respecto a lo pautado hoy (null sin base).
   public get kcalDeltaPct(): number | null {
     return this.pctChange(this.targetKcal, this.baseKcal);
   }
 
   public get periodLabel(): string {
-    return `Del ${this.fmt(this.next.start)} al ${this.fmt(this.next.end)}`;
+    return this.next.end
+      ? `Del ${this.fmt(this.next.start)} al ${this.fmt(this.next.end)}`
+      : `Desde el ${this.fmt(this.next.start)}`;
   }
 
   public get deviations(): DailyDeviation[] {
-    return this.suggestion.deviations || [];
+    return this.suggestion?.deviations || [];
   }
 
   public deviationLine(d: DailyDeviation): string {
@@ -175,14 +179,17 @@ export class NextCycleModalComponent implements OnInit {
   public discard(): void {
     if (this.discarding) return;
     this.discarding = true;
-    this.api.discardNextCycle(this.clientId, this.phaseId).subscribe({
+    this.api.discardNextRevision(this.clientId, this.phaseId).subscribe({
       next: () => {
-        this.ionicUtil.showToast({ message: `Ciclo ${this.next.number} descartado: repetirá el anterior`, duration: 2500 });
+        this.ionicUtil.showToast({
+          message: `Revisión ${this.next.number} descartada: repetirá lo anterior`,
+          duration: 2500,
+        });
         void this.modalController.dismiss(null, 'discarded');
       },
       error: (err) => {
         this.discarding = false;
-        this.ionicUtil.showErrorToast(err?.error?.message || 'No se pudo descartar el ciclo', 'Error', 3500);
+        this.ionicUtil.showErrorToast(err?.error?.message || 'No se pudo descartar la revisión', 'Error', 3500);
       },
     });
   }

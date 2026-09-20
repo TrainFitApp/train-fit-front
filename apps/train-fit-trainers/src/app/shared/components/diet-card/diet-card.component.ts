@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { dietaryFlagUi } from '../../utils/dietary-flag-ui.util';
-import { PhaseMode } from '../../utils/phase-mode-label.util';
 
 export interface DietCardProfile {
   kcal: number;
@@ -25,12 +24,8 @@ export class DietCardComponent {
   @Input() public medal = '';
   @Input() public verified = false;
   @Input() public ownedByClient = false;
-  @Input() public dayCount: number | null = null;
+  @Input() public menuCount: number | null = null;
   @Input() public basedOnDays = 0;
-  // Cómo se resuelve el contenido de esta plantilla al aplicarla — antes solo
-  // se decía en el cajón de sugerencias (chosen-box, ya eliminado); ahora
-  // vive aquí porque es un dato de LA PLANTILLA, no de haberla elegido.
-  @Input() public mode: PhaseMode | null = null;
   @Input() public flags: string[] = [];
   // Restricciones del cliente que esta dieta NO cumple (ver missingFlags en
   // diet-suggestion.model.ts). Se avisa nombrando la restricción incumplida
@@ -53,40 +48,25 @@ export class DietCardComponent {
     return null;
   }
 
-  // Días (sequential) o patrones (recurring/choice) que entraron en el
-  // perfil. `dayCount` (real, biblioteca) manda sobre `basedOnDays` (lo que
-  // devuelve el backend con el perfil) cuando ambos existen.
+  // Menús que entraron en el perfil. `menuCount` (real, biblioteca) manda
+  // sobre `basedOnDays` (lo que devuelve el backend con el perfil) cuando
+  // ambos existen.
   private get contentUnits(): number {
-    return this.dayCount || this.basedOnDays || 0;
+    return this.menuCount || this.basedOnDays || 0;
   }
 
-  // ¿Cómo se repite esta plantilla? Texto NEUTRO de plantilla ("Por días"),
-  // no el de fase del cajón ("Fase de N días", phase-mode-label.util.ts): en
-  // la biblioteca todavía no es una fase de nadie.
   public get modeLabel(): string {
-    if (this.mode === 'recurring') return 'Por días de la semana';
-    if (this.mode === 'choice') return 'El cliente elige cada día';
     const n = this.contentUnits;
-    return n ? `Por días (${n} día${n === 1 ? '' : 's'})` : 'Por días';
-  }
-
-  public get modeIcon(): string {
-    if (this.mode === 'recurring') return 'repeat-outline';
-    if (this.mode === 'choice') return 'shuffle-outline';
-    return 'calendar-outline';
+    return n ? `${n} menú${n === 1 ? '' : 's'} a elegir` : 'El cliente elige cada día';
   }
 
   // Las kcal/macros del panel NO son un dato asignado a la plantilla: salen
-  // de sumar sus alimentos y, con varios días, de la MEDIA de esos días (ver
-  // diet-macro-profile.js). Solo se avisa a partir de 2: con un día no hay
-  // media que matizar. En recurring la media ya viene ponderada por los días
-  // de la semana que cubre cada patrón; en choice es media simple de menús.
+  // de sumar sus alimentos y, con varios menús, de la MEDIA de esos menús
+  // (ver diet-macro-profile.js). Solo se avisa a partir de 2: con un menú no
+  // hay media que matizar.
   public get averageNote(): string | null {
     const n = this.contentUnits;
-    if (n < 2) return null;
-    if (this.mode === 'recurring') return '≈ media de la semana';
-    if (this.mode === 'choice') return `≈ media de los ${n} menús`;
-    return `≈ media de los ${n} días`;
+    return n < 2 ? null : `≈ media de los ${n} menús`;
   }
 
   public flagLabel(flag: string): string {

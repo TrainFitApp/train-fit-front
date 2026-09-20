@@ -1,4 +1,4 @@
-.cycle-summary {
+.revision-summary {
   --background: var(--tf-surface-1);
   --padding-start: var(--tf-space-4);
   --padding-end: var(--tf-space-4);
@@ -78,13 +78,13 @@
 
 // --- Lo pautado ---
 
-.cycle-dates {
+.revision-dates {
   margin: 0;
   font-size: var(--tf-font-size-sm);
   color: var(--tf-text-secondary);
 }
 
-.cycle-days {
+.revision-days {
   color: var(--tf-text-muted);
 }
 

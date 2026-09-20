@@ -181,21 +181,21 @@ ion-col {
   // Misma especificidad que `.selected` de arriba y va después: sin el
   // `:not(.selected)` pisaba el estado seleccionado y el día con ciclo no se
   // distinguía al pulsarlo.
-  &.has-cycle:not(.selected):not(.active) {
-    border-color: color-mix(in srgb, var(--cycle-color) 55%, #2a2a2a);
-    background: color-mix(in srgb, var(--cycle-color) 12%, #111111);
+  &.has-revision:not(.selected):not(.active) {
+    border-color: color-mix(in srgb, var(--revision-color) 55%, #2a2a2a);
+    background: color-mix(in srgb, var(--revision-color) 12%, #111111);
   }
 
   // Seleccionado con ciclo: color del ciclo a tope (borde sólido + fondo
   // más cargado + resplandor) para que se note frente a los vecinos.
-  &.has-cycle.selected,
-  &.has-cycle.active {
-    border-color: var(--cycle-color);
-    background: color-mix(in srgb, var(--cycle-color) 32%, #111111);
-    box-shadow: 0 0 0 1px var(--cycle-color), 0 0 10px color-mix(in srgb, var(--cycle-color) 45%, transparent);
+  &.has-revision.selected,
+  &.has-revision.active {
+    border-color: var(--revision-color);
+    background: color-mix(in srgb, var(--revision-color) 32%, #111111);
+    box-shadow: 0 0 0 1px var(--revision-color), 0 0 10px color-mix(in srgb, var(--revision-color) 45%, transparent);
   }
 
-  .cycle-badge {
+  .revision-badge {
     position: absolute;
     top: 2px;
     right: 3px;
@@ -204,6 +204,6 @@ ion-col {
     font-weight: 800;
     line-height: 1;
     letter-spacing: 0.02em;
-    color: var(--cycle-color, #9ca3af);
+    color: var(--revision-color, #9ca3af);
   }
 }

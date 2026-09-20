@@ -60,31 +60,75 @@
       ><strong>{{ 'DIETS.PASTE_DAY' | translate }}</strong>
     </ion-button>
 
-    <!-- Ciclos por contenido — check-in del ciclo en el que está: pendiente
-         (CTA) o ya respondido (editar, lo sobreescribe). Encima del peso
-         diario. -->
-    <button type="button" class="cycle-checkin-card" *ngIf="cycleCheckin" [class.is-done]="cycleCheckin.hasResponse" (click)="goToCycleCheckin()">
-      <ion-icon [name]="cycleCheckin.hasResponse ? 'checkmark-circle-outline' : 'clipboard-outline'" aria-hidden="true"></ion-icon>
-      <span class="cycle-checkin-card__text">
-        <strong>{{ cycleCheckin.hasResponse ? 'Editar check-in del ciclo ' + cycleCheckin.number : 'Check-in del ciclo ' + cycleCheckin.number + ' pendiente' }}</strong>
-        <small>{{ cycleCheckin.hasResponse ? 'Si lo vuelves a enviar, sustituye al anterior.' : 'Tu entrenador lo usa para ajustar el siguiente ciclo.' }}</small>
+    <!-- Check-in abierto: pendiente (CTA) o ya respondido (se puede
+         corregir mientras su periodo siga abierto). Encima del peso diario.
+         Es un aviso dentro de la app, no una notificación push. -->
+    <button
+      type="button"
+      class="checkin-card"
+      *ngIf="openCheckin"
+      [class.is-done]="!!openCheckin.respondedAt"
+      (click)="goToCheckin()"
+    >
+      <ion-icon [name]="openCheckin.respondedAt ? 'checkmark-circle-outline' : 'clipboard-outline'" aria-hidden="true"></ion-icon>
+      <span class="checkin-card__text">
+        <strong>
+          {{ openCheckin.respondedAt
+            ? (checkinRevision ? 'Editar tu check-in de la revisión ' + checkinRevision.number : 'Editar tu check-in')
+            : (checkinRevision ? 'Check-in de la revisión ' + checkinRevision.number + ' pendiente' : 'Tienes un check-in pendiente') }}
+        </strong>
+        <small>
+          {{ openCheckin.respondedAt
+            ? 'Puedes cambiarlo mientras este periodo siga abierto.'
+            : 'Tu entrenador lo usa para ajustar lo que viene.' }}
+        </small>
       </span>
       <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
     </button>
 
+    <!-- El peso del día solo se apunta aquí cuando el cliente va por su
+         cuenta. Con profesional activo manda lo que él pide: se entra a
+         weight-info, que es donde están sus medidas pedidas. -->
     <app-daily-weight
+      *ngIf="!coachService.hasActiveTrainer()"
       [user]="user"
       [selectedDate]="selectedDate"
       [anthropometry]="currentAnthropometry"
       (anthropometrySaved)="onAnthropometrySaved($event)"
 
     ></app-daily-weight>
+
+    <!-- Acceso a weight-info, donde el cliente con profesional apunta su
+         peso y sus medidas. Las medidas que le PIDA su profesional van
+         dentro de su check-in (la tarjeta de arriba): esto es el acceso
+         libre, sin fecha ni formulario. Aviso dentro de la app, no
+         notificación push. -->
+    <button
+      type="button"
+      class="checkin-card"
+      *ngIf="coachService.hasActiveTrainer()"
+      (click)="goToWeightInfo()"
+    >
+      <ion-icon name="body-outline" aria-hidden="true"></ion-icon>
+      <span class="checkin-card__text">
+        <strong>Añadir medidas corporales</strong>
+        <small>Apunta tu peso y tus medidas cuando quieras.</small>
+      </span>
+      <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+    </button>
   </div>
 
-  <!-- Plan "el cliente elige cada día" (ciclos por contenido §11): chips de
+  <!-- El cliente elige cada día qué menú sigue: chips de
        los menús disponibles encima de las comidas — el elegido marcado. Click
        = preview y "Elegir"; con uno elegido, "Salir del menú". -->
-  <div class="menu-chips" *ngIf="menuOptions.length">
+  <div class="menu-chips menu-chips--skipped" *ngIf="isDaySkipped">
+    <span class="menu-chips__title">Día saltado</span>
+    <p class="menu-chips__note">
+      Tu profesional marcó este día como saltado: no hay nada pautado y no cuenta para tu adherencia.
+    </p>
+  </div>
+
+  <div class="menu-chips" *ngIf="menuOptions.length && !isDaySkipped">
     <span class="menu-chips__title">{{ selectedMenu ? 'Menú de hoy' : '¿Qué menú te toca hoy?' }}</span>
     <div class="menu-chips__row">
       <button
@@ -92,7 +136,7 @@
         class="menu-chips__chip"
         *ngFor="let option of menuOptions"
         [class.is-selected]="selectedMenu === option"
-        [disabled]="isChoosingDayType || isLeavingDayType"
+        [disabled]="isChoosingMenu || isLeavingMenu"
         (click)="openMenuPreview(option)"
       >
         <ion-icon name="checkmark-outline" *ngIf="selectedMenu === option" aria-hidden="true"></ion-icon>
@@ -102,10 +146,10 @@
         type="button"
         class="menu-chips__leave"
         *ngIf="selectedMenu"
-        [disabled]="isLeavingDayType"
-        (click)="leaveDayType()"
+        [disabled]="isLeavingMenu"
+        (click)="leaveMenu()"
       >
-        {{ isLeavingDayType ? 'Saliendo…' : 'Salir del menú' }}
+        {{ isLeavingMenu ? 'Saliendo…' : 'Salir del menú' }}
       </button>
     </div>
   </div>
@@ -129,6 +173,42 @@
       ></app-meal>
     </ion-accordion-group>
   </ion-grid>
+
+  <!-- Hábitos del día (docs/plan-revisiones.md §12): lo que el entrenador
+       le pide cumplir cada día — pasos, agua… — para marcarlo aquí mismo,
+       debajo de las comidas. Lo que marque en "pasos" es lo que entra en el
+       cálculo de sus kcal. -->
+  <div class="day-habits" *ngIf="habits.length">
+    <p class="day-habits__title">Hábitos de hoy</p>
+    <button
+      type="button"
+      class="day-habits__row"
+      *ngFor="let habit of habits"
+      [class.is-done]="habit.completedToday"
+      [disabled]="!canToggleHabits || togglingHabitId === habit._id"
+      (click)="toggleHabit(habit)"
+    >
+      <span class="day-habits__text">
+        <strong>{{ habit.label }}</strong>
+        <small>{{ habitTargetLabel(habit) }} · {{ habit.trainerName }}</small>
+      </span>
+      <ion-icon [name]="habit.completedToday ? 'checkbox' : 'square-outline'" aria-hidden="true"></ion-icon>
+    </button>
+    <p class="day-habits__hint" *ngIf="!canToggleHabits">Un día que todavía no ha llegado no se puede marcar.</p>
+  </div>
+
+  <!-- Suplementación vigente ese día (§14): va por fechas, así que
+       desaparece sola cuando termina la pauta. -->
+  <div class="day-supplements" *ngIf="supplements.length">
+    <p class="day-supplements__title">Suplementación</p>
+    <div class="day-supplements__row" *ngFor="let supplement of supplements">
+      <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>
+      <span class="day-supplements__text">
+        <strong>{{ supplement.name }} · {{ supplement.dose }}</strong>
+        <small>{{ supplementTiming(supplement) }}<ng-container *ngIf="supplement.reason"> · {{ supplement.reason }}</ng-container></small>
+      </span>
+    </div>
+  </div>
 
   <!-- Floating Clipboard Bar -->
   <div

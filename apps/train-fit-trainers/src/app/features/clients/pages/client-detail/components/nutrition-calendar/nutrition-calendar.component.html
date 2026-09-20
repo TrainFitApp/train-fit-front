@@ -57,8 +57,7 @@
       [class.is-selected]="!!cell.date && cell.date === selectedDate"
       [class.is-today]="!!cell.date && cell.date === todayIso"
       [class.has-no-plan]="!!cell.compliance && !cell.compliance.hasPlan"
-      [class.has-exception]="!!cell.compliance?.hasException"
-      [class.is-skip-exception]="cell.compliance?.exceptionType === 'skip'"
+      [class.is-skipped]="!!cell.compliance?.skipped"
       [class.has-phase]="!!cell.phase"
       [class.is-in-range]="isInRange(cell.date)"
       [class.is-range-endpoint]="cell.date === rangeStart || cell.date === rangeEnd"
@@ -85,15 +84,24 @@
         *ngIf="cell.phase && (!isPickerMode || !cell.phase.blocksNewPhase)"
       ></span>
       <span class="nutrition-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
-      <!-- Vuelta de la fase (C1, C2…) — en qué pasada al contenido de la dieta
-           va este día. Fuera del selector: ahí la celda es un cuadrado sólido
-           de color y el número sobraría. -->
+      <!-- Revisión (R1, R2…) — qué check-in cubre este día. Fuera del
+           selector: ahí la celda es un cuadrado sólido de color y el número
+           sobraría. -->
       <span
-        class="nutrition-calendar__cycle-badge"
-        *ngIf="cell.phase?.cycleLabel && !isPickerMode"
-        [attr.aria-label]="'Ciclo ' + cell.phase?.cycleLabel"
-      >{{ cell.phase?.cycleLabel }}</span>
-      <span class="nutrition-calendar__exception-dot" *ngIf="cell.compliance?.hasException"></span>
+        class="nutrition-calendar__revision-badge"
+        *ngIf="cell.phase?.revisionLabel && !isPickerMode"
+        [attr.aria-label]="'Revisión ' + cell.phase?.revisionLabel"
+      >{{ cell.phase?.revisionLabel }}</span>
+      <!-- Suplementación pautada ese día: va por fechas, así que también se
+           ve aquí. Solo el icono — el detalle está en su panel. -->
+      <ion-icon
+        class="nutrition-calendar__supplement"
+        name="flask-outline"
+        *ngIf="cell.supplements.length && !isPickerMode"
+        [attr.aria-label]="'Suplementos: ' + cell.supplements.join(', ')"
+        [attr.title]="cell.supplements.join(', ')"
+      ></ion-icon>
+      <span class="nutrition-calendar__skipped-dot" *ngIf="cell.compliance?.skipped"></span>
       <!-- Tramo indefinido: sin esto el rango parecería acabar donde acaba
            la cuadrícula, que es justo lo contrario de lo que significa. -->
       <span class="nutrition-calendar__open-end" *ngIf="isOpenEndedTail(cell)" aria-hidden="true">››</span>
@@ -146,7 +154,7 @@
       <span class="legend-swatch legend-swatch--phase"></span>
       Fase del plan (un color por fase)
     </span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--exception"></span>Excepción</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--skipped"></span>Día saltado</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--empty"></span>Sin plan ese día</span>
   </div>
 
@@ -189,12 +197,12 @@
        aquí. El texto nombra el día para que no haya duda de cuál se marca. -->
   <button
     type="button"
-    class="exception-btn"
-    *ngIf="canCreateException"
-    [disabled]="isCreatingException"
-    (click)="exceptionRequested.emit(selectedDate)"
+    class="skip-day-btn"
+    *ngIf="canSkipDay"
+    [disabled]="isSkippingDay"
+    (click)="skipDayRequested.emit(selectedDate)"
   >
     <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon>
-    Marcar {{ selectedDateLabel }} como excepción
+    Marcar {{ selectedDateLabel }} como día saltado
   </button>
 </div>

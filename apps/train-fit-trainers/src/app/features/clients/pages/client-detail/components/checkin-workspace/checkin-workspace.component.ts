@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { CheckinResponseEntry } from '../../models/client-detail.model';
-import { CalendarCheckin, CheckinCalendarData, CheckinComparisonRow, CheckinDay, CheckinSchedule, CheckinScheduleDraft, CheckinStatus, CheckinTemplateDefinition } from './checkin-workspace.model';
+import { CheckinAgendaData, CheckinComparisonRow, CheckinDay, CheckinEntry, CheckinSchedule, CheckinScheduleDraft, CheckinStatus, CheckinTemplateDefinition } from './checkin-workspace.model';
 import { compareCheckins } from './checkin-comparison';
 
 function localDate(date: Date): string {
@@ -19,8 +19,8 @@ export class CheckinWorkspaceComponent implements OnChanges {
   private loadSubscription?: Subscription;
   public readonly today = localDate(new Date());
   public readonly weekdays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-  public readonly statusLabels: Record<CheckinStatus, string> = { scheduled: 'Programado', pending: 'Pendiente', unanswered: 'Sin responder', responded: 'Por revisar', reviewed: 'Revisado', cancelled: 'Cancelado', legacy: 'Histórico anterior' };
-  public readonly statusIcons: Record<CheckinStatus, string> = { scheduled: 'calendar-outline', pending: 'time-outline', unanswered: 'remove-circle-outline', responded: 'mail-unread-outline', reviewed: 'checkmark-circle-outline', cancelled: 'close-circle-outline', legacy: 'archive-outline' };
+  public readonly statusLabels: Record<CheckinStatus, string> = { scheduled: 'Programado', open: 'Abierto', unanswered: 'Sin responder', responded: 'Por revisar', reviewed: 'Revisado' };
+  public readonly statusIcons: Record<CheckinStatus, string> = { scheduled: 'calendar-outline', open: 'time-outline', unanswered: 'remove-circle-outline', responded: 'mail-unread-outline', reviewed: 'checkmark-circle-outline' };
   public month = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   public monthLabel = '';
   public selectedDate = this.today;
@@ -29,13 +29,13 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public error = '';
   public notice = '';
   public busy = false;
-  public data: CheckinCalendarData | null = null;
+  public data: CheckinAgendaData | null = null;
   public scheduleFilter = '';
   public reviewOnly = false;
-  public agenda: CalendarCheckin[] = [];
-  public selected: CalendarCheckin | null = null;
+  public agenda: CheckinEntry[] = [];
+  public selected: CheckinEntry | null = null;
   public referenceId = '';
-  public references: CalendarCheckin[] = [];
+  public references: CheckinEntry[] = [];
   public rows: CheckinComparisonRow[] = [];
   public trendResponses: CheckinResponseEntry[] = [];
   public readonly emptyQuestions = [];
@@ -46,7 +46,6 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public templatesState: 'loading' | 'loaded' | 'error' = 'loading';
   public editor: CheckinScheduleDraft | null = null;
   public editingId: string | null = null;
-  private requestKeys = new Map<string, string>();
 
   public ngOnChanges(): void { if (this.clientId) { this.data = null; this.selected = null; this.load(); } }
   private get base(): string { return `trainer/clients/${encodeURIComponent(this.clientId)}`; }
@@ -55,7 +54,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
     this.state = 'loading';
     const from = localDate(new Date(this.month.getFullYear(), this.month.getMonth(), 1));
     const to = localDate(new Date(this.month.getFullYear(), this.month.getMonth() + 1, 0));
-    this.loadSubscription = this.http.get<CheckinCalendarData>(`${this.base}/checkin-calendar?from=${from}&to=${to}`)
+    this.loadSubscription = this.http.get<CheckinAgendaData>(`${this.base}/checkin-agenda?from=${from}&to=${to}`)
       .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: data => { this.data = data; this.state = 'loaded'; this.rebuild(); },
         error: () => { this.state = 'error'; },
@@ -63,13 +62,19 @@ export class CheckinWorkspaceComponent implements OnChanges {
   }
   public changeMonth(delta: number): void { this.month = new Date(this.month.getFullYear(), this.month.getMonth() + delta, 1); this.selectedDate = localDate(this.month); this.selected = null; this.load(); }
   public goToday(): void { const now = new Date(); this.month = new Date(now.getFullYear(), now.getMonth(), 1); this.selectedDate = this.today; this.reviewOnly = false; this.load(); }
-  public dateOf(entry: CalendarCheckin): string {
-    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: entry.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(entry.scheduledAt));
-    const part = (type: string): string => parts.find(p => p.type === type)?.value || '';
-    return `${part('year')}-${part('month')}-${part('day')}`;
-  }
+  // La fecha ya viene como día de calendario: sin zona horaria que traducir
+  // (docs/plan-revisiones.md §10).
+  public dateOf(entry: CheckinEntry): string { return entry.date; }
   public formatDate(value: string | null | undefined): string { return value ? new Date(value).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
-  public formatTime(entry: CalendarCheckin): string { return new Date(entry.scheduledAt).toLocaleTimeString('es-ES', { timeZone: entry.timeZone, hour: '2-digit', minute: '2-digit' }); }
+  public formatDay(value: string | null | undefined): string { return value ? new Date(`${value}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '—'; }
+  public formatTime(entry: CheckinEntry): string { return entry.time; }
+  // "R3 · 7–13 sept": a qué revisión de la fase de dieta pertenece.
+  public revisionLabel(entry: CheckinEntry): string {
+    if (!entry.revision) return '';
+    const fmt = (iso: string): string => new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    const fin = entry.revision.end ? ` – ${fmt(entry.revision.end)}` : '';
+    return `R${entry.revision.number} · ${fmt(entry.revision.start)}${fin}`;
+  }
   public cadence(schedule: CheckinScheduleDraft): string {
     const unit = schedule.frequency === 'daily' ? 'días' : schedule.frequency === 'weekly' ? 'semanas' : 'meses';
     if (schedule.frequency === 'once') return 'Una vez';
@@ -88,8 +93,8 @@ export class CheckinWorkspaceComponent implements OnChanges {
       return { date, number: day.getDate(), currentMonth: day.getMonth() === this.month.getMonth(), count: matches.length, statuses,
         label: `${day.toLocaleDateString('es-ES', { dateStyle: 'long' })}. ${matches.length ? matches.map(e => `${e.name}: ${this.statusLabels[e.status]}`).join('. ') : 'Sin check-ins'}` };
     });
-    this.agenda = (this.reviewOnly ? this.data?.pendingReviews || [] : entries.filter(e => this.dateOf(e) === this.selectedDate))
-      .filter(e => !this.scheduleFilter || e.scheduleId === this.scheduleFilter).sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+    this.agenda = (this.reviewOnly ? (this.data?.responses || []).filter(e => e.status === 'responded') : entries.filter(e => this.dateOf(e) === this.selectedDate))
+      .filter(e => !this.scheduleFilter || e.scheduleId === this.scheduleFilter).sort((a, b) => a.date.localeCompare(b.date));
     const previousId = this.selected?._id;
     const current = this.agenda.find(e => e._id === previousId) || this.agenda[0] || null;
     this.selectEntry(current);
@@ -99,25 +104,24 @@ export class CheckinWorkspaceComponent implements OnChanges {
     this.reviewOnly = false; this.selectedDate = day.date; this.selected = null;
     if (!day.currentMonth) { this.month = new Date(day.date + 'T12:00:00'); this.month.setDate(1); this.load(); } else this.rebuild();
   }
-  public selectEntry(entry: CalendarCheckin | null): void {
+  public selectEntry(entry: CheckinEntry | null): void {
     if (this.selected?._id !== entry?._id) { this.comment = entry?.reviewComment || ''; this.referenceId = ''; }
     this.selected = entry;
     const history = (this.data?.responses || []).filter(r => r.scheduleId === entry?.scheduleId && r.respondedAt && r._id !== entry?._id);
     this.references = history.sort((a, b) => (b.respondedAt || '').localeCompare(a.respondedAt || ''));
     if (!this.references.some(r => r._id === this.referenceId)) this.referenceId = this.references.find(r => (r.respondedAt || '') < (entry?.respondedAt || ''))?._id || '';
     this.updateComparison();
-    this.trendResponses = [...(entry?.respondedAt ? [entry] : []), ...history].filter((r): r is CalendarCheckin & { respondedAt: string } => !!r.respondedAt).map(r => ({ _id: r._id, respondedAt: r.respondedAt, values: r.values || {} }));
+    this.trendResponses = [...(entry?.respondedAt ? [entry] : []), ...history].filter((r): r is CheckinEntry & { respondedAt: string } => !!r.respondedAt).map(r => ({ _id: r._id, respondedAt: r.respondedAt, values: r.values || {} }));
   }
   public updateComparison(): void { this.rows = this.selected?.respondedAt ? compareCheckins(this.selected, this.references.find(r => r._id === this.referenceId) || null) : []; }
-  public async openEditor(schedule?: CheckinSchedule, legacy = false): Promise<void> {
+  public async openEditor(schedule?: CheckinSchedule): Promise<void> {
     this.error = ''; this.editingId = schedule?._id || null;
     this.editor = schedule ? { ...schedule } : {
-      name: legacy ? 'Check-in habitual' : '', sourceTemplateId: null,
-      legacyConfigId: legacy ? this.data?.legacyConfig?._id : null,
+      name: '', sourceTemplateId: null,
       startDate: this.selectedDate < this.today ? this.today : this.selectedDate,
-      time: '09:00', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid', frequency: 'weekly', interval: 1,
+      time: '09:00', frequency: 'weekly', interval: 1,
     };
-    if (!schedule && !legacy) await this.loadTemplates();
+    if (!schedule) await this.loadTemplates();
   }
   public async loadTemplates(): Promise<void> {
     this.templatesState = 'loading';
@@ -133,13 +137,14 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public async setActive(schedule: CheckinSchedule): Promise<void> {
     await this.mutate(() => firstValueFrom(this.http.patch(`${this.base}/checkin-schedules/${schedule._id}/active`, { active: !schedule.active })), schedule.active ? 'Programación pausada' : 'Programación reanudada');
   }
-  public async requestNow(schedule: CheckinSchedule): Promise<void> {
-    if (!this.requestKeys.has(schedule._id)) this.requestKeys.set(schedule._id, crypto.randomUUID());
-    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-schedules/${schedule._id}/request`, { requestKey: this.requestKeys.get(schedule._id) })), 'Check-in disponible para el cliente', () => { this.requestKeys.delete(schedule._id); this.selectedDate = this.today; this.month = new Date(new Date().getFullYear(), new Date().getMonth(), 1); });
+  // Quitar la programación: las respuestas ya dadas se quedan (son historial
+  // del cliente, no de la programación).
+  public async remove(schedule: CheckinSchedule): Promise<void> {
+    await this.mutate(() => firstValueFrom(this.http.delete(`${this.base}/checkin-schedules/${schedule._id}`)), 'Programación eliminada');
   }
   public async review(): Promise<void> {
-    if (!this.selected || this.selected.status !== 'responded') return;
-    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-requests/${this.selected!._id}/review`, { comment: this.comment })), 'Respuesta revisada. El comentario está disponible para el cliente');
+    if (!this.selected?.responseId || this.selected.status !== 'responded') return;
+    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-responses/${this.selected!.responseId}/review`, { comment: this.comment })), 'Respuesta revisada. El comentario está disponible para el cliente');
   }
   private async mutate(action: () => Promise<unknown>, message: string, done?: () => void): Promise<void> {
     if (this.busy) return; this.busy = true; this.error = ''; this.notice = '';

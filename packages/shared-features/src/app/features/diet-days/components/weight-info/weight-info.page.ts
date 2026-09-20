@@ -11,9 +11,6 @@ import { Anthropometry } from './models/anthropometry';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { AnthropometryModalComponent } from 'src/app/shared/components/anthropometry';
 import { CalendarComponent } from '../calendar/calendar.component';
-import { AnthropometryRequestApiService } from './services/anthropometry-request-api.service';
-import { PendingAnthropometryRequest } from './models/anthropometry-request';
-import { CHECKIN_FIELDS_BY_KEY } from 'src/app/core/constants/checkin-fields';
 
 @Component({
   selector: 'app-weight-info',
@@ -46,17 +43,11 @@ export class WeightInfoPage implements OnDestroy {
   public CHART_RANGES = CHART_RANGES;
   public chartRange: string;
 
-  // Peticiones de medidas activas de cualquier trainer con relación activa
-  // — el modal ya deja rellenar cualquier campo, así que el banner solo
-  // informa de que "toca", no filtra qué campos mostrar.
-  public pendingRequests: PendingAnthropometryRequest[] = [];
-
   private translate = inject(TranslateService);
 
   constructor(
     public utilService: UtilService,
     private anthropometryService: AnthropometryService,
-    private anthropometryRequestApi: AnthropometryRequestApiService,
     private cdref: ChangeDetectorRef,
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService
@@ -82,29 +73,6 @@ export class WeightInfoPage implements OnDestroy {
     this.chartRange = CHART_RANGES.month;
     this.getChartConfigurationByRange();
     this.loadAnthropometryData();
-    this.loadPendingRequests();
-  }
-
-  private loadPendingRequests(): void {
-    this.anthropometryRequestApi.getMine().subscribe({
-      next: (requests) => (this.pendingRequests = requests || []),
-      error: () => (this.pendingRequests = []),
-    });
-  }
-
-  // Sin trainer, o con trainer pero sin ninguna petición activa, se ve el
-  // catálogo completo (null = sin filtro, ver AnthropometryModalComponent).
-  // Con petición(es) activa(s), solo esos campos — traduce la clave del
-  // catálogo de check-in (p. ej. "perimeter_waist") al nombre real del
-  // campo en Anthropometry (p. ej. "waist"), que es lo que el formulario
-  // usa como formControlName.
-  private get requestedAnthropometryFieldKeys(): string[] | null {
-    if (!this.pendingRequests.length) return null;
-    const modelFieldNames = this.pendingRequests
-      .flatMap((request) => request.fields)
-      .map((catalogKey) => CHECKIN_FIELDS_BY_KEY.get(catalogKey)?.anthropometryField)
-      .filter((key): key is string => !!key);
-    return [...new Set(modelFieldNames)];
   }
 
   public chartRangeChange(event: any): void {
@@ -203,7 +171,6 @@ export class WeightInfoPage implements OnDestroy {
         selectedDate: this.selectedDate,
         existingData: this.currentAnthropometry,
         allAnthropometryData: this.allAnthropometryData,
-        visibleFieldKeys: this.requestedAnthropometryFieldKeys,
       },
       cssClass: 'fullscreen-modal',
     });
@@ -222,7 +189,6 @@ export class WeightInfoPage implements OnDestroy {
 
       this.weightCalendar?.refreshDietDaysForMonth();
       this.loadAnthropometryData();
-      this.loadPendingRequests();
     }
   }
 

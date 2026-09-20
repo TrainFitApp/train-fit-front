@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { IonicModule, ModalController } from '@ionic/angular';
-import { DayTypePreview } from '../../models/day-type.model';
+import { DayMenuPreview } from '../../models/day-menu.model';
 
-// Ciclos por contenido (docs/plan-ciclos-por-contenido.md §11) — preview de
+// docs/plan-revisiones.md — preview de
 // un menú de un plan "el cliente elige cada día": comidas y alimentos en
 // solo lectura, con "Elegir" para aplicarlo al día. No guarda nada: quien
-// elige es diets.page (chooseDayType) al recibir el role 'choose'.
+// elige es diets.page (chooseMenu) al recibir el role 'choose'.
 @Component({
   selector: 'app-menu-preview-modal',
   standalone: true,
@@ -15,13 +15,13 @@ import { DayTypePreview } from '../../models/day-type.model';
   styleUrls: ['./menu-preview-modal.component.scss'],
 })
 export class MenuPreviewModalComponent {
-  @Input() public preview!: DayTypePreview;
+  @Input() public preview!: DayMenuPreview;
   // Ya elegido para el día: se dice, y el botón cambia de sentido.
   @Input() public isSelected = false;
 
   constructor(private modalController: ModalController) {}
 
-  public get nonEmptyMeals(): DayTypePreview['meals'] {
+  public get nonEmptyMeals(): DayMenuPreview['meals'] {
     return (this.preview?.meals || []).filter((m) => m.items.length);
   }
 

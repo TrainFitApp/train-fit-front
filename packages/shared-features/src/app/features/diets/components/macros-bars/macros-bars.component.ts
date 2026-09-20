@@ -33,7 +33,7 @@ export class MacrosBarsComponent implements OnDestroy {
   public user: User;
   public activeGoal: NutritionalGoal | null = null;
 
-  // Ciclos por contenido — con dieta pautada, la meta del día es lo que suma
+  // Con dieta pautada, la meta del día es lo que suma
   // lo pautado (dietDay.plannedTarget); sin pauta ese día, el objetivo en
   // uso de siempre.
   public get _kcalTotal(): number { return this.dietDay?.plannedTarget?.kcal || this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }

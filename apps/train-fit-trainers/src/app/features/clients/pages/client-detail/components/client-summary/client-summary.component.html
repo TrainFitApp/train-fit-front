@@ -295,12 +295,12 @@
         <span class="context-sub" *ngIf="!data.latestWeightDate">Sin registros</span>
       </button>
 
-      <button type="button" class="context-item" (click)="openTab.emit('checkins')">
+      <button type="button" class="context-item" (click)="openTab.emit('measurements')">
         <span class="context-label">Último check-in</span>
         <span class="context-value">
           {{ data.lastCheckinAt ? (data.lastCheckinAt | date: 'd MMM') : '—' }}
         </span>
-        <span class="context-sub">{{ data.checkinCadence ? 'Configurado' : 'Sin configurar' }}</span>
+        <span class="context-sub">{{ data.nextCheckinDate ? 'Próximo ' + data.nextCheckinDate : 'Sin programar' }}</span>
       </button>
 
       <button type="button" class="context-item" (click)="openTab.emit('nutrition')">

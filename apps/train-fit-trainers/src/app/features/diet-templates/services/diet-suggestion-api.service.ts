@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import {
-  CycleNeedResponse,
   DietSuggestionRequest,
   DietSuggestionResponse,
-  PhaseCyclesResponse,
-  PrepareNextCycleRequest,
-  ScaledNextCycle,
+  PhaseRevisionsResponse,
+  PrepareNextRevisionRequest,
+  RevisionNeedResponse,
+  ScaledNextRevision,
 } from '../models/diet-suggestion.model';
 import { PlanAssignment } from '../../../shared/models/plan-assignment.model';
 
@@ -15,8 +15,8 @@ import { PlanAssignment } from '../../../shared/models/plan-assignment.model';
 export class DietSuggestionApiService {
   constructor(private http: HttpService) {}
 
-  // Objetivo del cliente + plantillas rankeadas por cercanía. 422 si faltan
-  // biométricos (el cajón manda pedir una antropometría).
+  // Objetivo de referencia del cliente (o el que teclee el entrenador) +
+  // plantillas rankeadas por cercanía. 422 si faltan biométricos.
   public suggest(clientId: string, body: DietSuggestionRequest): Observable<DietSuggestionResponse> {
     return this.http.post<DietSuggestionResponse>(
       `trainer/clients/${clientId}/diet-suggestions`,
@@ -24,41 +24,62 @@ export class DietSuggestionApiService {
     );
   }
 
-  // Ciclos por contenido — ciclo actual, siguiente (con sugerencia) y
-  // pasados de una fase, en una sola llamada.
-  public getPhaseCycles(clientId: string, phaseId: string): Observable<PhaseCyclesResponse> {
-    return this.http.get<PhaseCyclesResponse>(`trainer/clients/${clientId}/nutrition-phases/${phaseId}/cycles`);
-  }
-
-  // Cómo se calculó la necesidad de un ciclo (docs/plan-info-calculo-fase.md).
-  public getCycleNeed(clientId: string, phaseId: string, cycleNumber: number): Observable<CycleNeedResponse> {
-    return this.http.get<CycleNeedResponse>(
-      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/cycles/${cycleNumber}/need`
+  // Revisiones de una fase: la que corre, la siguiente (con sugerencia) y
+  // las pasadas, en una sola llamada.
+  public getPhaseRevisions(clientId: string, phaseId: string): Observable<PhaseRevisionsResponse> {
+    return this.http.get<PhaseRevisionsResponse>(
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions`
     );
   }
 
-  // Contenido del ciclo vigente escalado a `kcal` (no escribe nada).
-  public scaleNextCycle(clientId: string, phaseId: string, kcal: number): Observable<ScaledNextCycle> {
-    return this.http.post<ScaledNextCycle>(
-      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/cycles/next/scale`,
+  // Cómo se calculó la necesidad del cliente en esa revisión.
+  public getRevisionNeed(
+    clientId: string,
+    phaseId: string,
+    revisionNumber: number
+  ): Observable<RevisionNeedResponse> {
+    return this.http.get<RevisionNeedResponse>(
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions/${revisionNumber}/need`
+    );
+  }
+
+  // Contenido vigente escalado a `kcal` (no escribe nada).
+  public scaleNextRevision(clientId: string, phaseId: string, kcal: number): Observable<ScaledNextRevision> {
+    return this.http.post<ScaledNextRevision>(
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions/next/scale`,
       { kcal }
     );
   }
 
-  // Preparar el siguiente ciclo. La fecha la pone el servidor. Responde
-  // 204 (body vacío → null) si el contenido no cambia nada.
-  public prepareNextCycle(
+  // Preparar la revisión siguiente. La fecha la pone el check-in que la
+  // abre. Responde 204 (body vacío → null) si el contenido no cambia nada.
+  public prepareNextRevision(
     clientId: string,
     phaseId: string,
-    body: PrepareNextCycleRequest
+    body: PrepareNextRevisionRequest
   ): Observable<PlanAssignment | null> {
     return this.http.put<PlanAssignment | null>(
-      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/cycles/next`,
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions/next`,
       body
     );
   }
 
-  public discardNextCycle(clientId: string, phaseId: string): Observable<void> {
-    return this.http.delete<void>(`trainer/clients/${clientId}/nutrition-phases/${phaseId}/cycles/next`);
+  public discardNextRevision(clientId: string, phaseId: string): Observable<void> {
+    return this.http.delete<void>(
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions/next`
+    );
+  }
+
+  // Corregir cuándo empieza y acaba una fase ya aplicada (409 si se solapa
+  // con otra).
+  public updatePhaseDates(
+    clientId: string,
+    phaseId: string,
+    dates: { startDate?: string; endDate?: string | null }
+  ): Observable<PlanAssignment> {
+    return this.http.patch<PlanAssignment>(
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/dates`,
+      dates
+    );
   }
 }
