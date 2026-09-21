@@ -25,16 +25,20 @@
     <div
       class="client-row"
       *ngFor="let client of clients; trackBy: trackByClientId"
+      [class.read-only]="client.readOnly"
+      [attr.aria-disabled]="client.readOnly || null"
       (click)="toggle(client.user!._id)"
     >
       <ion-checkbox
         mode="ios"
         [checked]="isSelected(client.user!._id)"
+        [disabled]="!!client.readOnly"
         (click)="$event.stopPropagation()"
         (ionChange)="toggle(client.user!._id)"
       ></ion-checkbox>
       <div class="client-info">
         <span class="client-name">{{ fullName(client) }}</span>
+        <span class="client-read-only" *ngIf="client.readOnly">Solo lectura · fuera del cupo de tu plan</span>
         <span class="client-allergy-warning" *ngIf="allergiesFor(client.user!._id) as allergies">
           <ion-icon name="warning-outline"></ion-icon>
           {{ allergies }}

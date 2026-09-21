@@ -33,6 +33,11 @@
 
   <div class="profile-layout" *ngIf="headerState === 'loaded'">
     <div class="profile-main">
+      <div class="read-only-banner" *ngIf="readOnlyLimit !== null" role="status">
+        <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+        <p><strong>Cliente en solo lectura.</strong> Tu plan admite {{ readOnlyLimit }} clientes activos: puedes consultar su historial, pero no modificar sus rutinas, dietas ni check-ins.</p>
+        <button type="button" class="read-only-action" (click)="goToSeats()">Elegir clientes activos</button>
+      </div>
       <!-- Breadcrumb "Cliente Resumen" (mockup claude.ai/design) — solo en
            esta página, sin tocar app-page-header (compartido con el resto
            de la app): reutiliza goToClientsList(), ya usado en el estado

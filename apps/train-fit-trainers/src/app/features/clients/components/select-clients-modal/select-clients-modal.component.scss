@@ -51,6 +51,9 @@
 }
 
 // TAREA5 (auditoría UX, Fase D)
+.client-row.read-only { opacity: 0.6; cursor: not-allowed; }
+.client-read-only { display: block; font-size: 0.8125rem; color: var(--tf-text-muted); }
+
 .client-allergy-warning {
   display: flex;
   align-items: center;

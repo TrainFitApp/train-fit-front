@@ -7,18 +7,10 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { TrainerClientsApiService } from 'src/app/features/clients/services/trainer-clients-api.service';
 import { TrainerBillingApiService } from 'src/app/features/subscription/services/trainer-billing-api.service';
-import {
-  TrainerEntitlements,
-  TrainerTier,
-} from 'src/app/features/subscription/models/trainer-entitlements.model';
+import { TrainerEntitlements } from 'src/app/features/subscription/models/trainer-entitlements.model';
+import { trainerBillingSummary, trainerPlanName } from 'src/app/features/subscription/trainer-billing-view.util';
 import { LINKS } from 'src/app/shared/constants/links';
 import { environment } from '../../../environments/environment';
-
-const PLAN_NAMES: Record<TrainerTier, string> = {
-  free: 'Free',
-  trainer_pro: 'Pro',
-  trainer_unlimited: 'Unlimited',
-};
 
 interface SecurityItem {
   label: string;
@@ -55,14 +47,12 @@ const SUGGESTION_CATEGORY_TAG: Record<SuggestionCategoryKey, string> = {
 // nunca el componente de pantalla compartido — así no afecta a las otras 2
 // apps del monorepo. Ver MVP-trainers/tareas-grandes/TAREA5.
 //
-// Rediseño 2026-09 (mockup "TrainFit Panel"): las secciones mezclan datos
-// reales (perfil básico, nº de clientes, plan/suscripción, cambiar
-// contraseña, eliminar cuenta, enviar sugerencia) con la disponibilidad
-// semanal y algunos ítems de seguridad que todavía no existen en el backend
-// (2FA, dispositivos conectados, exportar datos). Estos últimos se muestran
-// solo a nivel visual — el tap dispara comingSoon() en vez de fingir una
-// acción que no hace nada, mismo patrón que ya usa
-// SubscriptionPage.subscribe() para los pagos in-app.
+// Rediseño 2026-09 (mockup "TrainFit Panel"). Solo funciones reales: 2FA,
+// dispositivos conectados, cerrar sesiones activas, exportar datos y
+// "Centro de ayuda" se quitaron de aquí (2026-09-18) porque no existen en el
+// backend — mostrarlas con un toast de "próximamente" invitaba al entrenador
+// a tocar algo que no hacía nada. Si se implementan de verdad, vuelven a
+// securityItems/supportLinks con su action real, no con comingSoon().
 @Component({
   selector: 'app-account',
   templateUrl: 'account.page.html',
@@ -110,30 +100,6 @@ export class AccountPage implements OnInit {
       action: () => this.navigationService.goToRestorePasswordPage(),
     },
     {
-      label: 'Verificación en dos pasos (2FA)',
-      sub: 'Añade una capa extra de seguridad',
-      icon: 'shield-checkmark-outline',
-      action: () => this.comingSoon(),
-    },
-    {
-      label: 'Dispositivos conectados',
-      sub: 'Revisa dónde has iniciado sesión',
-      icon: 'phone-portrait-outline',
-      action: () => this.comingSoon(),
-    },
-    {
-      label: 'Cerrar sesiones activas',
-      sub: 'Cierra sesión en todos los dispositivos',
-      icon: 'log-out-outline',
-      action: () => this.comingSoon(),
-    },
-    {
-      label: 'Exportar mis datos',
-      sub: 'Descarga una copia de tu información',
-      icon: 'download-outline',
-      action: () => this.comingSoon(),
-    },
-    {
       label: 'Eliminar cuenta',
       sub: 'Acción irreversible',
       icon: 'trash-outline',
@@ -143,7 +109,6 @@ export class AccountPage implements OnInit {
   ];
 
   public readonly supportLinks: SupportLink[] = [
-    { label: 'Centro de ayuda', icon: 'help-circle-outline', action: () => this.comingSoon() },
     {
       label: 'Enviar sugerencia o incidencia',
       icon: 'chatbubbles-outline',
@@ -166,9 +131,10 @@ export class AccountPage implements OnInit {
   }
 
   public get planName(): string {
-    const tier = this.entitlements?.tier;
-    return tier ? PLAN_NAMES[tier] : '—';
+    return trainerPlanName(this.entitlements);
   }
+
+  public get billingSummary() { return trainerBillingSummary(this.entitlements); }
 
   public get usagePercent(): number {
     const limit = this.entitlements?.limits.clients;
@@ -266,13 +232,6 @@ export class AccountPage implements OnInit {
           handler: () => this.authService.logout(),
         },
       ],
-    });
-  }
-
-  public comingSoon(): void {
-    void this.ionicUtilService.showToast({
-      message: 'Esta función estará disponible próximamente',
-      duration: 2000,
     });
   }
 

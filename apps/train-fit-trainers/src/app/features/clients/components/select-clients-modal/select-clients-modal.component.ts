@@ -86,6 +86,7 @@ export class SelectClientsModalComponent implements OnInit {
   }
 
   public toggle(clientId: string): void {
+    if (this.clients.find((client) => client.user?._id === clientId)?.readOnly) return;
     if (this.selectedIds.has(clientId)) {
       this.selectedIds.delete(clientId);
     } else {
