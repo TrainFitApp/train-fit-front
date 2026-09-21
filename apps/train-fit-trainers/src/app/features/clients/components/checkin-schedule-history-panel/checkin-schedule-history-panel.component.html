@@ -1,0 +1,99 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ schedule.name }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="history-panel">
+  <p class="panel-note">
+    {{ cadence }} · {{ schedule.time }}
+    <span *ngIf="!schedule.active"> · en pausa</span>
+  </p>
+
+  <div class="panel-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+  </div>
+
+  <p class="panel-note panel-note--error" *ngIf="state === 'error'">
+    No se pudo cargar el histórico de este check-in.
+  </p>
+
+  <ng-container *ngIf="state === 'ready'">
+    <p class="panel-note" *ngIf="total">
+      {{ answered }} respondido{{ answered === 1 ? '' : 's' }} de {{ entries.length }} mostrado{{ entries.length === 1 ? '' : 's' }}
+      <span *ngIf="total > entries.length"> · {{ total }} en total</span>
+    </p>
+    <p class="panel-note" *ngIf="!total">Todavía no se ha pedido ninguna vez.</p>
+
+    <div
+      class="history-item"
+      *ngFor="let entry of entries; trackBy: trackById"
+      [class.is-answered]="!!entry.responseId"
+      [class.is-open]="entry._id === expandedId"
+    >
+      <button
+        type="button"
+        class="history-item__head"
+        [attr.aria-expanded]="entry._id === expandedId"
+        [disabled]="!entry.responseId"
+        (click)="toggle(entry)"
+      >
+        <span class="history-item__body">
+          <span class="history-item__title-row">
+            <span class="history-item__date">{{ day(entry.date) }}</span>
+            <span class="history-item__tag" [attr.data-status]="entry.status">
+              {{ statusLabels[entry.status] }}
+            </span>
+          </span>
+          <span class="history-item__meta" *ngIf="weekLabel(entry) as week">{{ week }}</span>
+        </span>
+        <ion-icon
+          *ngIf="entry.responseId"
+          [name]="entry._id === expandedId ? 'chevron-up-outline' : 'chevron-down-outline'"
+          aria-hidden="true"
+        ></ion-icon>
+      </button>
+
+      <dl class="history-item__values" *ngIf="entry._id === expandedId">
+        <div class="history-item__value" *ngFor="let row of expandedValues">
+          <dt>{{ row.label }}</dt>
+          <dd>{{ row.value }}</dd>
+        </div>
+        <p class="history-item__empty" *ngIf="!expandedValues.length">Se envió sin ningún dato.</p>
+        <p class="history-item__comment" *ngIf="entry.reviewComment">“{{ entry.reviewComment }}”</p>
+      </dl>
+    </div>
+
+    <ion-button
+      *ngIf="hasMore"
+      class="history-panel__more"
+      expand="block"
+      fill="clear"
+      size="small"
+      [disabled]="loadingMore"
+      (click)="loadMore()"
+    >
+      {{ loadingMore ? 'Cargando…' : 'Ver más atrás' }}
+    </ion-button>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="ion-no-border" *ngIf="state !== 'loading'">
+  <div class="history-panel__footer">
+    <ion-button expand="block" fill="outline" size="small" (click)="goToCheckins()">
+      Ir a check-ins
+    </ion-button>
+  </div>
+</ion-footer>

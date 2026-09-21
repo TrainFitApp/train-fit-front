@@ -87,7 +87,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   }
 
   // --- Confirmación ---
-  // La fase empieza el día en que se crea (docs/plan-revisiones.md §11); las
+  // La fase empieza el día en que se crea (docs/plan-semanas.md); las
   // fechas se editan después desde la ficha del cliente.
   public readonly startDate = new Date().toISOString().slice(0, 10);
   public applying = false;
@@ -302,7 +302,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
         },
         // Solo si el entrenador los tocó: sin tocar, el backend aplica su
         // fórmula por defecto (misma que rellena estos campos) y así el
-        // resumen de revisión puede decir "fórmula por defecto".
+        // resumen de semana puede decir "fórmula por defecto".
         proteinPerKg: this.userTouchedMacroRatio && this.proteinPerKg ? Number(this.proteinPerKg) : null,
         fatPerKg: this.userTouchedMacroRatio && this.fatPerKg ? Number(this.fatPerKg) : null,
       },

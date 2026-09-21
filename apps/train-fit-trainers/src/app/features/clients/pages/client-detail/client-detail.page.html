@@ -1372,7 +1372,7 @@
              vacío debajo: es una columna angosta por diseño, no un panel de
              ancho completo a medio llenar. -->
             <div class="nutrition-sidebar">
-              <!-- Objetivo nutricional del cliente (docs/plan-revisiones.md §2):
+              <!-- Objetivo nutricional del cliente (docs/plan-semanas.md):
                el MISMO número que ve él en su app. Va arriba del todo porque
                es lo que justifica el resto de la columna — la adherencia se
                mide contra lo pautado, pero el objetivo es el punto de
@@ -1590,7 +1590,7 @@
                   </div>
 
                   <!-- Cómo se ha calculado: la misma cuenta paso a paso que el
-                   resumen de revisión, con los datos de hoy. Plegada. -->
+                   resumen de semana, con los datos de hoy. Plegada. -->
                   <ng-container *ngIf="nutritionalGoalNeed as need">
                     <button
                       type="button"
@@ -1881,6 +1881,20 @@
                         <ion-icon name="flash" aria-hidden="true"></ion-icon>
                         {{ phaseOrder(activePlan) }}ª · en curso
                       </span>
+                      <!-- Los check-ins del cliente, a un toque desde la fase: son
+                   los que alimentan la sugerencia de la semana siguiente, así
+                   que es aquí donde se pregunta por ellos. Abre el panel
+                   derecho con la lista. -->
+                      <button
+                        type="button"
+                        class="active-plan-checkins"
+                        *ngIf="checkinSchedulesCount !== null"
+                        [attr.aria-label]="'Ver los check-ins de este cliente'"
+                        (click)="openCheckinSchedulesPanel()"
+                      >
+                        <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+                        {{ checkinSchedulesCount }} check-in{{ checkinSchedulesCount === 1 ? '' : 's' }}
+                      </button>
                       <!-- Editar las fechas de la fase: se crea para el día en que se
                    crea, y se corrige aquí. A la derecha del todo: es un dato
                    de contexto, no compite con el nombre de la fase. -->
@@ -1949,106 +1963,98 @@
                     </p>
 
                     <div class="active-plan-actions">
-                      <!-- Revisiones (docs/plan-revisiones.md): las marcan los
-                   check-ins programados del cliente. Pasadas y la que corre =
-                   solo lectura (abren su resumen); la siguiente abre la
-                   sugerencia y se prepara en el builder. El número lleva "R":
-                   es el mismo que el badge del calendario.
+                      <!-- Semanas (docs/plan-semanas.md): lunes a domingo, la
+                   primera recortada si la fase empezó a media semana. Pasadas
+                   y la que corre = solo lectura (abren su resumen); la
+                   siguiente abre la sugerencia y se prepara en el builder. El
+                   número lleva "S": es el mismo que el badge del calendario.
 
-                   Orden de toda la fila, de izquierda a derecha: más reciente
-                   -> más antiguo por fecha (siguiente, luego la que corre,
-                   luego las pasadas de mayor a menor número). -->
-                      <ng-container *ngIf="phaseRevisions as pr">
-                        <div class="revision-tiles">
-                          <!-- Siguiente: lo que viene. Solo existe si hay un check-in
-                       programado por delante que la abra. -->
+                   Orden CRONOLÓGICO, de izquierda a derecha: anteriores (de
+                   más antigua a más reciente), la que corre, y la próxima al
+                   final — por eso la fila abre con el scroll a la derecha
+                   (scrollWeeksToEnd), donde está lo que importa hoy. -->
+                      <ng-container *ngIf="phaseWeeks as pr">
+                        <div class="week-tiles" #weekTiles>
+                          <!-- Pasadas, de la más antigua a la más reciente. -->
                           <button
                             type="button"
-                            class="revision-tile revision-tile--next"
-                            *ngIf="pr.next as next"
-                            [class.is-edited]="nextRevisionState === 'edited'"
-                            [attr.aria-label]="nextRevisionState === 'suggested' ? 'Revisar siguiente revisión' : 'Preparar siguiente revisión'"
-                            (click)="openNextRevisionModal()"
+                            class="week-tile week-tile--past"
+                            *ngFor="let entry of pastWeeks; trackBy: trackByWeekNumber"
+                            [attr.aria-label]="'Ver el resumen de la semana ' + entry.number"
+                            (click)="openWeekSummary(entry)"
                           >
-                            <span class="revision-tile__title-row">
-                              <span class="revision-tile__label"
-                                >R{{ next.number }}</span
+                            <span class="week-tile__title-row">
+                              <span class="week-tile__label"
+                                >S{{ entry.number }}</span
                               >
-                              <span class="revision-tile__tag">PRÓXIMA</span>
+                              <span class="week-tile__tag">ANTERIOR</span>
                             </span>
-                            <span class="revision-tile__dates"
-                              >{{ revisionDateRange(next) }}</span
+                            <span class="week-tile__dates"
+                              >{{ weekDateRange(entry) }}</span
                             >
-                            <span class="revision-tile__kcal"
-                              >{{ nextRevisionKcal || '—' }} kcal</span
+                            <span class="week-tile__kcal"
+                              >{{ entry.profile.kcal || '—' }} kcal</span
                             >
                           </button>
 
                           <!-- La que corre: lo que el cliente come ahora. Solo lectura. -->
                           <button
                             type="button"
-                            class="revision-tile revision-tile--current"
+                            class="week-tile week-tile--current"
                             *ngIf="pr.current as current"
-                            aria-label="Ver resumen de la revisión en curso"
-                            (click)="openCurrentRevisionSummary()"
+                            aria-label="Ver resumen de la semana en curso"
+                            (click)="openCurrentWeekSummary()"
                           >
-                            <span class="revision-tile__title-row">
-                              <span class="revision-tile__label"
-                                >R{{ current.number }}</span
+                            <span class="week-tile__title-row">
+                              <span class="week-tile__label"
+                                >S{{ current.number }}</span
                               >
                               <span
-                                class="revision-tile__tag revision-tile__tag--accent"
+                                class="week-tile__tag week-tile__tag--accent"
                                 >EN CURSO</span
                               >
                             </span>
-                            <span class="revision-tile__dates"
-                              >{{ revisionDateRange(current) }}</span
+                            <span class="week-tile__dates"
+                              >{{ weekDateRange(current) }}</span
                             >
-                            <span class="revision-tile__kcal"
+                            <span class="week-tile__kcal"
                               >{{ current.override.profile.kcal || '—' }}
                               kcal</span
                             >
                           </button>
 
-                          <!-- Pasadas: misma tarjeta, misma fila, a continuación. -->
+                          <!-- De la que corre a la próxima: el paso que se está
+                       preparando. Decorativa. -->
+                          <ion-icon
+                            class="week-tiles__arrow"
+                            name="chevron-forward-outline"
+                            aria-hidden="true"
+                            *ngIf="pr.current && pr.next"
+                          ></ion-icon>
+
+                          <!-- Próxima: la que el entrenador prepara. -->
                           <button
                             type="button"
-                            class="revision-tile revision-tile--past"
-                            *ngFor="let entry of pastRevisions; trackBy: trackByRevisionNumber"
-                            [attr.aria-label]="'Ver el resumen de la revisión ' + entry.number"
-                            (click)="openRevisionSummary(entry)"
+                            class="week-tile week-tile--next"
+                            *ngIf="pr.next as next"
+                            [class.is-edited]="nextWeekState === 'edited'"
+                            [attr.aria-label]="nextWeekState === 'suggested' ? 'Revisar siguiente semana' : 'Preparar siguiente semana'"
+                            (click)="openNextWeekModal()"
                           >
-                            <span class="revision-tile__title-row">
-                              <span class="revision-tile__label"
-                                >R{{ entry.number }}</span
+                            <span class="week-tile__title-row">
+                              <span class="week-tile__label"
+                                >S{{ next.number }}</span
                               >
-                              <span class="revision-tile__tag">ANTERIOR</span>
+                              <span class="week-tile__tag">PRÓXIMA</span>
                             </span>
-                            <span class="revision-tile__dates"
-                              >{{ revisionDateRange(entry) }}</span
+                            <span class="week-tile__dates"
+                              >{{ weekDateRange(next) }}</span
                             >
-                            <span class="revision-tile__kcal"
-                              >{{ entry.profile.kcal || '—' }} kcal</span
+                            <span class="week-tile__kcal"
+                              >{{ nextWeekKcal || '—' }} kcal</span
                             >
                           </button>
                         </div>
-
-                        <!-- Sin check-ins programados no hay revisiones que ajustar:
-                     la fase es una sola ventana abierta. El camino para
-                     empezar el seguimiento sale aquí mismo, que es donde se
-                     nota que falta. -->
-                        <button
-                          type="button"
-                          class="revision-empty-cta"
-                          *ngIf="!pr.hasSchedules"
-                          (click)="goToCheckins()"
-                        >
-                          <ion-icon
-                            name="add-outline"
-                            aria-hidden="true"
-                          ></ion-icon>
-                          Crear check-in para empezar el seguimiento de la fase
-                        </button>
                       </ng-container>
 
                       <!-- Acción secundaria y destructiva: texto discreto, no un
@@ -2056,7 +2062,7 @@
                    pide confirmación EN EL SITIO — dos botones pequeños en
                    vez de un ion-alert tapando la ficha entera. -->
                       <!-- Se quita la FASE entera (el head, ver activePhase): el
-                   backend se lleva con él las revisiones preparadas. -->
+                   backend se lleva con él las semanas preparadas. -->
                       <ng-container *ngIf="activePhase as fase">
                         <ng-container
                           *ngIf="confirmingCancelPlanPhaseId !== fase._id; else confirmActivePlanRemove"
@@ -2244,7 +2250,7 @@
                      pautado/consumido) y peso vs. adherencia, sin perder el
                      rango de fechas elegido (ambas comparten
                      customTrackingRange). QUÉ gráfica se ve — distinto de
-                     CÓMO se elige el rango (días/revisión), ver más abajo. -->
+                     CÓMO se elige el rango (días/semana), ver más abajo. -->
                     <div
                       class="chart-view-toggle"
                       role="group"
@@ -2270,12 +2276,12 @@
                   </div>
                   <div class="nutrition-card">
                     <!-- CÓMO se elige customTrackingRange: por días sueltos
-                     (como siempre) o por revisiones completas. Compartido
+                     (como siempre) o por semanas completas. Compartido
                      por las dos gráficas de arriba — mismo rango, misma
                      tarjeta, solo cambia cómo se aterriza en él. "Por
-                     revisión" solo tiene sentido si hay una fase con
-                     revisiones que enseñar (phaseRevisions); sin fase, se
-                     queda en días sin más (por eso el `|| !phaseRevisions`
+                     semana" solo tiene sentido si hay una fase con
+                     semanas que enseñar (phaseWeeks); sin fase, se
+                     queda en días sin más (por eso el `|| !phaseWeeks`
                      de abajo: si la fase desaparece mientras se mira, no se
                      queda enseñando controles sin forma de salir de ahí). -->
                     <div class="range-mode-row">
@@ -2283,7 +2289,7 @@
                         class="range-mode-toggle"
                         role="group"
                         aria-label="Cómo elegir el rango de fechas"
-                        *ngIf="phaseRevisions"
+                        *ngIf="phaseWeeks"
                       >
                         <button
                           type="button"
@@ -2296,15 +2302,15 @@
                         <button
                           type="button"
                           class="range-mode-btn"
-                          [class.is-active]="nutritionRangeMode === 'revisions'"
-                          (click)="setNutritionRangeMode('revisions')"
+                          [class.is-active]="nutritionRangeMode === 'weeks'"
+                          (click)="setNutritionRangeMode('weeks')"
                         >
-                          Por revisión
+                          Por semana
                         </button>
                       </div>
 
                       <ng-container
-                        *ngIf="nutritionRangeMode === 'days' || !phaseRevisions; else revisionRangeControls"
+                        *ngIf="nutritionRangeMode === 'days' || !phaseWeeks; else weekRangeControls"
                       >
                         <span class="range-dates" *ngIf="customTrackingRange"
                           >{{ trackingRangeLabel }}</span
@@ -2336,40 +2342,40 @@
                           </button>
                         </div>
                       </ng-container>
-                      <ng-template #revisionRangeControls>
-                        <span class="range-dates" *ngIf="revisionRangeLabel"
-                          >{{ revisionRangeLabel }}</span
+                      <ng-template #weekRangeControls>
+                        <span class="range-dates" *ngIf="weekRangeLabel"
+                          >{{ weekRangeLabel }}</span
                         >
                         <div class="range-preset-group">
                           <button
                             type="button"
                             class="range-preset-btn"
-                            [class.is-active]="revisionsPreset === 1"
-                            (click)="applyRevisionsPreset(1)"
+                            [class.is-active]="weeksPreset === 1"
+                            (click)="applyWeeksPreset(1)"
                           >
-                            Revisión actual
+                            Semana actual
                           </button>
                           <button
                             type="button"
                             class="range-preset-btn"
-                            [class.is-active]="revisionsPreset === 3"
-                            (click)="applyRevisionsPreset(3)"
+                            [class.is-active]="weeksPreset === 3"
+                            (click)="applyWeeksPreset(3)"
                           >
-                            Últimas 3 revisiones
+                            Últimas 3 semanas
                           </button>
                           <button
                             type="button"
                             class="range-preset-btn"
-                            [class.is-active]="revisionsPreset === 6"
-                            (click)="applyRevisionsPreset(6)"
+                            [class.is-active]="weeksPreset === 6"
+                            (click)="applyWeeksPreset(6)"
                           >
-                            Últimas 6 revisiones
+                            Últimas 6 semanas
                           </button>
                           <button
                             type="button"
                             class="range-preset-btn"
-                            [class.is-active]="revisionsPreset === null"
-                            (click)="applyRevisionsPreset(null)"
+                            [class.is-active]="weeksPreset === null"
+                            (click)="applyWeeksPreset(null)"
                           >
                             Todas
                           </button>
@@ -2389,23 +2395,23 @@
                     ></app-weight-adherence-chart>
                   </div>
 
-                  <!-- Revisión vs. revisión (lo pautado): en el hueco bajo la
+                  <!-- Semana vs. semana (lo pautado): en el hueco bajo la
                    gráfica, dos cards con selector propio. Solo con fase con
-                   revisiones — sin fase no hay nada que comparar. Van por
+                   semanas — sin fase no hay nada que comparar. Van por
                    libre respecto al rango de arriba. -->
-                  <ng-container *ngIf="phaseRevisions">
+                  <ng-container *ngIf="phaseWeeks">
                     <div class="section-row">
-                      <h2 class="section-heading">Revisión a revisión</h2>
+                      <h2 class="section-heading">Semana a semana</h2>
                     </div>
-                    <app-revision-comparison-cards
-                      [phaseRevisions]="phaseRevisions"
-                    ></app-revision-comparison-cards>
+                    <app-week-comparison-cards
+                      [phaseWeeks]="phaseWeeks"
+                    ></app-week-comparison-cards>
                   </ng-container>
                 </div>
               </div>
 
               <!-- Historial de nutrición: feed de eventos que desglosa fases y
-               revisiones — en qué revisión estaba el cliente, si lo cumplió, si
+               semanas — en qué semana estaba el cliente, si lo cumplió, si
                metió check-in, excepciones. No es un log de contenido exacto
                día a día (eso exigiría versionar cada DietDay). A todo el
                ancho de .nutrition-main, debajo de calendario + gráfico. -->
@@ -2447,7 +2453,7 @@
                     [events]="nutritionHistory"
                     [phaseColorOf]="phaseColorForFeed"
                     [checkinQuestions]="checkinQuestions"
-                    (openRevision)="openRevisionSummary($event)"
+                    (openWeek)="openWeekSummary($event)"
                   ></app-nutrition-history-feed>
                 </ng-container>
               </ng-container>

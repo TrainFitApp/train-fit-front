@@ -8,7 +8,7 @@ export class MyCheckinsApiService {
   constructor(private http: HttpService) {}
 
   // Los check-ins ABIERTOS hoy. Los de periodos ya cerrados no vuelven:
-  // esa revisión pasó y no se puede rellenar hacia atrás.
+  // esa semana pasó y no se puede rellenar hacia atrás.
   public getMine(): Observable<MyCheckin[]> {
     return this.http.get<MyCheckin[]>('trainer/checkins/mine');
   }

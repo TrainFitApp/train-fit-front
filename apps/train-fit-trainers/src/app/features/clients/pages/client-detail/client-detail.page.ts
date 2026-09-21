@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, skip } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
@@ -9,6 +9,7 @@ import { AlertController, ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { ClientDetailApiService } from './services/client-detail-api.service';
+import { CheckinSchedule } from './components/checkin-workspace/checkin-workspace.model';
 import { TrainerClientsApiService } from '../../services/trainer-clients-api.service';
 import { TrainerClientSummary } from '../../models/trainer-client-summary.model';
 import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
@@ -58,7 +59,9 @@ import {
 import { TrainingFilterPanelComponent, TrainingFilterResult } from './components/training-filter-panel/training-filter-panel.component';
 import { CompletedDay } from './components/training-calendar/training-calendar.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
-import { NextRevisionModalComponent } from '../../components/next-revision-modal/next-revision-modal.component';
+import { NextWeekModalComponent } from '../../components/next-week-modal/next-week-modal.component';
+import { CheckinSchedulesPanelComponent } from '../../components/checkin-schedules-panel/checkin-schedules-panel.component';
+import { CheckinScheduleHistoryPanelComponent } from '../../components/checkin-schedule-history-panel/checkin-schedule-history-panel.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { PHASE_COLORS, buildPhaseColorMap } from './phase-color.util';
@@ -67,13 +70,13 @@ import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models
 import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
 import { CustomCheckinQuestion } from '../../../checkin-templates/models/checkin-template.model';
 import {
-  RevisionNeed,
-  RevisionWindow,
-  PhaseRevisionsResponse,
+  WeekNeed,
+  WeekWindow,
+  PhaseWeeksResponse,
 } from '../../../diet-templates/models/diet-suggestion.model';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
 import { checkinFieldLabel, checkinValueLabel } from '../../checkin-labels.util';
-import { RevisionSummaryPanelComponent } from '../../components/revision-summary-panel/revision-summary-panel.component';
+import { WeekSummaryPanelComponent } from '../../components/week-summary-panel/week-summary-panel.component';
 import { NutritionHistoryEvent, PlanAssignment } from '../../../../shared/models/plan-assignment.model';
 import { dietaryFlagUi } from '../../../../shared/utils/dietary-flag-ui.util';
 import { forkJoin } from 'rxjs';
@@ -107,7 +110,7 @@ import {
 type SectionState = 'loading' | 'error' | 'loaded';
 
 
-// Una FASE por entrada, no un doc por entrada: las revisiones preparadas de
+// Una FASE por entrada, no un doc por entrada: las semanas preparadas de
 // una fase son docs DietTemplate con el mismo phaseId, y
 // listarlos sueltos los duplicaba. Cada grupo se resume en su head (nombre,
 // inicio) con el fin del último doc (null = sigue abierta). Ascendente por
@@ -365,51 +368,51 @@ export class ClientDetailPage implements OnInit {
 
   // F20-unvicies — CÓMO se elige customTrackingRange, ortogonal a
   // nutritionChartView: mismo rango, misma gráfica, solo cambia si los
-  // presets/el calendario piensan en días sueltos o en revisiones completas.
-  // "Por revisión" NO es una gráfica distinta (eso se probó y se descartó —
-  // filtrar por revisiones es, para el usuario, tan simple como filtrar por
+  // presets/el calendario piensan en días sueltos o en semanas completas.
+  // "Por semana" NO es una gráfica distinta (eso se probó y se descartó —
+  // filtrar por semanas es, para el usuario, tan simple como filtrar por
   // días) — es otra forma de aterrizar en el mismo {start,end} de siempre,
   // solo que alineada a las fronteras que marcan los check-ins y con las
   // mismas Rn que ya usa el resto de la app.
-  // 'days' de partida es solo el fallback sin fase (sin revisiones, "por
-  // revisión" no tiene sentido) — con fase, applyInitialTrackingRangeDefault
-  // lo cambia a 'revisions' en cuanto loadPhaseRevisions resuelve.
-  public nutritionRangeMode: 'days' | 'revisions' = 'days';
-  // Nº de revisiones del preset activo (null = "todas" desde R1).
-  public revisionsPreset: number | null = null;
+  // 'days' de partida es solo el fallback sin fase (sin semanas, "por
+  // semana" no tiene sentido) — con fase, applyInitialTrackingRangeDefault
+  // lo cambia a 'weeks' en cuanto loadPhaseWeeks resuelve.
+  public nutritionRangeMode: 'days' | 'weeks' = 'days';
+  // Nº de semanas del preset activo (null = "todas" desde R1).
+  public weeksPreset: number | null = null;
 
-  public setNutritionRangeMode(mode: 'days' | 'revisions'): void {
+  public setNutritionRangeMode(mode: 'days' | 'weeks'): void {
     if (this.nutritionRangeMode === mode) return;
     this.nutritionRangeMode = mode;
-    if (mode === 'revisions') {
-      // La revisión en curso, no un histórico — mismo criterio que el rango
+    if (mode === 'weeks') {
+      // La semana en curso, no un histórico — mismo criterio que el rango
       // con el que arranca Seguimiento al entrar.
-      this.applyRevisionsPreset(1);
+      this.applyWeeksPreset(1);
     } else {
       this.onNutritionPresetSelected(this.nutritionPreset ?? 30);
     }
   }
 
-  // Revisiones que ya han empezado (start <= hoy) — las futuras no tienen
+  // Semanas que ya han empezado (start <= hoy) — las futuras no tienen
   // nada que mostrar todavía. Las ventanas las calcula el backend a partir
   // de los check-ins programados: no hay forma de deducirlas aquí.
-  private get startedRevisionWindows(): RevisionWindow[] {
+  private get startedWeekWindows(): WeekWindow[] {
     const today = this.todayIsoDate();
-    return (this.phaseRevisions?.revisions || []).filter((w) => w.start <= today);
+    return (this.phaseWeeks?.weeks || []).filter((w) => w.start <= today);
   }
 
-  private revisionEnd(window: RevisionWindow): string {
+  private weekEnd(window: WeekWindow): string {
     const today = this.todayIsoDate();
     return window.end && window.end < today ? window.end : today;
   }
 
-  // "Últimas 3/6 revisiones" o "Todas" (count null): equivalente en
-  // revisiones a onNutritionPresetSelected. Cierra en hoy si la última sigue
+  // "Últimas 3/6 semanas" o "Todas" (count null): equivalente en
+  // semanas a onNutritionPresetSelected. Cierra en hoy si la última sigue
   // en curso (mismo criterio que el resto de Seguimiento: no pedir días
   // futuros sin datos).
-  public applyRevisionsPreset(count: number | null): void {
-    this.revisionsPreset = count;
-    const windows = this.startedRevisionWindows;
+  public applyWeeksPreset(count: number | null): void {
+    this.weeksPreset = count;
+    const windows = this.startedWeekWindows;
     if (!windows.length) {
       this.customTrackingRange = null;
       return;
@@ -417,33 +420,33 @@ export class ClientDetailPage implements OnInit {
     const slice = count ? windows.slice(-count) : windows;
     this.customTrackingRange = {
       start: slice[0].start,
-      end: this.revisionEnd(slice[slice.length - 1]),
+      end: this.weekEnd(slice[slice.length - 1]),
     };
   }
 
-  // Modo revisión — cualquier selección (día suelto o rango arrastrado) se
-  // expande a cubrir las revisiones completas que toca, para no dejar
-  // "media revisión" fuera de lugar. Sin revisiones que la cubran, se deja
+  // Modo semana — cualquier selección (día suelto o rango arrastrado) se
+  // expande a cubrir las semanas completas que toca, para no dejar
+  // "media semana" fuera de lugar. Sin semanas que la cubran, se deja
   // la selección tal cual llegó.
-  private snapRangeToRevisions(range: { start: string; end: string }): { start: string; end: string } {
-    const windows = this.phaseRevisions?.revisions || [];
+  private snapRangeToWeeks(range: { start: string; end: string }): { start: string; end: string } {
+    const windows = this.phaseWeeks?.weeks || [];
     if (!windows.length) return range;
-    const overlapping = windows.filter((w) => w.start <= range.end && this.revisionEnd(w) >= range.start);
+    const overlapping = windows.filter((w) => w.start <= range.end && this.weekEnd(w) >= range.start);
     if (!overlapping.length) return range;
     return {
       start: overlapping[0].start,
-      end: this.revisionEnd(overlapping[overlapping.length - 1]),
+      end: this.weekEnd(overlapping[overlapping.length - 1]),
     };
   }
 
-  // Etiqueta de la card en modo revisión — "R1 28 ago → R4 6 sept" (una
+  // Etiqueta de la card en modo semana — "R1 28 ago → R4 6 sept" (una
   // sola: "R1 28 ago → 3 sept", sin repetir el número).
-  public get revisionRangeLabel(): string {
+  public get weekRangeLabel(): string {
     if (!this.customTrackingRange) return '';
     const range = this.customTrackingRange;
-    const windows = this.phaseRevisions?.revisions || [];
+    const windows = this.phaseWeeks?.weeks || [];
     if (!windows.length) return '';
-    const overlapping = windows.filter((w) => w.start <= range.end && this.revisionEnd(w) >= range.start);
+    const overlapping = windows.filter((w) => w.start <= range.end && this.weekEnd(w) >= range.start);
     if (!overlapping.length) return '';
     const fmt = (iso: string): string =>
       new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
@@ -454,9 +457,9 @@ export class ClientDetailPage implements OnInit {
     const first = overlapping[0];
     const last = overlapping[overlapping.length - 1];
     if (first.number === last.number) {
-      return `R${first.number} ${fmt(range.start)} → ${fmt(range.end)}`;
+      return `S${first.number} ${fmt(range.start)} → ${fmt(range.end)}`;
     }
-    return `R${first.number} ${fmt(range.start)} → R${last.number} ${fmt(range.end)}`;
+    return `S${first.number} ${fmt(range.start)} → S${last.number} ${fmt(range.end)}`;
   }
 
   // Etiqueta de la card en modo días — "29 ago → 28 sept". Antes vivía
@@ -480,7 +483,7 @@ export class ClientDetailPage implements OnInit {
   public showNutritionHistory = false;
   public nutritionHistoryLoaded = false;
   public nutritionHistoryState: 'loading' | 'error' | 'loaded' = 'loading';
-  // Feed de eventos (fases, revisiones, check-ins, excepciones) — ver
+  // Feed de eventos (fases, semanas, check-ins, excepciones) — ver
   // nutrition-history-feed.component.ts.
   public nutritionHistory: NutritionHistoryEvent[] = [];
   // Color de fase para el feed: misma paleta que la fila de fases (phaseColorMap).
@@ -1856,11 +1859,11 @@ export class ClientDetailPage implements OnInit {
   }
 
   public onNutritionRangeSelected(range: { start: string; end: string }): void {
-    if (this.nutritionRangeMode === 'revisions') {
-      // Manual en modo revisión: deja de haber preset de Nº de revisiones activo,
-      // y el rango arrastrado se expande a las revisiones completas que toca.
-      this.revisionsPreset = null;
-      this.customTrackingRange = this.snapRangeToRevisions(range);
+    if (this.nutritionRangeMode === 'weeks') {
+      // Manual en modo semana: deja de haber preset de Nº de semanas activo,
+      // y el rango arrastrado se expande a las semanas completas que toca.
+      this.weeksPreset = null;
+      this.customTrackingRange = this.snapRangeToWeeks(range);
       return;
     }
     // Rango elegido a mano en el calendario: deja de haber preset activo.
@@ -1879,12 +1882,12 @@ export class ClientDetailPage implements OnInit {
   // esté mirando, así que no queda nada de verdad que releer.
   public onNutritionDateSelected(date: string): void {
     this.nutritionDate = date;
-    // Modo revisión — un click suelto (sin arrastrar) también cuenta como
-    // selección de rango para Seguimiento: la revisión que contiene ese día
+    // Modo semana — un click suelto (sin arrastrar) también cuenta como
+    // selección de rango para Seguimiento: la semana que contiene ese día
     // se resalta entero, igual que un rango arrastrado (onNutritionRangeSelected).
-    if (this.nutritionRangeMode === 'revisions') {
-      this.revisionsPreset = null;
-      this.customTrackingRange = this.snapRangeToRevisions({ start: date, end: date });
+    if (this.nutritionRangeMode === 'weeks') {
+      this.weeksPreset = null;
+      this.customTrackingRange = this.snapRangeToWeeks({ start: date, end: date });
     }
   }
 
@@ -1944,7 +1947,7 @@ export class ClientDetailPage implements OnInit {
         this.allPhasesHistory = (res?.history || [])
           .slice()
           .sort((a, b) => a.startDate.localeCompare(b.startDate));
-        // Sugerencias de dieta — las revisiones de una fase comparten color
+        // Sugerencias de dieta — las semanas de una fase comparten color
         // (banda de fase). Color por phaseId; sin phaseId, por _id.
         const phaseKeys: string[] = [];
         for (const p of this.allPhasesHistory) {
@@ -1958,7 +1961,7 @@ export class ClientDetailPage implements OnInit {
         // si se pre-programa la siguiente fase con fecha futura, el backend
         // ya la marca "vigente" aunque hoy siga corriendo la anterior (ver
         // markSuperseded en plan-assignment-service.js). Resolverlo aquí por
-        // FECHA es lo que evita la card grande (con revisiones/acciones) enseñando
+        // FECHA es lo que evita la card grande (con semanas/acciones) enseñando
         // una fase que aún no ha empezado mientras la que de verdad rige hoy
         // desaparece de la fila. Con la cadena sana solo hay una que cubra
         // hoy y coincide con `res.active`; el fallback es solo para datos
@@ -1968,16 +1971,17 @@ export class ClientDetailPage implements OnInit {
           (p) => p.startDate <= hoy && (!p.endDate || p.endDate >= hoy)
         );
         this.activePlan = vigentesHoy[vigentesHoy.length - 1] || res?.active || null;
-        this.loadPhaseRevisions();
+        this.loadPhaseWeeks();
+        this.loadCheckinSchedulesCount();
       })
       .catch(() => {
         this.activePlan = null;
         this.allPhasesHistory = [];
-        this.phaseRevisions = null;
+        this.phaseWeeks = null;
       });
   }
 
-  // --- Objetivo nutricional del cliente (docs/plan-revisiones.md §2) ---
+  // --- Objetivo nutricional del cliente (docs/plan-semanas.md) ---
   //
   // El mismo número que el cliente ve en su app. El profesional lo ve aquí
   // arriba del todo —es lo que justifica el resto de la columna— y puede
@@ -2110,8 +2114,8 @@ export class ClientDetailPage implements OnInit {
   }
 
   // La cuenta que enseña app-need-breakdown: los mismos inputs/desglose que
-  // el resumen de revisión, pero con los datos de HOY.
-  public get nutritionalGoalNeed(): RevisionNeed | null {
+  // el resumen de semana, pero con los datos de HOY.
+  public get nutritionalGoalNeed(): WeekNeed | null {
     const calculated = this.nutritionalGoal?.calculated;
     if (!calculated) return null;
     return {
@@ -2134,7 +2138,7 @@ export class ClientDetailPage implements OnInit {
     return [...this.phaseGroups()].reverse();
   }
 
-  // Una FASE por fila, no un doc por fila: las revisiones preparadas de una fase
+  // Una FASE por fila, no un doc por fila: las semanas preparadas de una fase
   // son docs DietTemplate con el mismo phaseId, y
   // pintarlos como fases aparte los duplicaba en la fila. Cada grupo se
   // resume en su head (nombre, inicio) con el fin del último doc (null =
@@ -2154,7 +2158,7 @@ export class ClientDetailPage implements OnInit {
 
   // La fase vigente resumida (head + fin real del grupo) — para nombre y
   // fechas de la card grande; `activePlan` sigue siendo el doc que rige hoy
-  // (días atascados, revisiones).
+  // (días atascados, semanas).
   public get activePhase(): PlanAssignment | null {
     if (!this.activePlan) return null;
     const key = this.phaseKeyOf(this.activePlan);
@@ -2184,40 +2188,43 @@ export class ClientDetailPage implements OnInit {
     return phase._id;
   }
 
-  // Revisiones — actual, siguiente (con sugerencia) y pasados de la
+  // Semanas — actual, siguiente (con sugerencia) y pasados de la
   // fase vigente. Solo si la fase se empezó desde el cajón (tiene phaseId);
-  // una dieta aplicada "de siempre" no tiene revisiones que enseñar.
-  private loadPhaseRevisions(): void {
+  // una dieta aplicada "de siempre" no tiene semanas que enseñar.
+  private loadPhaseWeeks(): void {
     const phaseId = this.activePlan?.phaseId;
     if (!phaseId) {
-      this.phaseRevisions = null;
+      this.phaseWeeks = null;
       this.applyInitialTrackingRangeDefault();
       return;
     }
-    this.dietSuggestionApi.getPhaseRevisions(this.clientId, phaseId).subscribe({
+    this.dietSuggestionApi.getPhaseWeeks(this.clientId, phaseId).subscribe({
       next: (res) => {
-        this.phaseRevisions = res;
+        this.phaseWeeks = res;
         this.applyInitialTrackingRangeDefault();
+        // La fila va en orden cronológico y crece por la derecha: sin esto
+        // una fase larga abre enseñando la semana 1, no la de hoy.
+        setTimeout(() => this.scrollWeeksToEnd());
       },
       error: () => {
-        this.phaseRevisions = null;
+        this.phaseWeeks = null;
         this.applyInitialTrackingRangeDefault();
       },
     });
   }
 
-  // F20-unvicies — hasta no saber si hay fase (loadPhaseRevisions, async) no
-  // se puede decidir el rango de arranque de Seguimiento: sin revisiones que
-  // enseñar, "por revisión" no tiene sentido. Por eso el rango por defecto no
+  // F20-unvicies — hasta no saber si hay fase (loadPhaseWeeks, async) no
+  // se puede decidir el rango de arranque de Seguimiento: sin semanas que
+  // enseñar, "por semana" no tiene sentido. Por eso el rango por defecto no
   // se fija en loadNutrition (se dispara antes de tener esta respuesta),
   // sino aquí. Solo aplica la PRIMERA vez (customTrackingRange sigue null)
-  // — loadPhaseRevisions se repite tras cualquier cambio de plan/revisión, y no
+  // — loadPhaseWeeks se repite tras cualquier cambio de plan/semana, y no
   // debe pisar un rango que el trainer ya haya elegido.
   private applyInitialTrackingRangeDefault(): void {
     if (this.customTrackingRange) return;
-    if (this.startedRevisionWindows.length) {
-      this.nutritionRangeMode = 'revisions';
-      this.applyRevisionsPreset(1);
+    if (this.startedWeekWindows.length) {
+      this.nutritionRangeMode = 'weeks';
+      this.applyWeeksPreset(1);
     } else {
       this.onNutritionPresetSelected(30);
     }
@@ -2265,50 +2272,50 @@ export class ClientDetailPage implements OnInit {
     return !!phase?.endDate && phase.endDate === phase.startDate;
   }
 
-  // --- Revisiones de la fase vigente (docs/plan-revisiones.md) ---
+  // --- Semanas de la fase vigente (docs/plan-semanas.md) ---
   //
-  // No se crean: las marcan los CHECK-INS programados del cliente. La ficha
+  // No se crean: son las semanas naturales que cubre la fase. La ficha
   // enseña la que corre (solo lectura, abre su resumen) y la SIGUIENTE (con
   // sugerencia; se prepara en el builder), y las pasadas como chips que
-  // abren su resumen. Todo sale de una llamada (getPhaseRevisions), que se
+  // abren su resumen. Todo sale de una llamada (getPhaseWeeks), que se
   // repite tras guardar.
-  public phaseRevisions: PhaseRevisionsResponse | null = null;
+  public phaseWeeks: PhaseWeeksResponse | null = null;
 
-  // Pasadas, la más reciente a la izquierda. Van todas en la misma fila que
-  // siguiente/actual; con muchas, la fila hace scroll horizontal.
-  public get pastRevisions(): PhaseRevisionsResponse['past'] {
-    return (this.phaseRevisions?.past || []).slice().reverse();
+  // Pasadas en orden cronológico, que es como se pintan: la más antigua a la
+  // izquierda y la que corre al final de la fila.
+  public get pastWeeks(): PhaseWeeksResponse['past'] {
+    return this.phaseWeeks?.past || [];
   }
 
-  public trackByRevisionNumber(_index: number, entry: { number: number }): number {
+  public trackByWeekNumber(_index: number, entry: { number: number }): number {
     return entry.number;
   }
 
-  // ¿Este cliente tiene check-ins programados? Sin ellos la fase es una sola
-  // ventana abierta y no hay "siguiente revisión" que preparar: la ficha
-  // ofrece crear el check-in.
-  public get hasCheckinSchedules(): boolean {
-    return !!this.phaseRevisions?.hasSchedules;
+  @ViewChild('weekTiles') private weekTiles?: ElementRef<HTMLElement>;
+
+  private scrollWeeksToEnd(): void {
+    const row = this.weekTiles?.nativeElement;
+    if (row) row.scrollLeft = row.scrollWidth;
   }
 
-  // Las kcal que va a tener la siguiente: las de la revisión ya preparada,
+  // Las kcal que va a tener la siguiente: las de la semana ya preparada,
   // si la hay; si no, las sugeridas; si no hay sugerencia, las que hereda.
-  public get nextRevisionKcal(): number | null {
-    const next = this.phaseRevisions?.next;
+  public get nextWeekKcal(): number | null {
+    const next = this.phaseWeeks?.next;
     if (!next) return null;
     if (next.override) return next.override.profile.kcal;
     if (next.suggestion?.hasData) return next.suggestion.nextKcal;
     return next.inherits?.profile.kcal ?? null;
   }
 
-  public get nextRevisionState(): 'edited' | 'suggested' | 'same' {
-    const next = this.phaseRevisions?.next;
+  public get nextWeekState(): 'edited' | 'suggested' | 'same' {
+    const next = this.phaseWeeks?.next;
     if (next?.override) return 'edited';
     if (next?.suggestion?.hasData && next.suggestion.deltaKcal !== 0) return 'suggested';
     return 'same';
   }
 
-  public revisionDateRange(window: { start: string; end: string | null }): string {
+  public weekDateRange(window: { start: string; end: string | null }): string {
     const fmt = (iso: string): string =>
       new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
     return window.end ? `${fmt(window.start)} – ${fmt(window.end)}` : `desde ${fmt(window.start)}`;
@@ -2318,9 +2325,9 @@ export class ClientDetailPage implements OnInit {
     return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
   }
 
-  // Resumen de una revisión (pasada o la que corre): solo lectura. La que
+  // Resumen de una semana (pasada o la que corre): solo lectura. La que
   // corre no se edita: lo que cambia de un día son excepciones.
-  public async openRevisionSummary(entry: {
+  public async openWeekSummary(entry: {
     number: number;
     start: string;
     end: string | null;
@@ -2329,12 +2336,12 @@ export class ClientDetailPage implements OnInit {
     const assignment = this.allPhasesHistory.find((p) => p._id === entry.overrideId);
     if (!assignment) return;
     const modal = await this.modalController.create({
-      component: RevisionSummaryPanelComponent,
+      component: WeekSummaryPanelComponent,
       cssClass: 'tf-panel-modal',
       componentProps: {
         clientId: this.clientId,
         assignment,
-        revisionNumber: entry.number,
+        weekNumber: entry.number,
         window: { start: entry.start, end: entry.end },
         clientName: this.name,
       },
@@ -2342,10 +2349,76 @@ export class ClientDetailPage implements OnInit {
     await modal.present();
   }
 
-  public openCurrentRevisionSummary(): void {
-    const current = this.phaseRevisions?.current;
+  // --- Check-ins del cliente, desde la tarjeta de la fase ---
+
+  // null mientras no se sepa: el chip no aparece hasta entonces (enseñar
+  // "0 check-ins" antes de tiempo sería mentir).
+  public checkinSchedulesCount: number | null = null;
+  private schedulesPanel: HTMLIonModalElement | null = null;
+  private scheduleHistoryPanel: HTMLIonModalElement | null = null;
+
+  private loadCheckinSchedulesCount(): void {
+    this.clientDetailApi.getCheckinSchedules(this.clientId).subscribe({
+      next: (schedules) => (this.checkinSchedulesCount = schedules.length),
+      error: () => (this.checkinSchedulesCount = null),
+    });
+  }
+
+  // Panel derecho con las programaciones. Tocar una abre su histórico en un
+  // segundo panel a su izquierda (tf-panel-modal-detail-1): la pila la
+  // maneja esta página, no los paneles — mismo reparto que
+  // recipe-builder-modal.
+  public async openCheckinSchedulesPanel(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: CheckinSchedulesPanelComponent,
+      cssClass: 'tf-panel-modal ion-disable-focus-trap',
+      componentProps: {
+        clientId: this.clientId,
+        clientName: this.name,
+        onSelect: (schedule: CheckinSchedule) => void this.openScheduleHistoryPanel(schedule),
+        onGoToCheckins: () => void this.closeCheckinPanels().then(() => this.goToCheckins()),
+      },
+    });
+    this.schedulesPanel = modal;
+    await modal.present();
+    void modal.onDidDismiss().then(() => {
+      if (this.schedulesPanel === modal) this.schedulesPanel = null;
+      void this.scheduleHistoryPanel?.dismiss();
+    });
+  }
+
+  private async openScheduleHistoryPanel(schedule: CheckinSchedule): Promise<void> {
+    // El anterior se cierra DESPUÉS de crear el nuevo: al revés, tocar otra
+    // programación obliga a tocar dos veces.
+    const previous = this.scheduleHistoryPanel;
+    const modal = await this.modalController.create({
+      component: CheckinScheduleHistoryPanelComponent,
+      cssClass: 'tf-panel-modal-detail-1 ion-disable-focus-trap',
+      showBackdrop: false,
+      backdropDismiss: false,
+      componentProps: {
+        clientId: this.clientId,
+        schedule,
+        onGoToCheckins: () => void this.closeCheckinPanels().then(() => this.goToCheckins()),
+      },
+    });
+    this.scheduleHistoryPanel = modal;
+    if (previous) await previous.dismiss();
+    await modal.present();
+    void modal.onDidDismiss().then(() => {
+      if (this.scheduleHistoryPanel === modal) this.scheduleHistoryPanel = null;
+    });
+  }
+
+  private async closeCheckinPanels(): Promise<void> {
+    await this.scheduleHistoryPanel?.dismiss();
+    await this.schedulesPanel?.dismiss();
+  }
+
+  public openCurrentWeekSummary(): void {
+    const current = this.phaseWeeks?.current;
     if (!current) return;
-    void this.openRevisionSummary({
+    void this.openWeekSummary({
       number: current.number,
       start: current.start,
       end: current.end,
@@ -2353,21 +2426,21 @@ export class ClientDetailPage implements OnInit {
     });
   }
 
-  // La siguiente revisión: sugerencia + kcal → se prepara en el builder (o
+  // La siguiente semana: sugerencia + kcal → se prepara en el builder (o
   // se descarta si ya estaba preparada). Sin fecha que elegir: la pone el
   // check-in que la abre.
-  public async openNextRevisionModal(): Promise<void> {
+  public async openNextWeekModal(): Promise<void> {
     const phaseId = this.activePlan?.phaseId;
-    if (!phaseId || !this.phaseRevisions?.next) return;
+    if (!phaseId || !this.phaseWeeks?.next) return;
 
     const modal = await this.modalController.create({
-      component: NextRevisionModalComponent,
+      component: NextWeekModalComponent,
       cssClass: 'tf-panel-modal',
       componentProps: {
         clientId: this.clientId,
         phaseId,
         clientName: this.name,
-        revisions: this.phaseRevisions,
+        weeks: this.phaseWeeks,
       },
     });
     await modal.present();
@@ -2378,7 +2451,7 @@ export class ClientDetailPage implements OnInit {
       // kcal) para que un F5 en el builder no los pierda. Sin ajustar, no
       // van: el builder escala proporcional y no enseña objetivo.
       const m = data.macros;
-      void this.router.navigate(['/tabs/diet-templates/next-revision', this.clientId, phaseId], {
+      void this.router.navigate(['/tabs/diet-templates/next-week', this.clientId, phaseId], {
         queryParams: {
           kcal: data.kcal,
           name: this.name,
@@ -2648,7 +2721,7 @@ export class ClientDetailPage implements OnInit {
     this.router.navigate(['/tabs/diet-templates']);
   }
 
-  // Sin check-ins programados la fase no tiene revisiones: el camino para
+  // Sin check-ins programados la fase no tiene semanas: el camino para
   // arrancar el seguimiento es la pestaña de medidas y check-ins de este
   // mismo cliente.
   public goToCheckins(): void {
@@ -2732,11 +2805,11 @@ export class ClientDetailPage implements OnInit {
   //
   // Antes navegaba a `sourceTemplateId` (la plantilla de BIBLIOTECA de
   // origen) — arriesgado si era general (compartida: tocarla afectaba a
-  // otros clientes) y directamente imposible en las revisiones 2+ creadas con
-  // "Siguiente revisión" (no guardan sourceTemplateId). Ahora edita siempre la
+  // otros clientes) y directamente imposible en las semanas 2+ creadas con
+  // "Siguiente semana" (no guardan sourceTemplateId). Ahora edita siempre la
   // copia de ESTE cliente por su propio `_id` (ver
   // diet-template-builder.page.ts#startForAssignedCopy) — nunca toca una
-  // plantilla de biblioteca, funciona para cualquier revisión.
+  // plantilla de biblioteca, funciona para cualquier semana.
   private hexToRgba(hex: string, alpha: number): string {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -2978,7 +3051,7 @@ export class ClientDetailPage implements OnInit {
   }
 
   // La lógica vive en checkin-labels.util.ts — la comparte con el panel de
-  // resumen de la revisión, que enseña estas mismas respuestas.
+  // resumen de la semana, que enseña estas mismas respuestas.
   public checkinFieldLabel(key: string): string {
     return checkinFieldLabel(key, this.checkinQuestions);
   }

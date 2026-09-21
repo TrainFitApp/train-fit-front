@@ -15,25 +15,25 @@ export interface CreateDirectPlanRequest {
   phase?: PhasePayload;
 }
 
-// Editor de una fase/revisión ya asignada — contenido completo de la copia
+// Editor de una fase/semana ya asignada — contenido completo de la copia
 // de ESTE cliente (nunca una plantilla de biblioteca), por su propio _id.
-// Funciona igual para el contenido inicial que para cualquier revisión
+// Funciona igual para el contenido inicial que para cualquier semana
 // posterior (sin sourceTemplateId).
 export interface PlanContent {
   _id: string;
   name: string;
   // Fase a la que pertenece (apunta a su primer documento) y fecha de inicio
-  // de esta copia — para saber qué revisión se está editando.
+  // de esta copia — para saber qué semana se está editando.
   phaseId?: string | null;
   startDate?: string | null;
   menus: DietTemplateMenuPayload[];
 }
 
-// Fases y revisiones de un rango de fechas (espejo de
-// plan-assignment-service.js#getRevisionTimeline).
+// Fases y semanas de un rango de fechas (espejo de
+// plan-assignment-service.js#getDietTimeline).
 export interface DietTimeline {
   phases: { id: string; name: string | null; start: string; end: string | null; colorIndex: number }[];
-  revisions: { phaseId: string; number: number; start: string; end: string; colorIndex: number }[];
+  weeks: { phaseId: string; number: number; start: string; end: string; colorIndex: number }[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -86,16 +86,16 @@ export class PlanAssignmentApiService {
     return this.http.post(`trainer/clients/${clientId}/skipped-days`, { date });
   }
 
-  // Feed del bloque "Historial de nutrición" de la ficha (fases, revisiones,
+  // Feed del bloque "Historial de nutrición" de la ficha (fases, semanas,
   // check-ins y días saltados).
   public getNutritionHistory(clientId: string): Observable<NutritionHistoryResponse> {
     return this.http.get<NutritionHistoryResponse>(`trainer/clients/${clientId}/nutrition-history`);
   }
 
-  // Fases y sus REVISIONES en un rango — lo que necesita el calendario para
+  // Fases y sus SEMANAS en un rango — lo que necesita el calendario para
   // pintar la franja de cada fase y el badge R1/R2 de cada día. Las ventanas
   // las marcan los check-ins, así que no se pueden deducir en el front.
-  public getRevisionTimeline(
+  public getDietTimeline(
     clientId: string,
     from: string,
     to: string

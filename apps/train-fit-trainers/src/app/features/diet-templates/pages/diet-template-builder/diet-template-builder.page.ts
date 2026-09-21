@@ -45,14 +45,14 @@ function todayIsoDate(): string {
 //   'new'      — "Crear dieta": nace para él y se le aplica al guardar.
 //   'own'      — plantilla SUYA (ownerClientId), abierta desde su ficha.
 //   'shared'   — plantilla GENERAL de la biblioteca, abierta desde su ficha.
-//   'assigned' — la copia YA ASIGNADA (fase/revisión vigente o pasada): edita
+//   'assigned' — la copia YA ASIGNADA (fase/semana vigente o pasada): edita
 //                esa copia in-place por su propio _id, nunca una plantilla
-//                de biblioteca. Único modo que sirve también para revisiones 2+
+//                de biblioteca. Único modo que sirve también para semanas 2+
 //                (sin sourceTemplateId).
 // La distinción importa por lo que se puede prometer: en 'own'/'shared' se
 // edita la plantilla, NUNCA la copia congelada que rige su plan (ver
 // diet-template-schema.js), y en 'shared' además hay más clientes detrás.
-type ClientContextKind = 'new' | 'own' | 'shared' | 'assigned' | 'next-revision';
+type ClientContextKind = 'new' | 'own' | 'shared' | 'assigned' | 'next-week';
 
 interface MacroTarget {
   kcal: number;
@@ -176,18 +176,18 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // del cajón): `clientTargetSource` dice si sigue siendo el calculado.
   public clientTargetSource: 'calculated' | 'manual' = 'calculated';
 
-  // Preparar la SIGUIENTE revisión de una fase (ruta next-revision/
+  // Preparar la SIGUIENTE semana de una fase (ruta next-week/
   // :clientId/:phaseId?kcal=): entra con el contenido vigente escalado a
   // esas kcal, se retoca y al guardar se persiste (o no, si no cambia nada
   // — el servidor responde 204).
-  public isPreparingNextRevision = false;
-  private nextRevisionPhaseId = '';
+  public isPreparingNextWeek = false;
+  private nextWeekPhaseId = '';
   // Reparto elegido en el modal (kcal de referencia + gramos), o null.
-  private nextRevisionTarget: MacroTarget | null = null;
-  public nextRevisionNumber = 0;
-  public nextRevisionRange = '';
-  public nextRevisionKcal = 0;
-  public nextRevisionBaseKcal = 0;
+  private nextWeekTarget: MacroTarget | null = null;
+  public nextWeekNumber = 0;
+  public nextWeekRange = '';
+  public nextWeekKcal = 0;
+  public nextWeekBaseKcal = 0;
   public rescaling = false;
 
   // --- Contexto de cliente (2026-09) ---
@@ -200,7 +200,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   public clientContextKind: ClientContextKind | null = null;
   // Alergias/preferencias y suplementación del cliente: al construir una
   // dieta para alguien concreto, lo que NO puede llevar pesa tanto como las
-  // kcal (docs/plan-revisiones.md §4/§6).
+  // kcal (docs/plan-semanas.md/§6).
   public clientPreferences: ClientNutritionPreferences | null = null;
   public clientSupplements: Supplement[] = [];
   public clientContextName = '';
@@ -272,7 +272,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       const planId = params.get('planId');
       const phaseId = params.get('phaseId');
       if (clientId && phaseId) {
-        this.startForNextRevision(clientId, phaseId);
+        this.startForNextWeek(clientId, phaseId);
         return;
       }
       if (clientId && planId) {
@@ -295,7 +295,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
 
   // Sin plantilla que cargar — arranca en blanco, listo para construir.
   // "Crear dieta" ya no pasa por ningún formulario previo (el nutricionista
-  // improvisa revisión a revisión, una duración estimada de antemano no le sirve
+  // improvisa semana a semana, una duración estimada de antemano no le sirve
   // de nada — ver client-detail.page.ts#goToCreateDiet): nombre en blanco,
   // editable aquí mismo (campo de arriba), y fase abierta desde HOY sin fin
   // estimado. El objetivo de la fase (foco/delta/ritmo) se pone aquí (bloque
@@ -321,7 +321,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     // Si se llegó desde el cajón ("empezar de cero"), el objetivo ya viene
     // decidido. Si se llegó por "Crear dieta" a secas, se calcula aquí con
     // los datos del cliente — es lo primero que hay que ver para montar las
-    // comidas (docs/plan-revisiones.md §4).
+    // comidas (docs/plan-semanas.md).
     if (this.clientTarget) {
       this.clientTargetLabel = 'Objetivo de la fase';
     } else {
@@ -338,7 +338,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   }
 
   // Editar la copia YA ASIGNADA de un cliente — por su propio _id, nunca por
-  // sourceTemplateId (las revisiones 2+ creadas con "Siguiente revisión" no lo
+  // sourceTemplateId (las semanas 2+ creadas con "Siguiente semana" no lo
   // tienen). Nunca toca ninguna plantilla de biblioteca.
   private startForAssignedCopy(clientId: string, planId: string): void {
     this.isEditingAssignedCopy = true;
@@ -361,34 +361,34 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-  // Preparar la siguiente revisión: contenido de la revisión vigente ya escalado a
-  // las kcal elegidas en el modal (query param). Nunca toca la revisión actual.
-  private startForNextRevision(clientId: string, phaseId: string): void {
-    this.isPreparingNextRevision = true;
-    this.nextRevisionPhaseId = phaseId;
+  // Preparar la siguiente semana: contenido de la semana vigente ya escalado a
+  // las kcal elegidas en el modal (query param). Nunca toca la semana actual.
+  private startForNextWeek(clientId: string, phaseId: string): void {
+    this.isPreparingNextWeek = true;
+    this.nextWeekPhaseId = phaseId;
     this.clientId = clientId;
     this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
-    this.clientContextKind = 'next-revision';
+    this.clientContextKind = 'next-week';
     this.clientContextName = this.clientName;
     const query = this.route.snapshot.queryParamMap;
     const kcal = Number(query.get('kcal')) || 0;
-    // Reparto ajustado en el modal "Siguiente revisión" (p/c/f en gramos):
-    // se enseña como objetivo de la revisión, con deltas por fila. Sin él, el
+    // Reparto ajustado en el modal "Siguiente semana" (p/c/f en gramos):
+    // se enseña como objetivo de la semana, con deltas por fila. Sin él, el
     // escalado proporcional ya lo cumple todo y no hay nada que comparar.
     const protein = Number(query.get('p'));
     const carbs = Number(query.get('c'));
     const fat = Number(query.get('f'));
-    this.nextRevisionTarget =
+    this.nextWeekTarget =
       kcal > 0 && [protein, carbs, fat].every((n) => Number.isFinite(n) && n >= 0) && protein + carbs + fat > 0
         ? { kcal, protein, carbs, fat }
         : null;
-    this.loadScaledNextRevision(kcal);
+    this.loadScaledNextWeek(kcal);
   }
 
-  // Al reescalar a otras kcal, el objetivo de la revisión se mueve en la misma
+  // Al reescalar a otras kcal, el objetivo de la semana se mueve en la misma
   // proporción: el reparto (%) que eligió el entrenador se mantiene.
-  private nextRevisionTargetAt(kcal: number): MacroTarget | null {
-    const t = this.nextRevisionTarget;
+  private nextWeekTargetAt(kcal: number): MacroTarget | null {
+    const t = this.nextWeekTarget;
     if (!t || !(t.kcal > 0) || !(kcal > 0)) return null;
     const factor = kcal / t.kcal;
     return {
@@ -399,22 +399,22 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     };
   }
 
-  private loadScaledNextRevision(kcal: number): void {
+  private loadScaledNextWeek(kcal: number): void {
     this.rescaling = true;
-    this.dietSuggestionApi.scaleNextRevision(this.clientId, this.nextRevisionPhaseId, kcal || 1).subscribe({
+    this.dietSuggestionApi.scaleNextWeek(this.clientId, this.nextWeekPhaseId, kcal || 1).subscribe({
       next: (scaled) => {
-        this.nextRevisionNumber = scaled.revisionNumber;
-        this.nextRevisionRange = scaled.end
+        this.nextWeekNumber = scaled.weekNumber;
+        this.nextWeekRange = scaled.end
           ? `${this.fmtDay(scaled.start)} – ${this.fmtDay(scaled.end)}`
           : `desde ${this.fmtDay(scaled.start)}`;
-        this.nextRevisionBaseKcal = scaled.baseKcal;
-        this.nextRevisionKcal = kcal || scaled.baseKcal;
+        this.nextWeekBaseKcal = scaled.baseKcal;
+        this.nextWeekKcal = kcal || scaled.baseKcal;
         this.applyTemplate({
-          name: `R${scaled.revisionNumber}`,
+          name: `S${scaled.weekNumber}`,
           menus: scaled.content.menus as DietTemplateMenuPayload[],
         } as unknown as DietTemplate);
-        this.clientTarget = this.nextRevisionTargetAt(this.nextRevisionKcal);
-        this.clientTargetLabel = `Objetivo de R${scaled.revisionNumber}`;
+        this.clientTarget = this.nextWeekTargetAt(this.nextWeekKcal);
+        this.clientTargetLabel = `Objetivo de S${scaled.weekNumber}`;
         this.rescaling = false;
         this.savedSnapshot = this.snapshot();
         this.state = 'loaded';
@@ -429,13 +429,13 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // Cambiar las kcal desde el propio builder: se vuelve a pedir el contenido
   // escalado (mismo % a todo). Pisa los retoques hechos a mano, así que se
   // avisa antes si los hay.
-  public async rescaleNextRevision(): Promise<void> {
-    if (!this.isPreparingNextRevision || !(this.nextRevisionKcal > 0)) return;
+  public async rescaleNextWeek(): Promise<void> {
+    if (!this.isPreparingNextWeek || !(this.nextWeekKcal > 0)) return;
     if (this.snapshot() !== this.savedSnapshot) {
       const ok = await confirmDiscardChanges(this.ionicUtilService);
       if (!ok) return;
     }
-    this.loadScaledNextRevision(this.nextRevisionKcal);
+    this.loadScaledNextWeek(this.nextWeekKcal);
   }
 
   private fmtDay(iso: string): string {
@@ -514,9 +514,9 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     this.clientTargetSource = 'manual';
   }
 
-  // Referencia contra la que ajustar: la necesidad calculada de la revisión
+  // Referencia contra la que ajustar: la necesidad calculada de la semana
   // (misma cuenta que ve el entrenador en su resumen). Sin `phaseId`, la de
-  // la fase activa del cliente; `date` elige la revisión que la contiene
+  // la fase activa del cliente; `date` elige la semana que la contiene
   // (una copia asignada), si no la que corre. Sin fase, no hay referencia.
   private loadClientTarget(clientId: string, phaseId?: string | null, date?: string | null): void {
     const phaseId$ = phaseId
@@ -526,14 +526,14 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       .pipe(
         switchMap((id) => {
           if (!id) return of(null);
-          return this.dietSuggestionApi.getPhaseRevisions(clientId, id).pipe(
-            switchMap((revisions) => {
-              const windows = revisions.revisions || [];
+          return this.dietSuggestionApi.getPhaseWeeks(clientId, id).pipe(
+            switchMap((weeks) => {
+              const windows = weeks.weeks || [];
               const number =
                 (date && windows.find((w) => w.start <= date && (!w.end || date <= w.end))?.number) ||
-                revisions.current?.number ||
+                weeks.current?.number ||
                 1;
-              return this.dietSuggestionApi.getRevisionNeed(clientId, id, number);
+              return this.dietSuggestionApi.getWeekNeed(clientId, id, number);
             })
           );
         })
@@ -543,7 +543,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
           const target = res?.need?.target;
           if (!res || !target) return;
           this.clientTarget = { kcal: target.kcal, protein: target.protein, carbs: target.carbs, fat: target.fat };
-          this.clientTargetLabel = `Necesidad de R${res.revisionNumber}`;
+          this.clientTargetLabel = `Necesidad de S${res.weekNumber}`;
         },
         // En silencio: la referencia ayuda a ajustar, no hace falta para
         // editar. Un error aquí no debe estorbar el trabajo de la pantalla.
@@ -1194,8 +1194,8 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       meals: this.mealsToSave(menu.meals),
     }));
 
-    if (this.isPreparingNextRevision) {
-      this.saveNextRevision(menusToSave);
+    if (this.isPreparingNextWeek) {
+      this.saveNextWeek(menusToSave);
       return;
     }
 
@@ -1291,26 +1291,26 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       });
   }
 
-  // Persistir la siguiente revisión. 204 (null) = el contenido es igual al que
+  // Persistir la siguiente semana. 204 (null) = el contenido es igual al que
   // heredaría: no se escribe nada y se dice.
-  private saveNextRevision(menusToSave: DietTemplateMenuPayload[]): void {
+  private saveNextWeek(menusToSave: DietTemplateMenuPayload[]): void {
     this.dietSuggestionApi
-      .prepareNextRevision(this.clientId, this.nextRevisionPhaseId, { menus: menusToSave })
+      .prepareNextWeek(this.clientId, this.nextWeekPhaseId, { menus: menusToSave })
       .subscribe({
-        next: (revision) => {
+        next: (week) => {
           this.isSaving = false;
           this.savedSnapshot = this.snapshot();
           this.ionicUtilService.showToast({
-            message: revision
-              ? `R${this.nextRevisionNumber} preparada para ${this.clientName}`
-              : `Sin cambios: R${this.nextRevisionNumber} repetirá lo anterior`,
+            message: week
+              ? `S${this.nextWeekNumber} preparada para ${this.clientName}`
+              : `Sin cambios: S${this.nextWeekNumber} repetirá lo anterior`,
             duration: 3000,
           });
           this.router.navigate(['/tabs/clients', this.clientId]);
         },
         error: (err) => {
           this.isSaving = false;
-          this.ionicUtilService.showErrorToast(err?.error?.message || 'No se pudo preparar la revisión', 'Error', 3500);
+          this.ionicUtilService.showErrorToast(err?.error?.message || 'No se pudo preparar la semana', 'Error', 3500);
         },
       });
   }

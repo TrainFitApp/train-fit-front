@@ -9,10 +9,10 @@ interface CalendarPhaseInfo {
   id: string;
   color: string;
   planName: string | null;
-  // Revisión de la fase en la que cae este día ("R3"), o null si ese día no
+  // Semana de la fase en la que cae este día ("R3"), o null si ese día no
   // cae en ninguna. Las ventanas las marcan los check-ins programados: las
   // calcula el backend (diet-timeline), no se deducen aquí.
-  revisionLabel: string | null;
+  weekLabel: string | null;
   // ¿Impide que una fase nueva empiece en este día? Misma regla que el
   // backend (plan-assignment-service.js#blocksNewPhase): una fase con
   // fecha de fin cerrada bloquea; una INDEFINIDA ya en curso no, porque
@@ -38,7 +38,7 @@ interface CalendarCell {
   dayNumber: number | null;
   compliance: NutritionComplianceDay | null;
   phase: CalendarPhaseInfo | null;
-  // Suplementos pautados vigentes ese día (docs/plan-revisiones.md §14): la
+  // Suplementos pautados vigentes ese día (docs/plan-semanas.md): la
   // suplementación va por fechas, así que también se ve en el calendario.
   supplements: string[];
 }
@@ -223,15 +223,37 @@ export class NutritionCalendarComponent implements OnChanges {
   // hay que explicar, no salía nunca.
   public occupiedTooltip: { text: string; left: number; top: number } | null = null;
 
+  // Qué suplementos toca ese día. Va SOLO en el icono, no en la celda: el día
+  // entero ya se pulsa para otra cosa, y un globo que saltara al pasar por
+  // cualquier día taparía el calendario entero al recorrerlo. Tampoco con el
+  // `title` nativo: el icono lleva pointer-events desactivado para no comerse
+  // el click del día, y así el navegador nunca lo da por señalado.
+  public supplementTooltip: { text: string; left: number; top: number } | null = null;
+
+  public onSupplementEnter(cell: CalendarCell, event: MouseEvent): void {
+    const icono = event.currentTarget as HTMLElement | null;
+    const celda = icono?.closest('.nutrition-calendar__cell') as HTMLElement | null;
+    if (!cell.supplements.length || !celda) return;
+    this.supplementTooltip = {
+      text: cell.supplements.join('\n'),
+      left: this.tooltipLeft(celda),
+      top: celda.offsetTop,
+    };
+  }
+
+  public onSupplementLeave(): void {
+    this.supplementTooltip = null;
+  }
+
   // Historial completo de fases (todas, no solo la activa) — se pide una
   // vez por cliente, no por mes: son pocos documentos y así un tramo que
   // cruza dos meses se pinta igual en ambos sin refetch.
   private planPhases: PlanAssignment[] = [];
-  // Ventanas de revisión del rango visible, tal y como las calcula el
+  // Ventanas de semana del rango visible, tal y como las calcula el
   // backend a partir de los check-ins programados del cliente.
-  private revisionWindows: { phaseId: string; number: number; start: string; end: string }[] = [];
+  private weekWindows: { phaseId: string; number: number; start: string; end: string }[] = [];
   // Suplementos con fechas, para pintar su icono en los días que cubren.
-  private supplements: { name: string; startDate: string; endDate: string | null }[] = [];
+  private supplements: { name: string; dose: string; startDate: string; endDate: string | null }[] = [];
   // Color por fase, calculado una vez al cargar planPhases (no en cada
   // findPhaseForDate — eso lo recalcularía hasta ~35 veces por render de
   // mes sin necesidad, ver assignPhaseColors en phase-color.util.ts).
@@ -372,6 +394,7 @@ export class NutritionCalendarComponent implements OnChanges {
   public onGridMouseLeave(): void {
     this.hoverDate = null;
     this.occupiedTooltip = null;
+    this.supplementTooltip = null;
   }
 
   // Qué se dice al pasar por encima de un día que ya tiene fase. Dos
@@ -462,15 +485,15 @@ export class NutritionCalendarComponent implements OnChanges {
       },
     });
 
-    // Revisiones del mes visible: es la única fuente de los badges R1/R2 —
+    // Semanas del mes visible: es la única fuente de los badges R1/R2 —
     // las ventanas dependen de los check-ins programados del cliente.
-    this.planAssignmentApi.getRevisionTimeline(this.clientId, from, to).subscribe({
+    this.planAssignmentApi.getDietTimeline(this.clientId, from, to).subscribe({
       next: (timeline) => {
-        this.revisionWindows = timeline?.revisions || [];
+        this.weekWindows = timeline?.weeks || [];
         this.cells = this.withPhases(this.cells);
       },
       error: () => {
-        this.revisionWindows = [];
+        this.weekWindows = [];
       },
     });
 
@@ -490,6 +513,7 @@ export class NutritionCalendarComponent implements OnChanges {
           .filter((supplement) => supplement.active !== false && !!supplement.startDate)
           .map((supplement) => ({
             name: supplement.name,
+            dose: supplement.dose || '',
             startDate: supplement.startDate as string,
             endDate: supplement.endDate ?? null,
           }));
@@ -507,7 +531,7 @@ export class NutritionCalendarComponent implements OnChanges {
       supplements: cell.date
         ? this.supplements
             .filter((s) => s.startDate <= cell.date! && (!s.endDate || s.endDate >= cell.date!))
-            .map((s) => s.name)
+            .map((s) => (s.dose ? `${s.name} · ${s.dose}` : s.name))
         : [],
     }));
   }
@@ -518,8 +542,8 @@ export class NutritionCalendarComponent implements OnChanges {
         // Orden estable por fecha de inicio — así el color de cada fase no
         // cambia de un mes a otro dentro de la misma sesión.
         this.planPhases = (phases || []).slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
-        // Sugerencias de dieta — las revisiones de una misma fase comparten
-        // color (banda de fase). Se colorea por phaseId; una revisión sin
+        // Sugerencias de dieta — las semanas de una misma fase comparten
+        // color (banda de fase). Se colorea por phaseId; una semana sin
         // phaseId (fases anteriores a la feature) usa su propio _id.
         const phaseKeys: string[] = [];
         for (const p of this.planPhases) {
@@ -588,9 +612,9 @@ export class NutritionCalendarComponent implements OnChanges {
       id: phase._id,
       color: this.phaseColorMap.get(phaseKey) ?? PHASE_COLORS[0],
       planName: phase.planName || null,
-      // Solo las revisiones de ESTA fase: la numeración se reinicia en cada
+      // Solo las semanas de ESTA fase: la numeración se reinicia en cada
       // fase nueva.
-      revisionLabel: this.revisionLabelFor(date, phaseKey),
+      weekLabel: this.weekLabelFor(date, phaseKey),
       // Misma regla que el backend (plan-assignment-service.js#blocksNewPhase):
       // cambiar el plan "a partir de ya" siempre se puede; lo que no se puede
       // es PROGRAMAR una fase futura dentro de un tramo ya reservado, sea por
@@ -599,13 +623,13 @@ export class NutritionCalendarComponent implements OnChanges {
     };
   }
 
-  // "R3" si ese día cae dentro de una revisión de la fase; null si no hay
+  // "R3" si ese día cae dentro de una semana de la fase; null si no hay
   // check-ins que la partan todavía.
-  private revisionLabelFor(date: string, phaseKey: string): string | null {
-    const window = this.revisionWindows.find(
+  private weekLabelFor(date: string, phaseKey: string): string | null {
+    const window = this.weekWindows.find(
       (w) => w.phaseId === phaseKey && w.start <= date && w.end >= date
     );
-    return window ? `R${window.number}` : null;
+    return window ? `S${window.number}` : null;
   }
 
   // ¿Hay alguna fase pisando este tramo? Misma condición de solape que

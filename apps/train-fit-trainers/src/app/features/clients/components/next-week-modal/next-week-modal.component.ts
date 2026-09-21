@@ -4,35 +4,35 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
-import { DailyDeviation, MacroSet, PhaseRevisionsResponse } from '../../../diet-templates/models/diet-suggestion.model';
+import { DailyDeviation, MacroSet, PhaseWeeksResponse } from '../../../diet-templates/models/diet-suggestion.model';
 import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
 import { KCAL_PER_G, MacroAdjustComponent, MacroKey } from '../../../../shared/components/macro-adjust/macro-adjust.component';
 
 const MACRO_KEYS: MacroKey[] = ['protein', 'carbs', 'fat'];
 
-// La siguiente REVISIÓN de la fase (docs/plan-revisiones.md): qué dice la
-// sugerencia (peso + adherencia de la revisión en curso, con los desvíos día
+// La siguiente SEMANA de la fase (docs/plan-semanas.md): qué dice la
+// sugerencia (peso + adherencia de la semana en curso, con los desvíos día
 // a día) y con qué kcal se quiere preparar. No guarda nada: "Preparar" lleva
 // al builder con el contenido ya escalado, y es el builder quien persiste (o
-// no, si no cambia nada). "Descartar" borra una revisión ya preparada para
+// no, si no cambia nada). "Descartar" borra una semana ya preparada para
 // volver a heredar.
 //
 // "Ajustar macros" (app-macro-adjust, compartido con "Empezar fase"): sin
 // tocarlo, los macros siguen al escalado proporcional de las kcal. Si se
-// toca, viajan al builder como objetivo de la revisión (referencia con deltas
+// toca, viajan al builder como objetivo de la semana (referencia con deltas
 // por fila) — el escalado de alimentos sigue siendo por kcal.
 @Component({
-  selector: 'app-next-revision-modal',
+  selector: 'app-next-week-modal',
   standalone: true,
   imports: [CommonModule, FormsModule, IonicModule, NeedBreakdownComponent, MacroAdjustComponent],
-  templateUrl: './next-revision-modal.component.html',
-  styleUrls: ['./next-revision-modal.component.scss'],
+  templateUrl: './next-week-modal.component.html',
+  styleUrls: ['./next-week-modal.component.scss'],
 })
-export class NextRevisionModalComponent implements OnInit {
+export class NextWeekModalComponent implements OnInit {
   @Input() public clientId!: string;
   @Input() public phaseId!: string;
   @Input() public clientName = 'este cliente';
-  @Input() public revisions!: PhaseRevisionsResponse;
+  @Input() public weeks!: PhaseWeeksResponse;
 
   public targetKcal = 0;
   public discarding = false;
@@ -63,15 +63,15 @@ export class NextRevisionModalComponent implements OnInit {
     this.onKcalChange();
   }
 
-  public get next(): NonNullable<PhaseRevisionsResponse['next']> {
-    return this.revisions.next as NonNullable<PhaseRevisionsResponse['next']>;
+  public get next(): NonNullable<PhaseWeeksResponse['next']> {
+    return this.weeks.next as NonNullable<PhaseWeeksResponse['next']>;
   }
 
-  public get suggestion(): NonNullable<PhaseRevisionsResponse['next']>['suggestion'] {
+  public get suggestion(): NonNullable<PhaseWeeksResponse['next']>['suggestion'] {
     return this.next.suggestion;
   }
 
-  public get needNow(): NonNullable<PhaseRevisionsResponse['next']>['needNow'] {
+  public get needNow(): NonNullable<PhaseWeeksResponse['next']>['needNow'] {
     return this.next.needNow;
   }
 
@@ -84,9 +84,9 @@ export class NextRevisionModalComponent implements OnInit {
     return !!this.next.override;
   }
 
-  // Contra qué se compara el cambio: lo que rige en la revisión en curso.
+  // Contra qué se compara el cambio: lo que rige en la semana en curso.
   public get base(): MacroSet & { kcal: number } {
-    return this.revisions.current?.override.profile || { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    return this.weeks.current?.override.profile || { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   }
 
   public get baseKcal(): number {
@@ -179,17 +179,17 @@ export class NextRevisionModalComponent implements OnInit {
   public discard(): void {
     if (this.discarding) return;
     this.discarding = true;
-    this.api.discardNextRevision(this.clientId, this.phaseId).subscribe({
+    this.api.discardNextWeek(this.clientId, this.phaseId).subscribe({
       next: () => {
         this.ionicUtil.showToast({
-          message: `Revisión ${this.next.number} descartada: repetirá lo anterior`,
+          message: `Semana ${this.next.number} descartada: repetirá lo anterior`,
           duration: 2500,
         });
         void this.modalController.dismiss(null, 'discarded');
       },
       error: (err) => {
         this.discarding = false;
-        this.ionicUtil.showErrorToast(err?.error?.message || 'No se pudo descartar la revisión', 'Error', 3500);
+        this.ionicUtil.showErrorToast(err?.error?.message || 'No se pudo descartar la semana', 'Error', 3500);
       },
     });
   }

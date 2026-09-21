@@ -1,14 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
-import { RevisionNeed } from '../../../diet-templates/models/diet-suggestion.model';
+import { WeekNeed } from '../../../diet-templates/models/diet-suggestion.model';
 
 // "Cómo se calculó la necesidad": qué datos entraron y la cuenta paso a
 // paso. Solo pinta; el cálculo viene hecho del backend (nutrition-target.js
 // #explainNutritionTarget) en la misma forma para el snapshot de la fase y
-// para las revisiones calculadas al vuelo. Se usa en el resumen de revisión,
+// para las semanas calculadas al vuelo. Se usa en el resumen de semana,
 // en el objetivo nutricional del cliente y, como referencia "con datos de
-// hoy", en el modal de siguiente revisión.
+// hoy", en el modal de siguiente semana.
 @Component({
   selector: 'app-need-breakdown',
   standalone: true,
@@ -18,10 +18,10 @@ import { RevisionNeed } from '../../../diet-templates/models/diet-suggestion.mod
 })
 export class NeedBreakdownComponent implements OnInit {
   // null = fase creada antes de guardar el cálculo.
-  @Input() public need: RevisionNeed | null = null;
+  @Input() public need: WeekNeed | null = null;
   // Media pautada, para compararla con lo calculado.
   @Input() public plannedKcal: number | null = null;
-  // Cuenta plegada por defecto (modal de siguiente revisión).
+  // Cuenta plegada por defecto (modal de siguiente semana).
   @Input() public collapsed = false;
 
   public showMath = true;
@@ -30,15 +30,15 @@ export class NeedBreakdownComponent implements OnInit {
     this.showMath = !this.collapsed;
   }
 
-  public get target(): RevisionNeed['target'] {
+  public get target(): WeekNeed['target'] {
     return this.need?.target ?? null;
   }
 
-  public get breakdown(): RevisionNeed['breakdown'] {
+  public get breakdown(): WeekNeed['breakdown'] {
     return this.need?.breakdown ?? null;
   }
 
-  public get inputs(): RevisionNeed['inputs'] | null {
+  public get inputs(): WeekNeed['inputs'] | null {
     return this.need?.inputs ?? null;
   }
 

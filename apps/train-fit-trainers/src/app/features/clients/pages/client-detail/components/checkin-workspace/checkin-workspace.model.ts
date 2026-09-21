@@ -1,6 +1,6 @@
 import { CustomCheckinQuestion, CheckinTemplateDefinition } from '../../../../../checkin-templates/models/checkin-template.model';
 
-// Estados de una solicitud de check-in (docs/plan-revisiones.md). No hay
+// Estados de una solicitud de check-in (docs/plan-semanas.md). No hay
 // colección de solicitudes: son fechas calculadas a partir de la
 // programación, así que el estado se deriva de la fecha + la respuesta.
 //   scheduled  todavía no ha llegado su día
@@ -13,7 +13,7 @@ export type CheckinStatus = 'scheduled' | 'open' | 'unanswered' | 'responded' | 
 export type CheckinFrequency = 'once' | 'daily' | 'weekly' | 'monthly';
 
 // Sin zona horaria: la hora es de reloj y vale igual en cualquier sitio
-// (docs/plan-revisiones.md §10).
+// (docs/plan-semanas.md).
 export interface CheckinScheduleDraft {
   name: string;
   sourceTemplateId: string | null;
@@ -21,6 +21,9 @@ export interface CheckinScheduleDraft {
   time: string;
   frequency: CheckinFrequency;
   interval: number;
+  // Contador de concurrencia del propio documento (CheckinSchedule.revision
+  // en el back), para detectar ediciones desde dos pantallas. Nada que ver
+  // con las semanas de dieta.
   revision?: number;
 }
 
@@ -52,9 +55,19 @@ export interface CheckinEntry {
   reviewedAt: string | null;
   reviewComment: string;
   responseId: string | null;
-  // Revisión de la fase de dieta a la que pertenece (R1, R2…), si el cliente
+  // Semana de la fase de dieta a la que pertenece (S1, S2…), si el cliente
   // tenía fase ese día.
-  revision: { phaseId: string; number: number; start: string; end: string | null } | null;
+  week: { phaseId: string; number: number; start: string; end: string | null } | null;
+}
+
+// Una página del histórico de UNA programación, de la ocurrencia más nueva a
+// la más vieja. `nextBefore` es el cursor de la página siguiente (null = ya
+// se llegó al principio).
+export interface CheckinScheduleHistory {
+  schedule: CheckinSchedule;
+  entries: CheckinEntry[];
+  nextBefore: string | null;
+  total: number;
 }
 
 export interface CheckinAgendaData {

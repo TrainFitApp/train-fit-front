@@ -22,7 +22,7 @@ export interface MySupplement {
   purchaseUrl?: string;
   // Vacío = todos los días, que es el caso normal.
   weekdays: number[];
-  // Desde cuándo y hasta cuándo se toma (docs/plan-revisiones.md §14).
+  // Desde cuándo y hasta cuándo se toma (docs/plan-semanas.md §14).
   // `endDate` null = hasta nueva orden.
   startDate: string;
   endDate: string | null;

@@ -84,22 +84,23 @@
         *ngIf="cell.phase && (!isPickerMode || !cell.phase.blocksNewPhase)"
       ></span>
       <span class="nutrition-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
-      <!-- Revisión (R1, R2…) — qué check-in cubre este día. Fuera del
+      <!-- Semana (R1, R2…) — qué check-in cubre este día. Fuera del
            selector: ahí la celda es un cuadrado sólido de color y el número
            sobraría. -->
       <span
-        class="nutrition-calendar__revision-badge"
-        *ngIf="cell.phase?.revisionLabel && !isPickerMode"
-        [attr.aria-label]="'Revisión ' + cell.phase?.revisionLabel"
-      >{{ cell.phase?.revisionLabel }}</span>
+        class="nutrition-calendar__week-badge"
+        *ngIf="cell.phase?.weekLabel && !isPickerMode"
+        [attr.aria-label]="'Semana ' + cell.phase?.weekLabel"
+      >{{ cell.phase?.weekLabel }}</span>
       <!-- Suplementación pautada ese día: va por fechas, así que también se
-           ve aquí. Solo el icono — el detalle está en su panel. -->
+           ve aquí. Solo el icono; qué suplementos son, al pasar por encima. -->
       <ion-icon
         class="nutrition-calendar__supplement"
         name="flask-outline"
         *ngIf="cell.supplements.length && !isPickerMode"
         [attr.aria-label]="'Suplementos: ' + cell.supplements.join(', ')"
-        [attr.title]="cell.supplements.join(', ')"
+        (mouseenter)="onSupplementEnter(cell, $event)"
+        (mouseleave)="onSupplementLeave()"
       ></ion-icon>
       <span class="nutrition-calendar__skipped-dot" *ngIf="cell.compliance?.skipped"></span>
       <!-- Tramo indefinido: sin esto el rango parecería acabar donde acaba
@@ -118,6 +119,19 @@
       [style.top.px]="occupiedTooltip.top"
     >
       {{ occupiedTooltip.text }}
+    </div>
+
+    <!-- Qué suplementos toca ese día, al pasar por encima de su icono. Mismo
+         globo y misma colocación que el de arriba; nunca coinciden, porque
+         aquel solo existe en el selector y el icono solo fuera de él. -->
+    <div
+      class="nutrition-calendar__tooltip nutrition-calendar__tooltip--supplement"
+      *ngIf="supplementTooltip"
+      role="tooltip"
+      [style.left.px]="supplementTooltip.left"
+      [style.top.px]="supplementTooltip.top"
+    >
+      {{ supplementTooltip.text }}
     </div>
   </div>
 

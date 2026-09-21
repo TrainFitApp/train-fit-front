@@ -42,7 +42,7 @@ export interface PlanAssignment {
 }
 
 // El bloque con el que nace toda fase: su nombre y con qué números se
-// pauta. Sin él la copia es un plan suelto, sin revisiones.
+// pauta. Sin él la copia es un plan suelto, sin semanas.
 export interface PhasePayload {
   name: string;
   // kcal/macros de la fase: los calculados del cliente o los que el
@@ -65,11 +65,11 @@ export interface ApplyPlanRequest {
 }
 
 // Historial de nutrición de la ficha — feed de eventos que desglosa fases y
-// revisiones (espejo de train-fit-back/components/planAssignments/nutrition-history.js).
-export type NutritionHistoryEventType = 'phase_started' | 'phase_ended' | 'revision' | 'checkin' | 'skipped_day';
-// met/missed = revisión acabada con adherencia >= / < 75 %; no_data =
+// semanas (espejo de train-fit-back/components/planAssignments/nutrition-history.js).
+export type NutritionHistoryEventType = 'phase_started' | 'phase_ended' | 'week' | 'checkin' | 'skipped_day';
+// met/missed = semana acabada con adherencia >= / < 75 %; no_data =
 // acabada sin ningún día registrado; running = todavía en marcha.
-export type NutritionRevisionStatus = 'running' | 'met' | 'missed' | 'no_data';
+export type NutritionWeekStatus = 'running' | 'met' | 'missed' | 'no_data';
 
 export interface NutritionHistoryCheckin {
   id: string;
@@ -92,15 +92,15 @@ export interface NutritionPhaseStartedEvent extends NutritionHistoryEventBase {
 export interface NutritionPhaseEndedEvent extends NutritionHistoryEventBase {
   type: 'phase_ended';
   status: 'superseded' | 'finished';
-  revisionsCount: number;
+  weeksCount: number;
 }
 
-export interface NutritionRevisionEvent extends NutritionHistoryEventBase {
-  type: 'revision';
+export interface NutritionWeekEvent extends NutritionHistoryEventBase {
+  type: 'week';
   number: number;
   start: string;
   end: string;
-  // La fase se cortó antes de que esta revisión llegara a su fin natural.
+  // La fase se cortó antes de que esta semana llegara a su fin natural.
   truncated: boolean;
   overrideId: string;
   profile: { kcal: number; protein: number; carbs: number; fat: number };
@@ -108,9 +108,9 @@ export interface NutritionRevisionEvent extends NutritionHistoryEventBase {
   adherencePct: number | null;
   adherenceDays: number;
   periodDays: number;
-  status: NutritionRevisionStatus;
+  status: NutritionWeekStatus;
   checkin: NutritionHistoryCheckin | null;
-  // Fechas de la revisión en las que el cliente se saltó el plan.
+  // Fechas de la semana en las que el cliente se saltó el plan.
   skippedDays: string[];
 }
 
@@ -128,7 +128,7 @@ export interface NutritionSkippedDayEvent extends NutritionHistoryEventBase {
 export type NutritionHistoryEvent =
   | NutritionPhaseStartedEvent
   | NutritionPhaseEndedEvent
-  | NutritionRevisionEvent
+  | NutritionWeekEvent
   | NutritionCheckinEvent
   | NutritionSkippedDayEvent;
 

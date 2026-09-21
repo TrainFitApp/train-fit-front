@@ -78,7 +78,7 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
   public formReason = '';
   public formUrl = '';
   public formWeekdays: number[] = [];
-  // Desde cuándo y hasta cuándo (docs/plan-revisiones.md §14). Sin fin =
+  // Desde cuándo y hasta cuándo (docs/plan-semanas.md). Sin fin =
   // hasta nueva orden.
   public formStartDate = '';
   public formEndDate = '';

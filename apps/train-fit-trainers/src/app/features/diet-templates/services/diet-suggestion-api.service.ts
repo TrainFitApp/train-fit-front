@@ -4,10 +4,10 @@ import { HttpService } from 'src/app/core/services/http/http.service';
 import {
   DietSuggestionRequest,
   DietSuggestionResponse,
-  PhaseRevisionsResponse,
-  PrepareNextRevisionRequest,
-  RevisionNeedResponse,
-  ScaledNextRevision,
+  PhaseWeeksResponse,
+  PrepareNextWeekRequest,
+  WeekNeedResponse,
+  ScaledNextWeek,
 } from '../models/diet-suggestion.model';
 import { PlanAssignment } from '../../../shared/models/plan-assignment.model';
 
@@ -24,49 +24,49 @@ export class DietSuggestionApiService {
     );
   }
 
-  // Revisiones de una fase: la que corre, la siguiente (con sugerencia) y
+  // Semanas de una fase: la que corre, la siguiente (con sugerencia) y
   // las pasadas, en una sola llamada.
-  public getPhaseRevisions(clientId: string, phaseId: string): Observable<PhaseRevisionsResponse> {
-    return this.http.get<PhaseRevisionsResponse>(
-      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions`
+  public getPhaseWeeks(clientId: string, phaseId: string): Observable<PhaseWeeksResponse> {
+    return this.http.get<PhaseWeeksResponse>(
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/weeks`
     );
   }
 
-  // Cómo se calculó la necesidad del cliente en esa revisión.
-  public getRevisionNeed(
+  // Cómo se calculó la necesidad del cliente en esa semana.
+  public getWeekNeed(
     clientId: string,
     phaseId: string,
-    revisionNumber: number
-  ): Observable<RevisionNeedResponse> {
-    return this.http.get<RevisionNeedResponse>(
-      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions/${revisionNumber}/need`
+    weekNumber: number
+  ): Observable<WeekNeedResponse> {
+    return this.http.get<WeekNeedResponse>(
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/weeks/${weekNumber}/need`
     );
   }
 
   // Contenido vigente escalado a `kcal` (no escribe nada).
-  public scaleNextRevision(clientId: string, phaseId: string, kcal: number): Observable<ScaledNextRevision> {
-    return this.http.post<ScaledNextRevision>(
-      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions/next/scale`,
+  public scaleNextWeek(clientId: string, phaseId: string, kcal: number): Observable<ScaledNextWeek> {
+    return this.http.post<ScaledNextWeek>(
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/weeks/next/scale`,
       { kcal }
     );
   }
 
-  // Preparar la revisión siguiente. La fecha la pone el check-in que la
+  // Preparar la semana siguiente. La fecha la pone el check-in que la
   // abre. Responde 204 (body vacío → null) si el contenido no cambia nada.
-  public prepareNextRevision(
+  public prepareNextWeek(
     clientId: string,
     phaseId: string,
-    body: PrepareNextRevisionRequest
+    body: PrepareNextWeekRequest
   ): Observable<PlanAssignment | null> {
     return this.http.put<PlanAssignment | null>(
-      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions/next`,
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/weeks/next`,
       body
     );
   }
 
-  public discardNextRevision(clientId: string, phaseId: string): Observable<void> {
+  public discardNextWeek(clientId: string, phaseId: string): Observable<void> {
     return this.http.delete<void>(
-      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/revisions/next`
+      `trainer/clients/${clientId}/nutrition-phases/${phaseId}/weeks/next`
     );
   }
 

@@ -178,6 +178,12 @@
   pointer-events: none;
 }
 
+// Un suplemento por línea: en un día con tres, una lista separada por comas
+// se lee como una frase y no como tres pautas distintas.
+.nutrition-calendar__tooltip--supplement {
+  white-space: pre-line;
+}
+
 .nutrition-calendar__cell {
   position: relative;
   display: flex;
@@ -323,13 +329,13 @@
   background: var(--phase-color);
 }
 
-// Revisión de la fase (R1, R2…), arriba a la derecha. Va por debajo de la
+// Semana de la fase (R1, R2…), arriba a la derecha. Va por debajo de la
 // franja de fase (3px) para no taparla, y en la esquina OPUESTA al punto de
 // día saltado y al ›› de tramo indefinido, que viven abajo a la derecha.
 //
 // Deliberadamente discreto: es un dato de contexto, no el contenido de la
 // celda — el número del día tiene que seguir siendo lo primero que se lee.
-.nutrition-calendar__revision-badge {
+.nutrition-calendar__week-badge {
   position: absolute;
   top: 4px;
   right: 3px;
@@ -344,8 +350,8 @@
 
 // Sobre el día seleccionado / hoy el fondo se vuelve acento: el gris apagado
 // se perdería, así que hereda el color del texto de la celda.
-.nutrition-calendar__cell.is-selected .nutrition-calendar__revision-badge,
-.nutrition-calendar__cell.is-today .nutrition-calendar__revision-badge {
+.nutrition-calendar__cell.is-selected .nutrition-calendar__week-badge,
+.nutrition-calendar__cell.is-today .nutrition-calendar__week-badge {
   color: currentColor;
   opacity: 0.75;
 }
@@ -357,20 +363,22 @@
 // columna se estrecha por el layout de la ficha, no por el tamaño de
 // pantalla, y una media query acertaría solo por casualidad.
 @container nutrition-grid (max-width: 330px) {
-  .nutrition-calendar__revision-badge {
+  .nutrition-calendar__week-badge {
     display: none;
   }
 }
 
 // Icono de suplementación del día: esquina inferior izquierda, para no
-// chocar con el badge de revisión (arriba a la derecha).
+// chocar con el badge de semana (arriba a la derecha).
+// CON pointer-events: el globo de suplementos sale al señalar el icono, y
+// para eso el icono tiene que recibir el ratón. El click sigue llegando al
+// día: burbujea al <button> que lo envuelve.
 .nutrition-calendar__supplement {
   position: absolute;
   bottom: 2px;
   left: 3px;
   font-size: 10px;
   color: var(--tf-text-muted);
-  pointer-events: none;
 }
 
 .nutrition-calendar__skipped-dot {

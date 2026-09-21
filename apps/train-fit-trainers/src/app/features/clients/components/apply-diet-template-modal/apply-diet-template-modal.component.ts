@@ -16,12 +16,12 @@ function todayIsoDate(): string {
 // cada día de golpe; ahora se crea una única PlanAssignment (POST .../apply)
 // y los días se resuelven bajo demanda (ver diet-day-resolver.js).
 //
-// Revisiones (2026-09): solo se elige CUÁNDO empieza. No hay
+// Semanas (2026-09): solo se elige CUÁNDO empieza. No hay
 // duración ni fin estimado — una fase acaba cuando empieza la siguiente.
 //
 // "Crear dieta" (ficha del cliente) usaba este mismo modal para pedir
 // nombre + fechas antes de pasar al builder; ya no — el nutricionista va
-// improvisando revisión a revisión y esa duración estimada no le servía de nada
+// improvisando semana a semana y esa duración estimada no le servía de nada
 // (ver client-detail.page.ts#goToCreateDiet, que ahora navega directo al
 // builder). Este modal vuelve a ser solo "aplicar una plantilla concreta".
 @Component({
@@ -39,7 +39,7 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   public state: ViewState = 'loading';
   public templates: DietTemplate[] = [];
   public selectedTemplateId: string | null = null;
-  // La fase empieza el día en que se aplica (docs/plan-revisiones.md §11):
+  // La fase empieza el día en que se aplica (docs/plan-semanas.md):
   // no hay fecha que elegir aquí. Si el cliente ya tiene una fase en curso,
   // el backend la cierra ayer; las fechas se corrigen luego desde la ficha.
   public readonly startDate = todayIsoDate();

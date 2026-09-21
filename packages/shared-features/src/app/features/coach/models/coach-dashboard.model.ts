@@ -11,7 +11,7 @@ export interface CoachProfessional {
   lastActivityAt: string | null;
 }
 
-// Un check-in ABIERTO hoy todavía sin responder (docs/plan-revisiones.md
+// Un check-in ABIERTO hoy todavía sin responder (docs/plan-semanas.md
 // §17): se calcula al abrir la app, sin cron ni push.
 export interface CoachPendingCheckin {
   trainerId: string;
@@ -21,10 +21,10 @@ export interface CoachPendingCheckin {
   // Día en que se pidió y hasta cuándo se puede responder.
   date?: string;
   closesDate?: string | null;
-  // Revisión de su fase de dieta que abre este check-in, si tiene fase.
-  revisionNumber?: number;
-  revisionStart?: string;
-  revisionEnd?: string | null;
+  // Semana de su fase de dieta que abre este check-in, si tiene fase.
+  weekNumber?: number;
+  weekStart?: string;
+  weekEnd?: string | null;
 }
 
 export interface CoachPendingMealProposal {
@@ -91,7 +91,7 @@ export interface CoachTask {
   label: string;
   target: number;
   // Tope del rango, cuando el hábito se pauta como "de 10.000 a 15.000
-  // pasos" (docs/plan-revisiones.md §12).
+  // pasos" (docs/plan-semanas.md §12).
   targetMax: number | null;
   unit: string;
   // Día al que se refiere `completedToday` (la pantalla de dieta los pinta

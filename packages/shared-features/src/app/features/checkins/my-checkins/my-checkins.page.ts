@@ -81,14 +81,14 @@ export class MyCheckinsPage implements OnInit {
   public checkinKey(checkin: MyCheckin): string { return checkin._id; }
 
   // Lo ya respondido, para corregirlo sin volver a teclearlo todo mientras
-  // la revisión siga abierta.
+  // la semana siga abierta.
   private valuesOf(checkin: MyCheckin): Record<string, number | string | boolean | null> {
     return { ...(checkin.values || {}) };
   }
 
   public cardIcon(checkin: MyCheckin): string {
     if (this.isDone(checkin)) return 'checkmark-circle';
-    return checkin.revision ? 'sync-circle' : 'calendar';
+    return checkin.week ? 'sync-circle' : 'calendar';
   }
 
   public isDone(checkin: MyCheckin): boolean {
@@ -204,13 +204,13 @@ export class MyCheckinsPage implements OnInit {
     return `${checkin.trainer.name} ${checkin.trainer.lastname}`.trim();
   }
 
-  // De qué periodo es este check-in: la revisión de su fase de dieta si la
+  // De qué periodo es este check-in: la semana de su fase de dieta si la
   // tiene, y hasta cuándo se puede responder.
   public periodLabel(checkin: MyCheckin): string {
-    if (checkin.revision) {
-      const r = checkin.revision;
+    if (checkin.week) {
+      const r = checkin.week;
       const fin = r.end ? ` – ${this.shortDay(r.end)}` : '';
-      return `Revisión ${r.number} · ${this.shortDay(r.start)}${fin}`;
+      return `Semana ${r.number} · ${this.shortDay(r.start)}${fin}`;
     }
     return checkin.closesDate
       ? `Del ${this.shortDay(checkin.date)} al ${this.shortDay(checkin.closesDate)}`
@@ -319,7 +319,7 @@ export class MyCheckinsPage implements OnInit {
       return;
     }
     this.expandedTrainerId = this.checkinKey(checkin);
-    // Arranca con lo que ya respondió: mientras la revisión siga abierta,
+    // Arranca con lo que ya respondió: mientras la semana siga abierta,
     // enviar otra vez es CORREGIR, no empezar de cero.
     this.formValues = this.valuesOf(checkin);
   }
@@ -385,7 +385,7 @@ export class MyCheckinsPage implements OnInit {
       componentProps: {
         icon: 'sync-circle-outline',
         iconColor: 'primary',
-        title: checkin.revision ? `Ya respondiste la revisión ${checkin.revision.number}` : 'Ya respondiste este check-in',
+        title: checkin.week ? `Ya respondiste la semana ${checkin.week.number}` : 'Ya respondiste este check-in',
         message: fecha
           ? `Se actualizará lo que enviaste el ${fecha}. ¿Guardar los cambios?`
           : 'Se actualizará lo que ya habías enviado. ¿Guardar los cambios?',

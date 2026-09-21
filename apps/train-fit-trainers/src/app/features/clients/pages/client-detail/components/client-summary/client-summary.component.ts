@@ -416,7 +416,7 @@ export class ClientSummaryComponent implements OnInit {
   }
 
   // La zona con más dolor que YA supera el umbral que este entrenador fijó
-  // para ella. No es "una limitación vigente" con autor y fecha de revisión
+  // para ella. No es "una limitación vigente" con autor y fecha de semana
   // (ese concepto no existe en el modelo de dolor) — solo el peor dato real
   // cruzado con su propio umbral. Sin ninguna zona por encima, no hay nada
   // que avisar.

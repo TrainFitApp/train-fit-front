@@ -7,20 +7,20 @@
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Siguiente revisión</h1>
+        <h1 class="tf-page-header__title">Siguiente semana</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
   </div>
 </ion-header>
 
-<ion-content class="revision-content">
-  <p class="revision-period">
+<ion-content class="week-content">
+  <p class="week-period">
     <strong>R{{ next.number }}</strong> · {{ periodLabel }}
-    <span class="revision-period__edited" *ngIf="alreadyPrepared">· ya preparada</span>
+    <span class="week-period__edited" *ngIf="alreadyPrepared">· ya preparada</span>
   </p>
 
-  <!-- La sugerencia mira cómo respondió el peso en la revisión en curso y
+  <!-- La sugerencia mira cómo respondió el peso en la semana en curso y
        cómo se siguió la dieta. Nunca bloquea: con adherencia baja avisa, y
        decide el entrenador. -->
   <section class="reason-card" *ngIf="suggestion as suggestion" [class.is-flagged]="suggestion.flag">
@@ -35,10 +35,10 @@
       <div class="weight-row" *ngIf="suggestion.hasData">
         Peso {{ suggestion.weightStartKg }} → {{ suggestion.weightEndKg }} kg
         <span *ngIf="suggestion.actualWeeklyRateKg !== null">({{ deltaLabel(suggestion.actualWeeklyRateKg) }} kg/sem)</span>
-        <span *ngIf="suggestion.comparedToRevision"> · vs R{{ suggestion.comparedToRevision }}</span>
+        <span *ngIf="suggestion.comparedToWeek"> · vs R{{ suggestion.comparedToWeek }}</span>
       </div>
       <div class="weight-row" *ngIf="suggestion.adherencePct !== null">
-        Adherencia de la revisión en curso: <strong>{{ suggestion.adherencePct }} %</strong>
+        Adherencia de la semana en curso: <strong>{{ suggestion.adherencePct }} %</strong>
         <span class="muted-inline">({{ suggestion.adherenceDays }} día{{ suggestion.adherenceDays === 1 ? '' : 's' }} con pauta)</span>
       </div>
     </div>
@@ -90,7 +90,7 @@
     </p>
   </section>
 
-  <!-- Ajustar macros — reparto de la revisión en g / g·kg / %, con candados
+  <!-- Ajustar macros — reparto de la semana en g / g·kg / %, con candados
        (mismo juego que el editor de objetivos del cliente). Plegado: sin
        tocarlo, los macros siguen al escalado proporcional de las kcal. -->
   <app-macro-adjust
@@ -99,7 +99,7 @@
     [base]="base"
     [macroRatio]="macroRatio"
     [weightKg]="weightKg"
-    hint="Al tocar un macro, los que no están bloqueados absorben la diferencia. Si los macros no cuadran con las kcal, no se puede preparar. El reparto ajustado viaja al editor como objetivo de la revisión."
+    hint="Al tocar un macro, los que no están bloqueados absorben la diferencia. Si los macros no cuadran con las kcal, no se puede preparar. El reparto ajustado viaja al editor como objetivo de la semana."
     (macrosChange)="adjustedMacros = $event"
   ></app-macro-adjust>
 
@@ -115,7 +115,7 @@
       Preparar R{{ next.number }} en el editor
     </button>
     <button type="button" class="discard-link" *ngIf="alreadyPrepared" [disabled]="discarding" (click)="discard()">
-      {{ discarding ? 'Descartando…' : 'Descartar la revisión preparada' }}
+      {{ discarding ? 'Descartando…' : 'Descartar la semana preparada' }}
     </button>
   </div>
 </ion-footer>

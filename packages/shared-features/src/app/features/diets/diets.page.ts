@@ -43,7 +43,7 @@ import { DayMenuPreview, DayMenuStatus } from './models/day-menu.model';
 import { DayMenuApiService } from './services/day-menu-api.service';
 import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-preview-modal.component';
 import { MyCheckinsApiService } from '../checkins/my-checkins/services/my-checkins-api.service';
-import { CheckinRevision, MyCheckin } from '../checkins/my-checkins/models/my-checkin.model';
+import { CheckinWeek, MyCheckin } from '../checkins/my-checkins/models/my-checkin.model';
 import { CoachTask } from '../coach/models/coach-dashboard.model';
 import { TasksApiService } from '../coach/services/tasks-api.service';
 import { MySupplement, MySupplementsApiService } from '../supplements/services/my-supplements-api.service';
@@ -94,14 +94,14 @@ export class DietsPage implements OnInit {
   public isChoosingMenu = false;
   public isLeavingMenu = false;
 
-  // El check-in ABIERTO hoy, si lo hay (docs/plan-revisiones.md): es el que
-  // abre la revisión en la que está el cliente. null = ninguno abierto.
+  // El check-in ABIERTO hoy, si lo hay (docs/plan-semanas.md): es el que
+  // abre la semana en la que está el cliente. null = ninguno abierto.
   public openCheckin: MyCheckin | null = null;
-  public checkinRevision: CheckinRevision | null = null;
+  public checkinWeek: CheckinWeek | null = null;
 
   // Hábitos diarios pautados (pasos, agua…): se marcan bajo las comidas del
   // día que se esté mirando (§12). Los pasos marcados son, además, lo que
-  // entra en el cálculo de kcal de la siguiente revisión.
+  // entra en el cálculo de kcal de la siguiente semana.
   public habits: CoachTask[] = [];
   public togglingHabitId: string | null = null;
 
@@ -523,17 +523,17 @@ export class DietsPage implements OnInit {
   }
 
   // ¿Hay un check-in abierto hoy? Solo tiene sentido mirando HOY: su ventana
-  // es la de la revisión en curso, no la del día que se esté viendo. En
+  // es la de la semana en curso, no la del día que se esté viendo. En
   // silencio si falla.
   private loadOpenCheckin(): void {
     this.myCheckinsApi.getMine().subscribe({
       next: (checkins: MyCheckin[]) => {
         this.openCheckin = (checkins || [])[0] || null;
-        this.checkinRevision = this.openCheckin?.revision || null;
+        this.checkinWeek = this.openCheckin?.week || null;
       },
       error: () => {
         this.openCheckin = null;
-        this.checkinRevision = null;
+        this.checkinWeek = null;
       },
     });
   }

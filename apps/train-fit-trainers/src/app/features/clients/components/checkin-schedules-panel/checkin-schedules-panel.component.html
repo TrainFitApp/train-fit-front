@@ -1,0 +1,64 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Cerrar">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Check-ins</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="schedules-panel">
+  <div class="panel-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+  </div>
+
+  <p class="panel-note panel-note--error" *ngIf="state === 'error'">
+    No se pudieron cargar los check-ins de {{ clientName }}.
+  </p>
+
+  <ng-container *ngIf="state === 'ready'">
+    <p class="panel-note" *ngIf="schedules.length">
+      {{ activeCount }} activo{{ activeCount === 1 ? '' : 's' }} de {{ schedules.length }}
+    </p>
+    <p class="panel-note" *ngIf="!schedules.length">
+      {{ clientName }} no tiene ningún check-in programado.
+    </p>
+
+    <button
+      type="button"
+      class="schedule-card"
+      *ngFor="let schedule of schedules; trackBy: trackById"
+      [class.is-selected]="schedule._id === selectedId"
+      [class.is-paused]="!schedule.active"
+      [attr.aria-label]="'Ver el histórico de ' + schedule.name"
+      (click)="select(schedule)"
+    >
+      <span class="schedule-card__body">
+        <span class="schedule-card__title-row">
+          <span class="schedule-card__name">{{ schedule.name }}</span>
+          <span class="schedule-card__tag" *ngIf="!schedule.active">EN PAUSA</span>
+        </span>
+        <span class="schedule-card__meta">
+          {{ cadence(schedule) }} · {{ schedule.time }} · desde el {{ since(schedule) }}
+        </span>
+      </span>
+      <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="ion-no-border" *ngIf="state !== 'loading'">
+  <div class="schedules-panel__footer">
+    <ion-button expand="block" fill="outline" size="small" (click)="goToCheckins()">
+      Ir a check-ins
+    </ion-button>
+  </div>
+</ion-footer>

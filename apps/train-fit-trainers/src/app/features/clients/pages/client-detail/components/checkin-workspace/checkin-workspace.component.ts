@@ -6,6 +6,7 @@ import { HttpService } from 'src/app/core/services/http/http.service';
 import { CheckinResponseEntry } from '../../models/client-detail.model';
 import { CheckinAgendaData, CheckinComparisonRow, CheckinDay, CheckinEntry, CheckinSchedule, CheckinScheduleDraft, CheckinStatus, CheckinTemplateDefinition } from './checkin-workspace.model';
 import { compareCheckins } from './checkin-comparison';
+import { checkinCadenceLabel, checkinWeekLabel } from '../../../../checkin-labels.util';
 
 function localDate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -63,24 +64,16 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public changeMonth(delta: number): void { this.month = new Date(this.month.getFullYear(), this.month.getMonth() + delta, 1); this.selectedDate = localDate(this.month); this.selected = null; this.load(); }
   public goToday(): void { const now = new Date(); this.month = new Date(now.getFullYear(), now.getMonth(), 1); this.selectedDate = this.today; this.reviewOnly = false; this.load(); }
   // La fecha ya viene como día de calendario: sin zona horaria que traducir
-  // (docs/plan-revisiones.md §10).
+  // (docs/plan-semanas.md).
   public dateOf(entry: CheckinEntry): string { return entry.date; }
   public formatDate(value: string | null | undefined): string { return value ? new Date(value).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
   public formatDay(value: string | null | undefined): string { return value ? new Date(`${value}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '—'; }
   public formatTime(entry: CheckinEntry): string { return entry.time; }
-  // "R3 · 7–13 sept": a qué revisión de la fase de dieta pertenece.
-  public revisionLabel(entry: CheckinEntry): string {
-    if (!entry.revision) return '';
-    const fmt = (iso: string): string => new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-    const fin = entry.revision.end ? ` – ${fmt(entry.revision.end)}` : '';
-    return `R${entry.revision.number} · ${fmt(entry.revision.start)}${fin}`;
+  public weekLabel(entry: CheckinEntry): string {
+    return checkinWeekLabel(entry.week);
   }
   public cadence(schedule: CheckinScheduleDraft): string {
-    const unit = schedule.frequency === 'daily' ? 'días' : schedule.frequency === 'weekly' ? 'semanas' : 'meses';
-    if (schedule.frequency === 'once') return 'Una vez';
-    if (schedule.frequency === 'weekly' && schedule.interval === 1) return `Cada ${new Date(schedule.startDate + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })}`;
-    if (schedule.frequency === 'monthly' && schedule.interval === 1) return `Día ${Number(schedule.startDate.slice(-2))} de cada mes`;
-    return schedule.interval === 1 ? 'Cada día' : `Cada ${schedule.interval} ${unit}`;
+    return checkinCadenceLabel(schedule);
   }
   public rebuild(): void {
     const entries = (this.data?.entries || []).filter(e => !this.scheduleFilter || e.scheduleId === this.scheduleFilter);

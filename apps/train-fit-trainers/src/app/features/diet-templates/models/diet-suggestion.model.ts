@@ -1,6 +1,6 @@
 // Sugerencias de dieta — tipos de los endpoints del cajón lateral
 // (train-fit-back/components/dietTemplates/diet-suggestion-controller.js) y
-// de las revisiones de una fase (plan-assignment-controller.js).
+// de las semanas de una fase (plan-assignment-controller.js).
 
 export type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
 export type TargetSource = 'calculated' | 'manual';
@@ -50,7 +50,7 @@ export interface DietSuggestionResponse {
   // Qué pasos entraron en el cálculo (null = del rango del perfil).
   stepsFromHabit: StepsFromHabit | null;
   // Inputs y cuenta paso a paso, para el bloque "cómo se ha calculado".
-  needBreakdown: { inputs: RevisionNeed['inputs']; breakdown: RevisionNeed['breakdown'] };
+  needBreakdown: { inputs: WeekNeed['inputs']; breakdown: WeekNeed['breakdown'] };
   // `from: 'anthropometry'` trae `date`; `from: 'signup'` no (viene del
   // registro del cliente, sin fecha).
   weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
@@ -89,7 +89,7 @@ export interface DietSuggestionRequest {
 
 // Bloque que viaja con apply / createDirect cuando se EMPIEZA una fase: su
 // nombre y con qué números se pauta. Ya no hay enfoque ni ajuste de kcal ni
-// ritmo por revisión — lo que importa es el objetivo con el que se pauta.
+// ritmo por semana — lo que importa es el objetivo con el que se pauta.
 export interface PhasePayload {
   name: string;
   target: (MacroSet & { kcal: number; source: TargetSource }) | null;
@@ -97,9 +97,9 @@ export interface PhasePayload {
   fatPerKg?: number | null;
 }
 
-// --- Revisiones (docs/plan-revisiones.md) ---
+// --- Semanas (docs/plan-semanas.md) ---
 
-// Desvío de un día de la revisión actual: lo que comió fuera de pauta y las
+// Desvío de un día de la semana actual: lo que comió fuera de pauta y las
 // comidas pautadas que no marcó. hasPlan false = ese día no tenía nada
 // pautado (p. ej. `choice` sin menú elegido).
 export interface DailyDeviation {
@@ -109,7 +109,7 @@ export interface DailyDeviation {
   unchecked: string[];
 }
 
-export interface NextRevisionSuggestion {
+export interface NextWeekSuggestion {
   hasData: boolean;
   deltaKcal: number;
   nextKcal: number;
@@ -119,8 +119,8 @@ export interface NextRevisionSuggestion {
   reason: string;
   weightStartKg: number | null;
   weightEndKg: number | null;
-  // Con qué revisión anterior se comparó el peso (la última que tenía peso).
-  comparedToRevision: number | null;
+  // Con qué semana anterior se comparó el peso (la última que tenía peso).
+  comparedToWeek: number | null;
   adherencePct: number | null;
   adherenceDays: number;
   deviations: DailyDeviation[];
@@ -128,7 +128,7 @@ export interface NextRevisionSuggestion {
 
 // Un contenido persistido (doc DietTemplate) resumido. `profile` = media
 // diaria de kcal/macros — no hay objetivo guardado aparte.
-export interface RevisionOverrideSummary {
+export interface WeekOverrideSummary {
   id: string;
   startDate: string;
   menusCount: number;
@@ -136,8 +136,8 @@ export interface RevisionOverrideSummary {
 }
 
 // Pasos que entraron en el cálculo: los que pauta el HÁBITO de pasos del
-// cliente y los días que lo marcó dentro de la revisión mirada
-// (docs/plan-revisiones.md §12). null = sin hábito, o marcado menos de la
+// cliente y los días que lo marcó dentro de la semana mirada
+// (docs/plan-semanas.md). null = sin hábito, o marcado menos de la
 // mitad de los días: manda el rango de su perfil.
 export interface StepsFromHabit {
   key: string;
@@ -149,9 +149,9 @@ export interface StepsFromHabit {
 }
 
 // Cómo se calculó la necesidad del cliente: lo que entró y la cuenta. Es la
-// misma forma para el snapshot de la fase (persistido) y para las revisiones
+// misma forma para el snapshot de la fase (persistido) y para las semanas
 // siguientes (al vuelo). `missing` con contenido = no se pudo calcular.
-export interface RevisionNeed {
+export interface WeekNeed {
   computedAt: string;
   missing?: string[] | null;
   inputs: {
@@ -194,20 +194,20 @@ export interface RevisionNeed {
   stepsFromHabit?: StepsFromHabit | null;
 }
 
-export interface RevisionNeedResponse {
-  revisionNumber: number;
+export interface WeekNeedResponse {
+  weekNumber: number;
   start: string;
   end: string | null;
   isCurrent: boolean;
   // snapshot = guardado al empezar la fase; computed = al vuelo.
   source: 'snapshot' | 'computed' | null;
-  need: RevisionNeed | null;
+  need: WeekNeed | null;
   checkin: { values: Record<string, unknown>; respondedAt: string; updatedAt: string } | null;
   plannedKcal: number | null;
   phaseTarget: (MacroSet & { kcal: number; source: TargetSource }) | null;
 }
 
-export interface RevisionWindow {
+export interface WeekWindow {
   number: number;
   start: string;
   // null solo en la última cuando la fase sigue abierta y no hay otro
@@ -215,48 +215,45 @@ export interface RevisionWindow {
   end: string | null;
 }
 
-export interface PhaseRevisionsResponse {
+export interface PhaseWeeksResponse {
   phaseId: string;
   phaseName: string | null;
   phaseStart: string;
   phaseEnd: string | null;
   phaseTarget: (MacroSet & { kcal: number; source: TargetSource }) | null;
-  // false = el cliente no tiene ningún check-in programado, así que la fase
-  // es una sola ventana abierta. La ficha ofrece crearlo.
-  hasSchedules: boolean;
-  revisions: RevisionWindow[];
-  current: (RevisionWindow & { override: RevisionOverrideSummary }) | null;
-  // null mientras no se sepa cuándo empieza la siguiente (sin check-in
-  // programado por delante).
+  weeks: WeekWindow[];
+  current: (WeekWindow & { override: WeekOverrideSummary }) | null;
+  // null solo cuando la fase termina dentro de la semana en curso: no hay
+  // una semana siguiente que preparar.
   next:
-    | (RevisionWindow & {
+    | (WeekWindow & {
         // Ya preparada por el entrenador, o null.
-        override: RevisionOverrideSummary | null;
+        override: WeekOverrideSummary | null;
         // Lo que heredará si nadie toca nada (null si hay override).
-        inherits: RevisionOverrideSummary | null;
-        suggestion: NextRevisionSuggestion | null;
+        inherits: WeekOverrideSummary | null;
+        suggestion: NextWeekSuggestion | null;
         // Necesidad con los datos de HOY — referencia, no cambia la sugerencia.
-        needNow: RevisionNeed | null;
+        needNow: WeekNeed | null;
       })
     | null;
-  past: (RevisionWindow & { profile: MacroSet & { kcal: number }; overrideId: string })[];
+  past: (WeekWindow & { profile: MacroSet & { kcal: number }; overrideId: string })[];
 }
 
 // Contenido vigente escalado a unas kcal — para abrir el builder precargado
-// al preparar la revisión siguiente.
-export interface ScaledNextRevision {
-  revisionNumber: number;
+// al preparar la semana siguiente.
+export interface ScaledNextWeek {
+  weekNumber: number;
   start: string;
   end: string | null;
   baseKcal: number;
   targetKcal: number;
   factor: number;
-  currentRevisionNumber: number | null;
+  currentWeekNumber: number | null;
   content: {
     menus: unknown[];
   };
 }
 
-export interface PrepareNextRevisionRequest {
+export interface PrepareNextWeekRequest {
   menus: unknown[];
 }

@@ -162,6 +162,13 @@ div {
     opacity: 0.9;
   }
 
+  // La semana va con el nombre de la fase pero un punto más apagada: el
+  // nombre es de quién es el plan, la semana es dónde va.
+  &__week {
+    font-weight: 500;
+    opacity: 0.75;
+  }
+
   &__bar {
     display: block;
     width: 100%;
@@ -181,29 +188,18 @@ ion-col {
   // Misma especificidad que `.selected` de arriba y va después: sin el
   // `:not(.selected)` pisaba el estado seleccionado y el día con ciclo no se
   // distinguía al pulsarlo.
-  &.has-revision:not(.selected):not(.active) {
-    border-color: color-mix(in srgb, var(--revision-color) 55%, #2a2a2a);
-    background: color-mix(in srgb, var(--revision-color) 12%, #111111);
+  &.has-week:not(.selected):not(.active) {
+    border-color: color-mix(in srgb, var(--week-color) 55%, #2a2a2a);
+    background: color-mix(in srgb, var(--week-color) 12%, #111111);
   }
 
   // Seleccionado con ciclo: color del ciclo a tope (borde sólido + fondo
   // más cargado + resplandor) para que se note frente a los vecinos.
-  &.has-revision.selected,
-  &.has-revision.active {
-    border-color: var(--revision-color);
-    background: color-mix(in srgb, var(--revision-color) 32%, #111111);
-    box-shadow: 0 0 0 1px var(--revision-color), 0 0 10px color-mix(in srgb, var(--revision-color) 45%, transparent);
+  &.has-week.selected,
+  &.has-week.active {
+    border-color: var(--week-color);
+    background: color-mix(in srgb, var(--week-color) 32%, #111111);
+    box-shadow: 0 0 0 1px var(--week-color), 0 0 10px color-mix(in srgb, var(--week-color) 45%, transparent);
   }
 
-  .revision-badge {
-    position: absolute;
-    top: 2px;
-    right: 3px;
-    font-family: 'Work Sans', sans-serif;
-    font-size: 8px;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: 0.02em;
-    color: var(--revision-color, #9ca3af);
-  }
 }

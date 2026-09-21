@@ -14,34 +14,34 @@ import { PlanAssignment } from '../../../../shared/models/plan-assignment.model'
 import { checkinFieldLabel, checkinValueLabel } from '../../checkin-labels.util';
 import { CustomCheckinQuestion } from '../../../checkin-templates/models/checkin-template.model';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
-import { RevisionNeedResponse } from '../../../diet-templates/models/diet-suggestion.model';
+import { WeekNeedResponse } from '../../../diet-templates/models/diet-suggestion.model';
 import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
 
 type ViewState = 'loading' | 'ready' | 'error';
 
-// Qué pasó en UNA revisión de una fase de nutrición. Se abre desde los
+// Qué pasó en UNA semana de una fase de nutrición. Se abre desde los
 // cuadraditos de la tarjeta de la fase (client-detail.page.html) como panel
 // derecho.
 //
 // Es de solo lectura y no inventa datos: cruza por el rango de fechas de la
-// revisión tres cosas que ya existen —macros pautados vs consumidos
+// semana tres cosas que ya existen —macros pautados vs consumidos
 // (nutrition-tracking), cumplimiento alimento a alimento (nutrition-foods) y
 // los check-ins que el cliente respondió dentro de ese rango.
 @Component({
-  selector: 'app-revision-summary-panel',
+  selector: 'app-week-summary-panel',
   standalone: true,
   imports: [CommonModule, IonicModule, NeedBreakdownComponent],
-  templateUrl: './revision-summary-panel.component.html',
-  styleUrls: ['./revision-summary-panel.component.scss'],
+  templateUrl: './week-summary-panel.component.html',
+  styleUrls: ['./week-summary-panel.component.scss'],
 })
-export class RevisionSummaryPanelComponent implements OnInit {
+export class WeekSummaryPanelComponent implements OnInit {
   @Input() public clientId!: string;
   @Input() public assignment!: PlanAssignment;
-  @Input() public revisionNumber = 1;
+  @Input() public weekNumber = 1;
   @Input() public clientName = 'este cliente';
-  // La ventana de la revisión (la marcan los check-ins, ver
-  // revision-window.js), que no coincide con el rango del doc persistido —
-  // un contenido puede cubrir varias revisiones. `end` null = sigue abierta.
+  // La ventana de la semana (la marcan los check-ins, ver
+  // week-window.js), que no coincide con el rango del doc persistido —
+  // un contenido puede cubrir varias semanas. `end` null = sigue abierta.
   @Input() public window: { start: string; end: string | null } | null = null;
 
   public state: ViewState = 'loading';
@@ -55,14 +55,14 @@ export class RevisionSummaryPanelComponent implements OnInit {
   // nuevo en cada detección de cambios hace que *ngFor recree el DOM, eso
   // despierta a los observadores de Ionic, que disparan otra detección… y la
   // pestaña se queda colgada (pasó en cuanto hubo un check-in dentro del
-  // revisión). Mismo motivo que trackByCheckinValueKey en client-detail.page.ts.
+  // semana). Mismo motivo que trackByCheckinValueKey en client-detail.page.ts.
   public checkins: { entry: CheckinResponseEntry; values: { key: string; value: number | string | boolean }[] }[] = [];
   // Preguntas propias que traen las respuestas cargadas: con ellas se
   // nombran las claves "custom:<id>" sin pedir nada más.
   private checkinQuestions: CustomCheckinQuestion[] = [];
-  // Cómo se calculó la necesidad de esta revisión
+  // Cómo se calculó la necesidad de esta semana
   // (docs/plan-info-calculo-fase.md). null mientras carga o si falló.
-  public revisionNeed: RevisionNeedResponse | null = null;
+  public weekNeed: WeekNeedResponse | null = null;
   public needState: 'loading' | 'ready' | 'error' = 'loading';
 
   constructor(
@@ -71,7 +71,7 @@ export class RevisionSummaryPanelComponent implements OnInit {
     private suggestionApi: DietSuggestionApiService
   ) {}
 
-  // Una revisión en curso no tiene fin: se mira hasta hoy. El backend vuelve a
+  // Una semana en curso no tiene fin: se mira hasta hoy. El backend vuelve a
   // acotarlo por su cuenta (nunca el futuro), esto es solo para no pedir un
   // rango absurdo.
   public get from(): string {
@@ -126,7 +126,7 @@ export class RevisionSummaryPanelComponent implements OnInit {
     });
   }
 
-  // Aparte del resto: si falla, la revisión se sigue viendo y solo este
+  // Aparte del resto: si falla, la semana se sigue viendo y solo este
   // bloque dice que no cargó.
   private loadNeed(): void {
     const phaseId = this.assignment?.phaseId;
@@ -134,9 +134,9 @@ export class RevisionSummaryPanelComponent implements OnInit {
       this.needState = 'error';
       return;
     }
-    this.suggestionApi.getRevisionNeed(this.clientId, phaseId, this.revisionNumber).subscribe({
+    this.suggestionApi.getWeekNeed(this.clientId, phaseId, this.weekNumber).subscribe({
       next: (need) => {
-        this.revisionNeed = need;
+        this.weekNeed = need;
         this.needState = 'ready';
       },
       error: () => {
@@ -145,7 +145,7 @@ export class RevisionSummaryPanelComponent implements OnInit {
     });
   }
 
-  // Media POR DÍA CON PLAN, no por día del rango: una revisión con días sin nada
+  // Media POR DÍA CON PLAN, no por día del rango: una semana con días sin nada
   // pautado (excepciones, huecos) tiene esos días a cero, y promediarlos
   // hundiría la cifra y haría parecer que se pautó menos de lo que se pautó.
   private applyTracking(days: NutritionTrackingDay[]): void {

@@ -33,7 +33,7 @@
 
     <div
       class="checkin-card"
-      [class]="'checkin-card--' + (checkin.revision ? 'revision' : 'request')"
+      [class]="'checkin-card--' + (checkin.week ? 'week' : 'request')"
       [class.is-done]="isDone(checkin)"
       [class.is-open]="expandedTrainerId === checkinKey(checkin)"
       *ngFor="let checkin of checkins; trackBy: trackByCheckinId"

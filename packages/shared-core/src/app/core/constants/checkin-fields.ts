@@ -18,7 +18,7 @@ export type CheckinFieldStorage = 'anthropometry' | 'wellbeing';
 
 // Los PASOS no son un campo de check-in: se pautan como hábito diario
 // (TrainerTask type "steps") y el cliente los marca bajo sus comidas.
-// Ver docs/plan-revisiones.md §12.
+// Ver docs/plan-semanas.md §12.
 export type CheckinFieldGroup = 'composicion_corporal' | 'perimetros' | 'bienestar';
 
 export interface CheckinField {
@@ -274,7 +274,7 @@ export const CHECKIN_FIELDS: CheckinField[] = [
   },
 
   // coach-tab FASE2 — campo de texto libre, reutilizable tanto en
-  // "formularios" (comentario semanal) como en "revisiones" (comentario
+  // "formularios" (comentario semanal) como en "semanas" (comentario
   // junto a las medidas de composición corporal/perímetros de esa misma
   // respuesta). Un único campo genérico, no un mecanismo aparte.
   { key: "comment", label: "Comentario", type: "text", group: "bienestar", storage: "wellbeing" },

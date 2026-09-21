@@ -27,8 +27,8 @@ const WEIGHT_COLOR = '#d4af37'; // mismo dorado que AnthropometryChartComponent 
 
 // F20-vicies — "¿el peso se mueve como toca dado lo que el cliente realmente
 // come?" es justo la pregunta que ya responde el algoritmo de sugerencia de
-// revisión (peso de la revisión vs. su adherencia), pero solo en el instante
-// de preparar la siguiente revisión. Esta gráfica la deja ver en el tiempo:
+// semana (peso de la semana vs. su adherencia), pero solo en el instante
+// de preparar la siguiente semana. Esta gráfica la deja ver en el tiempo:
 // cumplimiento (% de items pautados marcados, no macros) y peso, mismo rango
 // que <app-nutrition-tracking-chart>, con la que alterna vía el toggle en
 // client-detail.page.html — misma fila "Seguimiento", vista distinta de los

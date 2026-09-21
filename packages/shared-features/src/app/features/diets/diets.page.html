@@ -74,8 +74,8 @@
       <span class="checkin-card__text">
         <strong>
           {{ openCheckin.respondedAt
-            ? (checkinRevision ? 'Editar tu check-in de la revisión ' + checkinRevision.number : 'Editar tu check-in')
-            : (checkinRevision ? 'Check-in de la revisión ' + checkinRevision.number + ' pendiente' : 'Tienes un check-in pendiente') }}
+            ? (checkinWeek ? 'Editar tu check-in de la semana ' + checkinWeek.number : 'Editar tu check-in')
+            : (checkinWeek ? 'Check-in de la semana ' + checkinWeek.number + ' pendiente' : 'Tienes un check-in pendiente') }}
         </strong>
         <small>
           {{ openCheckin.respondedAt
@@ -174,7 +174,7 @@
     </ion-accordion-group>
   </ion-grid>
 
-  <!-- Hábitos del día (docs/plan-revisiones.md §12): lo que el entrenador
+  <!-- Hábitos del día (docs/plan-semanas.md §12): lo que el entrenador
        le pide cumplir cada día — pasos, agua… — para marcarlo aquí mismo,
        debajo de las comidas. Lo que marque en "pasos" es lo que entra en el
        cálculo de sus kcal. -->

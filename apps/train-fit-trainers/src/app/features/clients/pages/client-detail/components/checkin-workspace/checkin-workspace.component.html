@@ -14,7 +14,7 @@
         <div class="panel-heading"><h3>{{ editingId ? 'Editar programación' : 'Nueva programación' }}</h3><button type="button" class="icon-button" aria-label="Cerrar programación" (click)="editor = null" [disabled]="busy"><ion-icon name="close-outline"></ion-icon></button></div>
         <p class="muted">
           Elige la primera fecha. Las siguientes se repiten sin depender de cuándo responda el cliente, y son
-          las que parten su fase de dieta en revisiones (R1, R2…).
+          las que parten su fase de dieta en semanas (R1, R2…).
         </p>
         <ng-container *ngIf="!editingId">
           <label>Formulario
@@ -48,10 +48,10 @@
           <button type="button" [class.active]="!reviewOnly" [attr.aria-pressed]="!reviewOnly" (click)="reviewOnly = false; rebuild()">Día seleccionado</button>
           <button type="button" [class.active]="reviewOnly" [attr.aria-pressed]="reviewOnly" (click)="reviewOnly = true; rebuild()">Por revisar <span class="count">{{ data.reviewCount }}</span></button>
         </div>
-        <div class="panel-heading"><h3>{{ reviewOnly ? 'Respuestas pendientes de revisión' : formatDate(selectedDate + 'T12:00:00') }}</h3><span class="muted">{{ agenda.length }} {{ agenda.length === 1 ? 'check-in' : 'check-ins' }}</span></div>
+        <div class="panel-heading"><h3>{{ reviewOnly ? 'Respuestas pendientes de semana' : formatDate(selectedDate + 'T12:00:00') }}</h3><span class="muted">{{ agenda.length }} {{ agenda.length === 1 ? 'check-in' : 'check-ins' }}</span></div>
         <div class="day-requests" *ngIf="agenda.length > 1 || reviewOnly">
           <button type="button" *ngFor="let item of agenda; trackBy: trackId" [class.selected]="selected?._id === item._id" (click)="selectEntry(item)">
-            <ion-icon [name]="statusIcons[item.status]" aria-hidden="true"></ion-icon><span><strong>{{ item.name }}</strong><small>{{ formatDay(item.date) }} · {{ statusLabels[item.status] }}<ng-container *ngIf="revisionLabel(item) as revision"> · {{ revision }}</ng-container></small></span><ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            <ion-icon [name]="statusIcons[item.status]" aria-hidden="true"></ion-icon><span><strong>{{ item.name }}</strong><small>{{ formatDay(item.date) }} · {{ statusLabels[item.status] }}<ng-container *ngIf="weekLabel(item) as week"> · {{ week }}</ng-container></small></span><ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
           </button>
         </div>
         <div class="empty-state" *ngIf="!agenda.length">
@@ -67,7 +67,7 @@
             Previsto {{ formatDay(entry.date) }} · {{ formatTime(entry) }}
             <span *ngIf="entry.respondedAt"> · Respondido {{ formatDate(entry.respondedAt) }}</span>
             <span *ngIf="entry.updatedAt && entry.updatedAt !== entry.respondedAt"> · Actualizado {{ formatDate(entry.updatedAt) }}</span>
-            <span *ngIf="revisionLabel(entry) as revision"> · {{ revision }}</span>
+            <span *ngIf="weekLabel(entry) as week"> · {{ week }}</span>
           </p>
           <ng-container *ngIf="entry.respondedAt; else waitingRequest">
             <label class="reference-picker">Comparar con<select [ngModel]="referenceId" (ngModelChange)="referenceId = $event; updateComparison()" aria-label="Respuesta de referencia"><option value="">Sin referencia</option><option *ngFor="let reference of references; trackBy: trackId" [value]="reference._id">{{ formatDate(reference.respondedAt) }}</option></select></label>
@@ -96,7 +96,7 @@
 
       <section class="schedules" [class.expanded]="showSchedules"><div class="panel-heading"><h3>Programación · {{ data.schedules.length }}</h3><button type="button" class="mobile-schedules-toggle" [attr.aria-expanded]="showSchedules" (click)="showSchedules = !showSchedules">{{ showSchedules ? 'Ocultar' : 'Gestionar' }}</button></div><div class="schedule-list">
         <p class="muted" *ngIf="!data.schedules.length">Todavía no hay solicitudes con fechas fijas.</p>
-        <div class="schedule-row" *ngFor="let schedule of data.schedules; trackBy: trackId"><strong>{{ schedule.name }}</strong><span class="muted">{{ schedule.active ? cadence(schedule) + ' · ' + schedule.time : 'Pausado' }}</span><small>{{ schedule.active ? 'Desde el ' + formatDay(schedule.startDate) : 'No se pedirán más check-ins' }}</small><details><summary>Gestionar <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon></summary><div class="schedule-actions"><button type="button" (click)="openEditor(schedule)" [disabled]="busy">Editar fechas</button><button type="button" (click)="setActive(schedule)" [disabled]="busy">{{ schedule.active ? 'Pausar' : 'Reanudar' }}</button><button type="button" (click)="remove(schedule)" [disabled]="busy">Eliminar</button></div><p class="muted" *ngIf="schedule.active">Pausar deja de pedir check-ins nuevos; las respuestas se conservan. Cambiar las fechas cambia también las revisiones de su fase de dieta.</p></details></div>
+        <div class="schedule-row" *ngFor="let schedule of data.schedules; trackBy: trackId"><strong>{{ schedule.name }}</strong><span class="muted">{{ schedule.active ? cadence(schedule) + ' · ' + schedule.time : 'Pausado' }}</span><small>{{ schedule.active ? 'Desde el ' + formatDay(schedule.startDate) : 'No se pedirán más check-ins' }}</small><details><summary>Gestionar <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon></summary><div class="schedule-actions"><button type="button" (click)="openEditor(schedule)" [disabled]="busy">Editar fechas</button><button type="button" (click)="setActive(schedule)" [disabled]="busy">{{ schedule.active ? 'Pausar' : 'Reanudar' }}</button><button type="button" (click)="remove(schedule)" [disabled]="busy">Eliminar</button></div><p class="muted" *ngIf="schedule.active">Pausar deja de pedir check-ins nuevos; las respuestas se conservan. Cambiar las fechas cambia también las semanas de su fase de dieta.</p></details></div>
       </div></section>
     </aside>
   </div>

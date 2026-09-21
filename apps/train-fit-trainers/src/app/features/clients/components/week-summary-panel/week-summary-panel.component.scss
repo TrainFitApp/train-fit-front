@@ -1,4 +1,4 @@
-.revision-summary {
+.week-summary {
   --background: var(--tf-surface-1);
   --padding-start: var(--tf-space-4);
   --padding-end: var(--tf-space-4);
@@ -78,13 +78,13 @@
 
 // --- Lo pautado ---
 
-.revision-dates {
+.week-dates {
   margin: 0;
   font-size: var(--tf-font-size-sm);
   color: var(--tf-text-secondary);
 }
 
-.revision-days {
+.week-days {
   color: var(--tf-text-muted);
 }
 

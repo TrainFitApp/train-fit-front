@@ -23,6 +23,7 @@ import {
   TrainerTaskType,
   TrainingGoal,
 } from '../models/client-detail.model';
+import { CheckinSchedule, CheckinScheduleHistory } from '../components/checkin-workspace/checkin-workspace.model';
 import { PainEntry, PainThreshold } from 'src/app/core/constants/pain';
 import {
   ClientBodyProfile,
@@ -138,6 +139,24 @@ export class ClientDetailApiService {
 
   public getCheckinResponses(clientId: string): Observable<CheckinResponseEntry[]> {
     return this.http.get<CheckinResponseEntry[]>(`${this.base(clientId)}/checkin-responses`);
+  }
+
+  public getCheckinSchedules(clientId: string): Observable<CheckinSchedule[]> {
+    return this.http.get<CheckinSchedule[]>(`${this.base(clientId)}/checkin-schedules`);
+  }
+
+  // Histórico de UNA programación: `before` es el cursor que devolvió la
+  // página anterior (`nextBefore`).
+  public getCheckinScheduleHistory(
+    clientId: string,
+    scheduleId: string,
+    before: string | null = null,
+    limit = 50
+  ): Observable<CheckinScheduleHistory> {
+    const cursor = before ? `&before=${before}` : '';
+    return this.http.get<CheckinScheduleHistory>(
+      `${this.base(clientId)}/checkin-schedules/${scheduleId}/history?limit=${limit}${cursor}`
+    );
   }
 
   public getAdherence(clientId: string): Observable<AdherenceSummary> {
@@ -319,7 +338,7 @@ export class ClientDetailApiService {
     );
   }
 
-  // Cumplimiento alimento a alimento del rango — panel de resumen de una revisión.
+  // Cumplimiento alimento a alimento del rango — panel de resumen de una semana.
   // El backend acota `to` a hoy: los días futuros aún no materializados se
   // resuelven con consumed:false y falsearían el cumplimiento.
   public getNutritionFoods(

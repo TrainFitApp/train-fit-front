@@ -642,20 +642,20 @@ export class CoachPage implements OnInit {
   }
 
   // "10.000 a 15.000 pasos" cuando el hábito lleva rango (los pasos se
-  // pautan así, ver docs/plan-revisiones.md §12).
+  // pautan así, ver docs/plan-semanas.md §12).
   public taskTargetLabel(task: CoachTask): string {
     const rango = task.targetMax ? ` a ${task.targetMax}` : '';
     return `${task.target}${rango} ${task.unit}`;
   }
 
-  // "Revisión 3 · hasta el 20 sept": de qué periodo es el check-in que le
+  // "Semana 3 · hasta el 20 sept": de qué periodo es el check-in que le
   // están pidiendo.
   public checkinPeriodLabel(item: CoachPendingCheckin): string {
     const fmt = (iso: string): string =>
       new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-    const revision = item.revisionNumber ? `Revisión ${item.revisionNumber}` : 'Pedido por ' + item.trainerName;
+    const week = item.weekNumber ? `Semana ${item.weekNumber}` : 'Pedido por ' + item.trainerName;
     const hasta = item.closesDate ? ` · hasta el ${fmt(item.closesDate)}` : '';
-    return `${revision}${hasta}`;
+    return `${week}${hasta}`;
   }
 
   public goToNutritionPreferences(): void {

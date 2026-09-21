@@ -12,7 +12,7 @@ export interface CustomCheckinQuestion {
   enabled?: boolean;
 }
 
-// Un check-in ABIERTO hoy (docs/plan-revisiones.md): su ventana de fechas
+// Un check-in ABIERTO hoy (docs/plan-semanas.md): su ventana de fechas
 // incluye hoy, así que se puede responder y corregir hasta que cierre. Fuera
 // de esa ventana no aparece: ese periodo ya pasó.
 export interface MyCheckin {
@@ -37,11 +37,11 @@ export interface MyCheckin {
   updatedAt: string | null;
   reviewComment?: string;
   trainer: { name: string; lastname: string } | null;
-  // Revisión de la fase de dieta que abre este check-in (R1, R2…).
-  revision?: CheckinRevision | null;
+  // Semana de la fase de dieta que abre este check-in (R1, R2…).
+  week?: CheckinWeek | null;
 }
 
-export interface CheckinRevision {
+export interface CheckinWeek {
   phaseId: string;
   phaseName: string | null;
   number: number;
@@ -54,7 +54,7 @@ export interface CheckinHistoryEntry {
   _id: string;
   name?: string;
   occurrenceDate?: string;
-  revision?: CheckinRevision | null;
+  week?: CheckinWeek | null;
   customQuestions?: CustomCheckinQuestion[];
   status?: 'responded' | 'reviewed';
   reviewedAt?: string | null;

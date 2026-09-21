@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <app-page-header
-    [title]="isPreparingNextRevision ? ('Preparar R' + nextRevisionNumber) : (isCreatingForClient ? 'Crear dieta' : (isEditingAssignedCopy ? 'Editar dieta' : 'Editar plantilla'))"
+    [title]="isPreparingNextWeek ? ('Preparar S' + nextWeekNumber) : (isCreatingForClient ? 'Crear dieta' : (isEditingAssignedCopy ? 'Editar dieta' : 'Editar plantilla'))"
   ></app-page-header>
 </ion-header>
 
@@ -10,14 +10,14 @@
     <div class="skeleton-block" style="height: 60px;"></div>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy && !isPreparingNextRevision">
+  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy && !isPreparingNextWeek">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>No se pudo cargar la plantilla</h2>
     <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && (isEditingAssignedCopy || isPreparingNextRevision)">
+  <div class="state-message" *ngIf="state === 'error' && (isEditingAssignedCopy || isPreparingNextWeek)">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>No se pudo cargar la dieta</h2>
     <p>Comprueba tu conexión e inténtalo de nuevo desde la ficha del cliente.</p>
@@ -35,7 +35,7 @@
     <div class="client-context" [class.client-context--new]="clientContextKind === 'new'" *ngIf="clientContextKind as kind">
       <!-- Cabecera: avatar con iniciales + de quién es la dieta. El nombre
            sube a una línea propia porque es el dato que identifica la
-           pantalla; el modo (nueva / asignada / revisión) queda de antetítulo. -->
+           pantalla; el modo (nueva / asignada / semana) queda de antetítulo. -->
       <div class="client-context__head">
         <span class="client-context__avatar" aria-hidden="true">{{ clientInitials }}</span>
         <p class="client-context__heading">
@@ -43,7 +43,7 @@
             <ng-container *ngSwitchCase="'new'">Nueva dieta para</ng-container>
             <ng-container *ngSwitchCase="'own'">Dieta de</ng-container>
             <ng-container *ngSwitchCase="'assigned'">Editando la dieta ya asignada a</ng-container>
-            <ng-container *ngSwitchCase="'next-revision'">R{{ nextRevisionNumber }} · {{ nextRevisionRange }} · de</ng-container>
+            <ng-container *ngSwitchCase="'next-week'">S{{ nextWeekNumber }} · {{ nextWeekRange }} · de</ng-container>
             <ng-container *ngSwitchDefault>Plantilla general, abierta desde la ficha de</ng-container>
           </span>
           <span class="client-context__name">{{ clientContextName }}</span>
@@ -64,36 +64,36 @@
           Esto es lo que {{ clientContextName }} tiene aplicado ahora mismo — los
           cambios no tocan ninguna plantilla de biblioteca, solo esta fase.
         </span>
-        <span *ngIf="kind === 'next-revision'">
+        <span *ngIf="kind === 'next-week'">
           Contenido vigente con las cantidades escaladas. Retoca lo que quieras y guarda: si no
-          cambias nada, la revisión repetirá lo actual.
+          cambias nada, la semana repetirá lo actual.
         </span>
       </p>
 
-      <!-- Preparar la siguiente revisión — las kcal objetivo, reescalables
+      <!-- Preparar la siguiente semana — las kcal objetivo, reescalables
            desde aquí (mismo % a todos los alimentos, pisa los retoques a
            mano). -->
-      <div class="next-revision-kcal" *ngIf="kind === 'next-revision'">
-        <label class="next-revision-kcal__label" for="next-revision-kcal">kcal de la revisión</label>
-        <div class="next-revision-kcal__row">
-          <input id="next-revision-kcal" type="number" step="50" min="1" class="input-field" [(ngModel)]="nextRevisionKcal" />
+      <div class="next-week-kcal" *ngIf="kind === 'next-week'">
+        <label class="next-week-kcal__label" for="next-week-kcal">kcal de la semana</label>
+        <div class="next-week-kcal__row">
+          <input id="next-week-kcal" type="number" step="50" min="1" class="input-field" [(ngModel)]="nextWeekKcal" />
           <button
             type="button"
-            class="next-revision-kcal__btn"
-            [disabled]="rescaling || !(nextRevisionKcal > 0)"
-            (click)="rescaleNextRevision()"
+            class="next-week-kcal__btn"
+            [disabled]="rescaling || !(nextWeekKcal > 0)"
+            (click)="rescaleNextWeek()"
           >
             {{ rescaling ? 'Escalando…' : 'Reescalar' }}
           </button>
         </div>
-        <p class="next-revision-kcal__hint">
-          Pautado ahora: {{ nextRevisionBaseKcal | number: '1.0-0' }} kcal de media diaria.
+        <p class="next-week-kcal__hint">
+          Pautado ahora: {{ nextWeekBaseKcal | number: '1.0-0' }} kcal de media diaria.
         </p>
       </div>
 
       <!-- Objetivo del cliente, EDITABLE al crear su dieta: es contra lo que
            se monta la comida, y el entrenador puede fijar otros números sin
-           salir de aquí (docs/plan-revisiones.md §4/§7). En los demás modos
+           salir de aquí (docs/plan-semanas.md/§7). En los demás modos
            es solo referencia. -->
       <div class="client-context__target" *ngIf="clientTarget as target">
         <span class="client-context__target-label">
@@ -166,8 +166,8 @@
       </div>
     </div>
 
-    <!-- Las revisiones no se nombran: al preparar una no hay campo. -->
-    <div class="input-wrapper" *ngIf="!isPreparingNextRevision">
+    <!-- Las semanas no se nombran: al preparar una no hay campo. -->
+    <div class="input-wrapper" *ngIf="!isPreparingNextWeek">
       <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
       <input
         type="text"
@@ -181,7 +181,7 @@
          alimentos; el entrenador solo puede FORZAR las que la deriva no da
          (productos sin el flag rellenado). Solo al editar una plantilla ya
          guardada. -->
-    <div class="suitable-for" *ngIf="!isCreatingForClient && !isPreparingNextRevision">
+    <div class="suitable-for" *ngIf="!isCreatingForClient && !isPreparingNextWeek">
       <p class="section-hint">Apta para</p>
       <div class="suitable-chips">
         <button
@@ -442,7 +442,7 @@
     </button>
 
     <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()">
-      <span *ngIf="!isSaving">{{ isPreparingNextRevision ? ('Preparar R' + nextRevisionNumber) : (isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla')) }}</span>
+      <span *ngIf="!isSaving">{{ isPreparingNextWeek ? ('Preparar S' + nextWeekNumber) : (isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla')) }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </ng-container>

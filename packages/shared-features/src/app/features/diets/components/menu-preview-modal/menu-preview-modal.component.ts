@@ -3,7 +3,7 @@ import { Component, Input } from '@angular/core';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { DayMenuPreview } from '../../models/day-menu.model';
 
-// docs/plan-revisiones.md — preview de
+// docs/plan-semanas.md — preview de
 // un menú de un plan "el cliente elige cada día": comidas y alimentos en
 // solo lectura, con "Elegir" para aplicarlo al día. No guarda nada: quien
 // elige es diets.page (chooseMenu) al recibir el role 'choose'.

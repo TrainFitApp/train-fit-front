@@ -14,7 +14,7 @@ import { CheckinHistoryChartComponent } from './pages/client-detail/components/c
 import { CheckinWorkspaceComponent } from './pages/client-detail/components/checkin-workspace/checkin-workspace.component';
 import { NutritionTrackingChartComponent } from './pages/client-detail/components/nutrition-tracking-chart/nutrition-tracking-chart.component';
 import { WeightAdherenceChartComponent } from './pages/client-detail/components/weight-adherence-chart/weight-adherence-chart.component';
-import { RevisionComparisonCardsComponent } from './pages/client-detail/components/revision-comparison-cards/revision-comparison-cards.component';
+import { WeekComparisonCardsComponent } from './pages/client-detail/components/week-comparison-cards/week-comparison-cards.component';
 import { NutritionHistoryFeedComponent } from './pages/client-detail/components/nutrition-history-feed/nutrition-history-feed.component';
 import { ClientSummaryComponent } from './pages/client-detail/components/client-summary/client-summary.component';
 import { ClientRosterComponent } from './components/client-roster/client-roster.component';
@@ -38,7 +38,7 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     SelectClientsModalModule,
     DietCardModule,
     // Standalone: el bloque "cómo se ha calculado" del objetivo nutricional
-    // del cliente, el mismo que usan el resumen de revisión y el cajón.
+    // del cliente, el mismo que usan el resumen de semana y el cajón.
     NeedBreakdownComponent,
   ],
   declarations: [
@@ -51,7 +51,7 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     CheckinWorkspaceComponent,
     NutritionTrackingChartComponent,
     WeightAdherenceChartComponent,
-    RevisionComparisonCardsComponent,
+    WeekComparisonCardsComponent,
     NutritionHistoryFeedComponent,
     ClientSummaryComponent,
     ClientRosterComponent,

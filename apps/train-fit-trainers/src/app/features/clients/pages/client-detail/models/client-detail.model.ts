@@ -1,4 +1,4 @@
-import { RevisionNeed, StepsFromHabit } from '../../../../diet-templates/models/diet-suggestion.model';
+import { WeekNeed, StepsFromHabit } from '../../../../diet-templates/models/diet-suggestion.model';
 import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
@@ -168,8 +168,8 @@ export interface CheckinResponseEntry {
   // puede cambiar después y la respuesta tiene que seguir leyéndose (por eso
   // ya no hace falta pedir la "config" del cliente aparte).
   customQuestions?: CustomCheckinQuestion[];
-  // A qué revisión de la fase de dieta pertenece.
-  revision?: { phaseId: string; number: number; start: string; end: string | null } | null;
+  // A qué semana de la fase de dieta pertenece.
+  week?: { phaseId: string; number: number; start: string; end: string | null } | null;
 }
 
 // F26 — recordatorio de cobro (agenda manual, sin pagos reales).
@@ -229,7 +229,7 @@ export interface Supplement {
   // Vacío = todos los días, que es el caso normal y no obliga a marcar
   // siete casillas.
   weekdays: number[];
-  // Desde cuándo y hasta cuándo se toma (docs/plan-revisiones.md §14).
+  // Desde cuándo y hasta cuándo se toma (docs/plan-semanas.md).
   // `endDate` null = sin fecha de fin, se toma hasta nueva orden.
   startDate: string;
   endDate: string | null;
@@ -273,7 +273,7 @@ export interface NutritionTrackingSummary {
   dailyTracking: NutritionTrackingDay[];
 }
 
-// Cumplimiento alimento a alimento de un rango (panel de resumen de una revisión).
+// Cumplimiento alimento a alimento de un rango (panel de resumen de una semana).
 // `plannedDays` = en cuántos días se le pautó; `consumedDays` = en cuántos lo
 // marcó como hecho. Vienen ordenados de peor a mejor cumplimiento.
 export interface NutritionFoodCompliance {
@@ -365,7 +365,7 @@ export interface TrainerTask {
   label: string | null;
   target: number;
   // Tope del rango, opcional: un hábito de pasos se pauta como "10.000 a
-  // 15.000" (docs/plan-revisiones.md §12), y de ahí sale el rango de pasos
+  // 15.000" (docs/plan-semanas.md), y de ahí sale el rango de pasos
   // que entra en el cálculo de kcal.
   targetMax: number | null;
   unit: string;
@@ -375,7 +375,7 @@ export interface TrainerTask {
 
 
 // --- Objetivo nutricional del cliente, visto por su profesional ---
-// (docs/plan-revisiones.md §2). `source` manual = alguien tecleó esas kcal
+// (docs/plan-semanas.md). `source` manual = alguien tecleó esas kcal
 // encima del cálculo, y recalcular el perfil ya no las pisa.
 export interface ClientNutritionalGoal {
   _id: string;
@@ -395,8 +395,8 @@ export interface ClientNutritionalGoalResponse {
   // declarado en un check-in), con la cuenta entera para poder enseñarla.
   calculated: {
     target: { kcal: number; protein: number; carbs: number; fat: number };
-    inputs: RevisionNeed['inputs'];
-    breakdown: RevisionNeed['breakdown'];
+    inputs: WeekNeed['inputs'];
+    breakdown: WeekNeed['breakdown'];
     weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
     stepsFromHabit: StepsFromHabit | null;
   } | null;

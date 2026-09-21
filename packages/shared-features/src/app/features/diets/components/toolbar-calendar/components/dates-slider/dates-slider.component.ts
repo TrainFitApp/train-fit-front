@@ -18,20 +18,20 @@ import { WEEK_DAYS } from 'src/app/shared/constants/week-days';
 // (phase-color.util.ts#PHASE_COLORS): fase N → color N, cíclico.
 const PHASE_COLORS: readonly string[] = ['#5db530', '#7b72ee', '#4cf6df', '#e49ab8', '#f4cd2f', '#12b7f3'];
 
-interface DayRevisionInfo {
+interface DayWeekInfo {
   phaseId: string;
   phaseName: string;
   phaseColor: string;
-  revisionNumber: number;
-  revisionColor: string;
+  weekNumber: number;
 }
 
 // Un tramo de la línea de fase encima de una semana: cuántos días abarca
-// (de 7), de qué color y cómo se llama la fase.
+// (de 7), de qué color, cómo se llama la fase y en qué semana de ella va.
 interface PhaseSegment {
   span: number;
   color: string | null;
   name: string;
+  weekNumber: number | null;
 }
 
 @Component({
@@ -68,9 +68,9 @@ export class DatesSliderComponent implements AfterViewInit {
 
   public today: Date = new Date();
 
-  // Qué fase y qué revisión cae en cada día visible
+  // Qué fase y qué semana cae en cada día visible
   // (clave "YYYY-MM-DD"). Se recarga al cambiar de semana.
-  private dayInfo = new Map<string, DayRevisionInfo>();
+  private dayInfo = new Map<string, DayWeekInfo>();
   public segmentsBySlide: PhaseSegment[][] = [];
 
   constructor(
@@ -130,7 +130,7 @@ export class DatesSliderComponent implements AfterViewInit {
     this.loadTimeline();
   }
 
-  // Fases + revisiones de las tres semanas visibles. En silencio si falla: el
+  // Fases + semanas de las tres semanas visibles. En silencio si falla: el
   // slider funciona igual sin colores.
   private loadTimeline(): void {
     const first = this.allDateSlides[0]?.[0];
@@ -152,21 +152,20 @@ export class DatesSliderComponent implements AfterViewInit {
   private indexTimeline(timeline: DietTimeline): void {
     this.dayInfo.clear();
     const phaseById = new Map(timeline.phases.map((p) => [p.id, p]));
-    for (const revision of timeline.revisions) {
-      const phase = phaseById.get(revision.phaseId);
+    for (const week of timeline.weeks) {
+      const phase = phaseById.get(week.phaseId);
       if (!phase) continue;
+      // Un color por FASE y ya: cada tira del slider es una semana entera,
+      // así que rotar el color por semana pintaba un arcoíris que ya no
+      // distinguía una fase de otra.
       const phaseColor = PHASE_COLORS[phase.colorIndex % PHASE_COLORS.length];
-      // La revisión va rotando dentro de la fase, empezando por el color de la
-      // fase: C1 = color de la fase, C2 el siguiente de la paleta, etc.
-      const revisionColor = PHASE_COLORS[(phase.colorIndex + revision.number - 1) % PHASE_COLORS.length];
-      let day = revision.start;
-      while (day <= revision.end) {
+      let day = week.start;
+      while (day <= week.end) {
         this.dayInfo.set(day, {
           phaseId: phase.id,
           phaseName: phase.name,
           phaseColor,
-          revisionNumber: revision.number,
-          revisionColor,
+          weekNumber: week.number,
         });
         day = this.addDay(day);
       }
@@ -179,25 +178,32 @@ export class DatesSliderComponent implements AfterViewInit {
     return d.toISOString().slice(0, 10);
   }
 
-  // Tramos consecutivos de la misma fase dentro de una semana.
+  // Tramos consecutivos de la misma fase Y la misma semana dentro de una
+  // tira. Como las semanas van de lunes a domingo igual que la tira, un
+  // tramo se parte solo cuando cambia la fase (o cuando la fase arrancó a
+  // media semana y su S1 es corta).
   private segmentsFor(slide: Date[]): PhaseSegment[] {
     const segments: PhaseSegment[] = [];
     for (const day of slide) {
       const info = this.dayInfo.get(this._utilService.formatDateToYYYYMMDD(day));
-      const last = segments[segments.length - 1];
+      const last = segments[segments.length - 1] as (PhaseSegment & { phaseId: string }) | undefined;
       const phaseId = info?.phaseId || '';
-      if (last && (last as PhaseSegment & { phaseId: string }).phaseId === phaseId) {
+      const weekNumber = info?.weekNumber ?? null;
+      if (last && last.phaseId === phaseId && last.weekNumber === weekNumber) {
         last.span++;
         continue;
       }
       segments.push(
-        Object.assign({ span: 1, color: info?.phaseColor || null, name: info?.phaseName || '' }, { phaseId })
+        Object.assign(
+          { span: 1, color: info?.phaseColor || null, name: info?.phaseName || '', weekNumber },
+          { phaseId }
+        )
       );
     }
     return segments;
   }
 
-  public infoFor(day: Date): DayRevisionInfo | null {
+  public infoFor(day: Date): DayWeekInfo | null {
     return this.dayInfo.get(this._utilService.formatDateToYYYYMMDD(day)) || null;
   }
 

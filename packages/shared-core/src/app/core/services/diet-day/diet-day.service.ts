@@ -62,19 +62,17 @@ export class DietDayService {
         if (response?.dietDay && response?.anthropometry?.weight !== undefined) {
           response.dietDay.weight = response.anthropometry.weight;
         }
-        // Ciclos por contenido — la meta del día (lo pautado) y el ciclo
-        // viajan junto al día para que macros-bars y el slider los lean de
-        // aquí, sin otra petición.
+        // La meta del día (lo pautado) viaja junto al día para que
+        // macros-bars la lea de aquí, sin otra petición.
         if (response?.dietDay) {
           response.dietDay.plannedTarget = response.plannedTarget ?? null;
-          response.dietDay.cycle = response.cycle ?? null;
         }
         return response.dietDay;
       })
     );
   }
 
-  // Ciclos por contenido — fases y ciclos del cliente en un rango.
+  // Fases y semanas del cliente en un rango.
   public getTimeline(from: string, to: string): Observable<DietTimeline> {
     return this.dietDayAPIService.getTimeline(from, to);
   }
