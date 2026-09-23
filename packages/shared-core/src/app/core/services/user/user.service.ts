@@ -9,7 +9,7 @@ import {
 import { SEX_TYPES } from 'src/app/shared/constants/sex';
 import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
 import { STEPS, STEPS_TYPES } from 'src/app/shared/constants/steps';
-import { bmrMifflinStJeor } from '../../utils/body-metrics.util';
+import { bmrMifflinStJeor, toBodyInput } from '../../utils/body-metrics.util';
 import { User } from '../../models/user';
 import { UserAPIService } from './user-api.service';
 
@@ -272,13 +272,15 @@ export class UserService {
   }
 
   private getFinalWeight(user: User): number {
-    let finalWeight: number = user.weight;
-    if (this.getIMC(user.weight, user.height) >= 30)
-      finalWeight = this.getIdealAdjustedWeight(
-        this.getIdealWeight(user.height, user.sex),
-        user.weight
-      );
-    return finalWeight;
+    // Los formularios (registro, editor de perfil) entregan peso/altura como
+    // string pese al tipo de User.
+    const { weightKg, heightCm } = toBodyInput({ ...user, age: null });
+    // Sin peso se mantiene el NaN de siempre (viaja como null en el JSON):
+    // un 0 se leería como "0 g de proteína", no como "sin dato".
+    if (!weightKg || !heightCm) return weightKg ?? NaN;
+    if (this.getIMC(weightKg, heightCm) >= 30)
+      return this.getIdealAdjustedWeight(this.getIdealWeight(heightCm, user.sex), weightKg);
+    return weightKg;
   }
 
   private getIdealAdjustedWeight(idealWeight: number, weight: number): number {
@@ -313,7 +315,7 @@ export class UserService {
     weight: number,
     age: number
   ): number {
-    return bmrMifflinStJeor({ weightKg: weight, heightCm: height, age, sex }) ?? 0;
+    return bmrMifflinStJeor(toBodyInput({ weight, height, age, sex })) ?? 0;
   }
 
   /**

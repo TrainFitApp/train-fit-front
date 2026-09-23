@@ -1478,7 +1478,8 @@
     "PINNED_TO_POSITION": "Pinned note",
     "PIN_TO_POSITION": "Pin note",
     "DELETE_PINNED_TITLE": "Delete pinned note",
-    "DELETE_PINNED_CONFIRM": "Are you sure you want to delete this pinned note?"
+    "DELETE_PINNED_CONFIRM": "Are you sure you want to delete this pinned note?",
+    "EMPTY_ERROR": "The note can't be empty"
   },
   "DISCONNECTED": {
     "EYEBROW": "No connection",

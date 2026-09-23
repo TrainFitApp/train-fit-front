@@ -463,6 +463,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         {
           text: this.translate.instant('COMMON.SAVE'),
           handler: (data) => {
+            if (this.rejectEmptyNote(data.notes)) return false;
             const newNotes = (data.notes || '').trim();
             const exerciseIdx = this.exerciseIndex;
             if (exerciseIdx < 0) return false;
@@ -1714,9 +1715,10 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       {
         text: this.translate.instant("COMMON.CONFIRM"),
         handler: (res) => {
+          if (this.rejectEmptyNote(res.notes)) return false;
           shouldPin = false;
-          this.noteToCreate = !!res.notes;
-          this.notes = res.notes;
+          this.noteToCreate = true;
+          this.notes = res.notes.trim();
           return true;
         },
       },
@@ -1724,8 +1726,9 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         text: this.translate.instant('NOTES.PIN_TO_POSITION'),
         cssClass: 'alert-button-pin',
         handler: (res) => {
+          if (this.rejectEmptyNote(res.notes)) return false;
           shouldPin = true;
-          this.noteToCreate = !!res.notes;
+          this.noteToCreate = true;
           return true;
         },
       },
@@ -1755,7 +1758,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
     this.ionicUtilService.showAlert(alertOptions).then((res) => {
       if (shouldPin && hasContext) {
-        const notesText = res.data?.values?.notes || '';
+        const notesText = (res.data?.values?.notes || '').trim();
 
         if (this.isCreateMode || !this.customExercise) {
           this.pendingPinNoteText = notesText;
@@ -1781,9 +1784,22 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         return;
       }
       if (res.data) {
-        this.notes = res.data.values.notes;
+        this.notes = (res.data.values.notes || '').trim();
       }
     });
+  }
+
+  // El alert nativo no permite deshabilitar un botón según el input: el
+  // handler devuelve false para dejarlo abierto y se avisa con un toast.
+  private rejectEmptyNote(value: string | undefined): boolean {
+    if ((value || '').trim()) return false;
+    this.ionicUtilService.showToast({
+      message: this.translate.instant('NOTES.EMPTY_ERROR'),
+      duration: 2000,
+      position: 'bottom',
+      color: 'warning',
+    } as ToastOptions);
+    return true;
   }
 
   public deleteNotes(): void {

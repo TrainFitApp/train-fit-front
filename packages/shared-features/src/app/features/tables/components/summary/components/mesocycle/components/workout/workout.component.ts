@@ -400,6 +400,15 @@ export class WorkoutComponent implements OnDestroy {
           text: this.translate.instant("COMMON.SAVE"),
           handler: (data) => {
             const newNotes = (data.notes || "").trim();
+            if (!newNotes) {
+              this.ionicUtilService.showToast({
+                message: this.translate.instant("NOTES.EMPTY_ERROR"),
+                duration: 2000,
+                position: "bottom",
+                color: "warning",
+              } as ToastOptions);
+              return false;
+            }
             const dto: PinnedExerciseNoteUpsertDto = {
               tableId: this.tableInUse._id,
               workoutIndex,

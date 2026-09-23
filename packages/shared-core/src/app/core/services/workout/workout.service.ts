@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, Observable, take } from 'rxjs';
+import { BehaviorSubject, MonoTypeOperatorFunction, Observable, take, tap } from 'rxjs';
 import { CustomExercise } from '../../models/customExercise';
 import { Split } from '../../models/split';
 import { Workout, WorkoutBlock } from '../../models/workout';
@@ -9,6 +9,7 @@ import { FinishWorkoutResponse, SkipWorkoutResponse } from './workout-api.servic
 import { Exercise } from '../../models/exercise';
 import { Table } from '../../models/table';
 import { ExerciseClipboard } from 'src/app/shared/models/exercise-clipboard';
+import { PinnedExerciseNoteService } from '../pinned-exercise-note/pinned-exercise-note.service';
 
 @Injectable()
 export class WorkoutService {
@@ -72,7 +73,14 @@ export class WorkoutService {
     this._currentWorkout.set({ ...workout });
   }
 
-  constructor(private workoutAPIService: WorkoutAPIService) {}
+  constructor(
+    private workoutAPIService: WorkoutAPIService,
+    private pinnedExerciseNoteService: PinnedExerciseNoteService
+  ) {}
+
+  private invalidatePinnedNotes<T>(): MonoTypeOperatorFunction<T> {
+    return tap<T>(() => this.pinnedExerciseNoteService.invalidateAll());
+  }
 
   public createWorkout(workout: Workout): Observable<Workout> {
     return this.workoutAPIService.createWorkout(workout);
@@ -92,7 +100,7 @@ export class WorkoutService {
   ): Observable<Split[]> {
     return this.workoutAPIService
       .duplicateWorkoutRow(idTable, idWorkout, nameSuffix)
-      .pipe(take(1));
+      .pipe(take(1), this.invalidatePinnedNotes());
   }
 
   public reorderWorkoutRows(
@@ -101,7 +109,7 @@ export class WorkoutService {
   ): Observable<Split[]> {
     return this.workoutAPIService
       .reorderWorkoutRows(idTable, workoutIdsOrder)
-      .pipe(take(1));
+      .pipe(take(1), this.invalidatePinnedNotes());
   }
 
   public addExerciseToWorkouts(
@@ -128,7 +136,9 @@ export class WorkoutService {
   }
 
   public reorderWorkoutsInSplit(idSplit: string, workoutIdsOrder: string[]): Observable<Split[]> {
-    return this.workoutAPIService.reorderWorkoutsInSplit(idSplit, workoutIdsOrder).pipe(take(1));
+    return this.workoutAPIService
+      .reorderWorkoutsInSplit(idSplit, workoutIdsOrder)
+      .pipe(take(1), this.invalidatePinnedNotes());
   }
 
   public updateWorkoutBlocks(
@@ -209,11 +219,9 @@ export class WorkoutService {
     idTable: string,
     indexReorderedCustomExercises: number[]
   ): Observable<Table> {
-    return this.workoutAPIService.updateWorkoutsOrder(
-      idWorkout,
-      idTable,
-      indexReorderedCustomExercises
-    );
+    return this.workoutAPIService
+      .updateWorkoutsOrder(idWorkout, idTable, indexReorderedCustomExercises)
+      .pipe(this.invalidatePinnedNotes());
   }
 
   public updateWorkoutsName(
@@ -229,17 +237,19 @@ export class WorkoutService {
   }
 
   public deleteWorkout(id: string): Observable<Workout> {
-    return this.workoutAPIService.deleteWorkout(id);
+    return this.workoutAPIService.deleteWorkout(id).pipe(this.invalidatePinnedNotes());
   }
 
   public deleteWorkoutCustomExercises(id: string): Observable<Workout> {
     return this.workoutAPIService
       .deleteWorkoutCustomExercises(id)
-      .pipe(take(1));
+      .pipe(take(1), this.invalidatePinnedNotes());
   }
 
   public deleteWorkouts(workouts: Workout[]): Observable<Workout[]> {
-    return this.workoutAPIService.deleteWorkouts(workouts).pipe(take(1));
+    return this.workoutAPIService
+      .deleteWorkouts(workouts)
+      .pipe(take(1), this.invalidatePinnedNotes());
   }
 
   public getStandarWorkout() {

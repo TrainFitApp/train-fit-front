@@ -245,3 +245,34 @@ test("MALE coincide con SEX_TYPES.male de shared-ui", () => {
   assert.match(source, /male\s*=\s*1/, "SEX_TYPES.male ya no es 1");
   assert.match(source, /female\s*=\s*0/, "SEX_TYPES.female ya no es 0");
 });
+
+// Regresión 2026-09: el registro del cliente guarda peso/altura como string
+// ("70.5"); la basal salía null → 0 y el objetivo calórico se quedaba en el
+// puro superávit/déficit.
+test("toBodyInput", async (t) => {
+  await t.test("convierte strings de formulario a número", () => {
+    assert.deepEqual(
+      metrics.toBodyInput({ weight: "70.5", height: "175", age: 30, sex: 1 }),
+      { weightKg: 70.5, heightCm: 175, age: 30, sex: 1 }
+    );
+  });
+
+  await t.test("acepta coma decimal", () => {
+    assert.equal(metrics.toBodyInput({ weight: "70,5", height: 175, age: 30, sex: 1 }).weightKg, 70.5);
+  });
+
+  await t.test("vacío o basura → null, nunca 0 ni NaN", () => {
+    assert.deepEqual(
+      metrics.toBodyInput({ weight: "", height: undefined, age: "abc", sex: null }),
+      { weightKg: null, heightCm: null, age: null, sex: null }
+    );
+  });
+
+  await t.test("basal con entrada de formulario = basal con números", () => {
+    // 10·80 + 6,25·180 − 5·30 + 5 = 1780 (mismo caso que arriba)
+    assert.equal(
+      metrics.bmrMifflinStJeor(metrics.toBodyInput({ weight: "80", height: "180", age: 30, sex: 1 })),
+      1780
+    );
+  });
+});

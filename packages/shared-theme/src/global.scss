@@ -768,8 +768,10 @@ ion-header {
         }
       }
 
-      // Botón de pin (alternativo, azulado) — ocupa fila completa debajo
-      .alert-button-pin {
+      // Botón de pin (alternativo, azul de las tarjetas de nota anclada) —
+      // ocupa fila completa debajo. Necesita los mismos :not() que el botón
+      // primario de arriba o su especificidad pierde y sale en color primario.
+      .alert-button.alert-button-pin:not(.alert-button-role-cancel):not(.alert-button-role-destructive) {
         flex: 0 0 100% !important;
         max-width: none !important;
         margin-top: 4px !important;

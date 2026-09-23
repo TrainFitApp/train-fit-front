@@ -1571,7 +1571,8 @@
     "PINNED_TO_POSITION": "Nota anclada",
     "PIN_TO_POSITION": "Anclar nota",
     "DELETE_PINNED_TITLE": "Eliminar nota anclada",
-    "DELETE_PINNED_CONFIRM": "¿Seguro que quieres eliminar esta nota anclada?"
+    "DELETE_PINNED_CONFIRM": "¿Seguro que quieres eliminar esta nota anclada?",
+    "EMPTY_ERROR": "La nota no puede estar vacía"
   },
   "DISCONNECTED": {
     "EYEBROW": "Sin conexión",

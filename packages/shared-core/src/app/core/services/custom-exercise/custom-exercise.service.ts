@@ -1,15 +1,23 @@
 import { Injectable } from '@angular/core';
-import { Observable, take } from 'rxjs';
+import { MonoTypeOperatorFunction, Observable, take, tap } from 'rxjs';
 import { CustomExercise } from '../../models/customExercise';
 import { HttpService } from '../http/http.service';
 import { CustomExerciseAPIService } from './custom-exercise-api.service';
 import { Set } from 'src/app/core/models/set';
+import { PinnedExerciseNoteService } from '../pinned-exercise-note/pinned-exercise-note.service';
 
 @Injectable()
 export class CustomExerciseService {
   private customExerciseClipboard: CustomExercise;
 
-  constructor(private customExerciseAPIService: CustomExerciseAPIService) {}
+  constructor(
+    private customExerciseAPIService: CustomExerciseAPIService,
+    private pinnedExerciseNoteService: PinnedExerciseNoteService
+  ) {}
+
+  private invalidatePinnedNotes<T>(): MonoTypeOperatorFunction<T> {
+    return tap<T>(() => this.pinnedExerciseNoteService.invalidateAll());
+  }
 
   public get getCustomExerciseClipboard() {
     return this.customExerciseClipboard;
@@ -67,11 +75,15 @@ export class CustomExerciseService {
   }
 
   public deleteCustomExercise(id: string): Observable<any> {
-    return this.customExerciseAPIService.deleteCustomExercise(id).pipe(take(1));
+    return this.customExerciseAPIService
+      .deleteCustomExercise(id)
+      .pipe(take(1), this.invalidatePinnedNotes());
   }
 
   public deleteCustomExercises(exercisesIds: string[]): Observable<any> {
-    return this.customExerciseAPIService.deleteCustomExercises(exercisesIds);
+    return this.customExerciseAPIService
+      .deleteCustomExercises(exercisesIds)
+      .pipe(this.invalidatePinnedNotes());
   }
 
   public isCustomExerciseCompleted(customExercise: CustomExercise): boolean {

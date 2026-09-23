@@ -254,9 +254,9 @@ export class SignUpPage implements OnInit, OnDestroy {
   }
 
   // ---------- Wheel pickers (peso/altura/fecha de nacimiento), portados de
-  // trainfit-onboarding-prototype.html. Escriben en signUpForm.weight /
-  // .height / .birth con el mismo formato que ya usaban (string decimal /
-  // ISO date), sin tocar validators ni el resto del flujo.
+  // trainfit-onboarding-prototype.html. Peso y altura se escriben como
+  // NÚMERO: bmrMifflinStJeor rechaza strings y el objetivo calórico salía 0.
+  // La fecha de nacimiento sigue en ISO date.
   private readonly WHEEL_ITEM_HEIGHT = 52;
   private wheelsInitialized = false;
   private weightWheelInt = 70;
@@ -283,7 +283,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       300,
       Number.isFinite(currentHeight) ? currentHeight : 170,
       (val) => {
-        this.signUpForm.get('height')?.setValue(String(val));
+        this.signUpForm.get('height')?.setValue(val);
         this.signUpForm.get('height')?.markAsTouched();
       }
     );
@@ -306,10 +306,7 @@ export class SignUpPage implements OnInit, OnDestroy {
   }
 
   private commitWeightWheel(): void {
-    const value =
-      this.weightWheelDecimal === 0
-        ? `${this.weightWheelInt}`
-        : `${this.weightWheelInt}.${this.weightWheelDecimal}`;
+    const value = Math.round((this.weightWheelInt + this.weightWheelDecimal / 10) * 10) / 10;
     this.signUpForm.get('weight')?.setValue(value);
     this.signUpForm.get('weight')?.markAsTouched();
   }

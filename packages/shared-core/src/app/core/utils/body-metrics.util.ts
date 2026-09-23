@@ -41,6 +41,32 @@ function isPositive(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
+function toFiniteOrNull(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const num = typeof value === 'number' ? value : Number(String(value).replace(',', '.'));
+  return Number.isFinite(num) ? num : null;
+}
+
+/**
+ * Las fórmulas son estrictas (solo números), pero los formularios del
+ * cliente —registro y editor de perfil— entregan peso y altura como string
+ * ("70.5"). Sin esta conversión la basal salía null → 0 y el objetivo
+ * calórico quedaba reducido al superávit/déficit.
+ */
+export function toBodyInput(raw: {
+  weight: unknown;
+  height: unknown;
+  age: unknown;
+  sex: unknown;
+}): BodyInput {
+  return {
+    weightKg: toFiniteOrNull(raw.weight),
+    heightCm: toFiniteOrNull(raw.height),
+    age: toFiniteOrNull(raw.age),
+    sex: toFiniteOrNull(raw.sex),
+  };
+}
+
 function round(value: number, decimals = 1): number {
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
