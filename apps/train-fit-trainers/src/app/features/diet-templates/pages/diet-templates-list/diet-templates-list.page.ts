@@ -97,8 +97,8 @@ export class DietTemplatesListPage implements OnInit {
     return template._id;
   }
 
-  public dayCount(template: DietTemplate): number {
-    return template.days?.length || 0;
+  public menuCount(template: DietTemplate): number {
+    return template.menus?.length || 0;
   }
 
   // Sugerencias de dieta — aptitud efectiva (derivada ∪ forzada a mano).

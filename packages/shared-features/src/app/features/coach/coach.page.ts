@@ -8,7 +8,13 @@ import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
 import { OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { CoachDashboard, CoachNotification, CoachNotificationType, CoachTask } from './models/coach-dashboard.model';
+import {
+  CoachDashboard,
+  CoachNotification,
+  CoachNotificationType,
+  CoachPendingCheckin,
+  CoachTask,
+} from './models/coach-dashboard.model';
 import {
   HistoryEntry,
   PendingInvite,
@@ -41,13 +47,15 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   meal_proposal: 'restaurant-outline',
   payment_created: 'cash-outline',
   nutrition_preferences_requested: 'nutrition-outline',
-  checkin_requested: 'clipboard-outline',
   checkin_reviewed: 'checkmark-circle-outline',
   routine_assigned: 'barbell-outline',
   task_assigned: 'checkbox-outline',
   intake_submitted: 'document-text-outline',
   client_confirmed: 'checkmark-done-outline',
   meal_prescribed: 'restaurant-outline',
+  // Histórico: ya no se crea ninguna (las medidas se piden dentro de un
+  // check-in). Se mantiene para que las que siguen en la bandeja de un
+  // cliente se lean y se abran como siempre, no como "Nueva actividad".
   anthropometry_requested: 'body-outline',
 };
 
@@ -58,7 +66,6 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
 const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
   'meal_proposal',
   'nutrition_preferences_requested',
-  'checkin_requested',
   'checkin_reviewed',
   'routine_assigned',
   'meal_prescribed',
@@ -277,10 +284,8 @@ export class CoachPage implements OnInit {
         return `Nuevo cobro: ${p.amount}${p.currency === 'EUR' ? '€' : p.currency || ''}`;
       case 'nutrition_preferences_requested':
         return 'Te ha pedido tus preferencias nutricionales';
-      case 'checkin_requested':
-        return `Nuevo check-in: ${p.templateName || ''}`;
       case 'checkin_reviewed':
-        return `Check-in revisado: ${p.templateName || ''}`;
+        return `Check-in revisado${p.name ? ': ' + p.name : ''}`;
       case 'routine_assigned':
         return `Nueva rutina asignada: ${p.routineName || ''}`;
       case 'task_assigned':
@@ -313,8 +318,6 @@ export class CoachPage implements OnInit {
       case 'nutrition_preferences_requested':
         void this.router.navigate(['/nutrition-preferences']);
         break;
-      case 'checkin_requested':
-      case 'checkin_reviewed':
         void this.router.navigate(['/my-checkins'], { queryParams: p.requestId ? { requestId: p.requestId } : {} });
         break;
       case 'routine_assigned':
@@ -630,12 +633,29 @@ export class CoachPage implements OnInit {
   }
 
   // --- Navegación desde "Pendiente de ti" a las pantallas ya existentes ---
-  public goToCheckins(requestId?: string): void {
-    void this.router.navigate(['/my-checkins'], { queryParams: requestId ? { requestId } : {} });
+  public goToCheckins(scheduleId?: string): void {
+    void this.router.navigate(['/my-checkins'], { queryParams: scheduleId ? { scheduleId } : {} });
   }
 
-  public trackByCheckinId(_index: number, item: { trainerId: string; requestId?: string }): string {
-    return item.requestId || item.trainerId;
+  public trackByCheckinId(_index: number, item: { trainerId: string; scheduleId?: string }): string {
+    return item.scheduleId || item.trainerId;
+  }
+
+  // "10.000 a 15.000 pasos" cuando el hábito lleva rango (los pasos se
+  // pautan así, ver docs/plan-semanas.md §12).
+  public taskTargetLabel(task: CoachTask): string {
+    const rango = task.targetMax ? ` a ${task.targetMax}` : '';
+    return `${task.target}${rango} ${task.unit}`;
+  }
+
+  // "Semana 3 · hasta el 20 sept": de qué periodo es el check-in que le
+  // están pidiendo.
+  public checkinPeriodLabel(item: CoachPendingCheckin): string {
+    const fmt = (iso: string): string =>
+      new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    const week = item.weekNumber ? `Semana ${item.weekNumber}` : 'Pedido por ' + item.trainerName;
+    const hasta = item.closesDate ? ` · hasta el ${fmt(item.closesDate)}` : '';
+    return `${week}${hasta}`;
   }
 
   public goToNutritionPreferences(): void {

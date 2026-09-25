@@ -1,0 +1,168 @@
+@import '../../../../../theme/skeleton';
+
+.history-panel {
+  --background: var(--tf-surface-1);
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-4);
+  --padding-bottom: var(--tf-space-5);
+}
+
+.panel-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.skeleton-row {
+  @include tf-skeleton-shimmer;
+  height: 52px;
+  border-radius: var(--tf-radius-md);
+}
+
+.panel-note {
+  margin: 0 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-faint);
+
+  &--error {
+    color: var(--tf-text-muted);
+  }
+}
+
+.history-item {
+  margin-bottom: var(--tf-space-2);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  overflow: hidden;
+
+  // Una ocurrencia sin respuesta no despliega nada: se ve que existió y que
+  // se cerró vacía, y ahí acaba.
+  &.is-answered {
+    border-color: var(--tf-border-strong);
+  }
+
+  &.is-open {
+    border-color: var(--tf-accent-soft-border);
+  }
+}
+
+.history-item__head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+  padding: var(--tf-space-3);
+  background: none;
+  border: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  ion-icon {
+    flex: 0 0 auto;
+    font-size: 15px;
+    color: var(--tf-text-faint);
+  }
+}
+
+.history-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.history-item__title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.history-item__date {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+// El estado es la información de la fila: se distingue por color, no solo
+// por el texto, para poder barrer la lista de un vistazo.
+.history-item__tag {
+  flex: 0 0 auto;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--tf-text-faint);
+
+  &[data-status='responded'],
+  &[data-status='reviewed'] {
+    color: var(--tf-accent-text);
+  }
+
+  &[data-status='unanswered'] {
+    color: var(--tf-danger, var(--tf-text-muted));
+  }
+}
+
+.history-item__meta {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.history-item__values {
+  margin: 0;
+  padding: 0 var(--tf-space-3) var(--tf-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--tf-border);
+  padding-top: var(--tf-space-3);
+}
+
+.history-item__value {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+
+  dt {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+    color: var(--tf-text);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.history-item__empty,
+.history-item__comment {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.history-item__comment {
+  font-style: italic;
+}
+
+.history-panel__more {
+  margin-top: var(--tf-space-2);
+}
+
+.history-panel__footer {
+  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border);
+}

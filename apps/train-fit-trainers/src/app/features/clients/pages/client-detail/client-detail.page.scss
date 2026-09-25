@@ -966,6 +966,21 @@
   &:active {
     opacity: 0.7;
   }
+
+  // Acción secundaria dentro de un grupo: mismo patrón de botón, sin
+  // competir en color con la principal (deshacer, volver atrás).
+  &--muted {
+    color: var(--tf-text-muted);
+
+    &:hover {
+      color: var(--tf-text-secondary);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 }
 
 .empty-hint {
@@ -1169,19 +1184,35 @@
 //
 // Peso visual por debajo del "EN CURSO" que tiene al lado: es contexto, no
 // el estado de la fase.
-.active-plan-cycle {
+// Los dos enlaces discretos de la fila superior de la card: los check-ins
+// del cliente y las fechas de la fase. El `margin-left: auto` lo lleva el
+// PRIMERO de los dos, que es quien empuja al grupo contra la derecha —
+// ponerlo en los dos los separaría a los extremos.
+.active-plan-checkins,
+.active-plan-dates {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  margin: 0 0 var(--tf-space-2) auto;
+  gap: 4px;
+  padding: 2px 6px;
+  background: none;
+  border: none;
+  font-family: inherit;
   font-size: var(--tf-font-size-xs);
   font-weight: 600;
   color: var(--tf-text-muted);
-  white-space: nowrap;
+  cursor: pointer;
 
-  ion-icon {
-    font-size: 13px;
+  &:hover {
+    color: var(--tf-accent);
+    text-decoration: underline;
   }
+}
+
+// El primero de los dos botones empuja al grupo contra la derecha; el otro
+// va pegado a él. Por tipo y no por clase porque el chip de check-ins es
+// condicional: sin él, el que empuja es el de fechas.
+.active-plan-top-row > button:first-of-type {
+  margin-left: auto;
 }
 
 .active-plan-weekdays {
@@ -2367,6 +2398,308 @@
 }
 
 // --- F29: preferencias nutricionales del cliente (solo lectura) ---
+// Objetivo nutricional del cliente — primera card de la columna fija.
+// Una sola superficie, sin recuadros anidados dentro (PRODUCT.md: nada de
+// card sobre card): kcal grandes, barra de reparto y tres columnas de macro
+// compiten por color y peso tipográfico, no por bordes.
+.goal-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  margin-bottom: 20px;
+}
+
+.goal-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+
+  .section-heading {
+    margin: 0;
+  }
+}
+
+// De dónde salen los números. No es un aviso: es el dato que explica por qué
+// recalcular el perfil no los va a pisar. Con color propio porque es la
+// diferencia que más se consulta de un vistazo — verde "se calcula solo"
+// contra naranja "lo tecleó el profesional".
+.goal-card__source {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-2);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 12px;
+  }
+
+  &--auto {
+    background: var(--tf-success-soft);
+    border-color: var(--tf-success-border);
+    color: var(--tf-success);
+  }
+
+  &--manual {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-accent-text);
+  }
+}
+
+// Las kcal del día mandan sobre el resto de la card: todo lo demás es el
+// reparto de ESTE número. Naranja de kcal, el mismo del diario del cliente.
+.goal-card__kcal {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin: 0;
+}
+
+.goal-card__kcal-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--tf-macro-kcal);
+  font-variant-numeric: tabular-nums;
+}
+
+.goal-card__kcal-unit {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+}
+
+// Barra apilada con el reparto de kcal por macro (la cuenta, en
+// goalMacroSplit()). Una sola barra y no tres: lo que se compara es el peso
+// de cada macro DENTRO del mismo día.
+.goal-split {
+  display: flex;
+  height: 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  overflow: hidden;
+}
+
+.goal-split__seg {
+  height: 100%;
+  // Las duraciones ya colapsan solas con prefers-reduced-motion (tokens.scss).
+  transition: width var(--tf-duration-base) var(--tf-ease-out);
+
+  &--protein {
+    background: var(--tf-macro-protein);
+  }
+
+  &--carbs {
+    background: var(--tf-macro-carbs);
+  }
+
+  &--fat {
+    background: var(--tf-macro-fat);
+  }
+}
+
+.goal-macros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tf-space-2);
+}
+
+.goal-macro {
+  min-width: 0;
+
+  // Punto y cifra comparten el color del macro — mismo trío que diet-card.
+  &--protein {
+    .goal-macro__dot {
+      background: var(--tf-macro-protein);
+    }
+
+    .goal-macro__value {
+      color: var(--tf-macro-protein);
+    }
+  }
+
+  &--carbs {
+    .goal-macro__dot {
+      background: var(--tf-macro-carbs);
+    }
+
+    .goal-macro__value {
+      color: var(--tf-macro-carbs);
+    }
+  }
+
+  &--fat {
+    .goal-macro__dot {
+      background: var(--tf-macro-fat);
+    }
+
+    .goal-macro__value {
+      color: var(--tf-macro-fat);
+    }
+  }
+}
+
+.goal-macro__label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+.goal-macro__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.goal-macro__value {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  em {
+    margin-left: 2px;
+    font-style: normal;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--tf-text-muted);
+  }
+}
+
+// El porcentaje matiza los gramos, no compite con ellos: apagado y pequeño.
+.goal-macro__share {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+// Falta un dato para poder calcular: no está roto nada, pero el número de
+// arriba no va a salir hasta que llegue. Ámbar, no rojo.
+.goal-card__missing {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 8px;
+  background: var(--tf-warning-soft);
+  border: 1px solid var(--tf-warning-border);
+  border-radius: var(--tf-radius-sm);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-warning);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 14px;
+  }
+}
+
+.goal-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3);
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.goal-card__math-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-accent);
+  }
+}
+
+.goal-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.goal-edit__row {
+  display: flex;
+  gap: var(--tf-space-2);
+}
+
+.goal-edit__field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+
+  input {
+    width: 100%;
+    padding: 6px 8px;
+    background: var(--tf-surface-2);
+    border: 1px solid var(--tf-border);
+    border-radius: var(--tf-radius-sm);
+    color: var(--tf-text);
+    font: inherit;
+    font-size: var(--tf-font-size-sm);
+  }
+
+  // Misma clave de color que en lectura: se edita el campo del macro que se
+  // está mirando, sin tener que releer la etiqueta.
+  &--protein {
+    color: var(--tf-macro-protein);
+
+    input:focus {
+      border-color: var(--tf-macro-protein);
+    }
+  }
+
+  &--carbs {
+    color: var(--tf-macro-carbs);
+
+    input:focus {
+      border-color: var(--tf-macro-carbs);
+    }
+  }
+
+  &--fat {
+    color: var(--tf-macro-fat);
+
+    input:focus {
+      border-color: var(--tf-macro-fat);
+    }
+  }
+}
+
 .preferences-card {
   padding: 14px;
   background: var(--tf-surface-1);
@@ -2847,7 +3180,7 @@
 // Las tarjetas reparten el ancho a partes iguales y se estrechan hasta su
 // min-width; a partir de ahí la fila desliza en horizontal en vez de
 // envolver — la tarjeta de fase nunca crece hacia abajo.
-.cycle-tiles {
+.week-tiles {
   display: flex;
   gap: 8px;
   min-width: 0;
@@ -2860,7 +3193,16 @@
   margin: -3px -3px -6px;
 }
 
-.cycle-tile {
+// El paso de la semana en curso a la próxima. No compite con las tarjetas:
+// ni fondo ni caja, y no se encoge cuando la fila va llena.
+.week-tiles__arrow {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 14px;
+  color: var(--tf-text-faint);
+}
+
+.week-tile {
   position: relative;
   flex: 1 1 0;
   min-width: 128px;

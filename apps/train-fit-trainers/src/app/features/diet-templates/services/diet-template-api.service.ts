@@ -1,12 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
-import {
-  DietTemplate,
-  DietTemplateDayPatternPayload,
-  DietTemplateDayPayload,
-  TemplateMode,
-} from '../models/diet-template.model';
+import { DietTemplate, DietTemplateMenuPayload } from '../models/diet-template.model';
 
 @Injectable({ providedIn: 'root' })
 export class DietTemplateApiService {
@@ -29,7 +24,7 @@ export class DietTemplateApiService {
     return this.http.get<DietTemplate[]>(`trainer/diet-templates${query}`);
   }
 
-  // Una sola plantilla con su contenido completo (days/dayPatterns) — para
+  // Una sola plantilla con su contenido completo (menus) — para
   // cuando solo se conoce el id (p. ej. precargar el builder con la
   // plantilla elegida en el cajón de sugerencias antes de aplicarla).
   public getById(id: string): Observable<DietTemplate> {
@@ -40,41 +35,28 @@ export class DietTemplateApiService {
   // general de la biblioteca.
   public create(
     name: string,
-    days: DietTemplateDayPayload[],
-    ownerClientId?: string | null,
-    mode?: TemplateMode,
-    dayPatterns?: DietTemplateDayPatternPayload[],
-    // Solo en mode 'choice': días que dura un ciclo (ver plan ciclos por contenido).
-    choiceCycleDays?: number | null
+    menus: DietTemplateMenuPayload[],
+    ownerClientId?: string | null
   ): Observable<DietTemplate> {
     return this.http.post<DietTemplate>('trainer/diet-templates', {
       name,
-      days,
-      mode,
-      dayPatterns,
+      menus,
       ownerClientId: ownerClientId || null,
-      ...(choiceCycleDays != null ? { choiceCycleDays } : {}),
     });
   }
 
   public update(
     id: string,
     name: string,
-    days: DietTemplateDayPayload[],
-    mode?: TemplateMode,
-    dayPatterns?: DietTemplateDayPatternPayload[],
+    menus: DietTemplateMenuPayload[],
     // Sugerencias de dieta — aptitudes que el entrenador fuerza a mano
     // (el array derivado lo recalcula el backend, nunca se manda).
-    suitableForOverride?: string[],
-    choiceCycleDays?: number | null
+    suitableForOverride?: string[]
   ): Observable<DietTemplate> {
     return this.http.put<DietTemplate>(`trainer/diet-templates/${id}`, {
       name,
-      days,
-      mode,
-      dayPatterns,
+      menus,
       suitableForOverride,
-      ...(choiceCycleDays != null ? { choiceCycleDays } : {}),
     });
   }
 

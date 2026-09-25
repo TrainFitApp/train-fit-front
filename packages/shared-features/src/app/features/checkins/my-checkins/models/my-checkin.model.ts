@@ -1,7 +1,5 @@
 import { CheckinFieldType } from 'src/app/core/constants/checkin-fields';
 
-export type CheckinCadence = 'weekly' | 'biweekly' | 'once';
-
 // Fase 5 Coach Pro — pregunta propia del coach dentro de un check-in (§7).
 // Espejo de components/trainerCheckins/checkin-custom-question.js.
 export interface CustomCheckinQuestion {
@@ -14,44 +12,49 @@ export interface CustomCheckinQuestion {
   enabled?: boolean;
 }
 
-export interface MyCheckinConfig {
+// Un check-in ABIERTO hoy (docs/plan-semanas.md): su ventana de fechas
+// incluye hoy, así que se puede responder y corregir hasta que cierre. Fuera
+// de esa ventana no aparece: ese periodo ya pasó.
+export interface MyCheckin {
+  // "scheduleId:fecha" — identifica la ocurrencia.
   _id: string;
-  requestId?: string;
-  name?: string;
-  scheduledAt?: string;
-  closesAt?: string | null;
+  scheduleId: string;
+  name: string;
+  // Día en que se pidió y víspera del siguiente (hasta cuándo se puede
+  // responder). Fechas de calendario: la hora es de reloj, sin zona horaria.
+  date: string;
+  time: string;
+  closesDate: string | null;
+  status: 'open' | 'responded' | 'reviewed';
   trainerId: string;
   enabledFields: string[];
-  // Subconjunto de enabledFields que hay que responder sí o sí. Ausente en
-  // configuraciones anteriores a esta opción: todo opcional.
+  // Subconjunto de enabledFields que hay que responder sí o sí.
   requiredFields?: string[];
-  // Ausente en las configuraciones aplicadas antes de la Fase 5 — de ahí el
-  // opcional, y de ahí que todo el código las trate como lista vacía.
   customQuestions?: CustomCheckinQuestion[];
-  // Ausente cuando requestId está presente: una ocurrencia del sistema de
-  // calendario no tiene "cadence" (eso vive en CheckinSchedule) — el backend
-  // ya no la inventa, ver cadenceLabel() en my-checkins.page.ts.
-  cadence?: CheckinCadence;
+  // Lo ya respondido (para corregirlo sin empezar de cero).
+  values: Record<string, number | string | boolean> | null;
+  respondedAt: string | null;
+  updatedAt: string | null;
+  reviewComment?: string;
   trainer: { name: string; lastname: string } | null;
-  // Ciclos por contenido — con fase de dieta, el check-in va por ciclo: cuál
-  // es el de hoy y si ya se respondió (un segundo envío lo sobreescribe).
-  cycleCheckin?: CycleCheckin | null;
+  // Semana de la fase de dieta que abre este check-in (R1, R2…).
+  week?: CheckinWeek | null;
 }
 
-export interface CycleCheckin {
+export interface CheckinWeek {
   phaseId: string;
+  phaseName: string | null;
   number: number;
   start: string;
-  end: string;
-  hasResponse: boolean;
-  responseId: string | null;
-  respondedAt: string | null;
+  end: string | null;
 }
 
 // coach-tab FASE2 — "formularios completados": una respuesta pasada.
 export interface CheckinHistoryEntry {
   _id: string;
   name?: string;
+  occurrenceDate?: string;
+  week?: CheckinWeek | null;
   customQuestions?: CustomCheckinQuestion[];
   status?: 'responded' | 'reviewed';
   reviewedAt?: string | null;

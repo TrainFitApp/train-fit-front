@@ -12,7 +12,7 @@
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ dayLabel }} · {{ meal.slot }}</h1>
+        <h1 class="tf-page-header__title">{{ menuName }} · {{ meal.slot }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -20,7 +20,7 @@
 </ion-header>
 
 <ion-content class="editor-modal-content">
-  <p class="panel-hint" *ngIf="mode === 'choice'">
+  <p class="panel-hint">
     Añade una composición para esta comida, o 2 o más opciones nombradas para que el cliente elija
     cuál come ese día.
   </p>

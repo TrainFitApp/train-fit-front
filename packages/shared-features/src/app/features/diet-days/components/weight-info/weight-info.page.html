@@ -33,12 +33,6 @@
       ></app-calendar>
     </div>
 
-    <div class="pending-request-banner" *ngIf="pendingRequests.length" (click)="openAnthropometryModal()">
-      <ion-icon name="alert-circle-outline" class="pending-request-icon"></ion-icon>
-      <span class="pending-request-title">{{ 'ANTHROPOMETRY.REQUEST_PENDING_TITLE' | translate }}</span>
-      <span class="pending-request-cta">{{ 'ANTHROPOMETRY.REQUEST_PENDING_CTA' | translate }}</span>
-    </div>
-
     <div class="add-measurement-section">
       <button class="add-measurement-btn" (click)="openAnthropometryModal()">
         <ion-icon name="body-outline" class="btn-icon"></ion-icon>

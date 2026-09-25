@@ -4,7 +4,7 @@
 
 <ion-content class="templates-content" appScrollMemory="diet-templates">
   <p class="page-hint">
-    Construye una plantilla una vez (días con sus comidas) y aplícala a cualquier cliente eligiendo
+    Construye una plantilla una vez (menús con sus comidas) y aplícala a cualquier cliente eligiendo
     solo la fecha de inicio, en vez de teclear cada comida de cada día a mano.
   </p>
 
@@ -59,9 +59,8 @@
         <app-diet-card
           [name]="template.name"
           [profile]="template.macroProfile || null"
-          [dayCount]="dayCount(template)"
+          [menuCount]="menuCount(template)"
           [basedOnDays]="template.macroProfile?.basedOnDays || 0"
-          [mode]="template.mode"
           [verified]="!!template.verified"
           [ownedByClient]="!!template.ownerClientId"
           [flags]="effectiveSuitableFor(template)"

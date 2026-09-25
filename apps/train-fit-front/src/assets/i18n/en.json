@@ -2051,9 +2051,7 @@
     "RESIDUAL_MASS": "Residual mass",
     "WEIGHT_AXIS": "Weight (kg)",
     "BODY_AXIS": "Body measurements (cm)",
-    "BODY_MEASUREMENTS": "Body measurements",
-    "REQUEST_PENDING_TITLE": "Your trainer requested new measurements",
-    "REQUEST_PENDING_CTA": "Add measurement"
+    "BODY_MEASUREMENTS": "Body measurements"
   },
   "GLOSSARY": {
     "RIR": {

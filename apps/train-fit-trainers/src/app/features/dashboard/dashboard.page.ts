@@ -454,11 +454,12 @@ export class DashboardPage implements OnInit {
 
     switch (notification.type) {
       case 'checkin_responded':
-        // A la ficha del cliente, subpestaña Check-ins. Antes iba a la
-        // bandeja agregada, que se retiró por redundante con esta.
+        // A la ficha del cliente, subpestaña "Medidas y check-ins" (la
+        // agenda abre el panel). Antes iba a la bandeja agregada, que se
+        // retiró por redundante con esta.
         if (notification.client) {
           void this.router.navigate(['/tabs/clients', notification.client._id], {
-            queryParams: { tab: 'checkins' },
+            queryParams: { tab: 'measurements' },
           });
         } else {
           void this.router.navigate(['/tabs/clients']);

@@ -5,7 +5,7 @@
 <!-- ================= LIMITACIÓN DE DOLOR VIGENTE ================= -->
 <!-- Aproxima "limitación vigente" con el peor dato REAL de dolor cruzado con
      el umbral que el propio entrenador fijó para esa zona — no hay campo de
-     "autor" ni "fecha de revisión" en el modelo, así que no se inventan. -->
+     "autor" ni "fecha de semana" en el modelo, así que no se inventan. -->
 <section class="pain-banner" *ngIf="painState === 'loaded' && limitingPain as pain">
   <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
   <div class="pain-banner-text">
@@ -295,12 +295,12 @@
         <span class="context-sub" *ngIf="!data.latestWeightDate">Sin registros</span>
       </button>
 
-      <button type="button" class="context-item" (click)="openTab.emit('checkins')">
+      <button type="button" class="context-item" (click)="openTab.emit('measurements')">
         <span class="context-label">Último check-in</span>
         <span class="context-value">
           {{ data.lastCheckinAt ? (data.lastCheckinAt | date: 'd MMM') : '—' }}
         </span>
-        <span class="context-sub">{{ data.checkinCadence ? 'Configurado' : 'Sin configurar' }}</span>
+        <span class="context-sub">{{ data.nextCheckinDate ? 'Próximo ' + data.nextCheckinDate : 'Sin programar' }}</span>
       </button>
 
       <button type="button" class="context-item" (click)="openTab.emit('nutrition')">

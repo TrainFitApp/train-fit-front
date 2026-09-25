@@ -78,6 +78,10 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
   public formReason = '';
   public formUrl = '';
   public formWeekdays: number[] = [];
+  // Desde cuándo y hasta cuándo (docs/plan-semanas.md). Sin fin =
+  // hasta nueva orden.
+  public formStartDate = '';
+  public formEndDate = '';
   public isSaving = false;
 
   constructor(
@@ -120,6 +124,17 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
 
   // Vacío = todos los días, que es el caso normal. Se escribe solo cuando NO
   // lo es: repetir "todos los días" en cada fila sería ruido.
+  // "desde el 3 sept" / "3 sept → 30 sept": lo que hace falta para saber si
+  // sigue vigente sin abrir el detalle.
+  public datesLabel(supplement: Supplement): string {
+    if (!supplement.startDate) return '';
+    const fmt = (iso: string): string =>
+      new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    return supplement.endDate
+      ? `${fmt(supplement.startDate)} → ${fmt(supplement.endDate)}`
+      : `desde ${fmt(supplement.startDate)}`;
+  }
+
   public weekdaysLabel(supplement: Supplement): string {
     const days = supplement.weekdays || [];
     if (!days.length) return '';
@@ -155,6 +170,8 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
     this.formReason = supplement?.reason || '';
     this.formUrl = supplement?.purchaseUrl || '';
     this.formWeekdays = [...(supplement?.weekdays || [])];
+    this.formStartDate = supplement?.startDate || new Date().toISOString().slice(0, 10);
+    this.formEndDate = supplement?.endDate || '';
     this.showPanel = true;
   }
 
@@ -174,7 +191,8 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
   }
 
   public get canSave(): boolean {
-    return !!this.formName.trim() && !!this.formDose.trim() && !this.isSaving;
+    if (this.formEndDate && this.formStartDate && this.formEndDate < this.formStartDate) return false;
+    return !!this.formName.trim() && !!this.formDose.trim() && !!this.formStartDate && !this.isSaving;
   }
 
   public save(): void {
@@ -189,6 +207,8 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
       reason: this.formReason.trim(),
       purchaseUrl: this.formUrl.trim(),
       weekdays: this.formWeekdays,
+      startDate: this.formStartDate,
+      endDate: this.formEndDate || null,
       active: true,
     };
 

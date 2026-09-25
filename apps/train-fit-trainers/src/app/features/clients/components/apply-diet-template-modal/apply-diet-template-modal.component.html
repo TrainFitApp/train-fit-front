@@ -64,7 +64,7 @@
       <div class="template-info">
         <span class="template-name">{{ template.name }}</span>
         <span class="template-meta">
-          {{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}
+          {{ menuCount(template) }} menú{{ menuCount(template) === 1 ? '' : 's' }}
           <ng-container *ngIf="template.ownerClientId"> · suya</ng-container>
         </span>
       </div>
@@ -75,40 +75,17 @@
       ></ion-icon>
     </div>
 
-    <!-- El mismo calendario de la ficha, en modo selección: pinta las fases
-         ya pautadas, así que las fechas ocupadas se ven ANTES de elegir en
-         vez de descubrirse al guardar. Solo se elige el INICIO — la fase
-         corre hasta que empiece la siguiente. -->
-    <app-nutrition-calendar
-      *ngIf="showDatePicker"
-      [clientId]="clientId"
-      [pickerMode]="true"
-      [selectedDate]="startDate"
-      [rangePreview]="rangePreview"
-      (rangeStartPicked)="onStartPicked($event)"
-      (dateSelected)="onStartPicked($event)"
-    ></app-nutrition-calendar>
-
-    <!-- Cómo se va a resolver el contenido de la fase elegida. -->
+    <!-- Cómo se resuelve el contenido: siempre por menús. -->
     <p class="phase-mode-info" *ngIf="selectedTemplate">
-      <strong>{{ phaseModeLabel }}</strong> — {{ phaseModeHint }}
+      <strong>El cliente elige cada día</strong> — no hay días fijos: cada día
+      el cliente elige cuál de los menús sigue.
     </p>
 
-    <ng-container *ngIf="showDatePicker">
-      <label class="field-label" for="phase-start-date">Fecha de inicio</label>
-      <div class="input-wrapper">
-        <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-        <input id="phase-start-date" type="date" class="input-field" [(ngModel)]="startDate" />
-      </div>
-    </ng-container>
-
-    <!-- De dónde sale la fecha propuesta: sin decirlo, un campo ya relleno
-         con una fecha futura parece un valor arbitrario. -->
-    <p class="date-hint" *ngIf="showDatePicker && previousPhaseEnd">
-      Encadena con
-      <strong *ngIf="previousPhaseName">{{ previousPhaseName }}</strong>
-      <span *ngIf="!previousPhaseName">la fase anterior</span>, que termina el
-      {{ previousPhaseEnd }}.
+    <!-- Sin fecha que elegir: la fase empieza hoy y se corrige luego desde
+         Plan > Nutrición (docs/plan-semanas.md). -->
+    <p class="date-hint" *ngIf="selectedTemplate">
+      Empieza <strong>hoy</strong> y queda abierta. Si {{ clientName }} ya tiene una fase en curso, se
+      cerrará ayer al aplicar esta.
     </p>
 
     <p class="overlap-error" *ngIf="overlapError">
@@ -116,9 +93,6 @@
       {{ overlapError }}
     </p>
 
-    <p class="end-date-preview" *ngIf="showDatePicker">
-      Sin fecha de fin: sigue vigente hasta que empieces la siguiente fase.
-    </p>
   </ng-container>
 </ion-content>
 

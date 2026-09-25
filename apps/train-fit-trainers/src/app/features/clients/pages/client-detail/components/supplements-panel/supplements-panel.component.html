@@ -43,6 +43,9 @@
           <span class="supplement-name">{{ supplement.name }}</span>
           <span class="supplement-meta">
             {{ timingLabel(supplement) }}
+            <span class="supplement-days" *ngIf="datesLabel(supplement) as dates">
+              · <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon> {{ dates }}
+            </span>
             <span class="supplement-days" *ngIf="weekdaysLabel(supplement) as days">
               · <ion-icon name="calendar-clear-outline" aria-hidden="true"></ion-icon> {{ days }}
             </span>
@@ -162,6 +165,19 @@
             placeholder="Media hora antes de comer"
             [(ngModel)]="formCustomTiming"
           />
+        </div>
+      </div>
+
+      <!-- Fechas de la pauta: un suplemento se toma un tiempo, no para
+           siempre. Sin fin, se toma hasta nueva orden. -->
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="supplement-start">Desde</label>
+          <input id="supplement-start" type="date" class="input-field" [(ngModel)]="formStartDate" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="supplement-end">Hasta (opcional)</label>
+          <input id="supplement-end" type="date" class="input-field" [(ngModel)]="formEndDate" />
         </div>
       </div>
 

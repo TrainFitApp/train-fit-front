@@ -42,7 +42,7 @@ export class MacroAdjustComponent implements OnChanges {
   // Referencia para las desviaciones por fila (el ciclo actual). Sin ella
   // no se pintan.
   @Input() public base: MacroSet | null = null;
-  // Parte de las kcal que son macro (ver next-cycle-modal#macroRatio).
+  // Parte de las kcal que son macro (ver next-week-modal#macroRatio).
   @Input() public macroRatio = 1;
   @Input() public weightKg: number | null = null;
   @Input() public resetLabel = 'Volver al reparto proporcional';

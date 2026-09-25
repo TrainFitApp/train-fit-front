@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges } from '@angular/core';
-import { PhaseCyclesResponse } from '../../../../../diet-templates/models/diet-suggestion.model';
+import { PhaseWeeksResponse } from '../../../../../diet-templates/models/diet-suggestion.model';
 
 type MetricKey = 'kcal' | 'protein' | 'carbs' | 'fat';
 
@@ -17,10 +17,10 @@ const METRICS: MetricRow[] = [
   { key: 'fat', label: 'Grasas', unit: 'g', decimals: 1 },
 ];
 
-export interface ComparableCycle {
+export interface ComparableWeek {
   number: number;
   start: string;
-  end: string;
+  end: string | null;
   profile: Record<MetricKey, number>;
   status: 'past' | 'current' | 'next';
 }
@@ -31,67 +31,67 @@ export interface MetricDelta {
   direction: 'up' | 'down' | 'same';
 }
 
-// F20-duovicies — dos cards bajo la gráfica de Seguimiento: a la izquierda
-// un ciclo con sus kcal/macros PAUTADOS y, al lado de cada cifra, cuánto
-// sube o baja respecto al ciclo de la derecha (la referencia). Por defecto
-// el ciclo en curso contra el anterior; cada card tiene su selector.
+// Dos cards bajo la gráfica de Seguimiento: a la izquierda una semana con
+// sus kcal/macros PAUTADOS y, al lado de cada cifra, cuánto sube o baja
+// respecto a la de la derecha (la referencia). Por defecto la semana en
+// curso contra la anterior; cada card tiene su selector.
 //
-// Solo lo pautado (el perfil del contenido de cada ciclo, el mismo "3905
-// kcal" de las tarjetas de ciclo), no lo consumido: responde "¿qué cambié
-// entre un ciclo y otro?", y ya viene entero en phaseCycles — sin
-// peticiones propias. Van por libre: el rango de la gráfica o el calendario
+// Solo lo pautado (el perfil del contenido de cada semana, el mismo "3905
+// kcal" de las tarjetas), no lo consumido: responde "¿qué cambié de una
+// semana a otra?", y ya viene entero en phaseWeeks — sin peticiones
+// propias. Van por libre: el rango de la gráfica o el calendario
 // no las mueven. Deltas en neutro (sin verde/rojo): que suban las kcal no es
 // bueno ni malo por sí solo, depende del objetivo de la fase.
 @Component({
-  selector: 'app-cycle-comparison-cards',
-  templateUrl: './cycle-comparison-cards.component.html',
-  styleUrls: ['./cycle-comparison-cards.component.scss'],
+  selector: 'app-week-comparison-cards',
+  templateUrl: './week-comparison-cards.component.html',
+  styleUrls: ['./week-comparison-cards.component.scss'],
 })
-export class CycleComparisonCardsComponent implements OnChanges {
-  @Input() phaseCycles: PhaseCyclesResponse | null = null;
+export class WeekComparisonCardsComponent implements OnChanges {
+  @Input() phaseWeeks: PhaseWeeksResponse | null = null;
 
   public readonly metrics = METRICS;
-  public cycles: ComparableCycle[] = [];
+  public weeks: ComparableWeek[] = [];
   public leftNumber: number | null = null;
   public rightNumber: number | null = null;
 
   public ngOnChanges(): void {
-    this.cycles = this.buildCycles(this.phaseCycles);
+    this.weeks = this.buildWeeks(this.phaseWeeks);
     // Se conserva lo elegido si sigue existiendo; si no (primera carga, o
-    // la fase cambió y ese ciclo ya no está), se vuelve al defecto: el
+    // la fase cambió y esa semana ya no está), se vuelve al defecto: el
     // actual contra el anterior.
-    if (!this.cycleByNumber(this.leftNumber)) {
-      this.leftNumber = this.phaseCycles?.current?.number ?? this.cycles[this.cycles.length - 1]?.number ?? null;
+    if (!this.weekByNumber(this.leftNumber)) {
+      this.leftNumber = this.phaseWeeks?.current?.number ?? this.weeks[this.weeks.length - 1]?.number ?? null;
     }
-    if (!this.cycleByNumber(this.rightNumber) || this.rightNumber === this.leftNumber) {
+    if (!this.weekByNumber(this.rightNumber) || this.rightNumber === this.leftNumber) {
       this.rightNumber = this.defaultRightFor(this.leftNumber);
     }
   }
 
-  public get left(): ComparableCycle | null {
-    return this.cycleByNumber(this.leftNumber);
+  public get left(): ComparableWeek | null {
+    return this.weekByNumber(this.leftNumber);
   }
 
-  public get right(): ComparableCycle | null {
-    return this.cycleByNumber(this.rightNumber);
+  public get right(): ComparableWeek | null {
+    return this.weekByNumber(this.rightNumber);
   }
 
-  // Sin otro ciclo con el que comparar (solo existe C1 y no hay siguiente
+  // Sin otra semana con la que comparar (solo existe R1 y no hay siguiente
   // preparado) la card derecha no tiene nada que enseñar.
   public get hasComparison(): boolean {
-    return this.cycles.length > 1;
+    return this.weeks.length > 1;
   }
 
   public selectLeft(value: string): void {
     const number = Number(value);
-    if (!this.cycleByNumber(number)) return;
+    if (!this.weekByNumber(number)) return;
     this.leftNumber = number;
     if (this.rightNumber === number) this.rightNumber = this.defaultRightFor(number);
   }
 
   public selectRight(value: string): void {
     const number = Number(value);
-    if (!this.cycleByNumber(number)) return;
+    if (!this.weekByNumber(number)) return;
     this.rightNumber = number;
   }
 
@@ -121,51 +121,51 @@ export class CycleComparisonCardsComponent implements OnChanges {
     return `${sign}${abs} ${metric.unit}${pct}`;
   }
 
-  public cycleOptionLabel(cycle: ComparableCycle): string {
-    const suffix = cycle.status === 'current' ? ' · en curso' : cycle.status === 'next' ? ' · siguiente' : '';
-    return `C${cycle.number} · ${this.formatRange(cycle)}${suffix}`;
+  public weekOptionLabel(week: ComparableWeek): string {
+    const suffix = week.status === 'current' ? ' · en curso' : week.status === 'next' ? ' · siguiente' : '';
+    return `S${week.number} · ${this.formatRange(week)}${suffix}`;
   }
 
-  public statusLabel(cycle: ComparableCycle): string {
-    if (cycle.status === 'current') return 'En curso';
-    if (cycle.status === 'next') return 'Próximo';
+  public statusLabel(week: ComparableWeek): string {
+    if (week.status === 'current') return 'En curso';
+    if (week.status === 'next') return 'Próxima';
     return 'Anterior';
   }
 
-  public formatRange(cycle: ComparableCycle): string {
+  public formatRange(week: ComparableWeek): string {
     const fmt = (iso: string): string =>
       new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
         day: 'numeric',
         month: 'short',
         timeZone: 'UTC',
       });
-    return `${fmt(cycle.start)} → ${fmt(cycle.end)}`;
+    return week.end ? `${fmt(week.start)} → ${fmt(week.end)}` : `desde ${fmt(week.start)}`;
   }
 
-  public trackByNumber(_index: number, cycle: ComparableCycle): number {
-    return cycle.number;
+  public trackByNumber(_index: number, week: ComparableWeek): number {
+    return week.number;
   }
 
   public trackByMetric(_index: number, metric: MetricRow): string {
     return metric.key;
   }
 
-  // C1..actual siempre (los heredados repiten el perfil del último
-  // persistido, pero son ciclos reales del calendario y se pueden elegir
-  // igual); el siguiente solo si ya tiene contenido propio preparado —
-  // heredando sería idéntico al actual y no aportaría nada.
-  private buildCycles(phaseCycles: PhaseCyclesResponse | null): ComparableCycle[] {
-    if (!phaseCycles) return [];
-    const cycles: ComparableCycle[] = phaseCycles.past.map((p) => ({
+  // R1..la que corre siempre (las heredadas repiten el perfil del último
+  // contenido persistido, pero son semanas reales del calendario y se
+  // pueden elegir igual); la siguiente solo si ya tiene contenido propio
+  // preparado — heredando sería idéntica a la actual y no aportaría nada.
+  private buildWeeks(phaseWeeks: PhaseWeeksResponse | null): ComparableWeek[] {
+    if (!phaseWeeks) return [];
+    const weeks: ComparableWeek[] = phaseWeeks.past.map((p) => ({
       number: p.number,
       start: p.start,
       end: p.end,
       profile: p.profile,
       status: 'past' as const,
     }));
-    const current = phaseCycles.current;
+    const current = phaseWeeks.current;
     if (current?.override?.profile) {
-      cycles.push({
+      weeks.push({
         number: current.number,
         start: current.start,
         end: current.end,
@@ -173,9 +173,9 @@ export class CycleComparisonCardsComponent implements OnChanges {
         status: 'current',
       });
     }
-    const next = phaseCycles.next;
+    const next = phaseWeeks.next;
     if (next?.override?.profile) {
-      cycles.push({
+      weeks.push({
         number: next.number,
         start: next.start,
         end: next.end,
@@ -183,20 +183,20 @@ export class CycleComparisonCardsComponent implements OnChanges {
         status: 'next',
       });
     }
-    return cycles.sort((a, b) => a.number - b.number);
+    return weeks.sort((a, b) => a.number - b.number);
   }
 
-  // El inmediatamente anterior, o null si no lo hay (la izquierda es C1):
+  // La inmediatamente anterior, o null si no la hay (la izquierda es R1):
   // entonces la derecha queda vacía — "sin anterior, sin datos" — aunque el
   // trainer pueda elegir a mano el siguiente si está preparado.
   private defaultRightFor(leftNumber: number | null): number | null {
     if (leftNumber === null) return null;
-    return this.cycles.filter((c) => c.number < leftNumber).pop()?.number ?? null;
+    return this.weeks.filter((r) => r.number < leftNumber).pop()?.number ?? null;
   }
 
-  private cycleByNumber(number: number | null): ComparableCycle | null {
+  private weekByNumber(number: number | null): ComparableWeek | null {
     if (number === null) return null;
-    return this.cycles.find((c) => c.number === number) || null;
+    return this.weeks.find((r) => r.number === number) || null;
   }
 
   private roundTo(value: number, decimals: number): number {

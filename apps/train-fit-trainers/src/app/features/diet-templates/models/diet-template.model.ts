@@ -64,39 +64,13 @@ export interface TemplateMeal {
   alternatives: TemplateMealAlternative[];
 }
 
-export interface TemplateDay {
-  dayLabel: string;
-  meals: TemplateMeal[];
-}
-
-// Auditoría de arquitectura (nutrición) — "recurring"/"choice" generalizan la
-// plantilla más allá de una secuencia finita "Día 1..N":
-//   - "recurring": patrón semanal (lunes-viernes distinto al fin de semana),
-//     `appliesTo` usa el mismo criterio que Date#getDay(): 0=domingo…6=sábado.
-//   - "choice" (Fase 9): igual que "recurring" pero sin día de la semana
-//     fijo — el propio cliente elige cada día cuál de los patrones le toca
-//     (p. ej. "Entrenamiento"/"Descanso"). `appliesTo` no se usa aquí.
-export type TemplateMode = 'sequential' | 'recurring' | 'choice';
-
-export interface WeekdayOption {
-  value: number;
-  label: string;
-  short: string;
-}
-
-export const WEEKDAYS: WeekdayOption[] = [
-  { value: 1, label: 'Lunes', short: 'L' },
-  { value: 2, label: 'Martes', short: 'M' },
-  { value: 3, label: 'Miércoles', short: 'X' },
-  { value: 4, label: 'Jueves', short: 'J' },
-  { value: 5, label: 'Viernes', short: 'V' },
-  { value: 6, label: 'Sábado', short: 'S' },
-  { value: 0, label: 'Domingo', short: 'D' },
-];
-
-export interface TemplateDayPattern {
+// Una plantilla es una lista de MENÚS intercambiables entre los que el
+// cliente elige cada día ("Entrenamiento", "Descanso"…). No hay secuencia de
+// días ni patrones por día de la semana: ese nombre es la clave con la que
+// el cliente elige, así que dos menús de la misma plantilla no pueden
+// llamarse igual (lo garantiza el backend, sanitizeMenus).
+export interface TemplateMenu {
   name: string;
-  appliesTo: number[];
   meals: TemplateMeal[];
 }
 
@@ -115,14 +89,8 @@ export interface DietTemplateMealPayload {
   alternatives: DietTemplateMealAlternativePayload[];
 }
 
-export interface DietTemplateDayPayload {
-  dayLabel: string;
-  meals: DietTemplateMealPayload[];
-}
-
-export interface DietTemplateDayPatternPayload {
+export interface DietTemplateMenuPayload {
   name: string;
-  appliesTo: number[];
   meals: DietTemplateMealPayload[];
 }
 
@@ -135,12 +103,7 @@ export interface DietTemplate {
   // asignada como fase y nunca llega a estos listados.
   ownerClientId?: string | null;
   name: string;
-  mode: TemplateMode;
-  // Solo en mode 'choice': días que dura un ciclo (el cliente elige menú
-  // cada día, así que la longitud del ciclo hay que decirla).
-  choiceCycleDays?: number | null;
-  days: DietTemplateDayPayload[];
-  dayPatterns: DietTemplateDayPatternPayload[];
+  menus: DietTemplateMenuPayload[];
   createdAt: string;
   // Sugerencias de dieta — aptitud dietética DERIVADA del contenido
   // (vegana / sin gluten / ...). `suitableFor` lo calcula el backend en cada

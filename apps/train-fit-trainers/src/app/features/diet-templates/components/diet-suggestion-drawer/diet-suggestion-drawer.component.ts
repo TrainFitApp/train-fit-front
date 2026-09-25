@@ -10,7 +10,6 @@ import {
   DietaryFlag,
   DietSource,
   MacroSet,
-  PhaseFocus,
   RankedTemplate,
 } from '../../models/diet-suggestion.model';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
@@ -19,21 +18,20 @@ import { DIETARY_FLAG_UI } from '../../../../shared/utils/dietary-flag-ui.util';
 import { DietCardModule } from '../../../../shared/components/diet-card/diet-card.module';
 import { MacroAdjustComponent } from '../../../../shared/components/macro-adjust/macro-adjust.component';
 
-const FOCUS_DEFAULTS: Record<PhaseFocus, { delta: number; rate: number }> = {
-  cut: { delta: -500, rate: -100 },
-  maintain: { delta: 0, rate: 0 },
-  bulk: { delta: 300, rate: 100 },
-};
-
 const DIETARY_FLAGS: { key: DietaryFlag; label: string; icon: string; colorClass: string }[] = (
   ['vegan', 'vegetarian', 'lactoseFree', 'glutenFree'] as DietaryFlag[]
 ).map((key) => ({ key, ...DIETARY_FLAG_UI[key] }));
 
 type ViewState = 'loading' | 'missing-biometrics' | 'ready' | 'error';
 
-// Sugerencias de dieta — el panel DERECHO al empezar una fase: solo los
-// parámetros (objetivo, restricciones), el objetivo calculado del cliente y
-// la sugerencia principal + CTA. La LISTA rankeada la pinta la pantalla que
+// Sugerencias de dieta — el panel DERECHO al empezar una fase: el objetivo
+// de REFERENCIA calculado con los últimos datos del cliente (editable: si el
+// entrenador teclea encima, pasa a ser manual y el ranking se hace contra
+// sus números), las restricciones y la sugerencia principal + CTA.
+//
+// Ya no hay "tipo de fase" ni "ajuste de kcal": lo que importa es con qué
+// números se pauta, no de qué preset salieron. La fase empieza HOY; sus
+// fechas se corrigen después desde Plan > Nutrición. La LISTA rankeada la pinta la pantalla que
 // lo abre (diet-phase-picker: la biblioteca de dietas ordenada para este
 // cliente). Estado compartido en DietSuggestionSessionService.
 @Component({
@@ -46,17 +44,17 @@ type ViewState = 'loading' | 'missing-biometrics' | 'ready' | 'error';
 export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   @Input() public clientId!: string;
   @Input() public clientName = 'este cliente';
-  @Input() public suggestedStartDate: string | null = null;
 
   public state: ViewState = 'loading';
   public missing: string[] = [];
 
   // --- Filtros ---
-  public focus: PhaseFocus = 'cut';
-  public phaseName = 'Definición';
-  public kcalDelta = FOCUS_DEFAULTS.cut.delta;
-  public ratePerCycle = FOCUS_DEFAULTS.cut.rate;
-  public showRateInfo = false;
+  public phaseName = 'Nueva fase';
+  // El objetivo con el que se va a pautar: arranca en el calculado y el
+  // entrenador puede teclear encima (entonces `manualTarget` = true y la
+  // etiqueta deja de decir "calculado").
+  public targetDraft: { kcal: number; protein: number; carbs: number; fat: number } | null = null;
+  public manualTarget = false;
   public readonly dietaryFlagOptions = DIETARY_FLAGS;
   public dietaryFlags = new Set<DietaryFlag>();
 
@@ -89,7 +87,9 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   }
 
   // --- Confirmación ---
-  public startDate = new Date().toISOString().slice(0, 10);
+  // La fase empieza el día en que se crea (docs/plan-semanas.md); las
+  // fechas se editan después desde la ficha del cliente.
+  public readonly startDate = new Date().toISOString().slice(0, 10);
   public applying = false;
 
   // Reflejo local del estado compartido (para el template).
@@ -110,7 +110,6 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.session.reset();
-    if (this.suggestedStartDate) this.startDate = this.suggestedStartDate;
     this.subs.add(this.refetch$.pipe(debounceTime(350)).subscribe(() => this.fetch()));
     this.subs.add(this.session.selectedId$.subscribe((id) => (this.selectedId = id)));
     this.fetch();
@@ -122,12 +121,20 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
 
   // --- Filtros ---
 
-  public setFocus(focus: PhaseFocus): void {
+  // Teclear encima del valor calculado: el ranking pasa a hacerse contra
+  // estos números y el objetivo queda marcado como manual.
+  public onTargetEdited(): void {
+    this.manualTarget = true;
     this.userTouchedFilters = true;
-    this.focus = focus;
-    this.kcalDelta = FOCUS_DEFAULTS[focus].delta;
-    this.ratePerCycle = FOCUS_DEFAULTS[focus].rate;
-    this.phaseName = focus === 'cut' ? 'Definición' : focus === 'bulk' ? 'Volumen' : 'Mantenimiento';
+    this.queueRefetch();
+  }
+
+  // Volver al calculado con los datos del cliente.
+  public resetTargetToCalculated(): void {
+    const calculated = this.session.results?.calculated;
+    if (!calculated) return;
+    this.manualTarget = false;
+    this.targetDraft = { ...calculated };
     this.queueRefetch();
   }
 
@@ -179,45 +186,12 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     return res?.macroWeightKg ?? res?.weightSource?.weightKg ?? null;
   }
 
-  // --- Ritmo por ciclo (tooltip) ---
-
-  // El backend redondea el paso a 50 (cycle-progression.js#round50).
-  public get rateStep(): number {
-    return Math.round((Number(this.ratePerCycle) || 0) / 50) * 50;
-  }
-
-  // Tres semanas de ejemplo con las kcal de ESTA fase; sin ritmo puesto, con
-  // −100 para que el ejemplo enseñe algo.
-  public get rateExample(): { week: number; kcal: number }[] {
-    const start = this.target?.kcal || 2000;
-    const step = this.rateStep || -100;
-    return [0, 1, 2].map((i) => ({ week: i + 1, kcal: start + step * i }));
-  }
-
-  public trackByWeek(_: number, w: { week: number }): number {
-    return w.week;
-  }
-
-  public signed(value: number): string {
-    return (value > 0 ? '+' : value < 0 ? '−' : '') + Math.abs(value);
-  }
-
-  // El objetivo del cliente al registrarse decide en qué focus arranca (en
-  // vez de siempre "Definir"). Solo antes de que el entrenador toque nada.
-  private applyClientObjetive(delta: number): void {
-    const focus: PhaseFocus = delta < -50 ? 'cut' : delta > 50 ? 'bulk' : 'maintain';
-    this.focus = focus;
-    this.phaseName = focus === 'cut' ? 'Definición' : focus === 'bulk' ? 'Volumen' : 'Mantenimiento';
-    this.kcalDelta = Math.round(delta) || FOCUS_DEFAULTS[focus].delta;
-    this.ratePerCycle = FOCUS_DEFAULTS[focus].rate;
-  }
-
   private fetch(): void {
     if (this.state !== 'ready') this.state = 'loading';
     this.session.setLoading(true);
     this.suggestionApi
       .suggest(this.clientId, {
-        objetiveKcalDelta: Number(this.kcalDelta) || 0,
+        ...(this.manualTarget && this.targetDraft?.kcal ? { target: this.targetDraft } : {}),
         dietaryFlags: [...this.dietaryFlags],
         sources: [...this.sources],
         ...(this.userTouchedMacroRatio && this.proteinPerKg ? { proteinPerKg: this.proteinPerKg } : {}),
@@ -225,18 +199,21 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (res) => {
-          // Primera respuesta, sin que el entrenador haya tocado nada:
-          // arrancar del objetivo + restricciones que el cliente declaró.
+          // Primera respuesta, sin que el entrenador haya tocado nada: el
+          // objetivo arranca en el calculado y se pre-marcan las
+          // restricciones que el cliente declaró en su cuestionario.
           if (!this.userTouchedFilters && !this.appliedClientDefaults) {
             this.appliedClientDefaults = true;
-            const before = { kcal: this.kcalDelta, flags: this.dietaryFlags.size };
-            if (typeof res.clientObjetive === 'number') this.applyClientObjetive(res.clientObjetive);
+            const before = this.dietaryFlags.size;
             for (const f of res.clientDietaryFlags || []) this.dietaryFlags.add(f);
-            if (this.kcalDelta !== before.kcal || this.dietaryFlags.size !== before.flags) {
+            if (this.dietaryFlags.size !== before) {
+              this.session.setResults(res);
+              this.targetDraft = this.targetDraft ?? { ...res.calculated };
               this.fetch();
               return;
             }
           }
+          if (!this.manualTarget) this.targetDraft = { ...res.calculated };
           this.session.setResults(res);
           this.session.setLoading(false);
           this.state = 'ready';
@@ -307,26 +284,27 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   }
 
   public get canConfirm(): boolean {
-    return !!this.chosen && !!this.startDate && !this.applying;
+    return !!this.chosen && !!(this.targetDraft?.kcal || this.target?.kcal) && !this.applying;
   }
 
   private phasePayload() {
-    const t = this.target!;
+    const t = this.targetDraft || this.target!;
     return {
       phase: {
         name: this.phaseName.trim() || this.phaseName,
-        focus: this.focus,
-        targetKcalDelta: Number(this.kcalDelta) || 0,
-        ratePerCycle: Number(this.ratePerCycle) || 0,
+        // Con qué números se pauta la fase, y de dónde salen.
+        target: {
+          kcal: Math.round(t.kcal),
+          protein: Math.round(t.protein),
+          carbs: Math.round(t.carbs),
+          fat: Math.round(t.fat),
+          source: this.manualTarget ? ('manual' as const) : ('calculated' as const),
+        },
         // Solo si el entrenador los tocó: sin tocar, el backend aplica su
         // fórmula por defecto (misma que rellena estos campos) y así el
-        // resumen de ciclo puede decir "fórmula por defecto".
+        // resumen de semana puede decir "fórmula por defecto".
         proteinPerKg: this.userTouchedMacroRatio && this.proteinPerKg ? Number(this.proteinPerKg) : null,
         fatPerKg: this.userTouchedMacroRatio && this.fatPerKg ? Number(this.fatPerKg) : null,
-      },
-      cycleTarget: {
-        kcal: t.kcal,
-        macros: { protein: t.protein, carbs: t.carbs, fat: t.fat },
       },
     };
   }
@@ -336,8 +314,8 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     if (!this.macrosOk()) return;
     this.applying = true;
 
-    // Solo `phase` viaja al backend: el objetivo calculado (cycleTarget) es
-    // informativo — las kcal del ciclo salen de los alimentos.
+    // La fase empieza hoy: si ya había una corriendo, el backend la cierra
+    // ayer (chainIfNeeded). Eso se avisa antes de pulsar, en el pie.
     this.planApi
       .apply(this.clientId, this.chosen._id, {
         startDate: this.startDate,
@@ -346,7 +324,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (assignment) => {
           this.ionicUtil.showToast({
-            message: `Fase "${this.phaseName}" aplicada a ${this.clientName} desde ${this.startDate}`,
+            message: `Fase "${this.phaseName}" aplicada a ${this.clientName} desde hoy`,
             duration: 3000,
           });
           this.session.reset();
@@ -366,7 +344,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   }
 
   public createFromScratch(): void {
-    if (!this.target || !this.macrosOk()) return;
+    if (!this.targetDraft || !this.macrosOk()) return;
     this.session.reset();
     void this.modalController.dismiss(
       { forDirectCreate: true, startDate: this.startDate, ...this.phasePayload() },
@@ -381,7 +359,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   // en sí: el builder construye una plantilla NUEVA propia de este cliente
   // con ese contenido de partida (mismo camino que "empezar de cero").
   public editBeforeApplying(): void {
-    if (!this.target || !this.chosen || !this.macrosOk()) return;
+    if (!this.targetDraft || !this.chosen || !this.macrosOk()) return;
     // Leer chosen/phasePayload ANTES de resetear la sesión — igual que
     // confirm() lee this.chosen._id antes de session.reset(): al revés
     // (como createFromScratch, que no necesita chosen), el reset deja

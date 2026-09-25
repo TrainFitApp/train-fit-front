@@ -203,8 +203,7 @@ export class TemplatesPage implements OnInit {
   }
 
   public dietTemplateMeta(template: DietTemplate): string {
-    return template.mode === 'sequential'
-      ? `${template.days.length} día${template.days.length === 1 ? '' : 's'}`
-      : `${template.dayPatterns.length} patrón${template.dayPatterns.length === 1 ? '' : 'es'}`;
+    const n = template.menus?.length || 0;
+    return `${n} menú${n === 1 ? '' : 's'}`;
   }
 }

@@ -36,7 +36,7 @@ export interface RosterClient {
   weightChange: RosterWeightChange | null;
   lastCheckinAt: string | null;
   daysSinceCheckin: number | null;
-  checkinCadence: string | null;
+  nextCheckinDate: string | null;
   lastActivityAt: string | null;
   daysSinceActivity: number | null;
   sessions: number;

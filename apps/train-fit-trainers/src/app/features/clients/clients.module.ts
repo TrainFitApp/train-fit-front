@@ -4,6 +4,7 @@ import { NavigationModule } from '../../shared/navigation/navigation.module';
 import { ClientsPageRoutingModule } from './clients-routing.module';
 import { ClientsPage } from './clients.page';
 import { ClientDetailPage } from './pages/client-detail/client-detail.page';
+import { NeedBreakdownComponent } from './components/need-breakdown/need-breakdown.component';
 import { SelectClientsModalModule } from './components/select-clients-modal/select-clients-modal.module';
 import { ApplyDietTemplateModalComponent } from './components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineModalComponent } from './components/apply-routine-modal/apply-routine-modal.component';
@@ -13,7 +14,7 @@ import { CheckinHistoryChartComponent } from './pages/client-detail/components/c
 import { CheckinWorkspaceComponent } from './pages/client-detail/components/checkin-workspace/checkin-workspace.component';
 import { NutritionTrackingChartComponent } from './pages/client-detail/components/nutrition-tracking-chart/nutrition-tracking-chart.component';
 import { WeightAdherenceChartComponent } from './pages/client-detail/components/weight-adherence-chart/weight-adherence-chart.component';
-import { CycleComparisonCardsComponent } from './pages/client-detail/components/cycle-comparison-cards/cycle-comparison-cards.component';
+import { WeekComparisonCardsComponent } from './pages/client-detail/components/week-comparison-cards/week-comparison-cards.component';
 import { NutritionHistoryFeedComponent } from './pages/client-detail/components/nutrition-history-feed/nutrition-history-feed.component';
 import { ClientSummaryComponent } from './pages/client-detail/components/client-summary/client-summary.component';
 import { ClientRosterComponent } from './components/client-roster/client-roster.component';
@@ -36,6 +37,9 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     ProductSearchModalModule,
     SelectClientsModalModule,
     DietCardModule,
+    // Standalone: el bloque "cómo se ha calculado" del objetivo nutricional
+    // del cliente, el mismo que usan el resumen de semana y el cajón.
+    NeedBreakdownComponent,
   ],
   declarations: [
     ClientsPage,
@@ -47,7 +51,7 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     CheckinWorkspaceComponent,
     NutritionTrackingChartComponent,
     WeightAdherenceChartComponent,
-    CycleComparisonCardsComponent,
+    WeekComparisonCardsComponent,
     NutritionHistoryFeedComponent,
     ClientSummaryComponent,
     ClientRosterComponent,

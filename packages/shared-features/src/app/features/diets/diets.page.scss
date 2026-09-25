@@ -236,6 +236,20 @@ ion-popover {
   border: 1px solid rgba(254, 144, 0, 0.22);
 }
 
+// Día saltado por el profesional: mismo bloque, en tono neutro — no es una
+// acción pendiente del cliente, es información.
+.menu-chips--skipped {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+.menu-chips__note {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: #9ca3af;
+}
+
 .menu-chips__title {
   font-size: 0.8rem;
   font-weight: 700;
@@ -300,8 +314,8 @@ ion-popover {
   }
 }
 
-// Ciclos por contenido — check-in del ciclo, encima del peso diario.
-.cycle-checkin-card {
+// Check-in abierto, encima del peso diario.
+.checkin-card {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -338,7 +352,7 @@ ion-popover {
   }
 }
 
-.cycle-checkin-card__text {
+.checkin-card__text {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -354,6 +368,89 @@ ion-popover {
     font-size: 0.75rem;
     color: #9ca3af;
   }
+}
+
+// Hábitos del día: se marcan aquí mismo, bajo las comidas.
+.day-habits,
+.day-supplements {
+  width: calc(100% - 14px);
+  margin: 12px 7px 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #2a2a2a;
+  background: #111111;
+}
+
+.day-habits__title,
+.day-supplements__title {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.day-habits__row,
+.day-supplements__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-family: inherit;
+  text-align: left;
+
+  + .day-habits__row,
+  + .day-supplements__row {
+    border-top: 1px solid #1d1d1d;
+  }
+
+  > ion-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+    color: #9ca3af;
+  }
+
+  &.is-done > ion-icon {
+    color: #5db530;
+  }
+
+  &[disabled] {
+    opacity: 0.6;
+  }
+}
+
+.day-habits__text,
+.day-supplements__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  small {
+    font-size: 0.75rem;
+    color: #9ca3af;
+  }
+}
+
+.day-habits__row.is-done > ion-icon {
+  color: var(--ion-color-primary);
+}
+
+.day-habits__hint {
+  margin: 8px 0 0;
+  font-size: 0.72rem;
+  color: #9ca3af;
 }
 
 .premium-banner {

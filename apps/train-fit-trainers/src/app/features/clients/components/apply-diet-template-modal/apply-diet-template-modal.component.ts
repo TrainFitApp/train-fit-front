@@ -3,7 +3,6 @@ import { ModalController } from '@ionic/angular';
 import { DietTemplateApiService } from '../../../diet-templates/services/diet-template-api.service';
 import { DietTemplate } from '../../../diet-templates/models/diet-template.model';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
-import { phaseModeLabel, phaseModeHint } from '../../../../shared/utils/phase-mode-label.util';
 
 type ViewState = 'loading' | 'error' | 'loaded' | 'applying';
 
@@ -17,12 +16,12 @@ function todayIsoDate(): string {
 // cada día de golpe; ahora se crea una única PlanAssignment (POST .../apply)
 // y los días se resuelven bajo demanda (ver diet-day-resolver.js).
 //
-// Ciclos por contenido (2026-09): solo se elige CUÁNDO empieza. No hay
+// Semanas (2026-09): solo se elige CUÁNDO empieza. No hay
 // duración ni fin estimado — una fase acaba cuando empieza la siguiente.
 //
 // "Crear dieta" (ficha del cliente) usaba este mismo modal para pedir
 // nombre + fechas antes de pasar al builder; ya no — el nutricionista va
-// improvisando ciclo a ciclo y esa duración estimada no le servía de nada
+// improvisando semana a semana y esa duración estimada no le servía de nada
 // (ver client-detail.page.ts#goToCreateDiet, que ahora navega directo al
 // builder). Este modal vuelve a ser solo "aplicar una plantilla concreta".
 @Component({
@@ -34,41 +33,16 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   @Input() public clientId!: string;
   @Input() public clientName = 'este cliente';
 
-  // Fecha con la que arranca el formulario cuando se encadena una fase: el
-  // día siguiente al fin de la anterior, para que no quede un hueco sin
-  // plan ni dos planes el mismo día. Sin fase previa (o si acaba
-  // "indefinido"), hoy.
-  @Input() public set suggestedStartDate(value: string | null) {
-    if (value) this.startDate = value;
-  }
-
-  // Lo que se enseña bajo el campo para justificar esa fecha.
-  @Input() public previousPhaseEnd: string | null = null;
-  @Input() public previousPhaseName = '';
-
-  // Click en el calendario: mueve la fecha de inicio.
-  public onStartPicked(date: string): void {
-    this.startDate = date;
-    this.overlapError = null;
-  }
-
-  // Lo que el calendario pinta: desde el inicio, sin fin (indefinido).
-  public get rangePreview(): { start: string; end: string | null } | null {
-    if (!this.startDate) return null;
-    return { start: this.startDate, end: null };
-  }
-
-  public get showDatePicker(): boolean {
-    return !!this.selectedTemplateId;
-  }
-
   // Mensaje del 409 del backend: las fechas pisan otra fase.
   public overlapError: string | null = null;
 
   public state: ViewState = 'loading';
   public templates: DietTemplate[] = [];
   public selectedTemplateId: string | null = null;
-  public startDate = todayIsoDate();
+  // La fase empieza el día en que se aplica (docs/plan-semanas.md):
+  // no hay fecha que elegir aquí. Si el cliente ya tiene una fase en curso,
+  // el backend la cierra ayer; las fechas se corrigen luego desde la ficha.
+  public readonly startDate = todayIsoDate();
 
   constructor(
     private dietTemplateApi: DietTemplateApiService,
@@ -118,21 +92,8 @@ export class ApplyDietTemplateModalComponent implements OnInit {
     return this.templates.find((t) => t._id === this.selectedTemplateId) || null;
   }
 
-  // Cómo se va a resolver el contenido de la fase (sequential/recurring/
-  // choice) — solo tiene sentido con una plantilla ya elegida; en "Crear
-  // dieta" el contenido no existe todavía (se construye en el builder).
-  public get phaseModeLabel(): string {
-    const t = this.selectedTemplate;
-    return t ? phaseModeLabel(t.mode, t.days?.length || null) : '';
-  }
-
-  public get phaseModeHint(): string {
-    const t = this.selectedTemplate;
-    return t ? phaseModeHint(t.mode, t.days?.length || null) : '';
-  }
-
-  public dayCount(template: DietTemplate): number {
-    return template.days?.length || 0;
+  public menuCount(template: DietTemplate): number {
+    return template.menus?.length || 0;
   }
 
   public trackByTemplateId(_index: number, template: DietTemplate): string {
@@ -144,7 +105,7 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   }
 
   public get canConfirm(): boolean {
-    return !!this.selectedTemplateId && !!this.startDate;
+    return !!this.selectedTemplateId;
   }
 
   public confirm(): void {

@@ -37,7 +37,7 @@
     background: var(--tf-surface-2);
   }
 
-  &--cycle {
+  &--week {
     padding: 0;
   }
 }
@@ -79,8 +79,8 @@
   }
 }
 
-// El ciclo entero es un botón (abre el resumen), sin aspecto de botón.
-.cycle {
+// El semana entero es un botón (abre el resumen), sin aspecto de botón.
+.week {
   display: block;
   width: 100%;
   padding: 12px 14px 12px 18px;
@@ -103,18 +103,18 @@
   }
 }
 
-.cycle__number {
+.week__number {
   font-size: 1rem;
   font-weight: 700;
   color: var(--phase-color, var(--tf-accent));
 }
 
-.cycle__phase {
+.week__phase {
   font-weight: 500;
   color: var(--tf-text-secondary);
 }
 
-.cycle__status {
+.week__status {
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 0.7rem;
@@ -140,7 +140,7 @@
   }
 }
 
-.cycle__facts {
+.week__facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px 16px;
@@ -161,24 +161,24 @@
   }
 }
 
-.cycle__fact--wide {
+.week__fact--wide {
   grid-column: 1 / -1;
 }
 
-.cycle__delta,
-.cycle__muted {
+.week__delta,
+.week__muted {
   font-size: 0.76rem;
   color: var(--tf-text-muted);
 }
 
-.cycle__values {
+.week__values {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 10px;
   margin-top: 2px;
 }
 
-.cycle__value {
+.week__value {
   font-size: 0.78rem;
   color: var(--tf-text-secondary);
 

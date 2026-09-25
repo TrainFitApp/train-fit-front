@@ -27,7 +27,7 @@ const routes: Routes = [
     data: { parent: '/tabs/clients/:clientId' },
     canDeactivate: [pendingChangesGuard],
   },
-  // Editar la dieta YA ASIGNADA a un cliente (cualquier ciclo, con o sin
+  // Editar la dieta YA ASIGNADA a un cliente (cualquier semana, con o sin
   // sourceTemplateId) — mismo builder, en modo "copia asignada": lee/escribe
   // el _id de esa copia directamente, nunca una plantilla de biblioteca (ver
   // diet-template-builder.page.ts#startForAssignedCopy).
@@ -37,11 +37,11 @@ const routes: Routes = [
     data: { parent: '/tabs/clients/:clientId' },
     canDeactivate: [pendingChangesGuard],
   },
-  // Preparar el SIGUIENTE ciclo de una fase (ciclos por contenido): mismo
-  // builder, precargado con el contenido del ciclo vigente escalado a las
-  // kcal del query param (ver diet-template-builder.page.ts#startForNextCycle).
+  // Preparar la SIGUIENTE semana de una fase: mismo builder, precargado
+  // con el contenido vigente escalado a las kcal del query param (ver
+  // diet-template-builder.page.ts#startForNextWeek).
   {
-    path: 'next-cycle/:clientId/:phaseId',
+    path: 'next-week/:clientId/:phaseId',
     component: DietTemplateBuilderPage,
     data: { parent: '/tabs/clients/:clientId' },
     canDeactivate: [pendingChangesGuard],

@@ -38,7 +38,7 @@ const METRIC_OPTIONS: MetricOption[] = [
 
 const REFERENCE_COLOR = '#8b8b8b'; // --tf-text-muted — línea de referencia "100% de lo pautado"
 
-// F20-terdecies/F20-unvicies — el rango de fechas (días sueltos o ciclos
+// F20-terdecies/F20-unvicies — el rango de fechas (días sueltos o semanas
 // completos, con sus presets) ya no vive aquí: vive en client-detail.page
 // (compartido con <app-weight-adherence-chart>, que necesita exactamente
 // el mismo selector). Esta gráfica se limita a dibujar [customRange] — sin
@@ -63,7 +63,7 @@ const REFERENCE_COLOR = '#8b8b8b'; // --tf-text-muted — línea de referencia "
 export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDestroy {
   @Input() clientId = '';
   // F20-quinquies/F20-unvicies — rango exacto elegido en el padre (días
-  // sueltos o ciclos completos — ver client-detail.page.ts). El padre ya
+  // sueltos o semanas completas — ver client-detail.page.ts). El padre ya
   // rellena un rango por defecto al cargar, así que en la práctica esto
   // rara vez llega null.
   @Input() customRange: { start: string; end: string } | null = null;
@@ -141,7 +141,7 @@ export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDes
     return Math.max(1, Math.round((to - from) / 86400000) + 1);
   }
 
-  // Los días futuros del rango SÍ pueden tener contenido pautado (el ciclo
+  // Los días futuros del rango SÍ pueden tener contenido pautado (la semana
   // entero se crea de una vez), pero "0% consumido" en un día que aún no ha
   // llegado no es un incumplimiento — es que no ha pasado. Se pide desde
   // el backend hasta hoy como mucho; más allá no hay nada real que dibujar.

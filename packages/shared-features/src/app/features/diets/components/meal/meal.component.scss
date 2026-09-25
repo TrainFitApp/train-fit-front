@@ -42,10 +42,10 @@
     border: none;
 
     // Header del accordion
-    ion-grid.t-meal {
+    .t-meal {
       border-bottom: none;
       margin: 0;
-      padding: 10px;
+      padding: 10px 10px 10px 4px;
     }
 
     // Contenido del accordion
@@ -302,16 +302,98 @@
   transition: 0.3s;
 }
 
-  .meal-name {
-    margin-left: -6%;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
+// Cabecera de la card: columna de contenido elástica + columna de acciones de
+// ancho fijo. Nada de anchos ni márgenes en % aquí: con la pantalla ancha los
+// % crecen y sacaban los botones fuera de la card (overflow: hidden).
+.meal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
 
-    ion-button {
-      --color: #ffffff;
+.meal-header__main {
+  flex: 1 1 auto;
+  min-width: 0; // deja que el nombre se recorte en vez de empujar los botones
+}
+
+.meal-header__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+// Botones de icono de la cabecera: misma superficie táctil (44px) los tres,
+// medida fija para que no dependa del ancho del contenedor.
+.meal-header__button {
+  --color: #ffffff;
+  --padding-start: 0;
+  --padding-end: 0;
+  --border-radius: 22px;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 22px;
+  }
+
+  // Opciones: compacto y pegado al borde izquierdo de la card, junto al
+  // nombre. Sigue siendo un blanco de 36px, suficiente para el pulgar.
+  &--options {
+    width: 32px;
+    height: 32px;
+    min-height: 0; // si no, Ionic impone su altura mínima y descuadra
+    --border-radius: 16px;
+
+    ion-icon {
+      font-size: 20px;
     }
   }
+
+  &--add ion-icon {
+    font-size: 30px;
+  }
+
+  &--paste {
+    --background: rgba(var(--ion-color-tertiary-rgb), 0.15);
+    --background-activated: rgba(var(--ion-color-tertiary-rgb), 0.25);
+    --border-radius: 12px;
+
+    ion-icon {
+      font-size: 1.3rem;
+    }
+  }
+}
+
+.meal-name {
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+
+  .meal-title {
+    font-size: x-large;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .meal-chevron {
+    font-size: x-large;
+    margin-left: 6px;
+    flex-shrink: 0;
+  }
+
+  .meal-notes-icon {
+    font-size: large;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+}
 
 // Eliminar el borde inferior del ion-grid original que ya no es necesario
 ion-grid {
@@ -330,25 +412,6 @@ ion-spinner {
   height: 3em;
 }
 
-.sc-ion-buttons-md-s ion-button:has(ion-icon[name="clipboard-outline"]),
-.sc-ion-buttons-ios-s ion-button:has(ion-icon[name="clipboard-outline"]) {
-  --color: var(--ion-color-tertiary);
-  --background: rgba(var(--ion-color-tertiary-rgb), 0.15);
-  --background-activated: rgba(var(--ion-color-tertiary-rgb), 0.25);
-  --padding-start: 10px;
-  --padding-end: 10px;
-  --padding-top: 10px;
-  --padding-bottom: 10px;
-  --border-radius: 12px;
-  width: 44px;
-  height: 44px;
-  margin: 0;
-
-  ion-icon {
-    font-size: 1.3rem;
-  }
-}
-
 // Estilos para el grid de macros
 .macros-grid {
   display: flex !important;
@@ -356,13 +419,15 @@ ion-spinner {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin: 0 !important;
-  padding: 0 !important;
+  margin: 8px 0 0 !important;
+  padding: 0 0 0 4px !important; // en vertical con el icono de opciones
+
+  gap: 4px;
+  max-width: 420px; // en pantalla ancha los chips dejan de estirarse
 
   .macro-col {
-    flex: 1 1 25% !important;
-    max-width: 25% !important;
-    min-width: 25% !important;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
     padding: 2px !important;
     display: flex;
     justify-content: center;
@@ -601,12 +666,6 @@ ion-skeleton-text {
     opacity: 1;
     transform: scale(1);
   }
-}
-
-// Unified selector for both MD & iOS to avoid duplication
-.sc-ion-buttons-md-s ion-button:not(.button-round),
-.sc-ion-buttons-ios-s ion-button:not(.button-round) {
-  --border-radius: 46px;
 }
 
 // Opciones de comida — selector persistente de alternativas pautadas

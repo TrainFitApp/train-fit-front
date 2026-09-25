@@ -2,7 +2,7 @@
 // oscuro), botón primario con el gradiente de la app.
 @import '../../../../../theme/buttons';
 
-.cycle-content {
+.week-content {
   --background: var(--tf-bg);
   --padding-start: 16px;
   --padding-end: 16px;
@@ -21,7 +21,7 @@
 }
 
 // Qué ciclo y qué días abarca — línea de contexto, no un campo.
-.cycle-period {
+.week-period {
   margin: 0 0 12px;
   font-size: var(--tf-font-size-sm);
   color: var(--tf-text-secondary);

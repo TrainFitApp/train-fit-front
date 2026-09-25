@@ -48,54 +48,111 @@ $clipboard-panel-width: 320px;
 // se ajusta. No es contenido editable sino el marco de todo lo que hay
 // debajo, de ahí la superficie propia: el resto de la pantalla va suelto
 // sobre el fondo.
+//
+// Rediseño 2026-09: era un bloque gris de texto corrido. Mismo contenido e
+// igual de compacto, pero apoyado en formas (avatar redondo, filete de
+// acento, chips) y en el color de macro que ya se usa en el resto de la app
+// — el color hace de etiqueta y ahorra leer.
 .client-context {
+  position: relative;
+  overflow: hidden;
   margin-bottom: var(--tf-space-4);
   padding: var(--tf-space-3) var(--tf-space-4);
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-md);
+  border-radius: var(--tf-radius-lg);
 
-  &__title {
+  // Filete de acento: identifica la tarjeta de un vistazo sin robar espacio.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--tf-accent-gradient);
+  }
+
+  // Al crear la dieta esta tarjeta es media pantalla (objetivo editable +
+  // alergias), así que se tiñe un punto para separarla de lo que se monta
+  // debajo. En los demás modos es solo contexto y se queda neutra.
+  &--new {
+    background: linear-gradient(180deg, var(--tf-accent-tint) 0%, var(--tf-surface-1) 64px);
+    border-color: var(--tf-accent-soft-border);
+  }
+
+  &__head {
     display: flex;
     align-items: center;
-    gap: var(--tf-space-2);
+    gap: var(--tf-space-3);
+  }
+
+  // Iniciales en vez del icono genérico de persona: la dieta es de alguien.
+  &__avatar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--tf-accent-gradient);
+    color: var(--tf-accent-contrast);
+    font-size: var(--tf-font-size-sm);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
     margin: 0;
-    font-size: var(--tf-font-size-base);
-    color: var(--tf-text-secondary);
+  }
 
-    strong {
-      color: var(--tf-text);
-    }
+  &__eyebrow {
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--tf-text-muted);
+  }
 
-    ion-icon {
-      flex-shrink: 0;
-      font-size: 20px;
-      color: var(--tf-accent-text);
-    }
+  &__name {
+    font-size: var(--tf-font-size-lg);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--tf-text);
+    overflow-wrap: anywhere;
   }
 
   // El alcance del cambio, que es lo que de verdad se malinterpreta: se
-  // edita la plantilla, no la copia congelada que rige su plan.
+  // edita la plantilla, no la copia congelada que rige su plan. Sobre fondo
+  // teñido para que se lea como aviso y no como pie de foto.
   &__scope {
     display: flex;
     align-items: flex-start;
     gap: var(--tf-space-2);
-    margin: var(--tf-space-2) 0 0;
+    margin: var(--tf-space-3) 0 0;
+    padding: var(--tf-space-2) var(--tf-space-3);
+    background: var(--tf-accent-tint);
+    border-left: 2px solid var(--tf-accent-soft-border);
+    border-radius: var(--tf-radius-sm);
     font-size: var(--tf-font-size-xs);
     line-height: var(--tf-line-height-base);
-    color: var(--tf-text-muted);
+    color: var(--tf-text-secondary);
 
     ion-icon {
       flex-shrink: 0;
       margin-top: 1px;
       font-size: 14px;
+      color: var(--tf-accent-text);
     }
   }
 
   &__target {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: center;
     gap: var(--tf-space-2) var(--tf-space-3);
     margin-top: var(--tf-space-3);
     padding-top: var(--tf-space-3);
@@ -106,6 +163,9 @@ $clipboard-panel-width: 320px;
   // que hay que leer para saber de dónde sale la cifra), y faint se queda en
   // 3,46:1 — por debajo del 4,5 de AA. Ver tokens.scss.
   &__target-label {
+    display: flex;
+    align-items: center;
+    gap: var(--tf-space-2);
     font-size: var(--tf-font-size-xs);
     font-weight: 700;
     text-transform: uppercase;
@@ -116,15 +176,176 @@ $clipboard-panel-width: 320px;
   &__target-values {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--tf-space-3);
+    align-items: center;
+    gap: var(--tf-space-2);
     font-variant-numeric: tabular-nums;
 
-    strong {
-      font-size: var(--tf-font-size-md);
-      font-weight: 800;
+    // Los macros de referencia, como píldoras del color de cada macro (el
+    // mismo trío que el tablero): se distinguen sin leer la letra.
+    .macro-tag {
+      padding: 2px var(--tf-space-2);
+      border-radius: var(--tf-radius-pill);
+      background: var(--tf-surface-3);
+      font-size: var(--tf-font-size-xs);
+
+      strong {
+        font-size: var(--tf-font-size-sm);
+        font-weight: 800;
+      }
+    }
+  }
+
+  // De dónde salen esos números: calculado del cliente, o tecleado encima.
+  // Como badge, que es una distinción que se consulta de reojo.
+  &__target-source {
+    padding: 1px var(--tf-space-2);
+    border-radius: var(--tf-radius-pill);
+    background: var(--tf-surface-3);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--tf-text-muted);
+
+    &.is-manual {
+      background: var(--tf-accent-soft);
       color: var(--tf-accent-text);
     }
+  }
+
+  // Objetivo editable (solo al crear la dieta de un cliente): cada macro con
+  // su etiqueta encima, en una fila que envuelve en pantallas estrechas.
+  &__target-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tf-space-2);
+    width: 100%;
+  }
+
+  // Alergias, gustos y suplementos: un chip por familia, en vez de cuatro
+  // líneas de texto muted que se leían como un párrafo.
+  &__prefs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tf-space-2);
+    width: 100%;
+    margin-top: var(--tf-space-3);
+  }
+}
+
+// Campo de macro: la etiqueta lleva un punto del color del macro y el campo
+// se tiñe del mismo color al enfocarlo. Los cuatro caben en una fila.
+.macro-field {
+  // Color propio de cada macro — el mismo que usa .macro-tag.
+  --macro-color: var(--tf-text-muted);
+
+  display: flex;
+  flex: 1 1 72px;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+
+  &--kcal {
+    --macro-color: var(--tf-macro-kcal);
+  }
+
+  &--protein {
+    --macro-color: var(--tf-macro-protein);
+  }
+
+  &--carbs {
+    --macro-color: var(--tf-macro-carbs);
+  }
+
+  &--fat {
+    --macro-color: var(--tf-macro-fat);
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+
+    &::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--macro-color);
+    }
+  }
+
+  input {
+    width: 100%;
+    padding: 7px 8px;
+    background: var(--tf-surface-2);
+    border: 1px solid var(--tf-border);
+    border-left: 3px solid var(--macro-color);
+    border-radius: var(--tf-radius-sm);
+    color: var(--tf-text);
+    font: inherit;
+    font-size: var(--tf-font-size-base);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+    &:focus {
+      outline: none;
+      border-color: var(--macro-color);
+    }
+  }
+}
+
+// Chip de contexto del cliente (alergias, gustos, restricciones,
+// suplementos): cada familia con su color, para que lo crítico —la alergia—
+// salte antes que lo demás.
+.ctx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  margin: 0;
+  padding: 3px var(--tf-space-2);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+
+  b {
+    font-weight: 700;
+  }
+
+  &--danger {
+    background: var(--tf-danger-soft);
+    border-color: var(--tf-danger-border);
+    color: var(--tf-danger-text);
+  }
+
+  &--warning {
+    background: var(--tf-warning-soft);
+    border-color: var(--tf-warning-border);
+    color: var(--tf-warning);
+  }
+
+  &--success {
+    background: var(--tf-success-soft);
+    border-color: var(--tf-success-border);
+    color: var(--tf-success);
+  }
+
+  &--accent {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-accent-text);
   }
 }
 
@@ -299,33 +520,9 @@ $clipboard-panel-width: 320px;
 }
 
 // Días por ciclo en mode choice (ciclos por contenido §1).
-.choice-cycle-days {
-  margin: -2px 0 10px;
-
-  &__field {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--tf-text-secondary);
-
-    .input-field {
-      @extend %bare-number-input;
-      width: 90px;
-    }
-  }
-
-  .section-hint {
-    font-weight: 400;
-    color: var(--tf-text-muted);
-    margin-top: 4px;
-  }
-}
-
 // Preparar siguiente ciclo — kcal objetivo + reescalar, dentro del bloque
 // de contexto de cliente.
-.next-cycle-kcal {
+.next-week-kcal {
   margin-top: 10px;
 
   &__label {

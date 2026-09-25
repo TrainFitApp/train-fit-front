@@ -1,14 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
-import { CycleNeed } from '../../../diet-templates/models/diet-suggestion.model';
+import { WeekNeed } from '../../../diet-templates/models/diet-suggestion.model';
 
-// Info de cálculo de fase (docs/plan-info-calculo-fase.md) — "cómo se
-// calculó la necesidad": qué datos entraron y la cuenta paso a paso. Solo
-// pinta; el cálculo viene hecho del backend (nutrition-target.js
-// #explainNutritionTarget) en la misma forma para el snapshot del C1 y para
-// los ciclos 2+ al vuelo. Se usa en el resumen de ciclo y, como referencia
-// "con datos de hoy", en el modal de siguiente ciclo.
+// "Cómo se calculó la necesidad": qué datos entraron y la cuenta paso a
+// paso. Solo pinta; el cálculo viene hecho del backend (nutrition-target.js
+// #explainNutritionTarget) en la misma forma para el snapshot de la fase y
+// para las semanas calculadas al vuelo. Se usa en el resumen de semana,
+// en el objetivo nutricional del cliente y, como referencia "con datos de
+// hoy", en el modal de siguiente semana.
 @Component({
   selector: 'app-need-breakdown',
   standalone: true,
@@ -17,13 +17,11 @@ import { CycleNeed } from '../../../diet-templates/models/diet-suggestion.model'
   styleUrls: ['./need-breakdown.component.scss'],
 })
 export class NeedBreakdownComponent implements OnInit {
-  // null = fase creada antes de guardar el cálculo (solo puede pasar en C1).
-  @Input() public need: CycleNeed | null = null;
-  // Media diaria de pasos que el cliente declaró en el check-in del ciclo.
-  @Input() public stepsDone: { avg: number | null; respondedAt: string | null } | null = null;
-  // Media pautada del ciclo, para compararla con lo calculado.
+  // null = fase creada antes de guardar el cálculo.
+  @Input() public need: WeekNeed | null = null;
+  // Media pautada, para compararla con lo calculado.
   @Input() public plannedKcal: number | null = null;
-  // Cuenta plegada por defecto (modal de siguiente ciclo).
+  // Cuenta plegada por defecto (modal de siguiente semana).
   @Input() public collapsed = false;
 
   public showMath = true;
@@ -32,15 +30,15 @@ export class NeedBreakdownComponent implements OnInit {
     this.showMath = !this.collapsed;
   }
 
-  public get target(): CycleNeed['target'] {
+  public get target(): WeekNeed['target'] {
     return this.need?.target ?? null;
   }
 
-  public get breakdown(): CycleNeed['breakdown'] {
+  public get breakdown(): WeekNeed['breakdown'] {
     return this.need?.breakdown ?? null;
   }
 
-  public get inputs(): CycleNeed['inputs'] | null {
+  public get inputs(): WeekNeed['inputs'] | null {
     return this.need?.inputs ?? null;
   }
 
@@ -71,16 +69,19 @@ export class NeedBreakdownComponent implements OnInit {
     return s === 1 ? 'Hombre' : s === 0 ? 'Mujer' : '—';
   }
 
-  // De dónde salieron los pasos que entraron en la fórmula.
+  // De dónde salió el rango de pasos que entró en la fórmula: del hábito de
+  // pasos que el cliente va marcando cada día, o del rango de su perfil.
   public get stepsLine(): string {
     const i = this.inputs;
     if (!i) return '—';
-    if (i.stepsFrom === 'logged') {
-      return `${this.n(i.stepsAvg)} de media (check-in) → ${i.stepsLabel}`;
+    if (i.stepsFrom === 'habit') {
+      const habit = this.need?.stepsFromHabit;
+      const cumplido = habit ? ` · cumplido ${habit.completedDays} de ${habit.windowDays} días` : '';
+      return `${i.stepsLabel} · de su hábito de pasos${cumplido}`;
     }
     const perfil = i.stepsLabel || 'sin dato en el perfil';
     if (i.stepsFallbackReason === 'profile_unresolved') {
-      return `${perfil} · del perfil (check-in con ${this.n(i.stepsAvg)} de media, pero el perfil no permite recalcular)`;
+      return `${perfil} · del perfil (tiene hábito de pasos, pero el perfil no permite recalcular)`;
     }
     return `${perfil} · del perfil`;
   }

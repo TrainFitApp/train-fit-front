@@ -11,7 +11,6 @@ import {
   TemplateFoodItem,
   TemplateMeal,
   TemplateMealAlternative,
-  TemplateMode,
 } from '../../../../models/diet-template.model';
 import {
   ProductSearchModalComponent,
@@ -59,7 +58,7 @@ import { computeItemMicros } from '../../../../utils/nutrient-fields';
 // div original.
 //
 // `meal` se recibe por referencia (mismo objeto que vive dentro de
-// `days`/`dayPatterns` en la página): las mutaciones aquí dentro
+// `menus` en la página): las mutaciones aquí dentro
 // (añadir/quitar alternativas, alimentos...) se reflejan directamente en
 // el tablero al cerrar, sin eventos de salida ni copia de datos.
 @Component({
@@ -71,8 +70,7 @@ import { computeItemMicros } from '../../../../utils/nutrient-fields';
 })
 export class DayMealEditorModalComponent {
   @Input() meal!: TemplateMeal;
-  @Input() dayLabel = '';
-  @Input() mode: TemplateMode = 'sequential';
+  @Input() menuName = '';
 
   public readonly maxAlternatives = 4;
   // Sin límite real de alimentos por alternativa — Infinity mantiene las

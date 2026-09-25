@@ -375,7 +375,62 @@
   border: 1px solid var(--tf-border);
   background: var(--tf-surface-2);
 
-  .target-head {
+  // Objetivo editable: etiqueta de origen + vuelta al calculado.
+.target-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--tf-surface-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
+.target-reset {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-accent);
+  cursor: pointer;
+}
+
+.target-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+.target-field {
+  display: flex;
+  flex: 1 1 60px;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+
+  input {
+    width: 100%;
+    padding: 6px 8px;
+    background: var(--tf-surface-2);
+    border: 1px solid var(--tf-border);
+    border-radius: var(--tf-radius-sm);
+    color: var(--tf-text);
+    font: inherit;
+    font-weight: 600;
+  }
+
+  &--kcal {
+    flex-basis: 100px;
+
+    input {
+      font-size: var(--tf-font-size-md);
+    }
+  }
+}
+
+.target-head {
     display: flex;
     flex-direction: column;
     gap: var(--tf-space-1);

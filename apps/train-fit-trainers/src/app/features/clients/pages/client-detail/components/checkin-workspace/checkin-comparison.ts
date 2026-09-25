@@ -1,8 +1,8 @@
 import { CHECKIN_FIELDS_BY_KEY, checkinAnchorFor, scaleLevelsFor } from 'src/app/core/constants/checkin-fields';
-import { CalendarCheckin, CheckinComparisonRow } from './checkin-workspace.model';
+import { CheckinEntry, CheckinComparisonRow } from './checkin-workspace.model';
 
 const number = (value: number): string => value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
-function description(entry: CalendarCheckin | null, key: string): { label: string; type: string; unit: string; max?: number } {
+function description(entry: CheckinEntry | null, key: string): { label: string; type: string; unit: string; max?: number } {
   const field = key.startsWith('custom:') ? entry?.customQuestions?.find(q => String(q._id) === key.slice(7)) : CHECKIN_FIELDS_BY_KEY.get(key);
   return { label: field?.label || 'Pregunta del histórico', type: field?.type || 'unknown', unit: field?.unit || '',
     max: field?.type === 'scale_1_5' ? (key.startsWith('custom:') ? 5 : scaleLevelsFor(CHECKIN_FIELDS_BY_KEY.get(key))) : undefined };
@@ -13,7 +13,7 @@ function display(value: unknown, info: ReturnType<typeof description>): string {
   if (typeof value === 'number') return `${number(value)}${info.max ? '/' + info.max : info.unit ? ' ' + info.unit : ''}`;
   return String(value);
 }
-export function compareCheckins(current: CalendarCheckin, previous: CalendarCheckin | null): CheckinComparisonRow[] {
+export function compareCheckins(current: CheckinEntry, previous: CheckinEntry | null): CheckinComparisonRow[] {
   const keys = new Set([...Object.keys(current.values || {}), ...Object.keys(previous?.values || {})]);
   return [...keys].map(key => {
     const a = previous?.values?.[key];

@@ -39,11 +39,14 @@ import { Anthropometry } from '../diet-days/components/weight-info/models/anthro
 import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/clipboard-meal-modal.component';
 import { MealProposal } from './models/meal-proposal.model';
 import { MealProposalApiService } from './services/meal-proposal-api.service';
-import { DayTypePreview, DayTypeStatus } from './models/day-type.model';
-import { DayTypeApiService } from './services/day-type-api.service';
+import { DayMenuPreview, DayMenuStatus } from './models/day-menu.model';
+import { DayMenuApiService } from './services/day-menu-api.service';
 import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-preview-modal.component';
 import { MyCheckinsApiService } from '../checkins/my-checkins/services/my-checkins-api.service';
-import { CycleCheckin, MyCheckinConfig } from '../checkins/my-checkins/models/my-checkin.model';
+import { CheckinWeek, MyCheckin } from '../checkins/my-checkins/models/my-checkin.model';
+import { CoachTask } from '../coach/models/coach-dashboard.model';
+import { TasksApiService } from '../coach/services/tasks-api.service';
+import { MySupplement, MySupplementsApiService } from '../supplements/services/my-supplements-api.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -87,14 +90,25 @@ export class DietsPage implements OnInit {
   // Fase 9 — solo no-null cuando el plan activo tiene 2+ menús que el
   // cliente elige cada día; para el resto de usuarios se queda en null y no
   // se muestra ningún aviso.
-  public dayTypeStatus: DayTypeStatus | null = null;
-  public isChoosingDayType = false;
-  public isLeavingDayType = false;
+  public dayMenuStatus: DayMenuStatus | null = null;
+  public isChoosingMenu = false;
+  public isLeavingMenu = false;
 
-  // Ciclos por contenido — el check-in del ciclo en el que está el cliente
-  // (uno por ciclo, sobreescribible). null = sin fase de dieta con ciclos.
-  public cycleCheckin: CycleCheckin | null = null;
-  private cycleCheckinTrainerId: string | null = null;
+  // El check-in ABIERTO hoy, si lo hay (docs/plan-semanas.md): es el que
+  // abre la semana en la que está el cliente. null = ninguno abierto.
+  public openCheckin: MyCheckin | null = null;
+  public checkinWeek: CheckinWeek | null = null;
+
+  // Hábitos diarios pautados (pasos, agua…): se marcan bajo las comidas del
+  // día que se esté mirando (§12). Los pasos marcados son, además, lo que
+  // entra en el cálculo de kcal de la siguiente semana.
+  public habits: CoachTask[] = [];
+  public togglingHabitId: string | null = null;
+
+  // Suplementación vigente ese día (§14): va por fechas, así que cambia
+  // según el día que se mire. Se pinta al final, tras las comidas.
+  public supplements: MySupplement[] = [];
+  private supplementTimings: Record<string, string> = {};
 
   public MONTHS = MONTHS;
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
@@ -117,8 +131,10 @@ export class DietsPage implements OnInit {
     private customProductService: CustomProductService,
     private recipeService: RecipeService,
     private mealProposalApiService: MealProposalApiService,
-    private dayTypeApiService: DayTypeApiService,
+    private dayMenuApiService: DayMenuApiService,
     private myCheckinsApi: MyCheckinsApiService,
+    private tasksApi: TasksApiService,
+    private mySupplementsApi: MySupplementsApiService,
     private router: Router,
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef,
@@ -494,55 +510,133 @@ export class DietsPage implements OnInit {
       error: () => (this.mealProposals = []),
     });
 
-    // Fase 9 — igual criterio: cargada aparte, nunca bloquea el resto de la
-    // pantalla. needsChoice:false para el 100% de los clientes sin un plan
-    // de menús elegidos por el cliente.
-    this.dayTypeApiService.getForDate(dateStr).subscribe({
-      next: (status) => (this.dayTypeStatus = status),
-      error: () => (this.dayTypeStatus = null),
+    // Igual criterio: cargada aparte, nunca bloquea el resto de la
+    // pantalla. needsChoice:false para el 100% de los clientes sin plan.
+    this.dayMenuApiService.getForDate(dateStr).subscribe({
+      next: (status) => (this.dayMenuStatus = status),
+      error: () => (this.dayMenuStatus = null),
     });
 
-    this.loadCycleCheckin();
+    this.loadOpenCheckin();
+    this.loadHabits(dateStr);
+    this.loadSupplements(dateStr);
   }
 
-  // Ciclos por contenido — ¿hay check-in del ciclo actual pendiente? Solo
-  // tiene sentido mirando HOY (el ciclo es el de hoy, no el del día que se
-  // esté viendo). En silencio si falla.
-  private loadCycleCheckin(): void {
+  // ¿Hay un check-in abierto hoy? Solo tiene sentido mirando HOY: su ventana
+  // es la de la semana en curso, no la del día que se esté viendo. En
+  // silencio si falla.
+  private loadOpenCheckin(): void {
     this.myCheckinsApi.getMine().subscribe({
-      next: (configs: MyCheckinConfig[]) => {
-        const withCycle = (configs || []).find((c) => c.cycleCheckin && !c.requestId);
-        this.cycleCheckin = withCycle?.cycleCheckin || null;
-        this.cycleCheckinTrainerId = withCycle?.trainerId || null;
+      next: (checkins: MyCheckin[]) => {
+        this.openCheckin = (checkins || [])[0] || null;
+        this.checkinWeek = this.openCheckin?.week || null;
       },
-      error: () => (this.cycleCheckin = null),
+      error: () => {
+        this.openCheckin = null;
+        this.checkinWeek = null;
+      },
     });
   }
 
-  public goToCycleCheckin(): void {
+  public goToWeightInfo(): void {
+    void this.router.navigate(['/weight-info']);
+  }
+
+  public goToCheckin(): void {
     // returnUrl: el botón atrás de Mis check-ins vuelve aquí, no al tab Coach.
     void this.router.navigate(['/my-checkins'], {
       queryParams: {
         returnUrl: '/tabs/diets',
-        ...(this.cycleCheckinTrainerId ? { trainerId: this.cycleCheckinTrainerId } : {}),
+        ...(this.openCheckin ? { scheduleId: this.openCheckin.scheduleId } : {}),
       },
     });
+  }
+
+  // --- Hábitos del día (§12) ---
+
+  private loadHabits(date: string): void {
+    this.tasksApi.getMine(date).subscribe({
+      next: (habits) => (this.habits = habits || []),
+      error: () => (this.habits = []),
+    });
+  }
+
+  // "10.000 a 15.000 pasos" / "2 L".
+  public habitTargetLabel(habit: CoachTask): string {
+    const rango = habit.targetMax ? ` a ${habit.targetMax}` : '';
+    return `${habit.target}${rango} ${habit.unit}`;
+  }
+
+  // Marcar un hábito del día que se está mirando. El futuro no se marca: el
+  // backend lo rechaza y aquí ni se ofrece.
+  public toggleHabit(habit: CoachTask): void {
+    if (this.togglingHabitId || this.selectedDate > this.todayIso) return;
+    this.togglingHabitId = habit._id;
+    const completed = !habit.completedToday;
+    this.tasksApi.toggle(habit._id, completed, this.selectedDate).subscribe({
+      next: () => {
+        habit.completedToday = completed;
+        this.togglingHabitId = null;
+      },
+      error: () => {
+        this.togglingHabitId = null;
+        this.ionicUtilService.showErrorToast('No se pudo marcar el hábito', 'Error', 2500);
+      },
+    });
+  }
+
+  public get canToggleHabits(): boolean {
+    return this.selectedDate <= this.todayIso;
+  }
+
+  private get todayIso(): string {
+    return this.utilService.formatDateToYYYYMMDD(new Date());
+  }
+
+  // --- Suplementación del día (§14) ---
+
+  private loadSupplements(date: string): void {
+    this.mySupplementsApi.getMine(date).subscribe({
+      next: (supplements) => (this.supplements = supplements || []),
+      error: () => (this.supplements = []),
+    });
+    // El vocabulario de "cuándo tomarlo" lo decide el backend; se pide una
+    // sola vez por sesión de pantalla.
+    if (!Object.keys(this.supplementTimings).length) {
+      this.mySupplementsApi.getTimings().subscribe({
+        next: (res) => {
+          this.supplementTimings = Object.fromEntries((res?.timings || []).map((t) => [t.key, t.label]));
+        },
+        error: () => undefined,
+      });
+    }
+  }
+
+  public supplementTiming(supplement: MySupplement): string {
+    if (supplement.timing === 'custom') return supplement.customTiming || 'Otro momento';
+    return this.supplementTimings[supplement.timing] || supplement.timing;
   }
 
   // --- Plan "choice": chips de menús, preview, elegir y salir ---
 
   public get menuOptions(): string[] {
-    return this.dayTypeStatus?.options || [];
+    return this.dayMenuStatus?.options || [];
   }
 
   public get selectedMenu(): string | null {
-    return this.dayTypeStatus?.selected || null;
+    return this.dayMenuStatus?.selected || null;
+  }
+
+  // Día que el profesional marcó como saltado: no se pauta nada y no hay
+  // menú que elegir.
+  public get isDaySkipped(): boolean {
+    return !!this.dayMenuStatus?.skipped;
   }
 
   // Click en un chip: preview del menú (solo lectura) y, si no es el ya
   // elegido, "Elegir" desde ahí.
   public async openMenuPreview(option: string): Promise<void> {
-    const preview: DayTypePreview = (this.dayTypeStatus?.previews || []).find((p) => p.name === option) || {
+    const preview: DayMenuPreview = (this.dayMenuStatus?.previews || []).find((p) => p.name === option) || {
       name: option,
       meals: [],
     };
@@ -552,13 +646,13 @@ export class DietsPage implements OnInit {
     });
     await modal.present();
     const { role, data } = await modal.onDidDismiss();
-    if (role === 'choose' && data?.name) this.chooseDayType(data.name);
+    if (role === 'choose' && data?.name) this.chooseMenu(data.name);
   }
 
   // "Salir del menú": el día vuelve a quedar sin menú. Se borra lo pautado
   // (y lo que hubiera marcado de ello); lo que anotó por su cuenta se queda.
-  public leaveDayType(): void {
-    if (this.isLeavingDayType || !this.selectedMenu) return;
+  public leaveMenu(): void {
+    if (this.isLeavingMenu || !this.selectedMenu) return;
     const alertOptions: AlertOptions = {
       header: 'Salir del menú',
       message:
@@ -569,14 +663,14 @@ export class DietsPage implements OnInit {
           text: 'Salir',
           role: 'destructive',
           handler: () => {
-            this.isLeavingDayType = true;
-            this.dayTypeApiService.leave(this.selectedDate).subscribe({
+            this.isLeavingMenu = true;
+            this.dayMenuApiService.leave(this.selectedDate).subscribe({
               next: () => {
-                this.isLeavingDayType = false;
+                this.isLeavingMenu = false;
                 this.setDietDayByDate(this.selectedDate);
               },
               error: () => {
-                this.isLeavingDayType = false;
+                this.isLeavingMenu = false;
               },
             });
           },
@@ -586,20 +680,20 @@ export class DietsPage implements OnInit {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
-  // Fase 9 — el cliente marca qué menú le toca hoy (p. ej. "Entrenamiento" /
+  // El cliente marca qué menú le toca hoy (p. ej. "Entrenamiento" /
   // "Descanso"); el backend resuelve el plan con esa elección y devuelve el
   // día ya relleno (o con propuestas nuevas si alguna comida tiene 2+
   // alternativas) — se recarga el día entero para reflejarlo.
-  public chooseDayType(patternName: string): void {
-    if (this.isChoosingDayType) return;
-    this.isChoosingDayType = true;
-    this.dayTypeApiService.choose(this.selectedDate, patternName).subscribe({
+  public chooseMenu(menuName: string): void {
+    if (this.isChoosingMenu) return;
+    this.isChoosingMenu = true;
+    this.dayMenuApiService.choose(this.selectedDate, menuName).subscribe({
       next: () => {
-        this.isChoosingDayType = false;
+        this.isChoosingMenu = false;
         this.setDietDayByDate(this.selectedDate);
       },
       error: () => {
-        this.isChoosingDayType = false;
+        this.isChoosingMenu = false;
       },
     });
   }

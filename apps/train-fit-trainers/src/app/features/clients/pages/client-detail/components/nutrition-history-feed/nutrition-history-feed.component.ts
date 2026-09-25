@@ -1,45 +1,33 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CHECKIN_FIELDS_BY_KEY, checkinScaleSuffix } from 'src/app/core/constants/checkin-fields';
 import {
-  NutritionCycleEvent,
-  NutritionCycleStatus,
+  NutritionWeekEvent,
+  NutritionWeekStatus,
   NutritionHistoryCheckin,
   NutritionHistoryEvent,
-  NutritionHistoryException,
 } from '../../../../../../shared/models/plan-assignment.model';
-import { CheckinConfig } from '../../models/client-detail.model';
+import { CustomCheckinQuestion } from '../../../../../checkin-templates/models/checkin-template.model';
 import { checkinFieldLabel, checkinValueLabel } from '../../../../checkin-labels.util';
 
-export interface CycleOpenRequest {
+export interface WeekOpenRequest {
   number: number;
   start: string;
   end: string;
   overrideId: string;
 }
 
-const STATUS_LABELS: Record<NutritionCycleStatus, string> = {
+const STATUS_LABELS: Record<NutritionWeekStatus, string> = {
   running: 'En curso',
   met: 'Cumplido',
   missed: 'No cumplido',
   no_data: 'Sin datos',
 };
 
-const FOCUS_LABELS: Record<'cut' | 'maintain' | 'bulk', string> = {
-  cut: 'Definición',
-  maintain: 'Mantenimiento',
-  bulk: 'Volumen',
-};
-
-const MODE_LABELS: Record<string, string> = {
-  sequential: 'Días fijos',
-  recurring: 'Semanal',
-  choice: 'Menús a elegir',
-};
-
-// Historial de nutrición de la ficha: feed plano de eventos (fase, ciclo,
-// check-in, excepción), del más reciente al más antiguo. El desglose por
-// ciclo es el que importa: en qué ciclo estaba, si lo cumplió, si metió
-// check-in. Solo lectura; el ciclo abre su resumen (cycle-summary-panel).
+// Historial de nutrición de la ficha: feed plano de eventos (fase, semana,
+// check-in, día saltado), del más reciente al más antiguo. El desglose por
+// semana es el que importa: en qué semana estaba, si la cumplió, si metió
+// check-in. Solo lectura; la semana abre su resumen
+// (week-summary-panel).
 @Component({
   selector: 'app-nutrition-history-feed',
   templateUrl: './nutrition-history-feed.component.html',
@@ -50,42 +38,32 @@ export class NutritionHistoryFeedComponent {
   // Color por fase — el mismo que la fila de fases de arriba (phaseColorMap).
   @Input() public phaseColorOf: (phaseId: string) => string = () => 'var(--tf-accent)';
   // Para nombrar las preguntas propias del coach ("custom:<id>").
-  @Input() public checkinConfig: CheckinConfig | null = null;
-  @Output() public openCycle = new EventEmitter<CycleOpenRequest>();
+  // Preguntas propias que traen las respuestas del feed, para nombrar las
+  // claves "custom:<id>".
+  @Input() public checkinQuestions: CustomCheckinQuestion[] = [];
+  @Output() public openWeek = new EventEmitter<WeekOpenRequest>();
 
   public trackByEvent(_index: number, event: NutritionHistoryEvent): string {
     const id =
-      event.type === 'cycle' ? event.number
+      event.type === 'week' ? event.number
       : event.type === 'checkin' ? event.checkin.id
-      : event.type === 'exception' ? event.exception.id
+      : event.type === 'skipped_day' ? event.date
       : '';
     return `${event.type}:${event.phaseId}:${id}`;
   }
 
-  public statusLabel(status: NutritionCycleStatus): string {
+  public statusLabel(status: NutritionWeekStatus): string {
     return STATUS_LABELS[status];
   }
 
-  public focusLabel(focus: 'cut' | 'maintain' | 'bulk' | null): string | null {
-    return focus ? FOCUS_LABELS[focus] : null;
-  }
-
-  public modeLabel(mode: string | null): string | null {
-    return mode ? MODE_LABELS[mode] || null : null;
-  }
 
   public phaseLabel(event: NutritionHistoryEvent): string {
     return event.phaseName || 'Fase sin nombre';
   }
 
-  public kcalDeltaLabel(cycle: NutritionCycleEvent): string | null {
-    if (cycle.kcalDelta == null || cycle.kcalDelta === 0) return null;
-    return `${cycle.kcalDelta > 0 ? '+' : ''}${cycle.kcalDelta} kcal vs C${cycle.number - 1}`;
-  }
-
-  public exceptionLabel(exception: NutritionHistoryException): string {
-    if (exception.action === 'skip') return 'Día saltado';
-    return exception.mealSlot ? `Comida sustituida · ${exception.mealSlot}` : 'Comida sustituida';
+  public kcalDeltaLabel(week: NutritionWeekEvent): string | null {
+    if (week.kcalDelta == null || week.kcalDelta === 0) return null;
+    return `${week.kcalDelta > 0 ? '+' : ''}${week.kcalDelta} kcal vs S${week.number - 1}`;
   }
 
   // "Peso: 80 kg", "Sueño: 4/5" — todo lo que respondió, con su unidad.
@@ -95,7 +73,7 @@ export class NutritionHistoryFeedComponent {
       const suffix = checkinScaleSuffix(key) || (field?.unit ? ` ${field.unit}` : '');
       return {
         key,
-        label: checkinFieldLabel(key, this.checkinConfig?.customQuestions || []),
+        label: checkinFieldLabel(key, this.checkinQuestions),
         value: `${checkinValueLabel(raw)}${suffix}`,
       };
     });
@@ -105,7 +83,7 @@ export class NutritionHistoryFeedComponent {
     return entry.key;
   }
 
-  public requestOpen(cycle: NutritionCycleEvent): void {
-    this.openCycle.emit({ number: cycle.number, start: cycle.start, end: cycle.end, overrideId: cycle.overrideId });
+  public requestOpen(week: NutritionWeekEvent): void {
+    this.openWeek.emit({ number: week.number, start: week.start, end: week.end, overrideId: week.overrideId });
   }
 }

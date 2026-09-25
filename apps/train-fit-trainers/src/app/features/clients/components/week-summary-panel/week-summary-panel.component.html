@@ -7,14 +7,14 @@
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Ciclo {{ cycleNumber }}</h1>
+        <h1 class="tf-page-header__title">Semana {{ weekNumber }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
   </div>
 </ion-header>
 
-<ion-content class="cycle-summary">
+<ion-content class="week-summary">
   <div class="detail-skeleton" *ngIf="state === 'loading'">
     <div class="skeleton-block" style="height: 70px"></div>
     <div class="skeleton-block" style="height: 120px"></div>
@@ -22,24 +22,23 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo cargar el resumen de este ciclo.</p>
+    <p>No se pudo cargar el resumen de esta semana.</p>
     <ion-button size="small" fill="outline" (click)="dismiss()">Cerrar</ion-button>
   </div>
 
   <ng-container *ngIf="state === 'ready'">
-    <!-- 1. Qué se pautó. Todo esto ya viaja en el propio ciclo, sin pedir nada -->
+    <!-- 1. Qué se pautó. Todo esto ya viaja en la propia asignación -->
     <section class="summary-block">
       <p class="summary-block__title summary-block__title--planned">
         <span class="summary-block__icon"><ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon></span>
         Lo pautado
       </p>
-      <p class="cycle-dates">
+      <p class="week-dates">
         {{ from }} → {{ isRunning ? 'en curso' : to }}
-        <span class="cycle-days" *ngIf="cycle.daysCount">· dieta de {{ cycle.daysCount }} día{{ cycle.daysCount === 1 ? '' : 's' }}</span>
+        <span class="week-days" *ngIf="assignment.menusCount">· {{ assignment.menusCount }} menú{{ assignment.menusCount === 1 ? '' : 's' }}</span>
       </p>
-      <!-- Las kcal del ciclo son la media diaria de lo pautado — no hay
-           objetivo guardado aparte (ciclos por contenido). Sale del mismo
-           cruce de macros de abajo. -->
+      <!-- Las kcal son la media diaria de lo pautado — no hay objetivo
+           guardado aparte. Sale del mismo cruce de macros de abajo. -->
       <div class="target-row" *ngIf="plannedAvg.kcal">
         <span class="target-kcal">{{ plannedAvg.kcal | number: '1.0-0' }} kcal</span>
         <span class="target-macros">
@@ -47,33 +46,28 @@
         </span>
       </div>
       <p class="summary-empty" *ngIf="!plannedAvg.kcal">
-        Este ciclo no tuvo días con pauta todavía.
+        Esta semana no tuvo días con pauta todavía.
       </p>
     </section>
 
-    <!-- 1b. Cómo se calculó la necesidad (docs/plan-info-calculo-fase.md):
-         qué datos del cliente entraron y la cuenta. C1 = lo guardado al
-         empezar la fase; C2+ = a fecha de inicio del ciclo con el último
-         peso y los pasos del check-in del anterior. -->
+    <!-- 1b. Cómo se calculó la necesidad: qué datos del cliente entraron y
+         la cuenta. R1 = lo guardado al empezar la fase; el resto, a su fecha
+         de inicio con el último peso y el último rango de pasos declarado. -->
     <section class="summary-block">
       <p class="summary-block__title summary-block__title--need">
         <span class="summary-block__icon"><ion-icon name="calculator-outline" aria-hidden="true"></ion-icon></span>
         Cómo se calculó la necesidad
       </p>
       <div class="skeleton-block" style="height: 90px" *ngIf="needState === 'loading'"></div>
-      <p class="summary-empty" *ngIf="needState === 'error'">No se pudo cargar el cálculo de este ciclo.</p>
-      <ng-container *ngIf="needState === 'ready' && cycleNeed as cn">
+      <p class="summary-empty" *ngIf="needState === 'error'">No se pudo cargar el cálculo de esta semana.</p>
+      <ng-container *ngIf="needState === 'ready' && weekNeed as cn">
         <p class="summary-hint need-source" *ngIf="cn.source === 'computed'">
-          Con los datos del cliente a {{ cn.start }}: último peso hasta esa fecha y pasos del check-in del ciclo anterior.
+          Con los datos del cliente a {{ cn.start }}: último peso hasta esa fecha y el último rango de pasos que declaró en un check-in.
         </p>
         <p class="summary-hint need-source" *ngIf="cn.source === 'snapshot'">
           Guardado al empezar la fase.
         </p>
-        <app-need-breakdown
-          [need]="cn.need"
-          [stepsDone]="cn.stepsDone"
-          [plannedKcal]="plannedAvg.kcal || cn.plannedKcal"
-        ></app-need-breakdown>
+        <app-need-breakdown [need]="cn.need" [plannedKcal]="plannedAvg.kcal || cn.plannedKcal"></app-need-breakdown>
       </ng-container>
     </section>
 
@@ -84,7 +78,7 @@
         Macros · media por día
       </p>
       <p class="summary-empty" *ngIf="!daysWithPlan">
-        No hubo ningún día con comidas pautadas en este ciclo.
+        No hubo ningún día con comidas pautadas en esta semana.
       </p>
 
       <ng-container *ngIf="daysWithPlan">
@@ -125,7 +119,7 @@
           </tbody>
         </table>
         <p class="summary-hint">
-          Media sobre los {{ daysWithPlan }} día{{ daysWithPlan === 1 ? '' : 's' }} con plan del ciclo.
+          Media sobre los {{ daysWithPlan }} día{{ daysWithPlan === 1 ? '' : 's' }} con plan de la semana.
         </p>
       </ng-container>
     </section>
@@ -137,7 +131,7 @@
         Alimentos · qué cumplió
       </p>
       <p class="summary-empty" *ngIf="!foods.length">
-        No hay alimentos pautados en este ciclo.
+        No hay alimentos pautados en esta semana.
       </p>
 
       <ul class="food-list" *ngIf="foods.length">
@@ -160,7 +154,7 @@
     <section class="summary-block">
       <p class="summary-block__title summary-block__title--checkins">
         <span class="summary-block__icon"><ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon></span>
-        Check-ins del ciclo
+        Check-ins de la semana
       </p>
       <p class="summary-empty" *ngIf="!checkins.length">
         El cliente no respondió ningún check-in en estas fechas.

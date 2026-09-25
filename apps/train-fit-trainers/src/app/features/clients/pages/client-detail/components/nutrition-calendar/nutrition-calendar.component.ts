@@ -4,15 +4,15 @@ import { NutritionComplianceDay } from '../../models/client-detail.model';
 import { PlanAssignmentApiService } from '../../../../../../shared/services/plan-assignment-api.service';
 import { PlanAssignment } from '../../../../../../shared/models/plan-assignment.model';
 import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
-import { cycleLabelFor } from '../../cycle-label.util';
 
 interface CalendarPhaseInfo {
   id: string;
   color: string;
   planName: string | null;
-  // Vuelta de la fase en la que cae este día ("C3"), o null si no se puede
-  // numerar. Ver cycle-label.util.ts para qué cuenta como vuelta en cada modo.
-  cycleLabel: string | null;
+  // Semana de la fase en la que cae este día ("R3"), o null si ese día no
+  // cae en ninguna. Las ventanas las marcan los check-ins programados: las
+  // calcula el backend (diet-timeline), no se deducen aquí.
+  weekLabel: string | null;
   // ¿Impide que una fase nueva empiece en este día? Misma regla que el
   // backend (plan-assignment-service.js#blocksNewPhase): una fase con
   // fecha de fin cerrada bloquea; una INDEFINIDA ya en curso no, porque
@@ -38,6 +38,9 @@ interface CalendarCell {
   dayNumber: number | null;
   compliance: NutritionComplianceDay | null;
   phase: CalendarPhaseInfo | null;
+  // Suplementos pautados vigentes ese día (docs/plan-semanas.md): la
+  // suplementación va por fechas, así que también se ve en el calendario.
+  supplements: string[];
 }
 
 const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
@@ -75,14 +78,14 @@ function buildMonthGrid(year: number, month: number): CalendarCell[] {
   // formar parte de ningún rango, mismo comportamiento que antes.
   const prevMonthLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
   for (let i = firstWeekday - 1; i >= 0; i--) {
-    cells.push({ date: null, dayNumber: prevMonthLastDay - i, compliance: null, phase: null });
+    cells.push({ date: null, dayNumber: prevMonthLastDay - i, compliance: null, phase: null, supplements: [] });
   }
   for (let day = 1; day <= totalDays; day++) {
-    cells.push({ date: isoDate(year, month, day), dayNumber: day, compliance: null, phase: null });
+    cells.push({ date: isoDate(year, month, day), dayNumber: day, compliance: null, phase: null, supplements: [] });
   }
   let nextMonthDay = 1;
   while (cells.length % 7 !== 0) {
-    cells.push({ date: null, dayNumber: nextMonthDay, compliance: null, phase: null });
+    cells.push({ date: null, dayNumber: nextMonthDay, compliance: null, phase: null, supplements: [] });
     nextMonthDay++;
   }
   return cells;
@@ -148,9 +151,9 @@ export class NutritionCalendarComponent implements OnChanges {
 
   // Solo tiene sentido ofrecerlo si hay plan activo que saltarse: lo sabe
   // la ficha, no el calendario.
-  @Input() canCreateException = false;
-  @Input() isCreatingException = false;
-  @Output() exceptionRequested = new EventEmitter<string>();
+  @Input() canSkipDay = false;
+  @Input() isSkippingDay = false;
+  @Output() skipDayRequested = new EventEmitter<string>();
 
   public get selectedDateLabel(): string {
     if (!this.selectedDate) return 'este día';
@@ -220,10 +223,37 @@ export class NutritionCalendarComponent implements OnChanges {
   // hay que explicar, no salía nunca.
   public occupiedTooltip: { text: string; left: number; top: number } | null = null;
 
+  // Qué suplementos toca ese día. Va SOLO en el icono, no en la celda: el día
+  // entero ya se pulsa para otra cosa, y un globo que saltara al pasar por
+  // cualquier día taparía el calendario entero al recorrerlo. Tampoco con el
+  // `title` nativo: el icono lleva pointer-events desactivado para no comerse
+  // el click del día, y así el navegador nunca lo da por señalado.
+  public supplementTooltip: { text: string; left: number; top: number } | null = null;
+
+  public onSupplementEnter(cell: CalendarCell, event: MouseEvent): void {
+    const icono = event.currentTarget as HTMLElement | null;
+    const celda = icono?.closest('.nutrition-calendar__cell') as HTMLElement | null;
+    if (!cell.supplements.length || !celda) return;
+    this.supplementTooltip = {
+      text: cell.supplements.join('\n'),
+      left: this.tooltipLeft(celda),
+      top: celda.offsetTop,
+    };
+  }
+
+  public onSupplementLeave(): void {
+    this.supplementTooltip = null;
+  }
+
   // Historial completo de fases (todas, no solo la activa) — se pide una
   // vez por cliente, no por mes: son pocos documentos y así un tramo que
   // cruza dos meses se pinta igual en ambos sin refetch.
   private planPhases: PlanAssignment[] = [];
+  // Ventanas de semana del rango visible, tal y como las calcula el
+  // backend a partir de los check-ins programados del cliente.
+  private weekWindows: { phaseId: string; number: number; start: string; end: string }[] = [];
+  // Suplementos con fechas, para pintar su icono en los días que cubren.
+  private supplements: { name: string; dose: string; startDate: string; endDate: string | null }[] = [];
   // Color por fase, calculado una vez al cargar planPhases (no en cada
   // findPhaseForDate — eso lo recalcularía hasta ~35 veces por render de
   // mes sin necesidad, ver assignPhaseColors en phase-color.util.ts).
@@ -364,6 +394,7 @@ export class NutritionCalendarComponent implements OnChanges {
   public onGridMouseLeave(): void {
     this.hoverDate = null;
     this.occupiedTooltip = null;
+    this.supplementTooltip = null;
   }
 
   // Qué se dice al pasar por encima de un día que ya tiene fase. Dos
@@ -453,6 +484,56 @@ export class NutritionCalendarComponent implements OnChanges {
         this.isLoading = false;
       },
     });
+
+    // Semanas del mes visible: es la única fuente de los badges R1/R2 —
+    // las ventanas dependen de los check-ins programados del cliente.
+    this.planAssignmentApi.getDietTimeline(this.clientId, from, to).subscribe({
+      next: (timeline) => {
+        this.weekWindows = timeline?.weeks || [];
+        this.cells = this.withPhases(this.cells);
+      },
+      error: () => {
+        this.weekWindows = [];
+      },
+    });
+
+    this.loadSupplements();
+  }
+
+  // Los suplementos no cambian de un mes a otro: se piden una vez y se
+  // recortan por fecha en cada celda.
+  private loadSupplements(): void {
+    if (this.supplements.length) {
+      this.cells = this.withSupplements(this.cells);
+      return;
+    }
+    this.clientDetailApi.getSupplements(this.clientId).subscribe({
+      next: (supplements) => {
+        this.supplements = (supplements || [])
+          .filter((supplement) => supplement.active !== false && !!supplement.startDate)
+          .map((supplement) => ({
+            name: supplement.name,
+            dose: supplement.dose || '',
+            startDate: supplement.startDate as string,
+            endDate: supplement.endDate ?? null,
+          }));
+        this.cells = this.withSupplements(this.cells);
+      },
+      error: () => {
+        this.supplements = [];
+      },
+    });
+  }
+
+  private withSupplements(cells: CalendarCell[]): CalendarCell[] {
+    return cells.map((cell) => ({
+      ...cell,
+      supplements: cell.date
+        ? this.supplements
+            .filter((s) => s.startDate <= cell.date! && (!s.endDate || s.endDate >= cell.date!))
+            .map((s) => (s.dose ? `${s.name} · ${s.dose}` : s.name))
+        : [],
+    }));
   }
 
   private loadPlanPhases(): void {
@@ -461,8 +542,8 @@ export class NutritionCalendarComponent implements OnChanges {
         // Orden estable por fecha de inicio — así el color de cada fase no
         // cambia de un mes a otro dentro de la misma sesión.
         this.planPhases = (phases || []).slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
-        // Sugerencias de dieta — los ciclos de una misma fase comparten
-        // color (banda de fase). Se colorea por phaseId; un ciclo sin
+        // Sugerencias de dieta — las semanas de una misma fase comparten
+        // color (banda de fase). Se colorea por phaseId; una semana sin
         // phaseId (fases anteriores a la feature) usa su propio _id.
         const phaseKeys: string[] = [];
         for (const p of this.planPhases) {
@@ -487,7 +568,7 @@ export class NutritionCalendarComponent implements OnChanges {
   }
 
   private withPhases(cells: CalendarCell[]): CalendarCell[] {
-    const mapped = cells.map((cell) => ({
+    const mapped = this.withSupplements(cells).map((cell) => ({
       ...cell,
       phase: cell.date ? this.findPhaseForDate(cell.date) : null,
     }));
@@ -531,18 +612,24 @@ export class NutritionCalendarComponent implements OnChanges {
       id: phase._id,
       color: this.phaseColorMap.get(phaseKey) ?? PHASE_COLORS[0],
       planName: phase.planName || null,
-      // Solo los ciclos de ESTA fase: la numeración de vueltas se reinicia en
-      // cada fase nueva (ver cycle-label.util.ts).
-      cycleLabel: cycleLabelFor(
-        date,
-        this.planPhases.filter((p) => (p.phaseId || p._id) === phaseKey)
-      ),
+      // Solo las semanas de ESTA fase: la numeración se reinicia en cada
+      // fase nueva.
+      weekLabel: this.weekLabelFor(date, phaseKey),
       // Misma regla que el backend (plan-assignment-service.js#blocksNewPhase):
       // cambiar el plan "a partir de ya" siempre se puede; lo que no se puede
       // es PROGRAMAR una fase futura dentro de un tramo ya reservado, sea por
       // su fin real o por su duración estimada.
       blocksNewPhase: phase.endDate !== null || date > this.todayIso,
     };
+  }
+
+  // "R3" si ese día cae dentro de una semana de la fase; null si no hay
+  // check-ins que la partan todavía.
+  private weekLabelFor(date: string, phaseKey: string): string | null {
+    const window = this.weekWindows.find(
+      (w) => w.phaseId === phaseKey && w.start <= date && w.end >= date
+    );
+    return window ? `S${window.number}` : null;
   }
 
   // ¿Hay alguna fase pisando este tramo? Misma condición de solape que

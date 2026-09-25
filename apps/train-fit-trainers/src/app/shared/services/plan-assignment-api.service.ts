@@ -2,11 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { ApplyPlanRequest, NutritionHistoryResponse, PhasePayload, PlanAssignment } from '../models/plan-assignment.model';
-import {
-  DietTemplateDayPatternPayload,
-  DietTemplateDayPayload,
-  TemplateMode,
-} from '../../features/diet-templates/models/diet-template.model';
+import { DietTemplateMenuPayload } from '../../features/diet-templates/models/diet-template.model';
 
 // "Crear dieta" — mismos campos de fecha/duración que ApplyPlanRequest, más
 // el contenido en crudo (mismo shape que DietTemplateApiService#create/
@@ -14,28 +10,30 @@ import {
 // para este cliente (ver plan-assignment-service.js#createDirectPlan).
 export interface CreateDirectPlanRequest {
   name: string;
-  days: DietTemplateDayPayload[];
-  mode: TemplateMode;
-  dayPatterns: DietTemplateDayPatternPayload[];
-  choiceCycleDays?: number | null;
+  menus: DietTemplateMenuPayload[];
   startDate: string;
   phase?: PhasePayload;
 }
 
-// Editor de fase/ciclo ya asignado — contenido completo de la copia de ESTE
-// cliente (nunca una plantilla de biblioteca), por su propio _id. Funciona
-// igual para el ciclo 1 que para cualquiera posterior (sin sourceTemplateId).
+// Editor de una fase/semana ya asignada — contenido completo de la copia
+// de ESTE cliente (nunca una plantilla de biblioteca), por su propio _id.
+// Funciona igual para el contenido inicial que para cualquier semana
+// posterior (sin sourceTemplateId).
 export interface PlanContent {
   _id: string;
   name: string;
-  // Fase a la que pertenece (apunta al primer ciclo) y fecha de inicio de
-  // esta copia — para saber qué ciclo se está editando.
+  // Fase a la que pertenece (apunta a su primer documento) y fecha de inicio
+  // de esta copia — para saber qué semana se está editando.
   phaseId?: string | null;
   startDate?: string | null;
-  mode: TemplateMode;
-  choiceCycleDays?: number | null;
-  days: DietTemplateDayPayload[];
-  dayPatterns: DietTemplateDayPatternPayload[];
+  menus: DietTemplateMenuPayload[];
+}
+
+// Fases y semanas de un rango de fechas (espejo de
+// plan-assignment-service.js#getDietTimeline).
+export interface DietTimeline {
+  phases: { id: string; name: string | null; start: string; end: string | null; colorIndex: number }[];
+  weeks: { phaseId: string; number: number; start: string; end: string; colorIndex: number }[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -69,13 +67,7 @@ export class PlanAssignmentApiService {
   public updateContent(
     clientId: string,
     planId: string,
-    body: {
-      name?: string;
-      mode?: TemplateMode;
-      days?: DietTemplateDayPayload[];
-      dayPatterns?: DietTemplateDayPatternPayload[];
-      choiceCycleDays?: number | null;
-    }
+    body: { name?: string; menus?: DietTemplateMenuPayload[] }
   ): Observable<PlanContent> {
     return this.http.put<PlanContent>(`${this.base(clientId)}/${planId}`, body);
   }
@@ -88,16 +80,28 @@ export class PlanAssignmentApiService {
     return this.http.delete<void>(`${this.base(clientId)}/${planId}`);
   }
 
-  public createException(
-    clientId: string,
-    body: { date: string; mealSlot?: string; action: 'override' | 'skip'; override?: unknown }
-  ): Observable<unknown> {
-    return this.http.post(`trainer/clients/${clientId}/diet-exceptions`, body);
+  // Ese día el cliente no sigue el plan: se vacía de lo pautado y deja de
+  // contar. Lo que anotó por su cuenta se queda.
+  public markDaySkipped(clientId: string, date: string): Observable<unknown> {
+    return this.http.post(`trainer/clients/${clientId}/skipped-days`, { date });
   }
 
-  // Feed del bloque "Historial de nutrición" de la ficha (fases, ciclos,
-  // check-ins y excepciones).
+  // Feed del bloque "Historial de nutrición" de la ficha (fases, semanas,
+  // check-ins y días saltados).
   public getNutritionHistory(clientId: string): Observable<NutritionHistoryResponse> {
     return this.http.get<NutritionHistoryResponse>(`trainer/clients/${clientId}/nutrition-history`);
+  }
+
+  // Fases y sus SEMANAS en un rango — lo que necesita el calendario para
+  // pintar la franja de cada fase y el badge R1/R2 de cada día. Las ventanas
+  // las marcan los check-ins, así que no se pueden deducir en el front.
+  public getDietTimeline(
+    clientId: string,
+    from: string,
+    to: string
+  ): Observable<DietTimeline> {
+    return this.http.get<DietTimeline>(
+      `trainer/clients/${clientId}/diet-timeline?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+    );
   }
 }

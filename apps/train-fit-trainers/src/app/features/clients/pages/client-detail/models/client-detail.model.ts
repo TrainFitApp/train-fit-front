@@ -1,3 +1,4 @@
+import { WeekNeed, StepsFromHabit } from '../../../../diet-templates/models/diet-suggestion.model';
 import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
@@ -13,7 +14,6 @@ export type ClientDetailTab =
   | 'measurements'
   | 'notes'
   | 'history'
-  | 'checkins'
   | 'payments'
   | 'pain'
   | 'tasks';
@@ -82,8 +82,16 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
     key: 'progress',
     label: 'Progreso',
     tabs: [
-      { key: 'measurements', label: 'Medidas', icon: 'body-outline', requiresScope: 'any' },
-      { key: 'checkins', label: 'Check-ins', icon: 'clipboard-outline' },
+      // Medidas y check-ins eran dos subpestañas contiguas que contaban lo
+      // mismo: el check-in es de donde salen casi todas las medidas (sus
+      // campos de composición corporal y perímetros se guardan en
+      // Anthropometry), y "solicitar antropometría" es la misma petición sin
+      // formulario. Ahora es un panel único.
+      //
+      // Sin requiresScope, como tenía Check-ins: un cliente sin scope de
+      // entrenamiento ni de nutrición conserva su agenda de check-ins (el
+      // bloque de medidas de dentro sí sigue pidiendo scope).
+      { key: 'measurements', label: 'Medidas y check-ins', icon: 'body-outline' },
       // Movimiento final — el dolor sale de dentro de Medidas a su propia
       // subpestaña. Estaba como tercera tarjeta bajo el gráfico y la
       // calculadora, y es justo lo que un entrenador mira ANTES de
@@ -149,23 +157,19 @@ export interface CompletedWorkoutEntry extends Workout {
 }
 
 // F17 — configuración de check-in ya aplicada a este cliente por este profesional.
-export interface CheckinConfig {
-  _id: string;
-  enabledFields: string[];
-  // Fase 5 Coach Pro — copia de las preguntas propias del coach en el
-  // momento de aplicar. Ausente en configuraciones anteriores.
-  customQuestions?: CustomCheckinQuestion[];
-  cadence: 'weekly';
-  sourceTemplateId: string | null;
-  updatedAt: string;
-}
-
 export interface CheckinResponseEntry {
   _id: string;
   respondedAt: string;
+  updatedAt?: string;
   // Las respuestas a preguntas propias comparten este mismo contenedor, con
   // la clave "custom:<id>" — de ahí que el valor ya no sea solo numérico.
   values: Record<string, number | string | boolean>;
+  // Copia de las preguntas tal y como estaban al responder: la programación
+  // puede cambiar después y la respuesta tiene que seguir leyéndose (por eso
+  // ya no hace falta pedir la "config" del cliente aparte).
+  customQuestions?: CustomCheckinQuestion[];
+  // A qué semana de la fase de dieta pertenece.
+  week?: { phaseId: string; number: number; start: string; end: string | null } | null;
 }
 
 // F26 — recordatorio de cobro (agenda manual, sin pagos reales).
@@ -225,17 +229,20 @@ export interface Supplement {
   // Vacío = todos los días, que es el caso normal y no obliga a marcar
   // siete casillas.
   weekdays: number[];
+  // Desde cuándo y hasta cuándo se toma (docs/plan-semanas.md).
+  // `endDate` null = sin fecha de fin, se toma hasta nueva orden.
+  startDate: string;
+  endDate: string | null;
   active: boolean;
 }
 
 // F20-bis — un día del calendario de nutrición: cumplimiento (% de items
-// pautados marcados como hechos) y si hubo alguna excepción ese día.
+// pautados marcados como hechos) y si el cliente se saltó el plan ese día.
 export interface NutritionComplianceDay {
   date: string;
   hasPlan: boolean;
   completionPercentage: number | null;
-  hasException: boolean;
-  exceptionType: 'override' | 'skip' | null;
+  skipped: boolean;
 }
 
 export interface NutritionComplianceSummary {
@@ -266,7 +273,7 @@ export interface NutritionTrackingSummary {
   dailyTracking: NutritionTrackingDay[];
 }
 
-// Cumplimiento alimento a alimento de un rango (panel de resumen de un ciclo).
+// Cumplimiento alimento a alimento de un rango (panel de resumen de una semana).
 // `plannedDays` = en cuántos días se le pautó; `consumedDays` = en cuántos lo
 // marcó como hecho. Vienen ordenados de peor a mejor cumplimiento.
 export interface NutritionFoodCompliance {
@@ -357,24 +364,42 @@ export interface TrainerTask {
   type: TrainerTaskType;
   label: string | null;
   target: number;
+  // Tope del rango, opcional: un hábito de pasos se pauta como "10.000 a
+  // 15.000" (docs/plan-semanas.md), y de ahí sale el rango de pasos
+  // que entra en el cálculo de kcal.
+  targetMax: number | null;
   unit: string;
   active: boolean;
   createdAt: string;
 }
 
-// "Solicitar antropometría" — cadencia propia, independiente de la del
-// check-in de bienestar (mismo catálogo de campos, ver checkin-fields.ts,
-// filtrado a storage === 'anthropometry').
-export type AnthropometryRequestCadence = 'once' | 'daily' | 'weekly' | 'monthly' | 'custom';
 
-export interface AnthropometryRequest {
+// --- Objetivo nutricional del cliente, visto por su profesional ---
+// (docs/plan-semanas.md). `source` manual = alguien tecleó esas kcal
+// encima del cálculo, y recalcular el perfil ya no las pisa.
+export interface ClientNutritionalGoal {
   _id: string;
-  fields: string[];
-  notes: string;
-  cadence: AnthropometryRequestCadence;
-  customIntervalDays: number | null;
-  active: boolean;
-  lastRequestedAt: string;
-  lastFulfilledAt: string | null;
+  name: string;
+  kcalTotal: number;
+  proteinsGTotal: number;
+  carbohydratesGTotal: number;
+  fatGTotal: number;
+  fiberGTotal: number | null;
+  source: 'calculated' | 'manual';
+  updatedAt: string;
 }
 
+export interface ClientNutritionalGoalResponse {
+  goal: ClientNutritionalGoal | null;
+  // Lo que saldría hoy de sus datos (último peso, último rango de pasos
+  // declarado en un check-in), con la cuenta entera para poder enseñarla.
+  calculated: {
+    target: { kcal: number; protein: number; carbs: number; fat: number };
+    inputs: WeekNeed['inputs'];
+    breakdown: WeekNeed['breakdown'];
+    weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
+    stepsFromHabit: StepsFromHabit | null;
+  } | null;
+  // Qué biométricos faltan cuando no se puede calcular.
+  missing: string[] | null;
+}

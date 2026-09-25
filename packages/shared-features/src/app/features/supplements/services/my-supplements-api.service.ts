@@ -22,6 +22,10 @@ export interface MySupplement {
   purchaseUrl?: string;
   // Vacío = todos los días, que es el caso normal.
   weekdays: number[];
+  // Desde cuándo y hasta cuándo se toma (docs/plan-semanas.md §14).
+  // `endDate` null = hasta nueva orden.
+  startDate: string;
+  endDate: string | null;
   // Quién se lo pautó: un cliente puede tener entrenador y nutricionista.
   trainerName: string;
 }
@@ -34,7 +38,11 @@ export class MySupplementsApiService {
     return this.http.get<{ timings: SupplementTiming[] }>('supplements/timings');
   }
 
-  public getMine(): Observable<MySupplement[]> {
-    return this.http.get<MySupplement[]>('supplements/mine');
+  // Los VIGENTES en esa fecha (hoy por defecto): la pantalla de dieta los
+  // pinta bajo las comidas del día que se está mirando.
+  public getMine(date?: string): Observable<MySupplement[]> {
+    return this.http.get<MySupplement[]>(
+      date ? `supplements/mine?date=${encodeURIComponent(date)}` : 'supplements/mine'
+    );
   }
 }

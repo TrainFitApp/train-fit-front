@@ -1,10 +1,6 @@
-<!-- Fase anterior a guardar el cálculo: no hay cuenta que enseñar, pero los
-     pasos del check-in del ciclo existen igual. -->
+<!-- Fase anterior a guardar el cálculo: no hay cuenta que enseñar. -->
 <ng-container *ngIf="!need">
   <p class="need-empty">Esta fase se creó antes de guardar el cálculo de la necesidad.</p>
-  <p class="need-empty" *ngIf="stepsDone?.avg">
-    Pasos del check-in: {{ n(stepsDone!.avg) }} de media
-  </p>
 </ng-container>
 
 <ng-container *ngIf="need">
@@ -41,12 +37,7 @@
     </div>
     <div class="need-inputs__row">
       <dt>Pasos</dt>
-      <dd>
-        {{ stepsLine }}
-        <span class="need-note" *ngIf="stepsDone?.avg">
-          · check-in de este ciclo: {{ n(stepsDone!.avg) }} de media
-        </span>
-      </dd>
+      <dd>{{ stepsLine }}</dd>
     </div>
     <div class="need-inputs__row">
       <dt>Entrenamiento</dt>

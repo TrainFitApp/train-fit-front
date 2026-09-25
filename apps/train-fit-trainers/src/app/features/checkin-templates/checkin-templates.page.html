@@ -45,6 +45,14 @@
     </div>
 
     <div class="templates-grid" *ngIf="templates.length">
+      <!-- Primera de la rejilla, con el mismo lenguaje que "Siguiente fase"
+           en la ficha del cliente: crear va donde se mira, no solo escondido
+           tras el "+" de la cabecera. -->
+      <button type="button" class="template-card template-card--add" (click)="openCreatePanel()">
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+        <span>Crear check-in</span>
+      </button>
+
       <div class="template-card" *ngFor="let template of templates; trackBy: trackByTemplateId">
         <div class="template-card-main" (click)="openEditPanel(template)">
           <div class="template-card-top">

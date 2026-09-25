@@ -1,7 +1,8 @@
 <swiper-container class="t-dates-slider" #dateSlides>
   <swiper-slide *ngFor="let slide of allDateSlides; let s = index">
-    <!-- Ciclos por contenido: línea fina por FASE encima de los días, con su
-         nombre; corta donde empieza la siguiente. -->
+    <!-- Línea fina por FASE encima de los días, con su nombre y en qué
+         semana de ella va; corta donde empieza la siguiente. La semana se
+         dice aquí y no día a día: la tira ENTERA es una semana. -->
     <div class="phase-line" *ngIf="segmentsBySlide[s]?.length">
       <div
         class="phase-line__segment"
@@ -10,7 +11,10 @@
         [class.is-empty]="!seg.color"
         [style.--phase-color]="seg.color"
       >
-        <span class="phase-line__name" *ngIf="seg.color">{{ seg.name }}</span>
+        <span class="phase-line__name" *ngIf="seg.color">
+          {{ seg.name }}
+          <span class="phase-line__week" *ngIf="seg.weekNumber">· Semana {{ seg.weekNumber }}</span>
+        </span>
         <span class="phase-line__bar"></span>
       </div>
     </div>
@@ -21,11 +25,9 @@
           (click)="sendSelectedDate(day)"
           [class.selected]="datesAreOnSameDay(currentDate, day)"
           [class.today]="today.getDate() === day.getDate() && today.getMonth() === day.getMonth()"
-          [class.has-cycle]="!!infoFor(day)"
-          [style.--cycle-color]="infoFor(day)?.cycleColor"
+          [class.has-week]="!!infoFor(day)"
+          [style.--week-color]="infoFor(day)?.phaseColor"
         >
-          <!-- En qué ciclo cae el día, en pequeño arriba a la derecha. -->
-          <span class="cycle-badge" *ngIf="infoFor(day) as info">C{{ info.cycleNumber }}</span>
           <div>{{ day | date : "dd" }}</div>
           <div>{{ getDayAbbreviation(day) }}</div>
         </ion-col>

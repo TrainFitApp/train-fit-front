@@ -30,20 +30,42 @@
   </div>
 
   <ng-container *ngIf="state === 'ready' || state === 'loading'">
-    <!-- ===== Objetivo calculado ===== arriba del todo: es el dato que
-         justifica todo lo que hay debajo (parámetros, ranking). -->
-    <section class="target-card" *ngIf="target as t">
+    <!-- ===== Objetivo de la fase ===== arriba del todo: es el dato que
+         justifica todo lo que hay debajo (ranking incluido). Es un valor de
+         REFERENCIA calculado con los últimos datos del cliente, y es
+         editable: al tocarlo pasa a ser manual y el ranking se rehace
+         contra esos números. -->
+    <section class="target-card" *ngIf="targetDraft as t">
       <div class="target-head">
-        <span class="target-kcal">{{ t.kcal }} kcal</span>
-        <span class="target-macros">
-          <span class="macro macro--protein">P {{ t.protein }} g</span> ·
-          <span class="macro macro--carbs">C {{ t.carbs }} g</span> ·
-          <span class="macro macro--fat">G {{ t.fat }} g</span>
-        </span>
+        <span class="target-badge">{{ manualTarget ? 'Manual' : 'Valor de referencia calculado' }}</span>
+        <button type="button" class="target-reset" *ngIf="manualTarget" (click)="resetTargetToCalculated()">
+          Volver al calculado
+        </button>
       </div>
-      <p class="target-source" *ngIf="weightSource as w">
+      <div class="target-fields">
+        <label class="target-field target-field--kcal">
+          <span>kcal</span>
+          <input type="number" step="10" [(ngModel)]="t.kcal" (ngModelChange)="onTargetEdited()" />
+        </label>
+        <label class="target-field">
+          <span>P (g)</span>
+          <input type="number" step="1" [(ngModel)]="t.protein" (ngModelChange)="onTargetEdited()" />
+        </label>
+        <label class="target-field">
+          <span>C (g)</span>
+          <input type="number" step="1" [(ngModel)]="t.carbs" (ngModelChange)="onTargetEdited()" />
+        </label>
+        <label class="target-field">
+          <span>G (g)</span>
+          <input type="number" step="1" [(ngModel)]="t.fat" (ngModelChange)="onTargetEdited()" />
+        </label>
+      </div>
+      <p class="target-source" *ngIf="!manualTarget && weightSource as w">
         Peso {{ w.weightKg | number: '1.0-1' }} kg —
         {{ w.from === 'anthropometry' ? 'de la antropometría del ' + w.date : 'del registro del cliente' }}
+      </p>
+      <p class="target-source" *ngIf="manualTarget">
+        Lo has fijado tú: el ranking usa estos números, no los calculados.
       </p>
     </section>
 
@@ -64,7 +86,6 @@
         [verified]="c.verified"
         [ownedByClient]="!!c.ownerClientId"
         [basedOnDays]="c.basedOnDays"
-        [mode]="c.mode"
         [flags]="c.effectiveSuitableFor || []"
         [missingFlags]="c.missingFlags || []"
         [selected]="true"
@@ -74,71 +95,15 @@
 
     <!-- ===== Parámetros ===== -->
     <section class="filters">
-      <label class="field-label">Tipo de fase</label>
-      <div class="focus-buttons">
-        <button type="button" [class.is-active]="focus === 'cut'" (click)="setFocus('cut')">Definir</button>
-        <button type="button" [class.is-active]="focus === 'maintain'" (click)="setFocus('maintain')">Mantener</button>
-        <button type="button" [class.is-active]="focus === 'bulk'" (click)="setFocus('bulk')">Volumen</button>
-      </div>
-
       <div class="field">
         <label class="field-label">Nombre de la fase</label>
-        <input type="text" [(ngModel)]="phaseName" (ngModelChange)="queueRefetch()" />
+        <input type="text" [(ngModel)]="phaseName" />
       </div>
 
-      <div class="field-row">
-        <div class="field">
-          <label class="field-label">Ajuste de kcal</label>
-          <input type="number" step="50" [(ngModel)]="kcalDelta" (ngModelChange)="queueRefetch()" />
-        </div>
-        <div class="field">
-          <!-- Qué es el ritmo, con un ejemplo hecho con los números de ESTA
-               fase. Abre al pasar el ratón, al enfocar con teclado y al
-               tocar (móvil: no hay hover). -->
-          <div class="label-with-info" (keydown.escape)="showRateInfo = false">
-            <label class="field-label" for="rate-per-cycle">Ritmo por ciclo</label>
-            <button
-              type="button"
-              class="info-tip"
-              aria-label="Qué es el ritmo por ciclo"
-              aria-describedby="rate-per-cycle-info"
-              [attr.aria-expanded]="showRateInfo"
-              (click)="showRateInfo = !showRateInfo"
-              (blur)="showRateInfo = false"
-            >
-              <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
-            </button>
-            <div class="info-tip__bubble" id="rate-per-cycle-info" role="tooltip" [class.is-open]="showRateInfo">
-              <p>
-                <strong>Cuánto cambian las kcal de un ciclo al siguiente</strong> (un ciclo suele ser una semana)
-                mientras el progreso vaya según lo previsto.
-              </p>
-              <p class="info-tip__example-title">
-                {{ rateStep ? 'Con ' + signed(rateStep) + ' kcal:' : 'Por ejemplo, con −100 kcal:' }}
-              </p>
-              <ul class="info-tip__example">
-                <li *ngFor="let w of rateExample; trackBy: trackByWeek">
-                  <span>Semana {{ w.week }}</span>
-                  <strong>{{ w.kcal | number: '1.0-0' }} kcal</strong>
-                </li>
-              </ul>
-              <p>
-                En negativo baja las kcal (definir), en positivo las sube (volumen) y con 0 se mantienen.
-                Va en pasos de 50.
-              </p>
-              <p class="info-tip__note">
-                Si el peso se desvía de lo esperado, la sugerencia del ciclo corrige en lugar de aplicar este paso.
-                Siempre decides tú al preparar cada ciclo.
-              </p>
-            </div>
-          </div>
-          <input id="rate-per-cycle" type="number" step="50" [(ngModel)]="ratePerCycle" />
-        </div>
-      </div>
-
-      <!-- Ajustar macros — la misma pieza que el modal de "Siguiente ciclo".
-           Sin tocarla sigue a la fórmula por defecto del backend; al tocarla,
-           proteína y grasa viajan como g/kg y recalculan objetivo y ranking. -->
+      <!-- Ajustar macros — la misma pieza que el modal de "Siguiente
+           semana". Sin tocarla sigue a la fórmula por defecto del backend;
+           al tocarla, proteína y grasa viajan como g/kg y recalculan
+           objetivo y ranking. -->
       <app-macro-adjust
         class="macros"
         [targetKcal]="target?.kcal || 0"
@@ -181,11 +146,13 @@
       </div>
     </section>
 
-    <!-- ===== Fecha ===== -->
+    <!-- ===== Cuándo empieza ===== sin fecha que elegir: la fase empieza hoy
+         y sus fechas se corrigen después desde Plan > Nutrición. -->
     <section class="confirm-box">
-      <label class="field-label">Fecha de inicio</label>
-      <input type="date" [(ngModel)]="startDate" />
-      <p class="muted small">La fase queda abierta; cada ciclo la va ajustando según los check-ins.</p>
+      <p class="muted small">
+        La fase empieza <strong>hoy</strong> y queda abierta. Si el cliente ya tiene una fase en curso, se
+        cerrará ayer al aplicar esta. Las fechas se pueden corregir luego desde Plan &gt; Nutrición.
+      </p>
     </section>
   </ng-container>
 </ion-content>

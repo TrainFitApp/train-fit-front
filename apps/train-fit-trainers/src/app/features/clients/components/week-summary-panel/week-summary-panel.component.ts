@@ -5,7 +5,6 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
 import {
-  CheckinConfig,
   CheckinResponseEntry,
   NutritionFoodCompliance,
   NutritionMacroTotals,
@@ -13,39 +12,37 @@ import {
 } from '../../pages/client-detail/models/client-detail.model';
 import { PlanAssignment } from '../../../../shared/models/plan-assignment.model';
 import { checkinFieldLabel, checkinValueLabel } from '../../checkin-labels.util';
+import { CustomCheckinQuestion } from '../../../checkin-templates/models/checkin-template.model';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
-import { CycleNeedResponse } from '../../../diet-templates/models/diet-suggestion.model';
+import { WeekNeedResponse } from '../../../diet-templates/models/diet-suggestion.model';
 import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
 
 type ViewState = 'loading' | 'ready' | 'error';
 
-// Qué pasó en UN ciclo de una fase de nutrición. Se abre desde los cuadraditos
-// de la tarjeta de la fase (client-detail.page.html) como panel derecho.
+// Qué pasó en UNA semana de una fase de nutrición. Se abre desde los
+// cuadraditos de la tarjeta de la fase (client-detail.page.html) como panel
+// derecho.
 //
-// Es de solo lectura y no inventa datos: cruza por el rango de fechas del
-// ciclo tres cosas que ya existen —macros pautados vs consumidos
+// Es de solo lectura y no inventa datos: cruza por el rango de fechas de la
+// semana tres cosas que ya existen —macros pautados vs consumidos
 // (nutrition-tracking), cumplimiento alimento a alimento (nutrition-foods) y
 // los check-ins que el cliente respondió dentro de ese rango.
-//
-// Los check-ins se cruzan por FECHA dentro de la ventana del ciclo (desde
-// ciclos por contenido llevan además `cycle`, pero el cruce por fecha sigue
-// valiendo y cubre también los anteriores).
 @Component({
-  selector: 'app-cycle-summary-panel',
+  selector: 'app-week-summary-panel',
   standalone: true,
   imports: [CommonModule, IonicModule, NeedBreakdownComponent],
-  templateUrl: './cycle-summary-panel.component.html',
-  styleUrls: ['./cycle-summary-panel.component.scss'],
+  templateUrl: './week-summary-panel.component.html',
+  styleUrls: ['./week-summary-panel.component.scss'],
 })
-export class CycleSummaryPanelComponent implements OnInit {
+export class WeekSummaryPanelComponent implements OnInit {
   @Input() public clientId!: string;
-  @Input() public cycle!: PlanAssignment;
-  @Input() public cycleNumber = 1;
+  @Input() public assignment!: PlanAssignment;
+  @Input() public weekNumber = 1;
   @Input() public clientName = 'este cliente';
-  // La ventana del ciclo (calculada por contenido, ver cycle-window.js), que
-  // no coincide con el rango del doc persistido (un doc puede cubrir varios
-  // ciclos). Sin ella se cae al rango del doc.
-  @Input() public window: { start: string; end: string } | null = null;
+  // La ventana de la semana (la marcan los check-ins, ver
+  // week-window.js), que no coincide con el rango del doc persistido —
+  // un contenido puede cubrir varias semanas. `end` null = sigue abierta.
+  @Input() public window: { start: string; end: string | null } | null = null;
 
   public state: ViewState = 'loading';
 
@@ -58,13 +55,14 @@ export class CycleSummaryPanelComponent implements OnInit {
   // nuevo en cada detección de cambios hace que *ngFor recree el DOM, eso
   // despierta a los observadores de Ionic, que disparan otra detección… y la
   // pestaña se queda colgada (pasó en cuanto hubo un check-in dentro del
-  // ciclo). Mismo motivo que trackByCheckinValueKey en client-detail.page.ts.
+  // semana). Mismo motivo que trackByCheckinValueKey en client-detail.page.ts.
   public checkins: { entry: CheckinResponseEntry; values: { key: string; value: number | string | boolean }[] }[] = [];
-  // Solo para poder nombrar las preguntas propias del coach ("custom:<id>").
-  private checkinConfig: CheckinConfig | null = null;
-  // Cómo se calculó la necesidad de este ciclo
+  // Preguntas propias que traen las respuestas cargadas: con ellas se
+  // nombran las claves "custom:<id>" sin pedir nada más.
+  private checkinQuestions: CustomCheckinQuestion[] = [];
+  // Cómo se calculó la necesidad de esta semana
   // (docs/plan-info-calculo-fase.md). null mientras carga o si falló.
-  public cycleNeed: CycleNeedResponse | null = null;
+  public weekNeed: WeekNeedResponse | null = null;
   public needState: 'loading' | 'ready' | 'error' = 'loading';
 
   constructor(
@@ -73,15 +71,15 @@ export class CycleSummaryPanelComponent implements OnInit {
     private suggestionApi: DietSuggestionApiService
   ) {}
 
-  // Un ciclo vigente no tiene fin: se mira hasta hoy. El backend vuelve a
+  // Una semana en curso no tiene fin: se mira hasta hoy. El backend vuelve a
   // acotarlo por su cuenta (nunca el futuro), esto es solo para no pedir un
   // rango absurdo.
   public get from(): string {
-    return this.window?.start || this.cycle?.startDate || this.todayIso;
+    return this.window?.start || this.assignment?.startDate || this.todayIso;
   }
 
   public get to(): string {
-    const fin = this.window?.end || this.cycle?.endDate || this.todayIso;
+    const fin = this.window?.end || this.assignment?.endDate || this.todayIso;
     return fin > this.todayIso ? this.todayIso : fin;
   }
 
@@ -90,8 +88,8 @@ export class CycleSummaryPanelComponent implements OnInit {
   }
 
   public get isRunning(): boolean {
-    if (this.window) return this.window.end >= this.todayIso;
-    return !this.cycle?.endDate;
+    if (this.window) return !this.window.end || this.window.end >= this.todayIso;
+    return !this.assignment?.endDate;
   }
 
   public ngOnInit(): void {
@@ -106,15 +104,17 @@ export class CycleSummaryPanelComponent implements OnInit {
       // El histórico completo: es el endpoint que hay (no acepta rango) y es
       // el mismo que ya usa la pestaña de check-ins de la ficha.
       checkins: this.api.getCheckinResponses(this.clientId).pipe(catchError(() => of([]))),
-      // Sin esto, una pregunta propia del coach se leería
-      // "custom:507f1f77bcf86cd799439011".
-      config: this.api.getCheckinConfig(this.clientId).pipe(catchError(() => of(null))),
     }).subscribe({
-      next: ({ tracking, foods, checkins, config }) => {
+      next: ({ tracking, foods, checkins }) => {
         this.foods = foods?.items || [];
         this.applyTracking(tracking?.dailyTracking || []);
-        this.checkinConfig = config;
-        this.checkins = this.checkinsInRange(checkins || []).map((entry) => ({
+        const inRange = this.checkinsInRange(checkins || []);
+        this.checkinQuestions = [
+          ...new Map(
+            inRange.flatMap((entry) => (entry.customQuestions || []).map((q) => [String(q._id), q] as const))
+          ).values(),
+        ];
+        this.checkins = inRange.map((entry) => ({
           entry,
           values: Object.entries(entry?.values || {}).map(([key, value]) => ({ key, value })),
         }));
@@ -126,17 +126,17 @@ export class CycleSummaryPanelComponent implements OnInit {
     });
   }
 
-  // Aparte del resto: si falla, el ciclo se sigue viendo y solo este bloque
-  // dice que no cargó.
+  // Aparte del resto: si falla, la semana se sigue viendo y solo este
+  // bloque dice que no cargó.
   private loadNeed(): void {
-    const phaseId = this.cycle?.phaseId;
+    const phaseId = this.assignment?.phaseId;
     if (!phaseId) {
       this.needState = 'error';
       return;
     }
-    this.suggestionApi.getCycleNeed(this.clientId, phaseId, this.cycleNumber).subscribe({
+    this.suggestionApi.getWeekNeed(this.clientId, phaseId, this.weekNumber).subscribe({
       next: (need) => {
-        this.cycleNeed = need;
+        this.weekNeed = need;
         this.needState = 'ready';
       },
       error: () => {
@@ -145,7 +145,7 @@ export class CycleSummaryPanelComponent implements OnInit {
     });
   }
 
-  // Media POR DÍA CON PLAN, no por día del rango: un ciclo con días sin nada
+  // Media POR DÍA CON PLAN, no por día del rango: una semana con días sin nada
   // pautado (excepciones, huecos) tiene esos días a cero, y promediarlos
   // hundiría la cifra y haría parecer que se pautó menos de lo que se pautó.
   private applyTracking(days: NutritionTrackingDay[]): void {
@@ -205,7 +205,7 @@ export class CycleSummaryPanelComponent implements OnInit {
   }
 
   public fieldLabel(key: string): string {
-    return checkinFieldLabel(key, this.checkinConfig?.customQuestions || []);
+    return checkinFieldLabel(key, this.checkinQuestions);
   }
 
   public valueLabel(value: number | string | boolean): string {

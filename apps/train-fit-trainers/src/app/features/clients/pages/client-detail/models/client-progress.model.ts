@@ -126,7 +126,7 @@ export interface ClientSummary {
   latestWeight: number | null;
   latestWeightDate: string | null;
   lastCheckinAt: string | null;
-  checkinCadence: string | null;
+  nextCheckinDate: string | null;
   activePlan: { _id: string; name: string; startDate: string; endDate: string | null } | null;
   routine: { _id: string; name: string } | null;
 }

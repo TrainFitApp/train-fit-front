@@ -7,23 +7,23 @@
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Siguiente ciclo</h1>
+        <h1 class="tf-page-header__title">Siguiente semana</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
   </div>
 </ion-header>
 
-<ion-content class="cycle-content">
-  <p class="cycle-period">
-    <strong>Ciclo {{ next.number }}</strong> · {{ periodLabel }} · {{ next.len }} día{{ next.len === 1 ? '' : 's' }}
-    <span class="cycle-period__edited" *ngIf="alreadyPrepared">· ya preparado</span>
+<ion-content class="week-content">
+  <p class="week-period">
+    <strong>R{{ next.number }}</strong> · {{ periodLabel }}
+    <span class="week-period__edited" *ngIf="alreadyPrepared">· ya preparada</span>
   </p>
 
-  <!-- La sugerencia mira cómo respondió el peso en el ciclo actual y cómo se
-       siguió la dieta. Nunca bloquea: con adherencia baja avisa, y decide el
-       entrenador. -->
-  <section class="reason-card" [class.is-flagged]="suggestion.flag">
+  <!-- La sugerencia mira cómo respondió el peso en la semana en curso y
+       cómo se siguió la dieta. Nunca bloquea: con adherencia baja avisa, y
+       decide el entrenador. -->
+  <section class="reason-card" *ngIf="suggestion as suggestion" [class.is-flagged]="suggestion.flag">
     <ion-icon
       class="reason-icon"
       [name]="suggestion.flag ? 'alert-circle-outline' : 'sparkles-outline'"
@@ -35,10 +35,10 @@
       <div class="weight-row" *ngIf="suggestion.hasData">
         Peso {{ suggestion.weightStartKg }} → {{ suggestion.weightEndKg }} kg
         <span *ngIf="suggestion.actualWeeklyRateKg !== null">({{ deltaLabel(suggestion.actualWeeklyRateKg) }} kg/sem)</span>
-        <span *ngIf="suggestion.comparedToCycle"> · vs ciclo {{ suggestion.comparedToCycle }}</span>
+        <span *ngIf="suggestion.comparedToWeek"> · vs R{{ suggestion.comparedToWeek }}</span>
       </div>
       <div class="weight-row" *ngIf="suggestion.adherencePct !== null">
-        Adherencia del ciclo actual: <strong>{{ suggestion.adherencePct }} %</strong>
+        Adherencia de la semana en curso: <strong>{{ suggestion.adherencePct }} %</strong>
         <span class="muted-inline">({{ suggestion.adherenceDays }} día{{ suggestion.adherenceDays === 1 ? '' : 's' }} con pauta)</span>
       </div>
     </div>
@@ -60,9 +60,9 @@
     </ul>
   </section>
 
-  <!-- Necesidad con los datos de HOY (último peso, pasos del check-in del ciclo en
-       curso) — referencia para decidir las kcal; la sugerencia de arriba no
-       la usa (docs/plan-info-calculo-fase.md). Plegada: es contexto. -->
+  <!-- Necesidad con los datos de HOY (último peso, último rango de pasos
+       declarado en un check-in) — referencia para decidir las kcal. Plegada:
+       es contexto. -->
   <section class="need-now" *ngIf="needNow as nn">
     <button type="button" class="need-now__toggle" (click)="showNeed = !showNeed">
       <ion-icon [name]="showNeed ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
@@ -76,10 +76,10 @@
   </section>
 
   <section class="target-edit">
-    <label class="field-label">kcal del ciclo {{ next.number }}</label>
+    <label class="field-label">kcal de R{{ next.number }}</label>
     <input type="number" step="50" [(ngModel)]="targetKcal" (ngModelChange)="onKcalChange()" />
     <p class="delta-hint">
-      Ciclo actual: {{ baseKcal || '—' }} kcal
+      Pautado ahora: {{ baseKcal || '—' }} kcal
       <ng-container *ngIf="baseKcal">
         · cambio:
         <strong class="delta-hint__value" [class.is-up]="kcalDelta > 0" [class.is-down]="kcalDelta < 0">
@@ -90,7 +90,7 @@
     </p>
   </section>
 
-  <!-- Ajustar macros — reparto del ciclo en g / g·kg / %, con candados
+  <!-- Ajustar macros — reparto de la semana en g / g·kg / %, con candados
        (mismo juego que el editor de objetivos del cliente). Plegado: sin
        tocarlo, los macros siguen al escalado proporcional de las kcal. -->
   <app-macro-adjust
@@ -99,23 +99,23 @@
     [base]="base"
     [macroRatio]="macroRatio"
     [weightKg]="weightKg"
-    hint="Al tocar un macro, los que no están bloqueados absorben la diferencia. Si los macros no cuadran con las kcal del ciclo, no se puede preparar. El reparto ajustado viaja al editor como objetivo del ciclo."
+    hint="Al tocar un macro, los que no están bloqueados absorben la diferencia. Si los macros no cuadran con las kcal, no se puede preparar. El reparto ajustado viaja al editor como objetivo de la semana."
     (macrosChange)="adjustedMacros = $event"
   ></app-macro-adjust>
 
   <p class="muted">
-    Al preparar, todas las cantidades del ciclo actual se escalan en proporción a estas kcal y se abren
-    en el editor para retocarlas. Si no cambias nada, el ciclo {{ next.number }} repetirá el actual.
+    Al preparar, todas las cantidades de lo pautado hoy se escalan en proporción a estas kcal y se abren
+    en el editor para retocarlas. Si no cambias nada, R{{ next.number }} repetirá lo actual.
   </p>
 </ion-content>
 
 <ion-footer class="ion-no-border">
   <div class="footer-actions">
     <button type="button" class="confirm-button" [disabled]="!(targetKcal > 0)" (click)="prepare()">
-      Preparar ciclo {{ next.number }} en el editor
+      Preparar R{{ next.number }} en el editor
     </button>
     <button type="button" class="discard-link" *ngIf="alreadyPrepared" [disabled]="discarding" (click)="discard()">
-      {{ discarding ? 'Descartando…' : 'Descartar el ciclo preparado' }}
+      {{ discarding ? 'Descartando…' : 'Descartar la semana preparada' }}
     </button>
   </div>
 </ion-footer>

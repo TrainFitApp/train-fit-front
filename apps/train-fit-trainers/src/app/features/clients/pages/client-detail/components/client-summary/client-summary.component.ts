@@ -121,7 +121,7 @@ const OWNER_BY_TYPE: Record<CoachAlertType, string> = {
 // Los demás se quedan solo con el botón de resolver, sin enlace que no lleve
 // a ningún sitio concreto.
 const TAB_BY_ALERT_TYPE: Partial<Record<CoachAlertType, ClientDetailTab>> = {
-  checkin_overdue: 'checkins',
+  checkin_overdue: 'measurements',
   weight_change: 'measurements',
   measurement_change: 'measurements',
   stagnation: 'measurements',
@@ -416,7 +416,7 @@ export class ClientSummaryComponent implements OnInit {
   }
 
   // La zona con más dolor que YA supera el umbral que este entrenador fijó
-  // para ella. No es "una limitación vigente" con autor y fecha de revisión
+  // para ella. No es "una limitación vigente" con autor y fecha de semana
   // (ese concepto no existe en el modelo de dolor) — solo el peor dato real
   // cruzado con su propio umbral. Sin ninguna zona por encima, no hay nada
   // que avisar.
@@ -533,7 +533,9 @@ export class ClientSummaryComponent implements OnInit {
     nutrition: 'nutrition',
     training: 'training',
     habits: 'tasks',
-    checkins: 'checkins',
+    // Medidas y check-ins comparten panel desde que se fusionaron: la
+    // dimensión "check-ins" sigue llevando a donde está su agenda.
+    checkins: 'measurements',
   };
 
   public dimensionTab(key: AdherenceDimensionKey): ClientDetailTab {
