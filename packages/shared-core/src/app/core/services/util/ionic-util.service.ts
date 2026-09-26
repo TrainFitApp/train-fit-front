@@ -19,12 +19,18 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { NavigationBar } from '@capgo/capacitor-navigation-bar';
 import { ErrorHandlerService } from './error-handler.service';
+import {
+  alertSheetEnter,
+  alertSheetLeave,
+  enableAlertSheetSwipe,
+} from './alert-sheet';
 
 @Injectable({
   providedIn: 'root'
 })
 export class IonicUtilService {
   private loading: HTMLIonLoadingElement | null = null;
+  private alertSheetSeq = 0;
   private _translate: TranslateService | null = null;
 
   private get translate(): TranslateService {
@@ -101,35 +107,39 @@ export class IonicUtilService {
     return picker.onDidDismiss();
   }
 
+  // Todos los alerts de las 3 apps salen como hoja inferior (ver
+  // alert-sheet.ts para el porqué de seguir con ion-alert). `mode: 'md'` en
+  // todas las plataformas: el CSS de la hoja parte de un solo marcado.
   public async showAlert(alert: AlertOptions) {
-    // Si el alert tiene inputs, asegurar que el primero tenga autofocus
-    const normalizedInputs =
-      alert.inputs && alert.inputs.length > 0
-        ? alert.inputs.map((inp: any, idx: number) => {
-            if (idx === 0) {
-              return {
-                ...inp,
-                attributes: {
-                  ...(inp?.attributes || {}),
-                  autofocus: true,
-                  appCursorEnd: true,
-                },
-              };
-            }
-            return inp;
-          })
-        : alert.inputs;
+    const seq = ++this.alertSheetSeq;
+    const inputs = (alert.inputs || []).map((inp, idx) => ({
+      ...inp,
+      id: inp.id ?? `alert-sheet-${seq}-${idx}`,
+    }));
+    const fields = inputs.filter(
+      (inp) => inp.type !== 'radio' && inp.type !== 'checkbox'
+    );
+    const cancelHasHandler = (alert.buttons || []).some(
+      (btn) => typeof btn !== 'string' && btn.role === 'cancel' && !!btn.handler
+    );
 
     const showAlert = await this.alertController.create({
-      cssClass: alert.cssClass
-        ? `custom-alert ${alert.cssClass}`
-        : 'custom-alert',
-      header: alert.header,
-      message: alert.message,
-      buttons: alert.buttons,
-      inputs: normalizedInputs,
+      ...alert,
+      cssClass: [
+        'custom-alert',
+        // Con campos u opciones es un formulario, no un menú (ver global.scss).
+        inputs.length > 0 ? 'alert-sheet-form' : '',
+        ...[alert.cssClass ?? []].flat(),
+      ].join(' '),
+      inputs,
+      mode: 'md',
       animated: true,
-      backdropDismiss: false,
+      enterAnimation: alertSheetEnter,
+      leaveAnimation: alertSheetLeave,
+      // Tocar fuera cierra como "Cancelar" solo si no hay nada escrito que
+      // perder y "Cancelar" no hace nada (en el entreno, "Saltar" lo termina).
+      // Arrastrar la hoja cierra siempre: ese gesto no se hace sin querer.
+      backdropDismiss: fields.length === 0 && !cancelHasHandler,
     });
     await showAlert.present();
 
@@ -142,37 +152,37 @@ export class IonicUtilService {
         } catch {}
       }
     );
+    const swipe = enableAlertSheetSwipe(showAlert);
 
-    // Intentar enfocar el primer input tras presentarlo con pequeños reintentos
-    if (normalizedInputs && normalizedInputs.length > 0) {
-      const tryFocus = () => {
-        const el = document.querySelector(
-          'ion-alert textarea, ion-alert input, ion-alert .alert-input'
-        ) as HTMLTextAreaElement | HTMLInputElement | null;
-        if (el) {
-          try {
-            el.focus();
-            const val = (el as any).value ?? '';
-            if (typeof val === 'string' && (el as any).setSelectionRange) {
-              (el as any).setSelectionRange(val.length, val.length);
-            }
-          } catch {}
-          return true;
-        }
-        return false;
-      };
+    // Ionic no pinta el `label` de los inputs de texto/fecha (solo el de
+    // radios y checkboxes): sin esto, dos fechas seguidas no dicen cuál es cuál.
+    for (const field of fields) {
+      const el = showAlert.querySelector(`#${CSS.escape(field.id)}`);
+      if (!field.label || !el) continue;
+      const label = document.createElement('label');
+      label.className = 'alert-sheet-label';
+      label.htmlFor = field.id;
+      label.textContent = field.label;
+      el.before(label);
+    }
 
-      let attempts = 0;
-      const interval = setInterval(() => {
-        if (tryFocus() || ++attempts >= 10) {
-          clearInterval(interval);
-        }
-      }, 50);
+    const first = showAlert.querySelector('.alert-input') as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | null;
+    if (first) {
+      first.focus();
+      try {
+        first.setSelectionRange(first.value.length, first.value.length);
+      } catch {}
     }
 
     const res = await showAlert.onDidDismiss();
     backSub.unsubscribe?.();
-    return res;
+    swipe?.destroy();
+    // Tocar fuera es cancelar: quien llama solo distingue los roles de sus
+    // botones, y sin esto un "backdrop" pasaba por confirmación.
+    return res.role === 'backdrop' ? { ...res, role: 'cancel' } : res;
   }
 
   public async closeAlert(): Promise<void> {
@@ -393,7 +403,7 @@ export class IonicUtilService {
   }
 
   public async showNotes(title: string, content: string): Promise<void> {
-    const alert = await this.alertController.create({
+    void this.showAlert({
       header: title,
       message: content || this.translate.instant('COMMON.NO_INFO'),
       buttons: [
@@ -403,12 +413,8 @@ export class IonicUtilService {
           cssClass: 'alert-button-primary',
         },
       ],
-      cssClass: 'custom-alert notes-alert',
-      animated: true,
-      backdropDismiss: false,
+      cssClass: 'notes-alert',
     });
-
-    await alert.present();
   }
 
   private async configureStatusBar(): Promise<void> {

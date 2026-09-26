@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { ModalController, AlertController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
 import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
@@ -28,7 +28,6 @@ export class GoalListPage implements OnInit, OnDestroy {
 
   constructor(
     private modalController: ModalController,
-    private alertController: AlertController,
     private translate: TranslateService,
     private nutritionalGoalService: NutritionalGoalService,
     private userService: UserService,
@@ -151,20 +150,17 @@ export class GoalListPage implements OnInit, OnDestroy {
     event.stopPropagation();
 
     if (this.goals.length <= 1) {
-      const alert = await this.alertController.create({
+      await this.ionicUtilService.showAlert({
         header: this.translate.instant('NUTRITION_GOALS.DELETE_HEADER'),
         message: this.translate.instant('NUTRITION_GOALS.MINIMUM_ONE_MSG'),
-        cssClass: 'custom-alert',
         buttons: [{ text: this.translate.instant('COMMON.OK'), role: 'cancel' }],
       });
-      await alert.present();
       return;
     }
 
-    const alert = await this.alertController.create({
+    await this.ionicUtilService.showAlert({
       header: this.translate.instant('NUTRITION_GOALS.DELETE_HEADER'),
       message: this.translate.instant('NUTRITION_GOALS.DELETE_MSG', { name: goal.name }),
-      cssClass: 'custom-alert',
       buttons: [
         {
           text: this.translate.instant('COMMON.CANCEL'),
@@ -194,7 +190,6 @@ export class GoalListPage implements OnInit, OnDestroy {
         },
       ],
     });
-    await alert.present();
   }
 
   public getMacroPct(goal: NutritionalGoal, macro: 'p' | 'c' | 'f'): number {

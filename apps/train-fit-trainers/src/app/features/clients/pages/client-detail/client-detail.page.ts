@@ -5,7 +5,7 @@ import { of, Subscription } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { ClientDetailApiService } from './services/client-detail-api.service';
@@ -507,8 +507,7 @@ export class ClientDetailPage implements OnInit {
     private trainerInvitesApi: TrainerInvitesApiService,
     private dietSuggestionApi: DietSuggestionApiService,
     private navigation: TrainerNavigationService,
-    private trainerBillingApi: TrainerBillingApiService,
-    private alertController: AlertController
+    private trainerBillingApi: TrainerBillingApiService
   ) {}
 
   // TASK-051/TASK-073 (MASTER_BACKLOG.md) — antes leía el :id una sola vez
@@ -2769,7 +2768,7 @@ export class ClientDetailPage implements OnInit {
     const phase = this.activePhase;
     if (!phase?.phaseId) return;
 
-    const alert = await this.alertController.create({
+    await this.ionicUtilService.showAlert({
       header: 'Fechas de la fase',
       subHeader: phase.phaseName || phase.planName || 'Fase',
       inputs: [
@@ -2787,7 +2786,6 @@ export class ClientDetailPage implements OnInit {
         },
       ],
     });
-    await alert.present();
   }
 
   private savePhaseDates(phaseId: string, data: { startDate?: string; endDate?: string }): void {

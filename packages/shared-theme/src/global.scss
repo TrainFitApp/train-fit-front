@@ -350,20 +350,6 @@ ion-icon[name="arrow-undo-outline"] {
     --swiper-scrollbar-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.1);
     --swiper-scrollbar-drag-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.5);
   }
-
-  .alert-grid-buttons .alert-button-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .alert-grid-buttons .alert-button {
-    flex-basis: calc(50% - 10px);
-    /* 2 botones por fila con espacio */
-    width: calc(50% - 10px);
-    margin: 5px !important;
-    text-align: center;
-  }
 }
 
 /* Force dark macro colors when color-theme="dark" regardless of OS */
@@ -371,16 +357,6 @@ body[color-theme="dark"] {
   --protein-color: #007aff;
   --carbs-color: #34c759;
   --fat-color: #ff9500;
-}
-
-// Alert controller de Ionic. `ion-alert` NO es opcional en el selector:
-// `.alert-head` es una clase interna de Ionic, pero este fichero es
-// GLOBAL, así que sin acotar pintaba también el `.alert-head` del panel
-// "Requiere acción" del dashboard —que es otra cosa: el nombre del
-// cliente y su chip de prioridad— con una barra naranja de lado a lado
-// que dejaba el chip "Urgente" naranja sobre naranja.
-ion-alert .alert-head {
-  background-color: var(--ion-color-primary);
 }
 
 .no-translucent {
@@ -616,615 +592,10 @@ ion-header {
   }
 }
 
-// ===== ESTILOS MEJORADOS PARA ALERTS =====
-.custom-alert,
-.notes-alert {
-  .alert-wrapper {
-    --background: #141414;
-    --backdrop-opacity: 0.6;
-    --box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-    --max-width: 90%;
-    --width: 340px;
-
-    background: #141414 !important;
-    border: 1px solid #252525 !important;
-    border-radius: 16px !important;
-    overflow: hidden !important;
-    position: relative !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
-
-    // Shimmer effect removido para móvil
-    &::before {
-      display: none !important;
-    }
-
-    // Header del alert
-    .alert-head {
-      background: #252525 !important;
-      color: #ffffff !important;
-      padding: 20px 24px !important;
-      margin: 0 !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-      position: relative !important;
-
-      .alert-title {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        font-size: 1.2rem !important;
-        margin: 0 !important;
-        letter-spacing: 0.3px !important;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-      }
-    }
-
-    // Mensaje del alert
-    .alert-message {
-      line-height: 1.6 !important;
-      font-size: 0.85rem !important;
-      margin: 0 !important;
-    }
-
-    // Contenedor de inputs
-    .alert-input-wrapper {
-      background: #141414 !important;
-      padding: 0 24px 0 24px !important;
-
-      .alert-input {
-        background: #252525 !important;
-        border: 2px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        padding: 14px 16px !important;
-        font-size: 1rem !important;
-        color: #ffffff !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        margin-bottom: 12px !important;
-
-        &:focus {
-          border-color: var(--ion-color-primary) !important;
-          box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.2) !important;
-          background: rgba(var(--ion-color-primary-rgb), 0.05) !important;
-          transform: translateY(-1px);
-        }
-
-        &::placeholder {
-          color: rgba(255, 255, 255, 0.5) !important;
-          opacity: 1;
-        }
-      }
-
-      // Textarea específico
-      .alert-input[type="textarea"] {
-        min-height: 100px !important;
-        resize: vertical !important;
-        font-family: inherit !important;
-        line-height: 1.5 !important;
-      }
-    }
-
-    // Contenedor de botones
-    .alert-button-group {
-      background: #141414 !important;
-      padding: 16px 24px 24px 24px !important;
-      display: flex !important;
-      flex-direction: row !important;
-      flex-wrap: wrap !important;
-      gap: 12px !important;
-      justify-content: center !important;
-      align-items: center !important;
-
-      .alert-button {
-        border-radius: 12px !important;
-        padding: 12px 20px !important;
-        font-weight: 600 !important;
-        font-size: 0.7rem !important;
-        letter-spacing: 0.3px !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        border: none !important;
-        position: relative !important;
-        overflow: hidden !important;
-        flex: 1 !important;
-        min-width: 0 !important;
-        text-align: center !important;
-        text-transform: uppercase !important;
-        white-space: normal !important;
-        line-height: 1.3 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-
-        // El span interno de Ionic también debe centrarse verticalmente
-        // (hereda el flex del botón, pero por si acaso viene con su propio bloque)
-        span {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          text-align: center !important;
-          width: 100% !important;
-          height: 100% !important;
-        }
-
-        // Botón primario (GUARDAR, ACEPTAR, etc.)
-        &:not(.alert-button-role-cancel):not(.alert-button-role-destructive) {
-          background: var(--ion-color-primary) !important;
-          color: #ffffff !important;
-        }
-
-        // Botón de cancelar
-        &.alert-button-role-cancel {
-          background: rgba(255, 255, 255, 0.1) !important;
-          color: rgba(255, 255, 255, 0.8) !important;
-          border: 1px solid rgba(255, 255, 255, 0.2) !important;
-
-          &:active {
-            transform: translateY(0px);
-            background: rgba(255, 255, 255, 0.05) !important;
-          }
-        }
-
-        // Botón destructivo (ELIMINAR)
-        &.alert-button-role-destructive {
-          background: var(--ion-color-danger) !important;
-          color: #ffffff !important;
-        }
-      }
-
-      // Botón de pin (alternativo, azulado) — ocupa fila completa debajo
-      .alert-button-pin {
-        flex: 0 0 100% !important;
-        max-width: none !important;
-        margin-top: 4px !important;
-        background: #3880ff !important;
-        color: #ffffff !important;
-
-        border-radius: 12px !important;
-        padding: 12px 20px !important;
-        font-weight: 600 !important;
-        font-size: 0.7rem !important;
-        letter-spacing: 0.3px !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        border: none !important;
-        text-transform: uppercase !important;
-        white-space: nowrap !important;
-
-        &:hover {
-          filter: brightness(1.1) !important;
-        }
-      }
-    }
-  }
-
-  // Animación de entrada mejorada
-  .alert-wrapper {
-    animation: alert-slide-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  @keyframes alert-slide-in {
-    from {
-      opacity: 0;
-      transform: scale(0.85) translateY(-30px);
-    }
-
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  @keyframes alert-shimmer {
-    0%,
-    100% {
-      opacity: 0.3;
-      transform: translateX(-100%);
-    }
-
-    50% {
-      opacity: 1;
-      transform: translateX(100%);
-    }
-  }
-}
-
-// ===== ESTILOS ELEGANTES PARA IONIC ALERTS (LEGACY) =====
-.legacy-alert {
-  // Contenedor principal del alert
-  .alert-wrapper {
-    --background: rgba(var(--ion-background-color-rgb, 255, 255, 255), 0.95);
-    --backdrop-opacity: 0.4;
-    --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    --max-width: 90%;
-    --width: 320px;
-    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.2);
-    overflow: hidden;
-    position: relative;
-
-    // Efecto de brillo sutil
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--ion-color-primary), transparent);
-      animation: alert-shimmer 3s infinite;
-    }
-  }
-
-  // Header del alert
-  .alert-head {
-    background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade)) !important;
-    color: white !important;
-    padding: 20px 24px 16px 24px !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    position: relative;
-    overflow: hidden;
-
-    // Efecto de ondas en el header
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(
-        90deg,
-        var(--ion-color-primary-tint) 0%,
-        var(--ion-color-secondary) 50%,
-        var(--ion-color-primary-tint) 100%
-      );
-    }
-  }
-
-  // Título del alert
-  .alert-title {
-    font-size: 1.3rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.3px !important;
-    margin: 0 !important;
-    color: white !important;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
-
-  // Mensaje del alert
-  .alert-message {
-    padding: 16px 20px 8px 20px !important;
-    font-size: 1rem !important;
-    line-height: 1.5 !important;
-    color: var(--ion-text-color) !important;
-    margin: 0 !important;
-  }
-
-  // Contenedor de inputs
-  .alert-input-wrapper {
-    padding: 0 20px 12px 20px !important;
-
-    .alert-input {
-      background: rgba(var(--ion-color-light-rgb), 0.8) !important;
-      border: 2px solid rgba(var(--ion-color-medium-rgb), 0.3) !important;
-      border-radius: 12px !important;
-      padding: 12px 16px !important;
-      font-size: 1rem !important;
-      transition: all 0.3s ease !important;
-      margin-bottom: 8px !important;
-
-      &:focus {
-        border-color: var(--ion-color-primary) !important;
-        box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.1) !important;
-        background: var(--ion-background-color) !important;
-        transform: translateY(-1px);
-      }
-
-      &::placeholder {
-        color: var(--ion-color-medium) !important;
-        opacity: 0.7;
-      }
-    }
-
-    // Textarea específico
-    .alert-input[type="textarea"] {
-      min-height: 80px !important;
-      resize: vertical !important;
-      font-family: inherit !important;
-    }
-  }
-
-  // Contenedor de botones
-  .alert-button-group {
-    padding: 12px 20px 20px 20px !important;
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 8px !important;
-    justify-content: center !important;
-    align-items: center !important;
-
-    .alert-button {
-      border-radius: 8px !important;
-      padding: 10px 16px !important;
-      font-weight: 500 !important;
-      font-size: 0.85rem !important;
-      letter-spacing: 0.2px !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      border: none !important;
-      position: relative !important;
-      overflow: hidden !important;
-      flex: 1 !important;
-      max-width: 120px !important;
-      min-width: 80px !important;
-      text-align: center !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-
-      // Efecto ripple
-      &::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        transition:
-          width 0.3s,
-          height 0.3s;
-      }
-
-      &:active::before {
-        width: 300px;
-        height: 300px;
-      }
-
-      &:active {
-        transform: translateY(0);
-      }
-    }
-
-    // Botón cancelar
-    .alert-button.alert-button-role-cancel {
-      background: rgba(var(--ion-color-medium-rgb), 0.1) !important;
-      color: var(--ion-color-medium) !important;
-    }
-
-    // Botón primario
-    .alert-button:not(.alert-button-role-cancel) {
-      background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade)) !important;
-      color: white !important;
-    }
-
-    // Botón de peligro
-    .alert-button.alert-button-role-destructive {
-      background: linear-gradient(135deg, var(--ion-color-danger), var(--ion-color-danger-shade)) !important;
-      color: white !important;
-    }
-  }
-
-  // Animación de entrada
-  .alert-wrapper {
-    animation: alert-slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  @keyframes alert-slide-in {
-    from {
-      opacity: 0;
-      transform: scale(0.9) translateY(-20px);
-    }
-
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-}
-
 /* Loading orange style for spinner */
 ion-loading.loading-orange {
   ion-spinner {
     color: #fe9000 !important;
-  }
-}
-
-// ===== ESTILOS MEJORADOS PARA IONIC ALERTS (MOBILE OPTIMIZED) =====
-.custom-alert,
-.notes-alert {
-  // Contenedor principal del alert
-  .alert-wrapper {
-    --background: #252525;
-    --backdrop-opacity: 0.4;
-    --max-width: 90%;
-    --width: 320px;
-    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.2);
-    position: relative;
-    overflow: hidden;
-  }
-
-  // Cabecera del alert
-  .alert-head {
-    background: #252525 !important;
-    color: var(--ion-color-light) !important;
-    padding: 20px 20px 16px 20px !important;
-    text-align: center !important;
-    font-weight: 600 !important;
-    font-size: 1.1rem !important;
-    letter-spacing: 0.3px !important;
-    border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1) !important;
-  }
-
-  // Título del alert
-  .alert-title {
-    color: var(--ion-color-light) !important;
-    font-weight: 600 !important;
-    font-size: 1.1rem !important;
-    margin: 0 !important;
-    text-align: center !important;
-  }
-
-  // Mensaje del alert
-  .alert-message {
-    padding: 16px !important;
-    font-size: 0.85rem !important;
-    line-height: 1.4 !important;
-    text-align: center !important;
-    margin: 0 !important;
-  }
-
-  .alert-input-group {
-    padding: 0;
-  }
-
-  .alert-button-group {
-    padding: 0 !important;
-  }
-
-  .alert-input-wrapper {
-    background: #141414 !important;
-    padding: 0 20px 0 20px !important;
-
-    .alert-input {
-      background: rgba(var(--ion-color-dark-tint-rgb), 0.6) !important;
-      border: 1px solid rgba(var(--ion-color-medium-rgb), 0.3) !important;
-      border-radius: 12px !important;
-      padding: 12px 16px !important;
-      color: var(--ion-color-light) !important;
-      font-size: 0.9rem !important;
-      margin-bottom: 12px !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-
-      &:focus {
-        background: var(--ion-color-dark-tint) !important;
-        border-color: var(--ion-color-primary) !important;
-        outline: none !important;
-      }
-
-      &::placeholder {
-        color: var(--ion-color-medium) !important;
-      }
-
-      &[type="textarea"] {
-        min-height: 80px !important;
-        resize: vertical !important;
-      }
-    }
-  }
-
-  // Grupo de botones
-  .alert-button-group {
-    padding: 12px 20px 20px 20px !important;
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 8px !important;
-    justify-content: center !important;
-    align-items: center !important;
-    background: #141414 !important;
-    border-radius: 0 0 20px 20px !important;
-
-    .alert-button {
-      border-radius: 12px !important;
-      padding: 12px 20px !important;
-      font-weight: 600 !important;
-      font-size: 0.9rem !important;
-      letter-spacing: 0.2px !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      border: none !important;
-      position: relative !important;
-      overflow: hidden !important;
-      flex: 1 !important;
-      max-width: 120px !important;
-      min-width: 80px !important;
-      text-align: center !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-
-      // Asegurar que el texto esté centrado
-      span {
-        text-align: center !important;
-        width: 100% !important;
-        display: block !important;
-      }
-
-      // Botón primario (por defecto)
-      &:not(.alert-button-role-cancel):not(.alert-button-role-destructive) {
-        background: var(--ion-color-primary) !important;
-        color: white !important;
-      }
-
-      // Botón cancelar
-      &.alert-button-role-cancel {
-        background: rgba(var(--ion-color-medium-rgb), 0.2) !important;
-        color: var(--ion-color-medium-tint) !important;
-      }
-
-      // Botón destructivo
-      &.alert-button-role-destructive {
-        background: var(--ion-color-danger) !important;
-        color: white !important;
-      }
-    }
-  }
-
-  // Animación de entrada
-  .alert-wrapper {
-    animation: alert-slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  @keyframes alert-slide-in {
-    from {
-      opacity: 0;
-      transform: scale(0.9) translateY(-20px);
-    }
-
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  // ===== ESTILOS PARA MODO OSCURO =====
-  .dark {
-    .alert-wrapper {
-      --background: #252525;
-      border-color: rgba(var(--ion-color-medium-rgb), 0.3);
-    }
-
-    .alert-head {
-      background: #252525 !important;
-    }
-
-    .alert-input-wrapper {
-      background: #141414 !important;
-
-      .alert-input {
-        background: rgba(var(--ion-color-dark-tint-rgb), 0.8) !important;
-        border-color: rgba(var(--ion-color-medium-tint-rgb), 0.3) !important;
-        color: var(--ion-color-light) !important;
-
-        &:focus {
-          background: var(--ion-color-dark-tint) !important;
-          border-color: var(--ion-color-primary-tint) !important;
-        }
-
-        &::placeholder {
-          color: var(--ion-color-medium-tint) !important;
-        }
-      }
-    }
-
-    .alert-button-group {
-      background: #141414 !important;
-
-      .alert-button.alert-button-role-cancel {
-        background: rgba(var(--ion-color-medium-tint-rgb), 0.1) !important;
-        color: var(--ion-color-medium-tint) !important;
-
-        &:active {
-          background: rgba(var(--ion-color-medium-tint-rgb), 0.2) !important;
-        }
-      }
-    }
   }
 }
 
@@ -1679,142 +1050,403 @@ ion-modal.maintenance-modal::part(content) {
   border-radius: 0;
 }
 
-/* Alert de cambios sin guardar: 2 botones arriba + 1 abajo */
-.custom-alert.unsaved-exit-alert,
-.custom-alert.alert-grid-buttons {
-  .alert-button-group {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    justify-content: center !important;
-    align-items: stretch !important;
-  }
-
-  .alert-button {
-    max-width: none !important;
-  }
-
-  /* Arriba izquierda: Cancelar */
-  .alert-button.alert-button-role-cancel,
-  .alert-button.unsaved-cancel-btn {
-    order: 1 !important;
-    flex: 1 1 calc(50% - 4px) !important;
-  }
-
-  /* Arriba derecha: Guardar / Confirmar */
-  .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-destructive):not(.unsaved-discard-btn):not(.alert-tertiary-btn),
-  .alert-button.unsaved-save-btn {
-    order: 2 !important;
-    flex: 1 1 calc(50% - 4px) !important;
-  }
-
-  /* Debajo centrado: Salir sin guardar / Descartar / tercera opción neutra */
-  .alert-button.alert-button-role-destructive,
-  .alert-button.unsaved-discard-btn,
-  .alert-button.alert-tertiary-btn {
-    order: 3 !important;
-    flex: 0 0 100% !important;
-    width: 100% !important;
-    max-width: 280px !important;
-    margin: 0 auto !important;
-    justify-content: center !important;
-  }
-
-  /* Neutro para acciones no destructivas visualmente */
-  .alert-button.unsaved-neutral-btn,
-  .alert-button.unsaved-discard-btn,
-  .alert-button.alert-tertiary-btn,
-  .alert-button.alert-button-role-destructive {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: rgba(255, 255, 255, 0.85) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  }
-}
-
-/* Layout global para alerts con 3 acciones: 2 arriba + 1 abajo centrado */
-.custom-alert .alert-button-group,
-.legacy-alert .alert-button-group,
-.alert-grid-buttons .alert-button-group {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: wrap !important;
-  gap: 8px !important;
-  justify-content: center !important;
-  align-items: stretch !important;
-}
-
-/* Solo cuando hay exactamente 3 botones */
-.custom-alert .alert-button-group > .alert-button,
-.legacy-alert .alert-button-group > .alert-button,
-.alert-grid-buttons .alert-button-group > .alert-button {
-  flex: 0 0 calc(50% - 4px) !important;
-  width: calc(50% - 4px) !important;
-  max-width: none !important;
-}
-
-/* Si hay solo 1 botón, centrado */
-.custom-alert .alert-button-group > .alert-button:only-child,
-.legacy-alert .alert-button-group > .alert-button:only-child,
-.alert-grid-buttons .alert-button-group > .alert-button:only-child {
-  flex: 0 0 100% !important;
-  width: 100% !important;
-  max-width: 220px !important;
-  margin: 0 auto !important;
-  justify-content: center !important;
-}
-
-/* Si hay 3 botones, el último queda centrado en la segunda fila */
-.custom-alert .alert-button-group > .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
-.legacy-alert .alert-button-group > .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
-.alert-grid-buttons .alert-button-group > .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child {
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-/* OVERRIDE FINAL ALERTS: maximo 2 botones por fila en toda la app */
-ion-alert .alert-button-group,
-.custom-alert .alert-button-group,
-.legacy-alert .alert-button-group,
-.alert-grid-buttons .alert-button-group {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-  justify-items: stretch !important;
-  align-items: stretch !important;
-}
-
-ion-alert .alert-button-group .alert-button,
-.custom-alert .alert-button-group .alert-button,
-.legacy-alert .alert-button-group .alert-button,
-.alert-grid-buttons .alert-button-group .alert-button {
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-}
-
-/* 1 boton: centrado */
-ion-alert .alert-button-group .alert-button:only-child,
-.custom-alert .alert-button-group .alert-button:only-child,
-.legacy-alert .alert-button-group .alert-button:only-child,
-.alert-grid-buttons .alert-button-group .alert-button:only-child {
-  grid-column: 1 / -1 !important;
-  width: 50% !important;
-  justify-self: center !important;
-}
-
-/* 3 botones: tercero abajo centrado */
-ion-alert .alert-button-group .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
-.custom-alert .alert-button-group .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
-.legacy-alert .alert-button-group .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
-.alert-grid-buttons .alert-button-group .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child {
-  grid-column: 1 / -1 !important;
-  width: 50% !important;
-  justify-self: center !important;
-}
-
 /* Confirmación como modal-hoja (ConfirmSheetComponent) — alto fijo pequeño
    con breakpoints [0, 1] para que salga pegada abajo sin ocupar la pantalla. */
 ion-modal.confirm-sheet-modal {
   --height: 250px;
   --border-radius: 20px 20px 0 0;
+}
+
+// ===== ALERTS COMO HOJA INFERIOR =====
+// Todos los alerts pasan por IonicUtilService.showAlert, que les pone
+// `custom-alert`, `mode: 'md'` y la animación/arrastre de alert-sheet.ts.
+// Se acota a `ion-alert.custom-alert` porque las clases de dentro son de
+// Ionic. Colores: tokens --tf-* en la app del entrenador; en las otras dos
+// apps valen los mismos valores de respaldo.
+ion-alert.custom-alert {
+  --alert-sheet-bg: var(--tf-surface-2, #1a1a1a);
+  --alert-sheet-field: var(--tf-bg, #0f0f0f);
+  --alert-sheet-text: var(--tf-text, #ffffff);
+  --alert-sheet-text-2: var(--tf-text-secondary, #c7c7c7);
+  --alert-sheet-text-3: var(--tf-text-muted, #8b8b8b);
+  --alert-sheet-line: var(--tf-border, rgba(255, 255, 255, 0.1));
+  --alert-sheet-soft: rgba(255, 255, 255, 0.07);
+  --alert-sheet-accent: var(--ion-color-primary, #fe9000);
+  --alert-sheet-accent-soft: var(--tf-accent-soft, rgba(254, 144, 0, 0.1));
+  // Negro sobre naranja: el blanco da 2:1.
+  --alert-sheet-on-accent: var(--tf-accent-contrast, #0f0f0f);
+
+  --background: var(--alert-sheet-bg);
+  --width: 100%;
+  --min-width: 0;
+  --max-width: 560px;
+  --max-height: 92%;
+  --backdrop-opacity: 0.6;
+  align-items: flex-end;
+  color: var(--alert-sheet-text);
+
+  ::selection {
+    background: rgba(254, 144, 0, 0.32);
+    color: var(--alert-sheet-text);
+  }
+
+  .alert-wrapper {
+    // Ionic md parte de opacity 0 y la sube su animación; la de la hoja
+    // solo desliza.
+    opacity: 1;
+    border-radius: 20px 20px 0 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    // Tirador: se arrastra hacia abajo para cerrar.
+    &::before {
+      content: '';
+      flex-shrink: 0;
+      width: 36px;
+      height: 4px;
+      margin: 8px auto 0;
+      border-radius: 999px;
+      background: var(--tf-border-strongest, rgba(255, 255, 255, 0.2));
+    }
+  }
+
+  .alert-head {
+    flex-shrink: 0;
+    padding: 12px 20px 0;
+    text-align: start;
+    touch-action: none;
+  }
+
+  .alert-title {
+    margin: 0;
+    color: var(--alert-sheet-text);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .alert-sub-title {
+    margin: 4px 0 0;
+    color: var(--alert-sheet-text-3);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .alert-message {
+    max-height: 40vh;
+    padding: 8px 20px 0;
+    color: var(--alert-sheet-text-2);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    overflow-wrap: break-word;
+
+    b,
+    strong {
+      color: var(--alert-sheet-text);
+      font-weight: 600;
+    }
+
+    &:empty {
+      padding: 0;
+    }
+  }
+
+  // Ionic quita ese padding con un selector más específico.
+  .alert-wrapper .alert-head + .alert-message {
+    padding-top: 8px;
+  }
+
+  .alert-message,
+  .alert-input-group,
+  .alert-radio-group,
+  .alert-checkbox-group {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    overscroll-behavior: contain;
+  }
+
+  // --- Campos de texto, número, fecha y textarea ---
+  .alert-input-group {
+    padding: 16px 20px 0;
+    color: var(--alert-sheet-text);
+  }
+
+  .alert-input-wrapper + .alert-input-wrapper {
+    margin-top: 12px;
+  }
+
+  // Lo añade showAlert: Ionic no pinta el `label` de los campos de texto.
+  .alert-sheet-label {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--alert-sheet-text-2);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .alert-input {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--alert-sheet-line);
+    border-radius: 12px;
+    background: var(--alert-sheet-field);
+    color: var(--alert-sheet-text);
+    caret-color: var(--alert-sheet-accent);
+    // 16px: con menos, iOS hace zoom al enfocar.
+    font-size: 1rem;
+    line-height: 1.4;
+    // Icono del calendario en claro sobre el fondo oscuro.
+    color-scheme: dark;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+
+    &::placeholder {
+      color: var(--alert-sheet-text-3);
+      opacity: 1;
+    }
+
+    &:focus {
+      margin: 0;
+      border: 1px solid var(--alert-sheet-accent);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(254, 144, 0, 0.2);
+    }
+  }
+
+  textarea.alert-input {
+    min-height: 120px;
+    resize: none;
+    line-height: 1.5;
+  }
+
+  // --- Opciones (radio y checkbox) ---
+  .alert-radio-group,
+  .alert-checkbox-group {
+    max-height: min(50vh, 420px);
+    padding: 12px 8px 0;
+    border: 0;
+  }
+
+  .alert-tappable {
+    min-height: 52px;
+    border-radius: 12px;
+    transition: background-color 150ms ease;
+
+    & + .alert-tappable {
+      margin-top: 2px;
+    }
+
+    &.ion-focused {
+      background: var(--alert-sheet-soft);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--alert-sheet-accent);
+      outline-offset: -2px;
+    }
+  }
+
+  .alert-radio-label,
+  .alert-checkbox-label {
+    padding: 14px 12px 14px 24px;
+    padding-inline: 24px 12px;
+    color: var(--alert-sheet-text-2);
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .alert-radio-icon,
+  .alert-checkbox-icon {
+    inset-inline-start: 12px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .alert-radio-inner {
+    top: 3px;
+    inset-inline-start: 3px;
+    width: 10px;
+    height: 10px;
+    background: var(--alert-sheet-accent);
+  }
+
+  .alert-checkbox-icon {
+    border-radius: 6px;
+  }
+
+  .alert-radio-button[aria-checked='true'],
+  .alert-checkbox-button[aria-checked='true'] {
+    background: var(--alert-sheet-accent-soft);
+
+    .alert-radio-label,
+    .alert-checkbox-label {
+      color: var(--alert-sheet-text);
+      font-weight: 600;
+    }
+
+    .alert-radio-icon {
+      border-color: var(--alert-sheet-accent);
+    }
+
+    .alert-checkbox-icon {
+      border-color: var(--alert-sheet-accent);
+      background: var(--alert-sheet-accent);
+    }
+
+    .alert-checkbox-inner {
+      top: 1px;
+      inset-inline-start: 5px;
+      width: 6px;
+      height: 11px;
+      border-color: var(--alert-sheet-on-accent);
+    }
+  }
+
+  // --- Botones ---
+  // 1-2 botones: en fila (Cancelar a la izquierda). 3 o más (Ionic añade
+  // `alert-button-group-vertical`): lista, con Cancelar abajo del todo.
+  .alert-button-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 20px 20px calc(16px + var(--ion-safe-area-bottom, 0px));
+
+    .alert-button {
+      min-height: 48px;
+      margin: 0;
+      margin-inline: 0;
+      // Sin padding vertical: `.alert-button-inner` hereda el min-height
+      // y se sumaría (48 + 24).
+      padding: 0 16px;
+      border-radius: 12px;
+      background: var(--alert-sheet-accent);
+      color: var(--alert-sheet-on-accent);
+      font-size: 0.95rem;
+      font-weight: 600;
+      line-height: 1.25;
+      letter-spacing: 0;
+      text-align: center;
+      text-transform: none;
+      overflow: hidden;
+      transition: filter 150ms ease, transform 100ms ease;
+
+      &:only-child {
+        grid-column: 1 / -1;
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+
+      &:focus-visible,
+      &.ion-focused {
+        outline: 2px solid var(--alert-sheet-accent);
+        outline-offset: 2px;
+      }
+    }
+
+    .alert-button-inner {
+      box-sizing: border-box;
+      padding-block: 6px;
+      justify-content: center;
+    }
+  }
+
+  .alert-button-group-vertical {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  // En un menú (3+ botones y nada que rellenar), el naranja se reserva a la
+  // acción marcada como principal: cuatro botones naranjas no dicen cuál
+  // importa. En un formulario (`alert-sheet-form`, p. ej. una nota con
+  // Guardar y Fijar), Guardar sigue en naranja. `:where` no suma
+  // especificidad, así los colores de abajo (peligro, fijar...) mandan.
+  &:where(:not(.alert-sheet-form)) .alert-button-group-vertical .alert-button {
+    background: var(--alert-sheet-soft);
+    color: var(--alert-sheet-text);
+  }
+
+  .alert-button-group {
+    .alert-button-primary,
+    .alert-button-confirm,
+    .unsaved-save-btn,
+    .primary {
+      background: var(--alert-sheet-accent);
+      color: var(--alert-sheet-on-accent);
+    }
+
+    .alert-button-role-cancel,
+    .unsaved-neutral-btn,
+    .unsaved-discard-btn,
+    .alert-tertiary-btn {
+      background: var(--alert-sheet-soft);
+      color: var(--alert-sheet-text);
+    }
+
+    // Suave y no macizo: el blanco sobre #eb445a se queda en 3,9:1.
+    .alert-button-role-destructive,
+    .alert-button-danger,
+    .danger-btn,
+    .danger {
+      background: var(--tf-danger-soft, rgba(235, 68, 90, 0.1));
+      box-shadow: inset 0 0 0 1px var(--tf-danger-border, rgba(235, 68, 90, 0.35));
+      color: var(--tf-danger-text, #ed576b);
+    }
+
+    .alert-button-success {
+      background: var(--ion-color-success, #2dd36f);
+      color: var(--alert-sheet-on-accent);
+    }
+
+    // "Fijar la nota": opción alternativa, en azul y a lo ancho.
+    .alert-button-pin {
+      grid-column: 1 / -1;
+      background: rgba(56, 128, 255, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(56, 128, 255, 0.35);
+      color: #7aa7ff;
+    }
+  }
+
+  .alert-button-group-vertical .alert-button-role-cancel {
+    order: 1;
+    background: transparent;
+    color: var(--alert-sheet-text-2);
+  }
+
+  // Tabla de botones (detalle premium en management): siempre dos columnas.
+  &.alert-grid-buttons .alert-button-group-vertical {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    .alert-button:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (hover: hover) {
+    .alert-tappable:hover {
+      background: var(--alert-sheet-soft);
+    }
+
+    .alert-button-group .alert-button:hover {
+      filter: brightness(1.08);
+    }
+  }
+
+  // Pantalla ancha (escritorio del entrenador): hoja flotante, sin pegarse
+  // al borde.
+  @media (min-width: 768px) {
+    .alert-wrapper {
+      margin-bottom: 24px;
+      border-radius: 20px;
+    }
+
+    .alert-button-group {
+      padding-bottom: 20px;
+    }
+  }
 }
