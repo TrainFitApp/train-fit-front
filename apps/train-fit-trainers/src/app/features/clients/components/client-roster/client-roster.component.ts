@@ -19,6 +19,12 @@ import { ClientDetailTab } from '../../pages/client-detail/models/client-detail.
 
 type ViewState = 'loading' | 'error' | 'empty' | 'loaded';
 
+interface RosterFilters {
+  weakest: AdherenceDimensionKey | null;
+  onlyWithAlerts: boolean;
+  onlyOverdueCheckin: boolean;
+}
+
 interface RosterViewState {
   searchQuery: string;
   showFilters: boolean;
@@ -120,17 +126,34 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   public filterOnlyOverdueCheckin = false;
 
   public get visibleRows(): RosterClient[] {
+    return this.rowsMatching({});
+  }
+
+  // Cuántos clientes quedarían al elegir una opción del panel, con la
+  // búsqueda y el resto de filtros como están: el número se lee ANTES de
+  // pulsar, así que ninguna opción lleva por sorpresa a una tabla vacía.
+  public countWith(override: Partial<RosterFilters>): number {
+    return this.rowsMatching(override).length;
+  }
+
+  private rowsMatching(override: Partial<RosterFilters>): RosterClient[] {
+    const { weakest, onlyWithAlerts, onlyOverdueCheckin }: RosterFilters = {
+      weakest: this.filterWeakest,
+      onlyWithAlerts: this.filterOnlyWithAlerts,
+      onlyOverdueCheckin: this.filterOnlyOverdueCheckin,
+      ...override,
+    };
     const consulta = this.searchQuery.trim().toLowerCase();
     return this.rows.filter((row) => {
       if (consulta) {
         const heno = `${row.clientName} ${row.clientEmail || ''}`.toLowerCase();
         if (!heno.includes(consulta)) return false;
       }
-      if (this.filterWeakest && row.adherence.weakest !== this.filterWeakest) return false;
-      if (this.filterOnlyWithAlerts && !row.openAlerts) return false;
+      if (weakest && row.adherence.weakest !== weakest) return false;
+      if (onlyWithAlerts && !row.openAlerts) return false;
       // "Vencido" = pasó la fecha del siguiente check-in. El dato exacto lo tiene el
       // motor de alertas; aquí basta con el umbral visible de la columna.
-      if (this.filterOnlyOverdueCheckin && (row.daysSinceCheckin ?? 0) <= 7) return false;
+      if (onlyOverdueCheckin && (row.daysSinceCheckin ?? 0) <= 7) return false;
       return true;
     });
   }

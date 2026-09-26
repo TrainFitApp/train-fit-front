@@ -3198,7 +3198,7 @@
 // abre el propio cuadradito al pulsarlo (ya no hace falta un icono aparte).
 // El actual va en el color de la fase; el siguiente, neutro hasta que se
 // prepara, y en acento cuando ya está editado.
-// Siguiente, actual y pasados en UNA fila, más reciente a la izquierda.
+// Próxima, actual y pasadas en UNA fila, de izquierda a derecha (las pasadas de más reciente a más antigua).
 // Las tarjetas reparten el ancho a partes iguales y se estrechan hasta su
 // min-width; a partir de ahí la fila desliza en horizontal en vez de
 // envolver — la tarjeta de fase nunca crece hacia abajo.

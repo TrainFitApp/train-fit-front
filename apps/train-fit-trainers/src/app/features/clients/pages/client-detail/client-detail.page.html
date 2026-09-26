@@ -1991,33 +1991,40 @@
                    siguiente abre la sugerencia y se prepara en el builder. El
                    número lleva "S": es el mismo que el badge del calendario.
 
-                   Orden CRONOLÓGICO, de izquierda a derecha: anteriores (de
-                   más antigua a más reciente), la que corre, y la próxima al
-                   final — por eso la fila abre con el scroll a la derecha
-                   (scrollWeeksToEnd), donde está lo que importa hoy. -->
+                   Orden de izquierda a derecha: la próxima, la que corre y
+                   después las anteriores (de más reciente a más antigua). -->
                       <ng-container *ngIf="phaseWeeks as pr">
-                        <div class="week-tiles" #weekTiles>
-                          <!-- Pasadas, de la más antigua a la más reciente. -->
+                        <div class="week-tiles">
+                          <!-- Próxima: la que el entrenador prepara. -->
                           <button
                             type="button"
-                            class="week-tile week-tile--past"
-                            *ngFor="let entry of pastWeeks; trackBy: trackByWeekNumber"
-                            [attr.aria-label]="'Ver el resumen de la semana ' + entry.number"
-                            (click)="openWeekSummary(entry)"
+                            class="week-tile week-tile--next"
+                            *ngIf="pr.next as next"
+                            [class.is-edited]="nextWeekState === 'edited'"
+                            [attr.aria-label]="nextWeekState === 'suggested' ? 'Revisar siguiente semana' : 'Preparar siguiente semana'"
+                            (click)="openNextWeekModal()"
                           >
                             <span class="week-tile__title-row">
                               <span class="week-tile__label"
-                                >S{{ entry.number }}</span
+                                >S{{ next.number }}</span
                               >
-                              <span class="week-tile__tag">ANTERIOR</span>
+                              <span class="week-tile__tag">PRÓXIMA</span>
                             </span>
                             <span class="week-tile__dates"
-                              >{{ weekDateRange(entry) }}</span
+                              >{{ weekDateRange(next) }}</span
                             >
                             <span class="week-tile__kcal"
-                              >{{ entry.profile.kcal || '—' }} kcal</span
+                              >{{ nextWeekKcal || '—' }} kcal</span
                             >
                           </button>
+                          <!-- De la próxima a la que corre (el paso que se está
+                       preparando). Decorativa. -->
+                          <ion-icon
+                            class="week-tiles__arrow"
+                            name="chevron-back-outline"
+                            aria-hidden="true"
+                            *ngIf="pr.current && pr.next"
+                          ></ion-icon>
 
                           <!-- La que corre: lo que el cliente come ahora. Solo lectura. -->
                           <button
@@ -2045,37 +2052,28 @@
                             >
                           </button>
 
-                          <!-- De la que corre a la próxima: el paso que se está
-                       preparando. Decorativa. -->
-                          <ion-icon
-                            class="week-tiles__arrow"
-                            name="chevron-forward-outline"
-                            aria-hidden="true"
-                            *ngIf="pr.current && pr.next"
-                          ></ion-icon>
-
-                          <!-- Próxima: la que el entrenador prepara. -->
+                          <!-- Pasadas, de la más reciente a la más antigua. -->
                           <button
                             type="button"
-                            class="week-tile week-tile--next"
-                            *ngIf="pr.next as next"
-                            [class.is-edited]="nextWeekState === 'edited'"
-                            [attr.aria-label]="nextWeekState === 'suggested' ? 'Revisar siguiente semana' : 'Preparar siguiente semana'"
-                            (click)="openNextWeekModal()"
+                            class="week-tile week-tile--past"
+                            *ngFor="let entry of pastWeeks; trackBy: trackByWeekNumber"
+                            [attr.aria-label]="'Ver el resumen de la semana ' + entry.number"
+                            (click)="openWeekSummary(entry)"
                           >
                             <span class="week-tile__title-row">
                               <span class="week-tile__label"
-                                >S{{ next.number }}</span
+                                >S{{ entry.number }}</span
                               >
-                              <span class="week-tile__tag">PRÓXIMA</span>
+                              <span class="week-tile__tag">ANTERIOR</span>
                             </span>
                             <span class="week-tile__dates"
-                              >{{ weekDateRange(next) }}</span
+                              >{{ weekDateRange(entry) }}</span
                             >
                             <span class="week-tile__kcal"
-                              >{{ nextWeekKcal || '—' }} kcal</span
+                              >{{ entry.profile.kcal || '—' }} kcal</span
                             >
                           </button>
+
                         </div>
                       </ng-container>
 

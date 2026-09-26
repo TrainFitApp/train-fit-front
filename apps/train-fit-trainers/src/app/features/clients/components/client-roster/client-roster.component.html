@@ -200,45 +200,77 @@
       </button>
     </header>
 
-    <section class="form-group">
-      <p class="group-label">Punto débil</p>
-      <div class="filter-options">
-        <button
-          type="button"
-          class="filter-option"
-          [class.is-active]="!filterWeakest"
-          (click)="filterWeakest = null"
-        >
-          Cualquiera
-        </button>
-        <button
-          type="button"
-          class="filter-option"
-          *ngFor="let key of dimensionKeys"
-          [class.is-active]="filterWeakest === key"
-          (click)="filterWeakest = key"
-        >
-          {{ dimensionLabel(key) }}
-        </button>
-      </div>
-    </section>
+    <!-- Los recuentos salen de las filas ya filtradas por la búsqueda: sin
+         avisarlo, "Nutrición 1" con 30 clientes parece un error. -->
+    <p class="search-note" *ngIf="searchQuery.trim()">
+      Contando solo los que coinciden con «{{ searchQuery.trim() }}».
+    </p>
 
-    <section class="form-group">
-      <p class="group-label">Solo mostrar</p>
-      <label class="filter-check">
-        <input type="checkbox" [(ngModel)]="filterOnlyWithAlerts" />
-        <span>Con alertas abiertas</span>
-      </label>
-      <label class="filter-check">
-        <input type="checkbox" [(ngModel)]="filterOnlyOverdueCheckin" />
-        <span>Con el check-in vencido</span>
-      </label>
-    </section>
+    <!-- Cada grupo es una lista de filas, no pastillas sueltas: cinco
+         pastillas se partían en dos renglones desiguales según el ancho y
+         medían 36px. Radio = se elige una; casilla = se suman. -->
+    <fieldset class="filter-group">
+      <legend class="group-label">Punto débil</legend>
+      <div class="filter-list">
+        <label class="filter-row" [class.is-active]="!filterWeakest">
+          <input
+            type="radio"
+            name="roster-weakest"
+            class="filter-row__input"
+            [checked]="!filterWeakest"
+            (change)="filterWeakest = null"
+          />
+          <span class="filter-row__mark filter-row__mark--radio" aria-hidden="true"></span>
+          <span class="filter-row__label">Cualquiera</span>
+          <span class="filter-row__count">{{ countWith({ weakest: null }) }}</span>
+        </label>
+        <label
+          class="filter-row"
+          *ngFor="let key of dimensionKeys; trackBy: trackByDimension"
+          [class.is-active]="filterWeakest === key"
+        >
+          <input
+            type="radio"
+            name="roster-weakest"
+            class="filter-row__input"
+            [checked]="filterWeakest === key"
+            (change)="filterWeakest = key"
+          />
+          <span class="filter-row__mark filter-row__mark--radio" aria-hidden="true"></span>
+          <span class="filter-row__label">{{ dimensionLabel(key) }}</span>
+          <span class="filter-row__count">{{ countWith({ weakest: key }) }}</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="filter-group">
+      <legend class="group-label">Solo mostrar</legend>
+      <div class="filter-list">
+        <label class="filter-row" [class.is-active]="filterOnlyWithAlerts">
+          <input type="checkbox" class="filter-row__input" [(ngModel)]="filterOnlyWithAlerts" />
+          <span class="filter-row__mark filter-row__mark--check" aria-hidden="true">
+            <ion-icon name="checkmark"></ion-icon>
+          </span>
+          <span class="filter-row__label">Con alertas abiertas</span>
+          <span class="filter-row__count">{{ countWith({ onlyWithAlerts: true }) }}</span>
+        </label>
+        <label class="filter-row" [class.is-active]="filterOnlyOverdueCheckin">
+          <input type="checkbox" class="filter-row__input" [(ngModel)]="filterOnlyOverdueCheckin" />
+          <span class="filter-row__mark filter-row__mark--check" aria-hidden="true">
+            <ion-icon name="checkmark"></ion-icon>
+          </span>
+          <span class="filter-row__label">Con el check-in vencido</span>
+          <span class="filter-row__count">{{ countWith({ onlyOverdueCheckin: true }) }}</span>
+        </label>
+      </div>
+    </fieldset>
 
     <footer class="sheet-footer">
-      <button type="button" class="ghost-button" (click)="clearFilters()">Quitar filtros</button>
+      <button type="button" class="ghost-button" [disabled]="!activeFilterCount" (click)="clearFilters()">
+        Quitar filtros
+      </button>
       <button type="button" class="submit-button" (click)="showFilters = false">
-        Ver {{ visibleRows.length }}
+        Ver {{ visibleRows.length }} {{ visibleRows.length === 1 ? 'cliente' : 'clientes' }}
       </button>
     </footer>
   </div>

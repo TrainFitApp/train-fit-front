@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, skip } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
@@ -2223,9 +2223,6 @@ export class ClientDetailPage implements OnInit {
       next: (res) => {
         this.phaseWeeks = res;
         this.applyInitialTrackingRangeDefault();
-        // La fila va en orden cronológico y crece por la derecha: sin esto
-        // una fase larga abre enseñando la semana 1, no la de hoy.
-        setTimeout(() => this.scrollWeeksToEnd());
       },
       error: () => {
         this.phaseWeeks = null;
@@ -2302,21 +2299,14 @@ export class ClientDetailPage implements OnInit {
   // repite tras guardar.
   public phaseWeeks: PhaseWeeksResponse | null = null;
 
-  // Pasadas en orden cronológico, que es como se pintan: la más antigua a la
-  // izquierda y la que corre al final de la fila.
+  // Pasadas de la más reciente a la más antigua, que es como se pintan: la
+  // próxima y la que corre abren la fila y las anteriores van detrás.
   public get pastWeeks(): PhaseWeeksResponse['past'] {
-    return this.phaseWeeks?.past || [];
+    return [...(this.phaseWeeks?.past || [])].reverse();
   }
 
   public trackByWeekNumber(_index: number, entry: { number: number }): number {
     return entry.number;
-  }
-
-  @ViewChild('weekTiles') private weekTiles?: ElementRef<HTMLElement>;
-
-  private scrollWeeksToEnd(): void {
-    const row = this.weekTiles?.nativeElement;
-    if (row) row.scrollLeft = row.scrollWidth;
   }
 
   // Las kcal que va a tener la siguiente: las de la semana ya preparada,

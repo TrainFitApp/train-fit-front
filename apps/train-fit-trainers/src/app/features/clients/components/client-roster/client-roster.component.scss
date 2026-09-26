@@ -498,18 +498,27 @@ thead .col-name {
   flex-shrink: 0;
 }
 
-.form-group {
-  padding-bottom: var(--tf-space-4);
-  margin-bottom: var(--tf-space-4);
-  border-bottom: 1px solid var(--tf-border-subtle);
+.search-note {
+  margin: calc(var(--tf-space-2) * -1) 0 var(--tf-space-5);
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.5;
+  color: var(--tf-text-secondary);
+  overflow-wrap: anywhere;
+}
 
-  &:last-of-type {
-    border-bottom: none;
-  }
+// fieldset/legend y no section/p: el lector de pantalla anuncia el nombre
+// del grupo al entrar en él, y las flechas recorren los radios.
+.filter-group {
+  min-width: 0;
+  margin: 0 0 var(--tf-space-6);
+  padding: 0;
+  border: none;
 }
 
 .group-label {
-  margin: 0 0 var(--tf-space-3);
+  display: block;
+  padding: 0;
+  margin: 0 0 var(--tf-space-2);
   font-size: var(--tf-font-size-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -517,50 +526,124 @@ thead .col-name {
   color: var(--tf-accent);
 }
 
-.filter-options {
+// Una caja por grupo con las filas separadas por una línea, como una lista
+// de ajustes: se lee de arriba abajo y los recuentos caen en columna.
+.filter-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.filter-option {
-  min-height: 36px;
-  padding: 0 var(--tf-space-3);
+  flex-direction: column;
+  overflow: hidden;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-pill);
-  color: var(--tf-text-muted);
-  font-family: inherit;
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-
-  &.is-active {
-    background: var(--tf-accent-soft);
-    border-color: var(--tf-accent);
-    color: var(--tf-accent);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--tf-accent);
-    outline-offset: 2px;
-  }
+  border-radius: var(--tf-radius-lg);
 }
 
-.filter-check {
+.filter-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--tf-space-3);
-  min-height: 44px;
-  color: var(--tf-text);
-  font-size: var(--tf-font-size-sm);
+  min-height: 48px;
+  padding: 0 var(--tf-space-4);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-base);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
 
-  input {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--tf-accent);
-    cursor: pointer;
+  & + & {
+    border-top: 1px solid var(--tf-border-subtle);
+  }
+
+  &:hover {
+    background: var(--tf-surface-3);
+  }
+
+  &.is-active {
+    background: var(--tf-accent-tint);
+    color: var(--tf-text);
+    font-weight: 600;
+  }
+}
+
+// El input real sigue ahí (foco, teclado, lector de pantalla); solo se
+// oculta su dibujo, que en el tema oscuro sale blanco y del sistema.
+.filter-row__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.filter-row__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  // --tf-text-faint y no un borde de la escala: el contorno de un control
+  // sin marcar pide 3:1 sobre la fila (3,3:1 aquí; --tf-border-strongest
+  // se queda en 2:1).
+  border: 2px solid var(--tf-text-faint);
+  color: var(--tf-accent-contrast);
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &--radio {
+    border-radius: 50%;
+  }
+
+  &--check {
+    border-radius: 6px;
+
+    ion-icon {
+      font-size: 14px;
+      opacity: 0;
+    }
+  }
+}
+
+.filter-row__input:checked + .filter-row__mark {
+  border-color: var(--tf-accent);
+}
+
+.filter-row__input:checked + .filter-row__mark--radio {
+  background: radial-gradient(circle, var(--tf-accent) 0 4px, transparent 4.5px);
+}
+
+.filter-row__input:checked + .filter-row__mark--check {
+  background: var(--tf-accent);
+
+  ion-icon {
+    opacity: 1;
+  }
+}
+
+.filter-row__input:focus-visible + .filter-row__mark {
+  outline: 2px solid var(--tf-accent);
+  outline-offset: 2px;
+}
+
+.filter-row__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-row__count {
+  flex-shrink: 0;
+  min-width: 3ch;
+  text-align: right;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text-muted);
+
+  .filter-row.is-active & {
+    color: var(--tf-accent-text);
   }
 }
 
@@ -589,6 +672,12 @@ thead .col-name {
   &:focus-visible {
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
+  }
+
+  // Sin filtros puestos no hay nada que quitar.
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 }
 
