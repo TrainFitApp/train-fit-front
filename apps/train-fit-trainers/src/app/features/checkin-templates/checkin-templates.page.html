@@ -173,14 +173,17 @@
         </div>
 
         <div class="custom-question-row">
-          <select
-            class="custom-question-select"
+          <ion-select
+            class="tf-select custom-question-select"
+            interface="popover"
+            toggleIcon="chevron-down-outline"
+            labelPlacement="stacked"
             [(ngModel)]="question.type"
             (ngModelChange)="onQuestionTypeChange(question)"
             [attr.aria-label]="'Tipo de la pregunta ' + (i + 1)"
           >
-            <option *ngFor="let type of questionTypes" [value]="type.key">{{ type.label }}</option>
-          </select>
+            <ion-select-option *ngFor="let type of questionTypes" [value]="type.key">{{ type.label }}</ion-select-option>
+          </ion-select>
 
           <input
             *ngIf="question.type === 'number'"

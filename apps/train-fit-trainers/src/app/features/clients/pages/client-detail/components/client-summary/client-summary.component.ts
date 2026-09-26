@@ -367,7 +367,7 @@ export class ClientSummaryComponent implements OnInit {
   // --- Estado del cliente (consumido por la cabecera del padre) ---
 
   // Auditoría 2026-09 — por debajo de esto el global se trata como señal de
-  // "atención" aunque el cron nocturno de alertas no la haya recogido
+  // "atención" aunque la evaluación diaria de alertas no la haya recogido
   // todavía. Mismo umbral que coach-signals-service.js#criticalAdherencePct
   // (nutrición) — no se inventa un segundo número para lo mismo.
   private static readonly ATTENTION_OVERALL_THRESHOLD_PCT = 50;
@@ -375,8 +375,8 @@ export class ClientSummaryComponent implements OnInit {
   // Requiere atención / Sin incidencias / Datos insuficientes — derivado por
   // completo de lo que ya trae getSummary(), sin ningún campo nuevo.
   //
-  // Antes SOLO miraba si había una alerta abierta — y las alertas las genera
-  // un cron una vez al día (coach-alert-cron.js, 05:00), así que un cliente
+  // Antes SOLO miraba si había una alerta abierta — y las alertas se evalúan
+  // una vez al día (coach-alert-service.js#ensureEvaluatedToday), así que un cliente
   // con 0% de adherencia HOY (p. ej. una rutina recién asignada y ninguna
   // sesión hecha) se veía "Sin incidencias detectadas" hasta el día
   // siguiente, con el número real ya visible dos líneas más abajo en la

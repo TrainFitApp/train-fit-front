@@ -383,7 +383,6 @@
   font-size: var(--tf-font-size-base);
 }
 
-.builder-select,
 .builder-input {
   width: 100%;
   min-height: var(--tf-touch-min);
@@ -398,22 +397,6 @@
   &:focus-visible {
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
-  }
-}
-
-.builder-select {
-  padding-right: var(--tf-space-8);
-  cursor: pointer;
-  appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--tf-text-muted) 50%),
-    linear-gradient(135deg, var(--tf-text-muted) 50%, transparent 50%);
-  background-position: calc(100% - 18px) calc(50% + 2px), calc(100% - 13px) calc(50% + 2px);
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-
-  option {
-    background: var(--tf-surface-2);
-    color: var(--tf-text);
   }
 }
 

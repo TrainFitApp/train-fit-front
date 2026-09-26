@@ -1,0 +1,50 @@
+<section class="status-block" aria-labelledby="seguimiento-estado">
+  <header class="block-head">
+    <h2 class="block-title" id="seguimiento-estado">Cómo va el seguimiento</h2>
+    <div class="range-chips" role="group" aria-label="Periodo del resumen">
+      <button
+        type="button"
+        class="range-chip"
+        *ngFor="let range of ranges"
+        [class.range-chip--active]="range.days === days"
+        [attr.aria-pressed]="range.days === days"
+        (click)="daysChange.emit(range.days)"
+      >
+        {{ range.label }}
+      </button>
+    </div>
+  </header>
+
+  <div class="status-bar">
+    <!-- Lo único sobre lo que el entrenador actúa hoy va primero y es lo
+         único con acento: si las tres cifras gritan, ninguna dice nada. -->
+    <div class="stat" [class.stat--action]="pending">
+      <span class="stat-label">
+        <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
+        {{ pending === 1 ? 'Espera tu respuesta' : 'Esperan tu respuesta' }}
+      </span>
+      <span class="stat-value">{{ pending }}</span>
+    </div>
+
+    <div class="stat" [class.stat--alert]="state === 'loaded' && summary?.missed">
+      <span class="stat-label">
+        <ion-icon name="remove-circle-outline" aria-hidden="true"></ion-icon>
+        {{ summary?.missed === 1 ? 'Se cerró sin responder' : 'Se cerraron sin responder' }}
+      </span>
+      <span class="stat-value">{{ state === 'loaded' ? summary?.missed : '—' }}</span>
+    </div>
+
+    <div class="stat" [class.stat--open]="state === 'loaded' && summary?.open">
+      <span class="stat-label">
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+        {{ summary?.open === 1 ? 'Abierto, aún puede responder' : 'Abiertos, aún puede responder' }}
+      </span>
+      <span class="stat-value">{{ state === 'loaded' ? summary?.open : '—' }}</span>
+    </div>
+  </div>
+
+  <p class="status-error" *ngIf="state === 'error'" role="alert">
+    No se pudo calcular el resumen.
+    <button type="button" class="plain-link" (click)="retry.emit()">Reintentar</button>
+  </p>
+</section>

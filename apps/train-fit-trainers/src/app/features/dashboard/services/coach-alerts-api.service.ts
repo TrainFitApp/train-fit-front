@@ -24,9 +24,9 @@ export class CoachAlertsApiService {
     });
   }
 
-  // Fuerza la evaluación de las señales de este profesional sin esperar al
-  // cron nocturno. Necesario para que un profesional que acaba de dar de
-  // alta a sus clientes no vea un panel vacío hasta el día siguiente.
+  // Fuerza la evaluación de las señales de este profesional. El back evalúa
+  // solo una vez al día (en la primera lectura); sin esto, un profesional
+  // que da de alta clientes a media mañana no los vería hasta el día siguiente.
   public evaluateNow(): Observable<{ created: number; refreshed: number; autoResolved: number }> {
     return this.http.post<{ created: number; refreshed: number; autoResolved: number }>(
       `${CoachAlertsApiService.ENDPOINT}/evaluate`,

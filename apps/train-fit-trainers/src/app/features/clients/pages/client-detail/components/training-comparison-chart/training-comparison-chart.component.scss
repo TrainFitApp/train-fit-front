@@ -6,8 +6,8 @@
 .comparison { font-variant-numeric: tabular-nums; }
 .block-selectors { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
 label { display: grid; gap: 5px; min-width: 0; font-size: 12px; font-weight: 600; }
-select { width: 100%; min-width: 0; min-height: 44px; padding: 8px; border: 1px solid var(--tf-border, #414141); border-radius: 8px; color: inherit; background: var(--tf-surface-2, #202020); font: inherit; }
-select:focus-visible, button:focus-visible { outline: 2px solid var(--ion-color-primary, #fe9000); outline-offset: 2px; }
+ion-select.tf-select { border-radius: var(--tf-radius-sm); }
+button:focus-visible { outline: 2px solid var(--ion-color-primary, #fe9000); outline-offset: 2px; }
 .side-a { color: #8db6dd; }
 .side-b { color: var(--ion-color-primary, #fe9000); }
 .comparison-headline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-top: 16px; }

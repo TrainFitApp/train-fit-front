@@ -11,9 +11,17 @@
       <span class="compare-card__dates">{{ formatRange(l) }}</span>
       <label class="compare-card__picker" *ngIf="hasComparison">
         <span class="sr-only">Semana a comparar</span>
-        <select [value]="l.number" (change)="selectLeft($any($event.target).value)" aria-label="Semana a comparar">
-          <option *ngFor="let c of weeks; trackBy: trackByNumber" [value]="c.number">{{ weekOptionLabel(c) }}</option>
-        </select>
+        <ion-select
+          class="tf-select"
+          interface="popover"
+          toggleIcon="chevron-down-outline"
+          labelPlacement="stacked"
+          [value]="l.number"
+          (ionChange)="selectLeft($event.detail.value)"
+          aria-label="Semana a comparar"
+        >
+          <ion-select-option *ngFor="let c of weeks; trackBy: trackByNumber" [value]="c.number">{{ weekOptionLabel(c) }}</ion-select-option>
+        </ion-select>
       </label>
     </div>
 
@@ -59,12 +67,20 @@
       </ng-template>
       <label class="compare-card__picker" *ngIf="hasComparison">
         <span class="sr-only">Semana de referencia</span>
-        <select [value]="right?.number ?? ''" (change)="selectRight($any($event.target).value)" aria-label="Semana de referencia">
-          <option value="" disabled [selected]="!right">Elige una semana</option>
-          <option *ngFor="let c of weeks; trackBy: trackByNumber" [value]="c.number" [disabled]="c.number === l.number">
+        <ion-select
+          class="tf-select"
+          interface="popover"
+          toggleIcon="chevron-down-outline"
+          labelPlacement="stacked"
+          placeholder="Elige una semana"
+          [value]="right?.number"
+          (ionChange)="selectRight($event.detail.value)"
+          aria-label="Semana de referencia"
+        >
+          <ion-select-option *ngFor="let c of weeks; trackBy: trackByNumber" [value]="c.number" [disabled]="c.number === l.number">
             {{ weekOptionLabel(c) }}
-          </option>
-        </select>
+          </ion-select-option>
+        </ion-select>
       </label>
     </div>
 

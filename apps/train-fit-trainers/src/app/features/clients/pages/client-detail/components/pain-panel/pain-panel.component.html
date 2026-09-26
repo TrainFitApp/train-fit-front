@@ -88,9 +88,17 @@
 
     <div class="zone-select">
       <label class="field-label" for="pain-zone">Zona</label>
-      <select id="pain-zone" class="select-field" [(ngModel)]="editingZone">
-        <option *ngFor="let zone of zones" [value]="zone">{{ zone }}</option>
-      </select>
+      <ion-select
+        id="pain-zone"
+        class="tf-select"
+        interface="popover"
+        toggleIcon="chevron-down-outline"
+        labelPlacement="stacked"
+        aria-label="Zona"
+        [(ngModel)]="editingZone"
+      >
+        <ion-select-option *ngFor="let zone of zones" [value]="zone">{{ zone }}</ion-select-option>
+      </ion-select>
     </div>
 
     <p class="panel-hint">

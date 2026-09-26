@@ -126,37 +126,12 @@
   font-size: var(--tf-font-size-base);
 }
 
-// <select> nativo, no un desplegable propio: en móvil abre la rueda del
-// sistema, que es más rápida y accesible que cualquier lista reimplementada
-// (PRODUCT.md: no reinventar affordances estándar).
-.builder-select {
-  min-height: var(--tf-touch-min);
-  padding: 0 var(--tf-space-8) 0 var(--tf-space-3);
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border-strong);
-  border-radius: var(--tf-radius-md);
-  color: var(--tf-text);
-  font-family: inherit;
-  font-size: var(--tf-font-size-sm);
-  cursor: pointer;
-  appearance: none;
-  // Flecha dibujada con gradientes, sin imagen externa ni glifo unicode.
-  background-image: linear-gradient(45deg, transparent 50%, var(--tf-text-muted) 50%),
-    linear-gradient(135deg, var(--tf-text-muted) 50%, transparent 50%);
-  background-position: calc(100% - 18px) calc(50% + 2px), calc(100% - 13px) calc(50% + 2px);
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-
-  &:focus-visible {
-    outline: 2px solid var(--tf-accent);
-    outline-offset: 2px;
-  }
-
-  option,
-  optgroup {
-    background: var(--tf-surface-2);
-    color: var(--tf-text);
-  }
+// ion-select.tf-select (theme/tokens.scss) con popover del tema: el <select>
+// nativo abría una lista del sistema en claro, fuera del tema oscuro. Aquí
+// solo el reparto en la fila de la condición.
+ion-select.builder-select {
+  flex: 1 1 150px;
+  width: auto;
 }
 
 .builder-input {
@@ -331,7 +306,7 @@
 
 // La métrica es lo primero que se elige y la etiqueta más larga: ocupa la
 // línea entera antes de que el resto la deje en 12 caracteres.
-.builder-select--metric {
+ion-select.builder-select--metric {
   flex: 1 1 100%;
 }
 
@@ -387,6 +362,10 @@
   align-items: center;
   gap: var(--tf-space-3);
   width: 100%;
+}
+
+.priority-row ion-select.builder-select {
+  flex: 0 1 200px;
 }
 
 .priority-label {

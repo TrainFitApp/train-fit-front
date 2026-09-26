@@ -11,9 +11,16 @@
   <div class="field-row">
     <div class="input-wrapper">
       <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
-      <select class="input-field select-field" aria-label="Comida" [(ngModel)]="mealSlot">
-        <option *ngFor="let slot of mealSlots" [value]="slot">{{ slot }}</option>
-      </select>
+      <ion-select
+        class="tf-select select-field"
+        interface="popover"
+        toggleIcon="chevron-down-outline"
+        labelPlacement="stacked"
+        aria-label="Comida"
+        [(ngModel)]="mealSlot"
+      >
+        <ion-select-option *ngFor="let slot of mealSlots" [value]="slot">{{ slot }}</ion-select-option>
+      </ion-select>
     </div>
     <div class="input-wrapper">
       <ion-icon name="calendar-outline" class="input-icon"></ion-icon>

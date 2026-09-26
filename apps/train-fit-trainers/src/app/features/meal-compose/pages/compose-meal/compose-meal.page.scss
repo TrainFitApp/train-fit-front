@@ -40,16 +40,27 @@
   font-size: var(--tf-font-size-base);
 }
 
-// La flecha nativa del <select> desaparece con appearance:none — se
-// sustituye por una propia (mismo patrón que checkins.page.scss
-// .client-select) para no perder la señal de "esto se puede desplegar".
-.select-field {
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b8b8b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0 center;
-  padding-right: var(--tf-space-5);
+// ion-select.tf-select (theme/tokens.scss) sin su propia caja: el borde, el
+// fondo y el foco ya los pone .input-wrapper, como en el resto de campos.
+ion-select.select-field {
+  --padding-start: 0;
+  --padding-end: 0;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  font-size: var(--tf-font-size-base);
+
+  &.select-expanded,
+  &.has-focus,
+  &:focus-within {
+    background: transparent;
+  }
+
+  &.ion-focused {
+    outline: none;
+  }
 }
 
 .food-item-card {

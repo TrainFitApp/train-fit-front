@@ -90,27 +90,17 @@
   display: block;
   margin-top: 4px;
 
-  select {
-    width: 100%;
-    min-width: 0;
+  // Resto del aspecto: ion-select.tf-select (theme/tokens.scss).
+  ion-select.tf-select {
     min-height: 36px;
-    padding: 0 var(--tf-space-3);
-    background: var(--tf-surface-2);
-    border: 1px solid var(--tf-border);
-    border-radius: 8px;
-    color: var(--tf-text);
-    font-family: inherit;
+    border-color: var(--tf-border);
+    border-radius: var(--tf-radius-sm);
     font-size: var(--tf-font-size-xs);
     font-weight: 600;
-
-    &:focus-visible {
-      outline: 2px solid var(--tf-accent);
-      outline-offset: 2px;
-    }
   }
 }
 
-.compare-card--reference .compare-card__picker select {
+.compare-card--reference .compare-card__picker ion-select.tf-select {
   background: var(--tf-surface-1);
 }
 

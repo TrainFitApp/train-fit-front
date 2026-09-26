@@ -310,17 +310,21 @@
             </label>
             <label class="intake-edit-label">
               Experiencia
-              <select
-                class="training-goal-type-select"
+              <ion-select
+                class="tf-select"
+                interface="popover"
+                toggleIcon="chevron-down-outline"
+                labelPlacement="stacked"
+                aria-label="Experiencia"
                 [(ngModel)]="draft.experienceLevel"
               >
-                <option
+                <ion-select-option
                   *ngFor="let opt of experienceLevelOptions"
-                  [ngValue]="opt.value"
+                  [value]="opt.value"
                 >
                   {{ opt.label }}
-                </option>
-              </select>
+                </ion-select-option>
+              </ion-select>
             </label>
             <label class="intake-edit-label">
               Disponibilidad
@@ -547,19 +551,23 @@
               <div class="equipment-card" *ngIf="isEditingTrainingGoal">
                 <div class="equipment-field">
                   <span class="equipment-field-label">Tipo</span>
-                  <select
-                    class="training-goal-type-select"
+                  <ion-select
+                    class="tf-select"
+                    interface="popover"
+                    toggleIcon="chevron-down-outline"
+                    labelPlacement="stacked"
+                    aria-label="Tipo de objetivo"
                     [(ngModel)]="trainingGoalTypeDraft"
                     [disabled]="isSavingTrainingGoal"
                   >
-                    <option [ngValue]="null">Sin declarar</option>
-                    <option
+                    <ion-select-option [value]="null">Sin declarar</ion-select-option>
+                    <ion-select-option
                       *ngFor="let opt of trainingGoalTypeOptions"
-                      [ngValue]="opt.value"
+                      [value]="opt.value"
                     >
                       {{ opt.label }}
-                    </option>
-                  </select>
+                    </ion-select-option>
+                  </ion-select>
                 </div>
                 <div class="training-goal-edit-actions">
                   <button
@@ -932,46 +940,52 @@
                       <div class="training-comparison-controls">
                         <label
                           >Comparar por
-                          <select
+                          <ion-select
+                            class="tf-select"
+                            interface="popover"
+                            toggleIcon="chevron-down-outline"
+                            labelPlacement="stacked"
                             [ngModel]="trainingComparisonMetric"
                             (ngModelChange)="onTrainingMetricChanged($event)"
                             aria-label="Comparar por"
                           >
-                            <option
+                            <ion-select-option
                               *ngFor="let option of trainingMetricOptions"
                               [value]="option.value"
                             >
                               {{ trainingGranularity === 'session' &&
                               option.value === 'muscleGroups' ? 'Volumen por
                               grupo muscular (kg)' : option.label }}
-                            </option>
-                          </select>
+                            </ion-select-option>
+                          </ion-select>
                         </label>
                         <label *ngIf="trainingComparisonMetric === 'exercise'"
                           >Ejercicio con carga
-                          <select
+                          <ion-select
+                            class="tf-select"
+                            interface="popover"
+                            toggleIcon="chevron-down-outline"
+                            labelPlacement="stacked"
+                            [placeholder]="selectedTrainingExercises.length > 1 ?
+                              selectedTrainingExercises.length + ' ejercicios seleccionados' :
+                              'Selecciona un ejercicio'"
                             [ngModel]="selectedTrainingExercise"
                             (ngModelChange)="onTrainingExerciseChanged($event)"
                             aria-label="Ejercicio a comparar"
                           >
-                            <option [ngValue]="null" disabled>
-                              {{ selectedTrainingExercises.length > 1 ?
-                              selectedTrainingExercises.length + ' ejercicios
-                              seleccionados' : 'Selecciona un ejercicio' }}
-                            </option>
-                            <option
+                            <ion-select-option
                               *ngIf="selectedTrainingExercise && !trainingExerciseNames.includes(selectedTrainingExercise)"
                               [value]="selectedTrainingExercise"
                             >
                               {{ selectedTrainingExercise }} · sin registros
-                            </option>
-                            <option
+                            </ion-select-option>
+                            <ion-select-option
                               *ngFor="let name of trainingExerciseNames"
                               [value]="name"
                             >
                               {{ name }}
-                            </option>
-                          </select>
+                            </ion-select-option>
+                          </ion-select>
                         </label>
                       </div>
                       <div class="section-row">

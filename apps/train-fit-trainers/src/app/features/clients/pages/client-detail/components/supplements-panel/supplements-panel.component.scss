@@ -373,7 +373,6 @@
   color: var(--tf-text-muted);
 }
 
-.select-field,
 .note-field {
   width: 100%;
   // Explícito y no heredado del reset: con content-box, el relleno y el
@@ -391,10 +390,6 @@
     outline: none;
     border-color: var(--tf-accent);
   }
-}
-
-.select-field {
-  min-height: 44px;
 }
 
 .note-field {

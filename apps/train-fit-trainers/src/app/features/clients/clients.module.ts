@@ -28,6 +28,8 @@ import { TrainingComparisonChartComponent } from './pages/client-detail/componen
 import { TrainingDayDetailComponent } from './pages/client-detail/components/training-day-detail/training-day-detail.component';
 import { PhaseScheduleCalendarComponent } from './components/phase-schedule-calendar/phase-schedule-calendar.component';
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
+import { CheckinFieldSelectorComponent } from '../../shared/components/checkin-field-selector/checkin-field-selector.component';
+import { TrackingStatusComponent } from './pages/client-detail/components/tracking-status/tracking-status.component';
 
 @NgModule({
   imports: [
@@ -40,6 +42,9 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     // Standalone: el bloque "cómo se ha calculado" del objetivo nutricional
     // del cliente, el mismo que usan el resumen de semana y el cajón.
     NeedBreakdownComponent,
+    // Standalone: campos sueltos al programar un check-in o pedir algo
+    // puntual (checkin-workspace).
+    CheckinFieldSelectorComponent,
   ],
   declarations: [
     ClientsPage,
@@ -49,6 +54,7 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     NutritionCalendarComponent,
     CheckinHistoryChartComponent,
     CheckinWorkspaceComponent,
+    TrackingStatusComponent,
     NutritionTrackingChartComponent,
     WeightAdherenceChartComponent,
     WeekComparisonCardsComponent,

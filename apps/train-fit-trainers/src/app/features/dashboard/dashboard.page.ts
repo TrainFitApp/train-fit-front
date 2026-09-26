@@ -262,9 +262,9 @@ export class DashboardPage implements OnInit {
     this.alerts = next;
   }
 
-  // El ciclo natural del evaluador es de 24 h. Sin esta acción, un
-  // profesional que acaba de dar de alta a sus clientes vería un panel vacío
-  // hasta la mañana siguiente y concluiría que no funciona.
+  // El back evalúa una vez al día, en la primera lectura. Sin esta acción,
+  // un profesional que da de alta clientes a media mañana no los vería en el
+  // panel hasta el día siguiente y concluiría que no funciona.
   public evaluateNow(): void {
     if (this.isEvaluating) return;
     this.isEvaluating = true;

@@ -527,32 +527,12 @@
   }
 }
 
-.custom-question-select {
-  min-height: var(--tf-touch-min);
-  padding: 0 var(--tf-space-8) 0 var(--tf-space-3);
+// Resto del aspecto: ion-select.tf-select (theme/tokens.scss).
+ion-select.custom-question-select {
+  flex: 0 1 200px;
+  width: auto;
   background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border-strong);
   border-radius: var(--tf-radius-sm);
-  color: var(--tf-text);
-  font-family: inherit;
-  font-size: var(--tf-font-size-sm);
-  cursor: pointer;
-  appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--tf-text-muted) 50%),
-    linear-gradient(135deg, var(--tf-text-muted) 50%, transparent 50%);
-  background-position: calc(100% - 18px) calc(50% + 2px), calc(100% - 13px) calc(50% + 2px);
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-
-  &:focus-visible {
-    outline: 2px solid var(--tf-accent);
-    outline-offset: 2px;
-  }
-
-  option {
-    background: var(--tf-surface-1);
-    color: var(--tf-text);
-  }
 }
 
 .custom-question-remove {

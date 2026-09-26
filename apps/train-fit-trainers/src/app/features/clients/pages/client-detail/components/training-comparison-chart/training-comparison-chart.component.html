@@ -9,15 +9,14 @@
   <div [hidden]="isLoading || hasError || !hasData || !showComparison">
     <div class="block-selectors">
       <label><span class="side-a">A · Referencia</span>
-        <select aria-label="Microciclo A de referencia" [ngModel]="referenceId" (ngModelChange)="selectSide('a', $event)">
-          <option value="" disabled>Sin otro microciclo</option>
-          <option *ngFor="let block of blocks" [value]="block.splitId">{{ label(block) }}</option>
-        </select>
+        <ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" placeholder="Sin otro microciclo" aria-label="Microciclo A de referencia" [ngModel]="referenceId" (ngModelChange)="selectSide('a', $event)">
+          <ion-select-option *ngFor="let block of blocks" [value]="block.splitId">{{ label(block) }}</ion-select-option>
+        </ion-select>
       </label>
       <label><span class="side-b">B · Comparar</span>
-        <select aria-label="Microciclo B a comparar" [ngModel]="comparisonId" (ngModelChange)="selectSide('b', $event)">
-          <option *ngFor="let block of blocks" [value]="block.splitId">{{ label(block) }}</option>
-        </select>
+        <ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" aria-label="Microciclo B a comparar" [ngModel]="comparisonId" (ngModelChange)="selectSide('b', $event)">
+          <ion-select-option *ngFor="let block of blocks" [value]="block.splitId">{{ label(block) }}</ion-select-option>
+        </ion-select>
       </label>
     </div>
     <div class="comparison-headline" aria-live="polite" *ngIf="primary as main">

@@ -146,11 +146,19 @@
 
       <div class="field">
         <label class="field-label" for="supplement-timing">Momento del día</label>
-        <select id="supplement-timing" class="select-field" [(ngModel)]="formTiming">
-          <option *ngFor="let timing of timings; trackBy: trackByKey" [value]="timing.key">
+        <ion-select
+          id="supplement-timing"
+          class="tf-select"
+          interface="popover"
+          toggleIcon="chevron-down-outline"
+          labelPlacement="stacked"
+          aria-label="Momento del día"
+          [(ngModel)]="formTiming"
+        >
+          <ion-select-option *ngFor="let timing of timings; trackBy: trackByKey" [value]="timing.key">
             {{ timing.label }}
-          </option>
-        </select>
+          </ion-select-option>
+        </ion-select>
       </div>
 
       <div class="field" *ngIf="formTiming === 'custom'">

@@ -1,0 +1,138 @@
+@import '../../../../../../../theme/hierarchy';
+@import '../../../../../../../theme/buttons';
+
+:host { display: block; margin-bottom: var(--tf-space-6); }
+
+// Cabecera de bloque: el título y, al lado, el periodo que cuentan las cifras.
+.block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
+}
+.block-title { @include tf-section-title; }
+
+// Elegir periodo es una elección entre varias, no una acción: píldora, no
+// botón (mismo dibujo que el selector de intervalo de resumen-checkins).
+.range-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+.range-chip {
+  @include tf-touch-expander-y(5px);
+
+  min-height: 34px;
+  padding: 0 var(--tf-space-3);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover:not(.range-chip--active) { background: var(--tf-surface-3); color: var(--tf-text); }
+
+  &--active {
+    border-color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+    font-weight: var(--tf-weight-label);
+  }
+
+  &:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; }
+}
+
+// Cada cifra en su propia tarjeta: se distinguen aunque se lean sueltas.
+.status-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--tf-space-3);
+}
+
+.stat {
+  @include tf-pair(var(--tf-space-1));
+
+  padding: var(--tf-space-4);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-left: 3px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+}
+
+.stat-value {
+  @include tf-value(var(--tf-font-size-xl));
+}
+
+.stat-label {
+  @include tf-label;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+
+  ion-icon {
+    font-size: var(--tf-font-size-base);
+    color: var(--tf-text-faint);
+  }
+}
+
+// Mismo vocabulario de color que el calendario y las píldoras de estado:
+//   naranja = requiere tu acción · rojo = se ha quedado atrás ·
+//   dorado = abierto, sin prisa. El color solo refuerza icono y frase.
+.stat--action {
+  background: var(--tf-accent-soft);
+  border-color: var(--tf-accent-soft-border);
+  border-left-color: var(--tf-accent);
+  .stat-value { color: var(--tf-accent-text); }
+  .stat-label, .stat-label ion-icon { color: var(--tf-accent-text); }
+}
+.stat--alert {
+  background: var(--tf-danger-soft);
+  border-color: var(--tf-danger-border);
+  border-left-color: var(--tf-danger);
+  .stat-value { color: var(--tf-danger-text, #ed576b); }
+  .stat-label, .stat-label ion-icon { color: var(--tf-danger-text, #ed576b); }
+}
+.stat--open {
+  background: rgba(255, 196, 85, 0.1);
+  border-color: rgba(255, 196, 85, 0.3);
+  border-left-color: var(--tf-secondary);
+  .stat-value { color: var(--tf-secondary); }
+  .stat-label, .stat-label ion-icon { color: var(--tf-secondary); }
+}
+
+.status-error {
+  @include tf-help;
+  margin-top: var(--tf-space-3);
+  color: var(--tf-danger-text);
+}
+
+.plain-link {
+  padding: 4px 0;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-label);
+  color: var(--tf-text);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+// En móvil las cifras se reparten el ancho en vez de amontonarse.
+@media (max-width: 560px) {
+  .status-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--tf-space-4);
+  }
+}

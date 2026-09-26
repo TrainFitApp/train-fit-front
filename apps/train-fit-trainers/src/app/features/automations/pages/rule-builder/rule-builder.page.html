@@ -95,29 +95,39 @@
           <div class="condition-card">
             <div class="condition-fields">
               <!-- Métrica, agrupada para que una lista de 30 no sea un muro -->
-              <select
-                class="builder-select builder-select--metric"
+              <ion-select
+                class="tf-select builder-select builder-select--metric"
+                interface="popover"
+                toggleIcon="chevron-down-outline"
+                labelPlacement="stacked"
                 [(ngModel)]="condition.metric"
                 (ngModelChange)="onMetricChange(condition)"
                 [attr.aria-label]="'Métrica de la condición ' + (i + 1)"
               >
-                <optgroup *ngFor="let group of metricGroups" [label]="group.label">
-                  <option *ngFor="let metric of group.metrics" [value]="metric.key">
+                <!-- ion-select no tiene <optgroup>: el grupo va como opción deshabilitada -->
+                <ng-container *ngFor="let group of metricGroups">
+                  <ion-select-option class="tf-select-group" disabled [value]="'group:' + group.label">
+                    {{ group.label }}
+                  </ion-select-option>
+                  <ion-select-option *ngFor="let metric of group.metrics" [value]="metric.key">
                     {{ metric.label }}
-                  </option>
-                </optgroup>
-              </select>
+                  </ion-select-option>
+                </ng-container>
+              </ion-select>
 
               <!-- Solo los operadores que tienen sentido para esa métrica -->
-              <select
-                class="builder-select"
+              <ion-select
+                class="tf-select builder-select"
+                interface="popover"
+                toggleIcon="chevron-down-outline"
+                labelPlacement="stacked"
                 [(ngModel)]="condition.operator"
                 [attr.aria-label]="'Comparación de la condición ' + (i + 1)"
               >
-                <option *ngFor="let operator of operatorsFor(condition)" [value]="operator.key">
+                <ion-select-option *ngFor="let operator of operatorsFor(condition)" [value]="operator.key">
                   {{ operator.label }}
-                </option>
-              </select>
+                </ion-select-option>
+              </ion-select>
 
               <div class="value-field">
                 <input
@@ -130,16 +140,19 @@
                 <span class="value-unit" *ngIf="unitFor(condition)">{{ unitFor(condition) }}</span>
               </div>
 
-              <select
-                class="builder-select"
+              <ion-select
+                class="tf-select builder-select"
                 *ngIf="showsPeriod(condition)"
+                interface="popover"
+                toggleIcon="chevron-down-outline"
+                labelPlacement="stacked"
                 [(ngModel)]="condition.periodDays"
                 [attr.aria-label]="'Periodo de la condición ' + (i + 1)"
               >
-                <option *ngFor="let period of catalog?.periods" [ngValue]="period.days">
+                <ion-select-option *ngFor="let period of catalog?.periods" [value]="period.days">
                   {{ period.label }}
-                </option>
-              </select>
+                </ion-select-option>
+              </ion-select>
             </div>
 
             <button
@@ -209,11 +222,18 @@
 
           <div class="priority-row" *ngIf="action.type === 'create_alert'">
             <span class="priority-label">Prioridad</span>
-            <select class="builder-select" [(ngModel)]="action.priority" aria-label="Prioridad de la alerta">
-              <option value="high">Urgente</option>
-              <option value="medium">Revisar</option>
-              <option value="low">Menor</option>
-            </select>
+            <ion-select
+              class="tf-select builder-select"
+              interface="popover"
+              toggleIcon="chevron-down-outline"
+              labelPlacement="stacked"
+              [(ngModel)]="action.priority"
+              aria-label="Prioridad de la alerta"
+            >
+              <ion-select-option value="high">Urgente</ion-select-option>
+              <ion-select-option value="medium">Revisar</ion-select-option>
+              <ion-select-option value="low">Menor</ion-select-option>
+            </ion-select>
           </div>
         </div>
       </div>

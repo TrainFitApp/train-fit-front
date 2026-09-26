@@ -3,13 +3,18 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
+import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 import { CheckinResponseEntry } from '../../models/client-detail.model';
-import { CheckinAgendaData, CheckinComparisonRow, CheckinDay, CheckinEntry, CheckinSchedule, CheckinScheduleDraft, CheckinStatus, CheckinTemplateDefinition } from './checkin-workspace.model';
-import { compareCheckins } from './checkin-comparison';
+import { CheckinAgendaData, CheckinComparisonRow, CheckinDay, CheckinEntry, CheckinSchedule, CheckinScheduleDraft, CheckinStatus, CheckinSummary, CheckinTemplateDefinition, ComparisonTab } from './checkin-workspace.model';
+import { compareCheckins, tabsFor } from './checkin-comparison';
 import { checkinCadenceLabel, checkinWeekLabel } from '../../../../checkin-labels.util';
 
 function localDate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+function localTime(date: Date): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 @Component({ selector: 'app-checkin-workspace', templateUrl: './checkin-workspace.component.html', styleUrls: ['./checkin-workspace.component.scss'] })
 export class CheckinWorkspaceComponent implements OnChanges {
@@ -17,7 +22,9 @@ export class CheckinWorkspaceComponent implements OnChanges {
   private readonly http = inject(HttpService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ionicUtilService = inject(IonicUtilService);
   private loadSubscription?: Subscription;
+  private summarySubscription?: Subscription;
   public readonly today = localDate(new Date());
   public readonly weekdays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
   public readonly statusLabels: Record<CheckinStatus, string> = { scheduled: 'Programado', open: 'Abierto', unanswered: 'Sin responder', responded: 'Por revisar', reviewed: 'Revisado' };
@@ -32,23 +39,43 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public busy = false;
   public data: CheckinAgendaData | null = null;
   public scheduleFilter = '';
-  public reviewOnly = false;
+  // "Check-ins programados" es configuración, no historial: una "una sola
+  // vez" cuya fecha ya llegó no tiene nada que gestionar ahí (sigue en el
+  // calendario y en las respuestas). Precalculado en rebuild(), nunca un
+  // getter: un array nuevo en cada ciclo de detección ya colgó esta app.
+  public visibleSchedules: CheckinSchedule[] = [];
+  // Abre en "Esperan tu respuesta": es la pregunta diaria del entrenador.
+  public reviewOnly = true;
   public agenda: CheckinEntry[] = [];
   public selected: CheckinEntry | null = null;
   public referenceId = '';
   public references: CheckinEntry[] = [];
   public rows: CheckinComparisonRow[] = [];
+  // La revisión se parte en pestañas por dato (Peso, Perímetros…). Solo las
+  // que este check-in responde; filas de la activa precalculadas.
+  public comparisonTabs: { key: ComparisonTab; label: string; count: number }[] = [];
+  public selectedComparisonTab: ComparisonTab | null = null;
+  public visibleRows: CheckinComparisonRow[] = [];
   public trendResponses: CheckinResponseEntry[] = [];
   public readonly emptyQuestions = [];
   public showEvolution = false;
-  public showSchedules = false;
   public comment = '';
   public templates: CheckinTemplateDefinition[] = [];
   public templatesState: 'loading' | 'loaded' | 'error' = 'loading';
   public editor: CheckinScheduleDraft | null = null;
   public editingId: string | null = null;
+  // De dónde salen las preguntas: una plantilla o campos sueltos del
+  // catálogo. Excluyentes para el back (checkin-agenda-controller.js).
+  public sourceMode: 'template' | 'fields' = 'template';
+  // "Cómo va el seguimiento": abiertas y cerradas sin responder del rango.
+  public summaryDays = 90;
+  public summary: CheckinSummary | null = null;
+  public summaryState: 'loading' | 'loaded' | 'error' = 'loading';
+  // "Pedir algo puntual": una programación "una sola vez" de hoy.
+  public showPuntual = false;
+  public puntualFields: string[] = [];
 
-  public ngOnChanges(): void { if (this.clientId) { this.data = null; this.selected = null; this.load(); } }
+  public ngOnChanges(): void { if (this.clientId) { this.data = null; this.selected = null; this.load(); this.loadSummary(); } }
   private get base(): string { return `trainer/clients/${encodeURIComponent(this.clientId)}`; }
   public load(): void {
     this.loadSubscription?.unsubscribe();
@@ -61,6 +88,16 @@ export class CheckinWorkspaceComponent implements OnChanges {
         error: () => { this.state = 'error'; },
       });
   }
+  public loadSummary(): void {
+    this.summarySubscription?.unsubscribe();
+    this.summaryState = 'loading';
+    this.summarySubscription = this.http.get<CheckinSummary>(`${this.base}/checkin-summary?days=${this.summaryDays}`)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: summary => { this.summary = summary; this.summaryState = 'loaded'; },
+        error: () => { this.summaryState = 'error'; },
+      });
+  }
+  public changeSummaryDays(days: number): void { if (days !== this.summaryDays) { this.summaryDays = days; this.loadSummary(); } }
   public changeMonth(delta: number): void { this.month = new Date(this.month.getFullYear(), this.month.getMonth() + delta, 1); this.selectedDate = localDate(this.month); this.selected = null; this.load(); }
   public goToday(): void { const now = new Date(); this.month = new Date(now.getFullYear(), now.getMonth(), 1); this.selectedDate = this.today; this.reviewOnly = false; this.load(); }
   // La fecha ya viene como día de calendario: sin zona horaria que traducir
@@ -76,6 +113,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
     return checkinCadenceLabel(schedule);
   }
   public rebuild(): void {
+    this.visibleSchedules = (this.data?.schedules || []).filter(s => !(s.frequency === 'once' && s.startDate <= this.today));
     const entries = (this.data?.entries || []).filter(e => !this.scheduleFilter || e.scheduleId === this.scheduleFilter);
     this.monthLabel = this.month.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     const first = new Date(this.month); first.setDate(1 - (first.getDay() + 6) % 7);
@@ -106,15 +144,27 @@ export class CheckinWorkspaceComponent implements OnChanges {
     this.updateComparison();
     this.trendResponses = [...(entry?.respondedAt ? [entry] : []), ...history].filter((r): r is CheckinEntry & { respondedAt: string } => !!r.respondedAt).map(r => ({ _id: r._id, respondedAt: r.respondedAt, values: r.values || {} }));
   }
-  public updateComparison(): void { this.rows = this.selected?.respondedAt ? compareCheckins(this.selected, this.references.find(r => r._id === this.referenceId) || null) : []; }
+  public updateComparison(): void {
+    this.rows = this.selected?.respondedAt ? compareCheckins(this.selected, this.references.find(r => r._id === this.referenceId) || null) : [];
+    this.comparisonTabs = tabsFor(this.rows);
+    // Se conserva la pestaña abierta al cambiar de referencia; si ya no tiene
+    // datos, la primera (Peso gana cuando está).
+    if (!this.comparisonTabs.some(tab => tab.key === this.selectedComparisonTab)) this.selectedComparisonTab = this.comparisonTabs[0]?.key || null;
+    this.chooseComparisonTab(this.selectedComparisonTab);
+  }
+  public chooseComparisonTab(tab: ComparisonTab | null): void {
+    this.selectedComparisonTab = tab;
+    this.visibleRows = this.rows.filter(row => row.tab === tab);
+  }
   public async openEditor(schedule?: CheckinSchedule): Promise<void> {
     this.error = ''; this.editingId = schedule?._id || null;
-    this.editor = schedule ? { ...schedule } : {
-      name: '', sourceTemplateId: null,
+    this.sourceMode = schedule && !schedule.sourceTemplateId ? 'fields' : 'template';
+    this.editor = schedule ? { ...schedule, enabledFields: [...(schedule.enabledFields || [])] } : {
+      name: '', sourceTemplateId: null, enabledFields: [],
       startDate: this.selectedDate < this.today ? this.today : this.selectedDate,
       time: '09:00', frequency: 'weekly', interval: 1,
     };
-    if (!schedule) await this.loadTemplates();
+    await this.loadTemplates();
   }
   public async loadTemplates(): Promise<void> {
     this.templatesState = 'loading';
@@ -122,26 +172,72 @@ export class CheckinWorkspaceComponent implements OnChanges {
     catch { this.templatesState = 'error'; }
   }
   public chooseTemplate(id: string): void { if (this.editor) { this.editor.sourceTemplateId = id; this.editor.name = this.templates.find(t => t._id === id)?.name || ''; } }
+  public chooseSourceMode(mode: 'template' | 'fields'): void { this.sourceMode = mode; }
+  public setDraftFields(fields: string[]): void { if (this.editor) this.editor.enabledFields = fields; }
+  public get canSave(): boolean {
+    if (!this.editor || this.busy) return false;
+    return this.sourceMode === 'template' ? !!this.editor.sourceTemplateId : !!this.editor.enabledFields?.length;
+  }
   public async save(): Promise<void> {
-    if (!this.editor || this.busy) return;
-    const draft = { ...this.editor };
-    await this.mutate(() => this.editingId ? firstValueFrom(this.http.put(`${this.base}/checkin-schedules/${this.editingId}`, draft)) : firstValueFrom(this.http.post(`${this.base}/checkin-schedules`, draft)), 'Programación guardada', () => { this.editor = null; });
+    if (!this.editor || !this.canSave) return;
+    // Solo las preguntas del modo visible: al editar, mandar la misma
+    // plantilla no la vuelve a copiar (ver checkin-agenda-controller.js).
+    const { name, startDate, time, frequency, interval, revision, sourceTemplateId, enabledFields } = this.editor;
+    const body = { name, startDate, time, frequency, interval, revision, ...(this.sourceMode === 'fields' ? { enabledFields } : { sourceTemplateId }) };
+    await this.mutate(() => this.editingId ? firstValueFrom(this.http.put(`${this.base}/checkin-schedules/${this.editingId}`, body)) : firstValueFrom(this.http.post(`${this.base}/checkin-schedules`, body)), 'Programación guardada', () => { this.editor = null; });
   }
   public async setActive(schedule: CheckinSchedule): Promise<void> {
     await this.mutate(() => firstValueFrom(this.http.patch(`${this.base}/checkin-schedules/${schedule._id}/active`, { active: !schedule.active })), schedule.active ? 'Programación pausada' : 'Programación reanudada');
   }
+  // Sin cron que adelante la ocurrencia: el back crea una "una sola vez" de
+  // hoy con las mismas preguntas, salvo que ya tenga una abierta sin responder.
+  public async requestNow(schedule: CheckinSchedule): Promise<void> {
+    await this.mutate(
+      () => firstValueFrom(this.http.post<{ alreadyOpen?: boolean }>(`${this.base}/checkin-schedules/${schedule._id}/request`, {})),
+      result => result?.alreadyOpen ? 'Ya tiene este check-in abierto: puede responderlo desde su app' : 'Check-in disponible para el cliente'
+    );
+  }
   // Quitar la programación: las respuestas ya dadas se quedan (son historial
   // del cliente, no de la programación).
   public async remove(schedule: CheckinSchedule): Promise<void> {
+    const res = await this.ionicUtilService.showModal({
+      component: ConfirmSheetComponent,
+      componentProps: {
+        icon: 'trash-outline',
+        iconColor: 'danger',
+        title: `Eliminar "${schedule.name}"`,
+        message: 'Dejarán de pedirse sus check-ins. Las respuestas que ya envió el cliente se conservan.',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        confirmColor: 'danger',
+      },
+      cssClass: 'confirm-sheet-modal',
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+    });
+    if (res?.data !== true) return;
     await this.mutate(() => firstValueFrom(this.http.delete(`${this.base}/checkin-schedules/${schedule._id}`)), 'Programación eliminada');
+  }
+  public openPuntual(): void { this.puntualFields = []; this.showPuntual = true; }
+  public closePuntual(): void { this.showPuntual = false; }
+  public setPuntualFields(fields: string[]): void { this.puntualFields = fields; }
+  public async sendPuntual(): Promise<void> {
+    if (!this.puntualFields.length) return;
+    const now = new Date();
+    const body = { name: 'Petición puntual', enabledFields: this.puntualFields, startDate: localDate(now), time: localTime(now), frequency: 'once', interval: 1 };
+    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-schedules`, body)), 'Enviado. Tu cliente ya puede contestarlo', () => { this.showPuntual = false; });
   }
   public async review(): Promise<void> {
     if (!this.selected?.responseId || this.selected.status !== 'responded') return;
     await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-responses/${this.selected!.responseId}/review`, { comment: this.comment })), 'Respuesta revisada. El comentario está disponible para el cliente');
   }
-  private async mutate(action: () => Promise<unknown>, message: string, done?: () => void): Promise<void> {
+  private async mutate<T>(action: () => Promise<T>, message: string | ((result: T) => string), done?: () => void): Promise<void> {
     if (this.busy) return; this.busy = true; this.error = ''; this.notice = '';
-    try { await action(); done?.(); this.notice = message; this.load(); }
+    try {
+      const result = await action(); done?.();
+      this.notice = typeof message === 'string' ? message : message(result);
+      this.load(); this.loadSummary();
+    }
     catch (error: unknown) { this.error = (error as { error?: { message?: string } })?.error?.message || 'No se pudo guardar el cambio. Inténtalo de nuevo.'; }
     finally { this.busy = false; }
   }
@@ -150,4 +246,5 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public trackId(_index: number, item: { _id: string }): string { return item._id; }
   public trackDay(_index: number, item: CheckinDay): string { return item.date; }
   public trackRow(_index: number, item: CheckinComparisonRow): string { return item.key; }
+  public trackTab(_index: number, item: { key: ComparisonTab }): string { return item.key; }
 }

@@ -21,6 +21,9 @@ export interface CheckinScheduleDraft {
   time: string;
   frequency: CheckinFrequency;
   interval: number;
+  // Campos sueltos del catálogo, cuando las preguntas no salen de una
+  // plantilla (sourceTemplateId null).
+  enabledFields?: string[];
   // Contador de concurrencia del propio documento (CheckinSchedule.revision
   // en el back), para detectar ediciones desde dos pantallas. Nada que ver
   // con las semanas de dieta.
@@ -33,6 +36,16 @@ export interface CheckinSchedule extends CheckinScheduleDraft {
   enabledFields: string[];
   requiredFields?: string[];
   customQuestions: CustomCheckinQuestion[];
+  // Próxima fecha posterior a hoy (calculada en el back); null si está
+  // pausada o ya no tiene más.
+  nextDate?: string | null;
+}
+
+// "Cómo va el seguimiento": ocurrencias de los últimos `days` días.
+export interface CheckinSummary {
+  days: number;
+  open: number;
+  missed: number;
 }
 
 // Una ocurrencia de la agenda, con su respuesta ya unida si la hay.
@@ -86,8 +99,12 @@ export interface CheckinDay {
   label: string;
 }
 
+export type ComparisonTab = 'peso' | 'composicion_corporal' | 'perimetros' | 'entrenamiento' | 'bienestar' | 'comentario' | 'custom';
+
 export interface CheckinComparisonRow {
   key: string;
+  // Pestaña de la revisión a la que pertenece el dato.
+  tab: ComparisonTab;
   label: string;
   previous: string;
   current: string;

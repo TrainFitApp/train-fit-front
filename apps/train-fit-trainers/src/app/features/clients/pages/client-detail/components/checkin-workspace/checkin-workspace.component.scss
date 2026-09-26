@@ -1,136 +1,484 @@
+@import '../../../../../../../theme/hierarchy';
+@import '../../../../../../../theme/buttons';
+
 :host { display: block; min-width: 0; color: var(--tf-text); font-size: var(--tf-font-size-base); }
 * { box-sizing: border-box; }
 h2, h3, p { margin: 0; }
-h2 { font-size: var(--tf-font-size-lg); font-weight: 650; }
-h3 { font-size: var(--tf-font-size-md); font-weight: 600; }
-button, input, select, textarea { font: inherit; }
-button, summary { cursor: pointer; }
-button { min-height: var(--tf-touch-min); border: 1px solid var(--tf-border-strong); border-radius: var(--tf-radius-sm); padding: var(--tf-space-2) var(--tf-space-3); color: var(--tf-text); background: var(--tf-surface-2); display: inline-flex; gap: var(--tf-space-2); align-items: center; justify-content: center; }
-button:hover:not(:disabled) { background: var(--tf-surface-4); border-color: var(--tf-border-strongest); }
-button:disabled { opacity: .5; cursor: default; }
-button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 3px; }
-button.primary { background: var(--tf-accent); color: var(--tf-bg); font-weight: 600; border-color: transparent; }
-button.primary:hover:not(:disabled) { background: var(--tf-accent-text); }
+
+/* --- Los seis papeles ---------------------------------------------------
+   Título de sección > título de tarjeta > DATO > etiqueta > ayuda > meta.
+   Ver theme/_hierarchy.scss: la versalita queda reservada a las etiquetas.
+
+   Lo que había antes: una sola regla ponía en versalita `.muted`, `small` y
+   `.request-timing` a la vez — o sea una ayuda ("Toca uno para ver sus
+   respuestas"), una cadencia ("Por semanas · 09:00") y una fecha, tres
+   papeles distintos dibujados igual. De ahí venía la mitad del "cuesta
+   identificar qué es cada cosa". La respuesta ahora se divide en pestañas
+   por dato (ver .comparison-tabs más abajo) en vez de cabeceras de grupo
+   dentro de una sola tabla larga. */
+h2 { @include tf-section-title; }
+h3 { @include tf-card-title; }
+
+.muted { @include tf-help; }
+small { @include tf-meta; }
+.request-timing { @include tf-meta; margin-top: var(--tf-space-2); }
+.comparison-note { @include tf-meta; }
+
+/* --- Acciones: tres niveles --------------------------------------------
+   El <button> sin clase pasa a ser SECUNDARIO de verdad (relleno + borde
+   fuerte) en vez de una caja apenas distinta del fondo: así todo lo que se
+   pulsa se reconoce como pulsable, y el acento queda libre para marcar cuál
+   de ellas cierra cada región. */
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+
+button {
+  @include tf-btn-secondary;
+  min-height: var(--tf-touch-min);
+}
+
+button.primary { @include tf-btn-primary; min-height: var(--tf-touch-min); }
+
 ion-icon { flex-shrink: 0; font-size: var(--tf-font-size-lg); }
-.muted, small, .workspace-header p, .request-timing, .comparison-note { color: var(--tf-text-secondary); font-size: var(--tf-font-size-sm); line-height: 1.5; }
-.workspace-header { display: flex; align-items: center; justify-content: space-between; gap: var(--tf-space-4); margin-bottom: var(--tf-space-5); }
-.workspace-header p { margin-top: var(--tf-space-1); }
+
 .workspace-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(310px, 360px); gap: var(--tf-space-6); align-items: start; }
-.review-panel { min-width: 0; }
-.calendar-panel { padding: var(--tf-space-4); background: var(--tf-surface-1); border: 1px solid var(--tf-border); border-radius: var(--tf-radius-lg); }
+// Todo el bloque de revisión (pestañas de respuesta, comparación, cerrar
+// revisión) se lee como una sola tarjeta, igual que el calendario de al
+// lado — antes flotaba directamente sobre el fondo de la página, sin nada
+// que dijera dónde empieza y dónde acaba el apartado.
+.review-panel {
+  min-width: 0;
+  padding: var(--tf-space-5);
+  @include tf-card-static;
+}
+
+/* Panel informativo (no se pulsa entero): escalón bajo, borde suave. */
+.calendar-panel { padding: var(--tf-space-4); @include tf-card-static; }
+
+/* --- Pestañas ---------------------------------------------------------
+   Un grupo de pestañas no es un grupo de botones: se quedan sin caja para
+   no competir con las acciones reales, y la activa se marca con relleno y
+   borde de acento, no solo con el color del texto. */
 .view-tabs { display: flex; gap: var(--tf-space-2); border-bottom: 1px solid var(--tf-border); margin-bottom: var(--tf-space-5); padding-bottom: var(--tf-space-2); }
-.view-tabs button { border-color: transparent; background: transparent; }
-.view-tabs button.active { color: var(--tf-accent-text); background: var(--tf-accent-soft); }
-.count { font-variant-numeric: tabular-nums; font-weight: 600; }
-.panel-heading, .request-heading { display: flex; gap: var(--tf-space-3); justify-content: space-between; align-items: center; }
-.day-requests { display: grid; gap: var(--tf-space-1); margin-top: var(--tf-space-3); }
-.day-requests button { text-align: left; justify-content: flex-start; background: transparent; border-color: transparent; }
+.view-tabs button {
+  min-height: 38px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--tf-text-secondary);
+  font-weight: var(--tf-weight-label);
+}
+.view-tabs button:hover:not(:disabled) { background: var(--tf-surface-2); border-color: transparent; color: var(--tf-text); }
+.view-tabs button.active { color: var(--tf-accent-text); background: var(--tf-accent-soft); border-color: var(--tf-accent-soft-border); }
+
+.count { font-variant-numeric: tabular-nums; font-weight: var(--tf-weight-label); }
+.panel-count { @include tf-meta; }
+.panel-heading, .request-heading { display: flex; gap: var(--tf-space-3); justify-content: space-between; align-items: baseline; }
+
+/* --- Lista de check-ins del día: filas PULSABLES -----------------------
+   Antes eran transparentes y sin borde: la única señal de que se podían
+   pulsar era el chevron. Ahora arrancan un escalón por encima del fondo de
+   la página, así que se ven pulsables en una captura quieta. */
+// Altura máxima con scroll propio: sin esto, una cola de veinte respuestas
+// por revisar empuja el calendario y la configuración fuera de la
+// pantalla. La fila cortada a media altura ya avisa de que hay más debajo,
+// sin necesidad de contarlas.
+.day-requests {
+  display: grid;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-3);
+  max-height: 21rem;
+  overflow-y: auto;
+  padding-right: var(--tf-space-1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--tf-border-strongest) transparent;
+}
+.day-requests button {
+  @include tf-card-interactive;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-height: var(--tf-touch-min);
+  padding: var(--tf-space-3);
+  border: 0;
+  border-left: 3px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  justify-content: flex-start;
+}
 .day-requests button span { flex: 1; min-width: 0; }
-.day-requests button strong, .day-requests button small { display: block; overflow-wrap: anywhere; }
-.day-requests button.selected { background: var(--tf-surface-2); border-color: var(--tf-border-strong); }
+.day-requests button strong { display: block; overflow-wrap: anywhere; font-weight: var(--tf-weight-label); }
+.day-requests button small { display: block; overflow-wrap: anywhere; margin-top: 2px; color: var(--tf-text-secondary); }
+.day-requests button.selected,
+.day-requests button.selected:hover:not(:disabled) { background: var(--tf-accent-soft); box-shadow: inset 0 0 0 1px var(--tf-accent-soft-border); }
+.day-requests button.selected strong { color: var(--tf-accent-text); }
+
+// El icono de estado se tiñe con el mismo vocabulario que la leyenda del
+// calendario y el badge de detalle — se reconoce el estado en la lista
+// antes incluso de abrir la fila.
+.row-status-icon { color: var(--tf-text-secondary); }
+.day-requests button[data-status='responded'] { border-left-color: var(--tf-accent); }
+.day-requests button[data-status='responded'] .row-status-icon { color: var(--tf-accent-text); }
+.day-requests button[data-status='reviewed'] { border-left-color: var(--tf-success); }
+.day-requests button[data-status='reviewed'] .row-status-icon { color: var(--tf-success); }
+.day-requests button[data-status='open'] { border-left-color: var(--tf-secondary); }
+.day-requests button[data-status='open'] .row-status-icon { color: var(--tf-secondary); }
+.day-requests button[data-status='unanswered'] { border-left-color: var(--tf-danger); }
+.day-requests button[data-status='unanswered'] .row-status-icon { color: var(--tf-danger-text, #ed576b); }
+
 .request-detail { margin-top: var(--tf-space-6); }
-.request-heading h3 { font-size: var(--tf-font-size-lg); overflow-wrap: anywhere; }
-.request-timing { margin-top: var(--tf-space-2); }
-.status { display: inline-flex; gap: var(--tf-space-1); align-items: center; font-size: var(--tf-font-size-xs); white-space: nowrap; }
-[data-status='responded'] { color: var(--tf-accent-text); }
-[data-status='reviewed'] { color: var(--tf-success); }
-[data-status='unanswered'] { color: var(--tf-text-secondary); }
-label { display: grid; gap: var(--tf-space-2); color: var(--tf-text-secondary); font-size: var(--tf-font-size-sm); }
-input, select, textarea { width: 100%; min-width: 0; min-height: var(--tf-touch-min); border: 1px solid var(--tf-border-strong); background: var(--tf-surface-2); color: var(--tf-text); padding: var(--tf-space-2) var(--tf-space-3); border-radius: var(--tf-radius-sm); color-scheme: dark; }
+.request-heading h3 { @include tf-section-title; overflow-wrap: anywhere; }
+.status { display: inline-flex; gap: var(--tf-space-1); align-items: center; font-size: var(--tf-font-size-xs); font-weight: var(--tf-weight-label); white-space: nowrap; }
+
+// Mismo vocabulario de color en toda la pantalla de Seguimiento (aquí, la
+// leyenda del calendario y las tarjetas de tracking-status):
+//   naranja = por revisar (tu turno) · dorado = abierto, aún puede
+//   contestar · verde = revisado · rojo = se quedó sin responder · gris =
+//   programado, sin urgencia.
+.status[data-status='responded'] { color: var(--tf-accent-text); }
+.status[data-status='reviewed'] { color: var(--tf-success); }
+.status[data-status='open'] { color: var(--tf-secondary); }
+.status[data-status='unanswered'] { color: var(--tf-danger-text, #ed576b); }
+.status[data-status='scheduled'] { color: var(--tf-text-secondary); }
+
+/* --- Formularios: el texto del <label> ES una etiqueta ------------------ */
+label { @include tf-label; display: grid; gap: var(--tf-space-2); }
+input, textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--tf-touch-min);
+  border: 1px solid var(--tf-border-strong);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  color-scheme: dark;
+  /* La versalita de la etiqueta se hereda al control (text-transform y
+     letter-spacing NO entran en el atajo `font`), así que se corta aquí. */
+  font-size: var(--tf-font-size-base);
+  font-weight: var(--tf-weight-regular);
+  letter-spacing: normal;
+  text-transform: none;
+}
 input::placeholder, textarea::placeholder { color: var(--tf-text-muted); }
+ion-select.tf-select { border-radius: var(--tf-radius-sm); }
 textarea { resize: vertical; line-height: 1.5; }
-.reference-picker { margin: var(--tf-space-5) 0 var(--tf-space-3); grid-template-columns: auto minmax(120px, 220px); align-items: center; justify-content: end; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 3px; }
+
+/* Esta no nombra un campo: es una frase que continúa dentro del control
+   ("Comparar con la respuesta del [12 sep]"), así que va como ayuda. */
+.reference-picker {
+  @include tf-help;
+  display: grid;
+  margin: var(--tf-space-5) 0 var(--tf-space-3);
+  gap: var(--tf-space-2);
+  grid-template-columns: auto minmax(120px, 220px);
+  align-items: center;
+  justify-content: end;
+}
+
+/* --- Pestañas por dato ---------------------------------------------------
+   Elegir entre Peso / Composición corporal / Perímetros / Seguimiento del
+   entrenamiento / Bienestar / Comentario / Tus preguntas es una elección
+   entre varias, no una acción — mismo lenguaje de píldora que ya usa
+   tracking-panel para el intervalo de la pauta de peso, no el de
+   .view-tabs (que es navegación de nivel superior: "Esperan tu respuesta" /
+   "Buscar por fecha"). Repetir ese mismo dibujo aquí, justo debajo, se leía
+   como una segunda fila de las mismas pestañas. */
+.comparison-tabs { display: flex; flex-wrap: wrap; gap: var(--tf-space-2); margin: var(--tf-space-5) 0 var(--tf-space-4); }
+.comparison-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: 34px;
+  padding: 0 var(--tf-space-3);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-label);
+}
+.comparison-tabs button:hover:not(.active) { background: var(--tf-surface-3); color: var(--tf-text); }
+.comparison-tabs button.active {
+  border-color: var(--tf-accent);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+}
+.comparison-tabs button.active .count-chip { background: var(--tf-accent); color: var(--tf-accent-contrast); }
+
+/* --- Tabla de comparación: etiqueta secundaria, dato protagonista ------- */
 .comparison-table-wrap { overflow-x: auto; }
 .comparison-table { width: 100%; border-collapse: collapse; font-size: var(--tf-font-size-sm); table-layout: fixed; font-variant-numeric: tabular-nums; }
 caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 th, td { padding: var(--tf-space-3) var(--tf-space-2); border-bottom: 1px solid var(--tf-border); text-align: right; vertical-align: top; overflow-wrap: anywhere; }
-th:first-child { width: 32%; text-align: left; padding-left: 0; }
-thead th { color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); font-weight: 500; }
-tbody th { font-weight: 500; }
-td.current-value { font-weight: 600; }
-td small { display: block; margin-top: var(--tf-space-1); font-weight: 400; font-size: var(--tf-font-size-xs); }
-td[data-direction='up'], td[data-direction='down'] { color: var(--tf-accent-text); }
+th:first-child { width: 34%; text-align: left; padding-left: 0; }
+thead th { @include tf-label; display: table-cell; text-align: right; }
+thead th:first-child { text-align: left; }
+/* El nombre del dato ("Peso", "Cintura") es la etiqueta de su fila. */
+tbody th { @include tf-label; display: table-cell; text-align: left; padding-top: var(--tf-space-4); }
+/* La referencia es contexto; el valor de hoy es el protagonista. */
+td { color: var(--tf-text-muted); font-weight: var(--tf-weight-regular); }
+td.current-value {
+  font-size: var(--tf-font-size-base);
+  font-weight: var(--tf-weight-value);
+  color: var(--tf-text);
+}
+td small { display: block; margin-top: var(--tf-space-1); }
+td[data-direction='up'], td[data-direction='down'] { color: var(--tf-accent-text); font-weight: var(--tf-weight-label); }
 td ion-icon { font-size: var(--tf-font-size-sm); vertical-align: middle; }
-.comparison-note { margin-top: var(--tf-space-2); font-size: var(--tf-font-size-xs); }
-.evolution-toggle { width: 100%; justify-content: flex-start; background: transparent; border: 0; margin-top: var(--tf-space-4); }
+.comparison-note { margin-top: var(--tf-space-2); display: flex; align-items: flex-start; gap: var(--tf-space-2); }
+.comparison-note ion-icon { font-size: var(--tf-font-size-base); flex-shrink: 0; margin-top: 1px; }
+
+/* Desplegar la evolución no envía nada: nivel discreto. */
+.evolution-toggle { @include tf-btn-quiet; width: 100%; justify-content: flex-start; margin-top: var(--tf-space-4); min-height: var(--tf-touch-min); }
 .evolution-toggle ion-icon:last-child { margin-left: auto; }
+
 .review-form, .review-result { border-top: 1px solid var(--tf-border); margin-top: var(--tf-space-5); padding-top: var(--tf-space-5); }
-.review-result strong { display: flex; gap: var(--tf-space-2); align-items: center; }
-.review-result p { white-space: pre-wrap; margin-top: var(--tf-space-3); line-height: 1.6; overflow-wrap: anywhere; }
+.review-result strong { display: flex; gap: var(--tf-space-2); align-items: center; font-weight: var(--tf-weight-label); }
+.review-result p { white-space: pre-wrap; margin-top: var(--tf-space-3); line-height: 1.6; overflow-wrap: anywhere; color: var(--tf-text-secondary); }
 .form-actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--tf-space-3); margin-top: var(--tf-space-4); }
 .form-actions .muted { flex: 1; }
+
+/* --- Calendario -------------------------------------------------------- */
 .calendar-toolbar { display: flex; align-items: center; gap: var(--tf-space-1); }
-.calendar-toolbar h3 { flex: 1; text-transform: capitalize; text-align: center; font-size: var(--tf-font-size-sm); }
-.icon-button { width: var(--tf-touch-min); flex: 0 0 var(--tf-touch-min); padding: 0; border-color: transparent; background: transparent; }
-.today-button { padding: var(--tf-space-1) var(--tf-space-2); font-size: var(--tf-font-size-xs); }
+.calendar-toolbar h3 { flex: 1; text-transform: capitalize; text-align: center; font-size: var(--tf-font-size-sm); color: var(--tf-text-secondary); }
+.icon-button { width: var(--tf-touch-min); flex: 0 0 var(--tf-touch-min); padding: 0; border-color: transparent; background: transparent; color: var(--tf-text-secondary); }
+.icon-button:hover:not(:disabled) { background: var(--tf-surface-3); border-color: transparent; color: var(--tf-text); }
+.today-button { min-height: var(--tf-touch-min); padding: 0 var(--tf-space-3); font-size: var(--tf-font-size-xs); }
 .calendar-filter { margin: var(--tf-space-3) 0 var(--tf-space-4); }
 .calendar-weekdays, .calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
-.calendar-weekdays { text-align: center; color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); margin-bottom: var(--tf-space-2); }
-.calendar-day { min-width: 0; position: relative; flex-direction: column; gap: var(--tf-space-1); min-height: 48px; padding: var(--tf-space-1) 0; background: transparent; border-color: transparent; border-radius: var(--tf-radius-sm); font-variant-numeric: tabular-nums; }
+.calendar-weekdays { text-align: center; color: var(--tf-text-muted); font-size: var(--tf-font-size-xs); font-weight: var(--tf-weight-label); letter-spacing: var(--tf-tracking-label); text-transform: uppercase; margin-bottom: var(--tf-space-2); }
+.calendar-day { min-width: 0; position: relative; display: flex; flex-direction: column; gap: var(--tf-space-1); min-height: 48px; padding: var(--tf-space-1) 0; background: transparent; border-color: transparent; border-radius: var(--tf-radius-sm); font-variant-numeric: tabular-nums; font-weight: var(--tf-weight-regular); }
+.calendar-day:hover:not(:disabled) { background: var(--tf-surface-2); border-color: transparent; }
 .calendar-day.today { border-color: var(--tf-border-strongest); }
-.calendar-day.selected { background: var(--tf-accent-soft); border-color: var(--tf-accent); color: var(--tf-accent-text); }
+.calendar-day.selected { background: var(--tf-accent-soft); border-color: var(--tf-accent); color: var(--tf-accent-text); font-weight: var(--tf-weight-label); }
 .calendar-day.outside { color: var(--tf-text-muted); }
 .day-signals { display: flex; gap: 2px; height: 5px; }
 .day-signals i, .calendar-legend i { display: inline-block; width: 5px; height: 5px; background: var(--tf-text-muted); border-radius: 50%; }
 .day-signals i[data-status='scheduled'], .calendar-legend i[data-status='scheduled'] { background: transparent; border: 1px solid var(--tf-text-muted); }
-.day-signals i[data-status='pending'], .calendar-legend i[data-status='pending'] { background: var(--tf-text-secondary); }
+.day-signals i[data-status='open'], .calendar-legend i[data-status='open'] { background: var(--tf-secondary); }
 .day-signals i[data-status='responded'], .calendar-legend i[data-status='responded'] { background: var(--tf-accent); }
 .day-signals i[data-status='reviewed'], .calendar-legend i[data-status='reviewed'] { background: var(--tf-success); }
-.day-signals i[data-status='unanswered'], .calendar-legend i[data-status='unanswered'] { border-radius: 0; height: 2px; align-self: center; }
-.day-count { position: absolute; right: 2px; top: 0; font-size: .6rem; }
-.calendar-legend { display: flex; flex-wrap: wrap; gap: var(--tf-space-2) var(--tf-space-3); margin-top: var(--tf-space-3); color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); }
+.day-signals i[data-status='unanswered'], .calendar-legend i[data-status='unanswered'] { background: var(--tf-danger); border-radius: 0; height: 2px; align-self: center; }
+.day-count { position: absolute; right: 2px; top: 0; font-size: .6rem; color: var(--tf-text-muted); }
+.calendar-legend { display: flex; flex-wrap: wrap; gap: var(--tf-space-2) var(--tf-space-3); margin-top: var(--tf-space-4); padding-top: var(--tf-space-3); border-top: 1px solid var(--tf-border-subtle); color: var(--tf-text-muted); font-size: var(--tf-font-size-xs); }
 .calendar-legend span { display: flex; align-items: center; gap: var(--tf-space-1); }
-.schedules { border-top: 1px solid var(--tf-border); margin-top: var(--tf-space-5); padding-top: var(--tf-space-4); }
-.schedules > .muted { margin-top: var(--tf-space-3); }
-.schedule-row { padding: var(--tf-space-4) 0; border-bottom: 1px solid var(--tf-border-subtle); }
-.schedule-row > strong, .schedule-row > span, .schedule-row > small { display: block; overflow-wrap: anywhere; }
-.schedule-row > span { margin-top: var(--tf-space-1); }
-summary { display: flex; justify-content: space-between; align-items: center; min-height: var(--tf-touch-min); color: var(--tf-text-secondary); font-size: var(--tf-font-size-sm); }
+
 .schedule-actions { display: flex; flex-wrap: wrap; gap: var(--tf-space-2); }
-details p { margin-top: var(--tf-space-2); }
-.legacy-config { margin-top: var(--tf-space-4); font-size: var(--tf-font-size-sm); }
-.legacy-config p { color: var(--tf-text-secondary); margin: var(--tf-space-2) 0; line-height: 1.5; }
+
 .empty-state { padding: var(--tf-space-10) var(--tf-space-4); text-align: center; }
-.empty-state > ion-icon { font-size: 28px; color: var(--tf-text-secondary); margin-bottom: var(--tf-space-3); }
-.empty-state p { color: var(--tf-text-secondary); max-width: 40ch; margin: var(--tf-space-2) auto var(--tf-space-4); line-height: 1.5; }
-.request-waiting { display: flex; gap: var(--tf-space-3); align-items: flex-start; padding: var(--tf-space-6) 0; color: var(--tf-text-secondary); line-height: 1.6; }
+.empty-state > ion-icon { font-size: 28px; color: var(--tf-text-faint); margin-bottom: var(--tf-space-3); }
+.empty-state h3 { @include tf-card-title; font-size: var(--tf-font-size-md); }
+.empty-state p { @include tf-help; max-width: 40ch; margin: var(--tf-space-2) auto var(--tf-space-4); }
+.request-waiting { display: flex; gap: var(--tf-space-3); align-items: flex-start; padding: var(--tf-space-6) 0; }
+.request-waiting p { @include tf-help; line-height: 1.6; }
+.request-waiting > ion-icon { color: var(--tf-text-faint); }
+
+/* --- Editor de programación -------------------------------------------- */
 .schedule-editor > label, .schedule-editor > .form-row { margin-top: var(--tf-space-4); }
 .schedule-editor > p { margin-top: var(--tf-space-3); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--tf-space-3); }
-.text-button { border: 0; background: transparent; color: var(--tf-accent-text); }
+.text-button { @include tf-btn-quiet; justify-content: flex-start; }
 .schedule-summary { display: flex; gap: var(--tf-space-3); align-items: center; margin-top: var(--tf-space-5); border-block: 1px solid var(--tf-border); padding-block: var(--tf-space-4); }
+.schedule-summary strong { @include tf-value(var(--tf-font-size-md)); }
 .schedule-summary small { display: block; margin-top: var(--tf-space-1); }
-.feedback { margin-bottom: var(--tf-space-4); font-size: var(--tf-font-size-sm); color: var(--tf-text-secondary); }
+.schedule-summary > ion-icon { color: var(--tf-accent-text); }
+
+.feedback { @include tf-help; margin-bottom: var(--tf-space-4); }
 .feedback.error { color: var(--tf-danger-text); }
 .load-state { padding: var(--tf-space-6); }
 .skeleton-line { height: 80px; margin-top: var(--tf-space-4); background: var(--tf-surface-2); border-radius: var(--tf-radius-sm); }
 .skeleton-line.short { width: 65%; }
+
 @media (max-width: 1050px) { .workspace-grid { grid-template-columns: minmax(0, 1fr) 320px; gap: var(--tf-space-4); } .request-heading { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 800px) {
   .workspace-grid { display: flex; flex-direction: column; }
-  .calendar-panel { order: -1; width: 100%; }
+  .calendar-panel { width: 100%; }
   .review-panel { width: 100%; }
-  .workspace-header { align-items: flex-start; }
-  .workspace-header button { max-width: 180px; }
   .form-actions { flex-wrap: wrap; }
   .form-actions .muted { flex-basis: 100%; }
   .comparison-table { font-size: var(--tf-font-size-xs); }
   th, td { padding: var(--tf-space-3) var(--tf-space-1); }
   .form-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .schedules { max-height: 240px; overflow-y: auto; }
 }
 
-.mobile-schedules-toggle { display: none; }
 @media (max-width: 800px) {
-  .mobile-schedules-toggle { display: inline-flex; }
-  .schedules:not(.expanded) .schedule-list { display: none; }
-  .schedules { max-height: none; overflow: visible; }
-  .schedule-list { max-height: 320px; overflow-y: auto; }
-  .workspace-header button { max-width: none; font-size: var(--tf-font-size-sm); white-space: nowrap; }
   .calendar-day { min-height: 44px; }
 }
 @media (max-width: 360px) {
-  .workspace-header { flex-wrap: wrap; }
   .calendar-panel { padding: var(--tf-space-2); }
+  .review-panel { padding: var(--tf-space-3); }
   .calendar-days, .calendar-weekdays { gap: 0; }
 }
+
+/* --- Banda de configuración --- */
+/* Al fondo y a lo ancho: montar el seguimiento se hace una vez por cliente,
+   leer lo que contesta es todas las semanas. Antes vivía dentro de la columna
+   del calendario, que es navegación, con un desplegable por fila. */
+.setup-strip { margin-top: var(--tf-space-8); border-top: 1px solid var(--tf-border); padding-top: var(--tf-space-5); }
+.setup-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--tf-space-4); flex-wrap: wrap; margin-top: var(--tf-space-5); }
+.setup-heading h3 { @include tf-card-title; display: inline-flex; align-items: center; gap: var(--tf-space-2); }
+.setup-strip .schedule-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--tf-space-3); margin-top: var(--tf-space-3); }
+
+/* Tarjeta INFORMATIVA con acciones dentro: no se pulsa entera, así que se
+   queda en el escalón bajo de superficie. Lo pulsable son sus botones, que
+   van un escalón por encima de ella. Carril de color: dorado mientras envía
+   (mismo "abierto" que el resto de la pantalla), gris apagado en pausa —
+   así se distingue de un vistazo cuál sigue activa sin leer el texto. */
+.setup-strip .schedule-row {
+  padding: var(--tf-space-4);
+  @include tf-card-static;
+  border-left: 3px solid var(--tf-secondary);
+  border-radius: var(--tf-radius-md);
+}
+.setup-strip .schedule-row--paused {
+  border-left-color: var(--tf-border-strong);
+  opacity: 0.8;
+}
+.setup-strip .schedule-row-main { @include tf-pair(var(--tf-space-1)); }
+.setup-strip .schedule-row-main > strong { @include tf-card-title; overflow-wrap: anywhere; }
+/* La cadencia es EL dato de esta tarjeta: "Por semanas · 09:00". Antes salía
+   en versalita gris, indistinguible de la ayuda de al lado. */
+.setup-strip .schedule-cadence { @include tf-value(var(--tf-font-size-base)); overflow-wrap: anywhere; }
+.setup-strip .schedule-row-main > small { display: block; overflow-wrap: anywhere; }
+.setup-strip .schedule-list > .muted { grid-column: 1 / -1; }
+@media (max-width: 800px) {
+  .setup-strip { margin-top: var(--tf-space-6); }
+}
+
+/* --- Cabeceras de bloque --- */
+/* Cada bloque dice qué es y para qué sirve. Antes la pantalla eran cuatro
+   zonas sin nombre y había que deducirlas por su contenido. */
+.block-head { margin-bottom: var(--tf-space-4); }
+.block-title { @include tf-section-title; }
+.block-sub { @include tf-section-sub; }
+.block-head--aside { margin-bottom: var(--tf-space-3); }
+
+/* Contador dentro de la pestaña: sin él no se sabe si hay algo que revisar
+   sin pulsarla. */
+.tab-count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent);
+  color: var(--tf-bg);
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-value);
+  font-variant-numeric: tabular-nums;
+}
+.view-tabs button:not(.active) .tab-count { background: var(--tf-surface-4); color: var(--tf-text-secondary); }
+
+.count-chip {
+  padding: 1px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-3);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.list-hint { margin-top: var(--tf-space-2); }
+
+.review-form-title { @include tf-card-title; margin: 0 0 var(--tf-space-3); }
+
+/* Vacío con siguiente paso, no solo una frase gris. */
+.empty-inline {
+  display: flex;
+  gap: var(--tf-space-3);
+  align-items: flex-start;
+  grid-column: 1 / -1;
+  padding: var(--tf-space-4);
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+}
+.empty-inline ion-icon { font-size: 22px; flex-shrink: 0; color: var(--tf-text-faint); }
+.empty-inline p { @include tf-help; }
+.empty-inline strong { color: var(--tf-text); font-weight: var(--tf-weight-label); }
+
+/* Las acciones de cada programación, a la vista y con verbo. Las tres tienen
+   el mismo rango entre sí, así que las tres van en secundario: ninguna de
+   ellas cierra la tarjeta, solo la modifican. */
+.setup-strip .schedule-actions { margin-top: var(--tf-space-3); padding-top: var(--tf-space-3); border-top: 1px solid var(--tf-border-subtle); }
+/* Que cada botón mida lo que dice: con flex:1 el tercero saltaba de linea
+   y ocupaba todo el ancho, leyéndose como la accion principal de la
+   tarjeta cuando es la menos usada de las tres. */
+.setup-strip .schedule-actions button {
+  /* 36px de caja + expansor vertical invisible = 44 reales de zona pulsable,
+     sin que tres botones de 44px partan la tarjeta en dos filas. */
+  @include tf-touch-expander-y(4px);
+  font-size: var(--tf-font-size-xs);
+  padding: 0 var(--tf-space-3);
+  flex: 0 1 auto;
+  min-height: 36px;
+}
+.setup-strip .schedule-actions ion-icon { font-size: var(--tf-font-size-sm); }
+
+/* --- Comparación en móvil --- */
+/* Cuatro columnas en 375 px parten "Duermo mal: me cuesta dormirme" en seis
+   líneas de dos palabras. Cada fila pasa a ser un bloque: el dato arriba,
+   antes y ahora debajo, y el cambio a la derecha. Se lee, y sigue siendo la
+   misma tabla para quien la lee con lector de pantalla. */
+@media (max-width: 620px) {
+  .comparison-table { table-layout: auto; }
+  .comparison-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .comparison-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px var(--tf-space-3);
+    padding: var(--tf-space-3) 0;
+    border-bottom: 1px solid var(--tf-border);
+  }
+  .comparison-table tbody tr > th {
+    grid-column: 1 / -1;
+    width: auto;
+    padding: 0 0 var(--tf-space-1);
+    border: 0;
+    text-align: left;
+  }
+  .comparison-table tbody tr > td { padding: 0; border: 0; text-align: left; }
+  .comparison-table tbody tr > td:nth-of-type(1) { grid-row: 2; grid-column: 1; }
+  .comparison-table tbody tr > td:nth-of-type(2) { grid-row: 3; grid-column: 1; }
+  .comparison-table tbody tr > td:nth-of-type(3) {
+    grid-row: 2 / span 2;
+    grid-column: 2;
+    align-self: start;
+    text-align: right;
+    white-space: nowrap;
+  }
+  /* Sin cabecera de columna visible, cada valor tiene que decir qué es. */
+  .comparison-table tbody tr > td:nth-of-type(1)::before { content: 'Antes '; color: var(--tf-text-muted); font-size: var(--tf-font-size-xs); }
+  .comparison-table tbody tr > td:nth-of-type(2)::before { content: 'Ahora '; color: var(--tf-text-muted); font-size: var(--tf-font-size-xs); font-weight: var(--tf-weight-regular); }
+  .comparison-table tbody tr > td small { text-align: left; }
+  .comparison-tabs { margin-bottom: var(--tf-space-3); }
+}
+
+/* Eliminar: mismo rango que las otras acciones de la tarjeta, pero su color
+   avisa de que no se deshace. */
+.setup-strip .schedule-actions button.danger { color: var(--tf-danger-text); }
+.setup-strip .schedule-actions button.danger:hover:not(:disabled) { background: var(--tf-danger-soft); border-color: var(--tf-danger-border); }
+
+.schedule-editor > app-checkin-field-selector { display: block; margin-top: var(--tf-space-3); }
+
+/* --- Pedir algo puntual --- */
+/* Tarjeta INFORMATIVA con acciones dentro, pegada a la lista de
+   programaciones: las dos son "qué le pides a este cliente". */
+.setup-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  max-width: 640px;
+  margin-top: var(--tf-space-4);
+  padding: var(--tf-space-5);
+  @include tf-card-static;
+}
+.card-title { @include tf-card-title; }
+.card-sub { @include tf-help; }
+/* La acción que abre la tarjeta ocupa su ancho: alineada a la izquierda se
+   pierde entre el texto de arriba. */
+.card-action { width: 100%; margin-top: var(--tf-space-1); }
+.puntual-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--tf-space-3); margin-top: var(--tf-space-2); }
+.plain-link {
+  @include tf-btn-quiet;
+  color: var(--tf-text-muted);
+}
+.plain-link:hover:not(:disabled) { background: transparent; color: var(--tf-text); }

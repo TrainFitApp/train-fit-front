@@ -136,7 +136,19 @@
   --tf-font-size-base: 0.9rem;
   --tf-font-size-md: 1rem;
   --tf-font-size-lg: 1.1rem;
+  // Escalón de DATO (no de título): la cifra grande de Seguimiento.
+  --tf-font-size-xl: 1.3rem;
   --tf-line-height-base: 1.5;
+
+  // --- Pesos y tracking por PAPEL (theme/_hierarchy.scss) ---
+  // Un dato y su etiqueta se distinguen por tamaño + peso + caja a la vez.
+  --tf-weight-regular: 400;
+  --tf-weight-label: 600;
+  --tf-weight-title: 650;
+  --tf-weight-value: 700;
+  // Versalita de ETIQUETA: las mayúsculas pequeñas espaciadas nombran un dato.
+  --tf-tracking-label: 0.06em;
+  --tf-tracking-value: -0.01em;
 
   // --- Movimiento (mismas curvas ya usadas en el panel de pautar/constructor) ---
   --tf-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -342,5 +354,149 @@
     --width: 100%;
     --height: 100%;
     --border-radius: 0;
+  }
+}
+
+// --- Desplegable: ion-select.tf-select + interface="popover" ---
+// Un solo patrón de select para toda la app, en vez del <select> nativo (su
+// lista la pinta el sistema, en claro y fuera del tema). shared-theme/global.scss
+// (común a las 3 apps) estiliza ion-select con --ion-color-* y oculta su icono:
+// aquí se sobrescribe con tokens y se recupera el chevron. Uso:
+//   <ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline"
+//     labelPlacement="stacked" aria-label="…">
+// labelPlacement="stacked" aunque no haya label: es lo que hace que Ionic 7
+// abra el popover con el ancho del campo y lleve el chevron al borde (con la
+// colocación por defecto va pegado al texto y la lista sale de 180px).
+// El ancho/flex lo sigue decidiendo cada pantalla con su propia clase.
+ion-select.tf-select {
+  --padding-start: var(--tf-space-3);
+  --padding-end: var(--tf-space-3);
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --placeholder-color: var(--tf-text-muted);
+  --placeholder-opacity: 1;
+  --highlight-color-focused: transparent;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--tf-touch-min);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  // Como el <select> nativo: no hereda la negrita ni el mayúsculas de un
+  // <label> que lo envuelva.
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  // En "stacked" Ionic lo posiciona en absoluto arriba a la derecha: se
+  // centra en vertical con top (transform queda libre para el giro).
+  &::part(icon) {
+    display: block;
+    top: calc(50% - 8px);
+    width: 16px;
+    height: 16px;
+    margin-inline-start: var(--tf-space-2);
+    color: var(--tf-text-muted);
+    opacity: 1;
+    transition: transform var(--tf-duration-base) var(--tf-ease-out);
+  }
+
+  &:hover:not(.select-disabled) {
+    border-color: var(--tf-border-strongest);
+  }
+
+  &.select-expanded,
+  &.has-focus,
+  &:focus-within {
+    border-color: var(--tf-accent);
+    background: var(--tf-surface-2);
+  }
+
+  &.select-expanded::part(icon) {
+    transform: rotate(180deg);
+    color: var(--tf-accent-text);
+  }
+
+  &.ion-focused {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// La lista que abre: superficie elevada y sin círculos de radio; la opción
+// elegida se marca con el acento (fondo suave + texto + peso).
+ion-popover.select-popover {
+  --background: var(--tf-surface-3);
+  --min-width: 180px;
+  --max-height: min(60vh, 420px);
+  --box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+  &::part(content) {
+    border: 1px solid var(--tf-border-strong);
+    border-radius: var(--tf-radius-md);
+  }
+
+  ion-list {
+    padding-block: var(--tf-space-1);
+    background: transparent;
+  }
+
+  ion-item {
+    --background: transparent;
+    --background-hover: var(--tf-surface-5);
+    --background-hover-opacity: 1;
+    --background-focused: var(--tf-surface-5);
+    --background-focused-opacity: 1;
+    --background-activated: var(--tf-surface-5);
+    --color: var(--tf-text);
+    --border-color: transparent;
+    --min-height: var(--tf-touch-min);
+    --padding-start: var(--tf-space-3);
+    --inner-padding-end: var(--tf-space-3);
+    font-size: var(--tf-font-size-sm);
+  }
+
+  // Ionic pinta hover/foco de la elegida con el primario al 12-20 %, que
+  // sobre el acento suave queda marrón (y el popover la enfoca al abrir).
+  ion-item.item-radio-checked {
+    --background: var(--tf-accent-soft);
+    --background-hover: var(--tf-text);
+    --background-hover-opacity: 0.04;
+    --background-focused: var(--tf-text);
+    --background-focused-opacity: 0.04;
+    --color: var(--tf-accent-text);
+    font-weight: 600;
+  }
+
+  ion-radio::part(container) {
+    display: none;
+  }
+
+  // La lista mide lo que el campo: una opción larga (nombre de ejercicio,
+  // plantilla) baja de línea en vez de cortarse con "…".
+  ion-radio::part(label) {
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.35;
+  }
+
+  // Cabecera de grupo (sustituye a <optgroup>): opción deshabilitada con esta
+  // clase, en versalitas.
+  ion-item.tf-select-group {
+    --min-height: 32px;
+    --color: var(--tf-text-muted);
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+
+    ion-radio,
+    ion-radio::part(label) {
+      opacity: 1;
+    }
   }
 }

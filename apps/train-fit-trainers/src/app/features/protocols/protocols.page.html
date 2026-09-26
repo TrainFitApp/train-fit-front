@@ -118,22 +118,46 @@
 
   <h3 class="section-title">Plantillas</h3>
   <label class="field-label" for="protocol-checkin">Check-in</label>
-  <select id="protocol-checkin" class="builder-select" [(ngModel)]="checkinTemplateId">
-    <option [ngValue]="null">Ninguna</option>
-    <option *ngFor="let option of checkinTemplates" [ngValue]="option._id">{{ option.name }}</option>
-  </select>
+  <ion-select
+    id="protocol-checkin"
+    class="tf-select builder-select"
+    interface="popover"
+    toggleIcon="chevron-down-outline"
+    labelPlacement="stacked"
+    [(ngModel)]="checkinTemplateId"
+    aria-label="Check-in"
+  >
+    <ion-select-option [value]="null">Ninguna</ion-select-option>
+    <ion-select-option *ngFor="let option of checkinTemplates" [value]="option._id">{{ option.name }}</ion-select-option>
+  </ion-select>
 
   <label class="field-label" for="protocol-diet">Plan de dieta</label>
-  <select id="protocol-diet" class="builder-select" [(ngModel)]="dietTemplateId">
-    <option [ngValue]="null">Ninguno</option>
-    <option *ngFor="let option of dietTemplates" [ngValue]="option._id">{{ option.name }}</option>
-  </select>
+  <ion-select
+    id="protocol-diet"
+    class="tf-select builder-select"
+    interface="popover"
+    toggleIcon="chevron-down-outline"
+    labelPlacement="stacked"
+    [(ngModel)]="dietTemplateId"
+    aria-label="Plan de dieta"
+  >
+    <ion-select-option [value]="null">Ninguno</ion-select-option>
+    <ion-select-option *ngFor="let option of dietTemplates" [value]="option._id">{{ option.name }}</ion-select-option>
+  </ion-select>
 
   <label class="field-label" for="protocol-routine">Rutina</label>
-  <select id="protocol-routine" class="builder-select" [(ngModel)]="routineTemplateId">
-    <option [ngValue]="null">Ninguna</option>
-    <option *ngFor="let option of routineTemplates" [ngValue]="option._id">{{ option.name }}</option>
-  </select>
+  <ion-select
+    id="protocol-routine"
+    class="tf-select builder-select"
+    interface="popover"
+    toggleIcon="chevron-down-outline"
+    labelPlacement="stacked"
+    [(ngModel)]="routineTemplateId"
+    aria-label="Rutina"
+  >
+    <ion-select-option [value]="null">Ninguna</ion-select-option>
+    <ion-select-option *ngFor="let option of routineTemplates" [value]="option._id">{{ option.name }}</ion-select-option>
+  </ion-select>
 
   <h3 class="section-title">Automatizaciones</h3>
   <p class="section-hint" *ngIf="!rules.length">

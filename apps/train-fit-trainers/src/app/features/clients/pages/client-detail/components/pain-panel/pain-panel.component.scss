@@ -238,7 +238,6 @@
   color: var(--tf-text-muted);
 }
 
-.select-field,
 .note-field {
   width: 100%;
   padding: 10px 12px;
@@ -253,10 +252,6 @@
     outline: none;
     border-color: var(--tf-accent);
   }
-}
-
-.select-field {
-  min-height: 44px;
 }
 
 .note-field {
