@@ -25,6 +25,7 @@ import {
 } from '../models/client-detail.model';
 import { CheckinSchedule, CheckinScheduleHistory } from '../components/checkin-workspace/checkin-workspace.model';
 import { PainEntry, PainThreshold } from 'src/app/core/constants/pain';
+import { ClientNoteDomain, ClientNotesPage, ClientNotesQuery, ClientNotesUnread } from '../models/client-notes.model';
 import {
   ClientBodyProfile,
   ClientProgress,
@@ -43,6 +44,30 @@ export class ClientDetailApiService {
 
   private base(clientId: string): string {
     return `trainer/clients/${clientId}`;
+  }
+
+  // --- Notas del cliente (Plan > Notas del cliente) ---
+  public getClientNotes(clientId: string, query: ClientNotesQuery): Observable<ClientNotesPage> {
+    const params = [`page=${query.page || 0}`];
+    if (query.domain) params.push(`domain=${query.domain}`);
+    if (query.seen !== null && query.seen !== undefined) params.push(`seen=${query.seen}`);
+    if (query.q?.trim()) params.push(`q=${encodeURIComponent(query.q.trim())}`);
+    return this.http.get<ClientNotesPage>(`${this.base(clientId)}/client-notes?${params.join('&')}`);
+  }
+
+  public getClientNotesUnread(clientId: string): Observable<ClientNotesUnread> {
+    return this.http.get<ClientNotesUnread>(`${this.base(clientId)}/client-notes/unread-count`);
+  }
+
+  // keys: marca esas notas. Sin keys: todas las que coinciden con el filtro.
+  public setClientNotesSeen(
+    clientId: string,
+    seen: boolean,
+    keys: string[] | null,
+    filter: { domain?: ClientNoteDomain | null; q?: string } = {}
+  ): Observable<{ updated: number; unread: ClientNotesUnread }> {
+    const body = keys ? { seen, keys } : { seen, all: true, domain: filter.domain || null, q: filter.q || '' };
+    return this.http.put<{ updated: number; unread: ClientNotesUnread }>(`${this.base(clientId)}/client-notes/seen`, body);
   }
 
   public getTables(clientId: string): Observable<ClientTable[]> {

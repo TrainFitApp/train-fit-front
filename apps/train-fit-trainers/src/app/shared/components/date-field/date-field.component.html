@@ -1,0 +1,20 @@
+<button
+  type="button"
+  class="date-trigger"
+  [id]="inputId"
+  [disabled]="disabled"
+  [attr.aria-label]="ariaLabel"
+  aria-haspopup="dialog"
+>
+  <span class="date-text" [class.is-placeholder]="!value">{{ display || placeholderText }}</span>
+  <ion-icon *ngIf="showIcon" [name]="icon" class="date-icon" aria-hidden="true"></ion-icon>
+</button>
+<button
+  *ngIf="clearable && value && !disabled"
+  type="button"
+  class="date-clear"
+  aria-label="Quitar"
+  (click)="clear($event)"
+>
+  <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
+</button>

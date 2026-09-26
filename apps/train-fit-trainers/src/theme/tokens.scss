@@ -500,3 +500,45 @@ ion-popover.select-popover {
     }
   }
 }
+
+// --- Selector de fecha/hora: <app-date-field> → ion-modal.tf-datetime-modal ---
+// Sustituye al <input type="date|time"> nativo (calendario del sistema, en
+// claro). shared-theme/global.scss pinta todo ion-datetime en modal con
+// --ion-color-light y padding: el `.tf-datetime` extra sube la especificidad
+// para ganarle sin tocar ese fichero, común a las 3 apps.
+ion-modal.tf-datetime-modal {
+  --width: min(360px, calc(100vw - 32px));
+  --height: auto;
+  --border-radius: var(--tf-radius-lg);
+  --background: var(--tf-surface-3);
+  --box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  --backdrop-opacity: 0.6;
+
+  &::part(content) {
+    border: 1px solid var(--tf-border-strong);
+  }
+
+  ion-datetime.tf-datetime {
+    --background: transparent;
+    --background-rgb: 30, 30, 30;
+    --title-color: var(--tf-text-secondary);
+    --wheel-highlight-background: var(--tf-surface-5);
+    --wheel-fade-background-rgb: 30, 30, 30;
+    width: 100%;
+    max-width: none;
+    padding: var(--tf-space-2);
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--tf-text);
+  }
+
+  ion-button {
+    --color: var(--tf-text-secondary);
+    min-height: var(--tf-touch-min);
+  }
+
+  ion-button.tf-datetime-confirm {
+    --color: var(--tf-accent-text);
+    font-weight: var(--tf-weight-label);
+  }
+}

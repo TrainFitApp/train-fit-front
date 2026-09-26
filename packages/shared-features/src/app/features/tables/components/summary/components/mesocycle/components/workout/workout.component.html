@@ -177,7 +177,7 @@
              cero cambio de comportamiento. -->
         <div class="exercise-list" cdkDropList [cdkDropListDisabled]="!canReorderExercises"
           (cdkDropListDropped)="onExercisesDropped($event)">
-          <div class="exercise-card" [id]="'exercise-' + workoutIndex + '-' + entry.index"
+          <div class="exercise-card" [id]="'exercise-' + workoutIndex + '-' + entry.index" [attr.data-exercise-id]="entry.exercise?._id"
             *ngFor="let entry of group.entries; trackBy: trackByExerciseEntry" (click)="exerciseCardClick(entry.exercise, $event)"
             [class.exercise-selected]="isExerciseSelected(entry.index)"
             [class.exercise-copy-mode]="exerciseSelectionMode"

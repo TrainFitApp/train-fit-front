@@ -20,6 +20,7 @@ import { ClientSummaryComponent } from './pages/client-detail/components/client-
 import { ClientRosterComponent } from './components/client-roster/client-roster.component';
 import { BodyCalculatorComponent } from './pages/client-detail/components/body-calculator/body-calculator.component';
 import { PainPanelComponent } from './pages/client-detail/components/pain-panel/pain-panel.component';
+import { ClientNotesComponent } from './pages/client-detail/components/client-notes/client-notes.component';
 import { SupplementsPanelComponent } from './pages/client-detail/components/supplements-panel/supplements-panel.component';
 import { ShoppingListPanelComponent } from './pages/client-detail/components/shopping-list-panel/shopping-list-panel.component';
 import { NutritionPreferencesPanelComponent } from './pages/client-detail/components/nutrition-preferences-panel/nutrition-preferences-panel.component';
@@ -29,6 +30,7 @@ import { TrainingDayDetailComponent } from './pages/client-detail/components/tra
 import { PhaseScheduleCalendarComponent } from './components/phase-schedule-calendar/phase-schedule-calendar.component';
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
 import { CheckinFieldSelectorComponent } from '../../shared/components/checkin-field-selector/checkin-field-selector.component';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
 import { TrackingStatusComponent } from './pages/client-detail/components/tracking-status/tracking-status.component';
 
 @NgModule({
@@ -45,6 +47,9 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     // Standalone: campos sueltos al programar un check-in o pedir algo
     // puntual (checkin-workspace).
     CheckinFieldSelectorComponent,
+    // Standalone: selector de fecha/hora con ion-datetime (sustituye al
+    // <input type="date|time"> nativo).
+    DateFieldComponent,
   ],
   declarations: [
     ClientsPage,
@@ -63,6 +68,7 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     ClientRosterComponent,
     BodyCalculatorComponent,
     PainPanelComponent,
+    ClientNotesComponent,
     SupplementsPanelComponent,
     ShoppingListPanelComponent,
     NutritionPreferencesPanelComponent,

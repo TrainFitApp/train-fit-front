@@ -436,6 +436,11 @@
             aria-hidden="true"
           ></ion-icon>
           <span class="sub-tab-label">{{ tab.label }}</span>
+          <span
+            class="sub-tab-badge"
+            *ngIf="tab.key === 'clientNotes' && clientNotesUnread > 0"
+            [attr.aria-label]="clientNotesUnread + ' sin ver'"
+          >{{ clientNotesUnread > 99 ? '99+' : clientNotesUnread }}</span>
         </button>
       </nav>
 
@@ -444,6 +449,15 @@
        secciones en 1.800 líneas, y meter aquí una novena la habría dejado
        definitivamente inmantenible. -->
       <div class="tab-panel" *ngIf="activeTab === 'summary'">
+        <!-- Notas del cliente sin ver: mismo aviso que el de solo lectura, con salto a su pestaña. -->
+        <div class="read-only-banner" *ngIf="clientNotesUnread > 0" role="status">
+          <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
+          <p>
+            <strong>{{ clientNotesUnread === 1 ? '1 nota del cliente sin ver.' : clientNotesUnread + ' notas del cliente sin ver.' }}</strong>
+            Lo que ha escrito en sus sesiones, ejercicios, dolor o dieta.
+          </p>
+          <button type="button" class="read-only-action" (click)="selectTab('clientNotes')">Ver notas</button>
+        </div>
         <app-client-summary
           [clientId]="clientId"
           [clientName]="name"
@@ -2488,6 +2502,58 @@
             </div>
           </div>
         </ng-container>
+
+        <!-- Panel: fechas de la fase vigente (antes un alert con dos
+             <input type="date"> nativos). -->
+        <div
+          class="panel-backdrop"
+          *ngIf="showPhaseDatesPanel"
+          (click)="closePhaseDatesPanel()"
+        ></div>
+        <div class="panel-sheet" *ngIf="showPhaseDatesPanel">
+          <div class="panel-handle"></div>
+          <h3 class="panel-title">Fechas de la fase</h3>
+          <p class="phase-dates-subtitle">{{ phaseDatesTitle }}</p>
+
+          <label class="phase-dates-label" for="phase-dates-start">Inicio</label>
+          <div class="input-wrapper">
+            <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+            <app-date-field
+              class="input-field"
+              inputId="phase-dates-start"
+              pickerTitle="Inicio de la fase"
+              [(ngModel)]="phaseDatesStart"
+            ></app-date-field>
+          </div>
+
+          <label class="phase-dates-label" for="phase-dates-end">
+            Fin <span class="phase-dates-optional">(opcional)</span>
+          </label>
+          <div class="input-wrapper">
+            <ion-icon name="flag-outline" class="input-icon"></ion-icon>
+            <app-date-field
+              class="input-field"
+              inputId="phase-dates-end"
+              placeholder="Sin fin: hasta la siguiente fase"
+              pickerTitle="Fin de la fase"
+              [min]="phaseDatesStart || null"
+              [clearable]="true"
+              [(ngModel)]="phaseDatesEnd"
+            ></app-date-field>
+          </div>
+          <p class="phase-dates-error" *ngIf="phaseDatesEnd && phaseDatesStart && phaseDatesEnd < phaseDatesStart">
+            El fin no puede ser anterior al inicio.
+          </p>
+
+          <button
+            class="submit-button"
+            (click)="savePhaseDates()"
+            [disabled]="!canSavePhaseDates"
+          >
+            <span *ngIf="!isSavingPhaseDates">Guardar fechas</span>
+            <ion-spinner name="dots" *ngIf="isSavingPhaseDates"></ion-spinner>
+          </button>
+        </div>
       </div>
 
       <!-- === SESIONES HECHAS (F09; antes "Historial") === -->
@@ -2637,11 +2703,13 @@
           </div>
           <div class="input-wrapper">
             <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-            <input
-              type="date"
+            <app-date-field
               class="input-field"
+              ariaLabel="Vencimiento"
+              placeholder="Fecha de vencimiento"
+              pickerTitle="Vence"
               [(ngModel)]="paymentDueDate"
-            />
+            ></app-date-field>
           </div>
           <div class="input-wrapper">
             <ion-icon
@@ -2964,6 +3032,16 @@
       <!-- === DOLOR (Movimiento 3, subpestaña propia desde el Movimiento final) === -->
       <div class="tab-panel" *ngIf="activeTab === 'pain'">
         <app-pain-panel [clientId]="clientId"></app-pain-panel>
+      </div>
+
+      <!-- === NOTAS DEL CLIENTE (Plan) === -->
+      <div class="tab-panel" *ngIf="activeTab === 'clientNotes'">
+        <app-client-notes
+          [clientId]="clientId"
+          [unreadHint]="clientNotesUnread"
+          (openNote)="openClientNote($event)"
+          (unreadChange)="clientNotesUnread = $event.total"
+        ></app-client-notes>
       </div>
 
     </div>

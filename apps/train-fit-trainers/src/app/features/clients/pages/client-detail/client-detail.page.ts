@@ -107,6 +107,7 @@ import {
   TrainerTask,
   TrainerTaskType,
 } from './models/client-detail.model';
+import { ClientNote } from './models/client-notes.model';
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
@@ -249,6 +250,14 @@ export class ClientDetailPage implements OnInit {
   public paymentDueDate = '';
   public paymentNote = '';
   public isSavingPayment = false;
+
+  // --- Fechas de la fase vigente (panel; antes un alert con <input type="date">) ---
+  public showPhaseDatesPanel = false;
+  public phaseDatesPhaseId = '';
+  public phaseDatesTitle = '';
+  public phaseDatesStart = '';
+  public phaseDatesEnd = '';
+  public isSavingPhaseDates = false;
 
   // --- Tareas/hábitos (coach-tab FASE4, transversal a los scopes) ---
   public tasksState: SectionState = 'loading';
@@ -666,6 +675,7 @@ export class ClientDetailPage implements OnInit {
     this.loadNotes();
     this.loadPayments();
     this.loadTasks();
+    this.loadClientNotesUnread();
     this.loadPreviousRelationCutoff();
   }
 
@@ -1712,6 +1722,52 @@ export class ClientDetailPage implements OnInit {
     ]);
   }
 
+  // --- Notas del cliente (Plan) ---
+  // Contador de no vistas para la subpestaña y el Resumen. Lo refresca la
+  // propia pestaña al marcar; aquí solo se pide al entrar en la ficha.
+  public clientNotesUnread = 0;
+
+  private loadClientNotesUnread(): void {
+    if (!this.scopes.length) return;
+    this.clientDetailApi.getClientNotesUnread(this.clientId).subscribe({
+      next: (unread) => (this.clientNotesUnread = unread.total),
+      error: () => (this.clientNotesUnread = 0),
+    });
+  }
+
+  // Lleva a donde está escrita la nota. Entrenamiento: el Planificador,
+  // enfocado en el microciclo, el día y el ejercicio (query params que lee
+  // planner.page.ts#focusFromQuery). Nutrición: la pestaña Nutrición en ese
+  // día. Dolor: su pestaña.
+  public async openClientNote(note: ClientNote): Promise<void> {
+    const target = note.target;
+    if (target.type === 'planner') {
+      await this.router.navigate(['/tabs', 'clients', this.clientId, 'tables', target.tableId, 'planner'], {
+        queryParams: {
+          split: target.splitId || undefined,
+          workout: target.workoutId || undefined,
+          exercise: target.exerciseId || undefined,
+        },
+      });
+      return;
+    }
+    if (target.type === 'nutrition') {
+      this.onNutritionDateSelected(target.date);
+      this.selectTab('nutrition');
+      this.scrollToSelector('app-nutrition-calendar');
+      return;
+    }
+    this.selectTab('pain');
+  }
+
+  // El panel de destino se monta con *ngIf al cambiar de pestaña: se espera
+  // un ciclo de render antes de buscarlo.
+  private scrollToSelector(selector: string): void {
+    setTimeout(() => {
+      document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+  }
+
   // TASK-007 — mismo patrón que openPlanner: ruta completa +
   // TableInContextResolver siembra la tabla del cliente antes de activar.
   public async openStatistics(table: ClientTable): Promise<void> {
@@ -2754,50 +2810,54 @@ export class ClientDetailPage implements OnInit {
   // Corregir cuándo empieza y acaba la fase vigente. Una fase se crea para
   // el día en que se crea; esto es lo que permite moverla después sin
   // borrarla y volver a aplicarla.
-  public async openPhaseDatesEditor(): Promise<void> {
+  public openPhaseDatesEditor(): void {
     const phase = this.activePhase;
     if (!phase?.phaseId) return;
 
-    await this.ionicUtilService.showAlert({
-      header: 'Fechas de la fase',
-      subHeader: phase.phaseName || phase.planName || 'Fase',
-      inputs: [
-        { name: 'startDate', type: 'date', value: phase.startDate, label: 'Inicio' },
-        { name: 'endDate', type: 'date', value: phase.endDate || '', label: 'Fin (opcional)' },
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Guardar',
-          handler: (data: { startDate?: string; endDate?: string }) => {
-            this.savePhaseDates(phase.phaseId as string, data);
-            return true;
-          },
-        },
-      ],
-    });
+    this.phaseDatesPhaseId = phase.phaseId as string;
+    this.phaseDatesTitle = phase.phaseName || phase.planName || 'Fase';
+    this.phaseDatesStart = phase.startDate || '';
+    this.phaseDatesEnd = phase.endDate || '';
+    this.showPhaseDatesPanel = true;
   }
 
-  private savePhaseDates(phaseId: string, data: { startDate?: string; endDate?: string }): void {
+  public closePhaseDatesPanel(): void {
+    if (this.isSavingPhaseDates) return;
+    this.showPhaseDatesPanel = false;
+  }
+
+  public get canSavePhaseDates(): boolean {
+    if (!this.phaseDatesStart || this.isSavingPhaseDates) return false;
+    return !this.phaseDatesEnd || this.phaseDatesEnd >= this.phaseDatesStart;
+  }
+
+  public savePhaseDates(): void {
+    if (!this.canSavePhaseDates) return;
+
+    this.isSavingPhaseDates = true;
     this.dietSuggestionApi
-      .updatePhaseDates(this.clientId, phaseId, {
-        ...(data.startDate ? { startDate: data.startDate } : {}),
-        endDate: data.endDate || null,
+      .updatePhaseDates(this.clientId, this.phaseDatesPhaseId, {
+        startDate: this.phaseDatesStart,
+        endDate: this.phaseDatesEnd || null,
       })
       .subscribe({
         next: () => {
+          this.isSavingPhaseDates = false;
+          this.showPhaseDatesPanel = false;
           this.ionicUtilService.showToast({ message: 'Fechas de la fase actualizadas', duration: 2200 });
           void this.loadActivePlan();
           this.loadNutrition();
         },
         // 409 = las fechas nuevas pisan otra fase. El mensaje del backend ya
-        // dice cuál y desde cuándo.
-        error: (err) =>
+        // dice cuál y desde cuándo. El panel sigue abierto para corregirlas.
+        error: (err) => {
+          this.isSavingPhaseDates = false;
           this.ionicUtilService.showErrorToast(
             err?.error?.message || 'No se pudieron cambiar las fechas',
             'Error',
             4000
-          ),
+          );
+        },
       });
   }
 

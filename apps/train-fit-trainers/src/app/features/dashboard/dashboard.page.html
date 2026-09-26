@@ -318,7 +318,15 @@
     Para cuándo <span class="field-optional">(opcional)</span>
   </label>
   <div class="input-wrapper">
-    <input id="task-due" class="input-field" type="date" [(ngModel)]="taskDueDate" />
+    <app-date-field
+      class="input-field"
+      inputId="task-due"
+      placeholder="Sin fecha"
+      pickerTitle="Para cuándo"
+      [clearable]="true"
+      [showIcon]="true"
+      [(ngModel)]="taskDueDate"
+    ></app-date-field>
   </div>
 
   <div class="panel-actions">
