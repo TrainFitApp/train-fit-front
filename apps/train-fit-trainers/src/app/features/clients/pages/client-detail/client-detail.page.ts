@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, skip } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
@@ -71,10 +71,11 @@ import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models
 import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
 import { CustomCheckinQuestion } from '../../../checkin-templates/models/checkin-template.model';
 import {
+  MacroSet,
   WeekNeed,
-  WeekWindow,
   PhaseWeeksResponse,
 } from '../../../diet-templates/models/diet-suggestion.model';
+import { KCAL_PER_G, MacroAdjustComponent } from '../../../../shared/components/macro-adjust/macro-adjust.component';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
 import { checkinFieldLabel, checkinValueLabel } from '../../checkin-labels.util';
 import { WeekSummaryPanelComponent } from '../../components/week-summary-panel/week-summary-panel.component';
@@ -111,6 +112,26 @@ import { ClientNote } from './models/client-notes.model';
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
+// Periodos de Seguimiento (una sola fila de presets para las dos gráficas).
+// 'phase' solo existe si hay fase con semanas.
+type TrackingPreset = 'week' | 'lastWeek' | 'weeks4' | 'weeks12' | 'phase';
+
+interface TrackingPresetOption {
+  key: TrackingPreset;
+  label: string;
+}
+
+const TRACKING_PRESETS: TrackingPresetOption[] = [
+  { key: 'week', label: 'Esta semana' },
+  { key: 'lastWeek', label: 'Semana pasada' },
+  { key: 'weeks4', label: '1 mes' },
+  { key: 'weeks12', label: '3 meses' },
+];
+
+const TRACKING_PRESETS_WITH_PHASE: TrackingPresetOption[] = [
+  ...TRACKING_PRESETS,
+  { key: 'phase', label: 'Fase actual' },
+];
 
 // Una FASE por entrada, no un doc por entrada: las semanas preparadas de
 // una fase son docs DietTemplate con el mismo phaseId, y
@@ -360,12 +381,14 @@ export class ClientDetailPage implements OnInit {
   private phaseColorMap = new Map<string, string>();
   public isSkippingDay = false;
   // F20-quindecies — rango elegido en <app-nutrition-calendar> (click día
-  // inicio/fin, o sus botones 7/30/90d). Empieza en null pero loadNutrition()
-  // lo rellena con un preset de 1 mes si sigue sin elegirse — sin eso
-  // <app-nutrition-tracking-chart> y <app-weight-adherence-chart> no piden
-  // nada hasta que el trainer toca algo (ver loadNutrition()).
+  // inicio/fin) o con uno de los presets encima de la gráfica. Empieza en
+  // null pero loadPhaseWeeks() lo rellena con "Esta semana" si sigue sin
+  // elegirse — sin eso <app-nutrition-tracking-chart> y
+  // <app-weight-adherence-chart> no piden nada hasta que el trainer toca
+  // algo.
   public customTrackingRange: { start: string; end: string } | null = null;
-  public nutritionPreset: number | null = null;
+  // Preset activo; null = rango elegido a mano en el calendario.
+  public trackingPreset: TrackingPreset | null = null;
 
   // F20-vicies — qué vista de "Seguimiento" está activa: cumplimiento/macros
   // día a día, o peso vs. adherencia. Comparten customTrackingRange —
@@ -376,115 +399,60 @@ export class ClientDetailPage implements OnInit {
     this.nutritionChartView = view;
   }
 
-  // F20-unvicies — CÓMO se elige customTrackingRange, ortogonal a
-  // nutritionChartView: mismo rango, misma gráfica, solo cambia si los
-  // presets/el calendario piensan en días sueltos o en semanas completas.
-  // "Por semana" NO es una gráfica distinta (eso se probó y se descartó —
-  // filtrar por semanas es, para el usuario, tan simple como filtrar por
-  // días) — es otra forma de aterrizar en el mismo {start,end} de siempre,
-  // solo que alineada a las fronteras que marcan los check-ins y con las
-  // mismas Rn que ya usa el resto de la app.
-  // 'days' de partida es solo el fallback sin fase (sin semanas, "por
-  // semana" no tiene sentido) — con fase, applyInitialTrackingRangeDefault
-  // lo cambia a 'weeks' en cuanto loadPhaseWeeks resuelve.
-  public nutritionRangeMode: 'days' | 'weeks' = 'days';
-  // Nº de semanas del preset activo (null = "todas" desde R1).
-  public weeksPreset: number | null = null;
+  public get trackingPresets(): TrackingPresetOption[] {
+    return this.phaseWeeks ? TRACKING_PRESETS_WITH_PHASE : TRACKING_PRESETS;
+  }
 
-  public setNutritionRangeMode(mode: 'days' | 'weeks'): void {
-    if (this.nutritionRangeMode === mode) return;
-    this.nutritionRangeMode = mode;
-    if (mode === 'weeks') {
-      // La semana en curso, no un histórico — mismo criterio que el rango
-      // con el que arranca Seguimiento al entrar.
-      this.applyWeeksPreset(1);
-    } else {
-      this.onNutritionPresetSelected(this.nutritionPreset ?? 30);
+  public trackByPresetKey(_index: number, option: TrackingPresetOption): TrackingPreset {
+    return option.key;
+  }
+
+  // Semanas naturales lunes-domingo, las mismas que las de la fase. Todos los
+  // presets cierran en el domingo de la semana en curso (o de la pasada):
+  // las gráficas ya recortan a hoy por su cuenta.
+  public applyTrackingPreset(preset: TrackingPreset): void {
+    const monday = this.mondayOf(this.todayIsoDate());
+    const sunday = this.addDays(monday, 6);
+    let range: { start: string; end: string } | null = null;
+    switch (preset) {
+      case 'week':
+        range = { start: monday, end: sunday };
+        break;
+      case 'lastWeek':
+        range = { start: this.addDays(monday, -7), end: this.addDays(sunday, -7) };
+        break;
+      case 'weeks4':
+        range = { start: this.addDays(monday, -21), end: sunday };
+        break;
+      case 'weeks12':
+        range = { start: this.addDays(monday, -77), end: sunday };
+        break;
+      case 'phase':
+        range = this.phaseWeeks ? { start: this.phaseWeeks.phaseStart, end: sunday } : null;
+        break;
     }
+    if (!range) return;
+    this.trackingPreset = preset;
+    this.customTrackingRange = range;
   }
 
-  // Semanas que ya han empezado (start <= hoy) — las futuras no tienen
-  // nada que mostrar todavía. Las ventanas las calcula el backend a partir
-  // de los check-ins programados: no hay forma de deducirlas aquí.
-  private get startedWeekWindows(): WeekWindow[] {
-    const today = this.todayIsoDate();
-    return (this.phaseWeeks?.weeks || []).filter((w) => w.start <= today);
-  }
-
-  private weekEnd(window: WeekWindow): string {
-    const today = this.todayIsoDate();
-    return window.end && window.end < today ? window.end : today;
-  }
-
-  // "Últimas 3/6 semanas" o "Todas" (count null): equivalente en
-  // semanas a onNutritionPresetSelected. Cierra en hoy si la última sigue
-  // en curso (mismo criterio que el resto de Seguimiento: no pedir días
-  // futuros sin datos).
-  public applyWeeksPreset(count: number | null): void {
-    this.weeksPreset = count;
-    const windows = this.startedWeekWindows;
-    if (!windows.length) {
-      this.customTrackingRange = null;
-      return;
-    }
-    const slice = count ? windows.slice(-count) : windows;
-    this.customTrackingRange = {
-      start: slice[0].start,
-      end: this.weekEnd(slice[slice.length - 1]),
-    };
-  }
-
-  // Modo semana — cualquier selección (día suelto o rango arrastrado) se
-  // expande a cubrir las semanas completas que toca, para no dejar
-  // "media semana" fuera de lugar. Sin semanas que la cubran, se deja
-  // la selección tal cual llegó.
-  private snapRangeToWeeks(range: { start: string; end: string }): { start: string; end: string } {
-    const windows = this.phaseWeeks?.weeks || [];
-    if (!windows.length) return range;
-    const overlapping = windows.filter((w) => w.start <= range.end && this.weekEnd(w) >= range.start);
-    if (!overlapping.length) return range;
-    return {
-      start: overlapping[0].start,
-      end: this.weekEnd(overlapping[overlapping.length - 1]),
-    };
-  }
-
-  // Etiqueta de la card en modo semana — "R1 28 ago → R4 6 sept" (una
-  // sola: "R1 28 ago → 3 sept", sin repetir el número).
-  public get weekRangeLabel(): string {
-    if (!this.customTrackingRange) return '';
-    const range = this.customTrackingRange;
-    const windows = this.phaseWeeks?.weeks || [];
-    if (!windows.length) return '';
-    const overlapping = windows.filter((w) => w.start <= range.end && this.weekEnd(w) >= range.start);
-    if (!overlapping.length) return '';
-    const fmt = (iso: string): string =>
-      new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'short',
-        timeZone: 'UTC',
-      });
-    const first = overlapping[0];
-    const last = overlapping[overlapping.length - 1];
-    if (first.number === last.number) {
-      return `S${first.number} ${fmt(range.start)} → ${fmt(range.end)}`;
-    }
-    return `S${first.number} ${fmt(range.start)} → S${last.number} ${fmt(range.end)}`;
-  }
-
-  // Etiqueta de la card en modo días — "29 ago → 28 sept". Antes vivía
-  // dentro de cada gráfica (NutritionTrackingChartComponent/
-  // WeightAdherenceChartComponent); ahora que el selector de rango es uno
-  // solo, compartido por las dos, la etiqueta también.
+  // "S5 · 21 sept → 27 sept" cuando el rango es una sola semana de la fase;
+  // si abarca más (o cae fuera de la fase), solo las fechas.
   public get trackingRangeLabel(): string {
-    if (!this.customTrackingRange) return '';
+    const range = this.customTrackingRange;
+    if (!range) return '';
     const fmt = (iso: string): string =>
       new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
         day: 'numeric',
         month: 'short',
         timeZone: 'UTC',
       });
-    return `${fmt(this.customTrackingRange.start)} → ${fmt(this.customTrackingRange.end)}`;
+    const dates = `${fmt(range.start)} → ${fmt(range.end)}`;
+    const overlapping = (this.phaseWeeks?.weeks || []).filter(
+      (w) => w.start <= range.end && (w.end ?? range.end) >= range.start
+    );
+    const isSingleWeek = range.end <= this.addDays(range.start, 6);
+    return isSingleWeek && overlapping.length === 1 ? `S${overlapping[0].number} · ${dates}` : dates;
   }
 
   // TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones puntuales.
@@ -1343,6 +1311,18 @@ export class ClientDetailPage implements OnInit {
     return `Semana ${currentWeek} de ${totalWeeks}`;
   }
 
+  // Lo mismo para la línea de nutrición de la cabecera, leído de phaseWeeks
+  // (semanas naturales de la fase de dieta vigente). "de N" solo si la fase
+  // ya tiene fin real: una fase abierta no tiene duración, acaba cuando
+  // empieza la siguiente.
+  public get currentDietWeekLabel(): string | null {
+    const current = this.phaseWeeks?.current;
+    if (!current) return null;
+    return this.phaseWeeks?.phaseEnd
+      ? `Semana ${current.number} de ${this.phaseWeeks.weeks.length}`
+      : `Semana ${current.number}`;
+  }
+
   public toggleRoutineHistory(): void {
     this.showRoutineHistory = !this.showRoutineHistory;
   }
@@ -1902,49 +1882,10 @@ export class ClientDetailPage implements OnInit {
   }
 
   // F20-quinquies — llamado por <app-nutrition-calendar> al completar una
-  // selección de rango (click día inicio, click día fin); alimenta
-  // <app-nutrition-tracking-chart> con ese rango exacto en vez de sus
-  // botones 7/30/90d.
-  // El preset se elige encima de la gráfica y el rango se calcula aquí, en
-  // el padre: es el único que puede pasárselo a la vez a la gráfica (que lo
-  // dibuja) y al calendario (que lo sombrea). Los rangos son "cuadrados"
-  // (semana/mes naturales, lunes-domingo y día 1-último) en vez de estar
-  // centrados en hoy: 7 = semana actual, 30 = mes actual, 90 = mes actual
-  // + los 2 anteriores completos.
-  public onNutritionPresetSelected(days: number): void {
-    this.nutritionPreset = days;
-    this.customTrackingRange = this.squareTrackingRange(days);
-  }
-
-  private squareTrackingRange(days: number): { start: string; end: string } {
-    const toIso = (date: Date): string => date.toISOString().slice(0, 10);
-    const today = new Date();
-    const year = today.getUTCFullYear();
-    const month = today.getUTCMonth();
-
-    if (days === 7) {
-      const mondayOffset = (today.getUTCDay() + 6) % 7;
-      const monday = new Date(Date.UTC(year, month, today.getUTCDate() - mondayOffset));
-      const sunday = new Date(Date.UTC(year, month, today.getUTCDate() - mondayOffset + 6));
-      return { start: toIso(monday), end: toIso(sunday) };
-    }
-
-    const monthsBack = days === 90 ? 2 : 0;
-    const start = new Date(Date.UTC(year, month - monthsBack, 1));
-    const end = new Date(Date.UTC(year, month + 1, 0));
-    return { start: toIso(start), end: toIso(end) };
-  }
-
+  // selección de rango (click día inicio, click día fin); alimenta las
+  // gráficas con ese rango exacto. Rango a mano: deja de haber preset activo.
   public onNutritionRangeSelected(range: { start: string; end: string }): void {
-    if (this.nutritionRangeMode === 'weeks') {
-      // Manual en modo semana: deja de haber preset de Nº de semanas activo,
-      // y el rango arrastrado se expande a las semanas completas que toca.
-      this.weeksPreset = null;
-      this.customTrackingRange = this.snapRangeToWeeks(range);
-      return;
-    }
-    // Rango elegido a mano en el calendario: deja de haber preset activo.
-    this.nutritionPreset = null;
+    this.trackingPreset = null;
     this.customTrackingRange = range;
   }
 
@@ -1959,13 +1900,6 @@ export class ClientDetailPage implements OnInit {
   // esté mirando, así que no queda nada de verdad que releer.
   public onNutritionDateSelected(date: string): void {
     this.nutritionDate = date;
-    // Modo semana — un click suelto (sin arrastrar) también cuenta como
-    // selección de rango para Seguimiento: la semana que contiene ese día
-    // se resalta entero, igual que un rango arrastrado (onNutritionRangeSelected).
-    if (this.nutritionRangeMode === 'weeks') {
-      this.weeksPreset = null;
-      this.customTrackingRange = this.snapRangeToWeeks({ start: date, end: date });
-    }
   }
 
   // Fecha de calendario LOCAL, no UTC: `startDate` de una fase es el día
@@ -1990,6 +1924,17 @@ export class ClientDetailPage implements OnInit {
     const date = new Date();
     date.setDate(date.getDate() - days);
     return this.formatLocalIsoDate(date);
+  }
+
+  private addDays(iso: string, days: number): string {
+    const date = new Date(`${iso}T00:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  }
+
+  private mondayOf(iso: string): string {
+    const weekday = new Date(`${iso}T00:00:00Z`).getUTCDay(); // 0 = domingo
+    return this.addDays(iso, -((weekday + 6) % 7));
   }
 
   // Sin días con plan no hay adherencia que medir (percentage null), que no
@@ -2069,7 +2014,18 @@ export class ClientDetailPage implements OnInit {
   public editingNutritionalGoal = false;
   public showGoalMath = false;
   public savingNutritionalGoal = false;
-  public goalDraft = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+  // Edición con "Ajustar macros", como en "Empezar fase" y "Siguiente
+  // semana": las kcal mandan y los macros tienen que cuadrar con ellas.
+  public goalDraftKcal = 0;
+  // Reparto de partida (el guardado o, si no hay, el calculado) llevado a
+  // las kcal tecleadas: sin tocar los macros, siguen a las kcal en la misma
+  // proporción. Se recalcula al cambiar las kcal, no en un getter: un objeto
+  // nuevo en cada ciclo dispararía el ngOnChanges de app-macro-adjust.
+  public goalDefaultMacros: MacroSet = { protein: 0, carbs: 0, fat: 0 };
+  // El reparto tocado a mano; null = sigue a goalDefaultMacros.
+  public goalAdjustedMacros: MacroSet | null = null;
+  private goalBaseMacros: MacroSet = { protein: 0, carbs: 0, fat: 0 };
+  @ViewChild(MacroAdjustComponent) private goalMacroAdjust?: MacroAdjustComponent;
 
   public loadNutritionalGoal(): void {
     this.nutritionalGoalState = 'loading';
@@ -2088,24 +2044,61 @@ export class ClientDetailPage implements OnInit {
   public startEditNutritionalGoal(): void {
     const goal = this.nutritionalGoal?.goal;
     const calculated = this.nutritionalGoal?.calculated?.target;
-    this.goalDraft = {
-      kcal: goal?.kcalTotal ?? calculated?.kcal ?? 0,
-      protein: goal?.proteinsGTotal ?? calculated?.protein ?? 0,
-      carbs: goal?.carbohydratesGTotal ?? calculated?.carbs ?? 0,
-      fat: goal?.fatGTotal ?? calculated?.fat ?? 0,
-    };
+    const saved: MacroSet | null = goal
+      ? { protein: goal.proteinsGTotal || 0, carbs: goal.carbohydratesGTotal || 0, fat: goal.fatGTotal || 0 }
+      : null;
+    this.goalBaseMacros =
+      saved && this.macroKcal(saved) > 0
+        ? saved
+        : { protein: calculated?.protein ?? 0, carbs: calculated?.carbs ?? 0, fat: calculated?.fat ?? 0 };
+    this.goalAdjustedMacros = null;
+    this.onGoalKcalChange(goal?.kcalTotal ?? calculated?.kcal ?? 0);
     this.editingNutritionalGoal = true;
   }
 
+  // Escala sobre la suma de kcal de los macros, no sobre las kcal guardadas:
+  // así un objetivo que ya venía descuadrado también sale cuadrado.
+  public onGoalKcalChange(kcal: number | null): void {
+    this.goalDraftKcal = kcal || 0;
+    const baseKcal = this.macroKcal(this.goalBaseMacros);
+    const factor = baseKcal > 0 ? this.goalDraftKcal / baseKcal : 0;
+    this.goalDefaultMacros = {
+      protein: this.goalBaseMacros.protein * factor,
+      carbs: this.goalBaseMacros.carbs * factor,
+      fat: this.goalBaseMacros.fat * factor,
+    };
+  }
+
+  // Peso para los g/kg: el mismo que usa el cálculo del objetivo.
+  public get goalWeightKg(): number | null {
+    const calculated = this.nutritionalGoal?.calculated;
+    return calculated?.weightSource?.weightKg ?? calculated?.inputs?.weightKg ?? null;
+  }
+
+  private macroKcal(macros: MacroSet): number {
+    return (
+      (macros.protein || 0) * KCAL_PER_G.protein +
+      (macros.carbs || 0) * KCAL_PER_G.carbs +
+      (macros.fat || 0) * KCAL_PER_G.fat
+    );
+  }
+
   public saveNutritionalGoal(): void {
-    if (!(this.goalDraft.kcal > 0) || this.savingNutritionalGoal) return;
+    if (!(this.goalDraftKcal > 0) || this.savingNutritionalGoal) return;
+    // Macros que no cuadran con las kcal: no se guarda.
+    const macroError = this.goalMacroAdjust?.validate();
+    if (macroError) {
+      this.ionicUtilService.showErrorToast(macroError, 'Error', 4500);
+      return;
+    }
+    const macros = this.goalAdjustedMacros ?? this.goalDefaultMacros;
     this.savingNutritionalGoal = true;
     this.clientDetailApi
       .updateNutritionalGoal(this.clientId, {
-        kcalTotal: this.goalDraft.kcal,
-        proteinsGTotal: this.goalDraft.protein,
-        carbohydratesGTotal: this.goalDraft.carbs,
-        fatGTotal: this.goalDraft.fat,
+        kcalTotal: this.goalDraftKcal,
+        proteinsGTotal: Math.round(macros.protein),
+        carbohydratesGTotal: Math.round(macros.carbs),
+        fatGTotal: Math.round(macros.fat),
       })
       .subscribe({
         next: () => {
@@ -2272,36 +2265,32 @@ export class ClientDetailPage implements OnInit {
     const phaseId = this.activePlan?.phaseId;
     if (!phaseId) {
       this.phaseWeeks = null;
-      this.applyInitialTrackingRangeDefault();
+      this.syncTrackingRange();
       return;
     }
     this.dietSuggestionApi.getPhaseWeeks(this.clientId, phaseId).subscribe({
       next: (res) => {
         this.phaseWeeks = res;
-        this.applyInitialTrackingRangeDefault();
+        this.syncTrackingRange();
       },
       error: () => {
         this.phaseWeeks = null;
-        this.applyInitialTrackingRangeDefault();
+        this.syncTrackingRange();
       },
     });
   }
 
-  // F20-unvicies — hasta no saber si hay fase (loadPhaseWeeks, async) no
-  // se puede decidir el rango de arranque de Seguimiento: sin semanas que
-  // enseñar, "por semana" no tiene sentido. Por eso el rango por defecto no
-  // se fija en loadNutrition (se dispara antes de tener esta respuesta),
-  // sino aquí. Solo aplica la PRIMERA vez (customTrackingRange sigue null)
-  // — loadPhaseWeeks se repite tras cualquier cambio de plan/semana, y no
-  // debe pisar un rango que el trainer ya haya elegido.
-  private applyInitialTrackingRangeDefault(): void {
-    if (this.customTrackingRange) return;
-    if (this.startedWeekWindows.length) {
-      this.nutritionRangeMode = 'weeks';
-      this.applyWeeksPreset(1);
-    } else {
-      this.onNutritionPresetSelected(30);
+  // Rango de Seguimiento tras (re)cargar la fase. La PRIMERA vez fija
+  // "Esta semana" (customTrackingRange sigue null); las siguientes no pisan
+  // un rango que el trainer ya haya elegido — salvo "Fase actual", que
+  // depende de la fase: se recalcula, o cae a "1 mes" si ya no hay fase.
+  private syncTrackingRange(): void {
+    if (this.trackingPreset === 'phase') {
+      this.applyTrackingPreset(this.phaseWeeks ? 'phase' : 'weeks4');
+      return;
     }
+    if (this.customTrackingRange) return;
+    this.applyTrackingPreset('week');
   }
 
   // Mismo color que este tramo pinta en <app-nutrition-calendar> — mismo
@@ -2687,11 +2676,13 @@ export class ClientDetailPage implements OnInit {
     return !!this.nutritionPreferences?.respondedAt;
   }
 
+  // Pendiente si se solicitó después de la última respuesta: el intake y la
+  // edición del profesional ya dejan respondedAt puesto. Mismo criterio que
+  // el back (nutritionPreferences/request-status.js).
   public get nutritionPreferencesPending(): boolean {
-    return (
-      !!this.nutritionPreferences?.requestedAt &&
-      !this.nutritionPreferences?.respondedAt
-    );
+    const prefs = this.nutritionPreferences;
+    if (!prefs?.requestedAt) return false;
+    return !prefs.respondedAt || new Date(prefs.requestedAt) > new Date(prefs.respondedAt);
   }
 
   public requestNutritionPreferences(): void {

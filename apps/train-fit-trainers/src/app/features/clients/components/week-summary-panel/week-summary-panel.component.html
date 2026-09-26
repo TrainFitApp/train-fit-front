@@ -31,43 +31,46 @@
     <section class="summary-block">
       <p class="summary-block__title summary-block__title--planned">
         <span class="summary-block__icon"><ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon></span>
-        Lo pautado
+        Dieta pautada
       </p>
       <p class="week-dates">
-        {{ from }} → {{ isRunning ? 'en curso' : to }}
+        {{ fmtDay(from) }} → {{ isRunning ? 'en curso' : fmtDay(to, true) }}
         <span class="week-days" *ngIf="assignment.menusCount">· {{ assignment.menusCount }} menú{{ assignment.menusCount === 1 ? '' : 's' }}</span>
       </p>
       <!-- Las kcal son la media diaria de lo pautado — no hay objetivo
            guardado aparte. Sale del mismo cruce de macros de abajo. -->
       <div class="target-row" *ngIf="plannedAvg.kcal">
-        <span class="target-kcal">{{ plannedAvg.kcal | number: '1.0-0' }} kcal</span>
+        <span class="target-kcal">{{ n(plannedAvg.kcal) }} kcal</span>
         <span class="target-macros">
-          P {{ plannedAvg.protein | number: '1.0-0' }} · C {{ plannedAvg.carbs | number: '1.0-0' }} · G {{ plannedAvg.fat | number: '1.0-0' }}
+          P {{ n(plannedAvg.protein) }} · C {{ n(plannedAvg.carbs) }} · G {{ n(plannedAvg.fat) }}
         </span>
       </div>
+      <p class="summary-hint" *ngIf="plannedAvg.kcal">
+        Media diaria: lo que suman los alimentos de sus menús.
+      </p>
       <p class="summary-empty" *ngIf="!plannedAvg.kcal">
         Esta semana no tuvo días con pauta todavía.
       </p>
     </section>
 
-    <!-- 1b. Cómo se calculó la necesidad: qué datos del cliente entraron y
-         la cuenta. R1 = lo guardado al empezar la fase; el resto, a su fecha
-         de inicio con el último peso y el último rango de pasos declarado. -->
-    <section class="summary-block">
+    <!-- 1b. Necesidad calculada: qué datos del cliente entraron y la cuenta.
+         S1 = lo guardado al empezar la fase; el resto, a su fecha de inicio
+         con el último peso y los pasos de su hábito (o del perfil). -->
+    <section class="summary-block summary-block--need">
       <p class="summary-block__title summary-block__title--need">
         <span class="summary-block__icon"><ion-icon name="calculator-outline" aria-hidden="true"></ion-icon></span>
-        Cómo se calculó la necesidad
+        Necesidad calculada
       </p>
       <div class="skeleton-block" style="height: 90px" *ngIf="needState === 'loading'"></div>
       <p class="summary-empty" *ngIf="needState === 'error'">No se pudo cargar el cálculo de esta semana.</p>
       <ng-container *ngIf="needState === 'ready' && weekNeed as cn">
         <p class="summary-hint need-source" *ngIf="cn.source === 'computed'">
-          Con los datos del cliente a {{ cn.start }}: último peso hasta esa fecha y el último rango de pasos que declaró en un check-in.
+          Lo que pide la fórmula con los datos del cliente a {{ fmtDay(cn.start, true) }} (último peso hasta ese día).
         </p>
         <p class="summary-hint need-source" *ngIf="cn.source === 'snapshot'">
-          Guardado al empezar la fase.
+          Lo que pide la fórmula con los datos del cliente al empezar la fase.
         </p>
-        <app-need-breakdown [need]="cn.need" [plannedKcal]="plannedAvg.kcal || cn.plannedKcal"></app-need-breakdown>
+        <app-need-breakdown [need]="cn.need" [plannedKcal]="plannedAvg.kcal || cn.plannedKcal" [collapsed]="true"></app-need-breakdown>
       </ng-container>
     </section>
 
@@ -157,18 +160,45 @@
         Check-ins de la semana
       </p>
       <p class="summary-empty" *ngIf="!checkins.length">
-        El cliente no respondió ningún check-in en estas fechas.
+        {{ isRunning ? 'Todavía no ha respondido ningún check-in esta semana.' : 'El cliente no respondió ningún check-in esta semana.' }}
       </p>
 
-      <div class="checkin-card" *ngFor="let checkin of checkins; trackBy: trackByCheckinId">
-        <p class="checkin-date">{{ checkin.entry.respondedAt | date: 'd MMM y' }}</p>
-        <div class="checkin-values">
-          <span class="checkin-value" *ngFor="let entry of checkin.values; trackBy: trackByKey">
-            <span class="checkin-value__key">{{ fieldLabel(entry.key) }}</span>
-            <span class="checkin-value__number">{{ valueLabel(entry.value) }}</span>
-          </span>
-        </div>
-      </div>
+      <article class="checkin" *ngFor="let checkin of checkins; trackBy: trackByCheckinId">
+        <header class="checkin__head">
+          <h3 class="checkin__date">{{ fmtResponded(checkin.entry.respondedAt) }}</h3>
+          <p class="checkin__compare" *ngIf="checkin.display.comparedTo">Cambio desde el {{ checkin.display.comparedTo }}</p>
+        </header>
+
+        <!-- El peso, primero y más grande: es el dato con el que se pauta la
+             semana siguiente. -->
+        <dl class="checkin__rows checkin__rows--lead" *ngIf="checkin.display.lead as lead">
+          <div class="crow">
+            <dt class="crow__label">{{ lead.label }}</dt>
+            <dd class="crow__value">
+              <span class="crow__text">{{ lead.value }}</span>
+              <span class="crow__delta" *ngIf="lead.delta">{{ lead.delta }}</span>
+            </dd>
+          </div>
+        </dl>
+
+        <section
+          class="cgroup"
+          [class.cgroup--grid]="group.layout === 'grid'"
+          *ngFor="let group of checkin.display.groups; trackBy: trackByKey"
+        >
+          <h4 class="cgroup__title" *ngIf="group.label">{{ group.label }}</h4>
+          <dl class="checkin__rows">
+            <div class="crow" [class.crow--long]="row.long" *ngFor="let row of group.rows; trackBy: trackByKey">
+              <dt class="crow__label">{{ row.label }}</dt>
+              <dd class="crow__value">
+                <span class="crow__text">{{ row.value }}</span>
+                <span class="crow__delta" *ngIf="row.delta">{{ row.delta }}</span>
+              </dd>
+              <dd class="crow__note" *ngIf="row.anchor">{{ row.anchor }}</dd>
+            </div>
+          </dl>
+        </section>
+      </article>
     </section>
   </ng-container>
 </ion-content>

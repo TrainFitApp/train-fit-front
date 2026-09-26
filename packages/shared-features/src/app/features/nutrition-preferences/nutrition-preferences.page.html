@@ -1,10 +1,17 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs" text=""></ion-back-button>
-    </ion-buttons>
-    <ion-title>Mis preferencias nutricionales</ion-title>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Mis preferencias</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="nutrition-preferences-content">
@@ -20,7 +27,7 @@
 
   <ng-container *ngIf="state === 'loaded'">
     <div class="requested-banner" *ngIf="wasRequested">
-      <ion-icon name="information-circle-outline"></ion-icon>
+      <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
       <span>Tu profesional te ha pedido que rellenes este cuestionario.</span>
     </div>
 
@@ -29,101 +36,132 @@
       automáticamente: es solo referencia para que la tenga en cuenta.
     </p>
 
-    <div class="pref-field">
-      <span class="pref-label pref-label--critical">
-        <ion-icon name="warning-outline"></ion-icon>
+    <!-- Alergias primero y con superficie propia: es el único campo que
+         puede hacer daño si se pasa por alto al montar la dieta. -->
+    <section class="form-group form-group--critical">
+      <label class="field-label field-label--critical" for="nutrition-pref-allergies">
+        <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
         Alergias / intolerancias
-      </span>
+      </label>
       <textarea
-        class="pref-textarea pref-textarea--critical"
+        id="nutrition-pref-allergies"
+        class="note-field note-field--critical"
         rows="3"
+        maxlength="1000"
         placeholder="p. ej. Alergia a los frutos secos, intolerancia a la lactosa..."
         [(ngModel)]="allergies"
-        maxlength="1000"
       ></textarea>
-    </div>
+    </section>
 
-    <div class="pref-field">
-      <span class="pref-label">Alimentos favoritos</span>
-      <textarea
-        class="pref-textarea"
-        rows="2"
-        placeholder="p. ej. Pollo, arroz, plátano..."
-        [(ngModel)]="favoriteFoods"
-        maxlength="1000"
-      ></textarea>
-    </div>
-
-    <div class="pref-field">
-      <span class="pref-label">Alimentos que no te gustan</span>
-      <textarea
-        class="pref-textarea"
-        rows="2"
-        placeholder="p. ej. Brócoli, pescado azul..."
-        [(ngModel)]="dislikedFoods"
-        maxlength="1000"
-      ></textarea>
-    </div>
-
-    <div class="pref-field">
-      <span class="pref-label">¿Cocinas en casa habitualmente?</span>
-      <div class="cooks-picker">
+    <section class="form-group">
+      <p class="group-label">
+        <ion-icon name="leaf-outline" aria-hidden="true"></ion-icon>
+        ¿Sigues alguna dieta especial?
+      </p>
+      <p class="field-hint">Marca las que apliquen. Deja todo sin marcar si comes de todo.</p>
+      <div class="flag-chips">
         <button
           type="button"
-          class="cooks-option"
-          [class.selected]="cooksAtHome === 'yes'"
-          (click)="setCooksAtHome('yes')"
+          *ngFor="let opt of dietaryFlagOptions"
+          [class]="opt.colorClass"
+          [class.is-active]="dietaryFlags.has(opt.key)"
+          [attr.aria-pressed]="dietaryFlags.has(opt.key)"
+          (click)="toggleDietaryFlag(opt.key)"
         >
-          Sí
-        </button>
-        <button
-          type="button"
-          class="cooks-option"
-          [class.selected]="cooksAtHome === 'sometimes'"
-          (click)="setCooksAtHome('sometimes')"
-        >
-          A veces
-        </button>
-        <button
-          type="button"
-          class="cooks-option"
-          [class.selected]="cooksAtHome === 'no'"
-          (click)="setCooksAtHome('no')"
-        >
-          No
+          <ion-icon [name]="opt.icon" aria-hidden="true"></ion-icon>
+          {{ opt.label }}
         </button>
       </div>
-    </div>
+    </section>
 
-    <div class="pref-field">
-      <span class="pref-label">¿Cuántas comidas haces al día?</span>
-      <p class="form-hint form-hint--tight">
-        Desmarca las que no hagas (p. ej. ayuno intermitente) y, si quieres, cámbiales el nombre.
+    <section class="form-group">
+      <p class="group-label">
+        <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
+        Gustos
       </p>
-      <div class="meal-slot-row" *ngFor="let slot of mealSlots">
+
+      <div class="field">
+        <label class="field-label" for="nutrition-pref-favorites">
+          <ion-icon name="thumbs-up-outline" aria-hidden="true"></ion-icon>
+          Alimentos favoritos
+        </label>
+        <textarea
+          id="nutrition-pref-favorites"
+          class="note-field"
+          rows="2"
+          maxlength="1000"
+          placeholder="p. ej. Pollo, arroz, plátano..."
+          [(ngModel)]="favoriteFoods"
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="nutrition-pref-disliked">
+          <ion-icon name="thumbs-down-outline" aria-hidden="true"></ion-icon>
+          Alimentos que no te gustan
+        </label>
+        <textarea
+          id="nutrition-pref-disliked"
+          class="note-field"
+          rows="2"
+          maxlength="1000"
+          placeholder="p. ej. Brócoli, pescado azul..."
+          [(ngModel)]="dislikedFoods"
+        ></textarea>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">
+        <ion-icon name="home-outline" aria-hidden="true"></ion-icon>
+        ¿Cocinas en casa habitualmente?
+      </p>
+      <div class="option-row">
+        <button
+          type="button"
+          class="option-card"
+          *ngFor="let opt of cooksAtHomeOptions"
+          [class.is-active]="cooksAtHome === opt.value"
+          [attr.aria-pressed]="cooksAtHome === opt.value"
+          (click)="setCooksAtHome(opt.value)"
+        >
+          <ion-icon [name]="opt.icon" aria-hidden="true"></ion-icon>
+          {{ opt.label }}
+        </button>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+        ¿Cuántas comidas haces al día?
+        <span class="group-count">{{ enabledMealSlotsCount }} de {{ mealSlots.length }}</span>
+      </p>
+      <p class="field-hint">Desmarca las que no hagas (p. ej. ayuno intermitente).</p>
+
+      <div class="meal-slot-row" *ngFor="let slot of mealSlots" [class.is-off]="disabledMealSlots[slot]">
         <button
           type="button"
           class="meal-slot-toggle"
-          [class.meal-slot-toggle--off]="disabledMealSlots[slot]"
+          [attr.aria-pressed]="!disabledMealSlots[slot]"
           (click)="toggleMealSlot(slot)"
         >
-          <ion-icon [name]="disabledMealSlots[slot] ? 'square-outline' : 'checkbox'"></ion-icon>
-          {{ slot }}
+          <ion-icon
+            class="meal-slot-check"
+            [name]="disabledMealSlots[slot] ? 'square-outline' : 'checkbox'"
+            aria-hidden="true"
+          ></ion-icon>
+          <ion-icon class="meal-slot-icon" [name]="mealSlotIcons[slot]" aria-hidden="true"></ion-icon>
+          <span class="meal-slot-name">{{ slot }}</span>
         </button>
-        <input
-          type="text"
-          class="meal-slot-label-input"
-          [placeholder]="slot"
-          maxlength="50"
-          [disabled]="disabledMealSlots[slot]"
-          [(ngModel)]="mealSlotLabels[slot]"
-        />
       </div>
-    </div>
-
-    <button class="submit-button" (click)="submit()" [disabled]="isSaving">
-      <span *ngIf="!isSaving">Guardar preferencias</span>
-      <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
-    </button>
+    </section>
   </ng-container>
 </ion-content>
+
+<ion-footer class="ion-no-border nutrition-preferences-footer" *ngIf="state === 'loaded'">
+  <button type="button" class="submit-button" (click)="submit()" [disabled]="isSaving">
+    <span *ngIf="!isSaving">Guardar preferencias</span>
+    <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+  </button>
+</ion-footer>

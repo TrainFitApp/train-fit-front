@@ -1,0 +1,282 @@
+@import '../../../../../theme/panel-sheet';
+@import '../../../../../theme/buttons';
+
+.panel-backdrop {
+  @include tf-side-panel-backdrop;
+}
+
+// Panel lateral en escritorio, hoja inferior en móvil (tf-side-panel): se
+// consulta mirando la biblioteca que queda al lado, sin salir de ella.
+// La cabecera se queda fija y solo el cuerpo desplaza.
+.panel-sheet {
+  @include tf-side-panel(520px);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+  overflow: hidden;
+
+  @media (max-width: 767px) {
+    max-height: 88vh;
+  }
+
+  @media (min-width: 768px) {
+    right: var(--preview-right, 0);
+    // Que no se salga por la izquierda cuando otro panel ya ocupa sitio.
+    max-width: min(92vw, calc(100vw - var(--preview-right, 0px)));
+  }
+}
+
+.panel-handle {
+  @include tf-side-panel-handle;
+}
+
+.panel-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
+}
+
+.panel-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-sub {
+  margin: 2px 0 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.panel-close {
+  @include tf-icon-button;
+  flex-shrink: 0;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// A sangre hasta el borde del panel (anula su relleno lateral y lo repone
+// dentro): así la barra de scroll queda en el borde y no pegada al texto.
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0 -16px;
+  padding: 0 16px var(--tf-space-6);
+
+  @media (min-width: 768px) {
+    margin: 0 calc(-1 * var(--tf-space-5));
+    padding: 0 var(--tf-space-5) var(--tf-space-6);
+  }
+}
+
+// --- Resumen ---
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  padding-bottom: var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-border-subtle);
+}
+
+.summary-note {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.summary-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.summary-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
+.panel-empty,
+.menu-empty {
+  margin: var(--tf-space-4) 0 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-faint);
+  font-style: italic;
+}
+
+// --- Menús: secciones separadas por línea, sin cards anidadas ---
+.menu {
+  padding-top: var(--tf-space-4);
+
+  & + & {
+    margin-top: var(--tf-space-4);
+    border-top: 1px solid var(--tf-border-subtle);
+  }
+}
+
+// El nombre del menú y su total se quedan a la vista mientras se recorre el
+// menú entero.
+.menu-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-1) var(--tf-space-3);
+  padding: var(--tf-space-1) 0 var(--tf-space-2);
+  background: var(--tf-surface-1);
+}
+
+.menu-name {
+  margin: 0;
+  font-size: var(--tf-font-size-base);
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.menu-note {
+  margin: 0 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+// --- Comidas ---
+.meal {
+  padding: var(--tf-space-2) 0;
+
+  & + & {
+    border-top: 1px solid var(--tf-border-subtle);
+  }
+}
+
+.meal-slot {
+  margin: 0 0 var(--tf-space-1);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+// Mismo lenguaje que las celdas del constructor: alternativas separadas por
+// una línea discontinua, etiqueta en acento.
+.alt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  & + & {
+    margin-top: var(--tf-space-2);
+    padding-top: var(--tf-space-2);
+    border-top: 1px dashed var(--tf-border);
+  }
+}
+
+.alt-label {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tf-accent);
+
+  ion-icon {
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+}
+
+.foods {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.food {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  padding: 1px 0;
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.35;
+  color: var(--tf-text);
+}
+
+.food-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.food-qty {
+  flex-shrink: 0;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+// --- Macros (mismos colores por macro que el constructor y las cards) ---
+.macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.alt .macros {
+  margin-top: 2px;
+}
+
+.macro-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &--kcal {
+    color: var(--tf-macro-kcal);
+  }
+
+  &--protein {
+    color: var(--tf-macro-protein);
+  }
+
+  &--carbs {
+    color: var(--tf-macro-carbs);
+  }
+
+  &--fat {
+    color: var(--tf-macro-fat);
+  }
+}

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import {
   AdherenceSummary,
@@ -225,12 +226,18 @@ export class ClientDetailApiService {
     return this.http.get<{ timings: SupplementTiming[] }>('supplements/timings');
   }
 
+  // Emite el clientId tras crear, editar o quitar un suplemento: el
+  // calendario de nutrición los pinta por fechas y los tiene cacheados.
+  public readonly supplementsChanged$ = new Subject<string>();
+
   public getSupplements(clientId: string): Observable<Supplement[]> {
     return this.http.get<Supplement[]>(`${this.base(clientId)}/supplements`);
   }
 
   public createSupplement(clientId: string, payload: Partial<Supplement>): Observable<Supplement> {
-    return this.http.post<Supplement>(`${this.base(clientId)}/supplements`, payload);
+    return this.http
+      .post<Supplement>(`${this.base(clientId)}/supplements`, payload)
+      .pipe(tap(() => this.supplementsChanged$.next(clientId)));
   }
 
   public updateSupplement(
@@ -238,14 +245,15 @@ export class ClientDetailApiService {
     supplementId: string,
     payload: Partial<Supplement>
   ): Observable<Supplement> {
-    return this.http.put<Supplement>(
-      `${this.base(clientId)}/supplements/${supplementId}`,
-      payload
-    );
+    return this.http
+      .put<Supplement>(`${this.base(clientId)}/supplements/${supplementId}`, payload)
+      .pipe(tap(() => this.supplementsChanged$.next(clientId)));
   }
 
   public deleteSupplement(clientId: string, supplementId: string): Observable<void> {
-    return this.http.delete<void>(`${this.base(clientId)}/supplements/${supplementId}`);
+    return this.http
+      .delete<void>(`${this.base(clientId)}/supplements/${supplementId}`)
+      .pipe(tap(() => this.supplementsChanged$.next(clientId)));
   }
 
   // Movimiento 5 Coach Pro — qué tiene que comprar el cliente para cumplir

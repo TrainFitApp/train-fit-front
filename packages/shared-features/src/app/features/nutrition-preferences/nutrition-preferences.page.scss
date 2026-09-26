@@ -1,3 +1,9 @@
+// Mismo formulario que el panel del entrenador (nutrition-preferences-panel,
+// app de entrenadores): grupos con icono, alergias con superficie propia,
+// chips por restricción y tarjetas con icono. Sin tokens --tf-*: esos son de
+// la app de entrenadores; aquí sus valores en crudo, como el resto de
+// shared-features (ver _client-page.scss).
+
 :host {
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -6,7 +12,8 @@
   --background: #0f0f0f;
   --padding-start: 16px;
   --padding-end: 16px;
-  --padding-top: 12px;
+  --padding-top: 16px;
+  --padding-bottom: 24px;
 }
 
 .detail-skeleton {
@@ -28,6 +35,12 @@
     transform: translateX(-100%);
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
     animation: shimmer 1.4s infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      animation: none;
+    }
   }
 }
 
@@ -52,12 +65,13 @@
 }
 
 .retry-button {
-  height: 38px;
+  min-height: 44px;
   padding: 0 16px;
   background: #252525;
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
+  font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -82,166 +96,305 @@
 }
 
 .form-hint {
+  margin: 0 0 20px;
   font-size: 0.8rem;
+  line-height: 1.45;
   color: #8b8b8b;
-  margin: 0 0 18px;
 }
 
-.pref-field {
-  margin-bottom: 18px;
-}
+// --- Agrupación ---
+.form-group {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-.pref-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #c7c7c7;
-  margin-bottom: 8px;
-
-  &--critical {
-    color: #ff6b6b;
-
-    ion-icon {
-      font-size: 16px;
-    }
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
   }
 }
 
-.pref-textarea {
-  width: 100%;
+// Alergias: superficie propia en rojo suave. Es el único bloque que puede
+// hacer daño si se pasa por alto, así que no compite en igualdad con el resto.
+.form-group--critical {
   padding: 12px;
+  background: rgba(235, 68, 90, 0.1);
+  border: 1px solid rgba(235, 68, 90, 0.35);
+  border-radius: 12px;
+}
+
+.group-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: #fe9b1a;
+  }
+}
+
+.group-count {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1e1e1e;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #8b8b8b;
+}
+
+.field + .field {
+  margin-top: 12px;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8b8b8b;
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.field-label--critical {
+  color: #ed576b;
+}
+
+.field-hint {
+  margin: -2px 0 12px;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: #8b8b8b;
+}
+
+.note-field {
+  display: block;
+  width: 100%;
+  // Con content-box, el relleno y el borde se suman al 100% y el textarea
+  // se sale por la derecha.
+  box-sizing: border-box;
+  padding: 10px 12px;
   background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 10px;
   color: #ffffff;
-  font-size: 0.9rem;
   font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
   resize: vertical;
   transition: border-color 160ms var(--ease-out);
 
   &::placeholder {
-    color: #6b6b6b;
+    color: #8b8b8b;
   }
 
   &:focus {
     outline: none;
     border-color: #fe9000;
   }
+}
 
-  &--critical {
-    border-color: rgba(255, 107, 107, 0.35);
+.note-field--critical {
+  background: #141414;
+  border-color: rgba(235, 68, 90, 0.35);
 
-    &:focus {
-      border-color: #ff6b6b;
-    }
+  &:focus {
+    border-color: #eb445a;
   }
 }
 
-.cooks-picker {
+// --- Dieta especial: chips con icono y color por restricción ---
+// Misma paleta que los chips del entrenador (panel de preferencias, cajón
+// de sugerencias y cards de dieta).
+.flag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #1a1a1a;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #c7c7c7;
+    cursor: pointer;
+    transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out),
+      color 160ms var(--ease-out);
+
+    ion-icon {
+      font-size: 1.05rem;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #fe9000;
+      outline-offset: 2px;
+    }
+  }
+
+  button.flag-vegan.is-active {
+    background: rgba(52, 211, 153, 0.14);
+    border-color: #34d399;
+    color: #34d399;
+  }
+
+  button.flag-vegetarian.is-active {
+    background: rgba(45, 212, 191, 0.14);
+    border-color: #2dd4bf;
+    color: #2dd4bf;
+  }
+
+  button.flag-lactose-free.is-active {
+    background: rgba(96, 165, 250, 0.14);
+    border-color: #60a5fa;
+    color: #60a5fa;
+  }
+
+  button.flag-gluten-free.is-active {
+    background: rgba(255, 196, 85, 0.16);
+    border-color: #ffc455;
+    color: #ffc455;
+  }
+}
+
+// --- ¿Cocinas en casa?: tres tarjetas con icono ---
+.option-row {
   display: flex;
   gap: 8px;
 }
 
-.cooks-option {
+.option-card {
   flex: 1;
-  height: 42px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 60px;
+  padding: 8px;
   background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   color: #c7c7c7;
-  font-size: 0.88rem;
+  font-family: inherit;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out),
     background 160ms var(--ease-out);
 
-  &.selected {
+  ion-icon {
+    font-size: 20px;
+    color: #8b8b8b;
+  }
+
+  &.is-active {
+    background: rgba(254, 144, 0, 0.1);
     border-color: #fe9000;
-    color: #ffffff;
-    background: rgba(254, 144, 0, 0.14);
+    color: #fe9b1a;
+
+    ion-icon {
+      color: #fe9b1a;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
   }
 }
 
-.form-hint--tight {
-  margin: 0 0 10px;
-}
-
+// --- Comidas al día: fila por comida, con check + icono ---
 .meal-slot-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.is-off {
+    .meal-slot-icon,
+    .meal-slot-name {
+      color: #6b6b6b;
+      text-decoration: line-through;
+    }
+  }
 }
 
 .meal-slot-toggle {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-  min-width: 130px;
-  height: 40px;
-  padding: 0 12px;
-  background: rgba(254, 144, 0, 0.12);
-  border: 1px solid rgba(254, 144, 0, 0.3);
-  border-radius: 10px;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 4px;
+  background: none;
+  border: none;
+  border-radius: 8px;
   color: #ffffff;
-  font-size: 0.85rem;
+  font-family: inherit;
+  font-size: 0.88rem;
   font-weight: 600;
+  text-align: left;
   cursor: pointer;
-  transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out),
-    color 160ms var(--ease-out);
 
-  ion-icon {
-    font-size: 16px;
-    color: #fe9000;
-  }
-
-  &--off {
-    background: #1a1a1a;
-    border-color: rgba(255, 255, 255, 0.14);
-    color: #6b6b6b;
-
-    ion-icon {
-      color: #6b6b6b;
-    }
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
   }
 }
 
-.meal-slot-label-input {
-  flex: 1;
-  height: 40px;
-  padding: 0 12px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
-  color: #ffffff;
-  font-size: 0.85rem;
-  font-family: inherit;
+.meal-slot-check {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: #fe9000;
 
-  &::placeholder {
+  .is-off & {
     color: #6b6b6b;
   }
+}
 
-  &:focus {
-    outline: none;
-    border-color: #fe9000;
-  }
+.meal-slot-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #8b8b8b;
+}
 
-  &:disabled {
-    opacity: 0.4;
-  }
+// --- Pie fijo: guardar siempre a mano, el formulario es largo ---
+.nutrition-preferences-footer {
+  padding: 12px 16px calc(12px + var(--ion-safe-area-bottom, 0px));
+  background: #141414;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .submit-button {
   width: 100%;
-  height: 48px;
-  margin-top: 8px;
+  min-height: 48px;
   border: none;
   border-radius: 12px;
   background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
   color: #0f0f0f;
+  font-family: inherit;
   font-weight: 700;
   font-size: 0.92rem;
   display: flex;
@@ -257,5 +410,10 @@
   &:disabled {
     opacity: 0.45;
     cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
   }
 }

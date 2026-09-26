@@ -603,19 +603,12 @@
 
 // F20-vicies — alterna entre <app-nutrition-tracking-chart> y
 // <app-weight-adherence-chart> en la sección Seguimiento (QUÉ gráfica).
-// F20-unvicies — .range-mode-toggle/.range-mode-btn son el mismo patrón
-// visual para un control hermano pero distinto: CÓMO se elige el rango
-// (por días sueltos o por ciclos completos) — comparten regla para que las
-// dos parejas de píldoras que conviven en esa tarjeta se lean como la
-// misma familia.
-.chart-view-toggle,
-.range-mode-toggle {
+.chart-view-toggle {
   display: flex;
   gap: 4px;
 }
 
-.chart-view-btn,
-.range-mode-btn {
+.chart-view-btn {
   min-height: 30px;
   padding: 0 var(--tf-space-3);
   background: var(--tf-surface-2);
@@ -646,12 +639,10 @@
   }
 }
 
-// F20-unvicies — fila de "cómo elegir el rango" dentro de la card de
-// Seguimiento: el toggle días/ciclo, la etiqueta de fechas (o de ciclos:
-// "C1 28 ago → C4 6 sept") y sus presets — antes vivía repetida dentro de
-// cada gráfica (NutritionTrackingChartComponent/WeightAdherenceChartComponent);
-// ahora es una sola fila compartida por las dos.
-.range-mode-row {
+// Fila de periodo dentro de la card de Seguimiento: etiqueta de fechas
+// ("S5 · 21 sept → 27 sept") y presets, compartida por las dos gráficas
+// (NutritionTrackingChartComponent/WeightAdherenceChartComponent).
+.range-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -670,6 +661,7 @@
 
 .range-preset-group {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin-left: auto;
 }
@@ -972,16 +964,6 @@
 
   &:active {
     opacity: 0.7;
-  }
-
-  // Acción secundaria dentro de un grupo: mismo patrón de botón, sin
-  // competir en color con la principal (deshacer, volver atrás).
-  &--muted {
-    color: var(--tf-text-muted);
-
-    &:hover {
-      color: var(--tf-text-secondary);
-    }
   }
 
   &:disabled {
@@ -2762,12 +2744,86 @@
   }
 }
 
+// Acciones a la derecha, con jerarquía: guardar = gradiente (la única
+// acción que confirma), editar = secundario, cancelar y volver al
+// auto-calculado = texto apagado. Mixins de theme/_buttons.scss y altura
+// táctil completa.
 .goal-card__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--tf-space-3);
-  padding-top: var(--tf-space-2);
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding-top: var(--tf-space-3);
   border-top: 1px solid var(--tf-border-subtle);
+}
+
+.goal-card__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-4);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &--primary {
+    @include tf-gradient-button(var(--tf-radius-md));
+    // "Guardar" → "Guardando…" sin que el botón cambie de ancho.
+    min-width: 9em;
+  }
+
+  &--secondary {
+    @include tf-secondary-button(var(--tf-radius-md));
+  }
+
+  &--ghost {
+    padding: 0 var(--tf-space-3);
+    background: none;
+    border: none;
+    border-radius: var(--tf-radius-md);
+    color: var(--tf-text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      color var(--tf-duration-fast) var(--tf-ease-out),
+      background-color var(--tf-duration-fast) var(--tf-ease-out);
+
+    &:active {
+      background: var(--tf-surface-4);
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-text);
+      outline-offset: 2px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover:not(:disabled) {
+        color: var(--tf-text-secondary);
+        background: var(--tf-surface-3);
+      }
+    }
+  }
+
+  // Ocupa todo el ancho que deja "Editar" (que conserva el suyo): sin fondo
+  // el espacio ganado se leería como un hueco, así que lleva superficie
+  // suave, un paso por debajo del hover.
+  &--fill {
+    flex: 1 1 0;
+    background: var(--tf-surface-2);
+  }
 }
 
 .goal-card__math-toggle {
@@ -2794,55 +2850,56 @@
   gap: var(--tf-space-2);
 }
 
-.goal-edit__row {
-  display: flex;
-  gap: var(--tf-space-2);
+// Campo de kcal: la cifra de .goal-card__kcal hecha editable (mismo
+// naranja, peso y números tabulares), con la llama de kcal delante.
+.goal-kcal {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  gap: var(--tf-space-3);
+  min-height: 56px;
+  padding: 0 var(--tf-space-3) 0 6px;
+  border-radius: var(--tf-radius-md);
+  cursor: text;
 }
 
-.goal-edit__field {
+.goal-kcal__icon {
   display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  font-size: var(--tf-font-size-xs);
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-accent-soft);
+  color: var(--tf-macro-kcal);
+
+  ion-icon {
+    font-size: 22px;
+  }
+}
+
+.goal-kcal__input {
+  @include tf-input-field;
+  height: 54px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--tf-macro-kcal);
+  font-variant-numeric: tabular-nums;
+  caret-color: var(--tf-macro-kcal);
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.goal-kcal__unit {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
   color: var(--tf-text-muted);
-
-  input {
-    width: 100%;
-    padding: 6px 8px;
-    background: var(--tf-surface-2);
-    border: 1px solid var(--tf-border);
-    border-radius: var(--tf-radius-sm);
-    color: var(--tf-text);
-    font: inherit;
-    font-size: var(--tf-font-size-sm);
-  }
-
-  // Misma clave de color que en lectura: se edita el campo del macro que se
-  // está mirando, sin tener que releer la etiqueta.
-  &--protein {
-    color: var(--tf-macro-protein);
-
-    input:focus {
-      border-color: var(--tf-macro-protein);
-    }
-  }
-
-  &--carbs {
-    color: var(--tf-macro-carbs);
-
-    input:focus {
-      border-color: var(--tf-macro-carbs);
-    }
-  }
-
-  &--fat {
-    color: var(--tf-macro-fat);
-
-    input:focus {
-      border-color: var(--tf-macro-fat);
-    }
-  }
 }
 
 .preferences-card {

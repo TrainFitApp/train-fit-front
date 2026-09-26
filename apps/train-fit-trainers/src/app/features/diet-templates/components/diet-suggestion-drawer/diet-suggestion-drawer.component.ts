@@ -18,6 +18,7 @@ import { DietSuggestionSessionService } from '../../services/diet-suggestion-ses
 import { DIETARY_FLAG_UI } from '../../../../shared/utils/dietary-flag-ui.util';
 import { DietCardModule } from '../../../../shared/components/diet-card/diet-card.module';
 import { MacroAdjustComponent } from '../../../../shared/components/macro-adjust/macro-adjust.component';
+import { nextSources } from './diet-source-filter.util';
 
 const DIETARY_FLAGS: { key: DietaryFlag; label: string; icon: string; colorClass: string }[] = (
   ['vegan', 'vegetarian', 'lactoseFree', 'glutenFree'] as DietaryFlag[]
@@ -48,6 +49,10 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   @Input() public clientName = 'este cliente';
 
   public state: ViewState = 'loading';
+  // Barra de carga bajo la cabecera. Sube en cuanto se toca un filtro (no
+  // cuando sale la petición, 350 ms de debounce después) y baja al terminar
+  // la última: encadenar cambios la mantiene encendida.
+  public loading = true;
   public missing: string[] = [];
 
   // --- Filtros ---
@@ -99,6 +104,10 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
 
   private readonly refetch$ = new Subject<void>();
   private readonly subs = new Subscription();
+  // Petición de sugerencias en vuelo: al cambiar un filtro se cancela la
+  // anterior, para que una respuesta lenta no pise a la nueva y la lista no
+  // deje de coincidir con los chips marcados.
+  private fetchSub: Subscription | null = null;
   private userTouchedFilters = false;
   private appliedClientDefaults = false;
 
@@ -119,6 +128,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.subs.unsubscribe();
+    this.fetchSub?.unsubscribe();
   }
 
   // --- Filtros ---
@@ -148,20 +158,17 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   }
 
   public toggleSource(source: DietSource): void {
-    if (this.sources.has(source)) {
-      // Siempre al menos un origen activo: el backend trata `sources: []`
-      // igual que "sin filtro" (las tres), así que quitar el último no
-      // vaciaría la lista, la llenaría — confuso. Mejor no dejar quitarlo.
-      if (this.sources.size === 1) return;
-      this.sources.delete(source);
-    } else {
-      this.sources.add(source);
-    }
+    this.sources = nextSources(
+      this.sources,
+      source,
+      this.sourceOptions.map((o) => o.key)
+    );
     this.queueRefetch();
   }
 
   public queueRefetch(): void {
     this.userTouchedFilters = true;
+    this.loading = true;
     this.refetch$.next();
   }
 
@@ -191,7 +198,8 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   private fetch(): void {
     if (this.state !== 'ready') this.state = 'loading';
     this.session.setLoading(true);
-    this.suggestionApi
+    this.fetchSub?.unsubscribe();
+    this.fetchSub = this.suggestionApi
       .suggest(this.clientId, {
         ...(this.manualTarget && this.targetDraft?.kcal ? { target: this.targetDraft } : {}),
         dietaryFlags: [...this.dietaryFlags],
@@ -218,10 +226,12 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
           if (!this.manualTarget) this.targetDraft = { ...res.calculated };
           this.session.setResults(res);
           this.session.setLoading(false);
+          this.loading = false;
           this.state = 'ready';
         },
         error: (err) => {
           this.session.setLoading(false);
+          this.loading = false;
           if (err?.status === 422 && err?.error?.code === 'MISSING_BIOMETRICS') {
             this.missing = err.error.missing || [];
             this.state = 'missing-biometrics';

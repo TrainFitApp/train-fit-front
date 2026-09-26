@@ -8,6 +8,14 @@
 
 .summary-block {
   margin-bottom: var(--tf-space-5);
+
+  // Lo pautado (naranja) y la necesidad (azul) son dos cifras de kcal
+  // distintas: cada una con el color de su bloque. La cifra grande de
+  // need-breakdown lo lee de aquí.
+  &--need {
+    --need-color: #60a5fa;
+    --need-kcal-color: var(--need-color);
+  }
 }
 
 // Cada bloque con su color e icono: en un panel oscuro con cinco secciones
@@ -33,7 +41,7 @@
   }
 
   &--need {
-    --block-color: #60a5fa;
+    --block-color: var(--need-color);
     --block-soft: rgba(96, 165, 250, 0.16);
   }
 
@@ -216,43 +224,165 @@
 
 // --- Check-ins ---
 
-.checkin-card {
-  padding: 10px 12px;
+// Una tarjeta por respuesta. Dentro no hay más tarjetas: los grupos se separan
+// con un filo y aire, y cada dato es una fila (etiqueta a la izquierda, valor a
+// la derecha) para que el ojo baje por una sola columna de cifras.
+.checkin {
+  padding: var(--tf-space-3);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-md);
   background: var(--tf-surface-2);
 
-  & + .checkin-card {
-    margin-top: 8px;
+  & + .checkin {
+    margin-top: var(--tf-space-2);
   }
 }
 
-.checkin-date {
-  margin: 0 0 6px;
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  color: var(--tf-text-faint);
-}
-
-.checkin-values {
+.checkin__head {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 14px;
-}
-
-.checkin-value {
-  display: flex;
   align-items: baseline;
-  gap: 5px;
-  font-size: 0.8rem;
+  justify-content: space-between;
+  gap: 2px var(--tf-space-3);
 }
 
-.checkin-value__key {
+.checkin__date {
+  margin: 0;
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  color: var(--tf-text);
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.checkin__compare {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
   color: var(--tf-text-muted);
 }
 
-.checkin-value__number {
+.checkin__rows {
+  margin: 0;
+  padding: 0;
+}
+
+// El peso abre la tarjeta con más cuerpo que el resto de filas, sin cambiar de
+// patrón: sigue siendo una fila más.
+.checkin__rows--lead {
+  margin-top: var(--tf-space-2);
+
+  .crow__label {
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
+  .crow__value {
+    font-size: var(--tf-font-size-lg);
+  }
+}
+
+.cgroup {
+  margin-top: var(--tf-space-3);
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.cgroup__title {
+  margin: 0 0 2px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
+.crow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: var(--tf-space-3);
+  padding: 6px 0;
+
+  & + & {
+    border-top: 1px solid var(--tf-border-subtle);
+  }
+}
+
+.crow__label {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+}
+
+.crow__value {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  text-align: right;
   color: var(--tf-text);
+}
+
+.crow__delta {
+  margin-left: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--tf-text-muted);
+}
+
+// Lo que el cliente eligió en la escala, en sus palabras, bajo la cifra.
+.crow__note {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-text-muted);
+}
+
+// Respuestas abiertas: ancho completo y con sus saltos de línea. Antes se
+// pintaban como un valor más y una nota larga rompía la fila.
+.crow--long {
+  grid-template-columns: minmax(0, 1fr);
+  padding-bottom: var(--tf-space-2);
+
+  .crow__value {
+    margin-top: 4px;
+    font-weight: 400;
+    text-align: left;
+    line-height: 1.45;
+  }
+
+  .crow__text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+// Medidas cortas (composición, perímetros): dos columnas con la etiqueta
+// encima del valor, para no alargar el panel con una veintena de filas.
+.cgroup--grid {
+  .checkin__rows {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--tf-space-4);
+  }
+
+  .crow {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 1px;
+    padding: 6px 0;
+    border-top: 0;
+
+    &:nth-child(n + 3) {
+      border-top: 1px solid var(--tf-border-subtle);
+    }
+  }
+
+  .crow__label {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+
+  .crow__value {
+    text-align: left;
+  }
 }

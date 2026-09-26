@@ -46,6 +46,8 @@ interface GroupedHistoryEntry {
 const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   meal_proposal: 'restaurant-outline',
   payment_created: 'cash-outline',
+  // Histórico: ya no se crea (la solicitud sale en "Pendiente de ti"). Se
+  // mantiene para las que siguen en la bandeja.
   nutrition_preferences_requested: 'nutrition-outline',
   checkin_reviewed: 'checkmark-circle-outline',
   routine_assigned: 'barbell-outline',
@@ -163,6 +165,13 @@ export class CoachPage implements OnInit {
     this.loadTasks();
   }
 
+  // La página del tab sigue viva al abrir otra pantalla (preferencias,
+  // check-ins...), así que volver no repite ngOnInit y "Pendiente de ti"
+  // enseñaría lo ya resuelto. La primera entrada ya la carga ngOnInit.
+  public ionViewWillEnter(): void {
+    if (this.dashboardState === 'loaded') this.loadDashboard(true);
+  }
+
   public load(): void {
     this.state = 'loading';
     Promise.all([
@@ -187,16 +196,17 @@ export class CoachPage implements OnInit {
 
   // Dashboard (check-ins/comidas/preferencias/cobros pendientes, plan
   // actual) — carga independiente de la sección de profesionales: un fallo
-  // aquí no debe ocultar "tus profesionales" ni viceversa.
-  public loadDashboard(): void {
-    this.dashboardState = 'loading';
+  // aquí no debe ocultar "tus profesionales" ni viceversa. En silencio
+  // (al volver al tab) no pasa por el esqueleto y un fallo deja lo que había.
+  public loadDashboard(silent = false): void {
+    if (!silent) this.dashboardState = 'loading';
     this.coachDashboardApi.getDashboard().subscribe({
       next: (dashboard) => {
         this.dashboard = dashboard;
         this.dashboardState = 'loaded';
       },
       error: () => {
-        this.dashboardState = 'error';
+        if (!silent) this.dashboardState = 'error';
       },
     });
   }

@@ -1,21 +1,36 @@
 <ng-container *ngIf="results$ | async as d; else loadingOrEmpty">
   <div class="suggestion-grid">
-    <app-diet-card
+    <div
+      class="suggestion-cell"
       *ngFor="let t of d.ranked; trackBy: trackById"
       [class.span-all]="t._id === (topSuggestionId$ | async)"
-      [name]="t.name"
-      [profile]="t.profile"
-      [deltas]="t.deltas"
-      [medal]="medal(t.rank)"
-      [verified]="t.verified"
-      [ownedByClient]="!!t.ownerClientId"
-      [basedOnDays]="t.basedOnDays"
-      [flags]="t.effectiveSuitableFor || []"
-      [missingFlags]="t.missingFlags || []"
-      [highlight]="t._id === (topSuggestionId$ | async)"
-      [selected]="(selectedId$ | async) === t._id"
-      (picked)="pick(t)"
-    ></app-diet-card>
+    >
+      <app-diet-card
+        [name]="t.name"
+        [profile]="t.profile"
+        [deltas]="t.deltas"
+        [medal]="medal(t.rank)"
+        [verified]="t.verified"
+        [ownedByClient]="!!t.ownerClientId"
+        [basedOnDays]="t.basedOnDays"
+        [flags]="t.effectiveSuitableFor || []"
+        [missingFlags]="t.missingFlags || []"
+        [highlight]="t._id === (topSuggestionId$ | async)"
+        [selected]="(selectedId$ | async) === t._id"
+        (picked)="pick(t)"
+      ></app-diet-card>
+      <button
+        type="button"
+        class="preview-btn"
+        [disabled]="previewingId === t._id"
+        (click)="preview(t)"
+        title="Vista previa"
+        [attr.aria-label]="'Vista previa de la dieta ' + t.name"
+      >
+        <ion-spinner name="dots" *ngIf="previewingId === t._id; else eyeIcon"></ion-spinner>
+        <ng-template #eyeIcon><ion-icon name="eye-outline"></ion-icon></ng-template>
+      </button>
+    </div>
   </div>
 
   <p class="empty-hint" *ngIf="!d.ranked.length">

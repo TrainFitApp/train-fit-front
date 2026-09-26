@@ -17,7 +17,8 @@ type CooksAtHome = 'yes' | 'no' | 'sometimes';
 type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
 
 // Debe coincidir con diet-days-util.js#MEALS del backend (es lo que valida
-// el PUT). Un icono por comida: se reconoce antes que la etiqueta.
+// el PUT). Un icono por comida: se reconoce antes que la etiqueta. Mismos
+// iconos en el formulario del cliente (nutrition-preferences.model.ts).
 const MEAL_SLOTS: { key: string; icon: string }[] = [
   { key: 'Desayuno', icon: 'cafe-outline' },
   { key: 'Almuerzo', icon: 'sunny-outline' },
@@ -79,7 +80,6 @@ export class NutritionPreferencesPanelComponent implements AfterViewInit, OnDest
   public cooksAtHome: CooksAtHome | null = null;
   public dietaryFlags = new Set<DietaryFlag>();
   public disabledMealSlots: Record<string, boolean> = {};
-  public mealSlotLabels: Record<string, string> = {};
 
   constructor(
     private clientDetailApi: ClientDetailApiService,
@@ -108,7 +108,6 @@ export class NutritionPreferencesPanelComponent implements AfterViewInit, OnDest
     this.disabledMealSlots = Object.fromEntries(
       MEAL_SLOTS.map((slot) => [slot.key, !!prefs?.disabledMealSlots?.includes(slot.key)])
     );
-    this.mealSlotLabels = { ...(prefs?.mealSlotLabels || {}) };
     this.showPanel = true;
   }
 
@@ -145,9 +144,6 @@ export class NutritionPreferencesPanelComponent implements AfterViewInit, OnDest
         cooksAtHome: this.cooksAtHome,
         dietaryFlags: [...this.dietaryFlags],
         disabledMealSlots: MEAL_SLOTS.map((slot) => slot.key).filter((key) => this.disabledMealSlots[key]),
-        mealSlotLabels: Object.fromEntries(
-          Object.entries(this.mealSlotLabels).filter(([, label]) => (label || '').trim().length > 0)
-        ),
       })
       .subscribe({
         next: (preferences) => {

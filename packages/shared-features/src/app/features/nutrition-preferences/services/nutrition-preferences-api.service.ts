@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
-import { CooksAtHome, NutritionPreferences } from '../models/nutrition-preferences.model';
+import { CooksAtHome, DietaryFlag, NutritionPreferences } from '../models/nutrition-preferences.model';
 
 @Injectable({ providedIn: 'root' })
 export class NutritionPreferencesApiService {
@@ -16,8 +16,8 @@ export class NutritionPreferencesApiService {
     favoriteFoods: string;
     dislikedFoods: string;
     cooksAtHome: CooksAtHome | null;
+    dietaryFlags: DietaryFlag[];
     disabledMealSlots: string[];
-    mealSlotLabels: Record<string, string>;
   }): Observable<NutritionPreferences> {
     return this.http.put<NutritionPreferences>('nutrition-preferences', body);
   }

@@ -1,5 +1,6 @@
 // "Ajustar macros" — sacado de next-week-modal para compartirlo con el
 // panel de "Empezar fase". Tokens --tf-* (tema oscuro).
+@import '../../../../theme/buttons';
 
 :host {
   display: block;
@@ -66,6 +67,23 @@
     font-weight: 600;
     color: var(--tf-accent-text);
     cursor: pointer;
+
+    // Botón secundario de la app, como "Editar" en la tarjeta de objetivo.
+    &--button {
+      @include tf-secondary-button(var(--tf-radius-md));
+      // En su propia línea bajo el pie, a todo el ancho de la tarjeta.
+      display: flex;
+      box-sizing: border-box;
+      width: 100%;
+      min-height: var(--tf-touch-min);
+      margin-top: var(--tf-space-2);
+      padding: 0 var(--tf-space-4);
+      font-size: var(--tf-font-size-sm);
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
   }
 }
 
@@ -253,6 +271,11 @@
     &.is-down {
       color: var(--tf-danger-text);
     }
+
+    // Con desviación, es ella la que empuja a la derecha y el candado la sigue.
+    & + .lock-toggle {
+      margin-left: 2px;
+    }
   }
 
   &__inputs {
@@ -324,7 +347,8 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  margin-left: 2px;
+  // Siempre al borde derecho de la fila, haya o no desviación delante.
+  margin-left: auto;
   border: 1px solid var(--tf-border);
   border-radius: 8px;
   background: none;

@@ -7,9 +7,17 @@ import {
   OnDestroy,
   ViewChild,
 } from '@angular/core';
+import { sanitizeDecimalString } from 'src/app/core/directives/decimal-input.directive';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import { Supplement, SupplementTiming } from '../../models/client-detail.model';
+import {
+  DEFAULT_DOSE_UNIT,
+  DOSE_UNIT_VALUES,
+  formatDose,
+  isKnownDoseUnit,
+  parseDose,
+} from './supplement-dose.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -72,7 +80,11 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
   // atravesado justo por encima de las gráficas y no del resto.
   @ViewChild('panelHost') private panelHost!: ElementRef<HTMLElement>;
   public formName = '';
-  public formDose = '';
+  // Dosis en dos piezas: cantidad (solo número) + unidad de la lista. Se
+  // guarda junta como texto ("5 g"), que es lo que lee el cliente.
+  public formDoseAmount = '';
+  public formDoseUnit = DEFAULT_DOSE_UNIT;
+  public doseUnits: string[] = DOSE_UNIT_VALUES;
   public formTiming = 'with_meal';
   public formCustomTiming = '';
   public formReason = '';
@@ -151,8 +163,14 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
   // Es lo mismo que hace por dentro el Overlay del CDK; se hace a mano para
   // no tener que meter OverlayModule y su CSS global en el build de la app
   // por un solo panel.
+  //
+  // A ion-app y no al body: ion-app es un contexto de apilamiento propio
+  // (z-index 0) y ahí cuelga Ionic sus overlays. Desde el body, el panel
+  // (z-index 500) quedaba por encima de TODO ion-app, y el desplegable del
+  // momento del día, el calendario de las fechas y los avisos de error se
+  // abrían detrás del panel, sin poder tocarse.
   public ngAfterViewInit(): void {
-    document.body.appendChild(this.panelHost.nativeElement);
+    (document.querySelector('ion-app') || document.body).appendChild(this.panelHost.nativeElement);
   }
 
   // Sin esto el panel sobreviviría a su propio componente al cambiar de
@@ -164,7 +182,14 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
   public openPanel(supplement: Supplement | null): void {
     this.editingId = supplement?._id || null;
     this.formName = supplement?.name || '';
-    this.formDose = supplement?.dose || '';
+    const dose = parseDose(supplement?.dose || '');
+    this.formDoseAmount = dose.amount;
+    this.formDoseUnit = dose.unit || DEFAULT_DOSE_UNIT;
+    // Una dosis antigua con una unidad fuera de la lista ("1 medida rasa")
+    // se ofrece como una opción más para no perderla al guardar.
+    this.doseUnits = isKnownDoseUnit(this.formDoseUnit)
+      ? DOSE_UNIT_VALUES
+      : [...DOSE_UNIT_VALUES, this.formDoseUnit];
     this.formTiming = supplement?.timing || 'with_meal';
     this.formCustomTiming = supplement?.customTiming || '';
     this.formReason = supplement?.reason || '';
@@ -190,9 +215,21 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
     return this.formWeekdays.includes(day);
   }
 
+  // Solo cifras y una coma/punto decimal: lo que no lo es se quita al
+  // escribirlo, no se avisa después.
+  public onDoseAmountInput(input: HTMLInputElement): void {
+    const clean = sanitizeDecimalString(input.value, 2);
+    input.value = clean;
+    this.formDoseAmount = clean;
+  }
+
+  public get formDose(): string {
+    return formatDose(this.formDoseAmount, this.formDoseUnit);
+  }
+
   public get canSave(): boolean {
     if (this.formEndDate && this.formStartDate && this.formEndDate < this.formStartDate) return false;
-    return !!this.formName.trim() && !!this.formDose.trim() && !!this.formStartDate && !this.isSaving;
+    return !!this.formName.trim() && !!this.formDose && !!this.formStartDate && !this.isSaving;
   }
 
   public save(): void {
@@ -201,7 +238,7 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
 
     const payload = {
       name: this.formName.trim(),
-      dose: this.formDose.trim(),
+      dose: this.formDose,
       timing: this.formTiming,
       customTiming: this.formCustomTiming.trim(),
       reason: this.formReason.trim(),
@@ -266,5 +303,9 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
 
   public trackByValue(_index: number, weekday: { value: number }): number {
     return weekday.value;
+  }
+
+  public trackByUnit(_index: number, unit: string): string {
+    return unit;
   }
 }

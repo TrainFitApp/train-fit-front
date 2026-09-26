@@ -19,6 +19,8 @@ export class DietTemplatesListPage implements OnInit {
   public templates: DietTemplate[] = [];
   public newName = '';
   public isCreating = false;
+  // Plantilla abierta en la vista previa de solo lectura (null = cerrada).
+  public previewTemplate: DietTemplate | null = null;
 
   constructor(
     private dietTemplateApi: DietTemplateApiService,
@@ -37,6 +39,20 @@ export class DietTemplatesListPage implements OnInit {
   // instancia. Mismo fix ya aplicado en RoutinesPage (TASK-013).
   public ionViewWillEnter(): void {
     this.load();
+  }
+
+  // La página queda cacheada al abrir una plantilla: sin esto, la vista
+  // previa seguiría abierta al volver.
+  public ionViewWillLeave(): void {
+    this.closePreview();
+  }
+
+  public openPreview(template: DietTemplate): void {
+    this.previewTemplate = template;
+  }
+
+  public closePreview(): void {
+    this.previewTemplate = null;
   }
 
   public load(): void {

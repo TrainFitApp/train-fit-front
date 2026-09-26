@@ -37,22 +37,31 @@
   margin-bottom: 10px;
 }
 
+// El bloque padre puede darle su propio color a la cifra grande
+// (week-summary-panel: azul, para no confundirla con lo pautado).
 .need-result__kcal {
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--tf-accent);
+  color: var(--need-kcal-color, var(--tf-accent));
 }
 
-.need-result__macros,
-.need-result__planned {
+.need-result__macros {
   font-size: 0.8rem;
   color: var(--tf-text-muted);
 }
 
-.need-result__delta {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+// Pautado − necesidad dicho en una frase: el signo suelto "(-154)" no se
+// entendía sin saber qué se restaba a qué.
+.need-verdict {
+  margin: -4px 0 10px;
+  font-size: var(--tf-font-size-sm);
   color: var(--tf-text-secondary);
+
+  strong {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--tf-text);
+  }
 }
 
 // --- Datos que entraron ---
@@ -135,6 +144,6 @@
   color: var(--tf-text);
 
   &--total {
-    color: var(--tf-accent);
+    color: var(--need-kcal-color, var(--tf-accent));
   }
 }

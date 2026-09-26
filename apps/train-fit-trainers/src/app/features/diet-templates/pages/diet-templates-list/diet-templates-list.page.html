@@ -68,6 +68,15 @@
         ></app-diet-card>
         <button
           type="button"
+          class="preview-template-btn"
+          (click)="openPreview(template)"
+          title="Vista previa"
+          [attr.aria-label]="'Vista previa de la plantilla ' + template.name"
+        >
+          <ion-icon name="eye-outline"></ion-icon>
+        </button>
+        <button
+          type="button"
           class="delete-template-btn"
           (click)="confirmDelete(template, $event)"
           [attr.aria-label]="'Eliminar plantilla ' + template.name"
@@ -78,3 +87,10 @@
     </div>
   </ng-container>
 </ion-content>
+
+<app-diet-template-preview-panel
+  *ngIf="previewTemplate"
+  [template]="previewTemplate"
+  [flags]="effectiveSuitableFor(previewTemplate)"
+  (closed)="closePreview()"
+></app-diet-template-preview-panel>

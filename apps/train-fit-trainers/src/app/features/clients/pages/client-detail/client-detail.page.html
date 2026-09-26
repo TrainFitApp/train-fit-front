@@ -119,6 +119,32 @@
               Última actividad: {{ activity }}
             </span>
           </div>
+          <!-- Línea de nutrición, misma forma que la de entrenamiento: fase
+               vigente · dieta · semana de la fase · objetivo nutricional (el
+               de la card "Objetivos nutricionales"). Todo lo carga ya
+               loadNutrition(); cada trozo se omite si no existe. -->
+          <div
+            class="summary-header-program"
+            *ngIf="scopes.includes('nutrition') && (activePhase || nutritionalGoal?.goal)"
+          >
+            <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
+            <ng-container *ngIf="activePhase as phase; else noDietAssigned">
+              <span *ngIf="phase.phaseName" title="Fase de nutrición"
+                >{{ phase.phaseName }} ·
+              </span>
+              <span title="Dieta asignada">{{ phase.planName || 'Plan aplicado' }}</span>
+              <span *ngIf="currentDietWeekLabel as weekLabel">
+                · {{ weekLabel }}</span
+              >
+            </ng-container>
+            <ng-template #noDietAssigned><span>Sin dieta asignada</span></ng-template>
+            <span *ngIf="nutritionalGoal?.goal as goal" title="Objetivo nutricional">
+              · Objetivo {{ goal.kcalTotal | number: '1.0-0' }} kcal (P
+              {{ goal.proteinsGTotal | number: '1.0-0' }} · C
+              {{ goal.carbohydratesGTotal | number: '1.0-0' }} · G
+              {{ goal.fatGTotal | number: '1.0-0' }} g)
+            </span>
+          </div>
         </div>
         <div class="summary-header-actions">
           <button
@@ -1552,80 +1578,86 @@
                       nutritionalGoal?.missing?.join(', ') }}
                     </p>
 
+                    <!-- A la derecha: la acción principal pegada al borde y
+                     la secundaria antes, más callada. "Auto-calculado" se
+                     estira por todo el ancho que deja Editar, sin huecos. -->
                     <div class="goal-card__actions">
                       <button
                         type="button"
-                        class="add-button"
-                        (click)="startEditNutritionalGoal()"
-                      >
-                        <ion-icon name="create-outline"></ion-icon>
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        class="add-button add-button--muted"
+                        class="goal-card__btn goal-card__btn--ghost goal-card__btn--fill"
                         *ngIf="nutritionalGoal?.goal?.source === 'manual'"
+                        title="Volver al auto-calculado"
+                        aria-label="Volver al auto-calculado"
                         [disabled]="savingNutritionalGoal"
                         (click)="recalculateNutritionalGoal()"
                       >
-                        <ion-icon name="refresh-outline"></ion-icon>
-                        Volver al auto-calculado
+                        <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+                        Auto-calculado
+                      </button>
+                      <button
+                        type="button"
+                        class="goal-card__btn goal-card__btn--secondary"
+                        (click)="startEditNutritionalGoal()"
+                      >
+                        <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+                        Editar
                       </button>
                     </div>
                   </ng-container>
 
-                  <!-- Edición: kcal y macros a mano -->
+                  <!-- Edición: las kcal mandan y los macros se reparten con
+                   "Ajustar macros", el de "Empezar fase" y "Siguiente
+                   semana" (candados, g, g/kg o %). Si no cuadran con las
+                   kcal, no deja guardar. -->
                   <div class="goal-edit" *ngIf="editingNutritionalGoal" appSubmitOnEnter="saveNutritionalGoal">
-                    <label class="goal-edit__field">
-                      <span>kcal</span>
+                    <!-- El mismo número naranja de la lectura, ahora
+                     editable: llama de kcal + cifra grande + unidad. -->
+                    <label class="goal-kcal">
+                      <span class="goal-kcal__icon" aria-hidden="true">
+                        <ion-icon name="flame"></ion-icon>
+                      </span>
                       <input
+                        class="goal-kcal__input"
                         type="number"
+                        inputmode="numeric"
+                        min="0"
                         step="10"
-                        [(ngModel)]="goalDraft.kcal"
+                        aria-label="Kcal al día"
+                        [ngModel]="goalDraftKcal"
+                        (ngModelChange)="onGoalKcalChange($event)"
                       />
+                      <span class="goal-kcal__unit">kcal / día</span>
                     </label>
-                    <div class="goal-edit__row">
-                      <label class="goal-edit__field goal-edit__field--protein">
-                        <span>Proteína (g)</span>
-                        <input
-                          type="number"
-                          step="1"
-                          [(ngModel)]="goalDraft.protein"
-                        />
-                      </label>
-                      <label class="goal-edit__field goal-edit__field--carbs">
-                        <span>Carbos (g)</span>
-                        <input
-                          type="number"
-                          step="1"
-                          [(ngModel)]="goalDraft.carbs"
-                        />
-                      </label>
-                      <label class="goal-edit__field goal-edit__field--fat">
-                        <span>Grasas (g)</span>
-                        <input
-                          type="number"
-                          step="1"
-                          [(ngModel)]="goalDraft.fat"
-                        />
-                      </label>
-                    </div>
+                    <app-macro-adjust
+                      [targetKcal]="goalDraftKcal"
+                      [defaultMacros]="goalDefaultMacros"
+                      [weightKg]="goalWeightKg"
+                      [open]="true"
+                      [requireBalanced]="true"
+                      resetLabel="Recalcular"
+                      [resetAsButton]="true"
+                      hint="Al tocar un macro, los que no están bloqueados absorben la diferencia. Si cambias las kcal sin tocar los macros, se reparten en la misma proporción. Si los macros no cuadran con las kcal, no se puede guardar."
+                      (macrosChange)="goalAdjustedMacros = $event"
+                    ></app-macro-adjust>
+                    <!-- Cancelar antes de Guardar, como en el objetivo de
+                     entrenamiento. -->
                     <div class="goal-card__actions">
                       <button
                         type="button"
-                        class="add-button"
-                        [disabled]="!(goalDraft.kcal > 0) || savingNutritionalGoal"
+                        class="goal-card__btn goal-card__btn--ghost"
+                        [disabled]="savingNutritionalGoal"
+                        (click)="editingNutritionalGoal = false"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        class="goal-card__btn goal-card__btn--primary"
+                        [disabled]="!(goalDraftKcal > 0) || savingNutritionalGoal"
                         (click)="saveNutritionalGoal()"
                         data-enter-submit-action="saveNutritionalGoal"
                       >
                         {{ savingNutritionalGoal ? 'Guardando…' : 'Guardar' }}
-                      </button>
-                      <button
-                        type="button"
-                        class="add-button"
-                        (click)="editingNutritionalGoal = false"
-                      >
-                        Cancelar
                       </button>
                     </div>
                   </div>
@@ -2314,112 +2346,29 @@
                     </div>
                   </div>
                   <div class="nutrition-card">
-                    <!-- CÓMO se elige customTrackingRange: por días sueltos
-                     (como siempre) o por semanas completas. Compartido
-                     por las dos gráficas de arriba — mismo rango, misma
-                     tarjeta, solo cambia cómo se aterriza en él. "Por
-                     semana" solo tiene sentido si hay una fase con
-                     semanas que enseñar (phaseWeeks); sin fase, se
-                     queda en días sin más (por eso el `|| !phaseWeeks`
-                     de abajo: si la fase desaparece mientras se mira, no se
-                     queda enseñando controles sin forma de salir de ahí). -->
-                    <div class="range-mode-row">
+                    <!-- Periodo de las dos gráficas (mismo rango para ambas).
+                     Un preset marcado, o ninguno si el rango se eligió a
+                     mano en el calendario. "Fase actual" solo con fase. -->
+                    <div class="range-row">
+                      <span class="range-dates" *ngIf="trackingRangeLabel"
+                        >{{ trackingRangeLabel }}</span
+                      >
                       <div
-                        class="range-mode-toggle"
+                        class="range-preset-group"
                         role="group"
-                        aria-label="Cómo elegir el rango de fechas"
-                        *ngIf="phaseWeeks"
+                        aria-label="Periodo del seguimiento"
                       >
                         <button
                           type="button"
-                          class="range-mode-btn"
-                          [class.is-active]="nutritionRangeMode === 'days'"
-                          (click)="setNutritionRangeMode('days')"
+                          class="range-preset-btn"
+                          *ngFor="let preset of trackingPresets; trackBy: trackByPresetKey"
+                          [class.is-active]="trackingPreset === preset.key"
+                          [attr.aria-pressed]="trackingPreset === preset.key"
+                          (click)="applyTrackingPreset(preset.key)"
                         >
-                          Por días
-                        </button>
-                        <button
-                          type="button"
-                          class="range-mode-btn"
-                          [class.is-active]="nutritionRangeMode === 'weeks'"
-                          (click)="setNutritionRangeMode('weeks')"
-                        >
-                          Por semana
+                          {{ preset.label }}
                         </button>
                       </div>
-
-                      <ng-container
-                        *ngIf="nutritionRangeMode === 'days' || !phaseWeeks; else weekRangeControls"
-                      >
-                        <span class="range-dates" *ngIf="customTrackingRange"
-                          >{{ trackingRangeLabel }}</span
-                        >
-                        <div class="range-preset-group">
-                          <button
-                            type="button"
-                            class="range-preset-btn"
-                            [class.is-active]="nutritionPreset === 7"
-                            (click)="onNutritionPresetSelected(7)"
-                          >
-                            Una semana
-                          </button>
-                          <button
-                            type="button"
-                            class="range-preset-btn"
-                            [class.is-active]="nutritionPreset === 30"
-                            (click)="onNutritionPresetSelected(30)"
-                          >
-                            1 mes
-                          </button>
-                          <button
-                            type="button"
-                            class="range-preset-btn"
-                            [class.is-active]="nutritionPreset === 90"
-                            (click)="onNutritionPresetSelected(90)"
-                          >
-                            3 meses
-                          </button>
-                        </div>
-                      </ng-container>
-                      <ng-template #weekRangeControls>
-                        <span class="range-dates" *ngIf="weekRangeLabel"
-                          >{{ weekRangeLabel }}</span
-                        >
-                        <div class="range-preset-group">
-                          <button
-                            type="button"
-                            class="range-preset-btn"
-                            [class.is-active]="weeksPreset === 1"
-                            (click)="applyWeeksPreset(1)"
-                          >
-                            Semana actual
-                          </button>
-                          <button
-                            type="button"
-                            class="range-preset-btn"
-                            [class.is-active]="weeksPreset === 3"
-                            (click)="applyWeeksPreset(3)"
-                          >
-                            Últimas 3 semanas
-                          </button>
-                          <button
-                            type="button"
-                            class="range-preset-btn"
-                            [class.is-active]="weeksPreset === 6"
-                            (click)="applyWeeksPreset(6)"
-                          >
-                            Últimas 6 semanas
-                          </button>
-                          <button
-                            type="button"
-                            class="range-preset-btn"
-                            [class.is-active]="weeksPreset === null"
-                            (click)="applyWeeksPreset(null)"
-                          >
-                            Todas
-                          </button>
-                        </div>
-                      </ng-template>
                     </div>
 
                     <app-nutrition-tracking-chart
@@ -2450,8 +2399,8 @@
               </div>
 
               <!-- Historial de nutrición: feed de eventos que desglosa fases y
-               semanas — en qué semana estaba el cliente, si lo cumplió, si
-               metió check-in, excepciones. No es un log de contenido exacto
+               semanas — en qué semana estaba el cliente, con qué kcal y
+               macros, si lo cumplió, días saltados (dentro de su semana). No es un log de contenido exacto
                día a día (eso exigiría versionar cada DietDay). A todo el
                ancho de .nutrition-main, debajo de calendario + gráfico. -->
               <div
@@ -2491,7 +2440,6 @@
                     *ngIf="nutritionHistory.length"
                     [events]="nutritionHistory"
                     [phaseColorOf]="phaseColorForFeed"
-                    [checkinQuestions]="checkinQuestions"
                     (openWeek)="openWeekSummary($event)"
                   ></app-nutrition-history-feed>
                 </ng-container>
