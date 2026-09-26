@@ -569,7 +569,17 @@
                     </ion-select-option>
                   </ion-select>
                 </div>
-                <div class="training-goal-edit-actions">
+                <div
+                  class="training-goal-edit-actions training-goal-edit-actions--end"
+                >
+                  <button
+                    type="button"
+                    class="manage-templates-link"
+                    (click)="cancelEditTrainingGoal()"
+                    [disabled]="isSavingTrainingGoal"
+                  >
+                    Cancelar
+                  </button>
                   <button
                     type="button"
                     class="add-button"
@@ -581,14 +591,6 @@
                       *ngIf="isSavingTrainingGoal"
                     ></ion-spinner>
                     <span *ngIf="!isSavingTrainingGoal">Guardar</span>
-                  </button>
-                  <button
-                    type="button"
-                    class="manage-templates-link"
-                    (click)="cancelEditTrainingGoal()"
-                    [disabled]="isSavingTrainingGoal"
-                  >
-                    Cancelar
                   </button>
                 </div>
               </div>
@@ -751,6 +753,7 @@
                   >
                     <ion-icon
                       name="albums-outline"
+                      class="open-planner-icon"
                       aria-hidden="true"
                     ></ion-icon>
                     <span>Abrir en el Planificador</span>

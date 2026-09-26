@@ -893,6 +893,11 @@
   display: flex;
   align-items: center;
   gap: var(--tf-space-3);
+
+  // Objetivo de entrenamiento: acciones a la derecha, Cancelar antes de Guardar.
+  &--end {
+    justify-content: flex-end;
+  }
 }
 
 // F20-ter — el gráfico de la columna "Seguimiento" (pautado vs. consumido)
@@ -1051,26 +1056,44 @@
 // texto (no un icono más en una fila de iconos): es la acción que el
 // entrenador repite cada vez que entra, y estaba escondida detrás de un
 // icono de otra lista más abajo.
+//
+// Neutro por fuera y con el color de la FASE por dentro (baldosa del icono):
+// el borde naranja fijo de antes chocaba con el borde de la tarjeta cuando
+// la fase lleva otro color. --phase-color/--phase-bg los hereda de
+// .active-plan-card.
 .open-planner-btn {
   display: flex;
   align-items: center;
   align-self: flex-start;
-  gap: 8px;
+  gap: var(--tf-space-3);
   min-height: var(--tf-touch-min);
-  padding: 0 12px;
-  border: 1px solid var(--tf-accent);
-  border-radius: 10px;
-  background: var(--tf-surface-1);
-  color: var(--tf-accent-text);
+  padding: 0 var(--tf-space-3) 0 var(--tf-space-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
   font-family: inherit;
   font-size: var(--tf-font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: -0.005em;
   cursor: pointer;
-  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+  transition:
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out),
+    transform var(--tf-duration-fast) var(--tf-ease-out);
 
   ion-icon {
     flex-shrink: 0;
-    font-size: 18px;
+  }
+
+  // ion-icon es content-box: 16px de glifo + 6px por lado = baldosa de 28px,
+  // centrada en los 44px del botón con el mismo margen a izquierda.
+  .open-planner-icon {
+    font-size: 16px;
+    padding: 6px;
+    border-radius: var(--tf-radius-sm);
+    background: var(--phase-bg, var(--tf-accent-soft));
+    color: var(--phase-color, var(--tf-accent));
   }
 
   span {
@@ -1080,16 +1103,27 @@
   }
 
   .open-planner-chevron {
-    font-size: 15px;
+    font-size: 14px;
     color: var(--tf-text-muted);
+    transition:
+      transform var(--tf-duration-base) var(--tf-ease-out),
+      color var(--tf-duration-fast) var(--tf-ease-out);
   }
 
-  &:hover {
-    background: var(--tf-surface-3);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--tf-surface-4);
+      border-color: var(--tf-border-strongest);
+
+      .open-planner-chevron {
+        color: var(--tf-text-secondary);
+        transform: translateX(2px);
+      }
+    }
   }
 
   &:active {
-    transform: scale(0.99);
+    transform: scale(0.98);
   }
 
   &:focus-visible {
