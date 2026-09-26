@@ -1,0 +1,73 @@
+<p class="selector-total" [class.selector-total--empty]="!selected.length">
+  <ion-icon [name]="selected.length ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
+  <span><strong>{{ selected.length }}</strong> de {{ totalFields }} campos activos</span>
+</p>
+
+<div class="field-group" *ngFor="let group of groups; trackBy: trackByGroupKey">
+  <!-- La cabecera es el interruptor de la sección Y su resumen: al plegarla
+       siguen viéndose el recuento y la barra de relleno. -->
+  <button
+    type="button"
+    class="group-head"
+    [class.group-head--open]="openGroups[group.key]"
+    [class.group-head--filled]="counts[group.key]"
+    (click)="toggleGroup(group.key)"
+    [attr.aria-expanded]="openGroups[group.key]"
+    [attr.aria-controls]="'grupo-' + group.key"
+  >
+    <ion-icon class="group-icon" [name]="group.icon" aria-hidden="true"></ion-icon>
+    <span class="group-label">{{ group.label }}</span>
+    <span class="group-count">
+      <strong>{{ counts[group.key] }}</strong><span class="group-count-total">/{{ group.fields.length }}</span>
+    </span>
+    <ion-icon
+      class="group-chevron"
+      [name]="openGroups[group.key] ? 'chevron-up-outline' : 'chevron-down-outline'"
+      aria-hidden="true"
+    ></ion-icon>
+    <span class="group-meter" aria-hidden="true"><i [style.width.%]="pcts[group.key]"></i></span>
+  </button>
+
+  <div class="field-toggle-grid" [id]="'grupo-' + group.key" *ngIf="openGroups[group.key]">
+    <!-- Dos botones hermanos y no uno anidado: activar el campo y marcarlo
+         obligatorio son acciones distintas, y un <button> dentro de otro no
+         es HTML válido. -->
+    <div
+      class="field-toggle-row"
+      *ngFor="let field of group.fields; trackBy: trackByFieldKey"
+      [class.field-toggle-row--on]="isEnabled(field.key)"
+    >
+      <button
+        type="button"
+        class="field-toggle-main"
+        (click)="toggle(field.key)"
+        [attr.aria-pressed]="isEnabled(field.key)"
+      >
+        <ion-icon
+          class="field-box"
+          [name]="isEnabled(field.key) ? 'checkbox' : 'square-outline'"
+          aria-hidden="true"
+        ></ion-icon>
+        <span class="field-toggle-text">
+          <span class="field-name">{{ field.label }}<span class="field-unit" *ngIf="field.unit"> {{ field.unit }}</span></span>
+          <!-- Qué va a leer el cliente. Activar "Nivel de estrés" sin saber que
+               su 5 es "desbordado, me afecta al sueño" es activarlo a ciegas. -->
+          <span class="field-toggle-detail" *ngIf="fieldDetail(field)">{{ fieldDetail(field) }}</span>
+        </span>
+      </button>
+      <!-- Solo con el campo activado: un obligatorio apagado no existe. -->
+      <button
+        type="button"
+        class="required-toggle"
+        *ngIf="required && isEnabled(field.key)"
+        [class.required-toggle--on]="isRequired(field.key)"
+        (click)="toggleRequired(field.key)"
+        role="switch"
+        [attr.aria-checked]="isRequired(field.key)"
+        [attr.aria-label]="'Obligatorio: ' + field.label"
+      >
+        Obligatorio
+      </button>
+    </div>
+  </div>
+</div>

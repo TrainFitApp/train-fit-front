@@ -50,14 +50,20 @@ export class CheckinTemplatesPage implements OnInit {
   public editingId: string | null = null;
   public editingTemplate: CheckinTemplateDefinition | null = null;
   public formName = '';
-  public formFields = new Set<string>();
-  // Obligatorios: siempre subconjunto de formFields (desactivar un campo lo
-  // saca también de aquí, ver toggleField).
-  public formRequired = new Set<string>();
+  // Arrays y no Set: es lo que enlaza <app-checkin-field-selector>, y hay que
+  // pasarle SIEMPRE la misma identidad hasta que cambie de verdad (un
+  // Array.from(set) en la plantilla recrearía el selector en cada ciclo).
+  public formFields: string[] = [];
+  // Obligatorios: siempre subconjunto de formFields (el selector los saca al
+  // desactivar un campo).
+  public formRequired: string[] = [];
   public isSaving = false;
   // Fase 5 Coach Pro — preguntas propias del coach (§7). Conviven con
   // formFields, que sigue siendo el catálogo cerrado.
   public formCustomQuestions: CustomCheckinQuestion[] = [];
+  // Plegada por defecto al crear; abierta al editar una plantilla que ya
+  // tiene preguntas propias, que es lo que se viene a revisar.
+  public showCustomQuestions = false;
   public readonly questionTypes = CUSTOM_QUESTION_TYPES;
   public readonly maxCustomQuestions = MAX_CUSTOM_QUESTIONS;
   public readonly maxQuestionOptions = MAX_QUESTION_OPTIONS;
@@ -122,8 +128,9 @@ export class CheckinTemplatesPage implements OnInit {
     this.editingId = null;
     this.editingTemplate = null;
     this.formName = '';
-    this.formFields = new Set();
-    this.formRequired = new Set();
+    this.formFields = [];
+    this.formRequired = [];
+    this.showCustomQuestions = false;
     this.formCustomQuestions = [];
     this.showEditPanel = true;
   }
@@ -134,9 +141,9 @@ export class CheckinTemplatesPage implements OnInit {
     // panel necesita su nombre para el diálogo de confirmación.
     this.editingTemplate = template;
     this.formName = template.name;
-    this.formFields = new Set(template.enabledFields);
-    this.formRequired = new Set(
-      (template.requiredFields || []).filter((key) => this.formFields.has(key))
+    this.formFields = [...template.enabledFields];
+    this.formRequired = (
+      (template.requiredFields || []).filter((key) => this.formFields.includes(key))
     );
     // Copia, no referencia: cancelar el panel no debe dejar editada la
     // plantilla de la lista de detrás.
@@ -144,6 +151,7 @@ export class CheckinTemplatesPage implements OnInit {
       ...q,
       options: [...(q.options || [])],
     }));
+    this.showCustomQuestions = this.formCustomQuestions.length > 0;
     this.showEditPanel = true;
   }
 
@@ -208,28 +216,6 @@ export class CheckinTemplatesPage implements OnInit {
     this.editingTemplate = null;
   }
 
-  public toggleField(key: string): void {
-    if (this.formFields.has(key)) {
-      this.formFields.delete(key);
-      this.formRequired.delete(key);
-    } else {
-      this.formFields.add(key);
-    }
-  }
-
-  public isFieldEnabled(key: string): boolean {
-    return this.formFields.has(key);
-  }
-
-  public toggleRequired(key: string): void {
-    if (!this.formFields.has(key)) return;
-    if (this.formRequired.has(key)) this.formRequired.delete(key);
-    else this.formRequired.add(key);
-  }
-
-  public isFieldRequired(key: string): boolean {
-    return this.formRequired.has(key);
-  }
 
   public requiredCount(template: CheckinTemplateDefinition): number {
     return (template.requiredFields || []).length +
@@ -247,7 +233,7 @@ export class CheckinTemplatesPage implements OnInit {
     }
 
     const enabledFields = [...this.formFields];
-    const requiredFields = enabledFields.filter((key) => this.formRequired.has(key));
+    const requiredFields = enabledFields.filter((key) => this.formRequired.includes(key));
     // Se limpian antes de enviar: las opciones en blanco de un selector a
     // medio escribir no deben llegar a la plantilla que verá el cliente.
     const customQuestions = this.formCustomQuestions.map((q) => ({
@@ -333,30 +319,5 @@ export class CheckinTemplatesPage implements OnInit {
 
   public trackByTemplateId(_index: number, template: CheckinTemplateDefinition): string {
     return template._id;
-  }
-
-  public trackByFieldKey(_index: number, field: CheckinField): string {
-    return field.key;
-  }
-
-  /**
-   * Movimiento 2 Coach Pro — qué va a leer el cliente si activo este campo.
-   *
-   * En una escala, los extremos: son los que fijan la dirección ("5 = mucho
-   * estrés" frente a "5 = duermo bien"), que es justo lo que un entrenador
-   * necesita saber antes de activarla y lo que no puede deducir del nombre.
-   * En una medida, la instrucción de cómo tomarla.
-   *
-   * No se pintan las cinco frases enteras: la lista de campos tiene 35
-   * filas, y cinco líneas en cada una la volvería ilegible. Las completas
-   * las ve el cliente en su formulario, que es quien las tiene que leer.
-   */
-  public fieldDetail(field: CheckinField): string {
-    if (field.anchors?.length) {
-      const first = field.anchors[0];
-      const last = field.anchors[field.anchors.length - 1];
-      return `1 = ${first} · ${field.anchors.length} = ${last}`;
-    }
-    return field.hint || '';
   }
 }

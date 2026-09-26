@@ -397,95 +397,61 @@
 }
 
 .field-group {
-  margin-bottom: 16px;
+  margin-bottom: var(--tf-space-3);
 
   &:last-of-type {
-    margin-bottom: 20px;
+    margin-bottom: var(--tf-space-4);
   }
 }
 
-.field-group-heading {
-  font-size: 0.74rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+// Las tres secciones del catálogo (composición, perímetros, bienestar) se
+// pliegan dentro de <app-checkin-field-selector>; "Tus propias preguntas" es
+// la cuarta y se pliega igual, pero vive aquí. Comparten el dibujo por mixin
+// (theme/_buttons.scss) porque el selector es standalone y su CSS está
+// encapsulado: las clases no cruzan, el mixin sí.
+.group-head {
+  @include tf-collapsible-head;
+}
+
+.group-icon {
+  flex-shrink: 0;
+  font-size: 18px;
   color: var(--tf-text-muted);
-  margin: 0 0 8px;
 }
 
-// Grid en vez de una fila por campo a todo el ancho del panel (el bottom
-// sheet no tiene max-width, ver theme/_panel-sheet.scss) — con 19 campos en
-// "Perímetros" eso era una columna larguísima con la etiqueta pegada a la
-// izquierda y el checkbox a kilómetros a la derecha en escritorio.
-.field-toggle-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 6px 8px;
-}
+.group-head--filled .group-icon { color: var(--tf-accent); }
 
-.field-toggle-row {
-  display: flex;
-  // flex-start y no center: con la descripción del campo debajo del nombre
-  // la fila crece a dos líneas, y la casilla y el pill deben quedarse
-  // arriba, alineados con el nombre, no flotando en el centro del bloque.
-  align-items: flex-start;
-  gap: var(--tf-space-2);
-  width: 100%;
-  min-height: 44px;
-  padding: 6px 10px 6px 12px;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border-subtle);
-  border-radius: 10px;
-  transition: border-color 160ms var(--tf-ease-out);
-
-  &--on {
-    border-color: var(--tf-border-strong);
-  }
-}
-
-.field-toggle-main {
+.group-label {
   flex: 1;
   min-width: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: var(--tf-space-3);
-  padding: 4px 0;
-  background: none;
-  border: none;
-  color: var(--tf-text-secondary);
-  font-size: 0.86rem;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+}
 
-  ion-icon {
-    font-size: 20px;
-    color: var(--tf-text-faint);
-    flex-shrink: 0;
+// Sin barra de relleno, a diferencia de las secciones del catálogo: las
+// preguntas propias no tienen un total contra el que medirse.
+.group-count {
+  flex-shrink: 0;
+  font-size: var(--tf-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text-secondary);
+
+  strong {
+    font-weight: 700;
+    color: var(--tf-text);
   }
 }
 
-.field-unit {
+.group-head--filled .group-count strong { color: var(--tf-accent-text); }
+
+.group-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
   color: var(--tf-text-muted);
-  font-size: 0.78rem;
 }
 
-// Movimiento 2 Coach Pro — nombre del campo + qué va a leer el cliente.
-.field-toggle-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.field-toggle-detail {
-  color: var(--tf-text-muted);
-  font-size: 0.74rem;
-  line-height: 1.35;
-}
-
-.field-toggle-icon--active {
-  color: var(--tf-accent) !important;
+.field-group-body {
+  @include tf-collapsible-body;
 }
 
 .submit-button {
@@ -621,16 +587,6 @@
     background: var(--tf-accent-soft);
     border-color: var(--tf-accent-soft-border);
     color: var(--tf-accent-text);
-  }
-
-  // Versión compacta para la fila del catálogo: 35 filas con un pill de
-  // 44px de alto cada una alargaban el panel sin aportar nada.
-  &--mini {
-    flex-shrink: 0;
-    min-height: 28px;
-    margin-top: 2px;
-    padding: 0 var(--tf-space-3);
-    font-size: 0.7rem;
   }
 
   &:focus-visible {
