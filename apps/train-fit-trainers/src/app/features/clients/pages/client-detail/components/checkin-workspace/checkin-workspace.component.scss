@@ -141,7 +141,8 @@ ion-icon { flex-shrink: 0; font-size: var(--tf-font-size-lg); }
 
 /* --- Formularios: el texto del <label> ES una etiqueta ------------------ */
 label { @include tf-label; display: grid; gap: var(--tf-space-2); }
-input, textarea {
+/* app-date-field (sustituye a input type=date/time) lleva la misma caja. */
+input, textarea, app-date-field {
   width: 100%;
   min-width: 0;
   min-height: var(--tf-touch-min);

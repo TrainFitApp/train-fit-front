@@ -46,8 +46,8 @@
 
         <label>Nombre para este cliente<input name="name" [(ngModel)]="draft.name" maxlength="100" required placeholder="Ej. Bienestar semanal"></label>
         <div class="form-row">
-          <label>Primera solicitud<input type="date" name="startDate" [(ngModel)]="draft.startDate" [min]="editingId ? null : today" required></label>
-          <label>Hora del aviso<input type="time" name="time" [(ngModel)]="draft.time" required></label>
+          <label>Primera solicitud<app-date-field name="startDate" pickerTitle="Primera solicitud" [showIcon]="true" [(ngModel)]="draft.startDate" [min]="editingId ? null : today" required></app-date-field></label>
+          <label>Hora del aviso<app-date-field presentation="time" name="time" pickerTitle="Hora del aviso" [showIcon]="true" [(ngModel)]="draft.time" required></app-date-field></label>
         </div>
         <div class="form-row">
           <label>Repetir<ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" aria-label="Repetir" name="frequency" [(ngModel)]="draft.frequency"><ion-select-option value="once">Una sola vez</ion-select-option><ion-select-option value="daily">Por días</ion-select-option><ion-select-option value="weekly">Por semanas</ion-select-option><ion-select-option value="monthly">Por meses</ion-select-option></ion-select></label>

@@ -16,7 +16,8 @@ export type ClientDetailTab =
   | 'history'
   | 'payments'
   | 'pain'
-  | 'tasks';
+  | 'tasks'
+  | 'clientNotes';
 
 // Movimiento 1 Coach Pro — la ficha llegó a tener 9 pestañas en fila: con
 // nombres cortos y sin jerarquía, encontrar algo era leerlas todas cada vez,
@@ -75,6 +76,11 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
       // entrenamiento o nutrición activos, un cliente puede tener hábitos
       // pautados con cualquier combinación de scopes.
       { key: 'tasks', label: 'Hábitos', icon: 'repeat-outline' },
+      // Lo que el CLIENTE ha escrito en sesiones, ejercicios, dolor y dieta.
+      // "del cliente" porque Gestión ya tiene "Notas" (las privadas del
+      // entrenador) y dos pestañas con el mismo nombre no se distinguirían.
+      // 'any': un cliente sin ningún scope no tiene notas que el entrenador pueda ver.
+      { key: 'clientNotes', label: 'Notas del cliente', icon: 'chatbox-ellipses-outline', requiresScope: 'any' },
     ],
   },
   {

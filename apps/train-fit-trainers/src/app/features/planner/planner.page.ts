@@ -124,12 +124,49 @@ export class PlannerPage {
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService
   ) {
+    const query = this.route.snapshot.queryParamMap;
+    if (query.get('split') || query.get('workout') || query.get('exercise')) {
+      this.pendingFocus = { split: query.get('split'), workout: query.get('workout'), exercise: query.get('exercise') };
+    }
+
     effect(() => {
       const table = this.tableService.currentTable();
-      if (table) this.table = table;
+      if (table) {
+        this.table = table;
+        this.focusFromQuery();
+      }
     });
 
     this.loadClientIntake();
+  }
+
+  // Notas del cliente (ficha > Plan) — al pulsar una nota se llega aquí con
+  // ?split=&workout=&exercise=: se selecciona ese microciclo, se lleva el
+  // ejercicio (o el día) a la vista y se resalta un momento. Solo una vez:
+  // después el tablero es del entrenador.
+  private pendingFocus: { split: string | null; workout: string | null; exercise: string | null } | null = null;
+
+  private focusFromQuery(): void {
+    const focus = this.pendingFocus;
+    if (!focus || !this.table) return;
+    // currentTable es una señal global: mientras resuelve, puede seguir
+    // siendo la tabla anterior. Se espera a la que contiene el microciclo.
+    const split = focus.split ? this.table.splits.find((candidate) => candidate._id === focus.split) : null;
+    if (focus.split && !split) return;
+    this.pendingFocus = null;
+    if (split) this.selectedSplitId = split._id;
+    setTimeout(() => this.scrollToFocus(focus), 300);
+  }
+
+  private scrollToFocus(focus: { split: string | null; workout: string | null; exercise: string | null }): void {
+    const element =
+      (focus.exercise && document.querySelector<HTMLElement>(`[data-exercise-id="${focus.exercise}"]`)) ||
+      (focus.workout && document.getElementById(`planner-workout-${focus.workout}`)) ||
+      (focus.split && document.getElementById(`planner-split-${focus.split}`));
+    if (!element) return;
+    element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    element.classList.add('planner-note-focus');
+    setTimeout(() => element.classList.remove('planner-note-focus'), 2400);
   }
 
   public ionViewWillEnter(): void { this.loadClientPain(); }

@@ -181,11 +181,25 @@
       <div class="field-row">
         <div class="field">
           <label class="field-label" for="supplement-start">Desde</label>
-          <input id="supplement-start" type="date" class="input-field" [(ngModel)]="formStartDate" />
+          <div class="input-wrapper">
+            <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+            <app-date-field class="input-field" inputId="supplement-start" pickerTitle="Desde" [(ngModel)]="formStartDate"></app-date-field>
+          </div>
         </div>
         <div class="field">
           <label class="field-label" for="supplement-end">Hasta (opcional)</label>
-          <input id="supplement-end" type="date" class="input-field" [(ngModel)]="formEndDate" />
+          <div class="input-wrapper">
+            <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+            <app-date-field
+              class="input-field"
+              inputId="supplement-end"
+              placeholder="Sin fin"
+              pickerTitle="Hasta"
+              [min]="formStartDate || null"
+              [clearable]="true"
+              [(ngModel)]="formEndDate"
+            ></app-date-field>
+          </div>
         </div>
       </div>
 

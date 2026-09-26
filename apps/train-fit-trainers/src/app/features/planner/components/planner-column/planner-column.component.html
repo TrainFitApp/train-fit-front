@@ -1,5 +1,6 @@
 <div
   class="planner-column"
+  [attr.id]="'planner-split-' + split._id"
   [class.planner-column--selected]="selected"
   [class.planner-column--dimmed]="dimmed"
   [class.planner-column--completed]="isCompleted"
@@ -89,6 +90,7 @@
   >
     <div
       class="planner-card-wrapper"
+      [attr.id]="'planner-workout-' + workout._id"
       [class.planner-card-wrapper--completed]="isWorkoutCompleted(workout)"
       *ngFor="let workout of split.workouts; let i = index; trackBy: trackByWorkoutId"
       cdkDrag
