@@ -1309,6 +1309,8 @@ ion-alert.custom-alert {
   // --- Botones ---
   // 1-2 botones: en fila (Cancelar a la izquierda). 3 o más (Ionic añade
   // `alert-button-group-vertical`): lista, con Cancelar abajo del todo.
+  // El sitio de Cancelar lo fija `order` y no el orden del array, que cambia
+  // de una pantalla a otra.
   .alert-button-group {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1354,6 +1356,11 @@ ion-alert.custom-alert {
       box-sizing: border-box;
       padding-block: 6px;
       justify-content: center;
+    }
+
+    // Misma especificidad que el `order: 1` de la lista, que va después.
+    .alert-button-role-cancel {
+      order: -1;
     }
   }
 
@@ -1418,11 +1425,19 @@ ion-alert.custom-alert {
     color: var(--alert-sheet-text-2);
   }
 
-  // Tabla de botones (detalle premium en management): siempre dos columnas.
+  // Tabla de botones (cambios sin guardar, pegar comida, añadir microciclo,
+  // premium en management): las acciones en dos columnas y Cancelar debajo, a
+  // lo ancho. Lo destructivo (Descartar, Eliminar) a la izquierda y la otra
+  // acción a la derecha, como en la fila de dos botones.
   &.alert-grid-buttons .alert-button-group-vertical {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    .alert-button:last-child:nth-child(odd) {
+    .alert-button-role-destructive,
+    .alert-button-danger {
+      order: -1;
+    }
+
+    .alert-button-role-cancel {
       grid-column: 1 / -1;
     }
   }
