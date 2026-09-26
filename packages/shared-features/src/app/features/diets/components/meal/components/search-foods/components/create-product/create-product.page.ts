@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -16,6 +16,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { Theme } from 'src/app/shared/models/theme';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-create-product',
@@ -23,6 +24,8 @@ import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
   styleUrls: ['./create-product.page.scss'],
 })
 export class CreateProductPage implements OnInit {
+  public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
+  @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLElement>;
   // From previous modal
   public user: User;
   public meal: Meal;

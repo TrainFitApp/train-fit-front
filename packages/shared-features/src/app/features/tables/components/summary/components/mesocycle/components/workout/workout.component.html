@@ -55,15 +55,6 @@
               'TABLES.SKIPPED_DAY_LABEL' | translate }}</ion-label></ion-col>
         </ion-row>
 
-        <!-- Tarea 4 (2026-09) — a diferencia del badge de "saltado" (arriba),
-             este SÍ se ve en plannerMode: es un hecho de autoría, no de
-             ejecución, y el entrenador necesita verlo mientras construye la
-             rutina, no solo el cliente mientras la sigue. -->
-        <ion-row *ngIf="workout.isPlannedRestDay">
-          <ion-col class="ion-no-padding header-detail"><ion-label style="font-size: x-small" color="medium">{{
-              'TABLES.PLANNED_REST_DAY_LABEL' | translate }}</ion-label></ion-col>
-        </ion-row>
-
         <ion-popover [trigger]="generatePopoverId(workout.date)" *ngIf="!plannerMode && workout.date">
           <ng-template>
             <ion-datetime [value]="getISODate(workout.date)" [locale]="locale" first-day-of-week="1" #datetime
@@ -129,7 +120,7 @@
             <ion-icon color="success" name="play-circle-outline"></ion-icon>
           </ion-button>
 
-          <ion-button *ngIf="load && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static && !isReadonly"
+          <ion-button *ngIf="load && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static && !isReadonly && !workout.isPlannedRestDay"
             style="margin-left: -5%; font-size: xx-large" class="t-workout-add-exercises"
             (click)="searchExercises(workout, split); $event.stopPropagation()"><ion-icon color="primary"
               name="add-circle-outline"></ion-icon></ion-button>
@@ -171,12 +162,12 @@
 
         <!-- Fase C (planner-audit) — mismo CDK que ya reordena microciclos y
              tarjetas del tablero, en vez del modal OrderExercisesPage +
-             alert de confirmación. cdkDropListDisabled/cdkDragDisabled
-             apagan esto entero fuera de canReorderExercises (plannerMode
-             sin bloques): en el resto de apps y casos es un wrapper inerte,
-             cero cambio de comportamiento. -->
+             alert de confirmación. Una lista por grupo: con bloques se
+             reordena dentro de cada uno. cdkDropListDisabled/cdkDragDisabled
+             apagan esto fuera de canReorderExercises (plannerMode): en el
+             resto de apps es un wrapper inerte. -->
         <div class="exercise-list" cdkDropList [cdkDropListDisabled]="!canReorderExercises"
-          (cdkDropListDropped)="onExercisesDropped($event)">
+          (cdkDropListDropped)="onExercisesDropped($event, group.entries)">
           <div class="exercise-card" [id]="'exercise-' + workoutIndex + '-' + entry.index" [attr.data-exercise-id]="entry.exercise?._id"
             *ngFor="let entry of group.entries; trackBy: trackByExerciseEntry" (click)="exerciseCardClick(entry.exercise, $event)"
             [class.exercise-selected]="isExerciseSelected(entry.index)"

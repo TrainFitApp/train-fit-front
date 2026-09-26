@@ -1,4 +1,17 @@
 {
+  "COACH_NOTIFICATIONS": {
+    "TITLE": "Notifications",
+    "REFRESH": "Refresh notifications",
+    "REFRESHING": "Refreshing notifications",
+    "LOAD_ERROR": "Notifications could not be loaded.",
+    "REFRESH_ERROR": "Could not refresh. The last loaded notifications are still shown.",
+    "RETRY": "Retry",
+    "EMPTY": "You have no notifications yet.",
+    "MARK_ALL_READ": "Read all",
+    "SHOW_ALL": "Show all",
+    "SHOW_LESS": "Show less",
+    "DELETE": "Delete notification"
+  },
   "ACTIONS": {
     "EDIT": "Edit",
     "COPY": "Copy",
@@ -118,6 +131,8 @@
     "NEW_EXERCISE_NAME": "New exercise name",
     "VIDEO_URL_LABEL": "Video (YouTube, optional)",
     "VIDEO_URL_PLACEHOLDER": "https://youtube.com/watch?v=...",
+    "VIDEO_URL_HELP": "Link from youtube.com/watch?v=…, youtu.be/… or youtube.com/embed/…",
+    "VIDEO_URL_INVALID": "Not a valid YouTube link. Use youtube.com/watch?v=…, youtu.be/… or youtube.com/embed/…",
     "DESCRIPTION_PLACEHOLDER": "Exercise description...",
     "STRENGTH": "Strength",
     "CARDIO": "Cardio",

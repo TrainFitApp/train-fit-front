@@ -27,7 +27,7 @@
   [ngClass]="{'dark-theme': theme === 'dark'}"
 >
   <div class="form-container">
-    <form [formGroup]="productForm" class="elegant-form">
+    <form [formGroup]="productForm" class="elegant-form" [appSubmitOnEnter]="isTrainerApp ? enterSubmitButton?.nativeElement : null">
       <div class="form-sections">
         <!-- Información general -->
         <ion-card class="product-header-card">
@@ -1083,6 +1083,7 @@
       size="large"
       [disabled]="productForm.invalid || saveInProgress"
       (click)="createCustomProduct()"
+      #enterSubmitTarget
       class="create-button"
     >
       <div class="button-content">

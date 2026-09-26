@@ -8,11 +8,12 @@ import { MaintenanceModule } from 'src/app/features/maintenance/maintenance.modu
 import { NumericKeypadModule } from 'src/app/shared/components/numeric-keypad/numeric-keypad.module';
 import { ExerciseScoreEditHandler } from 'src/app/core/services/exercise/exercise-score-edit-handler';
 import { TrainerExerciseScoreEditHandlerService } from 'src/app/features/exercise-scores/services/trainer-exercise-score-edit-handler.service';
+import { trainFitToastAnimations } from 'src/app/core/services/util/toast-motion';
 
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    IonicModule.forRoot(),
+    IonicModule.forRoot(trainFitToastAnimations),
     CoreModule,
     AppUpdateModule,
     MaintenanceModule,

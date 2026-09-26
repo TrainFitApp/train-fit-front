@@ -322,6 +322,119 @@
 }
 
 // --- coach-tab FASE3: notificaciones ---
+.notifications-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0 12px;
+  margin-bottom: 8px;
+
+  .section-heading {
+    margin: 0;
+  }
+
+  .section-header-actions {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+  }
+
+  .section-header-link {
+    min-height: 44px;
+    color: var(--ion-color-primary-tint);
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    .section-header-actions {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-content: flex-end;
+    }
+  }
+}
+
+.notification-refresh-button {
+  grid-column: -2;
+  grid-row: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--pe-border);
+  border-radius: 12px;
+  background: var(--ion-color-dark-gray);
+  color: var(--ion-color-primary-tint);
+  cursor: pointer;
+  transition: background-color 140ms ease, opacity 140ms ease;
+
+  ion-icon,
+  ion-spinner {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    color: inherit;
+  }
+
+  &:active:not(:disabled) {
+    background: var(--ion-color-dark-gray-tint);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.65;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      background: var(--ion-color-dark-gray-tint);
+    }
+  }
+}
+
+.notification-load-error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-bottom: 12px;
+  color: var(--pe-muted);
+
+  > ion-icon {
+    flex: 0 0 20px;
+    font-size: 20px;
+  }
+
+  p {
+    flex: 1 1 160px;
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .section-header-link {
+    min-height: 44px;
+    margin-left: auto;
+    color: var(--ion-color-primary-tint);
+  }
+}
+
+#section-notifications button:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 3px;
+}
+
+.notification-skeleton {
+  height: 56px;
+}
+
+.notification-list {
+  overflow: hidden;
+}
+
 // ion-item-sliding ya viene con overflow:hidden de fábrica (así oculta las
 // opciones antes de deslizar) — solo añadimos el radio para que el rojo
 // revelado quede recortado con las mismas esquinas que la tarjeta, en vez de
@@ -391,6 +504,17 @@
 
   ion-icon {
     font-size: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-refresh-button,
+  .notification-card {
+    transition: none;
+  }
+
+  .notification-card-item:active .notification-card {
+    transform: none;
   }
 }
 
@@ -851,4 +975,12 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #8b8b8b;
+}
+.notification-delete-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

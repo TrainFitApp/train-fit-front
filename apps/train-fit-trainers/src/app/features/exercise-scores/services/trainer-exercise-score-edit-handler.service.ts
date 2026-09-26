@@ -27,11 +27,11 @@ export class TrainerExerciseScoreEditHandlerService extends ExerciseScoreEditHan
     super();
   }
 
-  public editScore(exercise: Exercise): void {
-    void this.open(exercise);
+  public editScore(exercise: Exercise, origin?: HTMLElement): void {
+    void this.open(exercise, origin);
   }
 
-  private async open(exercise: Exercise): Promise<void> {
+  private async open(exercise: Exercise, origin?: HTMLElement): Promise<void> {
     if (!this.catalog) {
       this.catalog = await lastValueFrom(this.exerciseScoresApi.getCatalog()).catch(() => null);
     }
@@ -46,7 +46,8 @@ export class TrainerExerciseScoreEditHandlerService extends ExerciseScoreEditHan
     const isDefault = !existing && !!defaultScore;
     const initial = existing || (defaultScore ? { ...defaultScore, secondsPerSet: null } : null);
 
-    await this.ionicUtilService.showModal({
+    // Desde Configurar ejercicio (Planner) sale a la izquierda de ese panel.
+    await this.ionicUtilService.showNestedModal({
       component: ScoreEditorModalComponent,
       componentProps: {
         exerciseId: exercise._id,
@@ -56,7 +57,7 @@ export class TrainerExerciseScoreEditHandlerService extends ExerciseScoreEditHan
         catalog: this.catalog,
       },
       cssClass: 'tf-panel-modal',
-    });
+    }, origin);
   }
 
   // exerciseId viene poblado por Mongoose ({_id, name}) en getMine(), pero

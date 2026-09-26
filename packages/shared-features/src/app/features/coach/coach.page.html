@@ -214,25 +214,32 @@
   </ng-container>
 
   <!-- === Notificaciones (coach-tab FASE3) === -->
-  <div class="detail-skeleton" *ngIf="notificationsState === 'loading'">
-    <div class="skeleton-block" style="height: 56px;"></div>
-  </div>
-
-  <div class="section-card" id="section-notifications" *ngIf="notificationsState === 'loaded'">
-    <div class="section-header-row">
+  <div class="section-card" id="section-notifications">
+    <div class="section-header-row notifications-header">
       <h2 class="section-heading">
-        Notificaciones
+        {{ 'COACH_NOTIFICATIONS.TITLE' | translate }}
         <span class="unread-badge" *ngIf="unreadNotificationsCount">{{ unreadNotificationsCount }}</span>
       </h2>
-      <div class="section-header-actions">
+      <button
+        type="button"
+        class="notification-refresh-button"
+        [disabled]="notificationsRefreshDisabled"
+        [attr.aria-label]="(refreshingNotifications ? 'COACH_NOTIFICATIONS.REFRESHING' : 'COACH_NOTIFICATIONS.REFRESH') | translate"
+        [attr.title]="'COACH_NOTIFICATIONS.REFRESH' | translate"
+        (click)="loadNotifications()"
+      >
+        <ion-spinner *ngIf="refreshingNotifications; else refreshIcon" name="crescent" aria-hidden="true"></ion-spinner>
+        <ng-template #refreshIcon><ion-icon name="refresh-outline" aria-hidden="true"></ion-icon></ng-template>
+      </button>
+      <div class="section-header-actions" *ngIf="notificationsState === 'loaded' && (unreadNotificationsCount || notifications.length > 4)">
         <button
           type="button"
           class="section-header-link"
           *ngIf="unreadNotificationsCount"
-          [disabled]="markingAllRead"
+          [disabled]="notificationsRefreshDisabled"
           (click)="markAllRead()"
         >
-          Leer todas
+          {{ 'COACH_NOTIFICATIONS.MARK_ALL_READ' | translate }}
         </button>
         <button
           type="button"
@@ -240,21 +247,37 @@
           *ngIf="notifications.length > 4"
           (click)="toggleShowAllNotifications()"
         >
-          {{ showAllNotifications ? 'Ver menos' : 'Ver todas' }}
+          {{ (showAllNotifications ? 'COACH_NOTIFICATIONS.SHOW_LESS' : 'COACH_NOTIFICATIONS.SHOW_ALL') | translate }}
         </button>
       </div>
     </div>
 
-    <p class="empty-hint" *ngIf="!notifications.length">No tienes notificaciones todavía.</p>
+    <div class="notification-load-error" *ngIf="notificationsRefreshFailed" role="status">
+      <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+      <p>{{ (notificationsState === 'error' ? 'COACH_NOTIFICATIONS.LOAD_ERROR' : 'COACH_NOTIFICATIONS.REFRESH_ERROR') | translate }}</p>
+      <button type="button" class="section-header-link" [disabled]="notificationsRefreshDisabled" (click)="loadNotifications()">
+        {{ 'COACH_NOTIFICATIONS.RETRY' | translate }}
+      </button>
+    </div>
 
+    <div class="detail-skeleton" *ngIf="notificationsState === 'loading'" aria-hidden="true">
+      <div class="skeleton-block notification-skeleton"></div>
+    </div>
+
+    <p class="empty-hint" *ngIf="notificationsState === 'loaded' && !notifications.length">{{ 'COACH_NOTIFICATIONS.EMPTY' | translate }}</p>
+
+    <div class="notification-list" [attr.aria-busy]="refreshingNotifications" [@.disabled]="notificationMotionPreference?.matches">
     <ion-item-sliding
       #slidingItem
       mode="ios"
       class="notification-sliding-item"
       [@notificationLeave]
+      [disabled]="refreshingNotifications || markingAllRead"
+      (pointerdown)="startNotificationPointer()"
+      (ionDrag)="dragNotification()"
       *ngFor="let notification of visibleNotifications; trackBy: trackByNotificationId"
     >
-      <ion-item button [detail]="false" class="notification-card-item" (click)="openNotification(notification)">
+      <ion-item button [detail]="false" [disabled]="refreshingNotifications || markingAllRead" class="notification-card-item" (click)="openNotification(notification, $event, slidingItem)">
         <div class="notification-card" [class.notification-card--unread]="!notification.read">
           <span class="notification-dot" *ngIf="!notification.read"></span>
           <ion-icon [name]="notificationIcon(notification)" class="action-icon"></ion-icon>
@@ -275,18 +298,20 @@
            Gmail/Spotify vía [expandable] + (ionSwipe), gesto nativo de
            Ionic, no reinventado a mano). Dos formas de llegar al mismo
            gesto de confirmación deliberado, cero alert nativa. -->
-      <ion-item-options side="end" (ionSwipe)="deleteNotification(notification, slidingItem)">
+      <ion-item-options side="end" (ionSwipe)="deleteNotification(notification, slidingItem, $event)">
         <ion-item-option
           color="danger"
           class="notification-delete-option"
-          aria-label="Eliminar notificación"
           [expandable]="true"
-          (click)="deleteNotification(notification, slidingItem)"
+          [disabled]="refreshingNotifications || markingAllRead"
+          (click)="deleteNotification(notification, slidingItem, $event)"
         >
           <ion-icon slot="icon-only" name="trash-outline" aria-hidden="true"></ion-icon>
+          <span class="notification-delete-label">{{ 'COACH_NOTIFICATIONS.DELETE' | translate }}</span>
         </ion-item-option>
       </ion-item-options>
     </ion-item-sliding>
+    </div>
   </div>
 
   <!-- === Tareas de hoy (coach-tab FASE4) === -->

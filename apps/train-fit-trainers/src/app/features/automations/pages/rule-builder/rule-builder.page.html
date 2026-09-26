@@ -1,8 +1,8 @@
 <ion-header class="ion-no-border">
-  <app-page-header [title]="isNew ? 'Nueva automatización' : 'Editar automatización'"></app-page-header>
+  <app-page-header [title]="isNew ? 'Nuevo aviso automatizado' : 'Editar aviso automatizado'"></app-page-header>
 </ion-header>
 
-<ion-content class="builder-content">
+<ion-content class="builder-content" appSubmitOnEnter="saveRule">
   <div class="page-skeleton" *ngIf="state === 'loading'">
     <div class="skeleton-block" style="height: 120px"></div>
     <div class="skeleton-block" style="height: 200px"></div>
@@ -11,7 +11,7 @@
 
   <div class="page-state" *ngIf="state === 'error'">
     <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-    <h2>No se pudo abrir esta automatización</h2>
+    <h2>No se pudo abrir este aviso automatizado</h2>
     <button type="button" class="retry-button" (click)="goBack()">Volver</button>
   </div>
 
@@ -38,7 +38,7 @@
         <span class="step-hint">Con qué frecuencia reviso a tus clientes</span>
       </div>
 
-      <div class="option-list" role="radiogroup" aria-label="Cuándo se evalúa la automatización">
+      <div class="option-list" role="radiogroup" aria-label="Cuándo se evalúa el aviso automatizado">
         <button
           type="button"
           class="option-card"
@@ -251,7 +251,7 @@
         <span class="step-hint">Cuánta libertad le doy</span>
       </div>
 
-      <div class="option-list" role="radiogroup" aria-label="Nivel de automatización">
+      <div class="option-list" role="radiogroup" aria-label="Nivel del aviso automatizado">
         <button
           type="button"
           class="option-card"
@@ -274,8 +274,8 @@
       <!-- Límite duro, dicho antes de guardar y no descubierto después -->
       <p class="inline-note">
         <ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon>
-        Una automatización nunca modifica planes, calorías ni rutinas. Como mucho te avisa y te crea
-        tareas. Si diera positivo en demasiados clientes a la vez, se desactivaría sola y te lo diría.
+        Un aviso automatizado nunca modifica planes, calorías ni rutinas. Como mucho te avisa y te crea
+        tareas. Si diera positivo en demasiados clientes a la vez, se desactivaría solo y te lo diría.
       </p>
     </section>
 
@@ -323,8 +323,8 @@
          SIEMPRE, en vez de dejar un botón desactivado sin explicación. -->
     <div class="save-bar">
       <p class="save-error" *ngIf="validationError">{{ validationError }}</p>
-      <button type="button" class="primary-button" [disabled]="isSaving" (click)="save()">
-        <span *ngIf="!isSaving">{{ isNew ? 'Crear automatización' : 'Guardar cambios' }}</span>
+      <button type="button" class="primary-button" [disabled]="isSaving" (click)="save()" data-enter-submit-action="saveRule">
+        <span *ngIf="!isSaving">{{ isNew ? 'Crear aviso automatizado' : 'Guardar cambios' }}</span>
         <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
       </button>
     </div>

@@ -20,7 +20,7 @@
         Gestiona a tus clientes de entrenamiento y nutrición desde TrainFit.
       </p>
 
-      <form class="signup-form" [formGroup]="form" (ngSubmit)="register()">
+      <form class="signup-form" [formGroup]="form" (ngSubmit)="register()" appSubmitOnEnter="register">
         <div class="input-row">
           <div class="input-group">
             <label for="signup-name" class="sr-only">{{ 'SIGN_UP.NAME_PLACEHOLDER' | translate }}</label>
@@ -196,6 +196,7 @@
           type="submit"
           class="submit-button"
           [disabled]="form.invalid || isProcessing"
+          data-enter-submit-action="register"
         >
           <span *ngIf="!isProcessing">{{ 'SIGN_IN.CREATE_ACCOUNT' | translate }}</span>
           <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
@@ -203,7 +204,7 @@
       </form>
     </div>
 
-    <div class="signup-step verification-step" *ngIf="codeSended">
+    <div class="signup-step verification-step" *ngIf="codeSended" appSubmitOnEnter="verifyCode">
       <h1 class="signup-title">{{ 'SIGN_UP.VERIFY_ACCOUNT' | translate }}</h1>
       <p class="signup-subtitle">
         {{ 'SIGN_UP.VERIFY_MESSAGE' | translate }} <strong>{{ email }}</strong>
@@ -226,11 +227,14 @@
       <button
         type="button"
         class="submit-button"
+        [class.is-loading]="isProcessing"
+        [attr.aria-busy]="isProcessing"
         [disabled]="isProcessing"
         (click)="verifyCode()"
+        data-enter-submit-action="verifyCode"
       >
-        <span *ngIf="!isProcessing">{{ 'SIGN_UP.VERIFY_CODE_BUTTON' | translate }}</span>
-        <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
+        <span class="submit-label">{{ 'SIGN_UP.VERIFY_CODE_BUTTON' | translate }}</span>
+        <ion-spinner class="submit-spinner" name="dots" *ngIf="isProcessing" aria-hidden="true"></ion-spinner>
       </button>
 
       <div class="resend-row">

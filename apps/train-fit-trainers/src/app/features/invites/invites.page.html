@@ -3,7 +3,7 @@
 </ion-header>
 
 <ion-content class="invites-content" appScrollMemory="invites">
-  <form class="invite-form" [formGroup]="form" (ngSubmit)="submit()">
+  <form class="invite-form" [formGroup]="form" (ngSubmit)="submit()" appSubmitOnEnter="sendInvite">
     <h2 class="form-title">Invita a un cliente</h2>
     <p class="form-subtitle">
       Introduce su email y elige qué vas a llevarle. Puedes marcar los dos ámbitos a la vez.
@@ -121,7 +121,7 @@
           </div>
         </div>
 
-        <div class="add-question-row">
+        <div class="add-question-row" appSubmitOnEnter="addQuestion">
           <div class="input-wrapper">
             <ion-icon name="help-circle-outline" class="input-icon"></ion-icon>
             <input
@@ -130,13 +130,13 @@
               placeholder="Ej. ¿Alguna cirugía reciente?"
               [(ngModel)]="newQuestionLabel"
               [ngModelOptions]="{standalone: true}"
-              (keyup.enter)="addCustomQuestion()"
             />
             <button
               type="button"
               class="add-question-submit"
               [disabled]="!canAddCustomQuestion"
               (click)="addCustomQuestion()"
+              data-enter-submit-action="addQuestion"
               aria-label="Añadir pregunta"
             >
               <ion-icon name="return-down-back-outline"></ion-icon>
@@ -172,6 +172,7 @@
       type="submit"
       class="submit-button"
       [disabled]="form.invalid || !hasScopeSelected || isSending || checkingEmail"
+      data-enter-submit-action="sendInvite"
     >
       <span *ngIf="!isSending">Enviar invitación</span>
       <ion-spinner name="dots" *ngIf="isSending"></ion-spinner>

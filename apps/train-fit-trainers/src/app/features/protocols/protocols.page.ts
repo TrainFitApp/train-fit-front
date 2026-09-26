@@ -285,7 +285,7 @@ export class ProtocolsPage {
     if (protocol.dietTemplateId) parts.push('Plan de dieta');
     if (protocol.routineTemplateId) parts.push('Rutina');
     if (protocol.ruleIds?.length) {
-      parts.push(`${protocol.ruleIds.length} automatización${protocol.ruleIds.length === 1 ? '' : 'es'}`);
+      parts.push(`${protocol.ruleIds.length} ${protocol.ruleIds.length === 1 ? 'aviso automatizado' : 'avisos automatizados'}`);
     }
     if (protocol.dailyTasks?.length) {
       parts.push(`${protocol.dailyTasks.length} hábito${protocol.dailyTasks.length === 1 ? '' : 's'}`);

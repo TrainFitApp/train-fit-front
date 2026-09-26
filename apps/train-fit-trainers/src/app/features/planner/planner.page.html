@@ -48,6 +48,18 @@
         <ion-icon name="swap-horizontal-outline"></ion-icon>
         <span>{{ 'PLANNER.REORDER_WEEKS_MODE' | translate }}</span>
       </button>
+      <button
+        type="button"
+        class="toolbar-btn"
+        [class.toolbar-btn--active]="reorderCardsMode"
+        (click)="toggleReorderCardsMode()"
+        [attr.aria-label]="'PLANNER.REORDER_CARDS_MODE' | translate"
+        [attr.aria-pressed]="reorderCardsMode"
+        [title]="'PLANNER.REORDER_CARDS_MODE_HINT' | translate"
+      >
+        <ion-icon name="swap-vertical-outline"></ion-icon>
+        <span>{{ 'PLANNER.REORDER_CARDS_MODE' | translate }}</span>
+      </button>
       <!-- Comparar dos microciclos (2026-09) — diff de PAUTA A→B, ejercicio a
            ejercicio: la única pregunta que no responde ninguna otra pantalla
            del panel. -->
@@ -61,19 +73,30 @@
         <ion-icon name="git-compare-outline"></ion-icon>
         <span>{{ 'PLANNER.COMPARE_SPLITS' | translate }}</span>
       </button>
-    </div>
-
-    <!-- Punto 1 (mejoras Planner, 2026-09) — equipamiento del cliente a la
-         vista sin salir a su ficha, mismos datos que client-detail.page.html
-         (ClientIntake, TrainerInvitesApiService). -->
-    <div class="planner-toolbar-equipment" *ngIf="hasEquipmentInfo">
-      <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
-      <span class="equipment-chip" *ngIf="clientIntake.trainingLocation">
-        {{ trainingLocationLabel(clientIntake.trainingLocation) }}
-      </span>
-      <span class="equipment-chip" *ngFor="let tag of clientIntake.equipmentTags">
-        {{ equipmentTagLabel(tag) }}
-      </span>
+      <button
+        type="button"
+        class="toolbar-btn"
+        *ngIf="canSaveAsTemplate"
+        [disabled]="busy"
+        (click)="saveAsTemplate()"
+        [attr.aria-label]="'PLANNER.SAVE_AS_TEMPLATE' | translate"
+      >
+        <ion-icon name="bookmark-outline"></ion-icon>
+        <span>{{ 'PLANNER.SAVE_AS_TEMPLATE' | translate }}</span>
+      </button>
+      <!-- Material del cliente (lugar + equipamiento del cuestionario) en
+           un panel lateral: como chips en la barra ocupaba una fila entera
+           con clientes que tienen mucho material. -->
+      <button
+        type="button"
+        class="toolbar-btn"
+        *ngIf="hasEquipmentInfo"
+        (click)="showEquipmentPanel = true"
+        [attr.aria-label]="'PLANNER.EQUIPMENT' | translate"
+      >
+        <ion-icon name="barbell-outline"></ion-icon>
+        <span>{{ 'PLANNER.EQUIPMENT' | translate }}</span>
+      </button>
     </div>
   </div>
   <div class="planner-pain" *ngIf="painEnabled" aria-live="polite">
@@ -119,11 +142,9 @@
       [table]="table"
       [columnIndex]="i"
       [selected]="split._id === selectedSplitId"
-      [dimmed]="draggingFromSplitId !== null && draggingFromSplitId !== split._id"
       [reorderMode]="reorderMode"
+      [reorderCardsMode]="reorderCardsMode"
       (columnSelected)="selectSplit(split._id)"
-      (cardDragStarted)="onCardDragStarted(split._id)"
-      (cardDragEnded)="onCardDragEnded()"
       (templatesApplyStarted)="onTemplatesApplyStarted()"
       (templatesApplyEnded)="onTemplatesApplyEnded()"
       (workoutFocused)="focusedWorkout = $event"
@@ -178,3 +199,40 @@
     </button>
   </div>
 </ion-content>
+
+<div
+  class="panel-sheet equipment-panel"
+  *ngIf="showEquipmentPanel && clientIntake"
+  role="dialog"
+  aria-modal="false"
+  [attr.aria-label]="'PLANNER.EQUIPMENT' | translate"
+>
+  <div class="panel-handle"></div>
+  <header class="panel-header">
+    <h3 class="panel-title">{{ 'PLANNER.EQUIPMENT' | translate }}</h3>
+    <button type="button" class="panel-close" (click)="showEquipmentPanel = false" [attr.aria-label]="'COMMON.CERRAR' | translate">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </header>
+
+  <section class="equipment-section" *ngIf="clientIntake.trainingLocation">
+    <h4 class="equipment-section-title">{{ 'PLANNER.EQUIPMENT_LOCATION' | translate }}</h4>
+    <div class="equipment-chips">
+      <span class="equipment-chip">{{ trainingLocationLabel(clientIntake.trainingLocation) }}</span>
+    </div>
+  </section>
+
+  <section class="equipment-section" *ngIf="clientIntake.equipmentTags?.length">
+    <h4 class="equipment-section-title">{{ 'PLANNER.EQUIPMENT_AVAILABLE' | translate }}</h4>
+    <div class="equipment-chips">
+      <span class="equipment-chip" *ngFor="let tag of clientIntake.equipmentTags">{{ equipmentTagLabel(tag) }}</span>
+    </div>
+  </section>
+
+  <!-- Texto libre de cuestionarios anteriores a trainingLocation /
+       equipmentTags: ya no se escribe, pero hay clientes que solo tienen esto. -->
+  <section class="equipment-section" *ngIf="clientIntake.equipment?.trim()">
+    <h4 class="equipment-section-title">{{ 'PLANNER.EQUIPMENT_NOTES' | translate }}</h4>
+    <p class="equipment-notes">{{ clientIntake.equipment }}</p>
+  </section>
+</div>

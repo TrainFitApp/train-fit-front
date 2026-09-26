@@ -2,7 +2,7 @@
   <app-page-header title="Plantilla de entrenamiento"></app-page-header>
 </ion-header>
 
-<ion-content class="builder-content">
+<ion-content class="builder-content" appSubmitOnEnter="saveRoutine">
   <div class="builder-skeleton" *ngIf="state === 'loading'">
     <div class="skeleton-block skeleton-block--sidebar"></div>
     <div class="skeleton-block skeleton-block--block"></div>
@@ -62,7 +62,7 @@
           </div>
         </div>
 
-        <button type="button" class="submit-button" [disabled]="!canSave" (click)="save()">
+        <button type="button" class="submit-button" [disabled]="!canSave" (click)="save()" data-enter-submit-action="saveRoutine">
           <span *ngIf="!isSaving">Guardar</span>
           <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
         </button>

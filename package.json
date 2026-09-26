@@ -32,7 +32,7 @@
     "live:a": "npm run live:a --workspace @trainfit/train-fit-front",
     "live:i:m": "npm run live:i --workspace @trainfit/train-fit-management",
     "live:a:m": "npm run live:a --workspace @trainfit/train-fit-management",
-    "test": "node --experimental-strip-types --test packages/shared-core/src/app/core/utils/body-metrics.test.js apps/train-fit-trainers/src/app/features/subscription/trainer-billing.test.cjs apps/train-fit-trainers/src/app/shared/components/date-field/date-field-value.test.js",
+    "test": "node --experimental-strip-types --test packages/shared-core/src/app/core/utils/body-metrics.test.js apps/train-fit-trainers/src/app/features/subscription/trainer-billing.test.cjs apps/train-fit-trainers/src/app/shared/components/date-field/date-field-value.test.js packages/shared-ui/src/app/shared/directives/submit-on-enter.test.js packages/shared-core/src/app/core/services/util/alert-enter-submit.test.js packages/shared-core/src/app/core/services/util/ionic-side-panel.test.cjs packages/shared-features/src/app/features/coach/coach-notifications.test.cjs packages/shared-features/src/app/features/tables/components/summary/components/mesocycle/components/workout/workout-inline-edit.test.cjs",
     "test:trainer-billing": "node --test apps/train-fit-trainers/src/app/features/subscription/trainer-billing.test.cjs apps/train-fit-trainers/src/app/shared/components/date-field/date-field-value.test.js",
     "lint": "npm run lint --workspace @trainfit/train-fit-front",
     "lint:m": "npm run lint --workspace @trainfit/train-fit-management",

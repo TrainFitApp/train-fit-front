@@ -262,7 +262,7 @@ export class RuleBuilderPage implements OnInit, PendingChangesComponent {
   // --- Guardar ---
 
   public get validationError(): string | null {
-    if (!this.name.trim()) return 'Ponle un nombre a la automatización.';
+    if (!this.name.trim()) return 'Ponle un nombre al aviso automatizado.';
     if (!this.conditions.length) return 'Añade al menos una condición.';
     if (this.conditions.some((c) => !c.metric || !c.operator)) {
       return 'Completa todas las condiciones.';
@@ -333,7 +333,7 @@ export class RuleBuilderPage implements OnInit, PendingChangesComponent {
       },
       error: (error) => {
         this.isSaving = false;
-        void this.ionicUtilService.showErrorToast(error, 'No se pudo guardar la automatización');
+        void this.ionicUtilService.showErrorToast(error, 'No se pudo guardar el aviso automatizado');
       },
     });
   }

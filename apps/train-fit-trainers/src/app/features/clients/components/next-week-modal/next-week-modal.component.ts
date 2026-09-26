@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SubmitOnEnterDirective } from 'src/app/shared/directives/submit-on-enter.directive';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
@@ -24,7 +25,7 @@ const MACRO_KEYS: MacroKey[] = ['protein', 'carbs', 'fat'];
 @Component({
   selector: 'app-next-week-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, NeedBreakdownComponent, MacroAdjustComponent],
+  imports: [CommonModule, FormsModule, IonicModule, NeedBreakdownComponent, MacroAdjustComponent, SubmitOnEnterDirective],
   templateUrl: './next-week-modal.component.html',
   styleUrls: ['./next-week-modal.component.scss'],
 })

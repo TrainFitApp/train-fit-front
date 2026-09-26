@@ -20,7 +20,7 @@
 
 <ion-content>
   <ion-list>
-    <form [formGroup]="userForm">
+    <form [formGroup]="userForm" [appSubmitOnEnter]="isTrainerApp ? 'saveProfile' : null">
       <ion-card class="profile-card">
         <ion-card-header>
           <ion-card-title color="primary"> {{ 'EDITOR.PERSONAL_DATA' | translate }} </ion-card-title>
@@ -451,6 +451,7 @@
           class="save-button-global"
           expand="block"
           (click)="updateUser()"
+          data-enter-submit-action="saveProfile"
           [disabled]="loading"
         >
           {{ 'EDITOR.SAVE_CHANGES' | translate }}

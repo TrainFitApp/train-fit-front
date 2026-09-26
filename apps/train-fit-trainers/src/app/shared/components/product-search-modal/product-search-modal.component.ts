@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Observable, Subject, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
@@ -36,6 +36,7 @@ export interface ProductSearchResult {
   styleUrls: ['product-search-modal.component.scss'],
 })
 export class ProductSearchModalComponent implements OnInit, OnDestroy {
+  @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLButtonElement>;
   // TAREA5 — cuando el producto/receta ya se eligió en otra pantalla (el
   // buscador real de search-foods, ver SearchFoodsTrainerContext), este
   // panel se abre directo en el paso de cantidad/confirmar en vez de en la

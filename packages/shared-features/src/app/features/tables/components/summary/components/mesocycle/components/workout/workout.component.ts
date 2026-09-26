@@ -166,6 +166,12 @@ export class WorkoutComponent implements OnDestroy {
   // RIR de fallo (-1). weight/rest siguen usando editingCellValue.
   public editingCellMin = "";
   public editingCellMax = "";
+  // Celda en edición, para confirmarla al pasar a otra (ver startEditCell).
+  private editingCell: {
+    exercise: CustomExercise;
+    set: ExerciseSet;
+    field: "weight" | "reps" | "rir" | "rest";
+  } | null = null;
   public quickAddingSetId: string | null = null;
 
   @Output()
@@ -292,6 +298,7 @@ export class WorkoutComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.pinnedNoteCacheSub?.unsubscribe();
     this.clipboardSub?.unsubscribe();
+    this.stopOutsideClickListener();
   }
 
   private loadPinnedNotes(): void {
@@ -586,7 +593,7 @@ export class WorkoutComponent implements OnDestroy {
       new Date(this.workout.date),
     );
 
-    this.ionicUtilService.showModal({
+    const modalOptions: ModalOptions = {
       component: WorkoutSummaryModalComponent,
       componentProps: {
         summary,
@@ -596,7 +603,9 @@ export class WorkoutComponent implements OnDestroy {
       // en train-fit-front/train-fit-management (esa regla CSS no existe en
       // el bundle de esas apps).
       cssClass: ["workout-summary-modal", "tf-panel-modal"],
-    });
+    };
+    if (this.plannerMode) void this.ionicUtilService.showSidePanel(modalOptions);
+    else void this.ionicUtilService.showModal(modalOptions);
   }
 
   public openOrderModal(workoutIndex?: number): void {
@@ -610,7 +619,8 @@ export class WorkoutComponent implements OnDestroy {
       cssClass: "tf-panel-modal",
     };
 
-    this.ionicUtilService.showModal(modalOptions);
+    if (this.plannerMode) void this.ionicUtilService.showSidePanel(modalOptions);
+    else void this.ionicUtilService.showModal(modalOptions);
   }
 
   private async presentActionSheet() {
@@ -1028,6 +1038,14 @@ export class WorkoutComponent implements OnDestroy {
         next: (updatedWorkout) => {
           this.workout.blocks = updatedWorkout.blocks;
           this.workout.exercises = updatedWorkout.exercises;
+          // Bloques por fila (2026-09): el back aplica el cambio al mismo
+          // entrenamiento de los demás microciclos y los devuelve aquí.
+          (updatedWorkout.rowWorkouts || []).forEach((rowWorkout) => {
+            const local = this.findTableWorkout(rowWorkout._id);
+            if (!local) return;
+            local.blocks = rowWorkout.blocks;
+            local.exercises = rowWorkout.exercises;
+          });
           this.tableService.setCurrentTable = this.tableInUse;
         },
         error: () => {
@@ -1039,16 +1057,26 @@ export class WorkoutComponent implements OnDestroy {
       });
   }
 
+  private findTableWorkout(workoutId: string): Workout | undefined {
+    for (const split of this.tableInUse?.splits || []) {
+      const found = split.workouts.find((workout) => workout._id === workoutId);
+      if (found) return found;
+    }
+    return undefined;
+  }
+
   // Punto de entrada real de gestión de bloques — lista los bloques
   // existentes (cada uno editable) + "Nuevo bloque", como botones de un
   // único alert (no radios: cada fila dispara una acción distinta, no una
-  // selección).
+  // selección). Cada botón CIERRA esta hoja (y la de editar bloque): antes
+  // devolvían false y se quedaban abiertas debajo con la lista vieja, así
+  // que tras crear o borrar seguía viéndose "Agrupar en bloque" con el
+  // bloque ya borrado, y volver a borrarlo desde ahí no hacía nada.
   public async manageBlocksAlert(): Promise<void> {
     const existingBlockButtons = (this.workout.blocks || []).map((block) => ({
       text: block.name || this.blockTypeLabel(block.type),
       handler: () => {
         this.editBlockAlert(block);
-        return false;
       },
     }));
 
@@ -1060,7 +1088,6 @@ export class WorkoutComponent implements OnDestroy {
           text: `+ ${this.translate.instant("TABLES.NEW_BLOCK_BTN")}`,
           handler: () => {
             this.createBlockNameAlert();
-            return false;
           },
         },
         { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
@@ -1139,7 +1166,6 @@ export class WorkoutComponent implements OnDestroy {
           text: this.translate.instant("TABLES.RENAME_BLOCK"),
           handler: () => {
             this.renameBlockAlert(block);
-            return false;
           },
         },
         {
@@ -1147,7 +1173,6 @@ export class WorkoutComponent implements OnDestroy {
           cssClass: "alert-button-danger",
           handler: () => {
             this.confirmDeleteBlock(block);
-            return false;
           },
         },
         { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
@@ -1250,6 +1275,16 @@ export class WorkoutComponent implements OnDestroy {
               .subscribe({
                 next: (updated) => {
                   exercise.blockId = updated.blockId;
+                  // Mismo ejercicio en los demás microciclos de la fila.
+                  (updated.rowUpdates || []).forEach((rowUpdate) => {
+                    this.tableInUse?.splits?.forEach((split) =>
+                      split.workouts.forEach((workout) =>
+                        workout.exercises
+                          ?.filter((ce) => ce._id === rowUpdate._id)
+                          .forEach((ce) => (ce.blockId = rowUpdate.blockId)),
+                      ),
+                    );
+                  });
                   this.tableService.setCurrentTable = this.tableInUse;
                 },
                 error: () => {
@@ -1320,7 +1355,7 @@ export class WorkoutComponent implements OnDestroy {
 
   public async addExerciseModal(customExercise: CustomExercise) {
     if (this.guardReadonly()) return;
-    const modal = await this.modalController.create({
+    const modalOptions: ModalOptions = {
       component: ConfigExercisePage,
       componentProps: {
         user: this.user,
@@ -1329,21 +1364,20 @@ export class WorkoutComponent implements OnDestroy {
         workoutIndex: this.workoutIndex,
         splitIndex: this.splitIndex,
         customExercise: customExercise,
-        // TASK-021 (MASTER_BACKLOG.md) — mismo gate que searchExercises(),
-        // ver ahí para el porqué de reutilizar plannerMode.
-        showQuickSeriesGenerator: this.plannerMode,
       },
       cssClass: "tf-panel-modal",
-    });
-    modal.onDidDismiss().then((res) => {
-      if (res.data?.setChangeInfo) {
-        this.handleSetChangeInfo(res.data.setChangeInfo);
-      } else if (res.data) {
-        // Se añadió un nuevo ejercicio
-        this.getCurrentWorkout(res.data);
-      }
-    });
-    return modal.present();
+    };
+    // En el Planner es el panel raíz de la pila: lo que se abra desde dentro
+    // (sustituir, editar serie...) sale a su izquierda.
+    const res = this.plannerMode
+      ? await this.ionicUtilService.showSidePanel(modalOptions)
+      : await this.ionicUtilService.showModal(modalOptions);
+    if (res.data?.setChangeInfo) {
+      this.handleSetChangeInfo(res.data.setChangeInfo);
+    } else if (res.data) {
+      // Se añadió un nuevo ejercicio
+      this.getCurrentWorkout(res.data);
+    }
   }
 
   public exerciseCardClick(exercise: CustomExercise, event: Event): void {
@@ -1445,10 +1479,6 @@ export class WorkoutComponent implements OnDestroy {
         user: this.user,
         tableInUse: this.tableInUse,
         currentSplit: currentSplit,
-        // TASK-021 (MASTER_BACKLOG.md) — plannerMode ya distingue "abierto
-        // desde el Planner de train-fit-trainers"; se reutiliza como gate
-        // del generador rápido de series en vez de crear un @Input() nuevo.
-        showQuickSeriesGenerator: this.plannerMode,
       },
       // Panel lateral en escritorio SOLO en train-fit-trainers: la regla CSS
       // de esta clase vive en el stylesheet propio de esa app
@@ -1459,7 +1489,10 @@ export class WorkoutComponent implements OnDestroy {
       cssClass: "tf-panel-modal",
     };
 
-    this.ionicUtilService.showModal(modalOptions).then((res) => {
+    const open = this.plannerMode
+      ? this.ionicUtilService.showSidePanel(modalOptions)
+      : this.ionicUtilService.showModal(modalOptions);
+    open.then((res) => {
       if (res.data?.setChangeInfo) {
         this.handleSetChangeInfo(res.data.setChangeInfo);
         return;
@@ -1543,6 +1576,8 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public canPasteExercises(): boolean {
+    // Un descanso pautado no admite ejercicios, tampoco pegados.
+    if (this.workout.isPlannedRestDay) return false;
     if (!this.workoutService.hasExerciseClipboard()) return false;
     const clipboard = this.workoutService.getExerciseClipboard;
     return (
@@ -1555,14 +1590,17 @@ export class WorkoutComponent implements OnDestroy {
     const clipboard = this.workoutService.getExerciseClipboard;
     if (!clipboard || clipboard.selectedExercises.length === 0) return;
 
-    const modalResult = await this.ionicUtilService.showModal({
+    const modalOptions: ModalOptions = {
       component: ClipboardExercisesModalComponent,
       componentProps: {
         exercises: clipboard.selectedExercises,
         mode: "paste",
       },
       cssClass: ["clipboard-modal", "tf-panel-modal"],
-    });
+    };
+    const modalResult = this.plannerMode
+      ? await this.ionicUtilService.showSidePanel(modalOptions)
+      : await this.ionicUtilService.showModal(modalOptions);
 
     if (modalResult.role !== "confirm") return;
 
@@ -1661,7 +1699,11 @@ export class WorkoutComponent implements OnDestroy {
 
     if (this.workout.exercises.length > 0) {
       actions.push(ACTIONS[this.ACTION_TYPES.copyExercises]);
-      actions.push(ACTIONS[this.ACTION_TYPES.moveExercises]);
+      // En el Planner se reordena arrastrando el asa de cada ejercicio
+      // (onExercisesDropped): el modal de ordenar sobra.
+      if (!this.plannerMode) {
+        actions.push(ACTIONS[this.ACTION_TYPES.moveExercises]);
+      }
 
       // Bloques/superseries — disponible para cualquiera que edite un
       // workout (consumidor con su propia rutina o entrenador), la ruta
@@ -1909,8 +1951,19 @@ export class WorkoutComponent implements OnDestroy {
   ): void {
     if (!this.canInlineEditSet(exercise, set)) return;
     event.stopPropagation();
+    if (this.editingCellKey === `${set._id}-${field}`) return;
 
+    // ion-accordion tiene delegatesFocus: pinchar otra celda de la MISMA
+    // tarjeta no quita el foco al input abierto, así que su (blur) no llega
+    // y el valor se perdía al cambiar de celda. Se confirma aquí.
+    const pending = this.editingCell;
+    if (pending && this.editingCellKey === `${pending.set._id}-${pending.field}`) {
+      this.commitEditCell(pending.exercise, pending.set, pending.field);
+    }
+
+    this.editingCell = { exercise, set, field };
     this.editingCellKey = `${set._id}-${field}`;
+    this.startOutsideClickListener();
 
     let inputId = `tf-cell-${set._id}-${field}`;
     if (field === "reps" || field === "rir") {
@@ -1931,6 +1984,41 @@ export class WorkoutComponent implements OnDestroy {
 
   public cancelEditCell(): void {
     this.editingCellKey = null;
+    this.stopOutsideClickListener();
+  }
+
+  // Confirma la celda abierta al pulsar FUERA de ella. (blur) no basta:
+  // ion-accordion tiene delegatesFocus, y pinchar en una zona no enfocable de
+  // la misma tarjeta no siempre lo dispara (ver startEditCell). En captura y
+  // solo mientras hay una celda abierta, para no escuchar el documento
+  // entero en cada workout de la pantalla. Como es un click, ya ha nacido en
+  // su destino: pulsar otra celda sigue abriéndola con normalidad.
+  private outsideClickListening = false;
+
+  private readonly onDocumentClick = (event: Event): void => {
+    const pending = this.editingCell;
+    if (!pending || this.editingCellKey !== `${pending.set._id}-${pending.field}`) {
+      this.stopOutsideClickListener();
+      return;
+    }
+    const target = event.target as Element | null;
+    // El teclado numérico nativo vive fuera de la celda pero es parte de su edición.
+    if (target?.closest?.("app-numeric-keypad")) return;
+    const cell = target?.closest?.(".tf-editing");
+    if (cell?.querySelector(`[id^="tf-cell-${pending.set._id}-${pending.field}"]`)) return;
+    this.commitEditCell(pending.exercise, pending.set, pending.field);
+  };
+
+  private startOutsideClickListener(): void {
+    if (this.outsideClickListening) return;
+    this.outsideClickListening = true;
+    document.addEventListener("click", this.onDocumentClick, true);
+  }
+
+  private stopOutsideClickListener(): void {
+    if (!this.outsideClickListening) return;
+    this.outsideClickListening = false;
+    document.removeEventListener("click", this.onDocumentClick, true);
   }
 
   // Blur de un input dentro del par mín/máx: si el foco se movió AL OTRO
@@ -1988,6 +2076,7 @@ export class WorkoutComponent implements OnDestroy {
     const key = `${set._id}-${field}`;
     if (this.editingCellKey !== key) return; // ya comprometido o cancelado (Escape)
     this.editingCellKey = null;
+    this.stopOutsideClickListener();
 
     const updatedSet: ExerciseSet = { ...set };
     let changed = false;
@@ -1998,17 +2087,31 @@ export class WorkoutComponent implements OnDestroy {
       if (raw !== "" && (parsed === undefined || isNaN(parsed))) return;
 
       if (field === "weight") {
-        changed = updatedSet.weight !== parsed;
-        updatedSet.weight = parsed;
+        const bounded =
+          parsed === undefined
+            ? undefined
+            : this.clampToLimits(parsed, WorkoutComponent.SET_LIMITS.weight);
+        changed = updatedSet.weight !== bounded;
+        updatedSet.weight = bounded;
       } else {
         const rounded =
-          parsed === undefined ? undefined : Math.round(parsed);
+          parsed === undefined
+            ? undefined
+            : this.clampToLimits(Math.round(parsed), WorkoutComponent.SET_LIMITS.rest);
         changed = updatedSet.restSeconds !== rounded;
         updatedSet.restSeconds = rounded;
       }
     } else {
-      const range = this.parseRangeParts(this.editingCellMin, this.editingCellMax);
-      if (range === null) return; // texto no numérico en algún lado: se ignora, no se guarda basura
+      const range = this.parseRangeParts(this.editingCellMin, this.editingCellMax, field);
+      if (range === null) {
+        // El set original sigue intacto: al cerrar la edición reaparece su
+        // valor anterior, también al confirmar con Enter o cambiar de celda.
+        this.ionicUtilService.showToast({
+          message: this.translate.instant("TABLES.RANGE_ERROR"),
+          duration: 3000,
+        });
+        return;
+      }
 
       if (field === "reps") {
         updatedSet.expectedReps = range;
@@ -2086,21 +2189,59 @@ export class WorkoutComponent implements OnDestroy {
   // "" + "" => [] (borra el rango); solo uno relleno => [ese valor], igual
   // que antes con un único input (formatExpectedReps/Rir pintan un array de
   // un solo elemento como número plano, no como rango); los dos rellenos =>
-  // [min, max] en ese orden, tal cual están en los campos. null = alguno de
-  // los dos campos tiene texto no numérico: el llamador ignora el cambio en
-  // vez de guardar basura.
-  private parseRangeParts(minRaw: string, maxRaw: string): number[] | null {
+  // [min, max] solo si min < max, como en el editor de series. null = valor
+  // no numérico o rango inválido; el llamador restaura y muestra un aviso.
+  private parseRangeParts(
+    minRaw: string,
+    maxRaw: string,
+    field: "reps" | "rir",
+  ): number[] | null {
     const parse = (raw: string): number | null => {
       const trimmed = raw.trim();
       return trimmed === "" ? null : Number(trimmed.replace(",", "."));
     };
-    const min = parse(minRaw);
-    const max = parse(maxRaw);
-    if ((min !== null && isNaN(min)) || (max !== null && isNaN(max))) return null;
+    const parsedMin = parse(minRaw);
+    const parsedMax = parse(maxRaw);
+    if (
+      (parsedMin !== null && !Number.isFinite(parsedMin)) ||
+      (parsedMax !== null && !Number.isFinite(parsedMax))
+    ) {
+      return null;
+    }
+
+    // RIR: -1 es el centinela de FALLO, pero solo como valor único (igual que
+    // el editor de series: isFail => [-1]); no es extremo de un rango.
+    if (
+      field === "rir" &&
+      (parsedMin === -1 || parsedMax === -1) &&
+      (parsedMin === null || parsedMax === null)
+    ) {
+      return [-1];
+    }
+
+    // Se recorta a los mismos límites que el editor de series (Validators.min/
+    // max de ManageSetComponent) en vez de rechazar o guardar un valor que el
+    // modal no dejaría escribir.
+    const limits = WorkoutComponent.SET_LIMITS[field];
+    const min = parsedMin === null ? null : this.clampToLimits(parsedMin, limits);
+    const max = parsedMax === null ? null : this.clampToLimits(parsedMax, limits);
+    if (min !== null && max !== null && min >= max) return null;
 
     const values = [min, max].filter((v): v is number => v !== null);
     if (values.length === 0) return [];
     return values.length === 1 ? [values[0]] : values;
+  }
+
+  // Mismos límites que Validators.min/max de ManageSetComponent.
+  private static readonly SET_LIMITS = {
+    weight: { min: 0, max: 2000 },
+    rest: { min: 0, max: 600 },
+    reps: { min: 0, max: 999 },
+    rir: { min: 0, max: 20 },
+  };
+
+  private clampToLimits(value: number, limits: { min: number; max: number }): number {
+    return Math.min(Math.max(value, limits.min), limits.max);
   }
 
   private persistSetUpdate(
@@ -2132,42 +2273,44 @@ export class WorkoutComponent implements OnDestroy {
   // --- Reordenar ejercicios arrastrando (Fase C, solo plannerMode) ---
 
   // Mismo CDK que ya reordena microciclos y tarjetas en el tablero, en vez
-  // del modal OrderExercisesPage + alert de confirmación. Acotado a workouts
-  // SIN bloques: groupExercisesByBlock() reagrupa por blockId y antepone los
-  // bloques a los sueltos, así que el orden mostrado por grupo puede no
-  // coincidir con workout.exercises — solo cuando no hay bloques,
-  // exerciseGroupEntries es UN único grupo en el mismo orden que el array
-  // real, y arrastrar dentro de él es una reordenación 1:1 segura. Con
-  // bloques, reordenar sigue pasando por el modal de siempre (sin cambios).
+  // del modal OrderExercisesPage (que en plannerMode ya no se ofrece). Cada
+  // grupo de exerciseGroupEntries (bloque o "sin agrupar") es su propia
+  // lista: se reordena DENTRO del bloque; para cambiar de bloque sigue el
+  // botón de capas.
   public get canReorderExercises(): boolean {
-    return this.plannerMode && !this.showsBlocks;
+    return this.plannerMode;
   }
 
-  public onExercisesDropped(event: CdkDragDrop<CustomExercise[]>): void {
+  public onExercisesDropped(
+    event: CdkDragDrop<CustomExercise[]>,
+    entries: { index: number }[],
+  ): void {
     if (!this.canReorderExercises) return;
     if (event.previousIndex === event.currentIndex) return;
 
-    // Mismo mecanismo que OrderExercisesPage#handleReorder: un array de
-    // índices ORIGINALES movido en paralelo al array real, para mandar al
-    // backend qué posición original ocupa cada hueco nuevo.
+    // Mismo mecanismo que OrderExercisesPage#handleReorder: order[hueco] =
+    // índice ORIGINAL que pasa a ocuparlo. Los índices del drop son del
+    // grupo; se traducen a las posiciones globales que ocupa ese grupo
+    // (ascendentes: groupExercisesByBlock conserva el orden del array).
+    const slots = entries.map((entry) => entry.index);
+    const moved = [...slots];
+    moveItemInArray(moved, event.previousIndex, event.currentIndex);
     const order = this.workout.exercises.map((_, i) => i);
-    moveItemInArray(order, event.previousIndex, event.currentIndex);
-    moveItemInArray(
-      this.workout.exercises,
-      event.previousIndex,
-      event.currentIndex,
-    );
+    slots.forEach((slot, k) => (order[slot] = moved[k]));
+
+    const previous = [...this.workout.exercises];
+    order.forEach((original, position) => {
+      this.workout.exercises[position] = previous[original];
+    });
     this.tableService.setCurrentTable = this.tableInUse;
 
     this.workoutService
       .updateWorkoutsOrder(this.workout._id, this.tableInUse._id, order)
       .subscribe({
         error: () => {
-          moveItemInArray(
-            this.workout.exercises,
-            event.currentIndex,
-            event.previousIndex,
-          ); // revertir
+          previous.forEach((exercise, i) => {
+            this.workout.exercises[i] = exercise;
+          }); // revertir
           this.tableService.setCurrentTable = this.tableInUse;
           this.ionicUtilService.showToast({
             message: this.translate.instant("TABLES.REORDER_EXERCISES_ERROR"),

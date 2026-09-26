@@ -1,4 +1,5 @@
 @import '../../../theme/buttons';
+@import '../../../theme/panel-sheet';
 
 // Tarea 1 (2026-08) — el título no tenía forma de editarse. Convertido en
 // <button>, así que solo se resetean los estilos de navegador propios de un
@@ -29,10 +30,8 @@
 }
 
 // Punto 1/4 (mejoras Planner, 2026-09) — antes una sola fila de 3 botones
-// con overflow-x:auto. Ahora dos grupos (acciones a la izquierda,
-// equipamiento del cliente a la derecha) que se envuelven en pantallas
-// estrechas en vez de forzar scroll horizontal — con 4 botones + chips de
-// equipamiento, una sola fila con scroll ya no era cómoda de recorrer.
+// con overflow-x:auto. Ahora los botones se envuelven en pantallas
+// estrechas en vez de forzar scroll horizontal.
 .planner-toolbar {
   display: flex;
   align-items: center;
@@ -55,31 +54,71 @@
   flex-wrap: wrap;
 }
 
-// Chips de equipamiento del cliente ("Equipamiento utilizado") — mismo
-// vocabulario visual que .scope-chip en client-detail.page.scss, adaptado a
-// la barra de herramientas: compacto, sin necesitar abrir la ficha.
-.planner-toolbar-equipment {
+// Material del cliente (botón "Material" de la barra). Panel lateral en
+// escritorio y hoja inferior en móvil, mismo patrón que checkin-templates.
+.equipment-panel {
+  @include tf-side-panel(380px);
+  padding-bottom: var(--tf-space-5);
+}
+
+.panel-handle {
+  @include tf-side-panel-handle;
+}
+
+.panel-header {
   display: flex;
   align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
+}
+
+.panel-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.panel-close {
+  @include tf-icon-button;
+  flex-shrink: 0;
+}
+
+.equipment-section + .equipment-section {
+  margin-top: var(--tf-space-4);
+}
+
+.equipment-section-title {
+  margin: 0 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+.equipment-chips {
+  display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-left: auto;
-  color: var(--tf-text-muted);
-
-  > ion-icon {
-    flex-shrink: 0;
-    font-size: 16px;
-  }
 }
 
 .equipment-chip {
-  padding: 3px 10px;
+  padding: 6px 12px;
   border-radius: var(--tf-radius-pill);
   background: var(--tf-surface-4);
   color: var(--tf-text-secondary);
-  font-size: 0.72rem;
+  font-size: var(--tf-font-size-sm);
   font-weight: 600;
-  white-space: nowrap;
+}
+
+.equipment-notes {
+  margin: 0;
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.5;
+  white-space: pre-line;
 }
 
 .toolbar-btn {

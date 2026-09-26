@@ -16,6 +16,7 @@ import { PlannerExerciseCopyService } from './services/planner-exercise-copy.ser
 import { ClientDetailApiService } from '../clients/pages/client-detail/services/client-detail-api.service';
 import { latestPlannerPain, PlannerPain } from './utils/planner-pain';
 import { TrainerInvitesApiService } from '../invites/services/trainer-invites-api.service';
+import { RoutineTemplateApiService } from 'src/app/core/services/routine-template/routine-template-api.service';
 import {
   ClientIntake,
   EquipmentTag,
@@ -58,15 +59,6 @@ export class PlannerPage {
   public focusedWorkout: Workout | null = null;
   public busy = false;
 
-  // Tarea (2026-08) — mientras se arrastra un entrenamiento dentro de un
-  // microciclo, las DEMÁS columnas se atenúan (ver planner-column.component)
-  // para que quede claro que solo se puede reordenar dentro del mismo
-  // microciclo — arrastrar y soltar entre columnas nunca fue posible (cada
-  // cdkDropList es independiente, sin cdkDropListConnectedTo), pero sin
-  // señal visual el entrenador podía no saberlo. splitId de la columna
-  // ORIGEN del drag activo (null = nada en curso).
-  public draggingFromSplitId: string | null = null;
-
   // Reordenar microciclos (2026-09) — antes cdkDrag SIEMPRE activo en la
   // columna; en móvil el gesto de arrastre choca con el scroll horizontal
   // del tablero y no engancha bien. Ahora el drag solo se activa con este
@@ -76,6 +68,17 @@ export class PlannerPage {
 
   public toggleReorderMode(): void {
     this.reorderMode = !this.reorderMode;
+    if (this.reorderMode) this.reorderCardsMode = false;
+  }
+
+  // Reordenar entrenamientos (2026-09) — ion-reorder dentro de cada
+  // microciclo, con su propio botón. Excluyente con reorderMode: los dos a
+  // la vez mezclarían dos gestos de arrastre sobre la misma card.
+  public reorderCardsMode = false;
+
+  public toggleReorderCardsMode(): void {
+    this.reorderCardsMode = !this.reorderCardsMode;
+    if (this.reorderCardsMode) this.reorderMode = false;
   }
 
   // Tarea (2026-08) — "Añadir desde plantilla" hace varias llamadas seguidas
@@ -86,12 +89,13 @@ export class PlannerPage {
   public applyingTemplates = false;
 
   // Punto 1 (mejoras Planner, 2026-09) — "Equipamiento utilizado" del
-  // cliente, consultable arriba en la barra de herramientas (ver
-  // planner.page.html) sin salir a la ficha del cliente. Mismo endpoint que
+  // cliente, consultable desde el botón "Material" de la barra (panel
+  // lateral, ver planner.page.html) sin salir a la ficha. Mismo endpoint que
   // ya usa client-detail.page.ts#loadClientIntake — null mientras carga, en
   // templateMode (biblioteca de plantillas propia del profesional, sin
   // cliente real) o si el cliente no ha respondido cuestionario aún.
   public clientIntake: ClientIntake | null = null;
+  public showEquipmentPanel = false;
   public clientPain: PlannerPain[] = [];
   public painEnabled = false;
   public get activeClientPain(): PlannerPain[] { return this.clientPain.filter((entry) => entry.level > 0); }
@@ -101,6 +105,7 @@ export class PlannerPage {
   private readonly tableService = inject(TableService);
   private readonly splitService = inject(SplitService);
   private readonly trainerInvitesApi = inject(TrainerInvitesApiService);
+  private readonly routineTemplateApi = inject(RoutineTemplateApiService);
   // "Copiar ejercicios" — banner "Cancelar" (2026-08, ver planner.page.html)
   // — misma instancia que inyectan las columnas, expuesta aquí para el botón
   // de cancelar a nivel de tablero completo.
@@ -171,6 +176,11 @@ export class PlannerPage {
 
   public ionViewWillEnter(): void { this.loadClientPain(); }
 
+  public ionViewWillLeave(): void {
+    this.showEquipmentPanel = false;
+    void this.ionicUtilService.closeSidePanels();
+  }
+
   public loadClientPain(): void {
     const clientId = this.route.snapshot.paramMap.get('clientId');
     this.painEnabled = !!clientId && !this.route.snapshot.data['templateMode'];
@@ -215,7 +225,11 @@ export class PlannerPage {
   }
 
   public get hasEquipmentInfo(): boolean {
-    return !!(this.clientIntake?.trainingLocation || this.clientIntake?.equipmentTags?.length);
+    return !!(
+      this.clientIntake?.trainingLocation ||
+      this.clientIntake?.equipmentTags?.length ||
+      this.clientIntake?.equipment?.trim()
+    );
   }
 
   // El "Volver" del Planificador lo resuelve ahora la cabecera común
@@ -262,6 +276,58 @@ export class PlannerPage {
                 });
               },
             });
+            return true;
+          },
+        },
+      ],
+    });
+  }
+
+  // "Guardar como plantilla" solo tiene sentido sobre la rutina de un
+  // cliente: en templateMode la tabla YA es una plantilla propia.
+  public get canSaveAsTemplate(): boolean {
+    return !!this.table && !this.route.snapshot.data['templateMode'];
+  }
+
+  public async saveAsTemplate(): Promise<void> {
+    if (!this.canSaveAsTemplate) return;
+
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('PLANNER.SAVE_AS_TEMPLATE'),
+      message: this.translate.instant('PLANNER.SAVE_AS_TEMPLATE_HINT'),
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          label: this.translate.instant('PLANNER.SAVE_AS_TEMPLATE_NAME'),
+          value: this.translate.instant('PLANNER.SAVE_AS_TEMPLATE_DEFAULT_NAME', { name: this.table?.name || '' }),
+          attributes: { maxlength: 100 },
+        },
+      ],
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.SAVE'),
+          cssClass: 'alert-button-primary',
+          handler: (data: any) => {
+            const name = (data?.name || '').trim();
+            if (!name || !this.table) return false;
+            this.routineTemplateApi
+              .createFromTable(this.table._id, name)
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe({
+                next: () =>
+                  this.ionicUtilService.showToast({
+                    message: this.translate.instant('PLANNER.SAVE_AS_TEMPLATE_SUCCESS'),
+                    duration: 2500,
+                  }),
+                error: () =>
+                  this.ionicUtilService.showToast({
+                    message: this.translate.instant('PLANNER.SAVE_AS_TEMPLATE_ERROR'),
+                    duration: 2500,
+                    color: 'danger',
+                  }),
+              });
             return true;
           },
         },
@@ -535,16 +601,6 @@ export class PlannerPage {
         });
       },
     });
-  }
-
-  // --- Arrastrar entrenamiento dentro de un microciclo ---
-
-  public onCardDragStarted(splitId: string): void {
-    this.draggingFromSplitId = splitId;
-  }
-
-  public onCardDragEnded(): void {
-    this.draggingFromSplitId = null;
   }
 
   // --- Añadir desde plantilla: overlay de tablero completo ---

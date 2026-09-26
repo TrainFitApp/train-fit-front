@@ -1,0 +1,96 @@
+// Una misma superficie para las tres apps. El icono conserva el significado
+// del aviso; el texto no se tiñe ni pierde contraste sobre fondos saturados.
+ion-toast {
+  --tf-toast-surface: var(--tf-surface-3, var(--ion-item-background, var(--ion-background-color, #fff)));
+  --tf-toast-text: var(--tf-text, var(--ion-text-color, #161616));
+  --tf-toast-info: #a65300;
+  --tf-toast-success: #187244;
+  --tf-toast-warning: #946200;
+  --tf-toast-danger: #b62c42;
+  --tf-toast-tone: var(--tf-toast-info);
+  --background: var(--tf-toast-surface);
+  --color: var(--tf-toast-text);
+  --button-color: var(--tf-toast-text);
+  --border-color: var(--tf-border-strong, rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.16));
+  --border-width: 1px;
+  --border-style: solid;
+  --border-radius: var(--tf-radius-lg, 12px);
+  --box-shadow: none;
+  --width: calc(100% - 32px);
+  --min-width: 0;
+  --max-width: 560px;
+  --min-height: 56px;
+  --white-space: normal;
+
+  // Ionic declara estos colores con !important en core.css.
+  &.ion-color {
+    --ion-color-base: var(--tf-toast-surface) !important;
+    --ion-color-contrast: var(--tf-toast-text) !important;
+  }
+
+  &.ion-color-success,
+  &.success-toast {
+    --tf-toast-tone: var(--tf-toast-success);
+  }
+
+  &.ion-color-warning,
+  &.warning-toast {
+    --tf-toast-tone: var(--tf-toast-warning);
+  }
+
+  &.ion-color-danger,
+  &.error-toast:not(.ion-color-warning) {
+    --tf-toast-tone: var(--tf-toast-danger);
+  }
+
+  &::part(container) {
+    align-items: center;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  &::part(icon) {
+    flex-shrink: 0;
+    margin-inline: 8px 4px;
+    color: var(--tf-toast-tone);
+    font-size: 24px;
+  }
+
+  &::part(message) {
+    padding: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  &::part(header) {
+    padding: 0 0 4px;
+    font-size: 0.9rem;
+    font-weight: 650;
+  }
+
+  &::part(button) {
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0;
+    border-radius: 8px;
+    color: var(--tf-toast-text);
+    font-size: 0.82rem;
+    font-weight: 650;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  &::part(button):focus-visible {
+    outline: 2px solid var(--tf-toast-tone);
+    outline-offset: -3px;
+  }
+}
+
+body[color-theme='dark'] ion-toast {
+  --tf-toast-info: var(--tf-accent-text, var(--ion-color-primary-tint));
+  --tf-toast-success: var(--tf-success, var(--ion-color-success));
+  --tf-toast-warning: var(--tf-warning, var(--ion-color-warning));
+  --tf-toast-danger: var(--tf-danger-text, var(--ion-color-danger-tint));
+}

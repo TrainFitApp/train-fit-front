@@ -2,7 +2,6 @@
   class="planner-column"
   [attr.id]="'planner-split-' + split._id"
   [class.planner-column--selected]="selected"
-  [class.planner-column--dimmed]="dimmed"
   [class.planner-column--completed]="isCompleted"
   [class.planner-column--row-sync]="rowSync.compareAllMode"
 >
@@ -83,25 +82,26 @@
   <div
     class="planner-column-body"
     #columnBody
-    cdkDropList
-    [cdkDropListData]="split.workouts"
-    (cdkDropListDropped)="onCardsDropped($event)"
     (scroll)="onBodyScroll($event)"
   >
+    <!-- Reordenar entrenamientos (2026-09) — ion-reorder nativo, solo con
+         el modo "Reordenar entrenamientos" de la barra: fuera de él la card
+         no se arrastra y no choca con el scroll ni con el arrastre de
+         ejercicios de dentro. En el modo, la card entera es el asa. -->
+    <ion-reorder-group [disabled]="!reorderCardsMode" (ionItemReorder)="onCardsReordered($any($event))">
     <div
       class="planner-card-wrapper"
       [attr.id]="'planner-workout-' + workout._id"
       [class.planner-card-wrapper--completed]="isWorkoutCompleted(workout)"
       *ngFor="let workout of split.workouts; let i = index; trackBy: trackByWorkoutId"
-      cdkDrag
-      [cdkDragData]="workout"
       (click)="focusWorkout(workout)"
-      (cdkDragStarted)="cardDragStarted.emit()"
-      (cdkDragEnded)="cardDragEnded.emit()"
     >
+      <ion-reorder *ngIf="reorderCardsMode" class="planner-card-reorder">
+        <ion-icon name="reorder-three-outline" aria-hidden="true"></ion-icon>
+      </ion-reorder>
       <ion-accordion-group
         [value]="isCardOpen(workout._id, i) ? 'open' : 'closed'"
-        [disabled]="reorderMode"
+        [disabled]="reorderMode || reorderCardsMode"
         (ionChange)="onCardAccordionChange($event, workout._id, i, workout)"
       >
         <app-workout
@@ -122,6 +122,7 @@
         ></app-workout>
       </ion-accordion-group>
     </div>
+    </ion-reorder-group>
 
     <div class="planner-column-empty" *ngIf="split.workouts.length === 0">
       <p>{{ 'PLANNER.NO_CARDS_YET' | translate }}</p>
@@ -133,10 +134,15 @@
     {{ 'PLANNER.ADD_CARD' | translate }}
   </button>
 
-  <div class="panel-backdrop" *ngIf="showAddCardPanel" (click)="closeAddCardPanel()"></div>
-  <div class="panel-sheet add-card-sheet" *ngIf="showAddCardPanel">
+  <div class="panel-sheet add-card-sheet" *ngIf="showAddCardPanel" role="dialog" aria-modal="false"
+    [attr.aria-label]="'PLANNER.ADD_CARD' | translate">
     <div class="panel-handle"></div>
-    <h3 class="panel-title">{{ 'PLANNER.ADD_CARD' | translate }}</h3>
+    <header class="add-card-header">
+      <h3 class="panel-title">{{ 'PLANNER.ADD_CARD' | translate }}</h3>
+      <button type="button" class="panel-close" (click)="closeAddCardPanel()" [attr.aria-label]="'COMMON.CERRAR' | translate">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </header>
     <div class="add-card-options">
       <button type="button" class="add-card-option" (click)="chooseBlankCard()">
         <ion-icon name="add-circle-outline"></ion-icon>

@@ -127,7 +127,7 @@
               <ion-icon name="open-outline" aria-hidden="true"></ion-icon>{{ portalBusy ? 'Abriendo…' : 'Facturación en Stripe' }}
             </button>
             <button type="button" class="text-button" *ngIf="managementAvailable" (click)="retrySync()" [disabled]="busy">Actualizar estado</button>
-            <button type="button" class="text-button" *ngIf="legacyPlan" (click)="goToAccount()">Contactar desde Mi cuenta</button>
+            <button type="button" class="text-button" *ngIf="legacyPlan" (click)="goToAccount()">Contactar desde Configuración</button>
           </div>
           <button type="button" class="text-button cancel-button" *ngIf="canManage('canCancel')" (click)="openManagementDialog('cancel')" [disabled]="busy">Cancelar renovación</button>
         </div>

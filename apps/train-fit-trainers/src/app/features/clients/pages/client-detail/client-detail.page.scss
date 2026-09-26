@@ -1492,7 +1492,7 @@
 }
 
 // ---------------------------------------------------------------------------
-// Panel "Ver intake" (cabecera persistente > botón junto a Mensaje)
+// Panel "Ver intake" (cabecera persistente)
 // ---------------------------------------------------------------------------
 .intake-panel-sheet {
   display: flex;
@@ -1884,6 +1884,43 @@
   .list-card {
     margin-bottom: 0;
   }
+
+  .routine-header-row {
+    flex-wrap: wrap;
+    align-items: center;
+
+    .list-card--button {
+      flex: 1 1 320px;
+      min-width: 0;
+    }
+
+    .list-card--button + .bulk-apply-btn {
+      margin-left: auto;
+    }
+  }
+}
+
+.routine-heading-copy {
+  flex: 1;
+  min-width: 0;
+
+  .list-card-title {
+    display: block;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+  }
+}
+
+.routine-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1);
+  margin-top: var(--tf-space-1);
+
+  &:empty {
+    display: none;
+  }
 }
 
 .routine-header-row {
@@ -1903,34 +1940,47 @@
 }
 
 .routine-detail {
-  padding: 10px 4px 4px 14px;
-  border-left: 2px solid var(--tf-border-subtle);
-  margin: 4px 0 12px 14px;
+  padding: var(--tf-space-4);
+  margin: var(--tf-space-2) 0 var(--tf-space-6);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-1);
 }
 
 .split-block {
-  margin-bottom: 14px;
+  margin-bottom: var(--tf-space-6);
 
   &:last-child {
     margin-bottom: 0;
   }
 }
 
+.split-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2) var(--tf-space-3);
+  padding-bottom: var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-border-strong);
+}
+
 .split-heading {
-  font-size: 0.78rem;
+  font-size: var(--tf-font-size-md);
   font-weight: 700;
-  color: var(--tf-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin: 0 0 8px;
+  color: var(--tf-accent-text);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.split-count {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
 }
 
 .workout-row {
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border-subtle);
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
+  padding-top: var(--tf-space-4);
+  margin-bottom: var(--tf-space-4);
 
   &:last-child {
     margin-bottom: 0;
@@ -1939,19 +1989,26 @@
 
 .workout-row-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  gap: var(--tf-space-2) var(--tf-space-3);
+  padding-bottom: var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-border);
 }
 
 .workout-name {
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: var(--tf-font-size-base);
+  font-weight: 650;
   color: var(--tf-text);
+  overflow-wrap: anywhere;
 }
 
 .workout-status {
-  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  font-size: var(--tf-font-size-sm);
   font-weight: 600;
   color: var(--tf-text-muted);
 
@@ -1961,12 +2018,10 @@
 }
 
 .exercise-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 4px 0;
-  font-size: 0.8rem;
+  display: grid;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3) 0;
+  font-size: var(--tf-font-size-base);
   color: var(--tf-text-secondary);
 
   &:not(:last-child) {
@@ -1975,35 +2030,53 @@
 }
 
 .exercise-name {
-  flex-shrink: 0;
-  color: var(--tf-text-secondary);
+  min-width: 0;
+  font-weight: 600;
+  color: var(--tf-text);
+  overflow-wrap: anywhere;
 }
 
 .exercise-sets-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--tf-space-3);
   min-width: 0;
 }
 
 .exercise-sets {
-  text-align: right;
-  color: var(--tf-text-muted);
-  font-size: 0.76rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-1);
+  min-width: 0;
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  overflow-wrap: anywhere;
 
   // TAREA 2 (coach-tab) — "prescrito vs. realizado".
   &--expected {
-    color: var(--tf-text-muted);
-    font-style: italic;
+    color: var(--tf-text-secondary);
   }
 
   &--done {
     color: var(--tf-success);
+  }
+}
+
+.exercise-data-label {
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+}
+
+.exercise-data-value {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .exercise-sets-group {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--tf-space-2);
   }
 }
 
@@ -2150,6 +2223,12 @@
 }
 
 // --- coach-tab FASE4: tareas/hábitos (reutiliza .payment-card para el listado) ---
+.habit-card-icon {
+  flex-shrink: 0;
+  font-size: var(--tf-space-6);
+  color: var(--tf-accent-text);
+}
+
 .cadence-options {
   display: flex;
   flex-wrap: wrap;

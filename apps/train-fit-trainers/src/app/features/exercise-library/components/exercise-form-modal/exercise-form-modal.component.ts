@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ModalController } from '@ionic/angular';
 import { Exercise } from 'src/app/core/models/exercise';
 import { ExerciseService } from 'src/app/core/services/exercise/exercise.service';
@@ -8,6 +9,7 @@ import {
   EXERCISE_EQUIPMENT,
   EXERCISE_MUSCLE_GROUPS,
 } from '../../constants/exercise-taxonomy';
+import { parseYouTubeId, youTubeEmbedUrl } from '../../utils/youtube-embed';
 
 type ExerciseMode = 'fuerza' | 'cardio' | 'isometrico';
 
@@ -32,6 +34,9 @@ export class ExerciseFormModalComponent implements OnInit {
   public name = '';
   public description = '';
   public videoUrl = '';
+  public videoEmbedSrc: SafeResourceUrl | null = null;
+  public videoUrlInvalid = false;
+  private videoId = '';
   public mode: ExerciseMode = 'fuerza';
   public selectedCategories: string[] = [];
   public selectedMuscleGroups1: string[] = [];
@@ -42,11 +47,23 @@ export class ExerciseFormModalComponent implements OnInit {
   constructor(
     private modalController: ModalController,
     private exerciseService: ExerciseService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private sanitizer: DomSanitizer
   ) {}
 
   public get isEdit(): boolean {
     return !!this.exercise?._id;
+  }
+
+  // Solo se rehace el iframe cuando cambia el id: teclear o borrar sin
+  // cambiarlo no debe recargar el vídeo a cada pulsación.
+  public onVideoUrlChange(): void {
+    const url = (this.videoUrl || '').trim();
+    const id = parseYouTubeId(url);
+    this.videoUrlInvalid = !!url && !id;
+    if (id === this.videoId) return;
+    this.videoId = id;
+    this.videoEmbedSrc = id ? this.sanitizer.bypassSecurityTrustResourceUrl(youTubeEmbedUrl(id)) : null;
   }
 
   public get canSave(): boolean {
@@ -60,6 +77,7 @@ export class ExerciseFormModalComponent implements OnInit {
     this.name = exercise.name || '';
     this.description = exercise.description || '';
     this.videoUrl = exercise.videoUrl || '';
+    this.onVideoUrlChange();
     this.mode = exercise.isIsometric
       ? 'isometrico'
       : exercise.isCardio

@@ -296,7 +296,7 @@
      .input-wrapper / .submit-button) — un solo patrón de bottom sheet en toda
      la app, no uno por pantalla. -->
 <div class="panel-backdrop" *ngIf="showTaskPanel" (click)="closeTaskPanel()"></div>
-<div class="panel-sheet" *ngIf="showTaskPanel" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
+<div class="panel-sheet" *ngIf="showTaskPanel" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title" appSubmitOnEnter="submitTask">
   <div class="panel-handle" aria-hidden="true"></div>
 
   <h2 class="panel-title" id="task-sheet-title">Nueva tarea</h2>
@@ -331,7 +331,7 @@
 
   <div class="panel-actions">
     <button type="button" class="cancel-button" (click)="closeTaskPanel()">Cancelar</button>
-    <button type="button" class="submit-button" [disabled]="!canSubmitTask" (click)="submitTask()">
+    <button type="button" class="submit-button" [disabled]="!canSubmitTask" (click)="submitTask()" data-enter-submit-action="submitTask">
       <span *ngIf="!isSavingTask">Crear tarea</span>
       <ion-spinner name="dots" *ngIf="isSavingTask"></ion-spinner>
     </button>

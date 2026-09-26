@@ -4,6 +4,12 @@ import { CustomExercise } from '../../models/customExercise';
 import { HttpService } from '../http/http.service';
 import { Set } from 'src/app/core/models/set';
 
+// rowUpdates: el mismo ejercicio en los demás microciclos de la fila y el
+// blockId que se le ha puesto (bloques por fila, 2026-09).
+export type CustomExerciseWithRow = CustomExercise & {
+  rowUpdates?: { _id: string; blockId: string | null }[];
+};
+
 @Injectable()
 export class CustomExerciseAPIService {
   public static readonly CUSTOM_EXERCISE_ENDPOINT = 'customexercises';
@@ -47,8 +53,8 @@ export class CustomExerciseAPIService {
   public setCustomExerciseBlock(
     id: string,
     blockId: string | null
-  ): Observable<CustomExercise> {
-    return this.http.put<CustomExercise>(
+  ): Observable<CustomExerciseWithRow> {
+    return this.http.put<CustomExerciseWithRow>(
       `${CustomExerciseAPIService.CUSTOM_EXERCISE_ENDPOINT}/${id}/block`,
       { blockId }
     );

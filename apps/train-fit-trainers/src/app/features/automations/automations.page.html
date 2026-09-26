@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Automatizaciones">
+  <app-page-header title="Avisos automatizados">
     <ng-container pageActions>
-      <button type="button" class="tf-page-header__back-button" (click)="createRule()" aria-label="Nueva automatización">
+      <button type="button" class="tf-page-header__back-button" (click)="createRule()" aria-label="Nuevo aviso automatizado">
         <ion-icon name="add-outline"></ion-icon>
       </button>
     </ng-container>
@@ -16,7 +16,7 @@
 
   <div class="page-state" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <h2>No se pudieron cargar tus automatizaciones</h2>
+    <h2>No se pudieron cargar tus avisos automatizados</h2>
     <button type="button" class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
@@ -26,12 +26,12 @@
     <ion-icon name="git-branch-outline" aria-hidden="true"></ion-icon>
     <h2>Tu metodología, aplicada sola</h2>
     <p>
-      Una automatización vigila a tus clientes por ti y te avisa cuando pasa algo que a ti te
+      Un aviso automatizado vigila a tus clientes por ti y te avisa cuando pasa algo que a ti te
       importa. Por ejemplo: <em>si el peso apenas baja durante 2 semanas y la adherencia supera el
       85%, avísame de un posible estancamiento</em>.
     </p>
     <button type="button" class="primary-button" (click)="createRule()">
-      Crear mi primera automatización
+      Crear mi primer aviso automatizado
     </button>
   </div>
 

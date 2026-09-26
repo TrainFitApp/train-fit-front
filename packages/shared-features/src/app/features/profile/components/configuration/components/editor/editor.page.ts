@@ -32,6 +32,7 @@ import {
 } from "src/app/shared/constants/training";
 import { USER_VALIDATIONS } from "src/app/shared/constants/user-validations";
 import { MACROS_VALUES, MacrosData } from "src/app/shared/models/macros-data";
+import { environment } from "src/environments/environment";
 
 @Component({
   selector: "app-editor",
@@ -39,6 +40,7 @@ import { MACROS_VALUES, MacrosData } from "src/app/shared/models/macros-data";
   styleUrls: ["./editor.page.scss"],
 })
 export class EditorPage implements OnInit {
+  public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
   @ViewChild(IonContent) content: IonContent;
   @ViewChild(IonModal) dateModal: IonModal;
   public isDateModalOpen = false;

@@ -6,11 +6,12 @@ import { CoreModule } from 'src/app/core/core.module';
 import { AppUpdateModule } from 'src/app/features/app-update/app-update.module';
 import { MaintenanceModule } from 'src/app/features/maintenance/maintenance.module';
 import { NumericKeypadModule } from 'src/app/shared/components/numeric-keypad/numeric-keypad.module';
+import { trainFitToastAnimations } from 'src/app/core/services/util/toast-motion';
 
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    IonicModule.forRoot(),
+    IonicModule.forRoot(trainFitToastAnimations),
     CoreModule,
     AppUpdateModule,
     MaintenanceModule,

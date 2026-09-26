@@ -238,16 +238,6 @@ const routes: Routes = [
             (m) => m.AutomationsPageModule
           ),
       },
-      {
-        // TAREA5 (auditoría UX, Fase D) — componer una comida y aplicarla
-        // de una vez a varios clientes, sin pasar por la ficha de uno solo.
-        path: 'meal-compose',
-        data: { parent: '/tabs/templates' },
-        loadChildren: () =>
-          import('src/app/features/meal-compose/meal-compose.module').then(
-            (m) => m.MealComposePageModule
-          ),
-      },
     ],
   },
 ];

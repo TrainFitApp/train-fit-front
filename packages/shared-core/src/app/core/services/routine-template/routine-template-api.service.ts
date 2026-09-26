@@ -21,6 +21,12 @@ export class RoutineTemplateApiService {
     return this.http.post<Table>('trainer/routines', { name });
   }
 
+  // "Guardar como plantilla" desde el Planner: el back copia solo la pauta
+  // de la rutina (sin ejecución ni notas del cliente).
+  public createFromTable(tableId: string, name: string): Observable<Table> {
+    return this.http.post<Table>(`trainer/routines/from-table/${tableId}`, { name });
+  }
+
   public delete(id: string): Observable<unknown> {
     return this.http.delete(`trainer/routines/${id}`);
   }

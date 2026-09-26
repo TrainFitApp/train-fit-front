@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { MonoTypeOperatorFunction, Observable, take, tap } from 'rxjs';
 import { CustomExercise } from '../../models/customExercise';
 import { HttpService } from '../http/http.service';
-import { CustomExerciseAPIService } from './custom-exercise-api.service';
+import { CustomExerciseAPIService, CustomExerciseWithRow } from './custom-exercise-api.service';
 import { Set } from 'src/app/core/models/set';
 import { PinnedExerciseNoteService } from '../pinned-exercise-note/pinned-exercise-note.service';
 
@@ -66,7 +66,7 @@ export class CustomExerciseService {
   public setCustomExerciseBlock(
     id: string,
     blockId: string | null
-  ): Observable<CustomExercise> {
+  ): Observable<CustomExerciseWithRow> {
     return this.customExerciseAPIService.setCustomExerciseBlock(id, blockId);
   }
 

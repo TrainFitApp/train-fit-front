@@ -14,7 +14,7 @@
   </div>
 </ion-header>
 
-<ion-content class="week-content">
+<ion-content class="week-content" [appSubmitOnEnter]="prepareButton">
   <p class="week-period">
     <strong>R{{ next.number }}</strong> · {{ periodLabel }}
     <span class="week-period__edited" *ngIf="alreadyPrepared">· ya preparada</span>
@@ -111,7 +111,7 @@
 
 <ion-footer class="ion-no-border">
   <div class="footer-actions">
-    <button type="button" class="confirm-button" [disabled]="!(targetKcal > 0)" (click)="prepare()">
+    <button #prepareButton type="button" class="confirm-button" [disabled]="!(targetKcal > 0)" (click)="prepare()">
       Preparar R{{ next.number }} en el editor
     </button>
     <button type="button" class="discard-link" *ngIf="alreadyPrepared" [disabled]="discarding" (click)="discard()">

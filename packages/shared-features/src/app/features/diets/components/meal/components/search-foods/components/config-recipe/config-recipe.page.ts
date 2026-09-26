@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from "@angular/core";
+import { Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ToastController, Platform, IonContent } from "@ionic/angular";
 import { Subject, firstValueFrom, takeUntil } from "rxjs";
@@ -26,6 +26,7 @@ import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { splitTextIntoSteps } from "src/app/shared/utils";
 import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
+import { environment } from "src/environments/environment";
 
 export type ConfigRecipeMode = "create" | "add" | "edit";
 
@@ -36,6 +37,8 @@ export type ConfigRecipeMode = "create" | "add" | "edit";
   animations: [fadeIn],
 })
 export class ConfigRecipePage implements OnInit, OnDestroy {
+  public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
+  @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLElement>;
   private static readonly INGREDIENT_SNAPSHOT_FIELDS: Array<
     keyof CustomProduct
   > = [

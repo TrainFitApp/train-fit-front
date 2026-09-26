@@ -47,6 +47,84 @@ ion-header ion-toolbar {
   border-radius: var(--tf-radius-md);
 }
 
+// Vídeo: bloque propio (superficie + borde) para que no pase por un campo
+// más del formulario. Borde, no sombra: un solo nivel de elevación.
+.video-field {
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-2);
+}
+
+.video-field-head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-3);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 22px;
+    color: var(--tf-accent);
+  }
+}
+
+.video-field-title {
+  flex: 1;
+  font-size: var(--tf-font-size-md);
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.video-field-optional {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
+.video-input {
+  min-height: var(--tf-touch-min);
+  border-width: 1.5px;
+  border-color: var(--tf-border-strong);
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:focus-within {
+    border-color: var(--tf-border-focus);
+  }
+
+  .is-invalid & {
+    border-color: var(--tf-danger-border);
+  }
+}
+
+.video-field-help {
+  margin: var(--tf-space-2) 0 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-text-muted);
+
+  &.is-error {
+    color: var(--tf-danger-text);
+  }
+}
+
+.video-preview {
+  position: relative;
+  margin-top: var(--tf-space-3);
+  aspect-ratio: 16 / 9;
+  border-radius: var(--tf-radius-md);
+  overflow: hidden;
+  background: var(--tf-surface-3);
+
+  iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+}
+
 ion-segment {
   --background: var(--tf-surface-3);
   border-radius: var(--tf-radius-md);

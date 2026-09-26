@@ -145,6 +145,16 @@
   }
 }
 
+.account-section {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  > .section-card {
+    flex: 1;
+  }
+}
+
 .section-card {
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
@@ -157,7 +167,7 @@
   font-size: var(--tf-font-size-md);
   font-weight: 600;
   color: var(--tf-text);
-  margin-bottom: var(--tf-space-3);
+  margin: 0 0 var(--tf-space-3);
 }
 
 .section-caption {

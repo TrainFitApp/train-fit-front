@@ -52,7 +52,7 @@ export class MethodPage implements OnInit {
     },
     {
       // Fase 3 Coach Pro — reglas CUÁNDO/SI/ENTONCES.
-      name: 'Automatizaciones',
+      name: 'Avisos automatizados',
       description: 'Reglas que vigilan por ti y te avisan cuando algo se sale de lo previsto',
       icon: 'git-branch-outline',
       colorVar: 'var(--tf-accent)',

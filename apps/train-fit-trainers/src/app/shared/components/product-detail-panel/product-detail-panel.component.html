@@ -14,7 +14,7 @@
   </div>
 </ion-header>
 
-<ion-content class="detail-panel-content">
+<ion-content class="detail-panel-content" appSubmitOnEnter="addToTarget">
   <p class="detail-brand" *ngIf="product?.brand">{{ product?.brand }}</p>
 
   <div class="detail-qty-row">
@@ -82,7 +82,7 @@
     </div>
   </div>
 
-  <button type="button" class="add-to-target-btn" *ngIf="onAdd" (click)="addToTarget()">
+  <button type="button" class="add-to-target-btn" *ngIf="onAdd" (click)="addToTarget()" data-enter-submit-action="addToTarget">
     <ion-icon name="add-circle-outline"></ion-icon>
     {{ addLabel }}
   </button>

@@ -101,6 +101,7 @@
         [formGroup]="loginForm"
         (ngSubmit)="login()"
         class="login-form"
+        [appSubmitOnEnter]="isTrainerApp ? 'login' : null"
         novalidate
       >
         <div *ngIf="loading" class="loading-container">
@@ -122,7 +123,7 @@
             <input
               id="email"
               type="email"
-              enterkeyhint="next"
+              [attr.enterkeyhint]="isTrainerApp ? 'go' : 'next'"
               inputmode="email"
               autocomplete="email"
               autocapitalize="none"
@@ -133,7 +134,7 @@
               appLowercaseEmailInput
               class="field-input"
               [class.field-input--error]="loginErrorKind === 'invalid-credentials'"
-              (keydown.enter)="passwordInput.focus()"
+              (keydown.enter)="isTrainerApp ? null : passwordInput.focus()"
             />
             <label class="field-label" for="email">{{ 'SIGN_IN.EMAIL_LABEL' | translate }}</label>
             <div
@@ -196,6 +197,7 @@
             type="submit"
             expand="block"
             class="cta-btn is-enabled"
+            data-enter-submit-action="login"
             [disabled]="loading || loginForm.invalid"
           >
             <strong>{{ 'SIGN_IN.LOGIN' | translate }}</strong>

@@ -108,7 +108,7 @@ export interface SearchFoodsTrainerContext {
   // Fix7 — opcional: cuando el consumidor de trainerContext también sabe
   // crear una receta nueva, openCreateActionSheet ofrece ambas opciones en
   // vez de ir directo a "crear producto". Los consumidores que no lo
-  // implementan (client-detail.page.ts, compose-meal.page.ts) mantienen su
+  // implementan (client-detail.page.ts) mantienen su
   // comportamiento actual sin cambios.
   pickCreateRecipe?: () => void;
   // Fix — "Añadir N a {{ meal?.name }}" quedaba en blanco cuando el

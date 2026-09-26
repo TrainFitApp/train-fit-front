@@ -8,6 +8,7 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import { PasswordComplexity } from 'src/app/core/validators/password-complexity';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-restore-password',
@@ -15,6 +16,7 @@ import { PasswordComplexity } from 'src/app/core/validators/password-complexity'
   styleUrls: ['./restore-password.page.scss'],
 })
 export class RestorePasswordPage implements OnInit, OnDestroy {
+  public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
   public restorePassForm: FormGroup;
   public code: string;
   public showPass: boolean;

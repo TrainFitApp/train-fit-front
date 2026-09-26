@@ -52,7 +52,7 @@
 </ion-header>
 
 <ion-content class="elegant-content">
-  <form *ngIf="form" [formGroup]="form">
+  <form *ngIf="form" [formGroup]="form" [appSubmitOnEnter]="isTrainerApp ? enterSubmitButton?.nativeElement : null">
     <!-- Exercise Name Card with Add Sets Button -->
     <div class="elegant-card exercise-name-card">
       <div class="card-content">
@@ -180,19 +180,38 @@
           <!-- TASK-041 (MASTER_BACKLOG.md) — videoUrl ya viajaba en el payload
                de creación/edición (this.videoUrl), pero no existía ningún
                input para que el usuario lo escribiera: solo se leía de
-               ejercicios preexistentes. -->
-          <div class="exercise-video-section">
-            <ion-label class="video-url-label">{{ 'EXERCISE_CONFIG.VIDEO_URL_LABEL' | translate }}</ion-label>
+               ejercicios preexistentes. 2026-09: bloque propio con vista
+               previa, como campo suelto no se veía. -->
+          <section class="exercise-video-section" [class.is-invalid]="videoUrlInvalid">
+            <div class="video-url-head" id="config-exercise-video-label">
+              <ion-icon name="logo-youtube" aria-hidden="true"></ion-icon>
+              <span>{{ 'EXERCISE_CONFIG.VIDEO_URL_LABEL' | translate }}</span>
+            </div>
             <ion-input
               [(ngModel)]="videoUrl"
               [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onVideoUrlChange()"
               [placeholder]="'EXERCISE_CONFIG.VIDEO_URL_PLACEHOLDER' | translate"
-              fill="solid"
+              [clearInput]="true"
               mode="ios"
               type="url"
+              inputmode="url"
               class="video-url-input"
+              aria-labelledby="config-exercise-video-label"
             ></ion-input>
-          </div>
+            <p class="video-url-help" [class.is-error]="videoUrlInvalid">
+              {{ (videoUrlInvalid ? 'EXERCISE_CONFIG.VIDEO_URL_INVALID' : 'EXERCISE_CONFIG.VIDEO_URL_HELP') | translate }}
+            </p>
+            <div class="video-url-preview" *ngIf="videoEmbedSrcSafe">
+              <iframe
+                [src]="videoEmbedSrcSafe"
+                [title]="'EXERCISE_CONFIG.DEMO_VIDEO' | translate"
+                frameborder="0"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+          </section>
 
           <div class="exercise-mode-section">
             <ion-segment
@@ -221,18 +240,6 @@
           >
             <ion-icon name="barbell-outline" slot="start"></ion-icon>
             <span class="add-sets-text">{{ 'EXERCISE_CONFIG.ADD_SETS' | translate }}</span>
-          </ion-button>
-          <!-- TASK-021 (MASTER_BACKLOG.md) — generador rápido de series por
-               esquema, gateado a trainers vía showQuickSeriesGenerator. -->
-          <ion-button
-            *ngIf="showQuickSeriesGenerator"
-            fill="clear"
-            color="secondary"
-            class="add-sets-btn t-add-exercise-quick-series"
-            (click)="openQuickSeriesGenerator()"
-          >
-            <ion-icon name="flash-outline" slot="start"></ion-icon>
-            <span class="add-sets-text">{{ 'EXERCISE_CONFIG.QUICK_SERIES_GENERATOR_ACTION' | translate }}</span>
           </ion-button>
         </div>
       </div>
@@ -441,8 +448,9 @@
       </ng-template>
     </div>
 
-    <!-- Video Section -->
-    <div *ngIf="videoEmbedSrcSafe" class="elegant-card video-card">
+    <!-- Video Section — al crear o editar el propio ejercicio ya se ve en
+         la vista previa del bloque de vídeo de arriba. -->
+    <div *ngIf="videoEmbedSrcSafe && !isCreateMode && !isEditingOwnExercise" class="elegant-card video-card">
       <div class="video-header">
         <div class="video-info">
           <div class="video-icon">
@@ -746,6 +754,7 @@
       expand="block"
       size="large"
       (click)="saveOwnExerciseOnly()"
+      #enterSubmitTarget
       [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
     >
       <div class="button-content">
@@ -759,6 +768,7 @@
         expand="block"
         size="large"
         (click)="addCustomExercise()"
+        #enterSubmitTarget
         [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
       >
         <div class="button-content">

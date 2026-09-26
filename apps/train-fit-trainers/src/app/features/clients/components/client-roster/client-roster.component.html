@@ -44,7 +44,7 @@
   </div>
 
   <p class="roster-hint">
-    Últimos {{ periodDays }} días. Pulsa una columna para ordenar por ella, o una fila para ver el desglose.
+    Últimos {{ periodDays }} días. Pulsa una columna para ordenar, una fila para abrir la ficha o su flecha para ver el desglose.
   </p>
 
   <!-- La tabla desborda en horizontal dentro de su propio contenedor; el
@@ -91,7 +91,7 @@
               <ion-icon [name]="sortIcon('alerts')" aria-hidden="true"></ion-icon>
             </button>
           </th>
-          <th scope="col"><span class="sr-only">Abrir ficha</span></th>
+          <th scope="col"><span class="sr-only">Desplegar desglose</span></th>
         </tr>
       </thead>
 
@@ -100,10 +100,17 @@
           <tr
             class="roster-row"
             [class.roster-row--expanded]="expandedClientId === row.clientId"
-            (click)="toggleRow(row)"
+            (click)="openClient(row)"
           >
             <th scope="row" class="col-name">
-              <span class="row-name">{{ row.clientName }}</span>
+              <button
+                type="button"
+                class="row-name"
+                (click)="openClient(row); $event.stopPropagation()"
+                [attr.aria-label]="'Abrir la ficha de ' + row.clientName"
+              >
+                {{ row.clientName }}
+              </button>
             </th>
 
             <td>
@@ -136,18 +143,23 @@
             <td class="col-action">
               <button
                 type="button"
-                class="open-button"
-                (click)="openClient(row); $event.stopPropagation()"
-                [attr.aria-label]="'Abrir la ficha de ' + row.clientName"
+                class="expand-button"
+                (click)="toggleRow(row); $event.stopPropagation()"
+                [attr.aria-label]="(expandedClientId === row.clientId ? 'Ocultar el desglose de ' : 'Ver el desglose de ') + row.clientName"
+                [attr.aria-expanded]="expandedClientId === row.clientId"
+                [attr.aria-controls]="expandedClientId === row.clientId ? 'roster-detail-' + row.clientId : null"
               >
-                <ion-icon name="chevron-forward-outline"></ion-icon>
+                <ion-icon
+                  [name]="expandedClientId === row.clientId ? 'chevron-up-outline' : 'chevron-down-outline'"
+                  aria-hidden="true"
+                ></ion-icon>
               </button>
             </td>
           </tr>
 
           <!-- Desglose: los cuatro números detrás de la media, y el motivo
                por el que alguno no se puede medir. -->
-          <tr class="roster-detail-row" *ngIf="expandedClientId === row.clientId">
+          <tr class="roster-detail-row" *ngIf="expandedClientId === row.clientId" [id]="'roster-detail-' + row.clientId">
             <td [attr.colspan]="8">
               <div class="dimension-grid">
                 <button

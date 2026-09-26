@@ -1,4 +1,4 @@
-import { Injector, Injectable } from '@angular/core';
+import { EnvironmentInjector, Injector, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
   ActionSheetController,
@@ -15,10 +15,14 @@ import {
   ToastController,
   ToastOptions,
   Platform,
+  AngularDelegate,
 } from '@ionic/angular';
 import { Capacitor } from '@capacitor/core';
 import { NavigationBar } from '@capgo/capacitor-navigation-bar';
 import { ErrorHandlerService } from './error-handler.service';
+import { environment } from 'src/environments/environment';
+import { submitOnEnter } from 'src/app/shared/directives/submit-on-enter.util';
+import { alertEnterSubmitIndex } from './alert-enter-submit.util';
 import {
   alertSheetEnter,
   alertSheetLeave,
@@ -67,6 +71,180 @@ export class IonicUtilService {
 
     showModal.present();
     return showModal.onDidDismiss();
+  }
+
+  // --- Paneles laterales apilados ("doble sidenav", Planner 2026-09) ---
+  // Abiertos desde Planner: el tablero y los demás paneles siguen activos.
+  // Cada componente recibe un ModalController local para que dismiss() sin
+  // id cierre su propio panel, aunque haya otro abierto después.
+  // Las clases solo tienen CSS en train-fit-trainers (theme/tokens.scss).
+  private readonly sidePanelStack: HTMLIonModalElement[] = [];
+  private readonly sidePanelParents = new Map<HTMLIonModalElement, HTMLIonModalElement>();
+  // Paneles abiertos ENCIMA de su padre (misma columna, lo tapan): p. ej.
+  // Configurar ejercicio desde el buscador. Lo que abran ellos sale a su
+  // izquierda como cualquier otro.
+  private readonly sidePanelsOverParent = new Set<HTMLIonModalElement>();
+  private sidePanelAccessibilityCleanup: (() => void) | null = null;
+  private static readonly SIDE_PANEL_LEVELS = [
+    'tf-panel-modal',
+    'tf-panel-modal-left',
+    'tf-panel-modal-left-2',
+  ];
+
+  public showSidePanel(modalOptions: ModalOptions) {
+    return this.presentSidePanel(modalOptions);
+  }
+
+  // Para lo que se abre desde DENTRO de otro modal (sustituir ejercicio,
+  // editar serie...): si ese modal es un panel de la pila, este va a su
+  // izquierda (o encima, con overParent); si no (app de cliente, gestión),
+  // es el showModal de siempre.
+  public showNestedModal(
+    modalOptions: ModalOptions,
+    origin?: HTMLElement,
+    placement: { overParent?: boolean } = {},
+  ) {
+    this.pruneSidePanels();
+    // El foco no identifica al propietario en táctil ni tras una petición
+    // asíncrona. El componente entrega el modal que Ionic le ha inyectado.
+    if (origin && !origin.isConnected) return Promise.resolve({ data: undefined, role: 'cancel' });
+    const parent = origin?.closest('ion-modal');
+    return parent && this.sidePanelStack.includes(parent)
+      ? this.presentSidePanel(modalOptions, parent, !!placement.overParent)
+      : this.showModal(modalOptions);
+  }
+
+  private async presentSidePanel(
+    modalOptions: ModalOptions,
+    parent?: HTMLIonModalElement,
+    overParent = false,
+  ) {
+    this.pruneSidePanels();
+    const stack = this.sidePanelStack;
+    const levels = IonicUtilService.SIDE_PANEL_LEVELS;
+    const levelClass = levels[Math.min(stack.length, levels.length - 1)];
+    // Fuera las clases de marco que traía la llamada (panel, mini-modal):
+    // el marco lo decide el nivel. El resto (p. ej. workout-summary-modal)
+    // se conserva.
+    const extraClasses = [modalOptions.cssClass ?? []]
+      .flat()
+      .flatMap((cls) => cls.split(' '))
+      .filter((cls) => cls && !cls.startsWith('tf-panel-modal') && cls !== 'mini-modal');
+
+    const modal = await this.modalController.create({
+      component: modalOptions.component,
+      componentProps: modalOptions.componentProps,
+      cssClass: [levelClass, 'tf-planner-panel', 'ion-disable-focus-trap', ...extraClasses],
+      animated: true,
+      showBackdrop: false,
+      backdropDismiss: false,
+    });
+
+    const scopedController: Pick<ModalController, 'create' | 'dismiss' | 'getTop'> = {
+      create: (options) => this.modalController.create(options),
+      dismiss: (data, role, id) => this.modalController.dismiss(data, role, id ?? modal.id),
+      getTop: () => this.modalController.getTop(),
+    };
+    const panelInjector = Injector.create({
+      parent: this.injector,
+      providers: [{ provide: ModalController, useValue: scopedController }],
+    });
+    modal.delegate = this.injector.get(AngularDelegate).create(
+      this.injector.get(EnvironmentInjector), panelInjector, 'modal',
+    );
+    if (parent) this.sidePanelParents.set(modal, parent);
+    if (parent && overParent) this.sidePanelsOverParent.add(modal);
+    stack.push(modal);
+    this.updateSidePanelLevels();
+    this.watchSidePanelAccessibility();
+    modal.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      void modal.dismiss(undefined, 'cancel');
+    });
+    modal.addEventListener('ionModalWillDismiss', () => {
+      for (const child of [...stack].reverse()) {
+        if (this.sidePanelParents.get(child) === modal) void child.dismiss(undefined, 'cancel');
+      }
+    }, { once: true });
+    try {
+      await modal.present();
+      modal.shadowRoot?.querySelector('[part="content"]')?.setAttribute('aria-modal', 'false');
+      this.syncSidePanelAccessibility();
+      return await modal.onDidDismiss();
+    } finally {
+      const index = stack.indexOf(modal);
+      if (index >= 0) stack.splice(index, 1);
+      this.sidePanelParents.delete(modal);
+      this.sidePanelsOverParent.delete(modal);
+      this.updateSidePanelLevels();
+      this.syncSidePanelAccessibility();
+      if (!stack.length) {
+        this.sidePanelAccessibilityCleanup?.();
+        this.sidePanelAccessibilityCleanup = null;
+      }
+    }
+  }
+
+  public async closeSidePanels(): Promise<void> {
+    for (const panel of [...this.sidePanelStack].reverse()) {
+      await panel.dismiss(undefined, 'cancel');
+    }
+  }
+
+  // Columna de cada panel (0 = derecha): un hijo va una a la izquierda de
+  // su padre, o en la misma si se abrió encima; uno sin padre, según su
+  // posición en la pila (como hasta ahora).
+  private updateSidePanelLevels(): void {
+    const levels = IonicUtilService.SIDE_PANEL_LEVELS;
+    const columns = new Map<HTMLIonModalElement, number>();
+    this.sidePanelStack.forEach((panel, index) => {
+      const parent = this.sidePanelParents.get(panel);
+      const column = parent && columns.has(parent)
+        ? columns.get(parent)! + (this.sidePanelsOverParent.has(panel) ? 0 : 1)
+        : index;
+      columns.set(panel, column);
+      panel.classList.remove(...levels);
+      panel.classList.add(levels[Math.min(column, levels.length - 1)]);
+    });
+  }
+
+  // Ionic oculta el router y los overlays anteriores también al presentar
+  // un toast. Restaurarlos solo mientras no haya un diálogo realmente modal
+  // mantiene operativos teclado/lector, sin afectar confirmaciones ni alerts.
+  private watchSidePanelAccessibility(): void {
+    if (this.sidePanelAccessibilityCleanup) return;
+    const events = ['Modal', 'Alert', 'Popover', 'ActionSheet', 'Loading', 'Picker', 'Toast']
+      .flatMap((name) => [`ion${name}DidPresent`, `ion${name}DidDismiss`]);
+    const sync = () => { setTimeout(() => this.syncSidePanelAccessibility()); };
+    events.forEach((name) => document.addEventListener(name, sync));
+    this.sidePanelAccessibilityCleanup = () => {
+      events.forEach((name) => document.removeEventListener(name, sync));
+    };
+  }
+
+  private syncSidePanelAccessibility(): void {
+    const blockingOverlay = Array.from(document.querySelectorAll(
+      'ion-modal, ion-alert, ion-action-sheet, ion-loading, ion-picker, ion-popover',
+    )).some((overlay) => !overlay.classList.contains('overlay-hidden') &&
+      !overlay.classList.contains('tf-planner-panel'));
+    if (blockingOverlay) return;
+    const root = document.querySelector('ion-app') ?? document.body;
+    root.querySelector('ion-router-outlet, ion-nav, #ion-view-container-root')?.removeAttribute('aria-hidden');
+    this.sidePanelStack.forEach((panel) => panel.removeAttribute('aria-hidden'));
+  }
+
+  // Un panel destruido sin pasar por onDidDismiss (navegación) no debe
+  // seguir contando como "abierto".
+  private pruneSidePanels(): void {
+    for (let i = this.sidePanelStack.length - 1; i >= 0; i--) {
+      if (!this.sidePanelStack[i].isConnected) {
+        this.sidePanelParents.delete(this.sidePanelStack[i]);
+        this.sidePanelsOverParent.delete(this.sidePanelStack[i]);
+        this.sidePanelStack.splice(i, 1);
+      }
+    }
   }
 
   public async closeModal(): Promise<void> {
@@ -153,6 +331,16 @@ export class IonicUtilService {
       }
     );
     const swipe = enableAlertSheetSwipe(showAlert);
+    const enterSubmitIndex = environment.auth?.clientFamily === 'trainfit-trainers'
+      ? alertEnterSubmitIndex(alert) : -1;
+    const onEnter = (event: KeyboardEvent) => {
+      const button = showAlert.querySelectorAll<HTMLButtonElement>('.alert-button')[enterSubmitIndex];
+      submitOnEnter(event, showAlert, button);
+    };
+    if (enterSubmitIndex >= 0) {
+      showAlert.setAttribute('data-enter-submit-scope', '');
+      showAlert.addEventListener('keydown', onEnter);
+    }
 
     // Ionic no pinta el `label` de los inputs de texto/fecha (solo el de
     // radios y checkboxes): sin esto, dos fechas seguidas no dicen cuál es cuál.
@@ -178,6 +366,7 @@ export class IonicUtilService {
     }
 
     const res = await showAlert.onDidDismiss();
+    showAlert.removeEventListener('keydown', onEnter);
     backSub.unsubscribe?.();
     swipe?.destroy();
     // Tocar fuera es cancelar: quien llama solo distingue los roles de sus

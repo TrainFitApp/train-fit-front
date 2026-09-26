@@ -271,12 +271,30 @@
 
 .submit-button {
   @include tf-gradient-button;
-  height: 52px;
+  position: relative;
+  width: 100%;
+  min-height: 52px;
+  padding: var(--tf-space-3) var(--tf-space-4);
+  box-sizing: border-box;
   font-size: var(--tf-font-size-md);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: var(--tf-space-2);
+
+  &.is-loading {
+    opacity: 1;
+
+    .submit-label {
+      opacity: 0;
+    }
+  }
+
+  .submit-spinner {
+    position: absolute;
+    width: var(--tf-space-6);
+    height: var(--tf-space-6);
+  }
 }
 
 .verification-step {

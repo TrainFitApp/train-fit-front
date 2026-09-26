@@ -25,7 +25,7 @@
     <h2>Tu metodología, en un solo paso</h2>
     <p>
       Un protocolo agrupa lo que le pones a un cliente cuando entra en una fase: plantilla de
-      check-in, plan de dieta, rutina, automatizaciones y hábitos. Créalo una vez —
+      check-in, plan de dieta, rutina, avisos automatizados y hábitos. Créalo una vez —
       <em>Definición</em>, <em>Volumen</em>, <em>Recomposición</em>— y aplícalo entero cada vez que
       lo necesites.
     </p>
@@ -100,7 +100,7 @@
 
 <!-- ============ Editor ============ -->
 <div class="panel-backdrop" *ngIf="showEditor" (click)="closeEditor()"></div>
-<div class="panel-sheet" *ngIf="showEditor" role="dialog" aria-modal="true" aria-labelledby="protocol-editor-title">
+<div class="panel-sheet" *ngIf="showEditor" role="dialog" aria-modal="true" aria-labelledby="protocol-editor-title" appSubmitOnEnter="saveProtocol">
   <div class="panel-handle" aria-hidden="true"></div>
   <h2 class="panel-title" id="protocol-editor-title">
     {{ editingId ? 'Editar protocolo' : 'Nuevo protocolo' }}
@@ -159,9 +159,9 @@
     <ion-select-option *ngFor="let option of routineTemplates" [value]="option._id">{{ option.name }}</ion-select-option>
   </ion-select>
 
-  <h3 class="section-title">Automatizaciones</h3>
+  <h3 class="section-title">Avisos automatizados</h3>
   <p class="section-hint" *ngIf="!rules.length">
-    Todavía no tienes automatizaciones. Puedes crearlas desde el menú lateral y añadirlas aquí luego.
+    Todavía no tienes avisos automatizados. Puedes crearlos en Mi método y añadirlos aquí luego.
   </p>
   <div class="rule-chips" *ngIf="rules.length">
     <button
@@ -201,7 +201,7 @@
     <p class="save-error" *ngIf="validationError">{{ validationError }}</p>
     <div class="panel-buttons">
       <button type="button" class="cancel-button" (click)="closeEditor()">Cancelar</button>
-      <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()">
+      <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()" data-enter-submit-action="saveProtocol">
         <span *ngIf="!isSaving">{{ editingId ? 'Guardar' : 'Crear protocolo' }}</span>
         <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
       </button>

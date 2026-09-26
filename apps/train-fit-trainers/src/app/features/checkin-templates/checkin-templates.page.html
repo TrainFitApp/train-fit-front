@@ -90,7 +90,7 @@
 
   <!-- Panel: crear/editar plantilla -->
   <div class="panel-backdrop" *ngIf="showEditPanel" (click)="closeEditPanel()"></div>
-  <div class="panel-sheet panel-sheet--tall" *ngIf="showEditPanel" role="dialog" aria-modal="true">
+  <div class="panel-sheet panel-sheet--tall" *ngIf="showEditPanel" role="dialog" aria-modal="true" appSubmitOnEnter="saveTemplate">
     <div class="panel-handle"></div>
     <!-- El aspa es el único cierre visible arriba cuando el panel se
          lateraliza: ahí desaparece el asa de arrastre (ver
@@ -149,7 +149,7 @@
       <div class="field-group-body" id="preguntas-propias" *ngIf="showCustomQuestions">
       <p class="field-group-hint">
         Lo que el catálogo de arriba no cubra. Estas respuestas se guardan y se te muestran, pero
-        no alimentan gráficas ni automatizaciones — para eso están los campos del catálogo.
+        no alimentan gráficas ni avisos automatizados — para eso están los campos del catálogo.
       </p>
 
       <div class="custom-question" *ngFor="let question of formCustomQuestions; let i = index; trackBy: trackByIndex">
@@ -260,6 +260,7 @@
       <button
         class="submit-button"
         (click)="saveTemplate()"
+        data-enter-submit-action="saveTemplate"
         [disabled]="!formName.trim() || isSaving"
       >
         <span *ngIf="!isSaving">{{ editingId ? 'Guardar cambios' : 'Crear plantilla' }}</span>

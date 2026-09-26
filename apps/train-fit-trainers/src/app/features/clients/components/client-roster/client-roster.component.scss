@@ -147,8 +147,24 @@ thead .col-name {
 }
 
 .row-name {
+  @include tf-touch-expander;
+  display: inline-flex;
+  align-items: center;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
   font-weight: 600;
   color: var(--tf-text);
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
 }
 
 .cell-muted {
@@ -237,7 +253,7 @@ thead .col-name {
   padding-left: 0;
 }
 
-.open-button {
+.expand-button {
   // Mismo botón de icono que el resto de la app, pero sin acento: es una
   // acción por fila, y en una tabla de treinta clientes treinta botones
   // naranjas serían ruido. Sin fondo NO se leía como botón: parecía un

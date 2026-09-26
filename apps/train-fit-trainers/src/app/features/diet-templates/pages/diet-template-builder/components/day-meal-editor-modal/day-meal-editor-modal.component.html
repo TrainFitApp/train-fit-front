@@ -19,7 +19,7 @@
   </div>
 </ion-header>
 
-<ion-content class="editor-modal-content">
+<ion-content class="editor-modal-content" [appSubmitOnEnter]="doneButton">
   <p class="panel-hint">
     Añade una composición para esta comida, o 2 o más opciones nombradas para que el cliente elija
     cuál come ese día.
@@ -237,5 +237,5 @@
 </ion-content>
 
 <ion-footer class="editor-modal-footer">
-  <button type="button" class="submit-button" (click)="dismiss()">Listo</button>
+  <button #doneButton type="button" class="submit-button" (click)="dismiss()">Listo</button>
 </ion-footer>

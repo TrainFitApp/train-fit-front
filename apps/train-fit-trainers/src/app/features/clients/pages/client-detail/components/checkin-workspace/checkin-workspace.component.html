@@ -16,7 +16,7 @@
 
   <div class="workspace-grid" *ngIf="state === 'loaded' && data">
     <main class="review-panel">
-      <form class="schedule-editor" *ngIf="editor as draft; else reviewPanel" (ngSubmit)="save()">
+      <form class="schedule-editor" *ngIf="editor as draft; else reviewPanel" (ngSubmit)="save()" appSubmitOnEnter="saveSchedule">
         <div class="panel-heading"><h3>{{ editingId ? 'Editar programación' : 'Nueva programación' }}</h3><button type="button" class="icon-button" aria-label="Cerrar programación" (click)="editor = null" [disabled]="busy"><ion-icon name="close-outline"></ion-icon></button></div>
         <p class="muted">Elige la primera fecha. Las siguientes se repetirán sin depender de cuándo responda el cliente.</p>
 
@@ -57,7 +57,7 @@
         <div class="schedule-summary"><ion-icon name="notifications-outline" aria-hidden="true"></ion-icon><span><strong>{{ cadence(draft) }} · {{ draft.time }}</strong><small>El cliente lo verá al abrir la app. El anterior cierra cuando llega el siguiente.</small></span></div>
         <p class="muted" *ngIf="draft.frequency === 'monthly'">Si ese día no existe en un mes, se usará su último día.</p>
         <p class="muted" *ngIf="editingId">Lo ya respondido conserva sus preguntas. Los cambios afectan a las fechas que aún no ha respondido.</p>
-        <div class="form-actions"><button type="button" (click)="editor = null" [disabled]="busy">Cancelar</button><button type="submit" class="primary" [disabled]="!canSave">{{ busy ? 'Guardando…' : 'Guardar programación' }}</button></div>
+        <div class="form-actions"><button type="button" (click)="editor = null" [disabled]="busy">Cancelar</button><button type="submit" class="primary" [disabled]="!canSave" data-enter-submit-action="saveSchedule">{{ busy ? 'Guardando…' : 'Guardar programación' }}</button></div>
       </form>
 
       <ng-template #reviewPanel>

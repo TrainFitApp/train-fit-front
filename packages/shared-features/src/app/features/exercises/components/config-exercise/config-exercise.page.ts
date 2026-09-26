@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, Optional, QueryList, ViewChildren } from "@angular/core";
+import { Component, ElementRef, OnDestroy, OnInit, Optional, QueryList, ViewChild, ViewChildren } from "@angular/core";
 import { TranslateService } from "@ngx-translate/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -29,7 +29,6 @@ import { IonicUtilService } from "src/app/core/services/util/ionic-util.service"
 import { UtilService } from "src/app/core/services/util/util.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
 import { ManageSetComponent } from "src/app/features/tables/components/summary/components/manage-set/manage-set.component";
-import { QuickSeriesModalComponent } from "../quick-series-modal/quick-series-modal.component";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
@@ -42,6 +41,7 @@ import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise
 import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from "src/app/core/models/pinned-exercise-note";
 import { splitTextIntoSteps } from "src/app/shared/utils";
 import { EXERCISE_DESCRIPTIONS_ES_EN } from "src/app/shared/constants/db-translations/exercise-descriptions-es-en.map";
+import { environment } from "src/environments/environment";
 
 @Component({
   selector: "app-config-exercise",
@@ -49,6 +49,8 @@ import { EXERCISE_DESCRIPTIONS_ES_EN } from "src/app/shared/constants/db-transla
   styleUrls: ["./config-exercise.page.scss"],
 })
 export class ConfigExercisePage implements OnInit, OnDestroy {
+  public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
+  @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLElement>;
   public muscleGroups: string[] = [
     "Espalda",
     "Pecho",
@@ -103,14 +105,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public originalExercise?: Exercise;
   public exerciseChanged: boolean = false;
   public videoEmbedSrcSafe: any;
-
-  // TASK-021 (MASTER_BACKLOG.md) — sin @Input() decorator, mismo criterio que
-  // el resto de las propiedades de este componente: se asigna vía
-  // `componentProps` al abrir el modal, nunca por binding de template. Solo
-  // se pasa `true` desde puntos de entrada de train-fit-trainers (ver
-  // planner-column.component.html) — en Trainfit normal y train-fit-management
-  // se queda en `false` y el botón/generador ni se renderiza.
-  public showQuickSeriesGenerator = false;
+  public videoUrlInvalid = false;
+  private videoEmbedId = "";
 
   public isCreateMode: boolean;
   public exerciseMode: "fuerza" | "cardio" | "isometrico" = "fuerza";
@@ -154,8 +150,11 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
   public editScore(): void {
     if (!this.scorableExercise) return;
-    this.scoreEditHandler?.editScore(this.scorableExercise);
+    this.scoreEditHandler?.editScore(this.scorableExercise, this.modal);
   }
+
+  // Referencia al contenedor que proporciona AngularDelegate de Ionic.
+  public modal?: HTMLIonModalElement;
 
   public get isCurrentExerciseCardio(): boolean {
     const ex = this.customExercise?.exercise || this.exercise;
@@ -507,8 +506,18 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     return "";
   }
 
+  // Mientras se escribe la URL: el iframe solo se rehace si cambia el id,
+  // no a cada pulsación.
+  public onVideoUrlChange(): void {
+    const url = (this.videoUrl || "").trim();
+    const id = this.parseYouTubeIdFromUrl(url);
+    this.videoUrlInvalid = !!url && !id;
+    if (id !== this.videoEmbedId) this.updateVideoEmbedSrc();
+  }
+
   private updateVideoEmbedSrc(): void {
-    const id = this.parseYouTubeIdFromUrl(this.videoUrl);
+    const id = this.parseYouTubeIdFromUrl((this.videoUrl || "").trim());
+    this.videoEmbedId = id;
     if (!id) {
       this.videoEmbedSrcSafe = null;
       return;
@@ -620,7 +629,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       },
     };
 
-    this.ionicUtilService.showModal(modalOptions).then((res) => {
+    this.ionicUtilService.showNestedModal(modalOptions, this.modal).then((res) => {
       if (res.data) {
         const sameType =
           currentIsCardio === !!res.data.isCardio &&
@@ -903,7 +912,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       },
     };
 
-    this.ionicUtilService.showModal(modalOptions).then((res) => {
+    this.ionicUtilService.showNestedModal(modalOptions, this.modal).then((res) => {
       // Se ha configurado serie
       if (res.data) {
         const setConfig: ExerciseSet = res.data;
@@ -961,77 +970,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       this.setsToCreate.push(setCopy);
       this.normalizeSetOrder();
     }
-  }
-
-  // TASK-021 (MASTER_BACKLOG.md) — prescribir varias series repitiendo el
-  // mismo esquema (reps/RIR, o tiempo para isométricos/cardio) exigía ~9
-  // acciones (abrir ManageSetComponent + "copiar" 4 veces). Este generador
-  // crea `count` series de golpe con el mismo esquema, reutilizando
-  // exactamente el mismo shape de `Set` que produce ManageSetComponent
-  // (`manage-set.component.ts#submit()`) y el mismo flujo de alta que
-  // `configSets()`/`copySet()` (id temporal negativo, `displayOrder`,
-  // `setsToCreate`, `normalizeSetOrder()`).
-  public async openQuickSeriesGenerator(): Promise<void> {
-    const isCardio = this.isCurrentExerciseCardio;
-    const isIsometric = this.isCurrentExerciseIsometric;
-
-    const modal = await this.modalController.create({
-      component: QuickSeriesModalComponent,
-      componentProps: { isCardio, isIsometric },
-      cssClass: "tf-panel-modal",
-    });
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-    if (data) this.applyQuickSeries(data, isCardio, isIsometric);
-  }
-
-  private applyQuickSeries(
-    res: {
-      count?: string | number;
-      expectedTime?: string;
-      expectedDistance?: string | number;
-      repsMin?: string | number;
-      repsMax?: string | number;
-      rirMin?: string | number;
-      rirMax?: string | number;
-    },
-    isCardio: boolean,
-    isIsometric: boolean,
-  ): void {
-    const count = Math.max(1, Math.min(20, Math.round(Number(res?.count)) || 1));
-
-    for (let i = 0; i < count; i++) {
-      const newSet: ExerciseSet = {
-        _id: (--this.idCounter).toString(),
-        order: this.setList.length,
-        displayOrder: this.nextDisplayOrder++,
-        expectedReps: [],
-        expectedRir: [],
-      };
-
-      if (isCardio) {
-        newSet.expectedTime = (res?.expectedTime || "").toString().trim();
-        const distance = Number(res?.expectedDistance);
-        if (Number.isFinite(distance) && res?.expectedDistance !== "") {
-          newSet.expectedDistance = distance;
-        }
-      } else if (isIsometric) {
-        newSet.expectedTime = (res?.expectedTime || "").toString().trim();
-      } else {
-        const repsMin = Math.max(0, Math.round(Number(res?.repsMin)) || 0);
-        const repsMax = Math.max(repsMin, Math.round(Number(res?.repsMax)) || repsMin);
-        const rirMin = Math.max(0, Math.round(Number(res?.rirMin)) || 0);
-        const rirMax = Math.max(rirMin, Math.round(Number(res?.rirMax)) || rirMin);
-        newSet.expectedReps = [repsMin, repsMax];
-        newSet.expectedRir = [rirMin, rirMax];
-      }
-
-      this.setList.push(newSet);
-      this.setsToCreate.push(newSet);
-    }
-
-    this.normalizeSetOrder();
   }
 
   public async addCustomExercise(): Promise<void> {
@@ -1533,7 +1471,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       animated: true,
     };
 
-    this.ionicUtilService.showModal(modalOptions).then((res) => {
+    this.ionicUtilService.showNestedModal(modalOptions, this.modal).then((res) => {
       const data = res?.data;
       if (data?.searchFilterGroupExercises) {
         this.details = data.searchFilterGroupExercises;

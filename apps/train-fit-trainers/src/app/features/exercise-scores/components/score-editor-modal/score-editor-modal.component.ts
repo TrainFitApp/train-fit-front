@@ -41,6 +41,7 @@ export class ScoreEditorModalComponent implements OnInit {
   public secondsPerSet: number | null = null;
   public showJoints = false;
   public isSaving = false;
+  public isRestoring = false;
 
   constructor(
     private exerciseScoresApi: ExerciseScoresApiService,
@@ -49,17 +50,45 @@ export class ScoreEditorModalComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
+    this.applyScore(this.existing);
+  }
+
+  private applyScore(score: Partial<ExerciseScore> | null): void {
     for (const muscle of this.muscles) {
-      this.muscleValues.set(muscle, scoreFor(this.existing?.muscleScores, muscle));
+      this.muscleValues.set(muscle, scoreFor(score?.muscleScores, muscle));
     }
     for (const joint of this.joints) {
-      this.jointValues.set(joint, scoreFor(this.existing?.jointScores, joint));
+      this.jointValues.set(joint, scoreFor(score?.jointScores, joint));
     }
-    this.secondsPerSet = this.existing?.secondsPerSet ?? null;
+    this.secondsPerSet = score?.secondsPerSet ?? null;
 
     // Si ya había alguna articulación puntuada, la sección se abre sola:
     // esconder lo que el entrenador escribió haría pensar que se ha perdido.
-    this.showJoints = (this.existing?.jointScores || []).length > 0;
+    this.showJoints = (score?.jointScores || []).length > 0;
+  }
+
+  // Misma sugerencia con la que arranca un ejercicio sin puntuar
+  // (exercise-score-defaults.js). Sin patrón que encaje, "por defecto" es el
+  // editor en blanco. No guarda: eso sigue siendo cosa de save().
+  public restoreDefaults(): void {
+    if (this.isRestoring) return;
+    this.isRestoring = true;
+
+    this.exerciseScoresApi.getDefault(this.exerciseId).subscribe({
+      next: (defaultScore) => {
+        this.isRestoring = false;
+        this.applyScore(defaultScore);
+        this.isDefault = true;
+      },
+      error: () => {
+        this.isRestoring = false;
+        this.ionicUtilService.showErrorToast(
+          'No se pudo cargar la puntuación por defecto',
+          'Error',
+          2500
+        );
+      },
+    });
   }
 
   public get muscles(): string[] {

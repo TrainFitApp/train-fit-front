@@ -12,5 +12,5 @@ import { Exercise } from '../../models/exercise';
 // con la implementación real que sí puede importar sus propios servicios.
 @Injectable()
 export abstract class ExerciseScoreEditHandler {
-  public abstract editScore(exercise: Exercise): void;
+  public abstract editScore(exercise: Exercise, origin?: HTMLElement): void;
 }

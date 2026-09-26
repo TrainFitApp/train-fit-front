@@ -10,7 +10,7 @@
       su ficha ("Asignar rutina" > "Usar plantilla").
     </p>
 
-    <div class="create-bar">
+    <div class="create-bar" appSubmitOnEnter="createTemplate">
       <div class="input-wrapper">
         <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
         <input
@@ -18,7 +18,6 @@
           class="input-field"
           placeholder="Rutina Hipertrofia 4 días"
           [(ngModel)]="newName"
-          (keyup.enter)="createAndEdit()"
         />
       </div>
       <button
@@ -26,6 +25,7 @@
         class="submit-button"
         [disabled]="!newName.trim() || isCreating"
         (click)="createAndEdit()"
+        data-enter-submit-action="createTemplate"
       >
         <span *ngIf="!isCreating">Crear plantilla</span>
         <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>

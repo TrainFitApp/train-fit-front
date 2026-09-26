@@ -56,13 +56,6 @@ export class TemplatesPage implements OnInit {
       colorVar: 'var(--ion-color-tertiary, #ffd359)',
       path: '/tabs/diet-templates',
     },
-    {
-      name: 'Componer para varios clientes',
-      description: 'Pauta la misma comida a un grupo de clientes de una sola vez',
-      icon: 'people-circle-outline',
-      colorVar: 'var(--tf-accent-2, #4fc79a)',
-      path: '/tabs/meal-compose',
-    },
     // TASK-042 (MASTER_BACKLOG.md) — antes el catálogo de ejercicios solo era
     // alcanzable como modal picker dentro de construir un workout. Se anida
     // aquí (categoría dentro de "Biblioteca") en vez de como destino nuevo
@@ -84,9 +77,8 @@ export class TemplatesPage implements OnInit {
 
   // --- Recientes por tipo (grid de columnas en escritorio) — misma fuente
   // de datos que cada lista completa (RoutinesPage/DietTemplatesListPage),
-  // solo recortada a las 4 más nuevas. No hay columna para "Componer para
-  // varios clientes"/"Ejercicios": no son plantillas con listado propio, son
-  // herramientas.
+  // solo recortada a las 4 más nuevas. No hay columna para "Ejercicios": no
+  // son plantillas con listado propio, es una herramienta.
   public dietTemplates: DietTemplate[] = [];
   public loadingDietTemplates = true;
 

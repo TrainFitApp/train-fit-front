@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SubmitOnEnterDirective } from 'src/app/shared/directives/submit-on-enter.directive';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -37,11 +38,12 @@ type ViewState = 'loading' | 'missing-biometrics' | 'ready' | 'error';
 @Component({
   selector: 'app-diet-suggestion-drawer',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, DietCardModule, MacroAdjustComponent],
+  imports: [CommonModule, FormsModule, IonicModule, DietCardModule, MacroAdjustComponent, SubmitOnEnterDirective],
   templateUrl: './diet-suggestion-drawer.component.html',
   styleUrls: ['./diet-suggestion-drawer.component.scss'],
 })
 export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
+  @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLButtonElement>;
   @Input() public clientId!: string;
   @Input() public clientName = 'este cliente';
 

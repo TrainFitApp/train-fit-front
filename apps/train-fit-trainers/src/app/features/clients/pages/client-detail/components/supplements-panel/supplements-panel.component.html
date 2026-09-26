@@ -91,6 +91,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="supplement-sheet-title"
+    appSubmitOnEnter="saveSupplement"
   >
     <div class="panel-handle"></div>
 
@@ -259,7 +260,7 @@
          botón de guardar quedaba fuera de vista. -->
     <footer class="sheet-footer">
       <button type="button" class="ghost-button" (click)="closePanel()">Cancelar</button>
-      <button class="submit-button" (click)="save()" [disabled]="!canSave">
+      <button class="submit-button" (click)="save()" [disabled]="!canSave" data-enter-submit-action="saveSupplement">
         <span *ngIf="!isSaving">Guardar</span>
         <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
       </button>

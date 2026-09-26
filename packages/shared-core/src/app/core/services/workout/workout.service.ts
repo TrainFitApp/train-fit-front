@@ -5,7 +5,7 @@ import { CustomExercise } from '../../models/customExercise';
 import { Split } from '../../models/split';
 import { Workout, WorkoutBlock } from '../../models/workout';
 import { WorkoutAPIService } from './workout-api.service';
-import { FinishWorkoutResponse, SkipWorkoutResponse } from './workout-api.service';
+import { FinishWorkoutResponse, SkipWorkoutResponse, WorkoutWithRow } from './workout-api.service';
 import { Exercise } from '../../models/exercise';
 import { Table } from '../../models/table';
 import { ExerciseClipboard } from 'src/app/shared/models/exercise-clipboard';
@@ -144,7 +144,7 @@ export class WorkoutService {
   public updateWorkoutBlocks(
     workoutId: string,
     blocks: Partial<WorkoutBlock>[]
-  ): Observable<Workout> {
+  ): Observable<WorkoutWithRow> {
     return this.workoutAPIService.updateWorkoutBlocks(workoutId, blocks).pipe(take(1));
   }
 

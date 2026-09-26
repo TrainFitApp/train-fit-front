@@ -218,7 +218,8 @@
   // la derecha. MISMO ancho que .tf-panel-modal ("del mismo tamaño"): no es
   // una pantalla más grande, es un panel hermano. Se abre con
   // showBackdrop:false para no oscurecer el panel derecho.
-  .tf-panel-modal-left {
+  .tf-panel-modal-left,
+  .tf-panel-modal-left-2 {
     --width: 420px;
     --height: 100%;
     --border-radius: 0;
@@ -227,6 +228,12 @@
     align-items: stretch;
     justify-content: flex-end;
     padding-right: 420px;
+  }
+
+  // Tercer nivel de paneles apilados (IonicUtilService#showNestedModal):
+  // p. ej. buscador → configurar ejercicio → editar serie.
+  .tf-panel-modal-left-2 {
+    padding-right: 840px;
   }
 
   // "Hay que tocar dos veces / capa invisible" — son DOS capas distintas
@@ -250,18 +257,21 @@
   //    llega a desactivar el backdrop; hace falta apagarlo aparte vía su
   //    ::part("backdrop") expuesto.
   .tf-panel-modal-left,
+  .tf-panel-modal-left-2,
   .tf-panel-modal-detail-1,
   .tf-panel-modal-detail-2 {
     pointer-events: none;
   }
 
   .tf-panel-modal-left::part(backdrop),
+  .tf-panel-modal-left-2::part(backdrop),
   .tf-panel-modal-detail-1::part(backdrop),
   .tf-panel-modal-detail-2::part(backdrop) {
     pointer-events: none;
   }
 
-  .tf-panel-modal-left .ion-page {
+  .tf-panel-modal-left .ion-page,
+  .tf-panel-modal-left-2 .ion-page {
     border-left: 1px solid var(--tf-border-strong);
     border-right: 1px solid var(--tf-border-strong);
     pointer-events: auto;
@@ -334,6 +344,21 @@
   }
 }
 
+// Solo paneles abiertos desde Planner: el hueco del overlay no captura
+// clicks. El marco real sí, incluidos scrollbar y controles de Ionic.
+ion-modal.tf-planner-panel {
+  pointer-events: none;
+
+  &::part(backdrop) {
+    pointer-events: none;
+  }
+
+  &::part(content),
+  .ion-page {
+    pointer-events: auto;
+  }
+}
+
 // Por debajo de 768px, el bloque de arriba no aplica NADA — el comentario de
 // cabecera decía que el modal "cae al comportamiento nativo de pantalla
 // completa", pero eso nunca se forzó: Ionic 7 en iOS presenta un ion-modal
@@ -348,6 +373,7 @@
 @media (max-width: 767.98px) {
   .tf-panel-modal,
   .tf-panel-modal-left,
+  .tf-panel-modal-left-2,
   .tf-panel-modal-detail-1,
   .tf-panel-modal-detail-2,
   .tf-panel-modal-overlay {

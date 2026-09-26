@@ -9,7 +9,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="exercise-form-content">
+<ion-content class="exercise-form-content" [appSubmitOnEnter]="saveExerciseButton">
   <div class="field">
     <label class="field-label" for="exercise-name">Nombre</label>
     <ion-input
@@ -48,17 +48,40 @@
     ></ion-textarea>
   </div>
 
-  <div class="field">
-    <label class="field-label" for="exercise-video">Vídeo (YouTube)</label>
+  <!-- Bloque propio: como un campo más se perdía entre descripción y
+       categorías. La vista previa confirma al momento que el enlace sirve. -->
+  <section class="field video-field" [class.is-invalid]="videoUrlInvalid">
+    <label class="video-field-head" for="exercise-video">
+      <ion-icon name="logo-youtube" aria-hidden="true"></ion-icon>
+      <span class="video-field-title">Vídeo del ejercicio</span>
+      <span class="video-field-optional">Opcional</span>
+    </label>
     <ion-input
       id="exercise-video"
-      class="field-input"
+      class="field-input video-input"
       type="url"
       inputmode="url"
-      placeholder="https://youtube.com/watch?v=..."
+      placeholder="Pega el enlace de YouTube"
+      [clearInput]="true"
       [(ngModel)]="videoUrl"
+      (ngModelChange)="onVideoUrlChange()"
+      aria-describedby="exercise-video-help"
     ></ion-input>
-  </div>
+    <p id="exercise-video-help" class="video-field-help" [class.is-error]="videoUrlInvalid">
+      {{ videoUrlInvalid
+        ? 'No es un enlace de YouTube válido. Usa youtube.com/watch?v=…, youtu.be/… o youtube.com/embed/…'
+        : 'youtube.com/watch?v=…, youtu.be/… o youtube.com/embed/…' }}
+    </p>
+    <div class="video-preview" *ngIf="videoEmbedSrc">
+      <iframe
+        [src]="videoEmbedSrc"
+        title="Vista previa del vídeo"
+        frameborder="0"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </section>
 
   <div class="field">
     <label class="field-label">Categorías</label>
@@ -122,7 +145,7 @@
 </ion-content>
 
 <ion-footer class="exercise-form-footer">
-  <button type="button" class="save-button" [disabled]="!canSave" (click)="save()">
+  <button #saveExerciseButton type="button" class="save-button" [disabled]="!canSave" (click)="save()">
     <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
     <span *ngIf="!saving">{{ isEdit ? 'Guardar cambios' : 'Crear ejercicio' }}</span>
   </button>

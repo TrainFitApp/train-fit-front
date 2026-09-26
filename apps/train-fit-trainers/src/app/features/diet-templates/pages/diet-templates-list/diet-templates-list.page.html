@@ -8,7 +8,7 @@
     solo la fecha de inicio, en vez de teclear cada comida de cada día a mano.
   </p>
 
-  <div class="create-template-row">
+  <div class="create-template-row" appSubmitOnEnter="createDiet">
     <div class="input-wrapper">
       <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
       <input
@@ -16,7 +16,6 @@
         class="input-field"
         placeholder="Nombre de la nueva plantilla"
         [(ngModel)]="newName"
-        (keyup.enter)="createAndEdit()"
       />
     </div>
     <button
@@ -24,6 +23,7 @@
       class="submit-button"
       [disabled]="!newName.trim() || isCreating"
       (click)="createAndEdit()"
+      data-enter-submit-action="createDiet"
     >
       <span *ngIf="!isCreating">Crear</span>
       <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>

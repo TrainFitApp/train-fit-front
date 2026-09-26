@@ -14,7 +14,7 @@
   </div>
 </ion-header>
 
-<ion-content class="drawer-content">
+<ion-content class="drawer-content" [appSubmitOnEnter]="enterSubmitButton?.nativeElement">
   <!-- Guard: sin biométricos no hay objetivo -->
   <div class="guard-box" *ngIf="state === 'missing-biometrics'">
     <ion-icon name="body-outline"></ion-icon>
@@ -159,7 +159,7 @@
 
 <ion-footer class="ion-no-border" *ngIf="state === 'ready'">
   <div class="footer-actions">
-    <button type="button" class="confirm-button" [disabled]="!canConfirm" (click)="confirm()">
+    <button #enterSubmitTarget type="button" class="confirm-button" [disabled]="!canConfirm" (click)="confirm()">
       {{ applying ? 'Aplicando…' : 'Empezar fase con esta dieta' }}
     </button>
     <button type="button" class="secondary-button" [disabled]="!canConfirm" (click)="editBeforeApplying()">

@@ -39,6 +39,7 @@ import { MeasurePipe } from './pipes/measure.pipe';
 import { SafePipe } from './pipes/safe.pipe';
 import { TranslateDbPipe } from './pipes/translate-db.pipe';
 import { TranslateDescPipe } from './pipes/translate-desc.pipe';
+import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
 
 @NgModule({
   declarations: [
@@ -79,6 +80,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     MaintenanceWarningBannerComponent,
   ],
   imports: [
+    SubmitOnEnterDirective,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -87,6 +89,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     NumericKeypadModule,
   ],
   exports: [
+    SubmitOnEnterDirective,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

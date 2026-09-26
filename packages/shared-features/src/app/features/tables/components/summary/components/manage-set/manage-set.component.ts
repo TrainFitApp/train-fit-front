@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ModalController, Platform, ToastOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Set } from 'src/app/core/models/set';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-manage-set',
@@ -11,6 +12,8 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
   styleUrls: ['./manage-set.component.scss'],
 })
 export class ManageSetComponent implements OnInit {
+  public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
+  @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLElement>;
   public setForm: FormGroup;
   public set: Set;
   public isCardio: boolean;

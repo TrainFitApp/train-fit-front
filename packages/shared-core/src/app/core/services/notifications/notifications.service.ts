@@ -38,4 +38,10 @@ export class NotificationsService {
   public markAllReadLocally(): void {
     this._unreadCount.set(0);
   }
+
+  // El listado del Coach trae todas las notificaciones: su refresh puede
+  // sincronizar el badge sin una segunda petición que llegue desfasada.
+  public setUnreadCount(count: number): void {
+    this._unreadCount.set(Math.max(0, count));
+  }
 }

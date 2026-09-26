@@ -14,7 +14,7 @@
   </div>
 </ion-header>
 
-<ion-content class="builder-modal-content">
+<ion-content class="builder-modal-content" [appSubmitOnEnter]="saveButton">
   <p class="panel-hint">
     Crea una receta real a partir de 2 o más productos: quedará en tu biblioteca, lista para pautar en cualquier plantilla o cliente.
   </p>
@@ -145,7 +145,7 @@
 </ion-content>
 
 <ion-footer class="builder-modal-footer">
-  <button type="button" class="submit-button" (click)="save()" [disabled]="!canSave || isSaving">
+  <button #saveButton type="button" class="submit-button" (click)="save()" [disabled]="!canSave || isSaving">
     <span *ngIf="!isSaving">Guardar receta</span>
     <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
   </button>

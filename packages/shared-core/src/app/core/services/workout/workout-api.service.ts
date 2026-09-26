@@ -17,6 +17,10 @@ export interface SkipWorkoutResponse {
   userUpdated: boolean;
 }
 
+// rowWorkouts: el mismo entrenamiento en los demás microciclos, ya con el
+// cambio de bloques aplicado (bloques por fila, 2026-09).
+export type WorkoutWithRow = Workout & { rowWorkouts?: Workout[] };
+
 @Injectable()
 export class WorkoutAPIService {
   private static readonly WORKOUT_ENDPOINT = 'workouts';
@@ -125,8 +129,8 @@ export class WorkoutAPIService {
   public updateWorkoutBlocks(
     workoutId: string,
     blocks: Partial<WorkoutBlock>[]
-  ): Observable<Workout> {
-    return this.http.put<Workout>(
+  ): Observable<WorkoutWithRow> {
+    return this.http.put<WorkoutWithRow>(
       `${WorkoutAPIService.WORKOUT_ENDPOINT}/${workoutId}/blocks`,
       { blocks }
     );

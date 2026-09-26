@@ -1,9 +1,9 @@
-import { animate, style, transition, trigger } from '@angular/animations';
+import { animate, group, query, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonItemSliding } from '@ionic/angular';
 import { forkJoin, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, finalize, map } from 'rxjs/operators';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
 import { OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
@@ -72,19 +72,19 @@ const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
   'anthropometry_requested',
 ]);
 
-// Al borrar una notificación, quitarla del array de golpe hacía que
-// *ngFor la desmontara en el mismo frame: las de abajo saltaban a rellenar
-// el hueco de golpe, sin transición. Con :leave, Angular retrasa el
-// desmontaje hasta que esta animación termina — la altura arranca en su
-// valor real ('*', calculado en ese instante) y baja a 0, así que el hueco
-// se cierra en el propio frame a frame del layout y las siguientes
-// notificaciones suben deslizándose en vez de saltar. Misma curva que ya usa
-// el resto de esta pantalla (--ease-out) para que se sienta parte del mismo
-// sistema, no un efecto aparte.
+// Continúa hacia el lado del gesto antes de cerrar el hueco. Congelar la
+// transición de Ionic evita su rebote al ancho del botón después de ionSwipe.
 const notificationLeave = trigger('notificationLeave', [
   transition(':leave', [
-    style({ height: '*', marginBottom: '*', opacity: 1 }),
-    animate('260ms cubic-bezier(0.23, 1, 0.32, 1)', style({ height: 0, marginBottom: 0, opacity: 0 })),
+    style({ height: '*', marginBottom: '*', overflow: 'hidden', pointerEvents: 'none' }),
+    group([
+      query('.notification-card-item', [
+        style({ transform: '*', transition: 'none' }),
+        animate('100ms cubic-bezier(0.23, 1, 0.32, 1)', style({ transform: 'translateX(-100%)', opacity: 0 })),
+      ]),
+      query('ion-item-options', [animate('100ms ease-out', style({ opacity: 0 }))]),
+    ]),
+    animate('150ms cubic-bezier(0.23, 1, 0.32, 1)', style({ height: 0, marginBottom: 0, opacity: 0 })),
   ]),
 ]);
 
@@ -121,6 +121,14 @@ export class CoachPage implements OnInit {
   // coach-tab FASE3 — centro de notificaciones in-app.
   public notificationsState: ViewState = 'loading';
   public notifications: CoachNotification[] = [];
+  public refreshingNotifications = false;
+  public notificationsRefreshFailed = false;
+  public readonly deletingNotificationIds = new Set<string>();
+  public readonly notificationMotionPreference = typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : null;
+  private readonly readingNotificationIds = new Set<string>();
+  private notificationWasDragged = false;
 
   // Rediseño "menú de cards" — antes se mostraban TODAS las notificaciones
   // apiladas de golpe; ahora un preview corto + "Mostrar más" (mismos datos
@@ -212,17 +220,31 @@ export class CoachPage implements OnInit {
   }
 
   // --- Notificaciones (coach-tab FASE3) ---
+  public get notificationsRefreshDisabled(): boolean {
+    return this.refreshingNotifications || this.markingAllRead
+      || this.deletingNotificationIds.size > 0 || this.readingNotificationIds.size > 0;
+  }
+
   public loadNotifications(): void {
-    this.notificationsState = 'loading';
-    this.notificationsApi.getMine().subscribe({
+    if (this.notificationsRefreshDisabled) return;
+
+    const hadNotifications = this.notificationsState === 'loaded';
+    this.refreshingNotifications = true;
+    this.notificationsRefreshFailed = false;
+    if (!hadNotifications) this.notificationsState = 'loading';
+
+    this.notificationsApi.getMine().pipe(
+      finalize(() => (this.refreshingNotifications = false))
+    ).subscribe({
       next: (notifications) => {
         this.notifications = notifications || [];
-        this.showAllNotifications = false;
         this.updateVisibleNotifications();
         this.notificationsState = 'loaded';
+        this.notificationsService.setUnreadCount(this.unreadNotificationsCount);
       },
       error: () => {
-        this.notificationsState = 'error';
+        this.notificationsRefreshFailed = true;
+        this.notificationsState = hadNotifications ? 'loaded' : 'error';
       },
     });
   }
@@ -245,7 +267,7 @@ export class CoachPage implements OnInit {
   public markingAllRead = false;
 
   public markAllRead(): void {
-    if (this.markingAllRead || !this.unreadNotificationsCount) return;
+    if (this.notificationsRefreshDisabled || !this.unreadNotificationsCount) return;
 
     this.markingAllRead = true;
     this.notificationsApi.markAllRead().subscribe({
@@ -303,11 +325,57 @@ export class CoachPage implements OnInit {
     }
   }
 
-  public openNotification(notification: CoachNotification): void {
+  public startNotificationPointer(): void {
+    // Solo un nuevo gesto deliberado vuelve a habilitar el click. El click
+    // sintetizado al soltar un swipe no va precedido de otro pointerdown.
+    this.notificationWasDragged = false;
+  }
+
+  public dragNotification(): void {
+    this.notificationWasDragged = true;
+  }
+
+  public async openNotification(
+    notification: CoachNotification,
+    event: MouseEvent,
+    slidingItem: IonItemSliding
+  ): Promise<void> {
+    if (
+      (event.detail !== 0 && this.notificationWasDragged)
+      || this.refreshingNotifications || this.markingAllRead
+      || this.deletingNotificationIds.has(notification._id)
+      || !this.notifications.some((item) => item._id === notification._id)
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    // Tocar una tarjeta con acciones abiertas solo cierra el deslizamiento.
+    if (Math.abs(await slidingItem.getOpenAmount()) > 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      void slidingItem.close();
+      return;
+    }
+
+    // getOpenAmount es asíncrono: mientras tanto puede comenzar un refresh
+    // o borrarse esta fila por el gesto que acaba de terminar.
+    if (this.refreshingNotifications || this.markingAllRead
+      || !this.notifications.some((item) => item._id === notification._id)) return;
+
     if (!notification.read) {
       notification.read = true;
       this.notificationsService.decrementBy(1);
-      this.notificationsApi.markRead(notification._id).subscribe();
+      this.readingNotificationIds.add(notification._id);
+      this.notificationsApi.markRead(notification._id).pipe(
+        finalize(() => this.readingNotificationIds.delete(notification._id))
+      ).subscribe({
+        error: () => {
+          notification.read = false;
+          this.notificationsService.setUnreadCount(this.unreadNotificationsCount);
+        },
+      });
     }
 
     const p = notification.payload || {};
@@ -341,35 +409,36 @@ export class CoachPage implements OnInit {
     return notification._id;
   }
 
-  // Borrado por deslizamiento (ion-item-sliding) — dos gestos llegan aquí:
-  // revelar el botón rojo y pulsarlo, o deslizar de un tirón hasta el final
-  // (expandable + ionSwipe en la plantilla, estilo Gmail/Spotify). Ambos
-  // cuentan como confirmación deliberada, sin alerta nativa encima. Guard de
-  // índice: si los dos gestos llegaran a disparar sobre la misma notificación
-  // (p.ej. el soltar del swipe completo también registrase como click), la
-  // segunda llamada no debe volver a insertar algo que ya se borró.
-  // Optimista: si el backend falla, se reinserta en su posición original y se
-  // avisa por toast, igual que el resto de acciones de esta pantalla.
-  public deleteNotification(notification: CoachNotification, slidingItem: IonItemSliding): void {
-    const index = this.notifications.indexOf(notification);
-    if (index === -1) return;
+  // Tanto el swipe completo como el botón borran de forma optimista. El id
+  // pendiente protege la fila que Angular conserva durante la animación.
+  public deleteNotification(
+    notification: CoachNotification,
+    slidingItem: IonItemSliding,
+    event: Event
+  ): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.refreshingNotifications || this.markingAllRead || this.readingNotificationIds.has(notification._id)) return;
 
-    const wasUnread = !notification.read;
-    this.notifications = this.notifications.filter((n) => n !== notification);
+    const index = this.notifications.findIndex((item) => item._id === notification._id);
+    if (index === -1 || this.deletingNotificationIds.has(notification._id)) return;
+
+    const followingIds = new Set(this.notifications.slice(index + 1).map((item) => item._id));
+    this.deletingNotificationIds.add(notification._id);
+    this.notifications = this.notifications.filter((item) => item._id !== notification._id);
     this.updateVisibleNotifications();
+    this.notificationsService.setUnreadCount(this.unreadNotificationsCount);
 
-    this.notificationsApi.delete(notification._id).subscribe({
-      next: () => {
-        if (wasUnread) this.notificationsService.decrementBy(1);
-      },
+    this.notificationsApi.delete(notification._id).pipe(
+      finalize(() => this.deletingNotificationIds.delete(notification._id))
+    ).subscribe({
       error: () => {
-        // Solo aquí hace falta cerrar el swipe — la notificación vuelve a su
-        // sitio y debe verse en reposo, no a medio deslizar. En el camino
-        // feliz no se llama: el item se borra abierto/expandido tal cual
-        // estaba, la animación de salida (:leave) lo encoge entero.
         void slidingItem.close();
-        this.notifications.splice(index, 0, notification);
+        // Las respuestas de varios borrados pueden volver desordenadas.
+        const followingIndex = this.notifications.findIndex((item) => followingIds.has(item._id));
+        this.notifications.splice(followingIndex === -1 ? this.notifications.length : followingIndex, 0, notification);
         this.updateVisibleNotifications();
+        this.notificationsService.setUnreadCount(this.unreadNotificationsCount);
         this.ionicUtilService.showErrorToast('No se pudo eliminar la notificación', 'Error', 2500);
       },
     });

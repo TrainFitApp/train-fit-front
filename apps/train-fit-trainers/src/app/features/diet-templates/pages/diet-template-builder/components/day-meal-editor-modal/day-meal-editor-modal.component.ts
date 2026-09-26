@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SubmitOnEnterDirective } from 'src/app/shared/directives/submit-on-enter.directive';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { CustomProduct } from 'src/app/core/models/customProduct';
@@ -64,7 +65,7 @@ import { computeItemMicros } from '../../../../utils/nutrient-fields';
 @Component({
   selector: 'app-day-meal-editor-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, IonicModule, SubmitOnEnterDirective],
   templateUrl: './day-meal-editor-modal.component.html',
   styleUrls: ['./day-meal-editor-modal.component.scss'],
 })

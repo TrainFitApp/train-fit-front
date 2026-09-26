@@ -1,4 +1,17 @@
 {
+  "COACH_NOTIFICATIONS": {
+    "TITLE": "Notificaciones",
+    "REFRESH": "Actualizar notificaciones",
+    "REFRESHING": "Actualizando notificaciones",
+    "LOAD_ERROR": "No se pudieron cargar las notificaciones.",
+    "REFRESH_ERROR": "No se pudieron actualizar. Sigues viendo las últimas notificaciones cargadas.",
+    "RETRY": "Reintentar",
+    "EMPTY": "No tienes notificaciones todavía.",
+    "MARK_ALL_READ": "Leer todas",
+    "SHOW_ALL": "Ver todas",
+    "SHOW_LESS": "Ver menos",
+    "DELETE": "Eliminar notificación"
+  },
   "ACTIONS": {
     "EDIT": "Editar",
     "COPY": "Copiar",
@@ -118,6 +131,8 @@
     "NEW_EXERCISE_NAME": "Nombre de nuevo ejercicio",
     "VIDEO_URL_LABEL": "Vídeo (YouTube, opcional)",
     "VIDEO_URL_PLACEHOLDER": "https://youtube.com/watch?v=...",
+    "VIDEO_URL_HELP": "Enlace de youtube.com/watch?v=…, youtu.be/… o youtube.com/embed/…",
+    "VIDEO_URL_INVALID": "No es un enlace de YouTube válido. Usa youtube.com/watch?v=…, youtu.be/… o youtube.com/embed/…",
     "DESCRIPTION_PLACEHOLDER": "Descripción del ejercicio...",
     "STRENGTH": "Fuerza",
     "CARDIO": "Cardio",

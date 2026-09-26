@@ -1,5 +1,5 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Mi cuenta"></app-page-header>
+  <app-page-header title="Configuración"></app-page-header>
 </ion-header>
 
 <ion-content class="account-content">
@@ -17,8 +17,9 @@
 
   <div class="account-grid">
     <!-- Perfil profesional -->
-    <div class="section-card">
-      <div class="section-title">Perfil profesional</div>
+    <section class="account-section" aria-labelledby="account-section-title">
+      <h2 class="section-title" id="account-section-title">Mi cuenta</h2>
+      <div class="section-card">
       <div class="profile-grid">
         <div class="profile-field">
           <span class="profile-field-label">Nombre</span>
@@ -33,7 +34,8 @@
           <span class="profile-field-value">{{ user()?.email || '—' }}</span>
         </div>
       </div>
-    </div>
+      </div>
+    </section>
 
     <!-- Clientes -->
     <div class="stats-row">
@@ -48,8 +50,9 @@
     </div>
 
     <!-- Privacidad y seguridad -->
-    <div class="section-card">
-      <div class="section-title">Privacidad y seguridad</div>
+    <section class="account-section" aria-labelledby="security-section-title">
+      <h2 class="section-title" id="security-section-title">Seguridad</h2>
+      <div class="section-card">
       <button
         type="button"
         class="row-item"
@@ -63,10 +66,13 @@
         </div>
         <ion-icon name="chevron-forward-outline" class="row-item-chevron"></ion-icon>
       </button>
-    </div>
+      </div>
+    </section>
 
     <!-- Plan / suscripción (real) -->
-    <div class="section-card plan-card">
+    <section class="account-section" aria-labelledby="subscription-section-title">
+      <h2 class="section-title" id="subscription-section-title">Suscripción</h2>
+      <div class="section-card plan-card">
       <div class="plan-card-head">
         <div class="plan-card-info">
           <span class="plan-card-eyebrow">Plan actual</span>
@@ -90,21 +96,25 @@
         </div>
         <span class="usage-unlimited" *ngIf="!entitlements.limits.clients">Clientes ilimitados</span>
       </div>
-    </div>
+      </div>
+    </section>
 
     <!-- Soporte -->
-    <div class="section-card">
-      <div class="section-title">Soporte</div>
+    <section class="account-section" aria-labelledby="support-section-title">
+      <h2 class="section-title" id="support-section-title">Soporte</h2>
+      <div class="section-card">
       <button type="button" class="row-item" *ngFor="let link of supportLinks" (click)="link.action()">
         <ion-icon [name]="link.icon"></ion-icon>
         <span class="row-item-label flex-1">{{ link.label }}</span>
         <ion-icon name="chevron-forward-outline" class="row-item-chevron"></ion-icon>
       </button>
-    </div>
+      </div>
+    </section>
 
     <!-- Acerca de (real) -->
-    <div class="section-card">
-      <div class="section-title">Acerca de</div>
+    <section class="account-section" aria-labelledby="about-section-title">
+      <h2 class="section-title" id="about-section-title">Acerca de</h2>
+      <div class="section-card">
       <div class="about-row">
         <span>Versión</span>
         <span class="about-value">{{ appVersion }}</span>
@@ -112,7 +122,8 @@
       <a [href]="LINKS.privacyAndPolicy" target="_blank" rel="noopener" class="about-link">Política de privacidad</a>
       <a [href]="LINKS.termsAndConditions" target="_blank" rel="noopener" class="about-link">Términos y condiciones</a>
       <a [href]="LINKS.us" target="_blank" rel="noopener" class="about-link">Sobre TrainFit</a>
-    </div>
+      </div>
+    </section>
   </div>
 
   <button type="button" class="logout-button" (click)="confirmLogout()">
@@ -121,7 +132,7 @@
   </button>
 
   <div class="panel-backdrop" *ngIf="showEditPanel" (click)="closeEditPanel()"></div>
-  <div class="panel-sheet" *ngIf="showEditPanel">
+  <div class="panel-sheet" *ngIf="showEditPanel" appSubmitOnEnter="saveProfile">
     <div class="panel-handle"></div>
     <h3 class="panel-title">Editar perfil</h3>
 
@@ -143,6 +154,7 @@
     <button
       class="submit-button"
       (click)="saveProfile()"
+      data-enter-submit-action="saveProfile"
       [disabled]="!formName.trim() || !formLastname.trim() || !formEmail.trim() || isSavingProfile"
       [attr.aria-busy]="isSavingProfile"
     >

@@ -15,7 +15,7 @@
 </ion-header>
 
 <ion-content *ngIf="setForm" class="manage-set-content">
-  <form [formGroup]="setForm">
+  <form [formGroup]="setForm" [appSubmitOnEnter]="isTrainerApp ? enterSubmitButton?.nativeElement : null">
     <div class="form-container">
       <ng-container *ngIf="isIsometric; else notIsometric">
         <div class="field-section">
@@ -544,6 +544,7 @@
     shape="round"
     class="ion-margin t-add-workout"
     (click)="submit()"
+    #enterSubmitTarget
   >
     <strong>{{ 'TABLES.SAVE_BTN' | translate }}</strong>
   </ion-button>

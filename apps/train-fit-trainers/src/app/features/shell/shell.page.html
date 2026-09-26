@@ -47,9 +47,9 @@
       </nav>
 
       <div class="app-menu-footer">
-        <a class="footer-user" routerLink="/tabs/account" [attr.title]="collapsed ? 'Mi cuenta' : null">
+        <a class="footer-user" routerLink="/tabs/account" aria-label="Configuración" [attr.title]="collapsed ? 'Configuración' : null">
           <span class="footer-user-avatar"><ion-icon name="person" aria-hidden="true"></ion-icon></span>
-          <span class="footer-user-label" *ngIf="!collapsed">Mi cuenta</span>
+          <span class="footer-user-label" *ngIf="!collapsed">Configuración</span>
         </a>
       </div>
     </ion-content>

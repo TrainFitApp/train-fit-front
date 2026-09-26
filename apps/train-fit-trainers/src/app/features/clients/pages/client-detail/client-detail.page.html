@@ -124,17 +124,6 @@
           <button
             type="button"
             class="header-action-button"
-            (click)="messageComingSoon()"
-          >
-            <ion-icon
-              name="chatbubble-ellipses-outline"
-              aria-hidden="true"
-            ></ion-icon>
-            Mensaje
-          </button>
-          <button
-            type="button"
-            class="header-action-button"
             (click)="openIntakePanel()"
           >
             <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
@@ -188,7 +177,7 @@
         </button>
       </div>
 
-      <!-- Panel "Ver intake" (botón junto a Mensaje, cabecera persistente) —
+      <!-- Panel "Ver intake" (cabecera persistente) —
            mismo clientIntake/clientIntakeState que ya carga loadClientIntake()
            para "Equipamiento utilizado" en Entrenamiento; aquí se muestra
            completo, con edición inline (PUT /trainer/clients/:id/intake). -->
@@ -1120,25 +1109,31 @@
                       <button
                         class="list-card list-card--button"
                         (click)="toggleTableExpand(table)"
+                        [attr.aria-expanded]="expandedTableId === table._id"
+                        [attr.aria-controls]="expandedTableId === table._id ? 'routine-detail-' + table._id : null"
                       >
                         <ion-icon name="barbell-outline"></ion-icon>
-                        <span class="list-card-title">{{ table.name }}</span>
-                        <span class="in-use-badge" *ngIf="table.isActive"
-                          >En uso</span
-                        >
-                        <span
-                          class="assigned-badge"
-                          *ngIf="table.assignedByTrainerId"
-                          >Asignada por ti</span
-                        >
-                        <!-- Tarea 4bis (2026-09) — cuándo entra en marcha, sin tener
-                         que mirar la columna de Fases: las dos vistas leen la
-                         misma fuente (routinePhases). -->
-                        <span
-                          class="scheduled-badge"
-                          *ngIf="scheduledPhaseForTable(table._id) as sp"
-                        >
-                          Programada · {{ sp.startDate | date: 'd MMM' }}
+                        <span class="routine-heading-copy">
+                          <span class="list-card-title">{{ table.name }}</span>
+                          <span class="routine-badges">
+                            <span class="in-use-badge" *ngIf="table.isActive"
+                              >En uso</span
+                            >
+                            <span
+                              class="assigned-badge"
+                              *ngIf="table.assignedByTrainerId"
+                              >Asignada por ti</span
+                            >
+                            <!-- Tarea 4bis (2026-09) — cuándo entra en marcha, sin tener
+                             que mirar la columna de Fases: las dos vistas leen la
+                             misma fuente (routinePhases). -->
+                            <span
+                              class="scheduled-badge"
+                              *ngIf="scheduledPhaseForTable(table._id) as sp"
+                            >
+                              Programada · {{ sp.startDate | date: 'd MMM' }}
+                            </span>
+                          </span>
                         </span>
                         <ion-icon
                           class="expand-chevron"
@@ -1174,6 +1169,7 @@
                     <!-- F09: detalle de rutina en modo lectura (splits > workouts > ejercicios > series) -->
                     <div
                       class="routine-detail"
+                      [id]="'routine-detail-' + table._id"
                       *ngIf="expandedTableId === table._id"
                     >
                       <p class="empty-hint" *ngIf="!table.splits?.length">
@@ -1184,9 +1180,12 @@
                         class="split-block"
                         *ngFor="let split of table.splits"
                       >
-                        <h4 class="split-heading">
-                          {{ split.name || 'Microciclo' }}
-                        </h4>
+                        <div class="split-header">
+                          <h4 class="split-heading">{{ split.name || 'Microciclo' }}</h4>
+                          <span class="split-count">
+                            {{ split.workouts?.length || 0 }} {{ split.workouts?.length === 1 ? 'entrenamiento' : 'entrenamientos' }}
+                          </span>
+                        </div>
 
                         <div
                           class="workout-row"
@@ -1198,6 +1197,10 @@
                               class="workout-status"
                               [class.workout-status--done]="workout.date"
                             >
+                              <ion-icon
+                                [name]="workout.date ? 'checkmark-circle-outline' : 'time-outline'"
+                                aria-hidden="true"
+                              ></ion-icon>
                               {{ workout.date ? (workout.date | date: 'd MMM y')
                               : 'Pendiente' }}
                             </span>
@@ -1211,17 +1214,17 @@
                               }}</span
                             >
                             <div class="exercise-sets-group">
-                              <span
-                                class="exercise-sets exercise-sets--expected"
-                                >Prescrito: {{ expectedDescription(exercise)
-                                }}</span
-                              >
-                              <span
+                              <div class="exercise-sets exercise-sets--expected">
+                                <span class="exercise-data-label">Prescrito</span>
+                                <span class="exercise-data-value">{{ expectedDescription(exercise) }}</span>
+                              </div>
+                              <div
                                 class="exercise-sets"
                                 [class.exercise-sets--done]="hasAnyDoneSet(exercise)"
                               >
-                                Realizado: {{ setDescription(exercise) }}
-                              </span>
+                                <span class="exercise-data-label">Realizado</span>
+                                <span class="exercise-data-value">{{ setDescription(exercise) }}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1285,7 +1288,7 @@
           <div class="panel-handle"></div>
           <h3 class="panel-title">Asignar rutina</h3>
 
-          <form [formGroup]="routineForm" (ngSubmit)="submitNewRoutine()">
+          <form [formGroup]="routineForm" (ngSubmit)="submitNewRoutine()" appSubmitOnEnter="createRoutine">
             <div class="input-wrapper">
               <ion-icon name="barbell-outline" class="input-icon"></ion-icon>
               <input
@@ -1299,6 +1302,7 @@
               type="submit"
               class="submit-button"
               [disabled]="!routineForm.value.name?.trim() || isAssigningRoutine"
+              data-enter-submit-action="createRoutine"
             >
               <span *ngIf="!isAssigningRoutine">Crear y asignar</span>
               <ion-spinner name="dots" *ngIf="isAssigningRoutine"></ion-spinner>
@@ -1571,7 +1575,7 @@
                   </ng-container>
 
                   <!-- Edición: kcal y macros a mano -->
-                  <div class="goal-edit" *ngIf="editingNutritionalGoal">
+                  <div class="goal-edit" *ngIf="editingNutritionalGoal" appSubmitOnEnter="saveNutritionalGoal">
                     <label class="goal-edit__field">
                       <span>kcal</span>
                       <input
@@ -1612,6 +1616,7 @@
                         class="add-button"
                         [disabled]="!(goalDraft.kcal > 0) || savingNutritionalGoal"
                         (click)="saveNutritionalGoal()"
+                        data-enter-submit-action="saveNutritionalGoal"
                       >
                         {{ savingNutritionalGoal ? 'Guardando…' : 'Guardar' }}
                       </button>
@@ -2686,7 +2691,7 @@
           *ngIf="showPaymentPanel"
           (click)="closePaymentPanel()"
         ></div>
-        <div class="panel-sheet" *ngIf="showPaymentPanel">
+        <div class="panel-sheet" *ngIf="showPaymentPanel" appSubmitOnEnter="submitPayment">
           <div class="panel-handle"></div>
           <h3 class="panel-title">Añadir cobro</h3>
 
@@ -2727,6 +2732,7 @@
           <button
             class="submit-button"
             (click)="submitPayment()"
+            data-enter-submit-action="submitPayment"
             [disabled]="!paymentAmount || paymentAmount <= 0 || !paymentDueDate || isSavingPayment"
           >
             <span *ngIf="!isSavingPayment">Guardar cobro</span>
@@ -2767,6 +2773,11 @@
             class="payment-card"
             *ngFor="let task of tasks; trackBy: trackByTaskId"
           >
+            <ion-icon
+              class="habit-card-icon"
+              [name]="taskTypeIcons[task.type]"
+              aria-hidden="true"
+            ></ion-icon>
             <div class="payment-card-main">
               <span class="payment-amount">
                 {{ taskDisplayLabel(task) }}
@@ -2797,7 +2808,7 @@
           *ngIf="showTaskPanel"
           (click)="closeTaskPanel()"
         ></div>
-        <div class="panel-sheet" *ngIf="showTaskPanel">
+        <div class="panel-sheet" *ngIf="showTaskPanel" appSubmitOnEnter="submitTask">
           <div class="panel-handle"></div>
           <h3 class="panel-title">Añadir hábito diario</h3>
 
@@ -2858,6 +2869,7 @@
           <button
             class="submit-button"
             (click)="submitTask()"
+            data-enter-submit-action="submitTask"
             [disabled]="!taskTarget || taskTarget <= 0 || !taskUnit.trim() || (taskType === 'custom' && !taskLabel.trim()) || isSavingTask"
           >
             <span *ngIf="!isSavingTask">Guardar hábito</span>

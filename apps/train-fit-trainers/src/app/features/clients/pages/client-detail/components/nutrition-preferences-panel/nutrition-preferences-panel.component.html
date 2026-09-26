@@ -10,6 +10,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="nutrition-preferences-sheet-title"
+    appSubmitOnEnter="savePreferences"
   >
     <div class="panel-handle"></div>
 
@@ -153,7 +154,7 @@
 
     <footer class="sheet-footer">
       <button type="button" class="ghost-button" (click)="close()" [disabled]="isSaving">Cancelar</button>
-      <button type="button" class="submit-button" (click)="save()" [disabled]="isSaving">
+      <button type="button" class="submit-button" (click)="save()" [disabled]="isSaving" data-enter-submit-action="savePreferences">
         <span *ngIf="!isSaving">Guardar preferencias</span>
         <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
       </button>

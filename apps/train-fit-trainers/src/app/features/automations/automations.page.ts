@@ -115,7 +115,7 @@ export class AutomationsPage {
   public async confirmDelete(rule: CoachRule, event: Event): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: 'Eliminar automatización',
+      header: 'Eliminar aviso automatizado',
       message: `"${rule.name}" dejará de evaluarse. Las alertas que ya generó se conservan.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },

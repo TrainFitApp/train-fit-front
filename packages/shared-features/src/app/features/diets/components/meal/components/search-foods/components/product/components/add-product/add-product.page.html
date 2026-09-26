@@ -38,7 +38,7 @@
 </ion-header>
 
 <ion-content class="ion-padding" appHideKeyboardOnScroll>
-  <form [formGroup]="addCustomProductForm">
+  <form [formGroup]="addCustomProductForm" [appSubmitOnEnter]="isTrainerApp ? enterSubmitButton?.nativeElement : null">
     <!-- Tarjeta principal del producto -->
     <ion-card class="product-header-card">
       <ion-card-content>
@@ -1435,6 +1435,7 @@
       class="save-button-global"
       [disabled]="addCustomProductForm.invalid || loading.value"
       (click)="addCustomProduct()"
+      #enterSubmitTarget
     >
       <div class="button-content">
         <span>

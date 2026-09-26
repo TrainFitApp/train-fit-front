@@ -40,6 +40,9 @@ import { ACTIONS_FAB_TYPES } from '../../constants/actions-fab';
   styleUrls: ['./search-exercises.page.scss'],
 })
 export class SearchExercisesPage implements OnInit {
+  // Referencia al contenedor que proporciona AngularDelegate de Ionic.
+  public modal?: HTMLIonModalElement;
+
   @ViewChild('searchbar', { static: false }) searchbar: any;
 
   @Input() user: User;
@@ -66,11 +69,6 @@ export class SearchExercisesPage implements OnInit {
   // abrir/seleccionar, y el header/checkbox de picker se ocultan.
   @Input() mode: 'default' | 'library' = 'default';
   @Output() exerciseSelected = new EventEmitter<Exercise>();
-
-  // TASK-021 (MASTER_BACKLOG.md) — hilo pasante hacia ConfigExercisePage
-  // (ver showQuickSeriesGenerator ahí). false por defecto, solo
-  // train-fit-trainers lo pone a true.
-  @Input() showQuickSeriesGenerator = false;
 
   public exercises: Exercise[];
   public exercisesCount: number;
@@ -271,12 +269,13 @@ export class SearchExercisesPage implements OnInit {
         workoutIndex: this.workoutIndex,
         splitIndex: this.getResolvedSplitIndex(),
         currentSplit: this.currentSplit,
-        showQuickSeriesGenerator: this.showQuickSeriesGenerator,
       },
       cssClass: 'tf-panel-modal',
     };
 
-    this.ionicUtilService.showModal(modalOptions).then((res) => {
+    // Configurar ejercicio se abre ENCIMA del buscador (misma columna); lo que
+    // abra él (añadir series...) sale a su izquierda.
+    this.ionicUtilService.showNestedModal(modalOptions, this.modal, { overParent: true }).then((res) => {
       if (res.data) this.modalController.dismiss(res.data);
     });
   }
@@ -437,7 +436,7 @@ export class SearchExercisesPage implements OnInit {
       animated: true,
     };
 
-    this.ionicUtilService.showModal(modalOptions);
+    this.ionicUtilService.showNestedModal(modalOptions, this.modal);
   }
 
   public spliceCategory(category: string): void {
@@ -500,12 +499,13 @@ export class SearchExercisesPage implements OnInit {
         tableInUse: this.tableInUse,
         workoutIndex: this.workoutIndex,
         currentSplit: this.currentSplit,
-        showQuickSeriesGenerator: this.showQuickSeriesGenerator,
       },
       cssClass: 'tf-panel-modal',
     };
 
-    this.ionicUtilService.showModal(modalOptions).then((res) => {
+    // Configurar ejercicio se abre ENCIMA del buscador (misma columna); lo que
+    // abra él (añadir series...) sale a su izquierda.
+    this.ionicUtilService.showNestedModal(modalOptions, this.modal, { overParent: true }).then((res) => {
       if (res.data) {
         this.searchByFilter(); // Refresh list after creation
         this.modalController.dismiss(res.data);

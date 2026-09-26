@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnDestroy, OnInit } from "@angular/core";
+import { Component, ElementRef, effect, inject, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import {
@@ -23,6 +23,7 @@ import { TranslateService } from "@ngx-translate/core";
 import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { environment } from "src/environments/environment";
 
 export enum PRODUCT_ATRR {
   name = 0,
@@ -34,6 +35,8 @@ export enum PRODUCT_ATRR {
   styleUrls: ["./add-product.page.scss"],
 })
 export class AddProductPage implements OnInit, OnDestroy {
+  public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
+  @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLElement>;
   private static readonly NUTRITION_FIELDS = [
     "energyKcal100g",
     "protein100g",

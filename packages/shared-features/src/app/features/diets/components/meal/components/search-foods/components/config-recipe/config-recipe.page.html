@@ -48,7 +48,7 @@
   appHideKeyboardOnScroll
 >
   <div class="form-container">
-    <form [formGroup]="recipeForm" class="recipe-form">
+    <form [formGroup]="recipeForm" class="recipe-form" [appSubmitOnEnter]="isTrainerApp ? enterSubmitButton?.nativeElement : null">
       <div
         class="section-card info-card"
         [class.has-single-action]="recipe && !editingBaseRecipe"
@@ -444,6 +444,7 @@
       class="save-btn"
       [disabled]="!canSave || loading"
       (click)="save()"
+      #enterSubmitTarget
     >
       <ng-container *ngIf="!loading; else savingText">
         <span>

@@ -175,13 +175,6 @@ export class ClientDetailPage implements OnInit {
     return (first + last).toUpperCase();
   }
 
-  public messageComingSoon(): void {
-    void this.ionicUtilService.showToast({
-      message: 'La mensajería con clientes estará disponible próximamente',
-      duration: 2000,
-    });
-  }
-
   public showClientSwitcher = false;
   public otherClientsState: SectionState = 'loading';
   public otherClients: TrainerClientSummary[] = [];
@@ -271,6 +264,13 @@ export class ClientDetailPage implements OnInit {
   public taskTargetMax: number | null = null;
   public taskUnit = '';
   public isSavingTask = false;
+  public readonly taskTypeIcons: Record<TrainerTaskType, string> = {
+    steps: 'footsteps-outline',
+    water: 'water-outline',
+    sleep: 'moon-outline',
+    cardio: 'heart-outline',
+    custom: 'checkmark-circle-outline',
+  };
   public readonly taskTypeOptions: {
     value: TrainerTaskType;
     label: string;
@@ -1145,7 +1145,7 @@ export class ClientDetailPage implements OnInit {
     return EQUIPMENT_TAG_LABELS[tag] || tag;
   }
 
-  // --- "Ver intake" (botón junto a Mensaje, cabecera persistente) ---
+  // --- "Ver intake" (cabecera persistente) ---
   // Reutiliza clientIntake/clientIntakeState, ya cargados por
   // loadClientIntake() (ver initTabsAndLoadSections) — no dispara ninguna
   // carga nueva al abrir el panel salvo que aún no hubiera terminado.

@@ -1,4 +1,4 @@
-<div class="score-editor">
+<div class="score-editor" appSubmitOnEnter="saveScore">
   <header class="editor-header">
     <div class="editor-title-block">
       <h2 class="editor-title">{{ exerciseName }}</h2>
@@ -20,6 +20,16 @@
       <ion-icon name="bulb-outline" aria-hidden="true"></ion-icon>
       Sugerencia de partida según el tipo de ejercicio. Ajústala a tu criterio y guarda.
     </p>
+
+    <!-- Vuelve a la sugerencia por patrón de movimiento (la misma con la
+         que arranca un ejercicio sin puntuar). Solo rellena el formulario:
+         se guarda con "Guardar", como cualquier otro cambio. -->
+    <div class="reset-row">
+      <button type="button" class="reset-button" [disabled]="isRestoring || isSaving" (click)="restoreDefaults()">
+        <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+        <span>Restablecer por defecto</span>
+      </button>
+    </div>
 
     <!-- ===== Músculos ===== -->
     <div class="section-head">
@@ -110,8 +120,7 @@
   </div>
 
   <footer class="editor-footer">
-    <button type="button" class="cancel-button" (click)="cancel()">Cancelar</button>
-    <button type="button" class="submit-button" (click)="save()" [disabled]="isSaving">
+    <button type="button" class="submit-button" (click)="save()" [disabled]="isSaving" data-enter-submit-action="saveScore">
       <span *ngIf="!isSaving">Guardar</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>

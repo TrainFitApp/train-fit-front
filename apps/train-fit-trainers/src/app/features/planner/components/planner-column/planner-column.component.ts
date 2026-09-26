@@ -11,7 +11,8 @@ import {
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { moveItemInArray } from '@angular/cdk/drag-drop';
+import { ItemReorderEventDetail } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Split, SPLIT_PURPOSES } from 'src/app/core/models/split';
@@ -54,10 +55,6 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   // el mismo orden numérico que la app de cliente, ver mesocycle.page.html),
   // así que la posición es la única fuente de verdad para el nombre.
   @Input() columnIndex = 0;
-  // Tarea (2026-08) — atenuada mientras se arrastra un entrenamiento en OTRA
-  // columna (ver planner.page.ts#draggingFromSplitId): deja claro que solo
-  // se puede reordenar dentro del mismo microciclo.
-  @Input() dimmed = false;
 
   // Reordenar microciclos (2026-09) — mismo modo que activa cdkDrag en la
   // columna (ver planner.page.ts#reorderMode). Mientras está activo, las
@@ -67,17 +64,22 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   // acordeón y toquetear su contenido sin querer, además de que el
   // scroll/gesto de abrir choca con el de arrastrar en móvil.
   @Input() reorderMode = false;
+  // Reordenar entrenamientos (2026-09) — modo propio, distinto del de
+  // microciclos (ver planner.page.ts#reorderCardsMode). Activa el
+  // ion-reorder-group de la columna y, igual que reorderMode, pliega y
+  // bloquea las cards: arrastrar una card abierta de cientos de px no se
+  // puede apuntar bien.
+  @Input() reorderCardsMode = false;
 
   // <app-workout> gatea varias acciones (botón "Agregar ejercicios", menú
   // "⋮") a stateSelected === STATES.static — sin pasarlo explícitamente
   // queda undefined y esas acciones desaparecen/se deshabilitan. El
-  // Planificador no tiene el modo STATES.move (reordenar vía drag de Ionic);
-  // el drag de cards aquí es CDK, así que siempre es "static".
+  // Planificador no usa STATES.move (el ion-reorder de la app de cliente
+  // dentro de <app-workout>); reordenar cards va por reorderCardsMode, así
+  // que siempre es "static".
   public readonly STATES = STATES;
 
   @Output() columnSelected = new EventEmitter<void>();
-  @Output() cardDragStarted = new EventEmitter<void>();
-  @Output() cardDragEnded = new EventEmitter<void>();
   // Tarea (2026-08) — "Añadir desde plantilla" tarda varias llamadas
   // seguidas (una por plantilla × microciclo). El padre cubre TODO el
   // tablero con un overlay mientras tanto, así el resultado se revela de
@@ -217,7 +219,7 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   // split) sale del servicio compartido (mismo para todas las columnas) en
   // vez del Set local de esta columna.
   public isCardOpen(workoutId: string, index: number): boolean {
-    if (this.reorderMode) return false;
+    if (this.reorderMode || this.reorderCardsMode) return false;
     if (this.rowSync.compareAllMode) return this.rowSync.isOpen(index);
     return !this.collapsedCardIds.has(workoutId);
   }
@@ -276,7 +278,7 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
     // [disabled] en el ion-accordion-group ya evita el toggle por click, pero
     // ionChange sigue siendo un evento del propio componente Ionic — no fiarse
     // solo del atributo si algo lo dispara igualmente.
-    if (this.reorderMode) return;
+    if (this.reorderMode || this.reorderCardsMode) return;
     const isOpen = event.detail?.value === 'open';
 
     // Movimiento 6 Coach Pro — abrir una card es lo más parecido a "estoy
@@ -381,7 +383,7 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
         }
 
         this.ionicUtilService
-          .showModal({
+          .showSidePanel({
             component: TemplatePickerModalComponent,
             componentProps: { templates },
             cssClass: 'tf-panel-modal',
@@ -581,8 +583,12 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   // número de entrenamientos — invariante que ya mantienen crear (addCard/
   // plantillas, fan-out a todos) y borrar (mismo índice en todos, ver
   // workout.component.ts#deleteWorkouts) en toda la app.
-  public onCardsDropped(event: CdkDragDrop<Workout[]>): void {
-    if (!this.table || event.previousIndex === event.currentIndex) return;
+  public onCardsReordered(event: CustomEvent<ItemReorderEventDetail>): void {
+    const { from, to } = event.detail;
+    // false: Ionic no mueve el DOM, solo quita sus transform; lo recoloca
+    // el *ngFor al cambiar split.workouts (si no, se moverían dos veces).
+    event.detail.complete(false);
+    if (!this.table || from === to) return;
 
     // Snapshot (referencias a los arrays previos, no deep clone — basta para
     // restaurar el orden si falla la persistencia) — con el reorder ahora
@@ -591,7 +597,7 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
     const previousOrders = this.table.splits.map((split) => [...split.workouts]);
 
     this.table.splits.forEach((split) =>
-      moveItemInArray(split.workouts, event.previousIndex, event.currentIndex)
+      moveItemInArray(split.workouts, from, to)
     );
     this.persistTable();
 

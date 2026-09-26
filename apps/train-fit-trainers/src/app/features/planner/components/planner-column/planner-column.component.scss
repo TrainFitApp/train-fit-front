@@ -23,17 +23,6 @@
     box-shadow: 0 0 0 1px var(--tf-accent);
   }
 
-  // Tarea (2026-08) — mientras se arrastra un entrenamiento en OTRA columna:
-  // opacidad reducida + pointer-events:none en TODA la columna ("+ Añadir
-  // tarjeta", drag de sus propias cards...), no solo en la lista de cards —
-  // deja claro de un vistazo que ahora mismo no se puede interactuar con
-  // este microciclo, solo con el que se está arrastrando.
-  &--dimmed {
-    opacity: 0.4;
-    pointer-events: none;
-    transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
-  }
-
   // Microciclo terminado (2026-09) — mismo verde de "hecho" que ya usa el
   // resto de la app para un entrenamiento completado
   // (workout.component.scss: .exercise-name.completed → --ion-color-success).
@@ -145,6 +134,7 @@
 }
 
 .planner-card-wrapper {
+  position: relative;
   margin-bottom: var(--tf-space-3);
   border-radius: var(--tf-radius-lg);
   background: var(--tf-surface-3);
@@ -202,29 +192,66 @@
   }
 }
 
-// Feedback de drag (Angular CDK) — cards dentro de una columna.
-.cdk-drag-preview {
+// Modo "Reordenar entrenamientos": el asa cubre la card plegada entera
+// (se arrastra desde cualquier punto y no se abren menús sin querer), con
+// el icono a la derecha como señal de que ahora se puede mover.
+.planner-card-reorder {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--tf-space-4);
+  cursor: grab;
+  // Tapa los botones de la derecha de la card ("+" de ejercicios), que
+  // durante el modo no se pueden usar y se montaban con el asa.
+  background: linear-gradient(to left, var(--tf-surface-1) 72px, transparent 112px);
+
+  ion-icon {
+    font-size: 24px;
+    color: var(--tf-text-secondary);
+  }
+}
+
+// ion-reorder-group marca así la card que se está arrastrando.
+.planner-card-wrapper.reorder-selected {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  border-radius: var(--tf-radius-lg);
+  cursor: grabbing;
 }
 
-.cdk-drag-placeholder {
-  opacity: 0.3;
-}
-
-.cdk-drop-list-dragging .planner-card-wrapper:not(.cdk-drag-placeholder) {
-  transition: transform 200ms var(--tf-ease-out);
-}
-
-// --- Panel "Añadir tarjeta" (mismo bottom-sheet que "Asignar rutina" en
-// client-detail.page.scss, sin botón Cancelar — se cierra tocando el
-// fondo) ---
-.panel-backdrop {
-  @include tf-panel-backdrop;
-}
-
+// Panel no modal: el tablero sigue disponible y la X permite cerrarlo.
 .add-card-sheet {
   @include tf-panel-sheet;
+}
+
+.add-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: 16px;
+
+  .panel-title { margin: 0; }
+}
+
+.panel-close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-size: 22px;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
 }
 
 .panel-handle {

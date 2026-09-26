@@ -14,7 +14,7 @@
   </div>
 </ion-header>
 
-<ion-content class="editor-modal-content">
+<ion-content class="editor-modal-content" [appSubmitOnEnter]="saveButton">
   <p class="panel-hint">
     Ajusta esta receta solo para esta comida — no cambia la receta original de tu biblioteca.
   </p>
@@ -78,7 +78,7 @@
 </ion-content>
 
 <ion-footer class="editor-modal-footer">
-  <button type="button" class="submit-button" (click)="save()" [disabled]="!canSave">
+  <button #saveButton type="button" class="submit-button" (click)="save()" [disabled]="!canSave">
     Guardar cambios
   </button>
 </ion-footer>
