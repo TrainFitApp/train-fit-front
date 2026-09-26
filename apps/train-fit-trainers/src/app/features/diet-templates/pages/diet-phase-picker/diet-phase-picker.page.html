@@ -9,5 +9,16 @@
     parámetros en el panel de la derecha y la lista se recalcula sola.
   </p>
 
-  <app-diet-suggestion-list></app-diet-suggestion-list>
+  <app-diet-suggestion-list (previewed)="openPreview($event)"></app-diet-suggestion-list>
 </ion-content>
+
+<!-- Fuera del ion-content, hermano suyo: un panel fixed dentro del scroll de
+     la lista se movería con ella. rightOffset = ancho del panel de parámetros
+     (.tf-panel-modal-overlay), que flota encima de la página. -->
+<app-diet-template-preview-panel
+  *ngIf="previewTemplate"
+  [template]="previewTemplate"
+  [flags]="previewFlags"
+  rightOffset="400px"
+  (closed)="closePreview()"
+></app-diet-template-preview-panel>

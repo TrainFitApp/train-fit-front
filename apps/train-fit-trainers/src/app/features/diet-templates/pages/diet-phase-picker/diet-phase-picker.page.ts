@@ -5,6 +5,7 @@ import { ModalController } from '@ionic/angular';
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { DietSuggestionDrawerComponent } from '../../components/diet-suggestion-drawer/diet-suggestion-drawer.component';
 import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
+import { DietTemplate } from '../../models/diet-template.model';
 import { DietTemplateApiService } from '../../services/diet-template-api.service';
 
 // Sugerencias de dieta — "Empezar fase" (ficha del cliente) trae AQUÍ, a la
@@ -28,6 +29,10 @@ export class DietPhasePickerPage {
 
   private drawer: HTMLIonModalElement | null = null;
 
+  // Dieta abierta en la vista previa de solo lectura (null = cerrada).
+  public previewTemplate: DietTemplate | null = null;
+  public previewFlags: string[] = [];
+
   // El panel se cierra desde dos sitios: él mismo (confirmar / cancelar) o
   // esta página al abandonarla (botón Volver, atrás del sistema). Solo el
   // primero decide a dónde se va después.
@@ -49,6 +54,7 @@ export class DietPhasePickerPage {
     this.clientId = this.route.snapshot.paramMap.get('clientId') || '';
     this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
     this.leaving = false;
+    this.closePreview();
     void this.openDrawer();
   }
 
@@ -56,7 +62,17 @@ export class DietPhasePickerPage {
   // ion-modal vive en el injector raíz, no en el árbol de esta ruta.
   public ionViewWillLeave(): void {
     this.leaving = true;
+    this.closePreview();
     void this.drawer?.dismiss(null, 'cancel');
+  }
+
+  public openPreview(event: { template: DietTemplate; flags: string[] }): void {
+    this.previewTemplate = event.template;
+    this.previewFlags = event.flags;
+  }
+
+  public closePreview(): void {
+    this.previewTemplate = null;
   }
 
   private async openDrawer(): Promise<void> {

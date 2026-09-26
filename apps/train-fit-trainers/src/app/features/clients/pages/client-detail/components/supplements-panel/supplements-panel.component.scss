@@ -223,28 +223,15 @@
   padding-bottom: 0;
 }
 
+// .tf-page-header (global.scss) a sangre: el panel tiene relleno propio, así
+// que se anula con margen negativo para que la barra llegue a los bordes.
 .sheet-header {
-  display: flex;
-  align-items: center;
-  gap: var(--tf-space-3);
-  margin-bottom: var(--tf-space-4);
-}
-
-.panel-title {
-  flex: 1;
-  margin: 0;
-  font-size: var(--tf-font-size-lg);
-  font-weight: 600;
-  color: var(--tf-text);
-}
-
-.close-button {
-  // Mismo botón de icono que el resto de la app (score-editor-modal,
-  // exercise-detail-modal): 44px, radio 12 y superficie 3. Antes era un
-  // círculo de 40px hecho a mano aquí, con su propio hover y su propio
-  // expansor táctil para llegar a los 44 que el mixin ya da de fábrica.
-  @include tf-icon-button;
   flex-shrink: 0;
+  margin: 0 calc(-1 * var(--tf-space-4)) var(--tf-space-4);
+
+  @media (min-width: 768px) {
+    margin: calc(-1 * var(--tf-space-5)) calc(-1 * var(--tf-space-5)) var(--tf-space-4);
+  }
 }
 
 // --- Agrupación ---
@@ -268,12 +255,13 @@
   color: var(--tf-accent);
 }
 
-.field + .field {
+.field + .field,
+.field + .field-row,
+.field-row + .field {
   margin-top: var(--tf-space-3);
 }
 
-// Nombre y dosis en la misma línea: la dosis son tres caracteres y en una
-// fila propia dejaba medio ancho de la hoja vacío.
+// Dos campos cortos en la misma línea (Desde / Hasta).
 .field-row {
   display: flex;
   gap: var(--tf-space-3);
@@ -283,14 +271,44 @@
 .field-row > .field {
   flex: 1 1 150px;
   // Un item de flex no baja de la anchura de su contenido salvo que se le
-  // diga: sin esto el placeholder largo del nombre empujaba la dosis a la
-  // línea siguiente aunque hubiera sitio de sobra.
+  // diga: sin esto un texto largo empujaba el otro campo a la línea
+  // siguiente aunque hubiera sitio de sobra.
   min-width: 0;
   margin-top: 0;
 }
 
-.field-row > .field--narrow {
-  flex: 0 1 110px;
+// Dosis en su propia fila: junto al nombre, este se cortaba
+// ("Creatina monc…"). Cantidad + unidad en una sola caja: el select va
+// pegado a la derecha, sin caja propia y separado por una línea. El foco de
+// cualquiera de los dos enciende el borde de la caja entera (:focus-within
+// del wrapper). Con .input-wrapper delante: su padding se declara más abajo
+// y ganaría.
+.input-wrapper.dose-control {
+  padding-right: 0;
+}
+
+.dose-amount {
+  flex: 1 1 3em;
+  min-width: 3em;
+  font-variant-numeric: tabular-nums;
+}
+
+.dose-control ion-select.tf-select {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 7.5rem;
+  // Sin tocar min-height: la caja interna de Ionic lo hereda, y con 0 el
+  // texto y la flecha se quedaban pegados arriba en vez de centrados.
+  border: 0;
+  border-left: 1px solid var(--tf-border-strong);
+  border-radius: 0 var(--tf-radius-md) var(--tf-radius-md) 0;
+  background: transparent;
+
+  &.select-expanded,
+  &.has-focus,
+  &:focus-within {
+    background: transparent;
+  }
 }
 
 .field-hint {

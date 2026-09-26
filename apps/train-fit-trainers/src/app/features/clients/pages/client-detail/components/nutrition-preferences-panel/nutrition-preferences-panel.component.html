@@ -13,12 +13,21 @@
   >
     <div class="panel-handle"></div>
 
-    <header class="sheet-header">
-      <h3 class="panel-title" id="nutrition-preferences-sheet-title">Editar preferencias nutricionales</h3>
-      <button type="button" class="close-button" (click)="close()" aria-label="Cerrar">
-        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
-      </button>
-    </header>
+    <!-- Mismo header que el resto de paneles y modales de la app (.tf-page-header,
+         global.scss): botón de cerrar a la izquierda y título centrado. -->
+    <div class="tf-page-header sheet-header">
+      <div class="tf-page-header__content">
+        <div class="tf-page-header__back-section">
+          <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Cerrar">
+            <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+        <div class="tf-page-header__title-section">
+          <h1 class="tf-page-header__title" id="nutrition-preferences-sheet-title">Preferencias nutricionales</h1>
+        </div>
+        <div class="tf-page-header__actions"></div>
+      </div>
+    </div>
 
     <!-- Alergias primero y con superficie propia: es el único campo que
          puede hacer daño si se pasa por alto al montar la dieta. -->
@@ -122,7 +131,7 @@
         Comidas al día
         <span class="group-count">{{ enabledMealSlotsCount }} de {{ mealSlots.length }}</span>
       </p>
-      <p class="field-hint">Desmarca las que no haga (p. ej. ayuno intermitente) y, si quieres, cámbiales el nombre.</p>
+      <p class="field-hint">Desmarca las que no haga (p. ej. ayuno intermitente).</p>
 
       <div class="meal-slot-row" *ngFor="let slot of mealSlots" [class.is-off]="disabledMealSlots[slot.key]">
         <button
@@ -139,15 +148,6 @@
           <ion-icon class="meal-slot-icon" [name]="slot.icon" aria-hidden="true"></ion-icon>
           <span class="meal-slot-name">{{ slot.key }}</span>
         </button>
-        <input
-          type="text"
-          class="meal-slot-label-input"
-          [placeholder]="slot.key"
-          maxlength="50"
-          [disabled]="disabledMealSlots[slot.key]"
-          [attr.aria-label]="'Nombre para ' + slot.key"
-          [(ngModel)]="mealSlotLabels[slot.key]"
-        />
       </div>
     </section>
 

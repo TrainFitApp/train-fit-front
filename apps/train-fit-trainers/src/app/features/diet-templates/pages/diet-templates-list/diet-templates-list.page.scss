@@ -264,15 +264,25 @@
 }
 
 // El nombre de la plantilla es flex:1 (ocupa toda la fila) y sin este hueco
-// queda bajo el icono de borrar superpuesto — reservamos su ancho.
+// queda bajo los iconos de vista previa y borrar superpuestos — reservamos
+// su ancho.
 .template-cell ::ng-deep .card-top {
-  padding-right: 22px;
+  padding-right: 66px;
 }
 
 .template-cell .delete-template-btn {
   position: absolute;
   top: 6px;
   right: 6px;
+  z-index: 1;
+}
+
+// A la izquierda del de borrar.
+.template-cell .preview-template-btn {
+  @include tf-card-corner-button;
+  position: absolute;
+  top: 2px;
+  right: 30px;
   z-index: 1;
 }
 

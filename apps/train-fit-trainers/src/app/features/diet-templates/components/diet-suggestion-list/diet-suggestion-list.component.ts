@@ -1,10 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Observable } from 'rxjs';
+import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { DietTemplate } from '../../models/diet-template.model';
 import {
   DietSuggestionResponse,
   RankedTemplate,
 } from '../../models/diet-suggestion.model';
 import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
+import { DietTemplateApiService } from '../../services/diet-template-api.service';
 
 // Sugerencias de dieta — la LISTA rankeada de la biblioteca de dietas, en
 // la zona principal de diet-phase-picker (ancho completo). Los parámetros y
@@ -26,7 +29,18 @@ export class DietSuggestionListComponent {
   // comer. Ver topSuggestionId$ en el servicio de sesión.
   public readonly topSuggestionId$: Observable<string | null>;
 
-  constructor(private session: DietSuggestionSessionService) {
+  // Vista previa de solo lectura: el ranking solo trae el perfil de macros,
+  // no los menús, así que se pide la plantilla entera al pulsar. El panel lo
+  // pinta la página (ver diet-phase-picker): un panel fixed dentro del
+  // ion-content de aquí se movería con el scroll de la lista.
+  @Output() public previewed = new EventEmitter<{ template: DietTemplate; flags: string[] }>();
+  public previewingId: string | null = null;
+
+  constructor(
+    private session: DietSuggestionSessionService,
+    private dietTemplateApi: DietTemplateApiService,
+    private ionicUtilService: IonicUtilService
+  ) {
     this.results$ = this.session.results$;
     this.selectedId$ = this.session.selectedId$;
     this.loading$ = this.session.loading$;
@@ -39,6 +53,21 @@ export class DietSuggestionListComponent {
 
   public pick(template: RankedTemplate): void {
     this.session.select(template);
+  }
+
+  public preview(template: RankedTemplate): void {
+    if (this.previewingId) return;
+    this.previewingId = template._id;
+    this.dietTemplateApi.getById(template._id).subscribe({
+      next: (full) => {
+        this.previewingId = null;
+        this.previewed.emit({ template: full, flags: template.effectiveSuitableFor || [] });
+      },
+      error: () => {
+        this.previewingId = null;
+        this.ionicUtilService.showErrorToast('No se pudo cargar la vista previa', 'Error', 3000);
+      },
+    });
   }
 
   public medal(rank: number): string {

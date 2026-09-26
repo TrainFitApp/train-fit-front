@@ -227,3 +227,35 @@
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: none; }
 }
+
+// Icono suelto (sin fondo) para la esquina de una card que ya es un <button>
+// entero: no puede anidar otro, así que va como hermano, con position
+// absolute puesta por quien lo usa. Hueco de 32px para acertarlo con el
+// pulgar; el icono sube a acento al pasar por encima.
+@mixin tf-card-corner-button($icon-size: 18px) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: $icon-size;
+  }
+
+  &:hover,
+  &:active {
+    color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}

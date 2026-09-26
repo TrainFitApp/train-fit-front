@@ -15,8 +15,9 @@ export const MACRO_KCAL_TOLERANCE = 25;
 
 // "Ajustar macros" (docs/plan-info-calculo-fase.md) — reparto en g / g·kg / %,
 // con candados como en el editor de objetivos del cliente. Plegado. Lo usan
-// el modal de "Siguiente ciclo" y el panel de "Empezar fase": misma pieza,
-// cada uno decide qué hace con el reparto.
+// el modal de "Siguiente ciclo", el panel de "Empezar fase" y "Objetivos
+// nutricionales" en client-detail: misma pieza, cada uno decide qué hace
+// con el reparto.
 //
 // Mientras nadie lo toca sigue a `defaultMacros` (el reparto que da el
 // padre: escalado proporcional en un ciclo, la fórmula por defecto al
@@ -46,12 +47,21 @@ export class MacroAdjustComponent implements OnChanges {
   @Input() public macroRatio = 1;
   @Input() public weightKg: number | null = null;
   @Input() public resetLabel = 'Volver al reparto proporcional';
+  // "Volver" como botón con icono en vez de enlace de texto ("Recalcular" en
+  // el objetivo nutricional del cliente y en la semana siguiente).
+  @Input() public resetAsButton = false;
+  // Enseñarlo también sin tocar (deshabilitado hasta que haya algo que
+  // recalcular): así el botón se descubre antes de necesitarlo.
+  @Input() public resetAlwaysVisible = false;
   @Input() public hint = '';
+  // Exigir que cuadre también sin tocar: para cuando el reparto del padre
+  // puede venir descuadrado o vacío (objetivo nutricional del cliente).
+  @Input() public requireBalanced = false;
 
   // El reparto tocado a mano, o null cuando vuelve a seguir a defaultMacros.
   @Output() public macrosChange = new EventEmitter<MacroSet | null>();
 
-  public open = false;
+  @Input() public open = false;
   public macros: MacroSet = { protein: 0, carbs: 0, fat: 0 };
   public locks: Record<MacroKey, boolean> = { protein: false, carbs: false, fat: false };
   public touched = false;
@@ -87,9 +97,10 @@ export class MacroAdjustComponent implements OnChanges {
     return this.macrosKcal - this.macroBudget;
   }
 
-  // Sin tocar, el reparto es el del padre y se da por bueno.
+  // Sin tocar, el reparto es el del padre y se da por bueno (salvo
+  // requireBalanced).
   public get balanced(): boolean {
-    return !this.touched || Math.abs(this.kcalDiff) <= MACRO_KCAL_TOLERANCE;
+    return (!this.touched && !this.requireBalanced) || Math.abs(this.kcalDiff) <= MACRO_KCAL_TOLERANCE;
   }
 
   public get imbalanceMessage(): string {

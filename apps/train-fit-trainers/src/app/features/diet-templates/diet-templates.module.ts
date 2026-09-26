@@ -12,6 +12,7 @@ import { DietTemplatesListPage } from './pages/diet-templates-list/diet-template
 import { DietTemplateBuilderPage } from './pages/diet-template-builder/diet-template-builder.page';
 import { DietPhasePickerPage } from './pages/diet-phase-picker/diet-phase-picker.page';
 import { DietSuggestionListComponent } from './components/diet-suggestion-list/diet-suggestion-list.component';
+import { DietTemplatePreviewPanelComponent } from './components/diet-template-preview-panel/diet-template-preview-panel.component';
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
 
 @NgModule({
@@ -32,6 +33,7 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     DietTemplateBuilderPage,
     DietPhasePickerPage,
     DietSuggestionListComponent,
+    DietTemplatePreviewPanelComponent,
   ],
 })
 export class DietTemplatesPageModule {}

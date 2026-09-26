@@ -73,7 +73,9 @@ export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDes
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
 
   public readonly metricOptions = METRIC_OPTIONS;
-  public activeMetrics = new Set<MetricKey>(['kcal']);
+  // Las cuatro activas de serie: se ve la gráfica entera y el trainer apaga
+  // las que le sobren.
+  public activeMetrics = new Set<MetricKey>(['kcal', 'protein', 'carbs', 'fat']);
   public dailyTracking: NutritionTrackingDay[] = [];
   public isLoading = false;
 

@@ -94,49 +94,78 @@
   >
     <div class="panel-handle"></div>
 
-    <header class="sheet-header">
-      <h3 class="panel-title" id="supplement-sheet-title">
-        {{ editingId ? 'Editar suplemento' : 'Añadir suplemento' }}
-      </h3>
-      <button type="button" class="close-button" (click)="closePanel()" aria-label="Cerrar">
-        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
-      </button>
-    </header>
+    <!-- Mismo header que el resto de paneles y modales de la app (.tf-page-header,
+         global.scss): botón de cerrar a la izquierda y título centrado. -->
+    <div class="tf-page-header sheet-header">
+      <div class="tf-page-header__content">
+        <div class="tf-page-header__back-section">
+          <button type="button" class="tf-page-header__back-button" (click)="closePanel()" aria-label="Cerrar">
+            <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+        <div class="tf-page-header__title-section">
+          <h1 class="tf-page-header__title" id="supplement-sheet-title">
+            {{ editingId ? 'Editar suplemento' : 'Añadir suplemento' }}
+          </h1>
+        </div>
+        <div class="tf-page-header__actions"></div>
+      </div>
+    </div>
 
     <!-- Tres bloques, tres preguntas: qué es, cuándo se toma y para qué.
          Antes eran ocho campos en columna, todos con el mismo peso. -->
     <section class="form-group">
       <p class="group-label">Qué toma</p>
 
-      <div class="field-row">
-        <div class="field">
-          <label class="field-label" for="supplement-name">Nombre</label>
-          <div class="input-wrapper">
-            <ion-icon name="medkit-outline" class="input-icon"></ion-icon>
-            <input
-              id="supplement-name"
-              type="text"
-              class="input-field"
-              maxlength="120"
-              placeholder="Creatina monohidrato"
-              [(ngModel)]="formName"
-            />
-          </div>
+      <div class="field">
+        <label class="field-label" for="supplement-name">Nombre</label>
+        <div class="input-wrapper">
+          <ion-icon name="medkit-outline" class="input-icon"></ion-icon>
+          <input
+            id="supplement-name"
+            type="text"
+            class="input-field"
+            maxlength="120"
+            placeholder="Creatina monohidrato"
+            [(ngModel)]="formName"
+          />
         </div>
+      </div>
 
-        <div class="field field--narrow">
-          <label class="field-label" for="supplement-dose">Dosis</label>
-          <div class="input-wrapper">
-            <ion-icon name="beaker-outline" class="input-icon"></ion-icon>
-            <input
-              id="supplement-dose"
-              type="text"
-              class="input-field"
-              maxlength="60"
-              placeholder="5 g"
-              [(ngModel)]="formDose"
-            />
-          </div>
+      <!-- Cantidad (solo número) y unidad pegadas en una sola caja: se
+           leen como un dato, "5 g", y se guardan así. -->
+      <div class="field">
+        <label class="field-label" for="supplement-dose">Dosis</label>
+        <div class="input-wrapper dose-control">
+          <ion-icon name="beaker-outline" class="input-icon"></ion-icon>
+          <input
+            #doseAmount
+            id="supplement-dose"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            class="input-field dose-amount"
+            maxlength="8"
+            placeholder="5"
+            [value]="formDoseAmount"
+            (input)="onDoseAmountInput(doseAmount)"
+          />
+          <!-- Sin animación de apertura, en línea: la de Ionic (escalado de
+               300ms) retrasa una lista de once opciones que se abre a cada
+               dosis. -->
+          <ion-select
+            class="tf-select dose-unit"
+            interface="popover"
+            toggleIcon="chevron-down-outline"
+            labelPlacement="stacked"
+            aria-label="Unidad de la dosis"
+            [interfaceOptions]="{ animated: false }"
+            [(ngModel)]="formDoseUnit"
+          >
+            <ion-select-option *ngFor="let unit of doseUnits; trackBy: trackByUnit" [value]="unit">
+              {{ unit }}
+            </ion-select-option>
+          </ion-select>
         </div>
       </div>
     </section>

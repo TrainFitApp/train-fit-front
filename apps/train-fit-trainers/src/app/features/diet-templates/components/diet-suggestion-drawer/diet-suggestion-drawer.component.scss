@@ -13,6 +13,24 @@
 //     alfa) sobre fondo oscuro: ilegibles.
 // Todo pasa ahora por los tokens --tf-*, como el resto de la app.
 
+// Barra de carga pegada al borde inferior de la cabecera. Mide 0 de alto y la
+// barra se dibuja hacia abajo, sobre el margen superior del contenido: al
+// encenderse y apagarse no mueve nada.
+.loading-bar {
+  position: relative;
+  height: 0;
+
+  ion-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    --background: var(--tf-surface-3);
+    --progress-background: var(--tf-accent);
+  }
+}
+
 .drawer-content {
   --background: var(--tf-bg);
   --padding-start: var(--tf-space-4);

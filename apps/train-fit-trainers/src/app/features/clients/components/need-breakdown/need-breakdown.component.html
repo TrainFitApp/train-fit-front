@@ -14,11 +14,13 @@
   <div class="need-result" *ngIf="target as t">
     <span class="need-result__kcal">{{ n(t.kcal) }} kcal</span>
     <span class="need-result__macros">P {{ n(t.protein) }} g · C {{ n(t.carbs) }} g · G {{ n(t.fat) }} g</span>
-    <span class="need-result__planned" *ngIf="plannedKcal">
-      pautado {{ n(plannedKcal) }} kcal
-      <span class="need-result__delta" *ngIf="plannedDelta !== null && plannedDelta !== 0">({{ signed(plannedDelta) }})</span>
-    </span>
   </div>
+  <p class="need-verdict" *ngIf="plannedDelta !== null">
+    <ng-container *ngIf="plannedDelta === 0; else offTarget">La pauta coincide con la necesidad.</ng-container>
+    <ng-template #offTarget>
+      La pauta queda <strong>{{ n(absPlannedDelta) }} kcal</strong> {{ plannedDelta < 0 ? 'por debajo' : 'por encima' }} de la necesidad.
+    </ng-template>
+  </p>
 
   <!-- Datos que entraron -->
   <dl class="need-inputs" *ngIf="inputs as i">
@@ -50,7 +52,7 @@
     <div class="need-inputs__row">
       <dt>Objetivo</dt>
       <dd>
-        {{ deltaLabel }} kcal
+        {{ deltaLabel }} kcal ({{ deltaKind }})
         <ng-container *ngIf="breakdown as b">
           · proteína {{ n(b.proteinPerKg, 2) }} g/kg · grasa {{ n(b.fatPerKg, 2) }} g/kg
           <span class="need-note">{{ i.proteinPerKg || i.fatPerKg ? '(fijados por ti)' : '(fórmula por defecto)' }}</span>
@@ -71,11 +73,16 @@
         <span class="need-math__value">{{ n(b.bmr) }} kcal</span>
       </li>
       <li>
-        <span class="need-math__label">× factor {{ n(b.factor, 3) }} ({{ factorLine }}) = gasto</span>
+        <span class="need-math__label">
+          Gasto diario = basal × {{ n(b.factor, 3) }}
+          <span class="need-note">({{ factorLine }})</span>
+        </span>
         <span class="need-math__value">{{ n(b.expenditure) }} kcal</span>
       </li>
       <li>
-        <span class="need-math__label">{{ deltaLabel }} kcal de objetivo</span>
+        <span class="need-math__label">
+          {{ deltaLabel }} kcal de objetivo ({{ deltaKind }}) = necesidad
+        </span>
         <span class="need-math__value need-math__value--total">{{ n(target?.kcal) }} kcal</span>
       </li>
       <li>

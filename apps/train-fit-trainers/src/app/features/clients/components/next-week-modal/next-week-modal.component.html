@@ -99,7 +99,10 @@
     [base]="base"
     [macroRatio]="macroRatio"
     [weightKg]="weightKg"
-    hint="Al tocar un macro, los que no están bloqueados absorben la diferencia. Si los macros no cuadran con las kcal, no se puede preparar. El reparto ajustado viaja al editor como objetivo de la semana."
+    resetLabel="Recalcular"
+    [resetAsButton]="true"
+    [resetAlwaysVisible]="true"
+    hint="Al tocar un macro, los que no están bloqueados absorben la diferencia. Recalcular devuelve el reparto proporcional a las kcal. Si los macros no cuadran con las kcal, no se puede preparar. El reparto ajustado viaja al editor como objetivo de la semana."
     (macrosChange)="adjustedMacros = $event"
   ></app-macro-adjust>
 

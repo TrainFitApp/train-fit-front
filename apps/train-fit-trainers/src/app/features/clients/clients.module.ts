@@ -31,6 +31,7 @@ import { PhaseScheduleCalendarComponent } from './components/phase-schedule-cale
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
 import { CheckinFieldSelectorComponent } from '../../shared/components/checkin-field-selector/checkin-field-selector.component';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
+import { MacroAdjustComponent } from '../../shared/components/macro-adjust/macro-adjust.component';
 import { TrackingStatusComponent } from './pages/client-detail/components/tracking-status/tracking-status.component';
 
 @NgModule({
@@ -44,6 +45,8 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     // Standalone: el bloque "cómo se ha calculado" del objetivo nutricional
     // del cliente, el mismo que usan el resumen de semana y el cajón.
     NeedBreakdownComponent,
+    // Standalone: "Ajustar macros" al editar el objetivo nutricional.
+    MacroAdjustComponent,
     // Standalone: campos sueltos al programar un check-in o pedir algo
     // puntual (checkin-workspace).
     CheckinFieldSelectorComponent,

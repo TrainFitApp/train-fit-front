@@ -1,4 +1,5 @@
 @import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
 
 :host {
   display: block;
@@ -10,8 +11,31 @@
   gap: var(--tf-space-3);
 }
 
-app-diet-card.span-all {
-  grid-column: 1 / -1;
+.suggestion-cell {
+  position: relative;
+
+  &.span-all {
+    grid-column: 1 / -1;
+  }
+}
+
+// La card es un <button> entero: la vista previa va como hermana, encima de
+// su esquina superior derecha. El nombre reserva ese hueco.
+.suggestion-cell ::ng-deep .card-top {
+  padding-right: 36px;
+}
+
+.preview-btn {
+  @include tf-card-corner-button;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+
+  ion-spinner {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .missing-note {

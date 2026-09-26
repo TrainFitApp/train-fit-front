@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import { NutritionComplianceDay } from '../../models/client-detail.model';
 import { PlanAssignmentApiService } from '../../../../../../shared/services/plan-assignment-api.service';
@@ -6,7 +7,10 @@ import { PlanAssignment } from '../../../../../../shared/models/plan-assignment.
 import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
 
 interface CalendarPhaseInfo {
-  id: string;
+  // Identidad de la FASE (phaseId, o el _id si no lo tiene), no del documento:
+  // una fase se parte en un documento por semana con contenido distinto, y
+  // todos comparten color y nombre. Es la clave del color y de la leyenda.
+  key: string;
   color: string;
   planName: string | null;
   // Semana de la fase en la que cae este día ("R3"), o null si ese día no
@@ -269,10 +273,21 @@ export class NutritionCalendarComponent implements OnChanges {
   constructor(
     private clientDetailApi: ClientDetailApiService,
     private planAssignmentApi: PlanAssignmentApiService
-  ) {}
+  ) {
+    // El panel de suplementación está en la misma pantalla: sin esto, lo
+    // que se añade o se quita allí no aparecía aquí hasta recargar.
+    this.clientDetailApi.supplementsChanged$.pipe(takeUntilDestroyed()).subscribe((clientId) => {
+      if (clientId !== this.clientId) return;
+      this.supplements = [];
+      this.loadSupplements();
+    });
+  }
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes['clientId'] && this.clientId) {
+      // La caché es por cliente: al cambiar de ficha se pintaban los
+      // suplementos del anterior.
+      this.supplements = [];
       this.monthDate = this.selectedDate ? new Date(`${this.selectedDate}T00:00:00.000Z`) : new Date();
       this.loadPlanPhases();
       this.loadMonth();
@@ -581,17 +596,17 @@ export class NutritionCalendarComponent implements OnChanges {
     return mapped;
   }
 
-  // Deduplica por id conservando el orden de aparición (días 1..N del mes,
-  // en orden) — así la leyenda lee de arriba abajo igual que el calendario
-  // de izquierda a derecha.
+  // Deduplica por fase (no por documento: ver CalendarPhaseInfo.key) conservando
+  // el orden de aparición (días 1..N del mes, en orden) — así la leyenda lee de
+  // arriba abajo igual que el calendario de izquierda a derecha.
   private buildVisiblePhaseLegend(cells: CalendarCell[]): PhaseLegendItem[] {
     const seen = new Set<string>();
     const legend: PhaseLegendItem[] = [];
     for (const cell of cells) {
-      if (!cell.phase || seen.has(cell.phase.id)) continue;
-      seen.add(cell.phase.id);
+      if (!cell.phase || seen.has(cell.phase.key)) continue;
+      seen.add(cell.phase.key);
       legend.push({
-        id: cell.phase.id,
+        id: cell.phase.key,
         color: cell.phase.color,
         label: cell.phase.planName || 'Plan aplicado',
       });
@@ -609,7 +624,7 @@ export class NutritionCalendarComponent implements OnChanges {
     const phase = matches.find((p) => p.status === 'active') || matches[matches.length - 1];
     const phaseKey = phase.phaseId || phase._id;
     return {
-      id: phase._id,
+      key: phaseKey,
       color: this.phaseColorMap.get(phaseKey) ?? PHASE_COLORS[0],
       planName: phase.planName || null,
       // Solo las semanas de ESTA fase: la numeración se reinicia en cada

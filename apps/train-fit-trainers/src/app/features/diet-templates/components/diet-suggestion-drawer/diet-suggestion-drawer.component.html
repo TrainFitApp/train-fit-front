@@ -12,6 +12,9 @@
       <div class="tf-page-header__actions"></div>
     </div>
   </div>
+  <div class="loading-bar" *ngIf="loading">
+    <ion-progress-bar type="indeterminate" aria-label="Cargando sugerencias"></ion-progress-bar>
+  </div>
 </ion-header>
 
 <ion-content class="drawer-content">

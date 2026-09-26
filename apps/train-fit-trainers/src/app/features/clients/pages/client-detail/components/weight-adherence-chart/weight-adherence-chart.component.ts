@@ -69,7 +69,7 @@ export class WeightAdherenceChartComponent implements OnChanges, OnInit, OnDestr
   }
 
   // F20-unvicies — la etiqueta de rango ya no vive aquí, vive en
-  // client-detail.page (trackingRangeLabel/cycleRangeLabel), compartida con
+  // client-detail.page (trackingRangeLabel), compartida con
   // <app-nutrition-tracking-chart>.
 
   // Días con al menos una de las dos señales — si ninguno tiene ni plan ni

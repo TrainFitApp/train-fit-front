@@ -66,16 +66,10 @@ export interface ApplyPlanRequest {
 
 // Historial de nutrición de la ficha — feed de eventos que desglosa fases y
 // semanas (espejo de train-fit-back/components/planAssignments/nutrition-history.js).
-export type NutritionHistoryEventType = 'phase_started' | 'phase_ended' | 'week' | 'checkin' | 'skipped_day';
+export type NutritionHistoryEventType = 'phase_started' | 'phase_ended' | 'week';
 // met/missed = semana acabada con adherencia >= / < 75 %; no_data =
 // acabada sin ningún día registrado; running = todavía en marcha.
 export type NutritionWeekStatus = 'running' | 'met' | 'missed' | 'no_data';
-
-export interface NutritionHistoryCheckin {
-  id: string;
-  respondedAt: string;
-  values: Record<string, number | string | boolean>;
-}
 
 interface NutritionHistoryEventBase {
   type: NutritionHistoryEventType;
@@ -109,28 +103,14 @@ export interface NutritionWeekEvent extends NutritionHistoryEventBase {
   adherenceDays: number;
   periodDays: number;
   status: NutritionWeekStatus;
-  checkin: NutritionHistoryCheckin | null;
   // Fechas de la semana en las que el cliente se saltó el plan.
   skippedDays: string[];
-}
-
-export interface NutritionCheckinEvent extends NutritionHistoryEventBase {
-  type: 'checkin';
-  number: number;
-  checkin: NutritionHistoryCheckin;
-}
-
-export interface NutritionSkippedDayEvent extends NutritionHistoryEventBase {
-  type: 'skipped_day';
-  number: number;
 }
 
 export type NutritionHistoryEvent =
   | NutritionPhaseStartedEvent
   | NutritionPhaseEndedEvent
-  | NutritionWeekEvent
-  | NutritionCheckinEvent
-  | NutritionSkippedDayEvent;
+  | NutritionWeekEvent;
 
 export interface NutritionHistoryResponse {
   events: NutritionHistoryEvent[];

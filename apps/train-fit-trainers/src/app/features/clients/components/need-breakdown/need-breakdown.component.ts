@@ -92,18 +92,33 @@ export class NeedBreakdownComponent implements OnInit {
     return d.exact ? d.label : `${d.label} (estimado: el factor del perfil no casa exacto)`;
   }
 
+  // De qué se compone el factor que multiplica al metabolismo basal.
   public get factorLine(): string {
     const b = this.breakdown;
     if (!b) return '';
     if (b.usesActivity) {
       return `actividad ${this.n(b.activityFactor, 2)} × entrenamiento ${this.n(b.trainingFactor, 3)}`;
     }
-    return `pasos + entrenamiento ${this.n(b.trainingFactor, 3)}`;
+    return 'pasos y entrenamiento';
+  }
+
+  private get delta(): number {
+    return this.breakdown?.delta ?? this.inputs?.objetiveKcalDelta ?? 0;
   }
 
   public get deltaLabel(): string {
-    const d = this.breakdown?.delta ?? this.inputs?.objetiveKcalDelta ?? 0;
-    return d > 0 ? `+${d}` : `${d}`;
+    const d = this.delta;
+    return d > 0 ? `+${d}` : d < 0 ? `−${Math.abs(d)}` : '0';
+  }
+
+  // Qué significa el signo del objetivo, para no obligar a deducirlo.
+  public get deltaKind(): string {
+    const d = this.delta;
+    return d < 0 ? 'déficit' : d > 0 ? 'superávit' : 'mantenimiento';
+  }
+
+  public get absPlannedDelta(): number {
+    return Math.abs(this.plannedDelta ?? 0);
   }
 
   public get proteinWeight(): number {
@@ -113,10 +128,6 @@ export class NeedBreakdownComponent implements OnInit {
   public n(value: number | null | undefined, decimals = 0): string {
     if (value === null || value === undefined || !Number.isFinite(value)) return '—';
     return value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: decimals });
-  }
-
-  public signed(value: number): string {
-    return (value > 0 ? '+' : '') + this.n(value);
   }
 
   public fmtDate(iso: string | null): string {

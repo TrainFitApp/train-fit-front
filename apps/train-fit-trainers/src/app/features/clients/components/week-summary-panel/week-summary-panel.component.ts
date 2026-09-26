@@ -11,8 +11,7 @@ import {
   NutritionTrackingDay,
 } from '../../pages/client-detail/models/client-detail.model';
 import { PlanAssignment } from '../../../../shared/models/plan-assignment.model';
-import { checkinFieldLabel, checkinValueLabel } from '../../checkin-labels.util';
-import { CustomCheckinQuestion } from '../../../checkin-templates/models/checkin-template.model';
+import { buildCheckinDisplay, CheckinDisplay } from '../../checkin-display.util';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
 import { WeekNeedResponse } from '../../../diet-templates/models/diet-suggestion.model';
 import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
@@ -50,16 +49,13 @@ export class WeekSummaryPanelComponent implements OnInit {
   public plannedAvg: NutritionMacroTotals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   public consumedAvg: NutritionMacroTotals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   public daysWithPlan = 0;
-  // Cada check-in con sus valores ya desplegados. Se calcula UNA vez al
-  // llegar los datos, no en la plantilla: una función que devuelve un array
-  // nuevo en cada detección de cambios hace que *ngFor recree el DOM, eso
-  // despierta a los observadores de Ionic, que disparan otra detección… y la
-  // pestaña se queda colgada (pasó en cuanto hubo un check-in dentro del
-  // semana). Mismo motivo que trackByCheckinValueKey en client-detail.page.ts.
-  public checkins: { entry: CheckinResponseEntry; values: { key: string; value: number | string | boolean }[] }[] = [];
-  // Preguntas propias que traen las respuestas cargadas: con ellas se
-  // nombran las claves "custom:<id>" sin pedir nada más.
-  private checkinQuestions: CustomCheckinQuestion[] = [];
+  // Cada check-in con sus datos ya agrupados. Se calcula UNA vez al llegar los
+  // datos, no en la plantilla: una función que devuelve un array nuevo en cada
+  // detección de cambios hace que *ngFor recree el DOM, eso despierta a los
+  // observadores de Ionic, que disparan otra detección… y la pestaña se queda
+  // colgada (pasó en cuanto hubo un check-in dentro de la semana). Mismo
+  // motivo que trackByCheckinValueKey en client-detail.page.ts.
+  public checkins: { entry: CheckinResponseEntry; display: CheckinDisplay }[] = [];
   // Cómo se calculó la necesidad de esta semana
   // (docs/plan-info-calculo-fase.md). null mientras carga o si falló.
   public weekNeed: WeekNeedResponse | null = null;
@@ -108,15 +104,9 @@ export class WeekSummaryPanelComponent implements OnInit {
       next: ({ tracking, foods, checkins }) => {
         this.foods = foods?.items || [];
         this.applyTracking(tracking?.dailyTracking || []);
-        const inRange = this.checkinsInRange(checkins || []);
-        this.checkinQuestions = [
-          ...new Map(
-            inRange.flatMap((entry) => (entry.customQuestions || []).map((q) => [String(q._id), q] as const))
-          ).values(),
-        ];
-        this.checkins = inRange.map((entry) => ({
+        this.checkins = this.checkinsInRange(checkins || []).map((entry) => ({
           entry,
-          values: Object.entries(entry?.values || {}).map(([key, value]) => ({ key, value })),
+          display: buildCheckinDisplay(entry, this.previousCheckin(checkins || [], entry)),
         }));
         this.state = 'ready';
       },
@@ -185,6 +175,16 @@ export class WeekSummaryPanelComponent implements OnInit {
     });
   }
 
+  // El check-in inmediatamente anterior, dentro o fuera de la semana: con él
+  // se calculan los cambios de peso y medidas. El histórico no llega ordenado.
+  private previousCheckin(all: CheckinResponseEntry[], entry: CheckinResponseEntry): CheckinResponseEntry | null {
+    return (
+      all
+        .filter((r) => r.respondedAt < entry.respondedAt)
+        .sort((a, b) => (a.respondedAt < b.respondedAt ? 1 : -1))[0] || null
+    );
+  }
+
   // % de cumplimiento de un alimento, para la barra de la fila.
   public compliance(food: NutritionFoodCompliance): number {
     if (!food.plannedDays) return 0;
@@ -196,6 +196,21 @@ export class WeekSummaryPanelComponent implements OnInit {
     return this.consumedAvg.kcal - this.plannedAvg.kcal;
   }
 
+  // La app no registra LOCALE_ID: el DatePipe/DecimalPipe salen en inglés
+  // ("1,911", "Sep"). Mismo formato es-ES que need-breakdown.
+  public n(value: number): string {
+    return value.toLocaleString('es-ES', { maximumFractionDigits: 0 });
+  }
+
+  public fmtDay(iso: string, withYear = false): string {
+    return new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      ...(withYear ? { year: 'numeric' as const } : {}),
+      timeZone: 'UTC',
+    });
+  }
+
   public trackByCheckinId(_index: number, row: { entry: CheckinResponseEntry }): string {
     return row.entry._id;
   }
@@ -204,12 +219,9 @@ export class WeekSummaryPanelComponent implements OnInit {
     return row.key;
   }
 
-  public fieldLabel(key: string): string {
-    return checkinFieldLabel(key, this.checkinQuestions);
-  }
-
-  public valueLabel(value: number | string | boolean): string {
-    return checkinValueLabel(value);
+  // "martes, 22 sept" en el idioma de la app: el DatePipe saldría en inglés.
+  public fmtResponded(iso: string): string {
+    return new Date(iso).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
   }
 
   public dismiss(): void {

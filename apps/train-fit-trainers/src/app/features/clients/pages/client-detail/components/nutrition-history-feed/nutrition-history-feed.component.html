@@ -3,7 +3,6 @@
     class="feed-item"
     *ngFor="let event of events; trackBy: trackByEvent"
     [class.feed-item--week]="event.type === 'week'"
-    [class.feed-item--minor]="event.type === 'checkin' || event.type === 'skipped_day'"
     [style.--phase-color]="phaseColorOf(event.phaseId)"
   >
     <!-- Fase: empieza / termina -->
@@ -52,6 +51,17 @@
             {{ event.profile.kcal | number: '1.0-0' }} kcal
             <span class="week__delta" *ngIf="kcalDeltaLabel(event) as delta">{{ delta }}</span>
           </dd>
+          <dd class="week__macros">
+            <span class="week__macro week__macro--protein">
+              <i class="week__macro-dot"></i>P <strong>{{ event.profile.protein | number: '1.0-0' }} g</strong>
+            </span>
+            <span class="week__macro week__macro--carbs">
+              <i class="week__macro-dot"></i>C <strong>{{ event.profile.carbs | number: '1.0-0' }} g</strong>
+            </span>
+            <span class="week__macro week__macro--fat">
+              <i class="week__macro-dot"></i>G <strong>{{ event.profile.fat | number: '1.0-0' }} g</strong>
+            </span>
+          </dd>
         </div>
         <div class="week__fact">
           <dt>Adherencia</dt>
@@ -60,20 +70,6 @@
             <span class="week__muted">· {{ event.adherenceDays }}/{{ event.periodDays }} días</span>
           </dd>
           <ng-template #noAdherence><dd class="week__muted">Sin registros</dd></ng-template>
-        </div>
-        <div class="week__fact week__fact--wide">
-          <dt>Check-in</dt>
-          <dd *ngIf="event.checkin as checkin; else noCheckin">
-            {{ checkin.respondedAt | date: 'd MMM y, HH:mm' }}
-            <span class="week__values">
-              <span class="week__value" *ngFor="let entry of checkinEntries(checkin); trackBy: trackByKey">
-                {{ entry.label }}: <strong>{{ entry.value }}</strong>
-              </span>
-            </span>
-          </dd>
-          <ng-template #noCheckin>
-            <dd class="week__muted">{{ event.status === 'running' ? 'Pendiente' : 'Sin check-in' }}</dd>
-          </ng-template>
         </div>
         <div class="week__fact week__fact--wide" *ngIf="event.skippedDays.length">
           <dt>Días saltados</dt>
@@ -85,26 +81,5 @@
         </div>
       </dl>
     </button>
-
-    <!-- Check-in / día saltado: además de colgar de la semana, son eventos. -->
-    <ng-container *ngIf="event.type === 'checkin'">
-      <div class="feed-item__head">
-        <span class="feed-item__title">Check-in de S{{ event.number }}</span>
-        <span class="feed-item__date">{{ event.checkin.respondedAt | date: 'd MMM y, HH:mm' }}</span>
-      </div>
-      <p class="feed-item__subtitle">
-        <span class="week__value" *ngFor="let entry of checkinEntries(event.checkin); trackBy: trackByKey">
-          {{ entry.label }}: <strong>{{ entry.value }}</strong>
-        </span>
-      </p>
-    </ng-container>
-
-    <ng-container *ngIf="event.type === 'skipped_day'">
-      <div class="feed-item__head">
-        <span class="feed-item__title">Día saltado</span>
-        <span class="feed-item__date">{{ event.date | date: 'd MMM y' }}</span>
-      </div>
-      <p class="feed-item__subtitle">S{{ event.number }} · {{ phaseLabel(event) }}</p>
-    </ng-container>
   </li>
 </ol>

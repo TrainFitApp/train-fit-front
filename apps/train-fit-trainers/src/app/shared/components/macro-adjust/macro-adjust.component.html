@@ -119,7 +119,15 @@
       <ng-container *ngIf="macroBudget !== targetKcal"> de {{ targetKcal }} de la dieta (el resto no es macro: fibra, alcohol, redondeos)</ng-container>
       <ng-container *ngIf="weightKg"> · g/kg sobre {{ weightKg | number: '1.0-1' }} kg</ng-container>
       <span *ngIf="!weightKg"> · sin peso del cliente, no hay g/kg</span>
-      <button type="button" class="macros-adjust__reset" *ngIf="touched" (click)="reset()">
+      <button
+        type="button"
+        class="macros-adjust__reset"
+        [class.macros-adjust__reset--button]="resetAsButton"
+        *ngIf="touched || resetAlwaysVisible"
+        [disabled]="!touched"
+        (click)="reset()"
+      >
+        <ion-icon *ngIf="resetAsButton" name="refresh-outline" aria-hidden="true"></ion-icon>
         {{ resetLabel }}
       </button>
     </p>

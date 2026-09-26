@@ -31,12 +31,6 @@
     background: var(--phase-color, var(--tf-accent));
   }
 
-  &--minor {
-    padding-top: 8px;
-    padding-bottom: 8px;
-    background: var(--tf-surface-2);
-  }
-
   &--week {
     padding: 0;
   }
@@ -171,11 +165,57 @@
   color: var(--tf-text-muted);
 }
 
-.week__values {
+.week__macros {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 10px;
-  margin-top: 2px;
+  gap: 2px 12px;
+}
+
+// Colores de macro (tokens --tf-macro-*), como el resto de la ficha.
+.week__macro {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+
+  strong {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  &--protein strong {
+    color: var(--tf-macro-protein);
+  }
+
+  &--carbs strong {
+    color: var(--tf-macro-carbs);
+  }
+
+  &--fat strong {
+    color: var(--tf-macro-fat);
+  }
+}
+
+.week__macro-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  .week__macro--protein & {
+    background: var(--tf-macro-protein);
+  }
+
+  .week__macro--carbs & {
+    background: var(--tf-macro-carbs);
+  }
+
+  .week__macro--fat & {
+    background: var(--tf-macro-fat);
+  }
 }
 
 .week__value {
