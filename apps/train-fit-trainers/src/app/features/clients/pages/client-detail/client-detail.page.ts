@@ -850,6 +850,10 @@ export class ClientDetailPage implements OnInit {
   // configurable (calendario de rango + gráfica + selectores) en vez
   // de varios bloques fijos. Resumen no se toca, sigue en modo `weeks`.
   public trainingComparisonRange: { start: string; end: string } | null = null;
+  // 2026-09 (sin presets 7d/30d/90d) — true mientras el rango sea el de por
+  // defecto (defaultTrainingRange). Al elegir día o rango a mano pasa a
+  // false: así una recarga del historial de fases no pisa la elección.
+  public trainingRangeIsDefault = true;
   public trainingComparisonMetric: TrainingComparisonMetric = 'volume';
   // 2026-09 — granularidad "Por microciclo" / "Por sesión". No pide nada
   // nuevo al backend: la misma respuesta ya trae los dos agregados (ver
@@ -914,10 +918,41 @@ export class ClientDetailPage implements OnInit {
   }
 
   public onTrainingRangeSelected(range: { start: string; end: string }): void {
+    this.trainingRangeIsDefault = false;
+    this.applyTrainingRange(range);
+  }
+
+  private applyTrainingRange(range: { start: string; end: string }): void {
     this.trainingSelectedDay = null;
     this.trainingComparisonRange = range;
     this.loadTrainingBlocks();
     this.loadTrainingSchedule(range);
+  }
+
+  // Rango por defecto: inicio de la fase de rutina vigente → hoy. Sin fase
+  // vigente (ninguna o solo futuras), del día 1 del mes actual → hoy.
+  private defaultTrainingRange(): { start: string; end: string } {
+    const today = new Date().toISOString().slice(0, 10);
+    const start = this.currentRoutinePhase?.startDate ?? `${today.slice(0, 8)}01`;
+    return { start, end: today };
+  }
+
+  // Solo si el entrenador no ha elegido nada a mano (ver trainingRangeIsDefault).
+  private applyDefaultTrainingRangeIfUnset(): void {
+    if (this.trainingRangeIsDefault) this.applyTrainingRange(this.defaultTrainingRange());
+  }
+
+  // × de la etiqueta del calendario: vuelve al rango por defecto.
+  public onTrainingRangeReset(): void {
+    this.trainingRangeIsDefault = true;
+    this.applyTrainingRange(this.defaultTrainingRange());
+  }
+
+  // Lo previsto del mes visible en el calendario, aparte del rango de la
+  // comparativa (que acaba hoy): sin esto no se verían los entrenos
+  // previstos de los días futuros.
+  public onTrainingMonthChanged(month: { start: string; end: string }): void {
+    this.loadTrainingSchedule(month);
   }
 
   // 2026-09 (día suelto) — alternativa a la comparativa por rango: el
@@ -937,6 +972,7 @@ export class ClientDetailPage implements OnInit {
   public trainingSelectedDayWorkouts: CompletedWorkoutEntry[] = [];
 
   public onTrainingDaySelected(date: string): void {
+    this.trainingRangeIsDefault = false;
     this.trainingSelectedDay = date;
     this.trainingSelectedDayWorkouts = this.completedWorkouts.filter(
       (w) => w.date && new Date(w.date as Date).toISOString().slice(0, 10) === date
@@ -1242,11 +1278,13 @@ export class ClientDetailPage implements OnInit {
         this.routinePhaseColorMap = buildPhaseColorMap(this.routineHistory.map((p) => p._id));
         this.routineHistoryState = 'loaded';
         this.rebuildProjectedTrainingDays();
+        this.applyDefaultTrainingRangeIfUnset();
       },
       error: () => {
         this.routinePhases = [];
         this.routineHistory = [];
         this.routineHistoryState = 'error';
+        this.applyDefaultTrainingRangeIfUnset();
       },
     });
   }
@@ -1456,7 +1494,14 @@ export class ClientDetailPage implements OnInit {
   // ficha en vez de un algoritmo de color aparte solo para el calendario.
   public projectedTrainingDays: Map<
     string,
-    { isPlannedRestDay: boolean; name: string; phaseId: string | null; phaseName: string | null; phaseColor: string | null }
+    {
+      isPlannedRestDay: boolean;
+      name: string;
+      phaseId: string | null;
+      phaseName: string | null;
+      phaseColor: string | null;
+      microcycleNumber: number | null;
+    }
   > = new Map();
   private rawScheduleDays: RoutineScheduleDay[] = [];
   // Ventana YA pedida al backend — solo crece (unión con cada rango nuevo),
@@ -1501,6 +1546,7 @@ export class ClientDetailPage implements OnInit {
             phaseId: phase?._id ?? null,
             phaseName: phase?.tableName ?? null,
             phaseColor: phase ? this.routinePhaseColor(phase) : null,
+            microcycleNumber: d.microcycleNumber ?? null,
           },
         ];
       })

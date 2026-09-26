@@ -12,15 +12,6 @@
   <div class="training-calendar__presets">
     <button
       type="button"
-      class="preset-btn"
-      *ngFor="let preset of rangePresets"
-      [class.is-active]="activePreset === preset"
-      (click)="selectPresetRange(preset)"
-    >
-      {{ preset }}d
-    </button>
-    <button
-      type="button"
       class="preset-btn range-toggle-btn"
       [class.is-active]="isRangeMode"
       (click)="toggleRangeMode()"
@@ -28,7 +19,19 @@
       <ion-icon name="calendar-outline"></ion-icon>
       {{ isRangeMode ? 'Toca inicio y fin' : 'Rango' }}
     </button>
-    <span class="range-label" *ngIf="rangeStart && rangeEnd">{{ rangeStart }} → {{ rangeEnd }}</span>
+    <!-- Con el rango por defecto (fase vigente → hoy) la × no tendría a
+         dónde volver: se queda en etiqueta. -->
+    <span class="range-label" *ngIf="rangeLabel && (isDefaultRange || isRangeMode)">{{ rangeLabel }}</span>
+    <button
+      type="button"
+      class="preset-btn range-clear-btn"
+      *ngIf="rangeLabel && !isDefaultRange && !isRangeMode"
+      aria-label="Volver al rango de la fase actual"
+      (click)="rangeReset.emit()"
+    >
+      <ion-icon name="close-circle-outline"></ion-icon>
+      {{ rangeLabel }}
+    </button>
   </div>
 
   <div class="training-calendar__weekdays">
@@ -59,6 +62,13 @@
            opacidad = resultado. Mismo recorte que .nutrition-calendar__phase-bar. -->
       <span class="training-calendar__phase-bar" *ngIf="cell.projected?.phaseId"></span>
       <span class="training-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
+      <!-- Microciclo (M1, M2…) del día previsto — mismo papel que "S1, S2…"
+           en <app-nutrition-calendar>; reinicia en cada fase. -->
+      <span
+        class="training-calendar__microcycle-badge"
+        *ngIf="microcycleLabel(cell) as microcycle"
+        [attr.aria-label]="'Microciclo ' + cell.projected?.microcycleNumber"
+      >{{ microcycle }}</span>
       <span class="training-calendar__monogram" *ngIf="cell.completed || cell.projected" [class.is-done]="cell.completed">{{
         monogram(cell)
       }}</span>

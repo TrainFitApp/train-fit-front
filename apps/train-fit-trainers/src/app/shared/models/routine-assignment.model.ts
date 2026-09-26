@@ -47,4 +47,7 @@ export interface RoutineScheduleDay {
   // suya, para poder colorear el calendario por fase de verdad (no
   // adivinarlo cruzando workoutId contra una sola tabla).
   assignmentId: string;
+  // Posición 1-based del split (microciclo) en la tabla de esa fase —
+  // badge "M1, M2…" del calendario. Reinicia en cada fase.
+  microcycleNumber: number;
 }

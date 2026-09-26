@@ -953,8 +953,12 @@
                     <app-training-calendar
                       [completedDays]="completedDaysMap"
                       [projectedDays]="projectedTrainingDays"
+                      [activeRange]="trainingComparisonRange"
+                      [isDefaultRange]="trainingRangeIsDefault"
                       (rangeSelected)="onTrainingRangeSelected($event)"
                       (daySelected)="onTrainingDaySelected($event)"
+                      (rangeReset)="onTrainingRangeReset()"
+                      (monthChanged)="onTrainingMonthChanged($event)"
                     ></app-training-calendar>
                   </div>
                 </div>

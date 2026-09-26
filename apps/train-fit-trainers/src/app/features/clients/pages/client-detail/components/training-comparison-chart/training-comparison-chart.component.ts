@@ -22,6 +22,40 @@ import { blockMetric, ComparisonRow, exerciseRows, formatMetric, muscleRows, ove
 // en nutrition-calendar), no la Tailwind *-400 saturada original.
 const MUSCLE_GROUP_COLORS = ['#6e99cd', '#a18fd7', '#4d9b7f', '#cc7ba6', '#c09c41', '#4f9fc2', '#7fb0b0', '#b98a5e'];
 
+// 2026-09 — mismo acabado que <app-nutrition-tracking-chart>: línea
+// suavizada, sin puntos (salen al pasar por encima), relleno tenue solo
+// cuando hay una única serie, rejilla casi invisible y tooltip oscuro.
+const TICK_COLOR = 'rgba(255, 255, 255, 0.5)';
+const GRID_COLOR = 'rgba(255, 255, 255, 0.06)';
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function lineStyle(color: string, fill: boolean) {
+  return {
+    borderColor: color,
+    backgroundColor: hexToRgba(color, 0.1),
+    borderWidth: 2.5,
+    fill,
+    tension: 0.3,
+    pointRadius: 0,
+    pointHoverRadius: 4,
+    pointBackgroundColor: color,
+  };
+}
+
+// Varias series: leyenda abajo, discreta, con muestras cuadradas como la
+// leyenda HTML de nutrición.
+const MULTI_SERIES_LEGEND = {
+  display: true,
+  position: 'bottom' as const,
+  labels: { color: TICK_COLOR, font: { size: 10 }, usePointStyle: true, pointStyle: 'rectRounded' as const, boxWidth: 8, boxHeight: 8 },
+};
+
 // Tarea 4 (2026-09) — gráfica de comparación por microciclo. Un único
 // componente para las 4 métricas en vez de 4 gráficas distintas: cambia el
 // dataset que dibuja, no el tipo de componente, así el panel de filtro solo
@@ -143,9 +177,8 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
     // En la primera carga Angular aún puede estar insertando estilos locales.
-    const tokens = getComputedStyle(document.documentElement);
-    const color = tokens.getPropertyValue('--tf-text-secondary').trim() || '#c7c7c7';
-    const accent = tokens.getPropertyValue('--ion-color-primary').trim() || '#fe9000';
+    const base = this.baseOptions();
+    const accent = '#fe9000'; // --tf-macro-kcal, mismo naranja que nutrición
     const values = this.blocks.map((block) => this.metric === 'exercise'
       ? this.blockExercise.find((exercise) => exercise.splitId === block.splitId)?.maxWeight ?? null
       : blockMetric(block, this.metric));
@@ -155,22 +188,28 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
       data: {
         labels: this.blocks.map((block) => this.label(block)),
         datasets: [{
-          label: this.metricLabel, data: values, borderColor: accent,
+          label: this.metricLabel, data: values,
+          ...lineStyle(accent, true),
+          // A y B siguen marcados: son la selección de la tabla de arriba.
           pointBackgroundColor: this.blocks.map((block) => block.splitId === this.referenceId ? '#8db6dd' : accent),
-          pointRadius: this.blocks.map((block) => [this.referenceId, this.comparisonId].includes(block.splitId) ? 5 : 2),
-          borderWidth: 2, tension: 0, fill: false, spanGaps: false,
+          pointRadius: this.blocks.map((block) => [this.referenceId, this.comparisonId].includes(block.splitId) ? 5 : 0),
+          spanGaps: false,
         }],
       },
       options: {
-        responsive: true, maintainAspectRatio: false, animation: false,
-        interaction: { mode: 'index', intersect: false },
+        ...base, animation: false,
         plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (context) => `${formatMetric(context.parsed.y)} ${unit}` } },
+          ...base?.plugins,
+          tooltip: { ...base?.plugins?.tooltip, callbacks: { label: (context) => `${formatMetric(context.parsed.y)} ${unit}` } },
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color, maxRotation: 0, maxTicksLimit: 5, font: { size: 11 } } },
-          y: { beginAtZero: true, title: { display: true, text: unit, color }, ticks: { color }, grid: { color: 'rgba(128,128,128,0.15)' } },
+          x: { grid: { display: false }, ticks: { color: TICK_COLOR, maxRotation: 0, maxTicksLimit: 5, font: { size: 10 } } },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: unit, color: TICK_COLOR, font: { size: 10 } },
+            grid: { color: GRID_COLOR },
+            ticks: { color: TICK_COLOR, font: { size: 10 } },
+          },
         },
       },
     };
@@ -286,13 +325,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
       return {
         label: name,
         data: canonicalKeys.map((key) => byKey.get(key)?.maxWeight ?? null),
-        borderColor: color,
-        backgroundColor: color,
-        borderWidth: 2.5,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 3,
-        pointBackgroundColor: color,
+        ...lineStyle(color, names.length === 1),
       };
     });
 
@@ -304,11 +337,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
         ...base,
         plugins: {
           ...base.plugins,
-          legend: {
-            display: true,
-            position: 'top',
-            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 }, boxWidth: 10 },
-          },
+          legend: MULTI_SERIES_LEGEND,
           tooltip: {
             ...base.plugins?.tooltip,
             callbacks: {
@@ -358,24 +387,12 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
           {
             label: 'Readiness (antes de entrenar)',
             data: readinessData,
-            borderColor: '#4f9fc2',
-            backgroundColor: '#4f9fc2',
-            borderWidth: 2.5,
-            fill: false,
-            tension: 0.3,
-            pointRadius: 3,
-            pointBackgroundColor: '#4f9fc2',
+            ...lineStyle('#4f9fc2', false),
           },
           {
             label: 'Esfuerzo percibido (al terminar)',
             data: effortData,
-            borderColor: '#fe9000',
-            backgroundColor: '#fe9000',
-            borderWidth: 2.5,
-            fill: false,
-            tension: 0.3,
-            pointRadius: 3,
-            pointBackgroundColor: '#fe9000',
+            ...lineStyle('#fe9000', false),
           },
         ],
       },
@@ -383,11 +400,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
         ...base,
         plugins: {
           ...base.plugins,
-          legend: {
-            display: true,
-            position: 'top',
-            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 }, boxWidth: 10 },
-          },
+          legend: MULTI_SERIES_LEGEND,
           tooltip: {
             ...base.plugins?.tooltip,
             callbacks: sessionMode
@@ -406,7 +419,8 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
           y: {
             min: 1,
             max: 5,
-            ticks: { color: 'rgba(255,255,255,0.5)', stepSize: 1 },
+            grid: { color: GRID_COLOR },
+            ticks: { color: TICK_COLOR, font: { size: 10 }, stepSize: 1 },
           },
         },
       },
@@ -433,13 +447,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
           {
             label: 'Adherencia a lo pautado (%)',
             data: items.map((i) => i.adherence),
-            borderColor: '#4d9b7f',
-            backgroundColor: '#4d9b7f',
-            borderWidth: 2.5,
-            fill: false,
-            tension: 0.3,
-            pointRadius: 3,
-            pointBackgroundColor: '#4d9b7f',
+            ...lineStyle('#4d9b7f', false),
           },
         ],
       },
@@ -463,7 +471,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
         },
         scales: {
           ...base.scales,
-          y: { min: 0, max: 100, ticks: { color: 'rgba(255,255,255,0.5)', stepSize: 20 } },
+          y: { min: 0, max: 100, grid: { color: GRID_COLOR }, ticks: { color: TICK_COLOR, font: { size: 10 }, stepSize: 20 } },
         },
       },
     };
@@ -482,13 +490,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
             {
               label: this.metricUnitLabel(),
               data,
-              borderColor: '#fe9000',
-              backgroundColor: 'rgba(254, 144, 0, 0.12)',
-              borderWidth: 2.5,
-              fill: true,
-              tension: 0.3,
-              pointRadius: 3,
-              pointBackgroundColor: '#fe9000',
+              ...lineStyle('#fe9000', true),
             },
           ],
         },
@@ -509,13 +511,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
           {
             label: this.metricUnitLabel(),
             data,
-            borderColor: '#fe9000',
-            backgroundColor: 'rgba(254, 144, 0, 0.12)',
-            borderWidth: 2.5,
-            fill: true,
-            tension: 0.3,
-            pointRadius: 3,
-            pointBackgroundColor: '#fe9000',
+            ...lineStyle('#fe9000', true),
           },
         ],
       },
@@ -541,13 +537,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
       return {
         label: group,
         data: items.map((b) => b.muscleGroups.find((g) => g.group === group)?.volume ?? 0),
-        borderColor: color,
-        backgroundColor: color,
-        borderWidth: 2.5,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 3,
-        pointBackgroundColor: color,
+        ...lineStyle(color, allGroups.length === 1),
       };
     });
 
@@ -558,11 +548,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
         ...this.baseOptions(),
         plugins: {
           ...this.baseOptions().plugins,
-          legend: {
-            display: true,
-            position: 'top',
-            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 }, boxWidth: 10 },
-          },
+          legend: MULTI_SERIES_LEGEND,
         },
       },
     };
@@ -592,8 +578,8 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
         },
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } },
-        y: { beginAtZero: true, ticks: { color: 'rgba(255,255,255,0.5)' } },
+        x: { grid: { display: false }, ticks: { color: TICK_COLOR, font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
+        y: { beginAtZero: true, grid: { color: GRID_COLOR }, ticks: { color: TICK_COLOR, font: { size: 10 } } },
       },
     };
   }

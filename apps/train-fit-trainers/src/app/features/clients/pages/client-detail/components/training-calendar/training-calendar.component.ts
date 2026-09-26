@@ -15,6 +15,9 @@ interface ProjectedDay {
   phaseId: string | null;
   phaseName: string | null;
   phaseColor: string | null;
+  // Número del microciclo (split) de ese día dentro de su fase — badge
+  // "M1, M2…", mismo papel que "S1, S2…" en <app-nutrition-calendar>.
+  microcycleNumber: number | null;
 }
 
 // Leyenda dinámica de fases visibles en el mes actual — mismo patrón que
@@ -53,10 +56,6 @@ const MONTH_LABELS = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
 
-// Tarea 4 (2026-09) — mismos presets que <app-nutrition-calendar>: el
-// entrenador piensa en semanas/meses, no en "7d/30d/90d".
-const RANGE_PRESETS = [7, 30, 90];
-
 function isoDate(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
@@ -67,12 +66,6 @@ function daysInMonth(year: number, month: number): number {
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-function addIsoDays(deltaDays: number): string {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() + deltaDays);
-  return date.toISOString().slice(0, 10);
 }
 
 function buildMonthGrid(year: number, month: number): TrainingCalendarCell[] {
@@ -97,7 +90,7 @@ function buildMonthGrid(year: number, month: number): TrainingCalendarCell[] {
 
 // Tarea 4 (2026-09), enriquecido (2026-09) — calendario de rango para la
 // comparación de microciclos en Entrenamiento. Adaptado de
-// <app-nutrition-calendar>: mismo mecanismo de selección de rango (presets +
+// <app-nutrition-calendar>: mismo mecanismo de selección de rango (día suelto +
 // clic-clic) y el mismo patrón de dos capas visuales (fondo previsto +
 // relleno de cumplimiento graduado encima), con los datos que el padre ya
 // tiene cargados (completedWorkouts/projectedTrainingDays), sin ninguna
@@ -124,7 +117,20 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
     this.rangeEnd = range.end;
   }
 
+  // 2026-09 (sin presets) — el padre decide el rango por defecto (fase
+  // vigente → hoy); aquí solo se sabe si lo que hay seleccionado es ese, para
+  // ofrecer la × de volver a él solo cuando sirve de algo.
+  @Input() isDefaultRange = true;
+
   @Output() rangeSelected = new EventEmitter<{ start: string; end: string }>();
+
+  // × de la etiqueta: vuelve al rango por defecto (lo calcula el padre).
+  @Output() rangeReset = new EventEmitter<void>();
+
+  // Mes visible (día 1 → último día): el padre carga lo previsto de ese mes,
+  // independiente del rango de la comparativa — así los entrenos previstos
+  // de días futuros se ven aunque el rango acabe hoy.
+  @Output() monthChanged = new EventEmitter<{ start: string; end: string }>();
 
   // 2026-09 (día suelto) — antes CADA clic pasaba por handleRangeClick (un
   // rango de 2 toques, nunca un solo día). El entrenador quiere elegir UN
@@ -134,7 +140,6 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   @Output() daySelected = new EventEmitter<string>();
 
   public readonly weekdayLabels = WEEKDAY_LABELS;
-  public readonly rangePresets = RANGE_PRESETS;
   public monthDate = new Date();
   public cells: TrainingCalendarCell[] = [];
   public readonly todayIso = todayIso();
@@ -142,7 +147,6 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   public isRangeMode = false;
   public rangeStart: string | null = null;
   public rangeEnd: string | null = null;
-  public activePreset: number | null = 90;
   public hoverDate: string | null = null;
 
   // Leyenda dinámica de fases visibles — el color YA llega resuelto por
@@ -159,7 +163,13 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
 
   public ngOnInit(): void {
     this.cells = this.applyOverlays(buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
-    this.selectPresetRange(this.activePreset ?? 90);
+    this.emitVisibleMonth();
+  }
+
+  // Una sola fecha si inicio y fin coinciden (día suelto), no "X → X".
+  public get rangeLabel(): string | null {
+    if (!this.rangeStart || !this.rangeEnd) return null;
+    return this.rangeStart === this.rangeEnd ? this.rangeStart : `${this.rangeStart} → ${this.rangeEnd}`;
   }
 
   public get monthLabel(): string {
@@ -179,6 +189,13 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
     next.setUTCMonth(next.getUTCMonth() + delta);
     this.monthDate = next;
     this.cells = this.applyOverlays(buildMonthGrid(next.getUTCFullYear(), next.getUTCMonth()));
+    this.emitVisibleMonth();
+  }
+
+  private emitVisibleMonth(): void {
+    const year = this.monthDate.getUTCFullYear();
+    const month = this.monthDate.getUTCMonth();
+    this.monthChanged.emit({ start: isoDate(year, month, 1), end: isoDate(year, month, daysInMonth(year, month)) });
   }
 
   private applyOverlays(cells: TrainingCalendarCell[]): TrainingCalendarCell[] {
@@ -189,6 +206,11 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
     }));
     this.visiblePhaseLegend = this.buildVisiblePhaseLegend(mapped);
     return mapped;
+  }
+
+  public microcycleLabel(cell: TrainingCalendarCell): string | null {
+    const n = cell.projected?.microcycleNumber;
+    return n ? `M${n}` : null;
   }
 
   // Deduplica por id conservando el orden de aparición en el mes visible —
@@ -245,18 +267,6 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
     return cell.completed?.name || cell.projected?.name || null;
   }
 
-  public selectPresetRange(days: number): void {
-    const daysBack = Math.ceil(days / 2);
-    const daysForward = Math.floor(days / 2);
-    const start = addIsoDays(-daysBack);
-    const end = addIsoDays(daysForward);
-    this.rangeStart = start;
-    this.rangeEnd = end;
-    this.activePreset = days;
-    this.hoverDate = null;
-    this.rangeSelected.emit({ start, end });
-  }
-
   // Despacha el tap de una celda: en modo rango arma/cierra el rango de 2
   // toques de siempre; si no (por defecto), selecciona ese día al momento.
   public selectDay(cell: TrainingCalendarCell): void {
@@ -282,7 +292,6 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   private selectSingleDay(date: string): void {
     this.rangeStart = date;
     this.rangeEnd = date;
-    this.activePreset = null;
     this.hoverDate = null;
     this.daySelected.emit(date);
   }
@@ -291,7 +300,6 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
     if (!this.rangeStart || this.rangeEnd) {
       this.rangeStart = date;
       this.rangeEnd = null;
-      this.activePreset = null;
       return;
     }
 

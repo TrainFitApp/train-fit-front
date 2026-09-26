@@ -71,7 +71,8 @@
 // Botón que arma el clic-clic de rango — antes cada tap era ya rango
 // (2 toques, nunca un solo día); ahora un tap suelto elige el día al
 // momento, y este botón es la única puerta al flujo de 2 toques de siempre.
-.range-toggle-btn {
+.range-toggle-btn,
+.range-clear-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -79,6 +80,14 @@
   ion-icon {
     font-size: 12px;
   }
+}
+
+// Rango/día elegido a mano: la × vuelve al rango de la fase actual. Mismo
+// acabado que .range-clear-btn de <app-nutrition-calendar>.
+.range-clear-btn {
+  color: var(--tf-accent-text);
+  border-color: var(--tf-accent-soft-border);
+  font-variant-numeric: tabular-nums;
 }
 
 .range-label {
@@ -103,6 +112,9 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;
+  // Contenedor de consulta del badge de microciclo (ver más abajo), mismo
+  // criterio que nutrition-grid.
+  container: training-grid / inline-size;
 }
 
 .training-calendar__cell {
@@ -220,6 +232,35 @@
 
   &.is-done {
     color: var(--tf-success);
+  }
+}
+
+// Microciclo (M1, M2…) — misma receta que .nutrition-calendar__week-badge.
+.training-calendar__microcycle-badge {
+  position: absolute;
+  top: 4px;
+  right: 3px;
+  z-index: 1;
+  font-size: 0.55rem;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--tf-text-muted);
+  pointer-events: none;
+}
+
+// Sobre inicio/fin de rango el fondo es acento: el gris se perdería.
+.training-calendar__cell.is-range-endpoint .training-calendar__microcycle-badge {
+  color: currentColor;
+  opacity: 0.75;
+}
+
+// Mismo umbral que nutrition-grid: en rejillas estrechas el badge pisaría el
+// número del día, que es el dato principal.
+@container training-grid (max-width: 330px) {
+  .training-calendar__microcycle-badge {
+    display: none;
   }
 }
 
