@@ -5,13 +5,14 @@ import { of, Subscription } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { ClientDetailApiService } from './services/client-detail-api.service';
 import { CheckinSchedule } from './components/checkin-workspace/checkin-workspace.model';
 import { TrainerClientsApiService } from '../../services/trainer-clients-api.service';
 import { TrainerClientSummary } from '../../models/trainer-client-summary.model';
+import { TrainerBillingApiService } from '../../../subscription/services/trainer-billing-api.service';
 import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
 import {
   ClientIntake,
@@ -505,8 +506,8 @@ export class ClientDetailPage implements OnInit {
     private trainerClientsApi: TrainerClientsApiService,
     private trainerInvitesApi: TrainerInvitesApiService,
     private dietSuggestionApi: DietSuggestionApiService,
-    private alertController: AlertController,
-    private navigation: TrainerNavigationService
+    private navigation: TrainerNavigationService,
+    private trainerBillingApi: TrainerBillingApiService
   ) {}
 
   // TASK-051/TASK-073 (MASTER_BACKLOG.md) — antes leía el :id una sola vez
@@ -555,6 +556,26 @@ export class ClientDetailPage implements OnInit {
   public ionViewWillEnter(): void {
     if (!this.clientId) return;
     this.initTabsAndLoadSections();
+    this.loadSeatState();
+  }
+
+  // Cartera por encima del cupo del plan: este cliente puede quedar en solo
+  // lectura (el backend rechaza sus escrituras). Se avisa antes de que choque.
+  public readOnlyLimit: number | null = null;
+  private loadSeatState(): void {
+    const clientId = this.clientId;
+    this.trainerBillingApi.getSeats().subscribe({
+      next: (seats) => {
+        if (clientId !== this.clientId) return;
+        const seat = seats.clients.find((client) => client.clientId === clientId);
+        this.readOnlyLimit = seats.overLimit && seat && !seat.active ? seats.limit : null;
+      },
+      error: () => { this.readOnlyLimit = null; },
+    });
+  }
+
+  public goToSeats(): void {
+    void this.router.navigate(['/tabs/subscription']);
   }
 
   // ion-router-outlet mantiene viva esta instancia mientras se navega hacia
@@ -2747,7 +2768,7 @@ export class ClientDetailPage implements OnInit {
     const phase = this.activePhase;
     if (!phase?.phaseId) return;
 
-    const alert = await this.alertController.create({
+    await this.ionicUtilService.showAlert({
       header: 'Fechas de la fase',
       subHeader: phase.phaseName || phase.planName || 'Fase',
       inputs: [
@@ -2765,7 +2786,6 @@ export class ClientDetailPage implements OnInit {
         },
       ],
     });
-    await alert.present();
   }
 
   private savePhaseDates(phaseId: string, data: { startDate?: string; endDate?: string }): void {

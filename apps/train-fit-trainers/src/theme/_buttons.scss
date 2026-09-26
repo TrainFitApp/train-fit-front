@@ -31,6 +31,43 @@
   }
 }
 
+// Botón secundario (superficie + borde) — pareja del de gradiente. Varias
+// páginas lo tenían hecho a mano con radios y fondos distintos; este mixin fija
+// uno solo con la misma pulsación, foco y estado deshabilitado que el primario.
+@mixin tf-secondary-button($radius: 12px) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: $radius;
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 160ms var(--tf-ease-out), background-color 160ms var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-text);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      background: var(--tf-surface-5);
+    }
+  }
+}
+
 // Botón de header que es solo un icono — mismo look "envuelto" que ya usa la
 // app de consumidor en sus toolbars (packages/shared-features/.../diets/
 // components/toolbar-calendar: fondo + border-radius + caja fija 44x44, en

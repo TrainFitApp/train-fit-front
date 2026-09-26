@@ -8,6 +8,14 @@ import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { PendingEmailVerificationService } from 'src/app/core/services/auth/pending-email-verification.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
 
+// Sólo destinos privados de Trainers. Conserva query y fragmento (p. ej.
+// session_id de Stripe), sin aceptar URLs externas ni volver al propio loader.
+export function getTrainerStartupReturnUrl(...candidates: Array<string | null | undefined>): string | null {
+  return candidates.find((value): value is string => typeof value === 'string' &&
+    /^\/(?:tabs(?:\/|[?#]|$)|subscription(?:[?#]|$))/.test(value) &&
+    !/[\\\u0000-\u001f\u007f]/.test(value)) ?? null;
+}
+
 register();
 @Component({
   selector: 'app-root',
@@ -62,10 +70,24 @@ export class AppComponent implements OnDestroy {
     }
 
     console.info('[AUTH] auth_bootstrap_refresh_attempt');
+    // En una carga dura router.url puede seguir en '/': la navegación inicial
+    // o la URL del navegador conservan el destino mientras se renueva la cookie.
+    const returnUrl = getTrainerStartupReturnUrl(
+      this.router.getCurrentNavigation()?.extractedUrl?.toString(),
+      this.router.url,
+      typeof window !== 'undefined'
+        ? window.location.pathname + window.location.search + window.location.hash
+        : null,
+    );
     this.authService.restoreSessionSilently().subscribe({
       next: (restored) => {
-        if (restored && !this.router.url.includes('/user-loader')) {
-          void this.router.navigate(['/user-loader'], { replaceUrl: true });
+        const loaderInProgress = [this.router.url, this.router.getCurrentNavigation()?.extractedUrl?.toString()]
+          .some((url) => /^\/user-loader(?:[?#]|$)/.test(url || ''));
+        if (restored && !loaderInProgress) {
+          void this.router.navigate(['/user-loader'], {
+            replaceUrl: true,
+            ...(returnUrl ? { queryParams: { returnUrl } } : {}),
+          });
         }
       },
       error: (error) => {

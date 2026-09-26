@@ -71,16 +71,16 @@
         <div class="plan-card-info">
           <span class="plan-card-eyebrow">Plan actual</span>
           <div class="plan-card-name">{{ planName }}</div>
-          <span class="plan-card-renewal" *ngIf="entitlements?.isPremium && entitlements?.expiresAt">
-            <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
-            Se renueva el {{ entitlements?.expiresAt | date: 'd MMM yyyy' }}
+          <span class="plan-card-renewal" *ngIf="entitlements && billingSummary as summary">
+            <ion-icon [name]="summary.attention ? 'alert-circle-outline' : 'information-circle-outline'" aria-hidden="true"></ion-icon>
+            {{ summary.label }}<ng-container *ngIf="summary.date"> {{ summary.date | date: 'd MMM yyyy' }}</ng-container>
           </span>
         </div>
         <button type="button" class="plan-card-cta" (click)="goToSubscription()">Gestionar suscripción</button>
       </div>
       <div class="plan-card-usage" *ngIf="entitlements">
         <div class="usage-header">
-          <span class="usage-title">Clientes</span>
+          <span class="usage-title">Clientes que ocupan plaza</span>
           <span class="usage-count">
             {{ entitlements.usage.clients }}<span *ngIf="entitlements.limits.clients"> / {{ entitlements.limits.clients }}</span>
           </span>

@@ -8,4 +8,6 @@ export interface TrainerClientSummary {
     email: string;
   } | null;
   scopes: TrainerClientScope[];
+  // Fuera de las plazas activas del plan (cartera por encima del cupo).
+  readOnly?: boolean;
 }
