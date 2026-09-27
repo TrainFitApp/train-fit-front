@@ -47,6 +47,10 @@ export interface DietSuggestionResponse {
   // El de referencia, siempre — aunque el entrenador haya tecleado encima:
   // es lo que permite volver al calculado de un vistazo.
   calculated: MacroSet & { kcal: number };
+  // El objetivo nutricional que el cliente tiene ahora (null = ninguno): el
+  // panel deja alternar entre él y el calculado. `source` es el suyo (manual =
+  // alguien lo fijó a mano), no el de la fase.
+  currentGoal: (MacroSet & { kcal: number; source: TargetSource; updatedAt: string | null }) | null;
   // Qué pasos entraron en el cálculo (null = del rango del perfil).
   stepsFromHabit: StepsFromHabit | null;
   // Inputs y cuenta paso a paso, para el bloque "cómo se ha calculado".

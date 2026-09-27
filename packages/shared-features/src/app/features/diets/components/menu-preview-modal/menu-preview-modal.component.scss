@@ -37,6 +37,26 @@ ion-toolbar {
     color: #fe9000;
   }
 
+  // Comida con varias opciones: cada una en su bloque, con la etiqueta
+  // (o "Opción N") encima, separadas por el mismo filo que las filas.
+  &__alt {
+    padding-top: 8px;
+    border-top: 1px solid #2a2a2a;
+
+    &:first-of-type {
+      padding-top: 0;
+      border-top: none;
+    }
+  }
+
+  &__alt-label {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+  }
+
   &__items {
     list-style: none;
     margin: 0;

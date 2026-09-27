@@ -14,7 +14,26 @@ export interface DayMenuStatus {
   previews?: DayMenuPreview[];
 }
 
+export interface DayMenuPreviewItem {
+  name: string;
+  quantity: number | null;
+  unit: string;
+}
+
+// Una opción de una comida con varias (2+); `label` vacío = sin nombre puesto.
+export interface DayMenuPreviewAlternative {
+  label: string;
+  items: DayMenuPreviewItem[];
+}
+
 export interface DayMenuPreview {
   name: string;
-  meals: { name: string; items: { name: string; quantity: number | null; unit: string }[] }[];
+  meals: {
+    name: string;
+    // La 1ª opción: la que queda aplicada al elegir el menú.
+    items: DayMenuPreviewItem[];
+    // Solo cuando la comida tiene 2+ opciones (incluida la 1ª). Un back
+    // anterior no lo manda.
+    alternatives?: DayMenuPreviewAlternative[];
+  }[];
 }

@@ -8,7 +8,8 @@ import {
 } from '@angular/core';
 import { AlertOptions, ModalController, ModalOptions, ToastOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { forkJoin, Subscription } from 'rxjs';
+import { forkJoin, of, Subscription } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import {
   CUSTOM_PRODUCT_VALUES,
   CustomProduct,
@@ -93,6 +94,11 @@ export class DietsPage implements OnInit {
   public dayMenuStatus: DayMenuStatus | null = null;
   public isChoosingMenu = false;
   public isLeavingMenu = false;
+  // Cambio de menú o de alternativa en curso: mientras dura se bloquea toda
+  // la pantalla (cabecera incluida) para que no se pueda tocar nada a medias.
+  public isChoosingAlternative = false;
+  public isRefreshingTarget = false;
+  private menuState$: Subscription;
 
   // El check-in ABIERTO hoy, si lo hay (docs/plan-semanas.md): es el que
   // abre la semana en la que está el cliente. null = ninguno abierto.
@@ -503,18 +509,16 @@ export class DietsPage implements OnInit {
         this.cdr.detectChanges();
       });
 
-    // F28 — alternativas nombradas pendientes de elegir ese día, cargadas
-    // aparte para no bloquear el resto de la pantalla si falla.
-    this.mealProposalApiService.listForDate(dateStr).subscribe({
-      next: (proposals) => (this.mealProposals = proposals || []),
-      error: () => (this.mealProposals = []),
-    });
-
-    // Igual criterio: cargada aparte, nunca bloquea el resto de la
-    // pantalla. needsChoice:false para el 100% de los clientes sin plan.
-    this.dayMenuApiService.getForDate(dateStr).subscribe({
-      next: (status) => (this.dayMenuStatus = status),
-      error: () => (this.dayMenuStatus = null),
+    // F28 — alternativas del día y estado del menú (needsChoice:false para
+    // el 100% de los clientes sin plan). Si fallan no rompen la pantalla:
+    // se quedan vacías.
+    if (this.menuState$) this.menuState$.unsubscribe();
+    this.menuState$ = forkJoin({
+      proposals: this.mealProposalApiService.listForDate(dateStr).pipe(catchError(() => of([]))),
+      status: this.dayMenuApiService.getForDate(dateStr).pipe(catchError(() => of(null))),
+    }).subscribe(({ proposals, status }) => {
+      this.mealProposals = proposals || [];
+      this.dayMenuStatus = status;
     });
 
     this.loadOpenCheckin();
@@ -627,6 +631,28 @@ export class DietsPage implements OnInit {
     return this.dayMenuStatus?.selected || null;
   }
 
+  public get isSwitchingMenu(): boolean {
+    return (
+      this.isChoosingMenu ||
+      this.isLeavingMenu ||
+      this.isChoosingAlternative ||
+      this.isRefreshingTarget
+    );
+  }
+
+  // Recarga el día (comidas + menú + alternativas) y avisa al terminar,
+  // haya ido bien o no: la teardown de la suscripción corre al completar o
+  // al fallar.
+  private reloadDayThen(done: () => void): void {
+    this.setDietDayByDate(this.selectedDate);
+    let pending = 2;
+    const finish = () => {
+      if (--pending === 0) done();
+    };
+    this.dietDay$.add(finish);
+    this.menuState$.add(finish);
+  }
+
   // Día que el profesional marcó como saltado: no se pauta nada y no hay
   // menú que elegir.
   public get isDaySkipped(): boolean {
@@ -665,10 +691,7 @@ export class DietsPage implements OnInit {
           handler: () => {
             this.isLeavingMenu = true;
             this.dayMenuApiService.leave(this.selectedDate).subscribe({
-              next: () => {
-                this.isLeavingMenu = false;
-                this.setDietDayByDate(this.selectedDate);
-              },
+              next: () => this.reloadDayThen(() => (this.isLeavingMenu = false)),
               error: () => {
                 this.isLeavingMenu = false;
               },
@@ -688,10 +711,7 @@ export class DietsPage implements OnInit {
     if (this.isChoosingMenu) return;
     this.isChoosingMenu = true;
     this.dayMenuApiService.choose(this.selectedDate, menuName).subscribe({
-      next: () => {
-        this.isChoosingMenu = false;
-        this.setDietDayByDate(this.selectedDate);
-      },
+      next: () => this.reloadDayThen(() => (this.isChoosingMenu = false)),
       error: () => {
         this.isChoosingMenu = false;
       },
@@ -716,13 +736,18 @@ export class DietsPage implements OnInit {
   // cambiar de opción cambia lo pautado, así que se vuelve a pedir el día
   // solo para refrescar plannedTarget, sin recargar la pantalla entera.
   private refreshPlannedTarget(): void {
+    this.isRefreshingTarget = true;
     this.dietDayService
       .getDietDayByIdDietAndDate(this.user.dietInUse, this.selectedDate)
-      .subscribe((fresh) => {
-        if (!fresh || !this.dietDay || fresh.date !== this.dietDay.date) return;
-        this.dietDay.plannedTarget = fresh.plannedTarget ?? null;
-        this.dietDayService.setCurrentDietDay = { ...this.dietDay };
-        this.cdr.detectChanges();
+      .subscribe({
+        next: (fresh) => {
+          this.isRefreshingTarget = false;
+          if (!fresh || !this.dietDay || fresh.date !== this.dietDay.date) return;
+          this.dietDay.plannedTarget = fresh.plannedTarget ?? null;
+          this.dietDayService.setCurrentDietDay = { ...this.dietDay };
+          this.cdr.detectChanges();
+        },
+        error: () => (this.isRefreshingTarget = false),
       });
   }
 

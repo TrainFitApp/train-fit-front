@@ -9,6 +9,7 @@ import { NotificationsService } from 'src/app/core/services/notifications/notifi
 import { OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
+  CoachCurrentPlan,
   CoachDashboard,
   CoachNotification,
   CoachNotificationType,
@@ -219,6 +220,18 @@ export class CoachPage implements OnInit {
       (this.dashboard.nutritionPreferences?.pending ? 1 : 0) +
       this.dashboard.pendingPayments.length
     );
+  }
+
+  // "2 planes", "1 plan" o "Sin asignar".
+  public get currentPlansStat(): string {
+    const count = [this.dashboard?.currentPlans?.training, this.dashboard?.currentPlans?.nutrition].filter(Boolean).length;
+    return count ? `${count} plan${count === 1 ? '' : 'es'}` : 'Sin asignar';
+  }
+
+  public planDatePrefix(plan: CoachCurrentPlan): string {
+    if (plan.status === 'scheduled') return 'empieza el';
+    if (plan.status === 'assigned') return 'asignada el';
+    return 'desde el';
   }
 
   // Rediseño "menú de cards" — cada tarjeta de arriba lleva a su sección
@@ -735,6 +748,18 @@ export class CoachPage implements OnInit {
     const week = item.weekNumber ? `Semana ${item.weekNumber}` : 'Pedido por ' + item.trainerName;
     const hasta = item.closesDate ? ` · hasta el ${fmt(item.closesDate)}` : '';
     return `${week}${hasta}`;
+  }
+
+  // "24 ago 2026". La app no registra LOCALE_ID, así que el DatePipe saldría
+  // en inglés ("24 Aug 2026").
+  public planDateLabel(iso: string): string {
+    if (!iso) return '';
+    return new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
   }
 
   public goToNutritionPreferences(): void {

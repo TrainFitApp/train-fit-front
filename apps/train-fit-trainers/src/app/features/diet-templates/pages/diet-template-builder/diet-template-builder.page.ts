@@ -129,6 +129,12 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // entrenador ve de un vistazo dónde estaba sin tener que releer la rejilla.
   public activeCell: BoardCellRef | null = null;
 
+  // El editor de comida es un panel sin velo (showSidePanel): el tablero
+  // sigue clicable debajo. mealEditorSeq evita que el cierre del editor
+  // anterior marque como cerrado el que se acaba de abrir en otra celda.
+  public mealEditorOpen = false;
+  private mealEditorSeq = 0;
+
   // Portapapeles de copiar/pegar — ver copyCell()/copyDay() y pasteCell()/
   // pasteDay() más abajo (unificar vs sobrescribir si el destino ya tiene
   // comida). Se pinta en el panel lateral derecho del tablero.
@@ -710,7 +716,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
 
   // Espejo de alternativeToCustomEntries en client-detail.page.ts — mismo
   // formato "clipboard" que ya acepta mealModel.pasteMeal (F12/F28). Cada
-  // alimento es siempre un producto o una receta real (ver canSave), nunca
+  // alimento es siempre un producto o una receta real (ver validationError), nunca
   // macros tecleadas a mano.
   private itemsToCustomEntries(
     items: TemplateFoodItem[]
@@ -755,6 +761,8 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     // El botón de eliminar no existe en modo copia (ver html), así que el
     // portapapeles nunca apunta a una fila que se esté quitando.
     if (this.activeCell?.dayIndex === index) {
+      // El editor abierto apuntaría a una comida que ya no está en el tablero.
+      void this.closeMealEditor();
       this.activeCell = null;
     } else if (this.activeCell && this.activeCell.dayIndex > index) {
       this.activeCell = { ...this.activeCell, dayIndex: this.activeCell.dayIndex - 1 };
@@ -907,6 +915,9 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     // En modo copia la celda solo admite "Pegar" (icono propio) — el click
     // en el cuerpo no abre el editor.
     if (this.copyMode) return;
+    if (this.mealEditorOpen && this.activeCell?.dayIndex === dayIndex && this.activeCell?.mealIndex === mealIndex) return;
+    // Otra celda con el editor abierto: se sustituye, no se apila.
+    await this.closeMealEditor();
     const row = this.activeRows[dayIndex];
     const meal = row.meals[mealIndex];
     // Siempre se edita con al menos una alternativa visible en pantalla,
@@ -918,11 +929,24 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
 
     this.activeCell = { dayIndex, mealIndex };
 
-    await this.ionicUtilService.showModal({
+    const seq = ++this.mealEditorSeq;
+    this.mealEditorOpen = true;
+    await this.ionicUtilService.showSidePanel({
       component: DayMealEditorModalComponent,
       componentProps: { meal, menuName: this.rowLabel(row) },
       cssClass: 'tf-panel-modal',
     });
+    if (seq === this.mealEditorSeq) this.mealEditorOpen = false;
+  }
+
+  private async closeMealEditor(): Promise<void> {
+    if (this.mealEditorOpen) await this.ionicUtilService.closeSidePanels();
+  }
+
+  // Con el tablero clicable se puede guardar o salir con el editor abierto:
+  // el panel vive fuera de la página y se quedaría flotando en la siguiente.
+  public ionViewWillLeave(): void {
+    void this.closeMealEditor();
   }
 
   // --- Arrastrar y soltar: mover una comida completa (con todas sus
@@ -1010,6 +1034,8 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     const row = this.activeRows[dayIndex];
     const meal = row.meals[mealIndex];
     if (!this.mealHasFood(meal)) return;
+    // El panel del portapapeles sale donde está el editor: se cierra.
+    void this.closeMealEditor();
     this.clipboard = {
       kind: 'meal',
       source: { dayIndex, mealIndex },
@@ -1022,6 +1048,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     event.stopPropagation();
     const row = this.activeRows[dayIndex];
     if (!this.rowHasFood(row)) return;
+    void this.closeMealEditor();
     this.clipboard = {
       kind: 'day',
       sourceIndex: dayIndex,
@@ -1154,21 +1181,33 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     return row.label;
   }
 
-  private mealValid(meal: TemplateMeal): boolean {
+  // La etiqueta de una alternativa es opcional: sin ella se muestra "Opción N"
+  // (alternativeLabel) y el back la guarda vacía.
+  private mealProblem(menu: TemplateMenu, meal: TemplateMeal): string | null {
     const isMultiple = meal.alternatives.length >= 2;
-    return meal.alternatives.every(
-      (alt) =>
-        alt.items.length > 0 &&
-        alt.items.every((item) => !!(item.productId || item.recipeId)) &&
-        (!isMultiple || alt.label.trim())
-    );
+    for (const [i, alt] of meal.alternatives.entries()) {
+      const where = `${this.rowLabel(menu)} · ${meal.slot}${isMultiple ? `, Opción ${meal.alternatives.length - i}` : ''}`;
+      if (!alt.items.length) return `${where}: no tiene alimentos.`;
+      if (!alt.items.every((item) => item.productId || item.recipeId)) return `${where}: hay un alimento sin elegir.`;
+    }
+    return null;
   }
 
-  public get canSave(): boolean {
-    if (!this.name.trim()) return false;
-    if (!this.menus.every((menu) => menu.meals.every((meal) => this.mealValid(meal)))) return false;
-    if (!this.menus.every((menu) => menu.name.trim())) return false;
-    return !this.duplicateMenuNamesWarning;
+  // Primer motivo por el que no se puede guardar, o null si todo está bien.
+  // El botón no se deshabilita: save() lo muestra en un aviso para que el
+  // entrenador sepa qué falta.
+  private get validationError(): string | null {
+    if (!this.name.trim()) return 'Falta el nombre de la dieta.';
+    const unnamed = this.menus.findIndex((menu) => !menu.name.trim());
+    if (unnamed >= 0) return `Falta el nombre del menú ${unnamed + 1}.`;
+    if (this.duplicateMenuNamesWarning) return `Hay menús con el mismo nombre: ${this.duplicateMenuNamesWarning}.`;
+    for (const menu of this.menus) {
+      for (const meal of menu.meals) {
+        const problem = this.mealProblem(menu, meal);
+        if (problem) return problem;
+      }
+    }
+    return null;
   }
 
   private mealsToSave(meals: TemplateMeal[]): DietTemplateMealPayload[] {
@@ -1183,7 +1222,12 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   }
 
   public save(): void {
-    if (!this.canSave || this.isSaving) return;
+    if (this.isSaving) return;
+    const problem = this.validationError;
+    if (problem) {
+      this.ionicUtilService.showToast({ message: problem, duration: 4000, color: 'warning' });
+      return;
+    }
     this.isSaving = true;
     // Solo se envían las comidas con al menos una alternativa — un slot
     // vacío no aporta nada al aplicar la plantilla. Cada alimento se

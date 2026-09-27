@@ -5,6 +5,7 @@ import { HttpService } from '../http/http.service';
 
 interface ActiveProfessionalSummary {
   user: { _id: string } | null;
+  scopes?: ('training' | 'nutrition')[];
 }
 
 interface PendingInviteSummary {
@@ -32,6 +33,11 @@ export class CoachService {
   private readonly _hasActiveTrainer: WritableSignal<boolean> = signal(false);
   public readonly hasActiveTrainer = computed(() => this._hasActiveTrainer());
 
+  // Un profesional ACTIVO lleva su nutrición: los objetivos nutricionales
+  // los pauta él y el cliente solo los ve (goal-list, nutritional-objectives).
+  private readonly _hasNutritionCoach: WritableSignal<boolean> = signal(false);
+  public readonly hasNutritionCoach = computed(() => this._hasNutritionCoach());
+
   constructor(private http: HttpService) {}
 
   // Nunca debe romper el flujo que la llama (arranque de la app, respuesta a
@@ -44,12 +50,14 @@ export class CoachService {
     }).pipe(
       map(({ active, pending }) => {
         this._hasActiveTrainer.set((active || []).length > 0);
+        this._hasNutritionCoach.set((active || []).some((p) => p.scopes?.includes('nutrition')));
         return (active || []).length > 0 || (pending || []).length > 0;
       }),
       tap((hasCoachRelation) => this._hasCoachRelation.set(hasCoachRelation)),
       catchError(() => {
         this._hasCoachRelation.set(false);
         this._hasActiveTrainer.set(false);
+        this._hasNutritionCoach.set(false);
         return of(false);
       })
     );

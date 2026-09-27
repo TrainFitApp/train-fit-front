@@ -43,20 +43,101 @@
     </p>
   </div>
 
-  <ng-container *ngIf="state === 'loaded' && list?.items?.length">
+  <ng-container *ngIf="state === 'loaded' && !isEmpty">
     <p class="page-hint">
-      Suma de lo pautado en {{ list.daysWithPlan }} día{{ list.daysWithPlan === 1 ? '' : 's' }} con
-      plan. Toca lo que ya tengas en el carro.
+      Para {{ list?.daysWithPlan }} día{{ list?.daysWithPlan === 1 ? '' : 's' }} con plan: lo de
+      cada día multiplicado por los días.
+      <ng-container *ngIf="hasChoices">Reparte los días entre tus menús y elige alternativa.</ng-container>
     </p>
 
+    <!-- Menús y alternativas: solo si hay algo que elegir. Un menú a la vez
+         (desplegable) para no apilar una tarjeta por menú. -->
+    <section class="choices" *ngIf="hasChoices" aria-label="Menús y alternativas">
+      <div class="segment" *ngFor="let segment of segments; trackBy: trackByPlan">
+        <p class="segment-label" *ngIf="segments.length > 1">
+          {{ segmentLabel(segment) }} · {{ segment.days }} día{{ segment.days === 1 ? '' : 's' }}
+        </p>
+
+        <ng-container *ngIf="activeMenu(segment) as menu">
+          <div class="choice-row" *ngIf="segment.menus.length > 1">
+            <ion-select
+              class="choice-select"
+              interface="action-sheet"
+              mode="ios"
+              cancelText="Cancelar"
+              toggleIcon="chevron-down-outline"
+              aria-label="Menú"
+              [value]="menu.name"
+              (ionChange)="setActiveMenu(segment, $event.detail.value)"
+            >
+              <ion-select-option *ngFor="let option of segment.menus" [value]="option.name">
+                {{ option.name }}
+              </ion-select-option>
+            </ion-select>
+
+            <div class="stepper">
+              <button
+                type="button"
+                class="stepper-btn"
+                [disabled]="menuDays(segment, menu) <= 0"
+                (click)="changeMenuDays(segment, menu, -1)"
+                [attr.aria-label]="'Un día menos de ' + menu.name"
+              >
+                <ion-icon name="remove-outline" aria-hidden="true"></ion-icon>
+              </button>
+              <span class="stepper-value">{{ menuDays(segment, menu) }} d</span>
+              <button
+                type="button"
+                class="stepper-btn"
+                [disabled]="unassigned(segment) <= 0"
+                (click)="changeMenuDays(segment, menu, 1)"
+                [attr.aria-label]="'Un día más de ' + menu.name"
+              >
+                <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- El reparto entero de un vistazo, ya que el desplegable solo
+               enseña un menú. -->
+          <p class="menu-summary" *ngIf="segment.menus.length > 1">
+            {{ menuSummary(segment) }}
+            <span class="segment-warning" *ngIf="unassigned(segment) > 0">
+              · {{ unassigned(segment) }} sin menú
+            </span>
+          </p>
+
+          <div class="choice-row" *ngFor="let meal of mealsWithChoice(menu)">
+            <span class="meal-slot">{{ meal.slot }}</span>
+            <ion-select
+              class="choice-select"
+              interface="action-sheet"
+              mode="ios"
+              cancelText="Cancelar"
+              toggleIcon="chevron-down-outline"
+              [attr.aria-label]="'Alternativa de ' + meal.slot"
+              [value]="selectedAlternative(segment, menu, meal)"
+              (ionChange)="selectAlternative(segment, menu, meal, $event.detail.value)"
+            >
+              <ion-select-option *ngFor="let alt of meal.alternatives; let i = index" [value]="i">
+                {{ alternativeLabel(alt.label, i) }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+        </ng-container>
+      </div>
+    </section>
+
     <div class="list-progress" *ngIf="checkedCount">
-      {{ checkedCount }} de {{ list.items.length }} en el carro
+      {{ checkedCount }} de {{ items.length }} en el carro
     </div>
+
+    <p class="page-hint" *ngIf="!items.length">Con este reparto no hay nada que comprar.</p>
 
     <button
       type="button"
       class="item"
-      *ngFor="let item of list.items; trackBy: trackByName"
+      *ngFor="let item of items; trackBy: trackByName"
       [class.item--checked]="isChecked(item)"
       [attr.aria-pressed]="isChecked(item)"
       (click)="toggle(item)"

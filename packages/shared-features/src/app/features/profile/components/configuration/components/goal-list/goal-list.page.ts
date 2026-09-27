@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/co
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -26,6 +27,12 @@ export class GoalListPage implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
+  // Con un profesional que lleva su nutrición, el objetivo lo pauta él:
+  // la lista es de solo lectura (sin crear, editar ni eliminar).
+  public get readOnly(): boolean {
+    return this.coachService.hasNutritionCoach();
+  }
+
   constructor(
     private modalController: ModalController,
     private translate: TranslateService,
@@ -33,6 +40,7 @@ export class GoalListPage implements OnInit, OnDestroy {
     private userService: UserService,
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
+    private coachService: CoachService,
   ) {}
 
   ngOnInit() {
@@ -76,6 +84,7 @@ export class GoalListPage implements OnInit, OnDestroy {
   }
 
   async startCreateGoal() {
+    if (this.readOnly) return;
     if (this.hasReachedGoalLimit()) {
       await this.showGoalLimitAlert();
       return;
@@ -130,6 +139,7 @@ export class GoalListPage implements OnInit, OnDestroy {
   }
 
   async openEditor(goal: NutritionalGoal) {
+    if (this.readOnly) return;
     if (this.isGoalLocked(goal)) {
       await this.showLockedGoalAlert();
       return;
@@ -148,6 +158,7 @@ export class GoalListPage implements OnInit, OnDestroy {
 
   async deleteGoal(goal: NutritionalGoal, event: Event) {
     event.stopPropagation();
+    if (this.readOnly) return;
 
     if (this.goals.length <= 1) {
       await this.ionicUtilService.showAlert({
@@ -213,6 +224,7 @@ export class GoalListPage implements OnInit, OnDestroy {
   }
 
   public isGoalLocked(goal: NutritionalGoal): boolean {
+    if (this.readOnly) return false;
     if (this.userService.getLocalUser?.premium?.entitled) return false;
     if (this.goals.length <= this.goalLimit) return false;
     return goal._id !== this.getUnlockedFreeGoalId();

@@ -22,6 +22,16 @@ export class DietDay {
   // Lo que suma lo PAUTADO ese día: es la meta que
   // ve el cliente (no un objetivo guardado aparte). null = nada pautado.
   plannedTarget?: PlannedTarget | null;
+  // Semana de la fase que pautó el entrenador en la que cae el día
+  // (null = sin fase asignada).
+  week?: DietWeek | null;
+}
+
+export interface DietWeek {
+  phaseId: string;
+  number: number;
+  start: string;
+  end: string;
 }
 
 export interface PlannedTarget {

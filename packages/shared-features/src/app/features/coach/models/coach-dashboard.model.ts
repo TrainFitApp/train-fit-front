@@ -50,11 +50,21 @@ export interface CoachPendingPayment {
   trainerName: string;
 }
 
-export interface CoachAssignedRoutine {
-  tableId: string;
+// "Tu plan actual" (clientCoachView/current-plans.js). `active` = rige hoy;
+// `scheduled` = no rige nada hoy pero hay uno programado; `assigned` (solo
+// rutina) = asignada pero sin poner en uso ni programar. `startDate`
+// (YYYY-MM-DD) = inicio de la fase o, en una rutina sin fase, el día en que
+// se asignó. En nutrición `name` es el de la fase.
+export interface CoachCurrentPlan {
+  status: 'active' | 'scheduled' | 'assigned';
   name: string;
   assignedByTrainerName: string;
-  assignedAt: string;
+  startDate: string;
+}
+
+export interface CoachCurrentPlans {
+  training: CoachCurrentPlan | null;
+  nutrition: CoachCurrentPlan | null;
 }
 
 // Tab Coach, Fase 3 — notificaciones in-app.
@@ -106,5 +116,5 @@ export interface CoachDashboard {
   pendingMealProposals: CoachPendingMealProposal[];
   nutritionPreferences: CoachNutritionPreferencesStatus | null;
   pendingPayments: CoachPendingPayment[];
-  assignedRoutine: CoachAssignedRoutine | null;
+  currentPlans: CoachCurrentPlans;
 }

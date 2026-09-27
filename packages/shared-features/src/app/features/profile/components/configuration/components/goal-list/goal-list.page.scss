@@ -137,6 +137,21 @@
   }
 }
 
+.read-only-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #9ca3af;
+
+  ion-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+}
+
 .goal-cards {
   display: flex;
   flex-direction: column;
@@ -184,6 +199,10 @@
 
   &:hover {
     border-color: #373737;
+  }
+
+  &.read-only {
+    cursor: default;
   }
 }
 

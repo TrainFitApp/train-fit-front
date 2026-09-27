@@ -322,54 +322,46 @@
 }
 
 // --- coach-tab FASE3: notificaciones ---
+// Título a la izquierda; a la derecha, en UNA línea, los enlaces (leer todas /
+// mostrar más) y el icono de refrescar. En pantallas estrechas el bloque de
+// acciones baja entero a su propia línea, alineado a la derecha.
 .notifications-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0 12px;
   margin-bottom: 8px;
 
   .section-heading {
+    flex: 1 1 auto;
     margin: 0;
   }
 
   .section-header-actions {
-    grid-column: 2;
-    grid-row: 1;
-    margin: 0;
+    margin: 0 0 0 auto;
   }
 
   .section-header-link {
     min-height: 44px;
     color: var(--ion-color-primary-tint);
   }
-
-  @media (max-width: 560px) {
-    grid-template-columns: minmax(0, 1fr) auto;
-
-    .section-header-actions {
-      grid-column: 1 / -1;
-      grid-row: 2;
-      justify-content: flex-end;
-    }
-  }
 }
 
+// Solo el icono, sin caja: mismo color que los enlaces de al lado. El área
+// táctil sigue en 44px; el margen negativo compensa el aire del área para que
+// el icono quede pegado al borde derecho del contenido.
 .notification-refresh-button {
-  grid-column: -2;
-  grid-row: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
+  margin-right: -12px;
   padding: 0;
-  border: 1px solid var(--pe-border);
-  border-radius: 12px;
-  background: var(--ion-color-dark-gray);
+  border: none;
+  background: none;
   color: var(--ion-color-primary-tint);
   cursor: pointer;
-  transition: background-color 140ms ease, opacity 140ms ease;
+  transition: opacity 140ms ease;
 
   ion-icon,
   ion-spinner {
@@ -380,7 +372,7 @@
   }
 
   &:active:not(:disabled) {
-    background: var(--ion-color-dark-gray-tint);
+    opacity: 0.6;
   }
 
   &:disabled {
@@ -390,7 +382,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     &:hover:not(:disabled) {
-      background: var(--ion-color-dark-gray-tint);
+      opacity: 0.8;
     }
   }
 }
@@ -585,6 +577,22 @@
 .plan-icon {
   flex-shrink: 0;
   font-size: 22px;
+  color: #fe9b1a;
+}
+
+// Sin plan de ese tipo: misma tarjeta, apagada.
+.plan-card--empty .plan-icon,
+.plan-card--empty .plan-kicker {
+  color: #8b8b8b;
+}
+
+// Qué tipo de plan es (entrenamiento / nutrición): con dos tarjetas seguidas
+// el nombre solo ("Definición") no dice a cuál de las dos pertenece.
+.plan-kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: #fe9b1a;
 }
 

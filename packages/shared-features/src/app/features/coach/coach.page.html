@@ -56,15 +56,10 @@
         </span>
       </button>
 
-      <button
-        type="button"
-        class="coach-menu-card"
-        *ngIf="dashboardState !== 'loaded' || dashboard?.assignedRoutine"
-        (click)="scrollToSection('section-plan')"
-      >
+      <button type="button" class="coach-menu-card" (click)="scrollToSection('section-plan')">
         <div class="coach-menu-icon"><ion-icon name="barbell-outline"></ion-icon></div>
         <span class="coach-menu-name">Tu plan actual</span>
-        <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">Activo</span>
+        <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">{{ currentPlansStat }}</span>
       </button>
 
       <button
@@ -200,17 +195,37 @@
       </div>
     </div>
 
-    <div class="section-card" id="section-plan" *ngIf="d.assignedRoutine">
+    <!-- Siempre las dos tarjetas: si falta una, el cliente ve que no tiene
+         ese plan en vez de no ver nada. -->
+    <div class="section-card" id="section-plan">
       <h2 class="section-heading">Tu plan actual</h2>
 
-      <div class="plan-card" *ngIf="d.assignedRoutine as routine">
-        <ion-icon name="barbell-outline" class="plan-icon"></ion-icon>
+      <ng-container
+        *ngTemplateOutlet="planCard; context: { plan: d.currentPlans?.training, kicker: 'Entrenamiento', icon: 'barbell-outline', empty: 'Sin rutina asignada todavía' }"
+      ></ng-container>
+      <ng-container
+        *ngTemplateOutlet="planCard; context: { plan: d.currentPlans?.nutrition, kicker: 'Nutrición', icon: 'nutrition-outline', empty: 'Sin fase de dieta asignada todavía' }"
+      ></ng-container>
+    </div>
+
+    <ng-template #planCard let-plan="plan" let-kicker="kicker" let-icon="icon" let-empty="empty">
+      <div class="plan-card" [class.plan-card--empty]="!plan">
+        <ion-icon [name]="icon" class="plan-icon"></ion-icon>
         <div class="action-info">
-          <span class="action-title">{{ routine.name }}</span>
-          <span class="action-subtitle">Asignada por {{ routine.assignedByTrainerName }} · {{ routine.assignedAt | date: 'd MMM y' }}</span>
+          <span class="plan-kicker">{{ kicker }}</span>
+          <ng-container *ngIf="plan; else noPlan">
+            <span class="action-title">{{ plan.name }}</span>
+            <span class="action-subtitle">
+              {{ plan.assignedByTrainerName }} ·
+              {{ planDatePrefix(plan) }} {{ planDateLabel(plan.startDate) }}
+            </span>
+          </ng-container>
+          <ng-template #noPlan>
+            <span class="action-subtitle">{{ empty }}</span>
+          </ng-template>
         </div>
       </div>
-    </div>
+    </ng-template>
   </ng-container>
 
   <!-- === Notificaciones (coach-tab FASE3) === -->
@@ -220,34 +235,36 @@
         {{ 'COACH_NOTIFICATIONS.TITLE' | translate }}
         <span class="unread-badge" *ngIf="unreadNotificationsCount">{{ unreadNotificationsCount }}</span>
       </h2>
-      <button
-        type="button"
-        class="notification-refresh-button"
-        [disabled]="notificationsRefreshDisabled"
-        [attr.aria-label]="(refreshingNotifications ? 'COACH_NOTIFICATIONS.REFRESHING' : 'COACH_NOTIFICATIONS.REFRESH') | translate"
-        [attr.title]="'COACH_NOTIFICATIONS.REFRESH' | translate"
-        (click)="loadNotifications()"
-      >
-        <ion-spinner *ngIf="refreshingNotifications; else refreshIcon" name="crescent" aria-hidden="true"></ion-spinner>
-        <ng-template #refreshIcon><ion-icon name="refresh-outline" aria-hidden="true"></ion-icon></ng-template>
-      </button>
-      <div class="section-header-actions" *ngIf="notificationsState === 'loaded' && (unreadNotificationsCount || notifications.length > 4)">
+      <div class="section-header-actions">
+        <ng-container *ngIf="notificationsState === 'loaded'">
+          <button
+            type="button"
+            class="section-header-link"
+            *ngIf="unreadNotificationsCount"
+            [disabled]="notificationsRefreshDisabled"
+            (click)="markAllRead()"
+          >
+            {{ 'COACH_NOTIFICATIONS.MARK_ALL_READ' | translate }}
+          </button>
+          <button
+            type="button"
+            class="section-header-link"
+            *ngIf="notifications.length > 4"
+            (click)="toggleShowAllNotifications()"
+          >
+            {{ (showAllNotifications ? 'COACH_NOTIFICATIONS.SHOW_LESS' : 'COACH_NOTIFICATIONS.SHOW_ALL') | translate }}
+          </button>
+        </ng-container>
         <button
           type="button"
-          class="section-header-link"
-          *ngIf="unreadNotificationsCount"
+          class="notification-refresh-button"
           [disabled]="notificationsRefreshDisabled"
-          (click)="markAllRead()"
+          [attr.aria-label]="(refreshingNotifications ? 'COACH_NOTIFICATIONS.REFRESHING' : 'COACH_NOTIFICATIONS.REFRESH') | translate"
+          [attr.title]="'COACH_NOTIFICATIONS.REFRESH' | translate"
+          (click)="loadNotifications()"
         >
-          {{ 'COACH_NOTIFICATIONS.MARK_ALL_READ' | translate }}
-        </button>
-        <button
-          type="button"
-          class="section-header-link"
-          *ngIf="notifications.length > 4"
-          (click)="toggleShowAllNotifications()"
-        >
-          {{ (showAllNotifications ? 'COACH_NOTIFICATIONS.SHOW_LESS' : 'COACH_NOTIFICATIONS.SHOW_ALL') | translate }}
+          <ion-spinner *ngIf="refreshingNotifications; else refreshIcon" name="crescent" aria-hidden="true"></ion-spinner>
+          <ng-template #refreshIcon><ion-icon name="refresh-outline" aria-hidden="true"></ion-icon></ng-template>
         </button>
       </div>
     </div>

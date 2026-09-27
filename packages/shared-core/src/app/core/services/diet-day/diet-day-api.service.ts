@@ -3,7 +3,7 @@ import { Observable, take } from 'rxjs';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { CustomProduct } from '../../models/customProduct';
 import { CustomRecipe } from '../../models/customRecipe';
-import { DietDay, DietTimeline, PlannedTarget } from '../../models/dietDay';
+import { DietDay, DietTimeline, DietWeek, PlannedTarget } from '../../models/dietDay';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 import { User } from '../../models/user';
 import { HttpService } from '../http/http.service';
@@ -21,11 +21,13 @@ export class DietDayAPIService {
     dietDay: DietDay;
     anthropometry: Anthropometry | null;
     plannedTarget?: PlannedTarget | null;
+    week?: DietWeek | null;
   }> {
     return this.http.post<{
       dietDay: DietDay;
       anthropometry: Anthropometry | null;
       plannedTarget?: PlannedTarget | null;
+      week?: DietWeek | null;
     }>(`${DietDayAPIService.DIET_DAYS_ENDPOINT}/date/${id}`, { date });
   }
 

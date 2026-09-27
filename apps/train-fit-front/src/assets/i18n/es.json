@@ -1818,6 +1818,8 @@
     "FAT": "G",
     "EMPTY": "Aún no hay objetivos. Toca + para empezar.",
     "IN_USE": "En uso",
+    "PRESCRIBED": "Pautado",
+    "READ_ONLY_HINT": "Tu entrenador pauta tus objetivos nutricionales. Solo puedes consultarlos.",
     "DELETE_HEADER": "Eliminar objetivo",
     "DELETE_MSG": "¿Eliminar \"{{name}}\"?",
     "REQUIRED_FIELDS": "Faltan campos por completar",
@@ -1829,6 +1831,8 @@
   },
   "NUTRITIONAL_OBJECTIVES": {
     "TITLE": "Información detallada",
+    "WEEK_GOALS": "Objetivos de la semana {{number}}",
+    "PRESCRIBED_GOAL": "Objetivo pautado",
     "DAILY_CALORIES": "Calorías Diarias",
     "KCAL_REMAINING_PREFIX": "Quedan",
     "KCAL_REMAINING_SUFFIX": "kcal para completar tu objetivo",
