@@ -100,6 +100,12 @@
     </div>
   </div>
   <div class="planner-pain" *ngIf="painEnabled" aria-live="polite">
+    <!-- Lo que el cliente puso en "Salud / lesiones" del intake, entero. -->
+    <span class="planner-injuries" *ngIf="intakeInjuries as injuries">
+      <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
+      <span class="pain-label">Lesiones</span>
+      <span class="planner-injuries__text">{{ injuries }}</span>
+    </span>
     <ion-icon name="bandage-outline" aria-hidden="true"></ion-icon>
     <span class="pain-label">Dolor</span>
     <span *ngIf="painState === 'loading'">Actualizando registros…</span>

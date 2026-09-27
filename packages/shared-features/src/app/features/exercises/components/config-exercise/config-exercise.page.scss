@@ -883,48 +883,81 @@
     }
   }
 
+  // 2026-09 (compactar) — mismas dos piezas por serie (cabecera + valores),
+  // con menos aire: antes ~143px por serie, ahora ~96px. Los valores pasan
+  // de línea en vez de recortarse con "…" (panel lateral de ~320px).
   .elegant-list {
     --background: transparent;
     --ion-item-background: transparent;
+    padding: 0;
 
     ion-item-group {
-      margin-bottom: 12px;
+      margin-bottom: 8px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
     }
 
     ion-item-divider {
       --background: rgba(var(--ion-color-primary-rgb), 0.05);
       --color: var(--ion-color-primary);
       --border-color: rgba(var(--ion-color-primary-rgb), 0.1);
+      --padding-start: 8px;
+      --inner-padding-end: 0;
+      min-height: 40px;
       border-radius: 12px 12px 0 0;
       margin-bottom: 0;
       font-weight: 600;
+
+      ion-label {
+        margin: 0;
+      }
+
+      .intensity-drop,
+      .intensity-rp,
+      .intensity-rest {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      ion-button {
+        width: 44px;
+        height: 40px;
+        margin: 0;
+      }
     }
 
     .set-content {
       background: #1f1f1f;
       color: #f8fafc;
       border: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: none;
       border-radius: 0 0 12px 12px;
       margin-bottom: 0;
       margin-top: 0;
-      padding: 16px;
+      padding: 4px 0 4px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
+      min-height: 48px;
+      cursor: pointer;
 
       .set-values {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 16px;
+        gap: 4px 14px;
         flex: 1;
+        min-width: 0;
 
         .set-value {
-          font-weight: 500;
+          font-weight: 600;
           color: #f8fafc;
-          font-size: 0.75rem;
+          font-size: 0.8rem;
+          font-variant-numeric: tabular-nums;
           white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
 
         .fail-label {
@@ -934,12 +967,18 @@
           background: rgba(var(--ion-color-primary-rgb), 0.15);
           padding: 2px 6px;
           border-radius: 4px;
+          white-space: nowrap;
         }
       }
 
       .set-actions {
+        flex: none;
+
         ion-button {
           --color: var(--ion-color-primary);
+          width: 44px;
+          height: 40px;
+          margin: 0;
 
           ion-icon {
             font-size: 1.2rem;

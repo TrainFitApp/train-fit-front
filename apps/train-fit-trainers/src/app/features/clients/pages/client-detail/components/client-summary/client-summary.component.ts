@@ -175,6 +175,8 @@ export class ClientSummaryComponent implements OnInit {
   // estado necesita `summary.alerts`, que solo este componente pide, así
   // que se calcula aquí y se emite hacia arriba.
   @Output() public statusChange = new EventEmitter<'attention' | 'ok' | 'insufficient'>();
+  // Mismo camino que el badge: chip "Cuestionario pendiente" de la cabecera.
+  @Output() public intakePendingChange = new EventEmitter<boolean>();
 
   // Fase 6 — la sección de entrenamiento solo se pide (y se pinta) si el
   // cliente tiene ese ámbito: su consulta es la más cara del módulo y a un
@@ -330,6 +332,7 @@ export class ClientSummaryComponent implements OnInit {
         // this.summary ya está asignado arriba, así que clientStatus nunca
         // devuelve null en este punto.
         this.statusChange.emit(this.clientStatus!);
+        this.intakePendingChange.emit(summary.intakePending === true);
       },
       error: () => {
         this.summaryState = 'error';

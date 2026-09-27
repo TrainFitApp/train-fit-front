@@ -56,13 +56,12 @@
       </div>
     </swiper-slide>
 
-    <swiper-slide *ngIf="enabledFields.has('activityProfile')">
+    <!-- Como en el registro: solo si no cuenta pasos (con pasos, la
+         actividad ya está medida y preguntarla sobra). -->
+    <swiper-slide *ngIf="enabledFields.has('activityProfile') && steps === stepsNotCounted">
       <div class="form-section">
         <h2 class="section-title">¿Tu nivel de actividad diaria?</h2>
-        <p class="section-subtitle" *ngIf="steps === stepsNotCounted">Al margen del entrenamiento con pesas.</p>
-        <p class="section-subtitle" *ngIf="steps !== stepsNotCounted">
-          Como ya nos has dicho tus pasos, esto es opcional — puedes saltarlo.
-        </p>
+        <p class="section-subtitle">Al margen del entrenamiento con pesas.</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -349,6 +348,7 @@
     fill="clear"
     (click)="nextStep()"
     *ngIf="!isLastStep"
+    [disabled]="isActivityMissing"
   >
     <strong>Siguiente</strong>
     <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>

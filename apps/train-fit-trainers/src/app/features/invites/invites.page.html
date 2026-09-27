@@ -171,7 +171,7 @@
     <button
       type="submit"
       class="submit-button"
-      [disabled]="form.invalid || !hasScopeSelected || isSending || checkingEmail"
+      [disabled]="form.invalid || !hasScopeSelected || isSending"
       data-enter-submit-action="sendInvite"
     >
       <span *ngIf="!isSending">Enviar invitación</span>

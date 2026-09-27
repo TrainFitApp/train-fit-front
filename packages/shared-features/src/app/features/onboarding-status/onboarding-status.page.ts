@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import {
@@ -21,7 +21,6 @@ interface TrainerGroup {
   trainerId: string;
   trainerName: string;
   scopes: string[];
-  needsIntake: boolean; // true si alguna relación sigue en cuestionario_pendiente
   enabledFields: Set<IntakeFieldKey>; // TASK-049 — campos activos del cuestionario de este trainer
   customQuestions: IntakeCustomQuestion[]; // preguntas de texto libre añadidas por el trainer
 }
@@ -49,17 +48,17 @@ const EMPTY_INTAKE_PREFILL: IntakeWizardPrefill = {
   customAnswers: {},
 };
 
-// TAREA 3 (coach-tab) — pantalla que ve el cliente mientras no tiene ninguna
-// relación activa todavía: si alguno de sus profesionales sigue esperando el
-// cuestionario inicial, lo rellena aquí (wizard paso a paso, ver
-// components/intake-wizard); si ya lo envió, ve un mensaje de espera hasta
-// que el profesional lo confirme explícitamente.
+// TAREA 3 (coach-tab) — cuestionarios iniciales pendientes del cliente.
+// Aceptar una invitación ya le hace cliente activo: aquí rellena el
+// cuestionario de cada profesional (wizard paso a paso, ver
+// components/intake-wizard) cuando quiera. Nunca bloquea la app: se llega
+// desde Coach (al aceptar o desde su aviso) y siempre se puede volver.
 @Component({
   selector: 'app-onboarding-status',
   templateUrl: 'onboarding-status.page.html',
   styleUrls: ['onboarding-status.page.scss'],
 })
-export class OnboardingStatusPage implements OnDestroy {
+export class OnboardingStatusPage {
   public state: ViewState = 'loading';
   public groups: TrainerGroup[] = [];
   public readonly emptyFieldSet: Set<IntakeFieldKey> = new Set();
@@ -69,24 +68,10 @@ export class OnboardingStatusPage implements OnDestroy {
   public isLoadingIntake = false;
   public intakePrefill: IntakeWizardPrefill = EMPTY_INTAKE_PREFILL;
 
-  // Invitaciones YA aceptadas por el cliente están en `groups` (relaciones
-  // cuestionario_pendiente/en_revision). Estas son las que TODAVÍA no ha
-  // aceptado (status "pending") — sin esto, un cliente bloqueado por tener
-  // otra relación en curso con un trainer no podía llegar nunca al tab de
-  // Coach (bloqueado también por el mismo guard) para aceptar una invitación
-  // nueva, y se quedaba sin forma de rellenar ese segundo cuestionario.
+  // Invitaciones que TODAVÍA no ha aceptado (status "pending"): se pueden
+  // aceptar aquí mismo, y al hacerlo su cuestionario aparece en `groups`.
   public pendingInvites: PendingInvite[] = [];
   public respondingInviteId: string | null = null;
-
-  // Bug real (2026-09) — esta pantalla no tenía NINGÚN control de
-  // navegación (ni back, ni tab bar —estructuralmente ausente mientras el
-  // guard bloquea /tabs—) en cuanto la única relación pendiente pasaba a
-  // "en_revision": el cliente quedaba atrapado hasta forzar el cierre de la
-  // app. Auto-desatasco por si el entrenador confirma mientras el cliente
-  // sigue en esta pantalla, más una salida real (ver goBack/
-  // OnboardingService#dismiss): completar el cuestionario ya no es
-  // obligatorio para poder navegar.
-  private pollHandle: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private router: Router,
@@ -102,14 +87,6 @@ export class OnboardingStatusPage implements OnDestroy {
     this.load();
   }
 
-  public ionViewWillLeave(): void {
-    this.stopPolling();
-  }
-
-  public ngOnDestroy(): void {
-    this.stopPolling();
-  }
-
   public load(): void {
     this.state = 'loading';
     forkJoin({
@@ -118,24 +95,14 @@ export class OnboardingStatusPage implements OnDestroy {
     }).subscribe({
       next: ({ status, pendingInvites }) => {
         this.pendingInvites = pendingInvites || [];
-        if (!status.blocked && !this.pendingInvites.length) {
-          this.stopPolling();
-          void this.router.navigate(['/tabs']);
+        // Nada que rellenar ni que aceptar (p. ej. acaba de enviar el
+        // último cuestionario): de vuelta a Coach.
+        if (!status.relations.length && !this.pendingInvites.length) {
+          this.goBack();
           return;
         }
         this.groups = this.groupByTrainer(status.relations);
         this.state = 'loaded';
-
-        // Nada que rellenar, solo esperar confirmación: se sondea cada 30s
-        // para que el cliente entre solo a /tabs en cuanto se confirme, sin
-        // tener que forzar el cierre de la app. Mientras quede algún
-        // cuestionario por rellenar (pendingCount > 0) no hay nada que
-        // "esperar" todavía, así que no se sondea.
-        if (this.pendingCount === 0) {
-          this.startPolling();
-        } else {
-          this.stopPolling();
-        }
       },
       error: () => {
         this.state = 'error';
@@ -143,28 +110,9 @@ export class OnboardingStatusPage implements OnDestroy {
     });
   }
 
-  private startPolling(): void {
-    if (this.pollHandle) return;
-    this.pollHandle = setInterval(() => this.load(), 30000);
-  }
-
-  private stopPolling(): void {
-    if (this.pollHandle) {
-      clearInterval(this.pollHandle);
-      this.pollHandle = null;
-    }
-  }
-
-  // Válvula de escape siempre disponible: la espera de confirmación del
-  // entrenador no tiene SLA (puede ser minutos o días), y el cuestionario
-  // deja de ser obligatorio para navegar en cuanto se llama a dismiss() —
-  // onboardingMatchGuard no vuelve a redirigir aquí hasta el próximo login.
-  // Vuelve a Coach (no a /tabs en general) porque es de donde sale el
-  // recordatorio que trae de vuelta aquí (ver CoachPage#goToOnboardingStatus)
-  // — esta pantalla no desaparece, sigue accesible para completarlo luego.
+  // Vuelve a Coach (no a /tabs en general) porque es de donde sale el aviso
+  // que trae de vuelta aquí (ver CoachPage#goToOnboardingStatus).
   public goBack(): void {
-    this.stopPolling();
-    this.onboardingService.dismiss();
     void this.router.navigate(['/tabs/coach']);
   }
 
@@ -205,7 +153,6 @@ export class OnboardingStatusPage implements OnDestroy {
             ? `${relation.trainer.name} ${relation.trainer.lastname}`.trim()
             : 'Tu profesional',
           scopes: [],
-          needsIntake: false,
           enabledFields: new Set(),
           customQuestions: relation.intakeCustomQuestions,
         });
@@ -216,16 +163,12 @@ export class OnboardingStatusPage implements OnDestroy {
       // de scope nutrición, así que hay que juntar todas.
       relation.intakeEnabledFields.forEach((f) => group.enabledFields.add(f));
       group.scopes.push(relation.scope === 'training' ? 'Entrenamiento' : 'Nutrición');
-      if (relation.status === 'cuestionario_pendiente') group.needsIntake = true;
     }
-    // Los que aún hay que rellenar primero — el cliente no debe tener que
-    // desplazarse pasado los que ya están "esperando confirmación" para
-    // encontrar el siguiente cuestionario pendiente.
-    return [...byTrainer.values()].sort((a, b) => Number(b.needsIntake) - Number(a.needsIntake));
+    return [...byTrainer.values()];
   }
 
   public get pendingCount(): number {
-    return this.groups.filter((g) => g.needsIntake).length;
+    return this.groups.length;
   }
 
   public get fillingGroup(): TrainerGroup | undefined {
@@ -318,7 +261,7 @@ export class OnboardingStatusPage implements OnDestroy {
           this.isSubmitting = false;
           this.fillingTrainerId = null;
           this.ionicUtilService.showToast({
-            message: 'Cuestionario enviado. Tu profesional lo revisará en breve.',
+            message: 'Cuestionario enviado. Tu profesional ya puede verlo.',
             duration: 3500,
           });
           this.load();

@@ -95,6 +95,10 @@ export class PlannerPage {
   // templateMode (biblioteca de plantillas propia del profesional, sin
   // cliente real) o si el cliente no ha respondido cuestionario aún.
   public clientIntake: ClientIntake | null = null;
+  // "Salud / lesiones" del intake, junto al dolor. null si no puso nada.
+  public get intakeInjuries(): string | null {
+    return this.clientIntake?.healthConditions?.trim() || null;
+  }
   public showEquipmentPanel = false;
   public clientPain: PlannerPain[] = [];
   public painEnabled = false;

@@ -62,10 +62,6 @@ export class TrainerInvitesApiService {
     return this.http.put<ClientIntake>(`trainer/clients/${clientId}/intake`, intake);
   }
 
-  public confirmClient(clientId: string): Observable<TrainerInvite[]> {
-    return this.http.post<TrainerInvite[]>(`trainer/clients/${clientId}/confirm`, {});
-  }
-
   // TASK-049 — configuración de campos activos del cuestionario inicial.
   public getIntakeConfig(): Observable<TrainerIntakeConfig> {
     return this.http.get<TrainerIntakeConfig>('trainer/intake-config');

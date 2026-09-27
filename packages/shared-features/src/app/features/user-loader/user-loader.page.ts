@@ -10,13 +10,6 @@ import {
   switchMap,
   throwError,
 } from 'rxjs';
-import {
-  trigger,
-  state,
-  style,
-  transition,
-  animate,
-} from '@angular/animations';
 import { Diet } from 'src/app/core/models/diet';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
@@ -38,39 +31,6 @@ import { WorkoutService } from 'src/app/core/services/workout/workout.service';
   selector: 'app-user-loader',
   templateUrl: './user-loader.page.html',
   styleUrls: ['./user-loader.page.scss'],
-  animations: [
-    trigger('fadeInOut', [
-      state('in', style({ opacity: 1 })),
-      transition('void => *', [
-        style({ opacity: 0 }),
-        animate('800ms ease-in', style({ opacity: 1 })),
-      ]),
-      transition('* => void', [
-        animate('500ms ease-out', style({ opacity: 0 })),
-      ]),
-    ]),
-    trigger('logoAnimation', [
-      state('in', style({ transform: 'scale(1)', opacity: 1 })),
-      transition('void => *', [
-        style({ transform: 'scale(0.8)', opacity: 0 }),
-        animate('600ms ease-out', style({ transform: 'scale(1)', opacity: 1 })),
-      ]),
-    ]),
-    trigger('textAnimation', [
-      state('in', style({ opacity: 1 })),
-      transition('void => *', [
-        style({ opacity: 0 }),
-        animate('400ms 300ms ease-out', style({ opacity: 1 })),
-      ]),
-    ]),
-    trigger('progressAnimation', [
-      state('in', style({ opacity: 1 })),
-      transition('void => *', [
-        style({ opacity: 0 }),
-        animate('400ms 600ms ease-out', style({ opacity: 1 })),
-      ]),
-    ]),
-  ],
 })
 export class UserLoaderPage implements OnInit, OnDestroy {
   private readonly LOADING_CONFIG = {
@@ -85,6 +45,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
   public animationState = 'in';
   public progress = 0;
   public loadingText: string;
+  public loadFailed = false;
   private initialLoadRetryCount = 0;
 
   private readonly loadingMessages = [
@@ -273,6 +234,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
           }
 
           this.loadingText = this.translate.instant('USER_LOADER.FAILED');
+          this.loadFailed = true;
           this.updateProgress(0);
         }
       );

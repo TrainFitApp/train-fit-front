@@ -167,6 +167,27 @@ thead .col-name {
   }
 }
 
+// Aceptó la invitación pero aún no ha enviado el cuestionario inicial.
+// Debajo del nombre, no al lado: la columna está congelada y en móvil no
+// debe ensancharse. Ámbar = "falta un dato" (--tf-warning), como en la ficha.
+.intake-pending-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin-top: 2px;
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-warning-soft);
+  color: var(--tf-warning);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
 .cell-muted {
   color: var(--tf-text-muted);
 }

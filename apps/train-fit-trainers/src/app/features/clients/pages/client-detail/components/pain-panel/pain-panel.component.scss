@@ -313,5 +313,12 @@
 
 .submit-button {
   @include tf-gradient-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  min-height: 46px;
+  margin-top: var(--tf-space-2);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
 }

@@ -179,6 +179,9 @@ export class InvitesPage implements OnInit {
   // Estado del email frente a ESTE trainer, comprobado al perder el foco
   // del campo — evita que el trainer marque un ámbito que el backend va a
   // rechazar igual al enviar (índice único trainerId+clientEmail+scope).
+  // Es solo un aviso: NO desactiva "Enviar". Pulsar el botón es lo que
+  // quita el foco del email, así que desactivarlo mientras se comprobaba
+  // se comía el primer clic (había que pulsar dos veces).
   public emailScopeStatus: ClientEmailScopeStatus | null = null;
   public checkingEmail = false;
   private lastCheckedEmail: string | null = null;
@@ -248,10 +251,13 @@ export class InvitesPage implements OnInit {
     }
   }
 
+  private get typedEmail(): string {
+    return (this.form.value.clientEmail || '').trim().toLowerCase();
+  }
+
   public onEmailBlur(): void {
-    const control = this.form.get('clientEmail');
-    const email = (control?.value || '').trim().toLowerCase();
-    if (!email || control?.invalid || email === this.lastCheckedEmail) {
+    const email = this.typedEmail;
+    if (!email || this.form.get('clientEmail')?.invalid || email === this.lastCheckedEmail) {
       return;
     }
 
@@ -259,6 +265,9 @@ export class InvitesPage implements OnInit {
     this.trainerInvitesApi.checkClientEmailStatus(email).subscribe({
       next: (status) => {
         this.checkingEmail = false;
+        // Llega tarde (la invitación ya se envió y el form se vació, o el
+        // email cambió): no pintar avisos de un email que ya no está.
+        if (this.typedEmail !== email) return;
         this.lastCheckedEmail = email;
         this.emailScopeStatus = status;
         // Un ámbito que ya estaba marcado pero ahora resulta bloqueado no
@@ -347,6 +356,12 @@ export class InvitesPage implements OnInit {
               3500
             );
             void this.router.navigate(['/tabs/subscription']);
+            return;
+          }
+          // 400 con todos los ámbitos rechazados (ya invitado, ya es cliente
+          // de otro profesional…): el motivo viene por ámbito, no en message.
+          if (Array.isArray(err?.results)) {
+            this.handleSendResults(err.results);
             return;
           }
           this.ionicUtilService.showErrorToast(

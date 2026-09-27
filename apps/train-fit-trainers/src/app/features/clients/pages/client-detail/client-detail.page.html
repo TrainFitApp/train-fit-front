@@ -83,6 +83,14 @@
               {{ status === 'attention' ? 'Requiere atención' : status === 'ok'
               ? 'Sin incidencias detectadas' : 'Datos insuficientes' }}
             </span>
+            <span
+              class="status-badge status-badge--intake"
+              *ngIf="intakePending"
+              title="Aún no ha enviado su cuestionario inicial"
+            >
+              <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+              Cuestionario pendiente
+            </span>
           </div>
           <!-- Nota fijada (Notas, F19) — mismo sitio en la cabecera que
                ocupaba la frase de objetivo en el mockup "Cliente Resumen"
@@ -155,53 +163,8 @@
             <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
             Ver intake
           </button>
-          <button
-            type="button"
-            class="header-action-button"
-            (click)="openClientSwitcher()"
-          >
-            Cambiar cliente
-            <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
-          </button>
         </div>
       </section>
-
-      <div
-        class="panel-backdrop"
-        *ngIf="showClientSwitcher"
-        (click)="closeClientSwitcher()"
-      ></div>
-      <div class="panel-sheet client-switcher-sheet" *ngIf="showClientSwitcher">
-        <div class="panel-handle"></div>
-        <h3 class="panel-title">Cambiar de cliente</h3>
-
-        <div class="detail-skeleton" *ngIf="otherClientsState === 'loading'">
-          <div class="skeleton-block" style="height: 48px"></div>
-          <div class="skeleton-block" style="height: 48px"></div>
-        </div>
-        <p
-          class="empty-hint"
-          *ngIf="otherClientsState === 'loaded' && !otherClients.length"
-        >
-          No tienes más clientes todavía.
-        </p>
-        <p class="empty-hint" *ngIf="otherClientsState === 'error'">
-          No se pudo cargar tu lista de clientes.
-        </p>
-
-        <button
-          type="button"
-          class="client-switcher-row"
-          *ngFor="let client of otherClients"
-          (click)="switchToClient(client)"
-        >
-          <span>{{ clientDisplayName(client) }}</span>
-          <ion-icon
-            name="chevron-forward-outline"
-            aria-hidden="true"
-          ></ion-icon>
-        </button>
-      </div>
 
       <!-- Panel "Ver intake" (cabecera persistente) —
            mismo clientIntake/clientIntakeState que ya carga loadClientIntake()
@@ -479,6 +442,7 @@
           [hasTrainingScope]="scopes.includes('training')"
           (openTab)="selectTab($event)"
           (statusChange)="onSummaryStatus($event)"
+          (intakePendingChange)="intakePending = $event"
         ></app-client-summary>
       </div>
 

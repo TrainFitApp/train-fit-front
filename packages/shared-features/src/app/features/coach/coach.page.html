@@ -14,14 +14,14 @@
 </ion-header>
 
 <ion-content class="coach-content">
-  <!-- Recordatorio de cuestionario pendiente: el cliente eligió "Más tarde"
-  en onboarding-status (ya no le bloquea el resto de la app), pero mientras
-  no lo complete su profesional sigue sin poder empezar. Único punto para
-  volver a esa pantalla ahora que el guard ya no le obliga. -->
+  <!-- Recordatorio de cuestionario pendiente: ya es cliente activo desde
+  que aceptó y nada le bloquea, pero su profesional necesita el
+  cuestionario para preparar el plan. Único punto de vuelta a
+  onboarding-status si al aceptar eligió volver sin rellenarlo. -->
   <button
     type="button"
     class="onboarding-reminder"
-    *ngIf="onboardingService.blocked()"
+    *ngIf="onboardingService.pending()"
     (click)="goToOnboardingStatus()"
   >
     <ion-icon name="clipboard-outline"></ion-icon>

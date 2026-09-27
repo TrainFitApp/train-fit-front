@@ -207,30 +207,6 @@
   }
 }
 
-// TASK-023 — aviso de clientes en onboarding esperando revisión.
-.menu-item-badge {
-  margin-left: auto;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--tf-danger-contrast, #fff);
-  background: var(--tf-danger, #eb445a);
-  border-radius: var(--tf-radius-pill);
-  flex-shrink: 0;
-
-  .app-menu--collapsed & {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    margin-left: 0;
-  }
-}
-
 .app-menu-footer {
   margin-top: auto;
   padding-top: var(--tf-space-4);

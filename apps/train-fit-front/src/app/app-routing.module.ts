@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { authMatchGuard } from 'src/app/core/guards/auth.guard';
-import { onboardingMatchGuard } from 'src/app/core/guards/onboarding.guard';
 import { biometricDataGuard } from 'src/app/guards/biometric-data.guard';
 import { DisconnectedComponent } from 'src/app/shared/components/disconnected/disconnected.component';
 
@@ -80,14 +79,14 @@ const routes: Routes = [
   },
   {
     path: 'tabs',
-    canMatch: [authMatchGuard, onboardingMatchGuard],
+    canMatch: [authMatchGuard],
     loadChildren: () =>
       import('src/app/features/tabs/tabs.module').then((m) => m.TabsPageModule),
   },
   {
-    // TAREA 3 — cuestionario inicial / pantalla de espera mientras el
-    // cliente no tiene ninguna relación activa todavía. Sin onboardingMatchGuard
-    // (sería una redirección circular) — solo requiere sesión iniciada.
+    // TAREA 3 — cuestionarios iniciales pendientes (y aceptar invitaciones
+    // desde ahí). Nunca bloquea: se llega desde Coach, al aceptar o desde su
+    // aviso.
     path: 'onboarding-status',
     canMatch: [authMatchGuard],
     loadChildren: () =>
@@ -114,7 +113,7 @@ const routes: Routes = [
   {
     // MVP-trainers F17 — check-ins periódicos pedidos por profesionales activos.
     path: 'my-checkins',
-    canMatch: [authMatchGuard, onboardingMatchGuard],
+    canMatch: [authMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/checkins/my-checkins/my-checkins.module'
@@ -124,7 +123,7 @@ const routes: Routes = [
     // Movimiento 5 Coach Pro — lo que le ha pautado su profesional: qué,
     // cuánto, cuándo y por qué. Solo lectura.
     path: 'my-supplements',
-    canMatch: [authMatchGuard, onboardingMatchGuard],
+    canMatch: [authMatchGuard],
     loadChildren: () =>
       import('src/app/features/supplements/my-supplements.module').then(
         (m) => m.MySupplementsPageModule
@@ -134,7 +133,7 @@ const routes: Routes = [
     // Movimiento 5 Coach Pro — qué comprar para cumplir el plan. No hay
     // modelo nuevo detrás: son los mismos días de dieta sumados por producto.
     path: 'my-shopping-list',
-    canMatch: [authMatchGuard, onboardingMatchGuard],
+    canMatch: [authMatchGuard],
     loadChildren: () =>
       import('src/app/features/shopping-list/my-shopping-list.module').then(
         (m) => m.MyShoppingListPageModule
@@ -145,7 +144,7 @@ const routes: Routes = [
     // Pantalla propia y no un campo del check-in: aquél es semanal, y una
     // molestia va por días. Ver core/constants/pain.ts.
     path: 'my-pain',
-    canMatch: [authMatchGuard, onboardingMatchGuard],
+    canMatch: [authMatchGuard],
     loadChildren: () =>
       import('src/app/features/pain/my-pain.module').then((m) => m.MyPainPageModule),
   },
@@ -154,7 +153,7 @@ const routes: Routes = [
     // favoritos, no le gusta, si cocina en casa), solicitadas por su
     // nutricionista y rellenadas/editadas por el propio cliente.
     path: 'nutrition-preferences',
-    canMatch: [authMatchGuard, onboardingMatchGuard],
+    canMatch: [authMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/nutrition-preferences/nutrition-preferences.module'

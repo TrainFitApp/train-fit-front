@@ -432,6 +432,21 @@ app-planner-insights-panel {
   button { min-height: var(--tf-touch-min); background: transparent; color: var(--tf-accent-text); border: 0; cursor: pointer; }
   button:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; }
 }
+// Lesiones del intake: texto completo, sin marco, igual que "Dolor"
+// (icono + etiqueta + texto sueltos en la barra).
+.planner-injuries {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 100%;
+  > ion-icon { flex: none; color: var(--tf-accent-text); font-size: 18px; }
+  .pain-label { flex: none; }
+}
+.planner-injuries__text {
+  min-width: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
 .pain-entry {
   display: inline-flex;
   flex-wrap: wrap;

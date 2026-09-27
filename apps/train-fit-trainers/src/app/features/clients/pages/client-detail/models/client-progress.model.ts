@@ -129,6 +129,8 @@ export interface ClientSummary {
   nextCheckinDate: string | null;
   activePlan: { _id: string; name: string; startDate: string; endDate: string | null } | null;
   routine: { _id: string; name: string } | null;
+  // Aceptó la invitación pero aún no ha enviado el cuestionario inicial.
+  intakePending: boolean;
 }
 
 // Movimiento 3 Coach Pro — lo único que le falta a la calculadora corporal

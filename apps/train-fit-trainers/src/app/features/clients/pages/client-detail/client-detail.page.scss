@@ -202,6 +202,12 @@
     background: var(--tf-surface-4);
     color: var(--tf-text-secondary);
   }
+
+  // Mismo chip que en la fila de la Cartera (client-roster).
+  &--intake {
+    background: var(--tf-warning-soft);
+    color: var(--tf-warning);
+  }
 }
 
 .summary-header-program {
@@ -317,38 +323,6 @@
   &:focus-visible {
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
-  }
-}
-
-// --- Selector "Cambiar cliente" (panel-backdrop/panel-sheet/panel-handle/
-// panel-title ya están definidos más abajo en este mismo archivo) ---
-.client-switcher-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  min-height: var(--tf-touch-min);
-  padding: 0 var(--tf-space-2);
-  background: none;
-  border: none;
-  border-top: 1px solid var(--tf-border-subtle);
-  color: var(--tf-text);
-  font-family: inherit;
-  font-size: var(--tf-font-size-base);
-  text-align: left;
-  cursor: pointer;
-
-  &:first-of-type {
-    border-top: none;
-  }
-
-  &:active {
-    background: var(--tf-surface-2);
-  }
-
-  ion-icon {
-    color: var(--tf-text-faint);
-    font-size: 16px;
   }
 }
 

@@ -21,81 +21,52 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <!-- Nada por hacer, solo esperar: unico caso que se lleva toda la
-    pantalla (misma logica visual que el paso de verificacion de email en
-    sign-up) — si hay una invitacion nueva de por medio, esa siempre es
-    accionable, asi que el hub gana. -->
-    <div class="waiting-screen" *ngIf="pendingCount === 0 && !pendingInvites.length; else hub">
-      <div class="waiting-icon"><ion-icon name="hourglass-outline"></ion-icon></div>
-      <h2 class="section-title">Esperando confirmación</h2>
-      <p class="section-subtitle waiting-subtitle">
-        Ya enviaste tu{{ groups.length === 1 ? '' : 's' }} cuestionario{{ groups.length === 1 ? '' : 's' }}. En
-        cuanto {{ groups.length === 1 ? 'tu profesional lo confirme' : 'lo confirmen' }} podrás entrar a tu
-        cuenta.
-      </p>
-      <p class="waiting-note">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        <span>Puede tardar. Volveremos a comprobarlo automáticamente cada poco.</span>
-      </p>
-    </div>
+    <p class="intro-text">
+      Tu profesional necesita conocerte un poco mejor para preparar tu dieta y tu rutina.
+    </p>
 
-    <ng-template #hub>
-      <p class="intro-text">
-        Antes de acceder a tu dieta y rutina, tu profesional necesita conocerte un poco mejor.
-      </p>
+    <p class="progress-text" *ngIf="pendingCount > 0">
+      Te queda{{ pendingCount === 1 ? '' : 'n' }} {{ pendingCount }} cuestionario{{ pendingCount === 1 ? '' : 's' }} por completar.
+    </p>
 
-      <p class="progress-text" *ngIf="pendingCount > 0">
-        Te queda{{ pendingCount === 1 ? '' : 'n' }} {{ pendingCount }} cuestionario{{ pendingCount === 1 ? '' : 's' }} por completar.
-      </p>
-
-      <!-- Invitaciones sin aceptar todavia -->
-      <div class="trainer-row trainer-row--invite" *ngFor="let invite of pendingInvites; trackBy: trackByInviteId">
-        <div class="trainer-row-icon"><ion-icon name="person-add-outline"></ion-icon></div>
-        <div class="trainer-row-text">
-          <div class="trainer-row-name">{{ invite.trainer ? (invite.trainer.name + ' ' + invite.trainer.lastname) : 'Un profesional' }}</div>
-          <div class="trainer-row-scope">{{ invite.scope === 'training' ? 'Entrenamiento' : 'Nutrición' }} · te ha invitado</div>
-        </div>
-        <div class="trainer-row-actions">
-          <button
-            class="row-btn row-btn--ghost"
-            [disabled]="respondingInviteId === invite._id"
-            (click)="respondToInvite(invite, 'decline')"
-          >
-            Rechazar
-          </button>
-          <button
-            class="row-btn row-btn--accent"
-            [disabled]="respondingInviteId === invite._id"
-            (click)="respondToInvite(invite, 'accept')"
-          >
-            <span *ngIf="respondingInviteId !== invite._id">Aceptar</span>
-            <ion-spinner name="dots" *ngIf="respondingInviteId === invite._id"></ion-spinner>
-          </button>
-        </div>
+    <!-- Invitaciones sin aceptar todavia -->
+    <div class="trainer-row trainer-row--invite" *ngFor="let invite of pendingInvites; trackBy: trackByInviteId">
+      <div class="trainer-row-icon"><ion-icon name="person-add-outline"></ion-icon></div>
+      <div class="trainer-row-text">
+        <div class="trainer-row-name">{{ invite.trainer ? (invite.trainer.name + ' ' + invite.trainer.lastname) : 'Un profesional' }}</div>
+        <div class="trainer-row-scope">{{ invite.scope === 'training' ? 'Entrenamiento' : 'Nutrición' }} · te ha invitado</div>
       </div>
-
-      <!-- Entrenadores con relacion activa: cuestionario pendiente o ya
-      enviado (esperando confirmacion). -->
-      <div class="trainer-row" *ngFor="let group of groups; trackBy: trackByTrainerId">
-        <div class="trainer-row-icon"><ion-icon name="person-outline"></ion-icon></div>
-        <div class="trainer-row-text">
-          <div class="trainer-row-name">{{ group.trainerName }}</div>
-          <div class="trainer-row-scope">{{ group.scopes.join(' · ') }}</div>
-        </div>
+      <div class="trainer-row-actions">
+        <button
+          class="row-btn row-btn--ghost"
+          [disabled]="respondingInviteId === invite._id"
+          (click)="respondToInvite(invite, 'decline')"
+        >
+          Rechazar
+        </button>
         <button
           class="row-btn row-btn--accent"
-          *ngIf="group.needsIntake"
-          (click)="openIntakeForm(group)"
+          [disabled]="respondingInviteId === invite._id"
+          (click)="respondToInvite(invite, 'accept')"
         >
-          Completar
-          <ion-icon name="arrow-forward-outline"></ion-icon>
+          <span *ngIf="respondingInviteId !== invite._id">Aceptar</span>
+          <ion-spinner name="dots" *ngIf="respondingInviteId === invite._id"></ion-spinner>
         </button>
-        <span class="trainer-row-waiting" *ngIf="!group.needsIntake">
-          <ion-icon name="hourglass-outline"></ion-icon>
-          Esperando
-        </span>
       </div>
-    </ng-template>
+    </div>
+
+    <!-- Profesionales (ya activos) con el cuestionario sin enviar. -->
+    <div class="trainer-row" *ngFor="let group of groups; trackBy: trackByTrainerId">
+      <div class="trainer-row-icon"><ion-icon name="person-outline"></ion-icon></div>
+      <div class="trainer-row-text">
+        <div class="trainer-row-name">{{ group.trainerName }}</div>
+        <div class="trainer-row-scope">{{ group.scopes.join(' · ') }}</div>
+      </div>
+      <button class="row-btn row-btn--accent" (click)="openIntakeForm(group)">
+        Completar
+        <ion-icon name="arrow-forward-outline"></ion-icon>
+      </button>
+    </div>
   </ng-container>
 </ion-content>
 

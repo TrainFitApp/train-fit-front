@@ -26,6 +26,8 @@ export interface RosterClient {
   // El buscador de la Cartera mira nombre Y correo: hay clientes que el
   // trainer tiene fichados por su email.
   clientEmail: string;
+  // Aceptó la invitación pero aún no ha enviado el cuestionario inicial.
+  intakePending: boolean;
   adherence: {
     // null = ninguna dimensión aplica todavía. NO es un 0: un cliente recién
     // dado de alta no tiene "0% de adherencia", no tiene adherencia.

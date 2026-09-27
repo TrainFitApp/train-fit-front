@@ -179,11 +179,12 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   private stepIds: string[] = [];
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['enabledFields'] || changes['customQuestions']) {
-      this.stepIds = this.buildStepOrder();
-    }
     if (changes['prefill']) {
       this.applyPrefill();
+    }
+    // Tras el prefill: los pasos que traiga deciden si hay paso de actividad.
+    if (changes['enabledFields'] || changes['customQuestions'] || changes['prefill']) {
+      this.stepIds = this.buildStepOrder();
     }
   }
 
@@ -226,7 +227,8 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     if (this.enabledFields.has('profileBiometrics')) ids.push('profileBiometrics');
     if (this.enabledFields.has('activityProfile')) {
       ids.push('steps');
-      ids.push('activity');
+      // Mismo *ngIf que su swiper-slide: solo si no cuenta pasos.
+      if (this.steps === STEPS_NOT_COUNTED) ids.push('activity');
       ids.push('trainingFreq');
     }
     if (this.enabledFields.has('objective')) ids.push('objective');
@@ -258,6 +260,12 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
 
   public get isLastStep(): boolean {
     return this.currentStep >= this.stepCount - 1;
+  }
+
+  // Como en el registro: sin contar pasos, la actividad es lo único que
+  // estima el gasto diario, así que no se puede saltar.
+  public get isActivityMissing(): boolean {
+    return this.stepIds[this.currentStep] === 'activity' && this.activity === null;
   }
 
   public trackByStepId(_index: number, id: string): string {
@@ -359,12 +367,14 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   }
 
   // Igual que sign-up: al cambiar los pasos se resetea la frecuencia (las
-  // opciones cambian) y la actividad solo aplica si "no cuenta pasos".
+  // opciones cambian) y la actividad solo aplica si "no cuenta pasos" (su
+  // paso aparece o desaparece: se recalcula el orden).
   public selectSteps(value: number): void {
     this.steps = value;
     if (value !== STEPS_NOT_COUNTED) this.activity = null;
     this.training = null;
     this.updateTrainingOptions();
+    this.stepIds = this.buildStepOrder();
     this.selectSingleChip(() => {}, value);
   }
 

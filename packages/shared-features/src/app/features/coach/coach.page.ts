@@ -617,15 +617,12 @@ export class CoachPage implements OnInit {
       this.loadDashboard();
       this.coachService.refresh().subscribe();
 
-      // Aceptar deja la relación en "cuestionario_pendiente" — el guard que
-      // salta a /onboarding-status lee OnboardingService.blocked() de forma
-      // síncrona (signal), pero ese signal solo se rellenaba en el arranque
-      // (user-loader.page.ts). Sin refrescarlo aquí, el cuestionario no
-      // aparecía hasta recargar la app entera. Se navega explícito en vez
-      // de esperar a que el usuario toque otra pestaña y dispare el guard
-      // por casualidad.
+      // Aceptar ya le hace cliente activo, pero deja el cuestionario inicial
+      // pendiente: se le abre al momento (puede volver sin rellenarlo; el
+      // aviso de arriba de Coach se queda hasta que lo envíe). El signal solo
+      // se rellenaba en el arranque (user-loader.page.ts), por eso se refresca.
       this.onboardingService.refresh().subscribe(() => {
-        if (this.onboardingService.blocked()) {
+        if (succeeded.length && this.onboardingService.pending()) {
           void this.router.navigate(['/onboarding-status']);
         }
       });
@@ -701,12 +698,8 @@ export class CoachPage implements OnInit {
     return professional.user?._id || _index.toString();
   }
 
-  // El cliente pudo elegir "Más tarde" en onboarding-status (ver
-  // OnboardingService#dismiss) — ya no lo bloquea, pero completar el
-  // cuestionario inicial sigue pendiente hasta que lo haga. Sin esto, una
-  // vez descartada esa pantalla no había forma de volver a ella salvo
-  // cerrar sesión y volver a entrar (el guard es el único sitio que
-  // navegaba ahí).
+  // Vuelta al cuestionario inicial pendiente si al aceptar salió sin
+  // rellenarlo: fuera de aceptar, nada más navega ahí.
   public goToOnboardingStatus(): void {
     void this.router.navigate(['/onboarding-status']);
   }

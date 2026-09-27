@@ -111,6 +111,10 @@
               >
                 {{ row.clientName }}
               </button>
+              <span class="intake-pending-chip" *ngIf="row.intakePending" title="Aún no ha enviado su cuestionario inicial">
+                <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+                Cuestionario pendiente
+              </span>
             </th>
 
             <td>

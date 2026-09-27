@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { Subscription } from 'rxjs';
-import { TrainerReviewStatusService } from 'src/app/features/invites/services/trainer-review-status.service';
 import { TrainerNavigationService } from '../../core/services/trainer-navigation.service';
 
 export interface ShellMenuItem {
@@ -15,9 +14,6 @@ export interface ShellMenuItem {
   // reciba siempre la misma referencia de objeto entre ciclos de detección de
   // cambios, en vez de una nueva en cada uno.
   routerLinkActiveOptions: { exact: boolean };
-  // TASK-023 (MASTER_BACKLOG.md) — contador opcional (p. ej. clientes en
-  // onboarding con cuestionario esperando revisión). 0/undefined = sin badge.
-  badgeCount?: number;
 }
 
 // Movimiento 1 Coach Pro — el menú pasa de una lista plana de 6 destinos a
@@ -92,35 +88,14 @@ export class ShellPage implements OnInit, OnDestroy {
     },
   ];
 
-  // Acceso plano para la lógica de badges — recorrer grupos cada vez que
-  // llega un contador sería trabajo repetido sin ninguna ganancia.
-  private get allMenuItems(): ShellMenuItem[] {
-    return this.menuGroups.flatMap((group) => group.items);
-  }
-
   private backButtonSubscription: Subscription | null = null;
 
   constructor(
-    private trainerReviewStatus: TrainerReviewStatusService,
     private navigation: TrainerNavigationService,
     private platform: Platform
   ) {}
 
-  // TASK-023 (MASTER_BACKLOG.md) — antes un cliente con cuestionario ya
-  // enviado (status "en_revision", esperando confirmación del trainer) solo
-  // era visible entrando a la pestaña "Invitar" — sin ningún aviso en el
-  // resto de la app, un trainer que no la visitara nunca se enteraba. Badge
-  // en "Clientes" (no en "Mensajes"/otro sitio: A6 lo enmarca como "clientes
-  // invisibles en Clientes", y son literalmente clientes en proceso de
-  // alta). Solo cuenta "en_revision" — "cuestionario_pendiente" espera al
-  // CLIENTE, no hay nada que el trainer deba hacer todavía.
   public ngOnInit(): void {
-    this.trainerReviewStatus.reviewInvites.subscribe((invites) => {
-      const clientsItem = this.allMenuItems.find((item) => item.label === 'Clientes');
-      if (clientsItem) clientsItem.badgeCount = invites.length;
-    });
-    this.trainerReviewStatus.refresh();
-
     // El atrás del sistema ejecuta exactamente lo mismo que el botón de la
     // cabecera (regla de docs/frontend.md: ambos llevan al mismo sitio). El
     // atrás del navegador no necesita enganche: es una navegación normal del

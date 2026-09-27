@@ -11,7 +11,6 @@ import { TrainerNavigationService } from '../../../../core/services/trainer-navi
 import { ClientDetailApiService } from './services/client-detail-api.service';
 import { CheckinSchedule } from './components/checkin-workspace/checkin-workspace.model';
 import { TrainerClientsApiService } from '../../services/trainer-clients-api.service';
-import { TrainerClientSummary } from '../../models/trainer-client-summary.model';
 import { TrainerBillingApiService } from '../../../subscription/services/trainer-billing-api.service';
 import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
 import {
@@ -183,6 +182,8 @@ export class ClientDetailPage implements OnInit {
   // emite aquí vía (statusChange); por eso queda en blanco hasta que Resumen
   // termine de cargar, aunque se esté viendo otra sección.
   public clientStatus: 'attention' | 'ok' | 'insufficient' | null = null;
+  // Llega por el mismo camino que el badge (app-client-summary).
+  public intakePending = false;
 
   public onSummaryStatus(status: 'attention' | 'ok' | 'insufficient'): void {
     this.clientStatus = status;
@@ -194,52 +195,6 @@ export class ClientDetailPage implements OnInit {
     const first = parts[0].charAt(0);
     const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
     return (first + last).toUpperCase();
-  }
-
-  public showClientSwitcher = false;
-  public otherClientsState: SectionState = 'loading';
-  public otherClients: TrainerClientSummary[] = [];
-
-  // La lista completa de clientes se pide solo al abrir el selector, no en
-  // ngOnInit: la mayoría de las visitas a una ficha nunca lo abren.
-  public openClientSwitcher(): void {
-    this.showClientSwitcher = true;
-    // otherClientsState arranca en 'loading' (no hay estado "idle" en
-    // SectionState), así que comprobar "!== 'loading'" aquí nunca disparaba
-    // la carga la primera vez que se abría el selector: se quedaba en el
-    // skeleton para siempre. Con "!== 'loaded'" carga la primera vez y
-    // permite reintentar si el estado anterior fue 'error'.
-    if (!this.otherClients.length && this.otherClientsState !== 'loaded') {
-      this.otherClientsState = 'loading';
-      this.trainerClientsApi.getMyClients().subscribe({
-        next: (clients) => {
-          this.otherClients = clients.filter((c) => c.user?._id !== this.clientId);
-          this.otherClientsState = 'loaded';
-        },
-        error: () => {
-          this.otherClientsState = 'error';
-        },
-      });
-    }
-  }
-
-  public closeClientSwitcher(): void {
-    this.showClientSwitcher = false;
-  }
-
-  public switchToClient(client: TrainerClientSummary): void {
-    if (!client.user) return;
-    this.showClientSwitcher = false;
-    void this.router.navigate(['/tabs/clients', client.user._id], {
-      queryParams: {
-        name: `${client.user.name} ${client.user.lastname}`.trim(),
-        scopes: client.scopes.join(','),
-      },
-    });
-  }
-
-  public clientDisplayName(client: TrainerClientSummary): string {
-    return client.user ? `${client.user.name} ${client.user.lastname}`.trim() : 'Cliente';
   }
 
   // --- Notas (F19, transversal a los scopes) ---
@@ -577,10 +532,11 @@ export class ClientDetailPage implements OnInit {
   // pantalla en blanco sin ninguna pestaña cargada.
   private resolveClientIdentityFallback(): void {
     this.headerState = 'loading';
-    // "Cambiar cliente" reutiliza esta misma instancia de página (ver
-    // TASK-051/TASK-073 más arriba): sin este reset, el badge de estado del
+    // Si el Router reutiliza esta instancia para otro :id (ver
+    // TASK-051/TASK-073 más arriba), sin este reset el badge de estado del
     // cliente ANTERIOR seguiría visible mientras carga el nuevo Resumen.
     this.clientStatus = null;
+    this.intakePending = false;
     this.trainerClientsApi.getMyClients().subscribe({
       next: (clients) => {
         const match = clients.find((c) => c.user?._id === this.clientId);
