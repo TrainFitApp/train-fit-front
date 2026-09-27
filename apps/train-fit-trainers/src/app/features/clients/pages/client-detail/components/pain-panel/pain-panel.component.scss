@@ -302,6 +302,80 @@
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
   }
+
+  // Nivel que contradiría al otro umbral.
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+// --- Tramos resultantes ---
+.threshold-scale {
+  margin-bottom: var(--tf-space-4);
+}
+
+.scale-bar {
+  display: flex;
+  gap: 3px;
+  height: 8px;
+  margin-bottom: var(--tf-space-2);
+}
+
+.scale-segment {
+  flex-basis: 0;
+  border-radius: var(--tf-radius-pill);
+  transition: flex-grow var(--tf-duration-fast) var(--tf-ease-out);
+}
+
+.scale-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--tf-space-4);
+  margin: 0 0 var(--tf-space-2);
+  padding: 0;
+  list-style: none;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  strong {
+    color: var(--tf-text);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.scale-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.scale-segment[data-kind='normal'],
+[data-kind='normal'] > .scale-dot {
+  background: var(--tf-success);
+}
+
+.scale-segment[data-kind='caution'],
+[data-kind='caution'] > .scale-dot {
+  background: var(--tf-warning);
+}
+
+.scale-segment[data-kind='stop'],
+[data-kind='stop'] > .scale-dot {
+  background: var(--tf-danger);
+}
+
+.scale-note {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
 }
 
 .level-label {
