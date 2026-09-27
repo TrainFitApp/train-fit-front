@@ -1658,6 +1658,24 @@
     "PAUTADO_RECIPES": "Recetas pautadas por tu profesional"
   },
   "PROFILE": {
+    "COACH_CARD": {
+      "TITLE": "Tu coach",
+      "SEE_ALL": "Ver todo",
+      "ALL_CLEAR": "Todo al día",
+      "ALL_CLEAR_SUB": "No tienes nada pendiente con tu profesional",
+      "LOAD_ERROR": "No se pudo cargar tu coach",
+      "RETRY": "Reintentar",
+      "MORE": "Ver {{count}} más en Coach",
+      "CHECKIN": "Check-in pendiente",
+      "UNTIL": "Hasta el {{date}}",
+      "REQUESTED_BY": "Pedido por {{name}}",
+      "MEAL_PROPOSAL": "Elige tu {{slot}}",
+      "PREFERENCES": "Preferencias nutricionales solicitadas",
+      "PAYMENT": "{{amount}} pendiente",
+      "DUE": "vence el {{date}}",
+      "HABITS": "Hábitos de hoy",
+      "HABITS_PROGRESS": "{{done}} de {{total}} hechos"
+    },
     "STEPS": "Pasos",
     "PROTEIN": "Proteína",
     "CBH": "CBH",

@@ -1111,53 +1111,15 @@
       <!-- === MEDIDAS Y CHECK-INS — un solo panel: el check-in es la vía por
        la que llegan casi todas las medidas (sus campos de composición
        corporal y perímetros se guardan en Anthropometry), así que pedirlas y
-       leerlas estaban separadas sin motivo. Orden: primero lo que se le pide
-       y lo que ha contestado, después los números que salen de ahí.
+       leerlas estaban separadas sin motivo. La gráfica de evolución
+       antropométrica y la calculadora corporal se quitaron (09-27).
 
-       El bloque de medidas sigue pidiendo scope (entrenamiento y/o
-       nutrición); la agenda de check-ins no, como cuando era pestaña
-       propia. === -->
+       Las fotos siguen pidiendo scope (entrenamiento y/o nutrición); la
+       agenda de check-ins no, como cuando era pestaña propia. === -->
       <div class="tab-panel" *ngIf="activeTab === 'measurements'">
         <app-checkin-workspace [clientId]="clientId" [templateToSchedule]="checkinTemplateToOpen"></app-checkin-workspace>
 
         <ng-container *ngIf="scopes.includes('training') || scopes.includes('nutrition')">
-        <div class="detail-skeleton" *ngIf="measurementsState === 'loading'">
-          <div class="skeleton-block skeleton-block--lg"></div>
-          <div class="skeleton-block skeleton-block--md"></div>
-        </div>
-
-        <div class="section-error" *ngIf="measurementsState === 'error'">
-          <p>No se pudieron cargar las medidas de este cliente.</p>
-          <button class="retry-button" (click)="loadMeasurements()">
-            Reintentar
-          </button>
-        </div>
-
-        <ng-container *ngIf="measurementsState === 'loaded'">
-          <div class="section-row section-row--top">
-            <h2 class="section-heading">Medidas registradas</h2>
-          </div>
-
-          <app-anthropometry-chart
-            *ngIf="anthropometryEntries.length"
-            [data]="anthropometryEntries"
-          ></app-anthropometry-chart>
-          <p class="empty-hint" *ngIf="!anthropometryEntries.length">
-            Este cliente todavía no tiene medidas registradas.
-          </p>
-
-          <!-- Movimiento 3 Coach Pro — las cuentas sobre la última medición
-           (basal, % graso, composición y proporciones). Van aquí, en
-           Medidas, y no en Resumen: son la lectura detallada de estos
-           números, no el titular. Nada se guarda: se derivan de la medición
-           que ya está arriba. Ver body-calculator.component.ts. -->
-          <div class="calculator-wrapper" *ngIf="anthropometryEntries.length">
-            <app-body-calculator
-              [profile]="bodyProfile"
-              [measurement]="latestMeasurement"
-            ></app-body-calculator>
-          </div>
-
           <!-- Fotos de progreso — mock: todavía sin subida real, placeholder
            para que el flujo se vea completo en la ficha. -->
           <div class="section-row section-row--top">
@@ -1171,7 +1133,6 @@
           <p class="empty-hint">
             Próximamente: el cliente podrá subir fotos de progreso desde su app.
           </p>
-        </ng-container>
         </ng-container>
       </div>
 

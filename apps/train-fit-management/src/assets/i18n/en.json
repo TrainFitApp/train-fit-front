@@ -1574,6 +1574,24 @@
     "PAUTADO_RECIPES": "Recipes prescribed by your coach"
   },
   "PROFILE": {
+    "COACH_CARD": {
+      "TITLE": "Your coach",
+      "SEE_ALL": "See all",
+      "ALL_CLEAR": "All caught up",
+      "ALL_CLEAR_SUB": "Nothing pending with your coach",
+      "LOAD_ERROR": "Couldn't load your coach",
+      "RETRY": "Retry",
+      "MORE": "See {{count}} more in Coach",
+      "CHECKIN": "Pending check-in",
+      "UNTIL": "Until {{date}}",
+      "REQUESTED_BY": "Requested by {{name}}",
+      "MEAL_PROPOSAL": "Choose your {{slot}}",
+      "PREFERENCES": "Nutrition preferences requested",
+      "PAYMENT": "{{amount}} pending",
+      "DUE": "due {{date}}",
+      "HABITS": "Today's habits",
+      "HABITS_PROGRESS": "{{done}} of {{total}} done"
+    },
     "STEPS": "Steps",
     "PROTEIN": "Protein",
     "CBH": "Carbs",

@@ -44,7 +44,6 @@ import {
   BlockExerciseProgress,
   BlockMuscleGroup,
   BlockReadiness,
-  ClientBodyProfile,
   ClientTrainingProgress,
   SessionAdherence,
   SessionExerciseProgress,
@@ -292,12 +291,6 @@ export class ClientDetailPage implements OnInit {
     name: new FormControl(''),
   });
   public isAssigningRoutine = false;
-
-  // --- Medidas (antropometría) — tab propio, no vive dentro de Nutrición:
-  // relevante para cualquier cliente (entrenamiento y/o nutrición), no solo
-  // los de nutrición. ---
-  public measurementsState: SectionState = 'loading';
-  public anthropometryEntries: AnthropometryEntry[] = [];
 
   // --- Nutrición ---
   public nutritionState: SectionState = 'loading';
@@ -605,7 +598,6 @@ export class ClientDetailPage implements OnInit {
 
     if (this.scopes.includes('training')) this.loadTraining();
     if (this.scopes.includes('nutrition')) this.loadNutrition();
-    this.loadMeasurements();
     this.loadNotes();
     this.loadPayments();
     this.loadTasks();
@@ -1524,38 +1516,6 @@ export class ClientDetailPage implements OnInit {
         ];
       })
     );
-  }
-
-  // --- Medidas (antropometría) ---
-  // Movimiento 3 Coach Pro — altura/sexo/nacimiento para la calculadora
-  // corporal. Lo demás que necesita (las mediciones) ya se carga aquí.
-  public bodyProfile: ClientBodyProfile | null = null;
-
-  // La medición MÁS RECIENTE. getAnthropometry devuelve orden descendente
-  // (lo último primero), igual que el gráfico de arriba espera.
-  public get latestMeasurement(): AnthropometryEntry | null {
-    return this.anthropometryEntries[0] || null;
-  }
-
-  public loadMeasurements(): void {
-    this.measurementsState = 'loading';
-    this.clientDetailApi.getAnthropometry(this.clientId).subscribe({
-      next: (entries) => {
-        this.anthropometryEntries = entries || [];
-        this.measurementsState = 'loaded';
-      },
-      error: () => {
-        this.measurementsState = 'error';
-      },
-    });
-
-    // Aparte del Promise.all: que falte el perfil (o falle su consulta) no
-    // debe dejar la pestaña de Medidas en estado de error — el gráfico y el
-    // histórico se leen igual sin él. La calculadora dirá qué le falta.
-    this.clientDetailApi.getBodyProfile(this.clientId).subscribe({
-      next: (profile) => (this.bodyProfile = profile),
-      error: () => (this.bodyProfile = null),
-    });
   }
 
   public workoutDuration(workout: {

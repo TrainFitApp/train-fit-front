@@ -597,7 +597,19 @@
   background: #fe9000;
 }
 
-// --- coach-tab FASE4: tareas de hoy ---
+// --- coach-tab FASE4: hábitos de hoy ---
+// "2/4" junto al título; en verde al completarlos todos.
+.tasks-progress {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #8b8b8b;
+
+  &--done {
+    color: #2dd36f;
+  }
+}
+
 .task-row {
   width: 100%;
   display: flex;

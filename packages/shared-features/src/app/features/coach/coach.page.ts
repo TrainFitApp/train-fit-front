@@ -12,10 +12,15 @@ import {
   CoachCurrentPlan,
   CoachDashboard,
   CoachNotification,
-  CoachNotificationType,
   CoachPendingCheckin,
   CoachTask,
 } from './models/coach-dashboard.model';
+import {
+  notificationIcon,
+  notificationRoute,
+  notificationTitle,
+  notificationTrainerName,
+} from './models/coach-notification-view';
 import {
   HistoryEntry,
   PendingInvite,
@@ -43,37 +48,6 @@ interface GroupedHistoryEntry {
   key: string;
   entries: HistoryEntry[];
 }
-
-const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
-  meal_proposal: 'restaurant-outline',
-  payment_created: 'cash-outline',
-  // Histórico: ya no se crea (la solicitud sale en "Pendiente de ti"). Se
-  // mantiene para las que siguen en la bandeja.
-  nutrition_preferences_requested: 'nutrition-outline',
-  checkin_reviewed: 'checkmark-circle-outline',
-  routine_assigned: 'barbell-outline',
-  task_assigned: 'checkbox-outline',
-  intake_submitted: 'document-text-outline',
-  client_confirmed: 'checkmark-done-outline',
-  meal_prescribed: 'restaurant-outline',
-  // Histórico: ya no se crea ninguna (las medidas se piden dentro de un
-  // check-in). Se mantiene para que las que siguen en la bandeja de un
-  // cliente se lean y se abran como siempre, no como "Nueva actividad".
-  anthropometry_requested: 'body-outline',
-};
-
-// Mismo conjunto de tipos que navegan a algo en openNotification() — de
-// aquí sale el chevron que indica que la tarjeta es tocable. Un tipo nuevo
-// se añade UNA vez aquí y en el switch de openNotification(), nunca solo
-// en uno de los dos (si no, el chevron mentiría sobre si hace algo o no).
-const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
-  'meal_proposal',
-  'nutrition_preferences_requested',
-  'checkin_reviewed',
-  'routine_assigned',
-  'meal_prescribed',
-  'anthropometry_requested',
-]);
 
 // Continúa hacia el lado del gesto antes de cerrar el hueco. Congelar la
 // transición de Ionic evita su rebote al ancho del botón después de ionSwipe.
@@ -109,6 +83,10 @@ export class CoachPage implements OnInit {
   public state: ViewState = 'loading';
   public pendingInvites: PendingInvite[] = [];
   public activeProfessionals: ProfessionalSummary[] = [];
+  // Ya se sabe (una vez) si tiene profesional o invitaciones. Hasta entonces
+  // no se pinta el resto de Coach: quien solo tiene una invitación vería el
+  // panel entero un instante y luego desaparecería.
+  public professionalsResolved = false;
   // Aceptar/rechazar actúa sobre TODAS las invitaciones del grupo (mismo
   // trainer) a la vez, no por scope — de ahí que la clave sea trainerId, no
   // el id de una invitación concreta.
@@ -183,9 +161,11 @@ export class CoachPage implements OnInit {
         this.pendingInvites = invites || [];
         this.activeProfessionals = professionals || [];
         this.state = 'loaded';
+        this.professionalsResolved = true;
       })
       .catch(() => {
         this.state = 'error';
+        this.professionalsResolved = true;
       });
 
     // No bloquea el resto de la pantalla si falla, es una sección aparte.
@@ -210,6 +190,17 @@ export class CoachPage implements OnInit {
         if (!silent) this.dashboardState = 'error';
       },
     });
+  }
+
+  // Sin profesional activo y con una invitación pendiente, Coach solo
+  // enseña esa invitación: el resto (plan, tareas, check-ins...) está vacío
+  // hasta que acepte y solo despista de lo único que puede hacer.
+  public get inviteOnly(): boolean {
+    return !this.activeProfessionals.length && this.pendingInvites.length > 0;
+  }
+
+  public get showCoachContent(): boolean {
+    return this.professionalsResolved && !this.inviteOnly;
   }
 
   public get pendingCount(): number {
@@ -308,44 +299,19 @@ export class CoachPage implements OnInit {
   }
 
   public notificationIcon(notification: CoachNotification): string {
-    return NOTIFICATION_ICONS[notification.type] || 'notifications-outline';
+    return notificationIcon(notification);
   }
 
   public isNotificationInteractive(notification: CoachNotification): boolean {
-    return NAVIGABLE_NOTIFICATION_TYPES.has(notification.type);
+    return notificationRoute(notification) !== null;
   }
 
   public notificationTrainerName(notification: CoachNotification): string {
-    if (!notification.trainer) return 'Tu profesional';
-    return `${notification.trainer.name} ${notification.trainer.lastname}`.trim();
+    return notificationTrainerName(notification);
   }
 
   public notificationTitle(notification: CoachNotification): string {
-    const p = notification.payload || {};
-    switch (notification.type) {
-      case 'meal_proposal':
-        return `Nueva propuesta para ${p.mealSlot || 'una comida'}`;
-      case 'payment_created':
-        return `Nuevo cobro: ${p.amount}${p.currency === 'EUR' ? '€' : p.currency || ''}`;
-      case 'nutrition_preferences_requested':
-        return 'Te ha pedido tus preferencias nutricionales';
-      case 'checkin_reviewed':
-        return `Check-in revisado${p.name ? ': ' + p.name : ''}`;
-      case 'routine_assigned':
-        return `Nueva rutina asignada: ${p.routineName || ''}`;
-      case 'task_assigned':
-        return `Nuevo hábito: ${p.taskLabel || ''}`;
-      case 'intake_submitted':
-        return 'Cuestionario inicial enviado';
-      case 'client_confirmed':
-        return 'Tu profesional te ha confirmado';
-      case 'meal_prescribed':
-        return `Nueva comida pautada: ${p.mealName || ''}`;
-      case 'anthropometry_requested':
-        return 'Te ha pedido nuevas medidas corporales';
-      default:
-        return 'Nueva actividad';
-    }
+    return notificationTitle(notification);
   }
 
   public startNotificationPointer(): void {
@@ -401,31 +367,9 @@ export class CoachPage implements OnInit {
       });
     }
 
-    const p = notification.payload || {};
-    switch (notification.type) {
-      case 'meal_proposal':
-        void this.router.navigate(['/tabs/diets'], { state: { selectedDate: p.date } });
-        break;
-      case 'nutrition_preferences_requested':
-        void this.router.navigate(['/nutrition-preferences']);
-        break;
-        void this.router.navigate(['/my-checkins'], { queryParams: p.requestId ? { requestId: p.requestId } : {} });
-        break;
-      case 'routine_assigned':
-        void this.router.navigate(['/tabs/summary']);
-        break;
-      case 'meal_prescribed':
-        void this.router.navigate(['/tabs/diets'], { state: { selectedDate: p.date } });
-        break;
-      case 'anthropometry_requested':
-        void this.router.navigate(['/weight-info']);
-        break;
-      // payment_created, task_assigned, intake_submitted, client_confirmed:
-      // puramente informativas, sin pantalla propia a la que ir (task_assigned
-      // ya se ve en "Tareas de hoy" de esta misma página).
-      default:
-        break;
-    }
+    // task_assigned ya se ve en "Tareas de hoy" de esta misma página.
+    const route = notificationRoute(notification);
+    if (route) void this.router.navigate(route.commands, route.extras);
   }
 
   public trackByNotificationId(_index: number, notification: CoachNotification): string {

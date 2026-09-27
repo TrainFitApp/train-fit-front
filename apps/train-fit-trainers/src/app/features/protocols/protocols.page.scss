@@ -115,15 +115,37 @@
   flex-wrap: wrap;
 }
 
+// Toda la zona de texto abre el detalle.
 .protocol-main {
   flex: 1;
   min-width: 200px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--tf-space-2);
+  margin: calc(var(--tf-space-2) * -1);
+  padding: var(--tf-space-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--tf-radius-md);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
 }
 
 .protocol-name {
+  display: block;
   margin: 0;
   font-size: var(--tf-font-size-md);
   font-weight: 600;
@@ -131,6 +153,7 @@
 }
 
 .protocol-description {
+  display: block;
   margin: 0;
   font-size: var(--tf-font-size-sm);
   line-height: var(--tf-line-height-base);
@@ -147,13 +170,25 @@
 }
 
 .content-chip {
-  padding: 2px var(--tf-space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 3px var(--tf-space-2);
   border-radius: var(--tf-radius-pill);
   background: var(--tf-surface-4);
   color: var(--tf-text-secondary);
   font-size: var(--tf-font-size-xs);
   font-weight: 600;
   white-space: nowrap;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--tf-text-muted);
+  }
 
   &--empty {
     background: transparent;
@@ -183,10 +218,24 @@
 
 .icon-button {
   @include tf-icon-button(var(--tf-touch-min), var(--tf-radius-sm), 18px);
+  flex-shrink: 0;
 
   &--danger:hover {
     background: var(--tf-danger-soft);
     color: var(--tf-danger-text);
+  }
+
+  // La plantilla que se está previsualizando.
+  &--active {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+  }
+
+  &--small {
+    width: 36px;
+    min-width: 36px;
+    height: var(--tf-touch-min);
+    background: transparent;
   }
 }
 
@@ -292,6 +341,7 @@
 
 .step-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--tf-space-3);
@@ -300,7 +350,14 @@
 }
 
 .step-label {
+  flex: 1;
+  min-width: 0;
   color: var(--tf-text-secondary);
+}
+
+.step-error {
+  flex-basis: 100%;
+  color: var(--tf-danger-text);
 }
 
 .step-status {
@@ -318,39 +375,133 @@
 }
 
 // ---------------------------------------------------------------------------
-// Editor
+// Paneles laterales (detalle, editor, aplicar) — hoja inferior en móvil.
+// Cabecera y pie fijos; solo el cuerpo hace scroll, para que Guardar y
+// Aplicar estén siempre a mano.
 // ---------------------------------------------------------------------------
-.panel-backdrop {
-  @include tf-panel-backdrop;
+$detail-width: 440px;
+$editor-width: 500px;
+$preview-width: 380px;
+
+.side-backdrop {
+  @include tf-side-panel-backdrop;
 }
 
-.panel-sheet {
-  @include tf-panel-sheet;
+.side-panel {
+  @include tf-side-panel($detail-width);
+
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0 0;
+  overflow: hidden;
 
   @media (min-width: 768px) {
-    max-width: 640px;
-    margin: 0 auto;
-    right: 0;
-    left: 0;
+    padding: 0;
+  }
+
+  &--editor {
+    @media (min-width: 768px) {
+      width: $editor-width;
+    }
   }
 }
 
-.panel-handle {
-  @include tf-panel-handle;
+.side-handle {
+  @include tf-side-panel-handle;
+  flex-shrink: 0;
 }
 
-.panel-title {
-  margin: 0 0 var(--tf-space-4);
+.side-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-3);
+  flex-shrink: 0;
+  padding: 0 var(--tf-space-4) var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  @media (min-width: 768px) {
+    padding: var(--tf-space-5) var(--tf-space-5) var(--tf-space-4);
+  }
+}
+
+.side-head__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.side-title {
+  margin: 0;
+  padding-top: 10px;
   font-size: var(--tf-font-size-lg);
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.25;
   color: var(--tf-text);
+  overflow-wrap: anywhere;
 }
 
-.section-title {
-  margin: var(--tf-space-6) 0 var(--tf-space-1);
+.side-subtitle {
+  margin: var(--tf-space-1) 0 0;
   font-size: var(--tf-font-size-sm);
-  font-weight: 600;
+  line-height: var(--tf-line-height-base);
   color: var(--tf-text-secondary);
+}
+
+.side-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--tf-space-2) var(--tf-space-4) var(--tf-space-5);
+
+  @media (min-width: 768px) {
+    padding: var(--tf-space-2) var(--tf-space-5) var(--tf-space-6);
+  }
+}
+
+.side-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  flex-shrink: 0;
+  padding: var(--tf-space-3) var(--tf-space-4) calc(var(--tf-space-3) + env(safe-area-inset-bottom, 0px));
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
+
+  @media (min-width: 768px) {
+    padding: var(--tf-space-4) var(--tf-space-5);
+  }
+
+  &--stacked {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .icon-button {
+    background: transparent;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Contenido del protocolo (detalle y aplicar)
+// ---------------------------------------------------------------------------
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: var(--tf-space-6) 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-text);
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--tf-accent-text);
+  }
+}
+
+.content-section .section-title,
+.editor-section .section-title {
+  margin-top: var(--tf-space-5);
 }
 
 .section-hint {
@@ -358,6 +509,221 @@
   font-size: var(--tf-font-size-xs);
   color: var(--tf-text-muted);
   line-height: var(--tf-line-height-base);
+}
+
+.content-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  margin-top: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out);
+
+  > ion-icon {
+    flex-shrink: 0;
+    font-size: 17px;
+    color: var(--tf-text-muted);
+  }
+
+  &:hover {
+    border-color: var(--tf-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+
+    > ion-icon {
+      color: var(--tf-accent-text);
+    }
+  }
+
+  &--static {
+    justify-content: space-between;
+    cursor: default;
+
+    &:hover {
+      border-color: var(--tf-border);
+    }
+  }
+}
+
+.content-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.content-row__name {
+  min-width: 0;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content-row__meta {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.content-row__value {
+  flex-shrink: 0;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+// Objetivo de kcal y macros: cifra naranja + barra de reparto sobre kcal.
+.target-summary {
+  margin-top: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+}
+
+.target-summary__kcal {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-2);
+
+  ion-icon {
+    align-self: center;
+    font-size: 18px;
+    color: var(--tf-macro-kcal);
+  }
+
+  strong {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--tf-macro-kcal);
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    font-size: var(--tf-font-size-xs);
+    font-weight: 700;
+    color: var(--tf-text-muted);
+  }
+}
+
+.macro-bar {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  margin: var(--tf-space-3) 0 var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  overflow: hidden;
+}
+
+.macro-bar__segment {
+  flex-basis: 0;
+  min-width: 4px;
+
+  &--protein {
+    background: var(--tf-macro-protein);
+  }
+
+  &--carbs {
+    background: var(--tf-macro-carbs);
+  }
+
+  &--fat {
+    background: var(--tf-macro-fat);
+  }
+}
+
+.macro-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1) var(--tf-space-4);
+}
+
+.macro-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+
+  strong {
+    color: var(--tf-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &--protein .macro-legend__dot {
+    background: var(--tf-macro-protein);
+  }
+
+  &--carbs .macro-legend__dot {
+    background: var(--tf-macro-carbs);
+  }
+
+  &--fat .macro-legend__dot {
+    background: var(--tf-macro-fat);
+  }
+}
+
+.macro-legend__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.macro-legend__pct {
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.client-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-3);
+
+  .content-chip {
+    padding: 5px var(--tf-space-3);
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text);
+  }
+}
+
+.apply-summary-title {
+  margin-top: var(--tf-space-8);
+}
+
+// ---------------------------------------------------------------------------
+// Editor
+// ---------------------------------------------------------------------------
+.editor-section {
+  margin-top: var(--tf-space-5);
+  padding-top: var(--tf-space-1);
+  border-top: 1px solid var(--tf-border-subtle);
 }
 
 .field-label {
@@ -393,18 +759,94 @@
   color: var(--tf-text);
   font-family: inherit;
   font-size: var(--tf-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  // Calendario y reloj nativos en oscuro, como el resto de la app.
+  color-scheme: dark;
 
   &:focus-visible {
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
   }
-}
-
-.builder-input {
-  font-variant-numeric: tabular-nums;
 
   &--narrow {
     width: 90px;
+  }
+
+  &--tiny {
+    width: 64px;
+    text-align: center;
+  }
+
+  &--time {
+    width: 112px;
+  }
+}
+
+.builder-select {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+
+  &--unit {
+    flex: 0 1 132px;
+  }
+}
+
+.select-row,
+.checkin-row__head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.checkin-row {
+  margin-top: var(--tf-space-3);
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+
+  .icon-button {
+    background: transparent;
+  }
+}
+
+.checkin-row__meta {
+  margin: var(--tf-space-1) 0 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cadence-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-3);
+}
+
+.cadence-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-3);
+}
+
+.cadence-fields__label {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+}
+
+.cadence-fields__time {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin-left: auto;
+
+  ion-icon {
+    font-size: 17px;
+    color: var(--tf-text-muted);
   }
 }
 
@@ -413,6 +855,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--tf-space-2);
+}
+
+.rule-chip-group {
+  display: inline-flex;
+  align-items: center;
 }
 
 .rule-chip,
@@ -434,10 +881,23 @@
     border-color var(--tf-duration-fast) var(--tf-ease-out),
     color var(--tf-duration-fast) var(--tf-ease-out);
 
+  ion-icon {
+    font-size: 16px;
+  }
+
   &:focus-visible {
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
   }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.rule-chip--compact {
+  padding: 0 var(--tf-space-3);
 }
 
 .rule-chip--active {
@@ -449,9 +909,82 @@
 .add-chip {
   border-style: dashed;
 
-  ion-icon {
-    font-size: 16px;
+  &--block {
+    justify-content: center;
+    width: 100%;
+    margin-top: var(--tf-space-3);
+    border-radius: var(--tf-radius-md);
   }
+}
+
+.link-button--inline {
+  display: inline-block;
+  margin-top: var(--tf-space-3);
+  font-size: var(--tf-font-size-sm);
+}
+
+.target-editor {
+  margin-top: var(--tf-space-3);
+
+  app-macro-adjust {
+    display: block;
+    margin-top: var(--tf-space-3);
+  }
+
+  .section-hint {
+    margin-top: var(--tf-space-3);
+  }
+}
+
+// Mismo número naranja editable que "Objetivo nutricional" en la ficha.
+.goal-kcal {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  gap: var(--tf-space-3);
+  min-height: 56px;
+  padding: 0 var(--tf-space-3) 0 6px;
+  border-radius: var(--tf-radius-md);
+  cursor: text;
+}
+
+.goal-kcal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-accent-soft);
+  color: var(--tf-macro-kcal);
+
+  ion-icon {
+    font-size: 22px;
+  }
+}
+
+.goal-kcal__input {
+  @include tf-input-field;
+  height: 54px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--tf-macro-kcal);
+  font-variant-numeric: tabular-nums;
+  caret-color: var(--tf-macro-kcal);
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.goal-kcal__unit {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
 }
 
 .task-row {
@@ -476,13 +1009,6 @@
   font-size: var(--tf-font-size-xs);
   color: var(--tf-text-muted);
   min-width: 42px;
-}
-
-.panel-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--tf-space-3);
-  margin-top: var(--tf-space-6);
 }
 
 .save-error {
@@ -512,6 +1038,11 @@
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 }
 
 .submit-button {
@@ -523,4 +1054,187 @@
   align-items: center;
   justify-content: center;
   font-size: var(--tf-font-size-base);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------------------
+// Previsualización — encima del panel abierto. En escritorio, a su
+// izquierda y sin velo, para leer la plantilla sin perder el formulario.
+// ---------------------------------------------------------------------------
+.preview-panel {
+  @include tf-panel-sheet;
+
+  z-index: calc(var(--tf-z-modal, 500) + 10);
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh;
+  padding: 10px 0 0;
+  overflow: hidden;
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.45);
+
+  @media (min-width: 768px) {
+    top: 0;
+    bottom: 0;
+    left: auto;
+    right: $detail-width;
+    width: $preview-width;
+    max-width: calc(100vw - #{$detail-width} - 24px);
+    max-height: 100vh;
+    box-sizing: border-box;
+    padding: 0;
+    background: var(--tf-surface-2);
+    border-top: none;
+    border-left: 1px solid var(--tf-border-strong);
+    border-radius: 0;
+    box-shadow: -16px 0 32px rgba(0, 0, 0, 0.35);
+    animation: tf-side-panel-in 220ms var(--tf-ease-out) both;
+
+    &--beside-editor {
+      right: $editor-width;
+      max-width: calc(100vw - #{$editor-width} - 24px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
+  .content-row {
+    background: var(--tf-surface-3);
+  }
+}
+
+.preview-kind {
+  display: block;
+  padding-top: 10px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-accent-text);
+
+  + .side-title {
+    padding-top: 2px;
+  }
+}
+
+.preview-text {
+  margin: var(--tf-space-3) 0;
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-secondary);
+}
+
+.preview-list {
+  margin: var(--tf-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: question;
+}
+
+.preview-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) 0;
+  border-bottom: 1px solid var(--tf-border-subtle);
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text);
+  counter-increment: question;
+
+  &::before {
+    content: counter(question);
+    flex-shrink: 0;
+    width: 22px;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 700;
+    color: var(--tf-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  > span:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.preview-tag {
+  flex-shrink: 0;
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+
+  &--muted {
+    background: var(--tf-surface-4);
+    color: var(--tf-text-secondary);
+  }
+}
+
+.preview-macros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-3);
+}
+
+.preview-macros__kcal {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-2);
+
+  strong {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--tf-macro-kcal);
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+}
+
+// Una línea de color arriba identifica el macro sin pintar la caja entera.
+.preview-macros__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--tf-space-2);
+  background: var(--tf-surface-3);
+  border-radius: var(--tf-radius-sm);
+  box-shadow: inset 0 2px 0 var(--macro-color, transparent);
+
+  strong {
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+
+  &--protein {
+    --macro-color: var(--tf-macro-protein);
+  }
+
+  &--carbs {
+    --macro-color: var(--tf-macro-carbs);
+  }
+
+  &--fat {
+    --macro-color: var(--tf-macro-fat);
+  }
 }

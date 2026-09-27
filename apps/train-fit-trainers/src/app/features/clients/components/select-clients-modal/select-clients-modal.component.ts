@@ -113,6 +113,13 @@ export class SelectClientsModalComponent implements OnInit {
 
   public confirm(): void {
     if (!this.selectedIds.size) return;
-    void this.modalController.dismiss({ targetClientIds: Array.from(this.selectedIds) }, 'confirm');
+    // targetClients: nombre de cada elegido, para quien pinte el resultado
+    // por cliente (protocolos) sin volver a pedir la lista.
+    const targetClients = this.clients.flatMap((c) =>
+      c.user && this.selectedIds.has(c.user._id)
+        ? [{ id: c.user._id, name: `${c.user.name || ''} ${c.user.lastname || ''}`.trim() }]
+        : []
+    );
+    void this.modalController.dismiss({ targetClientIds: Array.from(this.selectedIds), targetClients }, 'confirm');
   }
 }

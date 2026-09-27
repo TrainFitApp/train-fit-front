@@ -89,6 +89,9 @@
   @include tf-input-wrapper;
   flex: 1;
   min-width: 200px;
+  // tf-input-wrapper no fija altura y el campo pide height:100%: sin esto
+  // colapsa a la altura del texto (mismo arreglo que client-roster).
+  min-height: 44px;
 }
 
 .search-icon {
@@ -97,6 +100,7 @@
 
 .search-input {
   @include tf-input-field;
+  font-size: 0.95rem;
 }
 
 .scored-count {
