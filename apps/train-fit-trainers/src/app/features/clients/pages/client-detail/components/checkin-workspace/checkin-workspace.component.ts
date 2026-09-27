@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnChanges, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
@@ -19,7 +19,11 @@ function localTime(date: Date): string {
 @Component({ selector: 'app-checkin-workspace', templateUrl: './checkin-workspace.component.html', styleUrls: ['./checkin-workspace.component.scss'] })
 export class CheckinWorkspaceComponent implements OnChanges {
   @Input() clientId = '';
+  // Plantilla con la que abrir "Nueva programación" (llega desde "Aplicar"
+  // en Plantillas de check-in).
+  @Input() templateToSchedule: string | null = null;
   private readonly http = inject(HttpService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly ionicUtilService = inject(IonicUtilService);
@@ -75,7 +79,23 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public showPuntual = false;
   public puntualFields: string[] = [];
 
-  public ngOnChanges(): void { if (this.clientId) { this.data = null; this.selected = null; this.load(); this.loadSummary(); } }
+  // Pendiente de enseñar el editor abierto por templateToSchedule cuando la
+  // agenda termine de cargar (el formulario vive dentro de ella).
+  private scrollToEditorOnLoad = false;
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['clientId'] && this.clientId) { this.data = null; this.selected = null; this.load(); this.loadSummary(); }
+    if (changes['templateToSchedule'] && this.templateToSchedule) void this.openEditorWithTemplate(this.templateToSchedule);
+  }
+  private async openEditorWithTemplate(templateId: string): Promise<void> {
+    await this.openEditor();
+    if (this.templates.some(t => t._id === templateId)) this.chooseTemplate(templateId);
+    if (this.state === 'loaded') this.scrollToEditor(); else this.scrollToEditorOnLoad = true;
+  }
+  private scrollToEditor(): void {
+    this.scrollToEditorOnLoad = false;
+    setTimeout(() => this.host.nativeElement.querySelector('.schedule-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
   private get base(): string { return `trainer/clients/${encodeURIComponent(this.clientId)}`; }
   public load(): void {
     this.loadSubscription?.unsubscribe();
@@ -84,7 +104,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
     const to = localDate(new Date(this.month.getFullYear(), this.month.getMonth() + 1, 0));
     this.loadSubscription = this.http.get<CheckinAgendaData>(`${this.base}/checkin-agenda?from=${from}&to=${to}`)
       .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: data => { this.data = data; this.state = 'loaded'; this.rebuild(); },
+        next: data => { this.data = data; this.state = 'loaded'; this.rebuild(); if (this.scrollToEditorOnLoad) this.scrollToEditor(); },
         error: () => { this.state = 'error'; },
       });
   }

@@ -2,9 +2,13 @@
   <div class="progress-track">
     <div class="progress-fill" [style.width.%]="stepProgressPercent"></div>
   </div>
+  <p class="readonly-note" *ngIf="readonly">
+    <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+    Tu profesional ya lo ha revisado: solo puedes verlo.
+  </p>
 </div>
 
-<div class="wizard-body">
+<div class="wizard-body" [class.is-readonly]="readonly">
   <swiper-container init="false" #intakeSwiper>
     <!-- Perfil: lo que el cliente ya metió al registrarse, prerellenado -->
     <swiper-slide *ngIf="enabledFields.has('profileBiometrics')">
@@ -357,8 +361,17 @@
   <ion-button
     class="cta-btn is-enabled"
     fill="clear"
+    (click)="cancelled.emit()"
+    *ngIf="isLastStep && readonly"
+  >
+    <strong>Cerrar</strong>
+  </ion-button>
+
+  <ion-button
+    class="cta-btn is-enabled"
+    fill="clear"
     (click)="submit()"
-    *ngIf="isLastStep"
+    *ngIf="isLastStep && !readonly"
     [disabled]="isSubmitting"
   >
     <span *ngIf="!isSubmitting"><strong>Enviar cuestionario</strong></span>

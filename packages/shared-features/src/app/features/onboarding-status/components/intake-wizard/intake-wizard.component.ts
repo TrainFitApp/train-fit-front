@@ -123,6 +123,9 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   // isProcessing en sign-up.page.ts vive en el componente top-level): este
   // wizard solo refleja el estado para deshabilitar su propio boton/spinner.
   @Input() public isSubmitting = false;
+  // Revisado por el profesional: se recorre y se ve, pero sin cambiar nada
+  // ni enviar (el último paso cierra en vez de enviar).
+  @Input() public readonly = false;
 
   @Output() public submitted = new EventEmitter<IntakeWizardResult>();
   @Output() public cancelled = new EventEmitter<void>();
@@ -265,7 +268,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   // Como en el registro: sin contar pasos, la actividad es lo único que
   // estima el gasto diario, así que no se puede saltar.
   public get isActivityMissing(): boolean {
-    return this.stepIds[this.currentStep] === 'activity' && this.activity === null;
+    return !this.readonly && this.stepIds[this.currentStep] === 'activity' && this.activity === null;
   }
 
   public trackByStepId(_index: number, id: string): string {

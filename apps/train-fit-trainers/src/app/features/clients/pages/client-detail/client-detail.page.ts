@@ -1,4 +1,13 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, OnInit, ViewChild, ViewContainerRef, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  DestroyRef,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  ViewContainerRef,
+  inject,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, skip } from 'rxjs/operators';
 import { firstValueFrom, of, Subscription } from 'rxjs';
@@ -56,7 +65,10 @@ import {
   TrainingComparisonMetric,
   TrainingGranularity,
 } from './models/client-progress.model';
-import { TrainingFilterPanelComponent, TrainingFilterResult } from './components/training-filter-panel/training-filter-panel.component';
+import {
+  TrainingFilterPanelComponent,
+  TrainingFilterResult,
+} from './components/training-filter-panel/training-filter-panel.component';
 import { CompletedDay } from './components/training-calendar/training-calendar.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { NextWeekModalComponent } from '../../components/next-week-modal/next-week-modal.component';
@@ -66,7 +78,10 @@ import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routi
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { PHASE_COLORS, buildPhaseColorMap } from './phase-color.util';
 import { RoutineAssignmentApiService } from '../../../../shared/services/routine-assignment-api.service';
-import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models/routine-assignment.model';
+import {
+  RoutineAssignment,
+  RoutineScheduleDay,
+} from '../../../../shared/models/routine-assignment.model';
 import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
 import { CustomCheckinQuestion } from '../../../checkin-templates/models/checkin-template.model';
 import {
@@ -74,11 +89,20 @@ import {
   WeekNeed,
   PhaseWeeksResponse,
 } from '../../../diet-templates/models/diet-suggestion.model';
-import { KCAL_PER_G, MacroAdjustComponent } from '../../../../shared/components/macro-adjust/macro-adjust.component';
+import {
+  KCAL_PER_G,
+  MacroAdjustComponent,
+} from '../../../../shared/components/macro-adjust/macro-adjust.component';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
-import { checkinFieldLabel, checkinValueLabel } from '../../checkin-labels.util';
+import {
+  checkinFieldLabel,
+  checkinValueLabel,
+} from '../../checkin-labels.util';
 import { WeekSummaryPanelComponent } from '../../components/week-summary-panel/week-summary-panel.component';
-import { NutritionHistoryEvent, PlanAssignment } from '../../../../shared/models/plan-assignment.model';
+import {
+  NutritionHistoryEvent,
+  PlanAssignment,
+} from '../../../../shared/models/plan-assignment.model';
 import { dietaryFlagUi } from '../../../../shared/utils/dietary-flag-ui.util';
 import { forkJoin } from 'rxjs';
 import { UserService } from 'src/app/core/services/user/user.service';
@@ -140,14 +164,17 @@ const TRACKING_PRESETS_WITH_PHASE: TrackingPresetOption[] = [
 // se reordena aquí.
 function groupPhaseDocs(docs: PlanAssignment[]): PlanAssignment[] {
   const groups = new Map<string, PlanAssignment[]>();
-  for (const doc of [...docs].sort((a, b) => a.startDate.localeCompare(b.startDate))) {
+  for (const doc of [...docs].sort((a, b) =>
+    a.startDate.localeCompare(b.startDate)
+  )) {
     const key = doc.phaseId || doc._id;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(doc);
   }
   return [...groups.values()]
     .map((members) => {
-      const head = members.find((d) => d._id === (d.phaseId || d._id)) || members[0];
+      const head =
+        members.find((d) => d._id === (d.phaseId || d._id)) || members[0];
       const last = members[members.length - 1];
       return { ...head, endDate: last.endDate ?? null, status: last.status };
     })
@@ -182,8 +209,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // emite aquí vía (statusChange); por eso queda en blanco hasta que Resumen
   // termine de cargar, aunque se esté viendo otra sección.
   public clientStatus: 'attention' | 'ok' | 'insufficient' | null = null;
-  // Llega por el mismo camino que el badge (app-client-summary).
-  public intakePending = false;
 
   public onSummaryStatus(status: 'attention' | 'ok' | 'insufficient'): void {
     this.clientStatus = status;
@@ -278,11 +303,13 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public isEditingTrainingGoal = false;
   public trainingGoalTypeDraft: TrainingGoalType | null = null;
   public isSavingTrainingGoal = false;
-  public readonly trainingGoalTypeOptions: { value: TrainingGoalType; label: string }[] =
-    Object.entries(TRAINING_GOAL_TYPE_LABELS).map(([value, label]) => ({
-      value: value as TrainingGoalType,
-      label,
-    }));
+  public readonly trainingGoalTypeOptions: {
+    value: TrainingGoalType;
+    label: string;
+  }[] = Object.entries(TRAINING_GOAL_TYPE_LABELS).map(([value, label]) => ({
+    value: value as TrainingGoalType,
+    label,
+  }));
 
   // Tarea 3 bis — calendario + gráfica de frecuencia semanal, versión de
   // vistazo para Entrenamiento (a diferencia de Estadísticas, que es el
@@ -365,7 +392,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     return this.phaseWeeks ? TRACKING_PRESETS_WITH_PHASE : TRACKING_PRESETS;
   }
 
-  public trackByPresetKey(_index: number, option: TrackingPresetOption): TrackingPreset {
+  public trackByPresetKey(
+    _index: number,
+    option: TrackingPresetOption
+  ): TrackingPreset {
     return option.key;
   }
 
@@ -381,7 +411,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         range = { start: monday, end: sunday };
         break;
       case 'lastWeek':
-        range = { start: this.addDays(monday, -7), end: this.addDays(sunday, -7) };
+        range = {
+          start: this.addDays(monday, -7),
+          end: this.addDays(sunday, -7),
+        };
         break;
       case 'weeks4':
         range = { start: this.addDays(monday, -21), end: sunday };
@@ -390,7 +423,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         range = { start: this.addDays(monday, -77), end: sunday };
         break;
       case 'phase':
-        range = this.phaseWeeks ? { start: this.phaseWeeks.phaseStart, end: sunday } : null;
+        range = this.phaseWeeks
+          ? { start: this.phaseWeeks.phaseStart, end: sunday }
+          : null;
         break;
     }
     if (!range) return;
@@ -414,7 +449,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       (w) => w.start <= range.end && (w.end ?? range.end) >= range.start
     );
     const isSingleWeek = range.end <= this.addDays(range.start, 6);
-    return isSingleWeek && overlapping.length === 1 ? `S${overlapping[0].number} · ${dates}` : dates;
+    return isSingleWeek && overlapping.length === 1
+      ? `S${overlapping[0].number} · ${dates}`
+      : dates;
   }
 
   // TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones puntuales.
@@ -506,10 +543,15 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.trainerBillingApi.getSeats().subscribe({
       next: (seats) => {
         if (clientId !== this.clientId) return;
-        const seat = seats.clients.find((client) => client.clientId === clientId);
-        this.readOnlyLimit = seats.overLimit && seat && !seat.active ? seats.limit : null;
+        const seat = seats.clients.find(
+          (client) => client.clientId === clientId
+        );
+        this.readOnlyLimit =
+          seats.overLimit && seat && !seat.active ? seats.limit : null;
       },
-      error: () => { this.readOnlyLimit = null; },
+      error: () => {
+        this.readOnlyLimit = null;
+      },
     });
   }
 
@@ -543,7 +585,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     // TASK-051/TASK-073 más arriba), sin este reset el badge de estado del
     // cliente ANTERIOR seguiría visible mientras carga el nuevo Resumen.
     this.clientStatus = null;
-    this.intakePending = false;
     this.trainerClientsApi.getMyClients().subscribe({
       next: (clients) => {
         const match = clients.find((c) => c.user?._id === this.clientId);
@@ -589,9 +630,12 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     // dieta) se recupera la pestaña que estaba abierta. Sustituye al antiguo
     // ?returnTab=, que obligaba a cada pantalla hija a reenviar la pestaña de
     // vuelta: aquí la ficha se acuerda de la suya y nadie más tiene que saberlo.
-    const tabGuardada = this.navigation.consumeViewState<ClientDetailTab>(this.viewStateKey);
+    const tabGuardada = this.navigation.consumeViewState<ClientDetailTab>(
+      this.viewStateKey
+    );
     const tabPedida =
-      tabGuardada || (this.route.snapshot.queryParamMap.get('tab') as ClientDetailTab | null);
+      tabGuardada ||
+      (this.route.snapshot.queryParamMap.get('tab') as ClientDetailTab | null);
     // 'checkins' ya no es una pestaña (vive dentro de "Medidas y check-ins"),
     // pero sigue llegando en enlaces viejos: notificaciones de "check-in
     // respondido" ya enviadas y estados de vista guardados antes de la
@@ -603,9 +647,17 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       (tabPedida as string) === 'checkins'
         ? 'measurements'
         : (tabPedida as string) === 'history'
-          ? 'training'
-          : tabPedida;
-    this.selectTab(tabDestino && SECTION_BY_TAB[tabDestino] ? tabDestino : 'summary');
+        ? 'training'
+        : tabPedida;
+    this.selectTab(
+      tabDestino && SECTION_BY_TAB[tabDestino] ? tabDestino : 'summary'
+    );
+    // "Aplicar" desde Plantillas de check-in: abre "Nueva programación" con
+    // esa plantilla. Solo en una entrada nueva: al volver de una pantalla
+    // hija la URL la sigue llevando y no debe reabrir el editor.
+    this.checkinTemplateToOpen = tabGuardada
+      ? null
+      : this.route.snapshot.queryParamMap.get('checkinTemplate');
 
     if (this.scopes.includes('training')) this.loadTraining();
     if (this.scopes.includes('nutrition')) this.loadNutrition();
@@ -649,7 +701,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // que hay que abrir, en vez de obligar a cada llamante a saberla.
   public selectTab(tab: ClientDetailTab): void {
     const section = SECTION_BY_TAB[tab];
-    const definicion = this.sections.find((candidate) => candidate.key === section);
+    const definicion = this.sections.find(
+      (candidate) => candidate.key === section
+    );
     if (!definicion) return;
 
     // Un cliente solo de nutrición no tiene pestaña "Entrenamiento": si algo
@@ -666,7 +720,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
     this.activeTab = destino;
     this.activeSection = section;
-
   }
 
   // Al pulsar una sección se abre su primera subpestaña DISPONIBLE: si el
@@ -683,13 +736,17 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     // cliente no tiene no llega a mostrarse. Plan ya no puede vaciarse así
     // desde que Hábitos vive ahí (sin requiresScope, siempre visible) —
     // Progreso tampoco (Medidas y check-ins/Dolor no piden scope).
-    return this.sections.filter((section) => this.visibleTabsOf(section).length > 0);
+    return this.sections.filter(
+      (section) => this.visibleTabsOf(section).length > 0
+    );
   }
 
   // Subpestañas de la sección abierta. Vacío cuando solo hay una: una
   // subbarra con un único botón siempre pulsado no informa de nada.
   public get visibleSubTabs(): ClientDetailTabDef[] {
-    const section = this.sections.find((candidate) => candidate.key === this.activeSection);
+    const section = this.sections.find(
+      (candidate) => candidate.key === this.activeSection
+    );
     if (!section) return [];
     const tabs = this.visibleTabsOf(section);
     return tabs.length > 1 ? tabs : [];
@@ -703,7 +760,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     });
   }
 
-  public trackBySectionKey(_index: number, section: ClientDetailSectionDef): string {
+  public trackBySectionKey(
+    _index: number,
+    section: ClientDetailSectionDef
+  ): string {
     return section.key;
   }
 
@@ -785,7 +845,11 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       },
       error: () => {
         this.isSavingTrainingGoal = false;
-        this.ionicUtilService.showErrorToast('No se pudo guardar el objetivo', 'Error', 3000);
+        this.ionicUtilService.showErrorToast(
+          'No se pudo guardar el objetivo',
+          'Error',
+          3000
+        );
       },
     });
   }
@@ -804,7 +868,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.trainingAdherenceState = 'loading';
     this.clientDetailApi.getSummary(this.clientId).subscribe({
       next: (summary) => {
-        this.trainingAdherence = summary.adherence?.dimensions?.training ?? null;
+        this.trainingAdherence =
+          summary.adherence?.dimensions?.training ?? null;
         this.trainingAdherenceState = 'loaded';
       },
       error: () => {
@@ -831,7 +896,12 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public trainingGranularity: TrainingGranularity = 'block';
   public trainingBlocksState: SectionState = 'loading';
   private trainingBlocksSubscription?: Subscription;
-  public readonly trainingMetricOptions = (Object.keys(TRAINING_COMPARISON_METRIC_LABELS) as TrainingComparisonMetric[]).map((value) => ({ value, label: TRAINING_COMPARISON_METRIC_LABELS[value] }));
+  public readonly trainingMetricOptions = (
+    Object.keys(TRAINING_COMPARISON_METRIC_LABELS) as TrainingComparisonMetric[]
+  ).map((value) => ({
+    value,
+    label: TRAINING_COMPARISON_METRIC_LABELS[value],
+  }));
   public trainingBlocks: TrainingBlock[] = [];
   public trainingBlockMuscleGroups: BlockMuscleGroup[] = [];
   // Readiness/esfuerzo (2026-09) — sale gratis de la misma petición, igual
@@ -848,15 +918,18 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // solo llegan poblados cuando ya hay al menos un ejercicio elegido (ver
   // loadTrainingBlocks, que reenvía selectedTrainingExercises al backend).
   public trainingExerciseNames: string[] = [];
-  public trainingBlockExerciseByName: Record<string, BlockExerciseProgress[]> = {};
-  public trainingSessionExerciseByName: Record<string, SessionExerciseProgress[]> = {};
+  public trainingBlockExerciseByName: Record<string, BlockExerciseProgress[]> =
+    {};
+  public trainingSessionExerciseByName: Record<
+    string,
+    SessionExerciseProgress[]
+  > = {};
   public selectedTrainingExercises: string[] = [];
   // "Elegir el workout a ver" (2026-09) — filtro ortogonal a la métrica.
   // Igual que el ejercicio, es un parámetro que el BACKEND aplica (recorta
   // sets antes de agregar), así que cambiarlo sí necesita volver a pedir.
   public trainingWorkoutNames: string[] = [];
   public selectedTrainingWorkout: string | null = null;
-
 
   // Movimiento adherencia-por-fase (2026-09) — antes solo el Set de fechas
   // ISO con sesión (sessionDatesSet); ahora nombre + % de series cumplidas
@@ -876,12 +949,16 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     for (const workout of this.completedWorkouts) {
       if (!workout.date) continue;
       const date = new Date(workout.date as Date).toISOString().slice(0, 10);
-      const sets = (workout.exercises || []).flatMap((exercise) => exercise.sets || []);
+      const sets = (workout.exercises || []).flatMap(
+        (exercise) => exercise.sets || []
+      );
       const measurable = sets.filter((set) => set.expectedReps?.length);
       const doned = measurable.filter((set) => set.doned).length;
       map.set(date, {
         name: workout.name,
-        completionPercentage: measurable.length ? Math.round((doned / measurable.length) * 100) : null,
+        completionPercentage: measurable.length
+          ? Math.round((doned / measurable.length) * 100)
+          : null,
       });
     }
     return map;
@@ -903,13 +980,15 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // vigente (ninguna o solo futuras), del día 1 del mes actual → hoy.
   private defaultTrainingRange(): { start: string; end: string } {
     const today = new Date().toISOString().slice(0, 10);
-    const start = this.currentRoutinePhase?.startDate ?? `${today.slice(0, 8)}01`;
+    const start =
+      this.currentRoutinePhase?.startDate ?? `${today.slice(0, 8)}01`;
     return { start, end: today };
   }
 
   // Solo si el entrenador no ha elegido nada a mano (ver trainingRangeIsDefault).
   private applyDefaultTrainingRangeIfUnset(): void {
-    if (this.trainingRangeIsDefault) this.applyTrainingRange(this.defaultTrainingRange());
+    if (this.trainingRangeIsDefault)
+      this.applyTrainingRange(this.defaultTrainingRange());
   }
 
   // × de la etiqueta del calendario: vuelve al rango por defecto.
@@ -945,7 +1024,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.trainingRangeIsDefault = false;
     this.trainingSelectedDay = date;
     this.trainingSelectedDayWorkouts = this.completedWorkouts.filter(
-      (w) => w.date && new Date(w.date as Date).toISOString().slice(0, 10) === date
+      (w) =>
+        w.date && new Date(w.date as Date).toISOString().slice(0, 10) === date
     );
   }
 
@@ -959,7 +1039,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         this.clientId,
         start,
         end,
-        this.selectedTrainingExercises.length ? this.selectedTrainingExercises : undefined,
+        this.selectedTrainingExercises.length
+          ? this.selectedTrainingExercises
+          : undefined,
         this.selectedTrainingWorkout || undefined
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -1017,7 +1099,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.trainingComparisonMetric = data.metric;
     this.trainingGranularity = data.granularity;
     const exercisesChanged =
-      JSON.stringify(data.exercises) !== JSON.stringify(this.selectedTrainingExercises);
+      JSON.stringify(data.exercises) !==
+      JSON.stringify(this.selectedTrainingExercises);
     this.selectedTrainingExercises = data.exercises;
     const workoutChanged = data.workout !== this.selectedTrainingWorkout;
     this.selectedTrainingWorkout = data.workout;
@@ -1034,18 +1117,28 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public get selectedTrainingExercise(): string | null {
-    return this.selectedTrainingExercises.length === 1 ? this.selectedTrainingExercises[0] : null;
+    return this.selectedTrainingExercises.length === 1
+      ? this.selectedTrainingExercises[0]
+      : null;
   }
 
   public onTrainingMetricChanged(metric: TrainingComparisonMetric): void {
     this.trainingComparisonMetric = metric;
-    if (metric === 'exercise' && !this.selectedTrainingExercises.length && this.trainingExerciseNames.length) {
+    if (
+      metric === 'exercise' &&
+      !this.selectedTrainingExercises.length &&
+      this.trainingExerciseNames.length
+    ) {
       this.onTrainingExerciseChanged(this.trainingExerciseNames[0]);
     }
   }
 
   public onTrainingExerciseChanged(exercise: string): void {
-    if (this.selectedTrainingExercises.length === 1 && exercise === this.selectedTrainingExercises[0]) return;
+    if (
+      this.selectedTrainingExercises.length === 1 &&
+      exercise === this.selectedTrainingExercises[0]
+    )
+      return;
     this.selectedTrainingExercises = [exercise];
     this.loadTrainingBlocks();
   }
@@ -1062,7 +1155,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // montar: dentro de ion-content el fixed queda capturado y el panel se
   // pintaría detrás de la gráfica de comparación. Mismo truco que
   // SupplementsPanelComponent.
-  @ViewChild('sessionsPanelHost') private sessionsPanelHost?: ElementRef<HTMLElement>;
+  @ViewChild('sessionsPanelHost')
+  private sessionsPanelHost?: ElementRef<HTMLElement>;
 
   public ngAfterViewInit(): void {
     const host = this.sessionsPanelHost?.nativeElement;
@@ -1130,7 +1224,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public get lastActivityLabel(): string | null {
     const workout = this.completedWorkouts[0];
     if (!workout?.date) return null;
-    return `registró "${workout.name}" · ${this.relativeDayTime(new Date(workout.date as Date))}`;
+    return `registró "${workout.name}" · ${this.relativeDayTime(
+      new Date(workout.date as Date)
+    )}`;
   }
 
   // Cabecera persistente — nota fijada (Notas, F19). notes ya se carga sin
@@ -1149,10 +1245,16 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       a.getDate() === b.getDate();
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
-    const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const time = date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
     if (isSameDay(date, now)) return `hoy, ${time}`;
     if (isSameDay(date, yesterday)) return `ayer, ${time}`;
-    return `${date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}, ${time}`;
+    return `${date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+    })}, ${time}`;
   }
 
   public goToNotesTab(): void {
@@ -1176,7 +1278,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public trainingLocationLabel(location: TrainingLocation | null): string {
-    return location ? TRAINING_LOCATION_LABELS[location] || location : 'No indicado';
+    return location
+      ? TRAINING_LOCATION_LABELS[location] || location
+      : 'No indicado';
   }
 
   public equipmentTagLabel(tag: EquipmentTag): string {
@@ -1200,7 +1304,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     customAnswers: ClientIntakeCustomAnswer[];
   } | null = null;
 
-  public readonly experienceLevelOptions: { value: ClientIntake['experienceLevel']; label: string }[] = [
+  public readonly experienceLevelOptions: {
+    value: ClientIntake['experienceLevel'];
+    label: string;
+  }[] = [
     { value: null, label: 'Sin declarar' },
     { value: 'none', label: 'Sin experiencia' },
     { value: 'beginner', label: 'Principiante' },
@@ -1212,12 +1319,18 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     Object.keys(TRAINING_LOCATION_LABELS) as TrainingLocation[]
   ).map((value) => ({ value, label: TRAINING_LOCATION_LABELS[value] }));
 
-  public readonly equipmentTagOptions = (Object.keys(EQUIPMENT_TAG_LABELS) as EquipmentTag[]).map(
-    (value) => ({ value, label: EQUIPMENT_TAG_LABELS[value] })
-  );
+  public readonly equipmentTagOptions = (
+    Object.keys(EQUIPMENT_TAG_LABELS) as EquipmentTag[]
+  ).map((value) => ({ value, label: EQUIPMENT_TAG_LABELS[value] }));
 
-  public experienceLabel(level: ClientIntake['experienceLevel']): string {
-    return this.experienceLevelOptions.find((o) => o.value === level)?.label || 'No indicado';
+  // El panel vive fuera de ion-content y se traslada al body al crear la
+  // página (mismo portal que nutrition-preferences-panel): así su
+  // position:fixed no lo captura el contain de ion-content y queda por
+  // encima de las gráficas. Se quita a mano al destruir la página.
+  @ViewChild('intakePanelHost', { static: true })
+  private set intakePanelHost(ref: ElementRef<HTMLElement>) {
+    document.body.appendChild(ref.nativeElement);
+    this.destroyRef.onDestroy(() => ref.nativeElement.remove());
   }
 
   public openIntakePanel(): void {
@@ -1263,22 +1376,27 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public saveIntake(): void {
     if (!this.intakeDraft || this.isSavingIntake) return;
     this.isSavingIntake = true;
-    this.trainerInvitesApi.updateClientIntake(this.clientId, this.intakeDraft).subscribe({
-      next: (intake) => {
-        this.clientIntake = intake;
-        this.isSavingIntake = false;
-        this.isEditingIntake = false;
-        this.intakeDraft = null;
-        this.ionicUtilService.showToast({ message: 'Cuestionario actualizado', duration: 2500 });
-      },
-      error: () => {
-        this.isSavingIntake = false;
-        this.ionicUtilService.showToast({
-          message: 'No se pudo guardar el cuestionario',
-          duration: 3000,
-        });
-      },
-    });
+    this.trainerInvitesApi
+      .updateClientIntake(this.clientId, this.intakeDraft)
+      .subscribe({
+        next: (intake) => {
+          this.clientIntake = intake;
+          this.isSavingIntake = false;
+          this.isEditingIntake = false;
+          this.intakeDraft = null;
+          this.ionicUtilService.showToast({
+            message: 'Cuestionario actualizado',
+            duration: 2500,
+          });
+        },
+        error: () => {
+          this.isSavingIntake = false;
+          this.ionicUtilService.showToast({
+            message: 'No se pudo guardar el cuestionario',
+            duration: 3000,
+          });
+        },
+      });
   }
 
   // F09 — detalle de rutina en modo lectura: expandir/colapsar splits/workouts
@@ -1308,8 +1426,12 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.routineAssignmentApi.getHistory(this.clientId).subscribe({
       next: (history) => {
         this.routinePhases = this.buildRoutinePhaseSequence(history || []);
-        this.routineHistory = (history || []).slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
-        this.routinePhaseColorMap = buildPhaseColorMap(this.routineHistory.map((p) => p._id));
+        this.routineHistory = (history || [])
+          .slice()
+          .sort((a, b) => a.startDate.localeCompare(b.startDate));
+        this.routinePhaseColorMap = buildPhaseColorMap(
+          this.routineHistory.map((p) => p._id)
+        );
         this.routineHistoryState = 'loaded';
         this.rebuildProjectedTrainingDays();
         this.applyDefaultTrainingRangeIfUnset();
@@ -1343,7 +1465,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // Cronológico, excluyendo "ended" (reservado, sin uso real hoy — igual
   // que en nutrición). Sin endDate que filtrar: a diferencia de nutrición,
   // aquí no hay fases "ya terminadas" que descartar de la lista.
-  private buildRoutinePhaseSequence(history: RoutineAssignment[]): RoutineAssignment[] {
+  private buildRoutinePhaseSequence(
+    history: RoutineAssignment[]
+  ): RoutineAssignment[] {
     return history
       .filter((phase) => phase.status !== 'ended')
       .sort((a, b) => a.startDate.localeCompare(b.startDate));
@@ -1376,10 +1500,16 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     const phase = this.currentRoutinePhase;
     if (!phase) return null;
     const start = new Date(phase.startDate + 'T00:00:00Z').getTime();
-    const currentWeek = Math.max(1, Math.floor((Date.now() - start) / (7 * 86400000)) + 1);
+    const currentWeek = Math.max(
+      1,
+      Math.floor((Date.now() - start) / (7 * 86400000)) + 1
+    );
     if (!phase.estimatedEndDate) return `Semana ${currentWeek}`;
     const end = new Date(phase.estimatedEndDate + 'T00:00:00Z').getTime();
-    const totalWeeks = Math.max(currentWeek, Math.ceil((end - start) / (7 * 86400000)));
+    const totalWeeks = Math.max(
+      currentWeek,
+      Math.ceil((end - start) / (7 * 86400000))
+    );
     return `Semana ${currentWeek} de ${totalWeeks}`;
   }
 
@@ -1399,7 +1529,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.showRoutineHistory = !this.showRoutineHistory;
   }
 
-  public trackByRoutinePhaseId(_index: number, phase: RoutineAssignment): string {
+  public trackByRoutinePhaseId(
+    _index: number,
+    phase: RoutineAssignment
+  ): string {
     return phase._id;
   }
 
@@ -1416,7 +1549,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // mucho una a la vez (pedir para otra cierra la anterior sin tocarla).
   public confirmingCancelRoutinePhaseId: string | null = null;
 
-  public requestCancelRoutinePhase(phase: RoutineAssignment, event: Event): void {
+  public requestCancelRoutinePhase(
+    phase: RoutineAssignment,
+    event: Event
+  ): void {
     event.stopPropagation();
     this.confirmingCancelRoutinePhaseId = phase._id;
   }
@@ -1426,14 +1562,20 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.confirmingCancelRoutinePhaseId = null;
   }
 
-  public confirmCancelRoutinePhase(phase: RoutineAssignment, event: Event): void {
+  public confirmCancelRoutinePhase(
+    phase: RoutineAssignment,
+    event: Event
+  ): void {
     event.stopPropagation();
     this.confirmingCancelRoutinePhaseId = null;
     this.cancellingRoutinePhaseId = phase._id;
     this.routineAssignmentApi.cancel(this.clientId, phase._id).subscribe({
       next: () => {
         this.cancellingRoutinePhaseId = null;
-        this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
+        this.ionicUtilService.showToast({
+          message: 'Fase quitada',
+          duration: 1500,
+        });
         this.loadActiveRoutine();
         this.loadTraining();
       },
@@ -1451,7 +1593,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // una fase programada (aún no en curso), sin pasar por cancelar +
   // reprogramar. Reutiliza el mismo modal que "Programar rutina" en modo
   // 'reschedule' (tabla fija, solo se edita la fecha).
-  public async openRescheduleRoutinePhaseModal(phase: RoutineAssignment, event: Event): Promise<void> {
+  public async openRescheduleRoutinePhaseModal(
+    phase: RoutineAssignment,
+    event: Event
+  ): Promise<void> {
     event.stopPropagation();
 
     const modal = await this.modalController.create({
@@ -1470,7 +1615,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     const { data, role } = await modal.onDidDismiss();
     if (role !== 'confirm' || !data) return;
 
-    this.ionicUtilService.showToast({ message: 'Fecha actualizada', duration: 1500 });
+    this.ionicUtilService.showToast({
+      message: 'Fecha actualizada',
+      duration: 1500,
+    });
     this.loadActiveRoutine();
     this.loadTraining();
   }
@@ -1482,7 +1630,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public scheduledPhaseForTable(tableId: string): RoutineAssignment | null {
     return (
       this.routinePhases.find(
-        (phase) => phase.tableId === tableId && !this.isCurrentRoutinePhase(phase)
+        (phase) =>
+          phase.tableId === tableId && !this.isCurrentRoutinePhase(phase)
       ) || null
     );
   }
@@ -1510,7 +1659,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     const { data, role } = await modal.onDidDismiss();
     if (role !== 'confirm' || !data) return;
 
-    this.ionicUtilService.showToast({ message: 'Rutina programada', duration: 2000 });
+    this.ionicUtilService.showToast({
+      message: 'Rutina programada',
+      duration: 2000,
+    });
     this.loadActiveRoutine();
     this.loadTraining();
   }
@@ -1548,27 +1700,37 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   private scheduleWindow: { start: string; end: string } | null = null;
 
   private loadTrainingSchedule(range: { start: string; end: string }): void {
-    const start = this.scheduleWindow && this.scheduleWindow.start < range.start ? this.scheduleWindow.start : range.start;
-    const end = this.scheduleWindow && this.scheduleWindow.end > range.end ? this.scheduleWindow.end : range.end;
+    const start =
+      this.scheduleWindow && this.scheduleWindow.start < range.start
+        ? this.scheduleWindow.start
+        : range.start;
+    const end =
+      this.scheduleWindow && this.scheduleWindow.end > range.end
+        ? this.scheduleWindow.end
+        : range.end;
     this.scheduleWindow = { start, end };
 
-    this.routineAssignmentApi.getActiveSchedule(this.clientId, start, end).subscribe({
-      next: (days: RoutineScheduleDay[]) => {
-        this.rawScheduleDays = days || [];
-        this.rebuildProjectedTrainingDays();
-      },
-      // Fallo de red puntual — se conserva lo que ya había cargado en vez de
-      // vaciarlo: un error no debe borrar del calendario información que ya
-      // se había visto.
-      error: () => undefined,
-    });
+    this.routineAssignmentApi
+      .getActiveSchedule(this.clientId, start, end)
+      .subscribe({
+        next: (days: RoutineScheduleDay[]) => {
+          this.rawScheduleDays = days || [];
+          this.rebuildProjectedTrainingDays();
+        },
+        // Fallo de red puntual — se conserva lo que ya había cargado en vez de
+        // vaciarlo: un error no debe borrar del calendario información que ya
+        // se había visto.
+        error: () => undefined,
+      });
   }
 
   // routineHistory (loadActiveRoutine) llega por un fetch async
   // independiente del schedule: se reconstruye cada vez que cualquiera de
   // los dos cambia, para no depender del orden de llegada entre ellos.
   private rebuildProjectedTrainingDays(): void {
-    const phaseById = new Map(this.routineHistory.map((phase) => [phase._id, phase]));
+    const phaseById = new Map(
+      this.routineHistory.map((phase) => [phase._id, phase])
+    );
     this.projectedTrainingDays = new Map(
       this.rawScheduleDays.map((d) => {
         const phase = phaseById.get(d.assignmentId) ?? null;
@@ -1802,13 +1964,23 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public async openClientNote(note: ClientNote): Promise<void> {
     const target = note.target;
     if (target.type === 'planner') {
-      await this.router.navigate(['/tabs', 'clients', this.clientId, 'tables', target.tableId, 'planner'], {
-        queryParams: {
-          split: target.splitId || undefined,
-          workout: target.workoutId || undefined,
-          exercise: target.exerciseId || undefined,
-        },
-      });
+      await this.router.navigate(
+        [
+          '/tabs',
+          'clients',
+          this.clientId,
+          'tables',
+          target.tableId,
+          'planner',
+        ],
+        {
+          queryParams: {
+            split: target.splitId || undefined,
+            workout: target.workoutId || undefined,
+            exercise: target.exerciseId || undefined,
+          },
+        }
+      );
       return;
     }
     if (target.type === 'nutrition') {
@@ -1824,7 +1996,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // un ciclo de render antes de buscarlo.
   private scrollToSelector(selector: string): void {
     setTimeout(() => {
-      document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document
+        .querySelector(selector)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 150);
   }
 
@@ -2020,7 +2194,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // Sin días con plan no hay adherencia que medir (percentage null), que no
   // es lo mismo que un 0%.
   public get hasAdherenceData(): boolean {
-    return this.adherence?.percentage !== null && this.adherence?.percentage !== undefined;
+    return (
+      this.adherence?.percentage !== null &&
+      this.adherence?.percentage !== undefined
+    );
   }
 
   // F20-bis — % medio de cumplimiento (días con plan) de la ventana de 30
@@ -2072,7 +2249,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         const vigentesHoy = this.allPhasesHistory.filter(
           (p) => p.startDate <= hoy && (!p.endDate || p.endDate >= hoy)
         );
-        this.activePlan = vigentesHoy[vigentesHoy.length - 1] || res?.active || null;
+        this.activePlan =
+          vigentesHoy[vigentesHoy.length - 1] || res?.active || null;
         this.loadPhaseWeeks();
         this.loadCheckinSchedulesCount();
       })
@@ -2105,7 +2283,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // El reparto tocado a mano; null = sigue a goalDefaultMacros.
   public goalAdjustedMacros: MacroSet | null = null;
   private goalBaseMacros: MacroSet = { protein: 0, carbs: 0, fat: 0 };
-  @ViewChild(MacroAdjustComponent) private goalMacroAdjust?: MacroAdjustComponent;
+  @ViewChild(MacroAdjustComponent)
+  private goalMacroAdjust?: MacroAdjustComponent;
 
   public loadNutritionalGoal(): void {
     this.nutritionalGoalState = 'loading';
@@ -2125,12 +2304,20 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     const goal = this.nutritionalGoal?.goal;
     const calculated = this.nutritionalGoal?.calculated?.target;
     const saved: MacroSet | null = goal
-      ? { protein: goal.proteinsGTotal || 0, carbs: goal.carbohydratesGTotal || 0, fat: goal.fatGTotal || 0 }
+      ? {
+          protein: goal.proteinsGTotal || 0,
+          carbs: goal.carbohydratesGTotal || 0,
+          fat: goal.fatGTotal || 0,
+        }
       : null;
     this.goalBaseMacros =
       saved && this.macroKcal(saved) > 0
         ? saved
-        : { protein: calculated?.protein ?? 0, carbs: calculated?.carbs ?? 0, fat: calculated?.fat ?? 0 };
+        : {
+            protein: calculated?.protein ?? 0,
+            carbs: calculated?.carbs ?? 0,
+            fat: calculated?.fat ?? 0,
+          };
     this.goalAdjustedMacros = null;
     this.onGoalKcalChange(goal?.kcalTotal ?? calculated?.kcal ?? 0);
     this.editingNutritionalGoal = true;
@@ -2152,7 +2339,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // Peso para los g/kg: el mismo que usa el cálculo del objetivo.
   public get goalWeightKg(): number | null {
     const calculated = this.nutritionalGoal?.calculated;
-    return calculated?.weightSource?.weightKg ?? calculated?.inputs?.weightKg ?? null;
+    return (
+      calculated?.weightSource?.weightKg ?? calculated?.inputs?.weightKg ?? null
+    );
   }
 
   private macroKcal(macros: MacroSet): number {
@@ -2184,7 +2373,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         next: () => {
           this.savingNutritionalGoal = false;
           this.editingNutritionalGoal = false;
-          this.ionicUtilService.showToast({ message: 'Objetivo actualizado', duration: 2000 });
+          this.ionicUtilService.showToast({
+            message: 'Objetivo actualizado',
+            duration: 2000,
+          });
           this.loadNutritionalGoal();
         },
         error: (err) => {
@@ -2203,21 +2395,23 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public recalculateNutritionalGoal(): void {
     if (this.savingNutritionalGoal) return;
     this.savingNutritionalGoal = true;
-    this.clientDetailApi.updateNutritionalGoal(this.clientId, { recalculate: true }).subscribe({
-      next: () => {
-        this.savingNutritionalGoal = false;
-        this.editingNutritionalGoal = false;
-        this.loadNutritionalGoal();
-      },
-      error: (err) => {
-        this.savingNutritionalGoal = false;
-        this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo recalcular el objetivo',
-          'Error',
-          3500
-        );
-      },
-    });
+    this.clientDetailApi
+      .updateNutritionalGoal(this.clientId, { recalculate: true })
+      .subscribe({
+        next: () => {
+          this.savingNutritionalGoal = false;
+          this.editingNutritionalGoal = false;
+          this.loadNutritionalGoal();
+        },
+        error: (err) => {
+          this.savingNutritionalGoal = false;
+          this.ionicUtilService.showErrorToast(
+            err?.error?.message || 'No se pudo recalcular el objetivo',
+            'Error',
+            3500
+          );
+        },
+      });
   }
 
   // Reparto de macros del objetivo sobre el TOTAL DE KCAL, no sobre los
@@ -2233,7 +2427,11 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     value: { protein: number; carbs: number; fat: number };
   } | null = null;
 
-  public goalMacroSplit(goal: ClientNutritionalGoal): { protein: number; carbs: number; fat: number } {
+  public goalMacroSplit(goal: ClientNutritionalGoal): {
+    protein: number;
+    carbs: number;
+    fat: number;
+  } {
     const proteinKcal = (goal.proteinsGTotal || 0) * 4;
     const carbsKcal = (goal.carbohydratesGTotal || 0) * 4;
     const fatKcal = (goal.fatGTotal || 0) * 9;
@@ -2258,9 +2456,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public goalSplitLabel(goal: ClientNutritionalGoal): string {
     const split = this.goalMacroSplit(goal);
     const pct = (n: number) => Math.round(n);
-    return `Reparto de kcal: proteína ${pct(split.protein)}%, carbohidratos ${pct(
-      split.carbs
-    )}%, grasas ${pct(split.fat)}%`;
+    return `Reparto de kcal: proteína ${pct(
+      split.protein
+    )}%, carbohidratos ${pct(split.carbs)}%, grasas ${pct(split.fat)}%`;
   }
 
   // La cuenta que enseña app-need-breakdown: los mismos inputs/desglose que
@@ -2303,7 +2501,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   // ¿Esta fase (grupo) es la que contiene el doc vigente hoy?
   public isCurrentPhaseGroup(phase: PlanAssignment): boolean {
-    return !!this.activePlan && this.phaseKeyOf(this.activePlan) === this.phaseKeyOf(phase);
+    return (
+      !!this.activePlan &&
+      this.phaseKeyOf(this.activePlan) === this.phaseKeyOf(phase)
+    );
   }
 
   // La fase vigente resumida (head + fin real del grupo) — para nombre y
@@ -2312,7 +2513,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public get activePhase(): PlanAssignment | null {
     if (!this.activePlan) return null;
     const key = this.phaseKeyOf(this.activePlan);
-    return this.phaseGroups().find((g) => this.phaseKeyOf(g) === key) || this.activePlan;
+    return (
+      this.phaseGroups().find((g) => this.phaseKeyOf(g) === key) ||
+      this.activePlan
+    );
   }
 
   // Orden cronológico real de esta fase entre TODAS las del cliente (1ª,
@@ -2330,7 +2534,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // curso" aparte): "programada" si su inicio todavía no ha llegado,
   // "finalizada" si ya se cerró.
   public phaseCompactLabel(phase: PlanAssignment): string {
-    const estado = phase.startDate > this.todayIsoDate() ? 'programada' : 'finalizada';
+    const estado =
+      phase.startDate > this.todayIsoDate() ? 'programada' : 'finalizada';
     return `${this.phaseOrder(phase)}ª · ${estado}`;
   }
 
@@ -2379,7 +2584,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // phase-color.util.ts.
   public phaseColor(phase: PlanAssignment | null): string {
     if (!phase) return 'var(--tf-accent)';
-    return this.phaseColorMap.get(phase.phaseId || phase._id) ?? 'var(--tf-accent)';
+    return (
+      this.phaseColorMap.get(phase.phaseId || phase._id) ?? 'var(--tf-accent)'
+    );
   }
 
   // Hasta cuándo va una fase. Tres estados distintos, y conviene que se
@@ -2404,7 +2611,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // marcha si "esta" es una fase antigua superada). Ver phaseEndLabel.
   private phaseHasScheduledSuccessor(phase: PlanAssignment): boolean {
     const key = this.phaseKeyOf(phase);
-    return this.phaseGroups().some((g) => this.phaseKeyOf(g) !== key && g.startDate > phase.startDate);
+    return this.phaseGroups().some(
+      (g) => this.phaseKeyOf(g) !== key && g.startDate > phase.startDate
+    );
   }
 
   // Fase cortada el mismo día en que empezó (p. ej. dos fases creadas
@@ -2447,18 +2656,29 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public get nextWeekState(): 'edited' | 'suggested' | 'same' {
     const next = this.phaseWeeks?.next;
     if (next?.override) return 'edited';
-    if (next?.suggestion?.hasData && next.suggestion.deltaKcal !== 0) return 'suggested';
+    if (next?.suggestion?.hasData && next.suggestion.deltaKcal !== 0)
+      return 'suggested';
     return 'same';
   }
 
   public weekDateRange(window: { start: string; end: string | null }): string {
     const fmt = (iso: string): string =>
-      new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-    return window.end ? `${fmt(window.start)} – ${fmt(window.end)}` : `desde ${fmt(window.start)}`;
+      new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'UTC',
+      });
+    return window.end
+      ? `${fmt(window.start)} – ${fmt(window.end)}`
+      : `desde ${fmt(window.start)}`;
   }
 
   public shortDay(iso: string): string {
-    return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'UTC',
+    });
   }
 
   // Resumen de una semana (pasada o la que corre): solo lectura. La que
@@ -2469,7 +2689,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     end: string | null;
     overrideId: string;
   }): Promise<void> {
-    const assignment = this.allPhasesHistory.find((p) => p._id === entry.overrideId);
+    const assignment = this.allPhasesHistory.find(
+      (p) => p._id === entry.overrideId
+    );
     if (!assignment) return;
     const modal = await this.modalController.create({
       component: WeekSummaryPanelComponent,
@@ -2490,6 +2712,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // null mientras no se sepa: el chip no aparece hasta entonces (enseñar
   // "0 check-ins" antes de tiempo sería mentir).
   public checkinSchedulesCount: number | null = null;
+  public checkinTemplateToOpen: string | null = null;
   private schedulesPanel: HTMLIonModalElement | null = null;
   private scheduleHistoryPanel: HTMLIonModalElement | null = null;
 
@@ -2511,8 +2734,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       componentProps: {
         clientId: this.clientId,
         clientName: this.name,
-        onSelect: (schedule: CheckinSchedule) => void this.openScheduleHistoryPanel(schedule),
-        onGoToCheckins: () => void this.closeCheckinPanels().then(() => this.goToCheckins()),
+        onSelect: (schedule: CheckinSchedule) =>
+          void this.openScheduleHistoryPanel(schedule),
+        onGoToCheckins: () =>
+          void this.closeCheckinPanels().then(() => this.goToCheckins()),
       },
     });
     this.schedulesPanel = modal;
@@ -2523,7 +2748,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     });
   }
 
-  private async openScheduleHistoryPanel(schedule: CheckinSchedule): Promise<void> {
+  private async openScheduleHistoryPanel(
+    schedule: CheckinSchedule
+  ): Promise<void> {
     // El anterior se cierra DESPUÉS de crear el nuevo: al revés, tocar otra
     // programación obliga a tocar dos veces.
     const previous = this.scheduleHistoryPanel;
@@ -2535,7 +2762,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       componentProps: {
         clientId: this.clientId,
         schedule,
-        onGoToCheckins: () => void this.closeCheckinPanels().then(() => this.goToCheckins()),
+        onGoToCheckins: () =>
+          void this.closeCheckinPanels().then(() => this.goToCheckins()),
       },
     });
     this.scheduleHistoryPanel = modal;
@@ -2587,13 +2815,16 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       // kcal) para que un F5 en el builder no los pierda. Sin ajustar, no
       // van: el builder escala proporcional y no enseña objetivo.
       const m = data.macros;
-      void this.router.navigate(['/tabs/diet-templates/next-week', this.clientId, phaseId], {
-        queryParams: {
-          kcal: data.kcal,
-          name: this.name,
-          ...(m ? { p: m.protein, c: m.carbs, f: m.fat } : {}),
-        },
-      });
+      void this.router.navigate(
+        ['/tabs/diet-templates/next-week', this.clientId, phaseId],
+        {
+          queryParams: {
+            kcal: data.kcal,
+            name: this.name,
+            ...(m ? { p: m.protein, c: m.carbs, f: m.fat } : {}),
+          },
+        }
+      );
       return;
     }
     if (role === 'discarded') {
@@ -2648,7 +2879,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.planAssignmentApi.cancel(this.clientId, phase._id).subscribe({
       next: () => {
         this.cancellingPlanPhaseId = null;
-        this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
+        this.ionicUtilService.showToast({
+          message: 'Fase quitada',
+          duration: 1500,
+        });
         // loadNutrition (no solo loadActivePlan): la adherencia se mide
         // contra lo pautado, y quitar la fase lo cambia.
         this.loadNutrition();
@@ -2712,24 +2946,26 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
           role: 'destructive',
           handler: () => {
             this.isSkippingDay = true;
-            this.planAssignmentApi.markDaySkipped(this.clientId, this.nutritionDate).subscribe({
-              next: () => {
-                this.isSkippingDay = false;
-                this.ionicUtilService.showToast({
-                  message: 'Día marcado como saltado',
-                  duration: 2000,
-                });
-                this.loadNutrition();
-              },
-              error: () => {
-                this.isSkippingDay = false;
-                this.ionicUtilService.showErrorToast(
-                  'No se pudo marcar el día como saltado',
-                  'Error',
-                  3000
-                );
-              },
-            });
+            this.planAssignmentApi
+              .markDaySkipped(this.clientId, this.nutritionDate)
+              .subscribe({
+                next: () => {
+                  this.isSkippingDay = false;
+                  this.ionicUtilService.showToast({
+                    message: 'Día marcado como saltado',
+                    duration: 2000,
+                  });
+                  this.loadNutrition();
+                },
+                error: () => {
+                  this.isSkippingDay = false;
+                  this.ionicUtilService.showErrorToast(
+                    'No se pudo marcar el día como saltado',
+                    'Error',
+                    3000
+                  );
+                },
+              });
           },
         },
       ],
@@ -2762,7 +2998,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public get nutritionPreferencesPending(): boolean {
     const prefs = this.nutritionPreferences;
     if (!prefs?.requestedAt) return false;
-    return !prefs.respondedAt || new Date(prefs.requestedAt) > new Date(prefs.respondedAt);
+    return (
+      !prefs.respondedAt ||
+      new Date(prefs.requestedAt) > new Date(prefs.respondedAt)
+    );
   }
 
   public requestNutritionPreferences(): void {
@@ -2790,7 +3029,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   // El editor vive en app-nutrition-preferences-panel (panel lateral colgado
   // del body); aquí solo se recoge el resultado para refrescar la tarjeta.
-  public onNutritionPreferencesSaved(preferences: ClientNutritionPreferences): void {
+  public onNutritionPreferencesSaved(
+    preferences: ClientNutritionPreferences
+  ): void {
     this.nutritionPreferences = preferences;
   }
 
@@ -2827,9 +3068,12 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // (ApplyDietTemplateModalComponent) sigue disponible desde
   // "Aplicar plantilla concreta".
   public startDietPhase(): void {
-    void this.router.navigate(['/tabs/diet-templates/for-phase', this.clientId], {
-      queryParams: { name: this.name },
-    });
+    void this.router.navigate(
+      ['/tabs/diet-templates/for-phase', this.clientId],
+      {
+        queryParams: { name: this.name },
+      }
+    );
   }
 
   // Aplicar UNA plantilla concreta sin pasar por el ranking. Empieza hoy,
@@ -2870,12 +3114,15 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // blanco (editable ahí mismo) y fase que empieza HOY. Las fechas se
   // corrigen después desde la propia ficha (openPhaseDatesEditor).
   public goToCreateDiet(): void {
-    void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
-      state: {
-        clientName: this.name,
-        startDate: this.todayIsoDate(),
-      },
-    });
+    void this.router.navigate(
+      ['/tabs/diet-templates/for-client', this.clientId],
+      {
+        state: {
+          clientName: this.name,
+          startDate: this.todayIsoDate(),
+        },
+      }
+    );
   }
 
   // Corregir cuándo empieza y acaba la fase vigente. Una fase se crea para
@@ -2915,7 +3162,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         next: () => {
           this.isSavingPhaseDates = false;
           this.showPhaseDatesPanel = false;
-          this.ionicUtilService.showToast({ message: 'Fechas de la fase actualizadas', duration: 2200 });
+          this.ionicUtilService.showToast({
+            message: 'Fechas de la fase actualizadas',
+            duration: 2200,
+          });
           void this.loadActivePlan();
           this.loadNutrition();
         },
@@ -2959,9 +3209,12 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public openPhaseTemplate(phase: PlanAssignment): void {
-    this.router.navigate(['/tabs/diet-templates/edit-assignment', this.clientId, phase._id], {
-      queryParams: { name: this.name },
-    });
+    this.router.navigate(
+      ['/tabs/diet-templates/edit-assignment', this.clientId, phase._id],
+      {
+        queryParams: { name: this.name },
+      }
+    );
   }
 
   public trackByTableId(_index: number, table: ClientTable): string {
@@ -2987,14 +3240,18 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.trainerInvitesApi.getMyInvites().subscribe({
       next: (invites) => {
         if (clientId !== this.clientId) return;
-        const email = invites.find((i) => i.clientId === clientId && i.status === 'active')?.clientEmail;
+        const email = invites.find(
+          (i) => i.clientId === clientId && i.status === 'active'
+        )?.clientEmail;
         if (!email) return;
         this.clientEmail = email;
         this.missingScopeInvitePending = invites.some(
           (i) =>
             i.clientEmail === email &&
             i.scope === scope &&
-            ['pending', 'cuestionario_pendiente', 'en_revision'].includes(i.status)
+            ['pending', 'cuestionario_pendiente', 'en_revision'].includes(
+              i.status
+            )
         );
       },
       // Sin email no hay a quién invitar: el botón simplemente no aparece.
@@ -3012,7 +3269,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       message: `${this.name} recibirá una invitación para que también lleves su ${label}. Cuando la acepte, aparecerá aquí.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        { text: 'Invitar', handler: () => this.inviteMissingScope(scope, email) },
+        {
+          text: 'Invitar',
+          handler: () => this.inviteMissingScope(scope, email),
+        },
       ],
     });
   }
@@ -3025,18 +3285,27 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         this.isSendingScopeInvite = false;
         const result = response.results.find((r) => r.scope === scope);
         if (!result?.success) {
-          this.ionicUtilService.showErrorToast(result?.error || 'No se pudo enviar la invitación', 'Error', 3000);
+          this.ionicUtilService.showErrorToast(
+            result?.error || 'No se pudo enviar la invitación',
+            'Error',
+            3000
+          );
           return;
         }
         this.missingScopeInvitePending = true;
-        this.ionicUtilService.showToast({ message: `Invitación de ${label} enviada`, duration: 3000 });
+        this.ionicUtilService.showToast({
+          message: `Invitación de ${label} enviada`,
+          duration: 3000,
+        });
       },
       // Con todos los scopes fallidos el backend responde 400 con el mismo
       // cuerpo `results` (p. ej. el cliente ya lleva ese scope con otro profesional).
       error: (err) => {
         this.isSendingScopeInvite = false;
         this.ionicUtilService.showErrorToast(
-          err?.error?.results?.[0]?.error || err?.error?.message || 'No se pudo enviar la invitación',
+          err?.error?.results?.[0]?.error ||
+            err?.error?.message ||
+            'No se pudo enviar la invitación',
           'Error',
           3000
         );
@@ -3197,17 +3466,25 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       return;
     }
     this.isSavingNoteEdit = true;
-    this.clientDetailApi.updateNote(this.clientId, note._id, { text }).subscribe({
-      next: (updated) => {
-        this.isSavingNoteEdit = false;
-        this.notes = this.notes.map((n) => (n._id === updated._id ? updated : n));
-        this.cancelEditNote();
-      },
-      error: () => {
-        this.isSavingNoteEdit = false;
-        this.ionicUtilService.showErrorToast('No se pudo guardar el cambio', 'Error', 2500);
-      },
-    });
+    this.clientDetailApi
+      .updateNote(this.clientId, note._id, { text })
+      .subscribe({
+        next: (updated) => {
+          this.isSavingNoteEdit = false;
+          this.notes = this.notes.map((n) =>
+            n._id === updated._id ? updated : n
+          );
+          this.cancelEditNote();
+        },
+        error: () => {
+          this.isSavingNoteEdit = false;
+          this.ionicUtilService.showErrorToast(
+            'No se pudo guardar el cambio',
+            'Error',
+            2500
+          );
+        },
+      });
   }
 
   // --- Borrar (confirmación en el sitio, mismo patrón que "Quitar fase" en
@@ -3233,7 +3510,11 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       },
       error: () => {
         this.isDeletingNoteId = null;
-        this.ionicUtilService.showErrorToast('No se pudo borrar la nota', 'Error', 2500);
+        this.ionicUtilService.showErrorToast(
+          'No se pudo borrar la nota',
+          'Error',
+          2500
+        );
       },
     });
   }
@@ -3260,10 +3541,13 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   // Todas las preguntas propias que traen las respuestas, sin repetir: es
   // con lo que se nombran las claves "custom:<id>".
-  private questionsFrom(responses: CheckinResponseEntry[]): CustomCheckinQuestion[] {
+  private questionsFrom(
+    responses: CheckinResponseEntry[]
+  ): CustomCheckinQuestion[] {
     const byId = new Map<string, CustomCheckinQuestion>();
     for (const response of responses) {
-      for (const question of response.customQuestions || []) byId.set(String(question._id), question);
+      for (const question of response.customQuestions || [])
+        byId.set(String(question._id), question);
     }
     return [...byId.values()];
   }
@@ -3293,7 +3577,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   // Las entradas se formatean en cada detección de cambios. Su clave estable
   // evita sustituir el DOM y volver a despertar los observadores de la gráfica.
-  public trackByCheckinValueKey(_index: number, entry: { key: string }): string {
+  public trackByCheckinValueKey(
+    _index: number,
+    entry: { key: string }
+  ): string {
     return entry.key;
   }
 
@@ -3484,7 +3771,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         type: this.taskType,
         label: this.taskType === 'custom' ? this.taskLabel.trim() : undefined,
         target: this.taskTarget,
-        targetMax: this.taskTargetMax && this.taskTargetMax > this.taskTarget ? this.taskTargetMax : null,
+        targetMax:
+          this.taskTargetMax && this.taskTargetMax > this.taskTarget
+            ? this.taskTargetMax
+            : null,
         unit: this.taskUnit.trim(),
       })
       .subscribe({

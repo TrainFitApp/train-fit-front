@@ -14,19 +14,29 @@
 </ion-header>
 
 <ion-content class="coach-content">
-  <!-- Recordatorio de cuestionario pendiente: ya es cliente activo desde
-  que aceptó y nada le bloquea, pero su profesional necesita el
-  cuestionario para preparar el plan. Único punto de vuelta a
-  onboarding-status si al aceptar eligió volver sin rellenarlo. -->
+  <!-- Acceso a su cuestionario inicial (onboarding-status). Misma familia
+  que las tarjetas del menú de abajo (cuadro de icono + nombre + dato);
+  con borde naranja solo mientras está sin enviar. Después sigue aquí:
+  editable hasta que el profesional lo marque revisado, luego para verlo. -->
   <button
     type="button"
     class="onboarding-reminder"
-    *ngIf="onboardingService.pending()"
+    *ngIf="onboardingService.intakeStatus() as intakeStatus"
+    [class.onboarding-reminder--pending]="intakeStatus === 'pending'"
     (click)="goToOnboardingStatus()"
   >
-    <ion-icon name="clipboard-outline"></ion-icon>
-    <span class="onboarding-reminder-text">Tienes un cuestionario inicial pendiente</span>
-    <ion-icon name="chevron-forward-outline"></ion-icon>
+    <span class="onboarding-reminder-icon"><ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon></span>
+    <span class="onboarding-reminder-text">
+      <span class="onboarding-reminder-name">Cuestionario inicial</span>
+      <span class="onboarding-reminder-stat">{{
+        intakeStatus === 'pending'
+          ? 'Pendiente · tu profesional lo necesita para preparar tu plan'
+          : intakeStatus === 'submitted'
+          ? 'Enviado · puedes editarlo hasta que tu profesional lo revise'
+          : 'Revisado por tu profesional'
+      }}</span>
+    </span>
+    <ion-icon class="onboarding-reminder-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
   </button>
 
   <!-- === Menú de un vistazo — antes toda la info de abajo aparecía apilada

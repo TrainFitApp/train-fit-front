@@ -33,31 +33,108 @@
   }
 }
 
+// Acceso al cuestionario inicial: una tarjeta más del menú de un vistazo
+// (mismos fondo, borde, radio, cuadro de icono y tipos que .coach-menu-card),
+// pero a lo ancho y con el estado en la línea de dato. Antes tenía
+// width:100% MÁS margen lateral y se salía 32px por la derecha.
 .onboarding-reminder {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  margin: 12px 16px 0;
+  gap: 12px;
+  width: calc(100% - 32px);
+  box-sizing: border-box;
+  min-height: 64px;
+  margin: 16px 16px 0;
   padding: 12px 14px;
-  background: rgba(254, 144, 0, 0.1);
-  border: 1px solid rgba(254, 144, 0, 0.3);
-  border-radius: 12px;
-  color: #fe9000;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
   font-family: inherit;
-  font-size: 0.86rem;
-  font-weight: 700;
+  text-align: left;
   cursor: pointer;
+  transition: border-color 160ms var(--ease-out), transform 160ms var(--ease-out);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+
+  // Sin enviar: lo único de la pantalla que el cliente aún debe hacer
+  // antes de que su profesional pueda empezar.
+  &--pending {
+    background: rgba(254, 144, 0, 0.08);
+    border-color: rgba(254, 144, 0, 0.35);
+
+    .onboarding-reminder-stat {
+      color: #fe9b1a;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        border-color: rgba(254, 144, 0, 0.6);
+      }
+    }
+  }
+}
+
+.onboarding-reminder-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(254, 144, 0, 0.12);
+  color: #fe9b1a;
 
   ion-icon {
     font-size: 18px;
-    flex-shrink: 0;
   }
+}
 
-  .onboarding-reminder-text {
-    flex: 1;
-    text-align: left;
-  }
+.onboarding-reminder-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.onboarding-reminder-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.onboarding-reminder-stat {
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: #8b8b8b;
+}
+
+.onboarding-reminder-chevron {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #8b8b8b;
 }
 
 .mp-section,

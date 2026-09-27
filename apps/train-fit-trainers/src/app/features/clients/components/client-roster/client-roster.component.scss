@@ -44,6 +44,8 @@
 // tabla de 8 columnas no cabe en un móvil, y lo que no debe pasar es que la
 // página entera se desplace de lado por su culpa.
 .roster-scroll {
+  // Referencia de ancho para .intake-review (unidades cqw).
+  container-type: inline-size;
   overflow-x: auto;
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
@@ -167,24 +169,36 @@ thead .col-name {
   }
 }
 
-// Aceptó la invitación pero aún no ha enviado el cuestionario inicial.
-// Debajo del nombre, no al lado: la columna está congelada y en móvil no
-// debe ensancharse. Ámbar = "falta un dato" (--tf-warning), como en la ficha.
-.intake-pending-chip {
+// Estado del intake bajo el nombre (la columna está congelada: al lado la
+// ensancharía en móvil). Tipográfico, sin pastilla: un punto y una palabra,
+// alineados con el nombre, para no competir con las cifras de la fila.
+//   · por revisar → punto macizo de acento, texto de acento: te toca a ti.
+//   · sin enviar  → aro ámbar hueco, texto apagado: se espera al cliente.
+.intake-status {
   display: flex;
   align-items: center;
-  gap: 4px;
-  width: fit-content;
-  margin-top: 2px;
-  padding: 2px var(--tf-space-2);
-  border-radius: var(--tf-radius-pill);
-  background: var(--tf-warning-soft);
-  color: var(--tf-warning);
+  gap: 6px;
+  margin-top: 3px;
   font-size: var(--tf-font-size-xs);
   font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--tf-text-muted);
 
-  ion-icon {
-    font-size: 12px;
+  &--review {
+    color: var(--tf-accent-text);
+  }
+}
+
+.intake-status-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--tf-warning);
+
+  .intake-status--review & {
+    border-color: var(--tf-accent);
+    background: var(--tf-accent);
   }
 }
 
@@ -306,6 +320,130 @@ thead .col-name {
   background: var(--tf-surface-2);
   border-top: 1px solid var(--tf-border-subtle);
   white-space: normal;
+}
+
+// Fila con el intake sin revisar: el desplegable muestra SOLO el intake
+// (no hay seguimiento hasta revisarlo). Sin caja propia —nada de card sobre
+// card—: cabecera con la decisión a la derecha y las respuestas en rejilla a
+// todo el ancho. Pegado a la izquierda y del ancho visible: en móvil la tabla
+// es más ancha que la pantalla y el texto quedaría fuera.
+.intake-review {
+  position: sticky;
+  left: var(--tf-space-4);
+  width: calc(100cqw - 2 * var(--tf-space-4));
+}
+
+.intake-review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3) var(--tf-space-6);
+  padding-bottom: var(--tf-space-4);
+  margin-bottom: var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border-subtle);
+}
+
+.intake-review-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-1);
+  min-width: 0;
+  max-width: 60ch;
+}
+
+.intake-review-title {
+  margin: 0;
+  font-size: var(--tf-font-size-base);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--tf-text);
+}
+
+.intake-review-note {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-muted);
+}
+
+.intake-review-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+.intake-review-skeleton {
+  height: 96px;
+  border-radius: var(--tf-radius-md);
+}
+
+.intake-review-retry {
+  margin-left: var(--tf-space-2);
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--tf-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+// Destructiva pero secundaria: texto rojo sin relleno, al lado del
+// primario. El color solo dice "termina la relación"; el peso lo lleva el
+// botón de revisar.
+.intake-review-reject {
+  min-height: 44px;
+  padding: 0 var(--tf-space-4);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-md);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-danger-text);
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      background: var(--tf-danger-soft);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-danger);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.intake-review-button {
+  @include tf-gradient-button(var(--tf-radius-md));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14em;
+  min-height: 44px;
+  padding: 0 var(--tf-space-5);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
 }
 
 .dimension-grid {

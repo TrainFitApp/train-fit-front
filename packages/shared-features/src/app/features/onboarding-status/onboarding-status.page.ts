@@ -4,6 +4,7 @@ import { forkJoin } from 'rxjs';
 import {
   IntakeCustomQuestion,
   IntakeFieldKey,
+  IntakeStatus,
   OnboardingRelation,
   OnboardingService,
 } from 'src/app/core/services/onboarding/onboarding.service';
@@ -21,6 +22,7 @@ interface TrainerGroup {
   trainerId: string;
   trainerName: string;
   scopes: string[];
+  intakeStatus: IntakeStatus; // el mismo en todas sus relaciones: uno por profesional
   enabledFields: Set<IntakeFieldKey>; // TASK-049 — campos activos del cuestionario de este trainer
   customQuestions: IntakeCustomQuestion[]; // preguntas de texto libre añadidas por el trainer
 }
@@ -48,11 +50,11 @@ const EMPTY_INTAKE_PREFILL: IntakeWizardPrefill = {
   customAnswers: {},
 };
 
-// TAREA 3 (coach-tab) — cuestionarios iniciales pendientes del cliente.
-// Aceptar una invitación ya le hace cliente activo: aquí rellena el
-// cuestionario de cada profesional (wizard paso a paso, ver
-// components/intake-wizard) cuando quiera. Nunca bloquea la app: se llega
-// desde Coach (al aceptar o desde su aviso) y siempre se puede volver.
+// TAREA 3 (coach-tab) — el cuestionario inicial del cliente. Aceptar una
+// invitación ya le hace cliente activo: aquí lo rellena (wizard paso a paso,
+// ver components/intake-wizard) cuando quiera, lo edita o rehace mientras
+// el profesional no lo marque revisado, y después solo lo ve. Nunca bloquea
+// la app: se llega desde Coach (al aceptar o desde su acceso).
 @Component({
   selector: 'app-onboarding-status',
   templateUrl: 'onboarding-status.page.html',
@@ -87,7 +89,10 @@ export class OnboardingStatusPage {
     this.load();
   }
 
-  public load(): void {
+  // afterSubmit: acaba de enviar un cuestionario; si ya no le queda ninguno
+  // pendiente ni invitación que aceptar, vuelve a Coach en vez de quedarse
+  // mirando la lista.
+  public load(afterSubmit = false): void {
     this.state = 'loading';
     forkJoin({
       status: this.onboardingService.refresh(),
@@ -95,9 +100,10 @@ export class OnboardingStatusPage {
     }).subscribe({
       next: ({ status, pendingInvites }) => {
         this.pendingInvites = pendingInvites || [];
-        // Nada que rellenar ni que aceptar (p. ej. acaba de enviar el
-        // último cuestionario): de vuelta a Coach.
-        if (!status.relations.length && !this.pendingInvites.length) {
+        const nothingToShow = !status.relations.length && !this.pendingInvites.length;
+        const nothingToDo = !this.pendingInvites.length &&
+          !status.relations.some((relation) => relation.intakeStatus === 'pending');
+        if (nothingToShow || (afterSubmit && nothingToDo)) {
           this.goBack();
           return;
         }
@@ -153,6 +159,7 @@ export class OnboardingStatusPage {
             ? `${relation.trainer.name} ${relation.trainer.lastname}`.trim()
             : 'Tu profesional',
           scopes: [],
+          intakeStatus: relation.intakeStatus,
           enabledFields: new Set(),
           customQuestions: relation.intakeCustomQuestions,
         });
@@ -168,7 +175,11 @@ export class OnboardingStatusPage {
   }
 
   public get pendingCount(): number {
-    return this.groups.length;
+    return this.groups.filter((g) => g.intakeStatus === 'pending').length;
+  }
+
+  public get hasEditableIntake(): boolean {
+    return this.groups.some((g) => g.intakeStatus === 'submitted');
   }
 
   public get fillingGroup(): TrainerGroup | undefined {
@@ -250,9 +261,22 @@ export class OnboardingStatusPage {
     };
   }
 
+  // El envío reescribe peso/altura/pasos/objetivo en `User` (backend): sin
+  // recargarlo, editar después precargaría los datos de antes del envío.
+  // Mismo par que user-loader.page.ts (getUserByEmail → setLocalUser).
+  private refreshLocalUser(): void {
+    const email = this.userService.getLocalUser?.email;
+    if (!email) return;
+    this.userService.getUserByEmail(email).subscribe({
+      next: (user) => (this.userService.setLocalUser = user),
+      error: () => {}, // se recarga igual en el próximo arranque
+    });
+  }
+
   public submitIntake(result: IntakeWizardResult): void {
     if (!this.fillingTrainerId || this.isSubmitting) return;
 
+    const isEdit = this.fillingGroup?.intakeStatus === 'submitted';
     this.isSubmitting = true;
     this.intakeApi
       .submit({ trainerId: this.fillingTrainerId, ...result })
@@ -261,10 +285,13 @@ export class OnboardingStatusPage {
           this.isSubmitting = false;
           this.fillingTrainerId = null;
           this.ionicUtilService.showToast({
-            message: 'Cuestionario enviado. Tu profesional ya puede verlo.',
+            message: isEdit
+              ? 'Cuestionario actualizado.'
+              : 'Cuestionario enviado. Tu profesional ya puede verlo.',
             duration: 3500,
           });
-          this.load();
+          this.refreshLocalUser();
+          this.load(true);
         },
         error: (err) => {
           this.isSubmitting = false;

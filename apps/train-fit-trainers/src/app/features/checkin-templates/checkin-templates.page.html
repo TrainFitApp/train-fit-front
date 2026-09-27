@@ -1,16 +1,5 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Plantillas de check-in">
-    <ng-container pageActions>
-      <button
-        type="button"
-        class="tf-page-header__back-button"
-        (click)="openCreatePanel()"
-        aria-label="Nueva plantilla de check-in"
-      >
-        <ion-icon name="add-outline"></ion-icon>
-      </button>
-    </ng-container>
-  </app-page-header>
+  <app-page-header title="Plantillas de check-in"></app-page-header>
 </ion-header>
 
 <ion-content class="checkin-content" appScrollMemory="checkin-templates">
@@ -46,8 +35,8 @@
 
     <div class="templates-grid" *ngIf="templates.length">
       <!-- Primera de la rejilla, con el mismo lenguaje que "Siguiente fase"
-           en la ficha del cliente: crear va donde se mira, no solo escondido
-           tras el "+" de la cabecera. -->
+           en la ficha del cliente: crear va donde se mira. Es la única
+           entrada (sin "+" en la cabecera). -->
       <button type="button" class="template-card template-card--add" (click)="openCreatePanel()">
         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
         <span>Crear check-in</span>

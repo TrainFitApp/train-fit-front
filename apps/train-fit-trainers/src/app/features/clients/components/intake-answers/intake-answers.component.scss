@@ -1,0 +1,181 @@
+@import '../../../../../theme/hierarchy';
+
+:host {
+  display: block;
+}
+
+// Secciones del formulario (Perfil, Entrenamiento, Nutrición, Tus
+// preguntas): título con icono y una línea que llega al borde, y sus
+// respuestas debajo. Entre secciones el doble de aire que entre respuestas,
+// para que se lea a qué bloque pertenece cada campo.
+.intake-section + .intake-section {
+  margin-top: var(--tf-space-8);
+}
+
+.intake-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: 0 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-base);
+  font-weight: var(--tf-weight-title);
+  color: var(--tf-text);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    color: var(--tf-accent);
+  }
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    margin-left: var(--tf-space-2);
+    background: var(--tf-border-subtle);
+  }
+}
+
+// Rejilla: las respuestas cortas (peso, edad, experiencia…) se reparten en
+// columnas; el texto libre ocupa la fila entera. Sin divisores entre
+// respuestas: el aire las separa.
+.intake-section-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: var(--tf-space-4) var(--tf-space-5);
+}
+
+.intake-field {
+  @include tf-pair(var(--tf-space-1));
+}
+
+.intake-field--wide {
+  grid-column: 1 / -1;
+}
+
+.intake-field--span {
+  grid-column: span 2;
+}
+
+.intake-field-label {
+  @include tf-label;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+}
+
+// El dato pesa más que su etiqueta: blanco y en semibold las respuestas
+// cortas; el texto libre en peso normal para que un párrafo no grite.
+.intake-field-value {
+  margin: 0;
+  font-size: var(--tf-font-size-base);
+  font-weight: var(--tf-weight-label);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.intake-field--wide .intake-field-value {
+  max-width: 65ch;
+  font-weight: var(--tf-weight-regular);
+  line-height: 1.55;
+}
+
+// "Sin especificar", "Sin responder"…: se distingue de una respuesta real.
+.intake-field-value.is-empty {
+  font-weight: var(--tf-weight-regular);
+  color: var(--tf-text-muted);
+}
+
+// Preguntas del entrenador: son frases, no etiquetas; en versalita se leen
+// mal y compiten con las etiquetas de verdad.
+.intake-field-question {
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-label);
+  line-height: 1.4;
+  color: var(--tf-text-secondary);
+}
+
+.intake-field--question + .intake-field--question {
+  padding-top: var(--tf-space-4);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+// Lo que no se puede pasar por alto al pautar: lesiones en dorado y
+// alergias en rojo (mismo rojo que en Preferencias nutricionales).
+.intake-field--caution,
+.intake-field--danger {
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-radius: var(--tf-radius-lg);
+  border: 1px solid;
+}
+
+.intake-field--caution {
+  background: var(--tf-warning-soft);
+  border-color: var(--tf-warning-border);
+
+  .intake-field-label {
+    color: var(--tf-warning);
+  }
+}
+
+.intake-field--danger {
+  background: var(--tf-danger-soft);
+  border-color: var(--tf-danger-border);
+
+  .intake-field-label {
+    color: var(--tf-danger-text);
+  }
+}
+
+.intake-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.intake-tag {
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-label);
+  line-height: 1.3;
+  color: var(--tf-text-secondary);
+  background: var(--tf-surface-4);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+// Rejilla ancha (fila desplegada de la Cartera): columnas más anchas y el
+// texto libre a doble columna cuando cabe, en vez de la fila entera.
+:host(.is-grid) {
+  .intake-section + .intake-section {
+    margin-top: var(--tf-space-6);
+  }
+
+  .intake-section-fields {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--tf-space-4) var(--tf-space-6);
+  }
+
+  .intake-field--wide {
+    grid-column: span 2;
+
+    @media (max-width: 480px) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .intake-field--question + .intake-field--question {
+    padding-top: 0;
+    border-top: none;
+  }
+}

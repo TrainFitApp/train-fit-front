@@ -100,20 +100,27 @@
           <tr
             class="roster-row"
             [class.roster-row--expanded]="expandedClientId === row.clientId"
-            (click)="openClient(row)"
+            (click)="onRowClick(row)"
           >
             <th scope="row" class="col-name">
               <button
                 type="button"
                 class="row-name"
-                (click)="openClient(row); $event.stopPropagation()"
-                [attr.aria-label]="'Abrir la ficha de ' + row.clientName"
+                (click)="onRowClick(row); $event.stopPropagation()"
+                [attr.aria-label]="(isGated(row) ? 'Ver el intake de ' : 'Abrir la ficha de ') + row.clientName"
               >
                 {{ row.clientName }}
               </button>
-              <span class="intake-pending-chip" *ngIf="row.intakePending" title="Aún no ha enviado su cuestionario inicial">
-                <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
-                Cuestionario pendiente
+              <!-- Intake sin revisar: la fila no abre la ficha, despliega el
+                   intake (ver isGated). Punto macizo = te toca a ti; aro hueco
+                   = esperando al cliente. -->
+              <span
+                class="intake-status"
+                *ngIf="isGated(row)"
+                [class.intake-status--review]="row.intakeStatus === 'submitted'"
+              >
+                <span class="intake-status-dot" aria-hidden="true"></span>
+                {{ row.intakeStatus === 'submitted' ? 'Intake por revisar' : 'Intake sin enviar' }}
               </span>
             </th>
 
@@ -149,7 +156,7 @@
                 type="button"
                 class="expand-button"
                 (click)="toggleRow(row); $event.stopPropagation()"
-                [attr.aria-label]="(expandedClientId === row.clientId ? 'Ocultar el desglose de ' : 'Ver el desglose de ') + row.clientName"
+                [attr.aria-label]="(expandedClientId === row.clientId ? 'Ocultar ' : 'Ver ') + (isGated(row) ? 'el intake de ' : 'el desglose de ') + row.clientName"
                 [attr.aria-expanded]="expandedClientId === row.clientId"
                 [attr.aria-controls]="expandedClientId === row.clientId ? 'roster-detail-' + row.clientId : null"
               >
@@ -165,28 +172,89 @@
                por el que alguno no se puede medir. -->
           <tr class="roster-detail-row" *ngIf="expandedClientId === row.clientId" [id]="'roster-detail-' + row.clientId">
             <td [attr.colspan]="8">
-              <div class="dimension-grid">
-                <button
-                  type="button"
-                  class="dimension"
-                  *ngFor="let key of dimensionKeys; trackBy: trackByDimension"
-                  (click)="openClientDimension(row, key, $event)"
-                  [attr.aria-label]="'Abrir ' + dimensionLabel(key) + ' de ' + row.clientName"
-                >
-                  <span class="dimension-label">{{ dimensionLabel(key) }}</span>
-                  <span
-                    class="dimension-value"
-                    [class.dimension-value--unavailable]="!row.adherence.dimensions[key].applicable"
-                  >
-                    {{ dimensionValue(row.adherence.dimensions[key]) }}
-                  </span>
-                  <span class="dimension-detail" *ngIf="row.adherence.dimensions[key].applicable">
-                    {{ row.adherence.dimensions[key].detail }}
-                  </span>
-                </button>
-              </div>
+              <!-- Intake sin revisar: SOLO el intake, nada del desglose (no hay
+                   seguimiento hasta revisarlo). -->
+              <section
+                class="intake-review"
+                *ngIf="isGated(row); else breakdown"
+                [attr.aria-label]="'Intake de ' + row.clientName"
+              >
+                <header class="intake-review-header">
+                  <div class="intake-review-heading">
+                    <h4 class="intake-review-title">
+                      {{ row.intakeStatus === 'submitted' ? 'Intake por revisar' : 'Intake sin enviar' }}
+                    </h4>
+                    <p class="intake-review-note" *ngIf="row.intakeStatus === 'submitted'">
+                      <ng-container *ngIf="intakeState === 'loaded' && expandedIntake?.submittedAt">
+                        Enviado el {{ expandedIntake?.submittedAt | date: 'd MMM y' }} ·
+                      </ng-container>
+                      Revísalo para abrir su ficha. Hasta entonces puede cambiar sus respuestas.
+                    </p>
+                    <p class="intake-review-note" *ngIf="row.intakeStatus === 'pending'">
+                      Aún no lo ha enviado. Podrás abrir su ficha cuando lo envíe y lo revises.
+                    </p>
+                  </div>
 
-              <p class="detail-line">{{ weightDetail(row) }}</p>
+                  <div class="intake-review-actions">
+                    <button
+                      type="button"
+                      class="intake-review-reject"
+                      [disabled]="busyClientId === row.clientId"
+                      (click)="confirmReject(row)"
+                    >
+                      Rechazar
+                    </button>
+                    <button
+                      type="button"
+                      class="intake-review-button"
+                      *ngIf="row.intakeStatus === 'submitted' && intakeState === 'loaded' && expandedIntake"
+                      [disabled]="busyClientId === row.clientId"
+                      (click)="markIntakeReviewed(row)"
+                    >
+                      <span *ngIf="busyClientId !== row.clientId">Marcar revisado y abrir ficha</span>
+                      <ion-spinner name="dots" *ngIf="busyClientId === row.clientId"></ion-spinner>
+                    </button>
+                  </div>
+                </header>
+
+                <ng-container *ngIf="row.intakeStatus === 'submitted'">
+                  <div class="skeleton-block intake-review-skeleton" *ngIf="intakeState === 'loading'"></div>
+                  <p class="detail-line" *ngIf="intakeState === 'error'">
+                    No se pudo cargar el intake.
+                    <button type="button" class="intake-review-retry" (click)="loadIntake(row.clientId)">Reintentar</button>
+                  </p>
+                  <app-intake-answers
+                    *ngIf="intakeState === 'loaded' && expandedIntake as intake"
+                    [intake]="intake"
+                    layout="grid"
+                  ></app-intake-answers>
+                </ng-container>
+              </section>
+
+              <ng-template #breakdown>
+                <div class="dimension-grid">
+                  <button
+                    type="button"
+                    class="dimension"
+                    *ngFor="let key of dimensionKeys; trackBy: trackByDimension"
+                    (click)="openClientDimension(row, key, $event)"
+                    [attr.aria-label]="'Abrir ' + dimensionLabel(key) + ' de ' + row.clientName"
+                  >
+                    <span class="dimension-label">{{ dimensionLabel(key) }}</span>
+                    <span
+                      class="dimension-value"
+                      [class.dimension-value--unavailable]="!row.adherence.dimensions[key].applicable"
+                    >
+                      {{ dimensionValue(row.adherence.dimensions[key]) }}
+                    </span>
+                    <span class="dimension-detail" *ngIf="row.adherence.dimensions[key].applicable">
+                      {{ row.adherence.dimensions[key].detail }}
+                    </span>
+                  </button>
+                </div>
+
+                <p class="detail-line">{{ weightDetail(row) }}</p>
+              </ng-template>
             </td>
           </tr>
         </ng-container>

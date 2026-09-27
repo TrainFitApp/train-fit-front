@@ -711,8 +711,8 @@ export class CoachPage implements OnInit {
     return professional.user?._id || _index.toString();
   }
 
-  // Vuelta al cuestionario inicial pendiente si al aceptar salió sin
-  // rellenarlo: fuera de aceptar, nada más navega ahí.
+  // Acceso a su cuestionario inicial: rellenarlo, editarlo mientras no esté
+  // revisado o verlo después.
   public goToOnboardingStatus(): void {
     void this.router.navigate(['/onboarding-status']);
   }

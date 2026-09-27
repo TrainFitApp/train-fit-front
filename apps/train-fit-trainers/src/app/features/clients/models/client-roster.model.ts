@@ -1,6 +1,9 @@
 // Movimiento 1 Coach Pro — espejo de components/clientProgress/
 // roster-service.js (backend).
 
+import { IntakeStatus } from 'src/app/core/services/onboarding/onboarding.service';
+import { ClientScope } from '../pages/client-detail/models/client-detail.model';
+
 export type AdherenceDimensionKey = 'nutrition' | 'training' | 'habits' | 'checkins';
 
 export interface RosterDimension {
@@ -26,8 +29,11 @@ export interface RosterClient {
   // El buscador de la Cartera mira nombre Y correo: hay clientes que el
   // trainer tiene fichados por su email.
   clientEmail: string;
-  // Aceptó la invitación pero aún no ha enviado el cuestionario inicial.
-  intakePending: boolean;
+  // Una relación por scope: "Rechazar" las termina todas.
+  scopes: ClientScope[];
+  // Cuestionario inicial: sin enviar / por revisar / revisado; null =
+  // relación antigua sin cuestionario (intakeStatusFor en el backend).
+  intakeStatus: IntakeStatus | null;
   adherence: {
     // null = ninguna dimensión aplica todavía. NO es un 0: un cliente recién
     // dado de alta no tiene "0% de adherencia", no tiene adherencia.

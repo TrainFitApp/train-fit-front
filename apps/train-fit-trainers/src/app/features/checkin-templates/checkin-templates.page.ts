@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CHECKIN_FIELDS, CheckinField, CheckinFieldGroup } from 'src/app/core/constants/checkin-fields';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ApplyCheckinTemplateModalComponent } from './components/apply-checkin-template-modal/apply-checkin-template-modal.component';
@@ -99,7 +100,8 @@ export class CheckinTemplatesPage implements OnInit {
 
   constructor(
     private checkinTemplatesApi: CheckinTemplatesApiService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private router: Router
   ) {}
 
   public ngOnInit(): void {
@@ -303,17 +305,26 @@ export class CheckinTemplatesPage implements OnInit {
     });
   }
 
-  // --- Aplicar a clientes ---
+  // --- Aplicar a un cliente ---
   // Modal real (ver comentario en ApplyCheckinTemplateModalComponent) en vez
   // del <div position:fixed> hecho a mano de antes: ese quedaba tapado por
   // el <ion-header> de esta página en escritorio (contain: layout de Ionic
   // en .ion-page). cssClass: 'tf-panel-modal' le da el mismo aspecto de
   // panel anclado a la derecha.
+  //
+  // Aplicar ya no crea la programación a ciegas (fecha y frecuencia por
+  // defecto): lleva a "Medidas y check-ins" del cliente elegido con
+  // "Nueva programación" abierta y esta plantilla ya escogida.
   public async openApplyPanel(template: CheckinTemplateDefinition): Promise<void> {
-    await this.ionicUtilService.showModal({
+    const { data, role } = await this.ionicUtilService.showModal({
       component: ApplyCheckinTemplateModalComponent,
       componentProps: { template },
       cssClass: 'tf-panel-modal',
+    });
+    if (role !== 'confirm' || !data?.clientId) return;
+
+    void this.router.navigate(['/tabs/clients', data.clientId], {
+      queryParams: { name: data.clientName, tab: 'measurements', checkinTemplate: template._id },
     });
   }
 

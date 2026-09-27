@@ -1,0 +1,94 @@
+<!-- Perfil: lo que el formulario trae precargado del registro y el cliente
+     confirma (se guarda en su perfil, no en el propio intake). -->
+<section class="intake-section" *ngIf="profileRows.length">
+  <h5 class="intake-section-title">
+    <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+    Perfil
+  </h5>
+  <div class="intake-section-fields">
+    <div class="intake-field" *ngFor="let row of profileRows" [class.intake-field--span]="row.span">
+      <span class="intake-field-label">{{ row.label }}</span>
+      <p class="intake-field-value">{{ row.translate ? (row.value | translate) : row.value }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="intake-section">
+  <h5 class="intake-section-title">
+    <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+    Entrenamiento
+  </h5>
+  <div class="intake-section-fields">
+    <div class="intake-field intake-field--wide">
+      <span class="intake-field-label">Objetivos</span>
+      <p class="intake-field-value" [class.is-empty]="!intake.goals">{{ intake.goals || 'Sin especificar' }}</p>
+    </div>
+    <!-- Lesiones con superficie propia cuando las hay: es lo que no se
+         puede pasar por alto al pautar. -->
+    <div class="intake-field intake-field--wide" [class.intake-field--caution]="intake.healthConditions">
+      <span class="intake-field-label">
+        <ion-icon name="warning-outline" aria-hidden="true" *ngIf="intake.healthConditions"></ion-icon>
+        Salud / lesiones
+      </span>
+      <p class="intake-field-value" [class.is-empty]="!intake.healthConditions">{{ intake.healthConditions || 'Ninguna indicada' }}</p>
+    </div>
+    <div class="intake-field">
+      <span class="intake-field-label">Experiencia</span>
+      <p class="intake-field-value" [class.is-empty]="!intake.experienceLevel">{{ experienceLabel(intake.experienceLevel) }}</p>
+    </div>
+    <div class="intake-field">
+      <span class="intake-field-label">Lugar de entrenamiento</span>
+      <p class="intake-field-value" [class.is-empty]="!intake.trainingLocation">{{ trainingLocationLabel(intake.trainingLocation) }}</p>
+    </div>
+    <div class="intake-field intake-field--wide">
+      <span class="intake-field-label">Disponibilidad</span>
+      <p class="intake-field-value" [class.is-empty]="!intake.availability">{{ intake.availability || 'Sin especificar' }}</p>
+    </div>
+    <div class="intake-field intake-field--wide" *ngIf="intake.equipmentTags?.length">
+      <span class="intake-field-label">Equipamiento</span>
+      <div class="intake-tags">
+        <span class="intake-tag" *ngFor="let tag of intake.equipmentTags">{{ equipmentTagLabel(tag) }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="intake-section" *ngIf="dietaryFlagLabels.length || nutritionRows.length">
+  <h5 class="intake-section-title">
+    <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
+    Nutrición
+  </h5>
+  <div class="intake-section-fields">
+    <div class="intake-field intake-field--wide" *ngIf="dietaryFlagLabels.length">
+      <span class="intake-field-label">Restricciones</span>
+      <div class="intake-tags">
+        <span class="intake-tag" *ngFor="let flag of dietaryFlagLabels">{{ flag }}</span>
+      </div>
+    </div>
+    <div
+      class="intake-field"
+      *ngFor="let row of nutritionRows"
+      [class.intake-field--wide]="row.wide"
+      [class.intake-field--danger]="row.critical"
+    >
+      <span class="intake-field-label">
+        <ion-icon name="warning-outline" aria-hidden="true" *ngIf="row.critical"></ion-icon>
+        {{ row.label }}
+      </span>
+      <p class="intake-field-value">{{ row.value }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="intake-section" *ngIf="intake.customAnswers?.length">
+  <h5 class="intake-section-title">
+    <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
+    Tus preguntas
+  </h5>
+  <div class="intake-section-fields">
+    <div class="intake-field intake-field--wide intake-field--question" *ngFor="let answer of intake.customAnswers">
+      <span class="intake-field-question">{{ answer.label }}</span>
+      <p class="intake-field-value" [class.is-empty]="!answer.value">{{ answer.value || 'Sin responder' }}</p>
+    </div>
+  </div>
+</section>

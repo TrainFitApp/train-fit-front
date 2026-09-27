@@ -93,6 +93,37 @@ export interface ClientIntake {
   equipmentTags: EquipmentTag[];
   customAnswers: ClientIntakeCustomAnswer[];
   submittedAt: string;
+  // "Marcar revisado": desde entonces el cliente ya no puede cambiarlo.
+  reviewedAt: string | null;
+  // El resto del mismo formulario, que el backend guarda fuera de
+  // ClientIntake (ver trainer-client-service.js#getIntakeWithAnswers):
+  // el perfil que el cliente confirmó (precargado del registro) y lo de
+  // nutrición. Opcionales: solo los trae GET/PUT de /intake.
+  profile?: ClientIntakeProfile | null;
+  nutrition?: ClientIntakeNutrition | null;
+}
+
+// Valores de User tal cual: steps/activity/training son los `.value`
+// numéricos de STEPS/ACTIVITY_FACTOR/calculateTrainingValues; objetive, el
+// delta de kcal con signo. weight/height pueden llegar como string en
+// cuentas antiguas (ver toBodyInput).
+export interface ClientIntakeProfile {
+  weight: number | string | null;
+  height: number | string | null;
+  sex: number | null;
+  birth: string | null;
+  steps: number | null;
+  activity: number | null;
+  training: number | null;
+  objetive: number | null;
+}
+
+export interface ClientIntakeNutrition {
+  dietaryFlags: string[];
+  allergies: string;
+  favoriteFoods: string;
+  dislikedFoods: string;
+  cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
 }
 
 // TASK-049 (MASTER_BACKLOG.md) — IntakeFieldKey importado de shared-core en

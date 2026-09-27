@@ -217,12 +217,6 @@
     background: var(--tf-surface-4);
     color: var(--tf-text-secondary);
   }
-
-  // Mismo chip que en la fila de la Cartera (client-roster).
-  &--intake {
-    background: var(--tf-warning-soft);
-    color: var(--tf-warning);
-  }
 }
 
 .summary-header-program {
@@ -1494,49 +1488,123 @@
 // ---------------------------------------------------------------------------
 // Panel "Ver intake" (cabecera persistente)
 // ---------------------------------------------------------------------------
-.intake-panel-sheet {
-  display: flex;
-  flex-direction: column;
+// Portal trasladado al body (ver intakePanelHost en el .ts). Cerrado no
+// ocupa sitio ni captura clics: sus hijos son fixed y se posicionan solos.
+.panel-portal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tf-z-modal, 500);
+  pointer-events: none;
 }
 
-.intake-field {
+.panel-portal > * {
+  pointer-events: auto;
+}
+
+.intake-panel-backdrop {
+  @include tf-side-panel-backdrop;
+}
+
+// Cabecera y pie fijos, y solo el cuerpo desplaza: al leer un cuestionario
+// largo, "Cerrar"/"Editar" (o "Guardar" al editar) siguen a la vista. El
+// ancho extra respecto a otros paneles es para que las respuestas cortas
+// quepan en tres columnas.
+.intake-panel {
+  @include tf-side-panel(520px);
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--tf-border-subtle);
+  padding: 0;
+  overflow: hidden;
 
-  &:last-of-type {
-    border-bottom: none;
+  @media (min-width: 768px) {
+    padding: 0;
   }
 }
 
-.intake-field-label {
+.intake-panel__handle {
+  @include tf-side-panel-handle;
+  flex-shrink: 0;
+  margin: 10px auto 2px;
+}
+
+.intake-panel__header {
+  flex-shrink: 0;
+}
+
+.intake-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--tf-space-4) var(--tf-space-4) var(--tf-space-6);
+
+  @media (min-width: 768px) {
+    padding: var(--tf-space-5) var(--tf-space-6) var(--tf-space-8);
+  }
+}
+
+// Fechas del envío: contexto de las respuestas, no un dato más. Revisado
+// en verde, que es lo que el entrenador busca al abrirlo.
+.intake-panel__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-1) var(--tf-space-4);
+  margin: 0 0 var(--tf-space-6);
   font-size: var(--tf-font-size-xs);
-  font-weight: 600;
+  line-height: 1.4;
   color: var(--tf-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 
-.intake-field-value {
-  margin: 0;
-  font-size: var(--tf-font-size-sm);
-  line-height: var(--tf-line-height-base);
-  color: var(--tf-text-secondary);
-  white-space: pre-wrap;
+.intake-panel__reviewed {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  color: var(--tf-success);
+  font-weight: var(--tf-weight-label);
+
+  ion-icon {
+    font-size: 14px;
+  }
 }
 
-.intake-submitted-at {
-  margin: 12px 0 0;
-  font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-faint);
+// Error / sin responder: mismo dibujo que .state-message, compacto.
+.intake-panel__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-10) var(--tf-space-4);
+  text-align: center;
+
+  ion-icon {
+    font-size: 36px;
+    color: var(--tf-text-faint);
+  }
+
+  p {
+    margin: 0;
+    max-width: 32ch;
+    font-size: var(--tf-font-size-sm);
+    line-height: 1.5;
+    color: var(--tf-text-secondary);
+  }
 }
 
 .intake-edit-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--tf-space-5);
+}
+
+.intake-edit-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+
+  .cadence-options {
+    margin: 0;
+  }
 }
 
 .intake-edit-label {
@@ -1546,6 +1614,40 @@
   font-size: var(--tf-font-size-sm);
   font-weight: 600;
   color: var(--tf-text-secondary);
+}
+
+// Misma pareja que el resto de hojas (Cancelar antes de Guardar, a partes
+// iguales), en un pie fijo bajo el cuerpo que desplaza.
+.intake-edit-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4) calc(var(--tf-space-3) + env(safe-area-inset-bottom, 0px));
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
+
+  @media (min-width: 768px) {
+    padding: var(--tf-space-4) var(--tf-space-6);
+  }
+
+  &__cancel,
+  &__save {
+    flex: 1;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+
+  &__cancel {
+    @include tf-secondary-button;
+  }
+
+  &__save {
+    @include tf-gradient-button;
+  }
 }
 
 .textarea-field {
