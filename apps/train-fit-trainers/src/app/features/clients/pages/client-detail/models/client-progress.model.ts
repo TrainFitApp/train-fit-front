@@ -131,19 +131,6 @@ export interface ClientSummary {
   routine: { _id: string; name: string } | null;
 }
 
-// Movimiento 3 Coach Pro — lo único que le falta a la calculadora corporal
-// que no esté ya cargado en la pestaña de Medidas. Endpoint propio y barato
-// (GET /trainer/clients/:id/body-profile): colgarlo de /summary obligaría a
-// Medidas a pagar las ~9 consultas que sirven a Resumen para leer tres
-// campos. El backend no manda ningún resultado calculado: las fórmulas son
-// puras y corren aquí (core/utils/body-metrics.util.ts).
-export interface ClientBodyProfile {
-  heightCm: number | null;
-  // 0 = femenino, 1 = masculino (SEX_TYPES).
-  sex: number | null;
-  birth: string | null;
-}
-
 export const PROGRESS_WEEK_OPTIONS: readonly number[] = [4, 8, 12];
 
 // --- Entrenamiento (Fase 6) ---

@@ -29,7 +29,6 @@ import { PainEntry, PainThreshold } from 'src/app/core/constants/pain';
 import { ShoppingList } from 'src/app/core/utils/shopping-list.util';
 import { ClientNoteDomain, ClientNotesPage, ClientNotesQuery, ClientNotesUnread } from '../models/client-notes.model';
 import {
-  ClientBodyProfile,
   ClientProgress,
   ClientSummary,
   ClientTrainingProgress,
@@ -195,14 +194,6 @@ export class ClientDetailApiService {
   // Antes esa misma respuesta exigía 4 llamadas repartidas por 4 pestañas.
   public getSummary(clientId: string): Observable<ClientSummary> {
     return this.http.get<ClientSummary>(`${this.base(clientId)}/summary`);
-  }
-
-  // Movimiento 3 Coach Pro — altura, sexo y nacimiento del cliente, lo único
-  // que le falta a la calculadora corporal (las mediciones ya las carga la
-  // pestaña). Llamada propia y barata (una consulta): colgarla de
-  // getSummary obligaría a Medidas a pagar las ~9 consultas de Resumen.
-  public getBodyProfile(clientId: string): Observable<ClientBodyProfile> {
-    return this.http.get<ClientBodyProfile>(`${this.base(clientId)}/body-profile`);
   }
 
   // Movimiento 5 Coach Pro — suplementación pautada. El catálogo de momentos

@@ -14,6 +14,10 @@
 </ion-header>
 
 <ion-content class="coach-content">
+  <!-- Todo hasta "Profesionales" solo si tiene profesional activo o nada
+       pendiente (ver inviteOnly): con solo una invitación, Coach es esa
+       tarjeta. Sin reindentar el bloque para no ensuciar el diff. -->
+  <ng-container *ngIf="showCoachContent">
   <!-- Acceso a su cuestionario inicial (onboarding-status). Misma familia
   que las tarjetas del menú de abajo (cuadro de icono + nombre + dato);
   con borde naranja solo mientras está sin enviar. Después sigue aquí:
@@ -38,6 +42,37 @@
     </span>
     <ion-icon class="onboarding-reminder-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
   </button>
+
+  <!-- === Hábitos de hoy (coach-tab FASE4) === -->
+  <!-- Arriba del todo: es lo único de esta pantalla que el cliente toca a
+       diario. Antes vivía al fondo, tras las notificaciones, con una tarjeta
+       del menú que solo bajaba hasta aquí. -->
+  <div class="detail-skeleton" *ngIf="tasksState === 'loading'">
+    <div class="skeleton-block" style="height: 48px;"></div>
+  </div>
+
+  <div class="section-card" id="section-tasks" *ngIf="tasksState === 'loaded' && tasks.length">
+    <div class="section-header-row">
+      <h2 class="section-heading">Hábitos de hoy</h2>
+      <span class="tasks-progress" [class.tasks-progress--done]="completedTasksCount === tasks.length">
+        {{ completedTasksCount }}/{{ tasks.length }}
+      </span>
+    </div>
+
+    <button
+      class="task-row"
+      *ngFor="let task of tasks; trackBy: trackByTaskId"
+      [class.task-row--done]="task.completedToday"
+      (click)="toggleTask(task)"
+      [disabled]="togglingTaskId === task._id"
+    >
+      <ion-icon [name]="task.completedToday ? 'checkmark-circle' : 'ellipse-outline'" class="task-check"></ion-icon>
+      <div class="action-info">
+        <span class="action-title">{{ task.label }}</span>
+        <span class="action-subtitle">{{ taskTargetLabel(task) }} · {{ task.trainerName }}</span>
+      </div>
+    </button>
+  </div>
 
   <!-- === Menú de un vistazo — antes toda la info de abajo aparecía apilada
        directamente; ahora estas tarjetas resumen cada sección y llevan a
@@ -70,17 +105,6 @@
         <div class="coach-menu-icon"><ion-icon name="barbell-outline"></ion-icon></div>
         <span class="coach-menu-name">Tu plan actual</span>
         <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">{{ currentPlansStat }}</span>
-      </button>
-
-      <button
-        type="button"
-        class="coach-menu-card"
-        *ngIf="tasksState !== 'loaded' || tasks.length"
-        (click)="scrollToSection('section-tasks')"
-      >
-        <div class="coach-menu-icon"><ion-icon name="checkbox-outline"></ion-icon></div>
-        <span class="coach-menu-name">Tareas de hoy</span>
-        <span class="coach-menu-stat" *ngIf="tasksState === 'loaded'">{{ completedTasksCount }}/{{ tasks.length }}</span>
       </button>
 
       <button type="button" class="coach-menu-card" (click)="scrollToSection('section-professionals')">
@@ -341,28 +365,7 @@
     </div>
   </div>
 
-  <!-- === Tareas de hoy (coach-tab FASE4) === -->
-  <div class="detail-skeleton" *ngIf="tasksState === 'loading'">
-    <div class="skeleton-block" style="height: 48px;"></div>
-  </div>
-
-  <div class="section-card" id="section-tasks" *ngIf="tasksState === 'loaded' && tasks.length">
-    <h2 class="section-heading">Tareas de hoy</h2>
-
-    <button
-      class="task-row"
-      *ngFor="let task of tasks; trackBy: trackByTaskId"
-      [class.task-row--done]="task.completedToday"
-      (click)="toggleTask(task)"
-      [disabled]="togglingTaskId === task._id"
-    >
-      <ion-icon [name]="task.completedToday ? 'checkmark-circle' : 'ellipse-outline'" class="task-check"></ion-icon>
-      <div class="action-info">
-        <span class="action-title">{{ task.label }}</span>
-        <span class="action-subtitle">{{ taskTargetLabel(task) }} · {{ task.trainerName }}</span>
-      </div>
-    </button>
-  </div>
+  </ng-container>
 
   <!-- === Profesionales / invitaciones / historial === -->
   <div class="mp-section" *ngIf="state === 'loading'">
@@ -410,7 +413,7 @@
       </article>
     </div>
 
-    <div class="section-card" id="section-professionals">
+    <div class="section-card" id="section-professionals" *ngIf="!inviteOnly">
       <h2 class="section-heading">Tus profesionales</h2>
 
       <p class="empty-hint" *ngIf="!activeProfessionals.length">
@@ -438,7 +441,7 @@
       </article>
     </div>
 
-    <div class="section-card" *ngIf="history.length">
+    <div class="section-card" *ngIf="history.length && !inviteOnly">
       <button class="history-toggle" (click)="toggleHistory()">
         <h2 class="section-heading">Historial</h2>
         <ion-icon [name]="showHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>

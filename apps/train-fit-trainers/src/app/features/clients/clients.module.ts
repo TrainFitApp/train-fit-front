@@ -19,7 +19,6 @@ import { NutritionHistoryFeedComponent } from './pages/client-detail/components/
 import { ClientSummaryComponent } from './pages/client-detail/components/client-summary/client-summary.component';
 import { ClientRosterComponent } from './components/client-roster/client-roster.component';
 import { IntakeAnswersComponent } from './components/intake-answers/intake-answers.component';
-import { BodyCalculatorComponent } from './pages/client-detail/components/body-calculator/body-calculator.component';
 import { PainPanelComponent } from './pages/client-detail/components/pain-panel/pain-panel.component';
 import { ClientNotesComponent } from './pages/client-detail/components/client-notes/client-notes.component';
 import { SupplementsPanelComponent } from './pages/client-detail/components/supplements-panel/supplements-panel.component';
@@ -71,7 +70,6 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     ClientSummaryComponent,
     ClientRosterComponent,
     IntakeAnswersComponent,
-    BodyCalculatorComponent,
     PainPanelComponent,
     ClientNotesComponent,
     SupplementsPanelComponent,

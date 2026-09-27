@@ -281,6 +281,8 @@
 
 .input-wrapper {
   @include tf-input-wrapper;
+  // El mixin no fija altura: sin esto el campo colapsa a la del texto.
+  height: 50px;
 }
 
 .input-icon {
@@ -289,6 +291,7 @@
 
 .input-field {
   @include tf-input-field;
+  font-size: 0.95rem;
 }
 
 .editor-footer {

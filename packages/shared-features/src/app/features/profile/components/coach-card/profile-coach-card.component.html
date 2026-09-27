@@ -1,0 +1,61 @@
+<section class="coach-card" [attr.aria-busy]="state === 'loading'">
+  <header class="coach-card__header">
+    <h3 class="coach-card__title">
+      <ion-icon name="people-outline" color="primary" aria-hidden="true"></ion-icon>
+      {{ 'PROFILE.COACH_CARD.TITLE' | translate }}
+      <span class="coach-card__count" *ngIf="state === 'loaded' && items.length">{{ items.length }}</span>
+    </h3>
+    <button type="button" class="coach-card__see-all" (click)="goToCoach()">
+      {{ 'PROFILE.COACH_CARD.SEE_ALL' | translate }}
+      <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </header>
+
+  <div class="coach-card__skeleton" *ngIf="state === 'loading'" aria-hidden="true">
+    <div class="coach-card__skeleton-row"></div>
+    <div class="coach-card__skeleton-row"></div>
+  </div>
+
+  <div class="coach-card__message" *ngIf="state === 'error'" role="status">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <span class="coach-card__message-text">{{ 'PROFILE.COACH_CARD.LOAD_ERROR' | translate }}</span>
+    <button type="button" class="coach-card__retry" (click)="refresh()">{{ 'PROFILE.COACH_CARD.RETRY' | translate }}</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <button type="button" class="coach-card__clear" *ngIf="!items.length" (click)="goToCoach()">
+      <span class="coach-card__icon coach-card__icon--clear">
+        <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+      </span>
+      <span class="coach-card__text">
+        <span class="coach-card__row-title">{{ 'PROFILE.COACH_CARD.ALL_CLEAR' | translate }}</span>
+        <span class="coach-card__row-sub">{{ 'PROFILE.COACH_CARD.ALL_CLEAR_SUB' | translate }}</span>
+      </span>
+    </button>
+
+    <ul class="coach-card__list" *ngIf="items.length">
+      <li *ngFor="let item of visibleItems; let i = index; trackBy: trackById" [style.--i]="i">
+        <button
+          type="button"
+          class="coach-card__row"
+          [class.coach-card__row--action]="item.kind === 'action'"
+          (click)="open(item)"
+        >
+          <span class="coach-card__icon">
+            <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+            <span class="coach-card__dot" *ngIf="item.kind === 'notification'"></span>
+          </span>
+          <span class="coach-card__text">
+            <span class="coach-card__row-title">{{ item.title }}</span>
+            <span class="coach-card__row-sub">{{ item.subtitle }}</span>
+          </span>
+          <ion-icon class="coach-card__chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </li>
+    </ul>
+
+    <button type="button" class="coach-card__more" *ngIf="hiddenCount > 0" (click)="goToCoach()">
+      {{ 'PROFILE.COACH_CARD.MORE' | translate: { count: hiddenCount } }}
+    </button>
+  </ng-container>
+</section>

@@ -57,6 +57,11 @@
     </header>
   </div>
 
+  <!-- Resumen del tab Coach: solo con un profesional activo. -->
+  <app-profile-coach-card
+    *ngIf="coachService.hasActiveTrainer() && !user?.roles?.includes('trainer')"
+  ></app-profile-coach-card>
+
   <!-- Aviso previo de mantenimiento -->
   <app-maintenance-warning-banner
     *ngIf="maintenanceWarning$ | async as maintenanceBanner"

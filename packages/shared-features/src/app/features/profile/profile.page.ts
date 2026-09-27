@@ -1,4 +1,4 @@
-import { Component, OnInit, effect, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, effect, inject } from '@angular/core';
 import { Browser } from '@capacitor/browser';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -60,6 +60,7 @@ import { GROUPS_VALUES } from './models/groups';
 import { TABLE_GROUPS, TABLE_GROUPS_VALUES } from './models/tableGroups';
 import { EditorPage } from './components/configuration/components/editor/editor.page';
 import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
+import { ProfileCoachCardComponent } from './components/coach-card/profile-coach-card.component';
 
 @Component({
   selector: 'app-profile',
@@ -152,6 +153,8 @@ export class ProfilePage implements OnInit {
   private readonly remoteConfigGate = inject(RemoteConfigGateService);
   public readonly coachService = inject(CoachService);
 
+  @ViewChild(ProfileCoachCardComponent) private coachCard?: ProfileCoachCardComponent;
+
   public activeGoal: NutritionalGoal | null = null;
 
   // Ciclos por contenido — con dieta pautada hoy, la meta es lo que suma lo
@@ -239,6 +242,9 @@ export class ProfilePage implements OnInit {
 
   public ionViewWillEnter(): void {
     void this.refreshPremiumState();
+    // El tab sigue vivo al ir a Coach y volver: lo resuelto allí no debe
+    // seguir saliendo como pendiente aquí.
+    this.coachCard?.refresh();
     this.lastDietWeightsFetchKey = undefined;
     this.setWeekRanges();
     this.setDietDaysWeights();
