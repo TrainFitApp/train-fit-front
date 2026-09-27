@@ -407,22 +407,23 @@
         Todavía no tienes ningún profesional vinculado.
       </p>
 
-      <article class="pro-card" *ngFor="let professional of activeProfessionals; trackBy: trackByProfessionalId">
-        <header class="pro-card-header">
-          <div class="pro-avatar">{{ getInitials(getProfessionalName(professional)) }}</div>
-          <span class="pro-name">{{ getProfessionalName(professional) }}</span>
-        </header>
+      <article class="pro-card pro-card--active" *ngFor="let professional of activeProfessionals; trackBy: trackByProfessionalId">
+        <div class="pro-avatar">{{ getInitials(getProfessionalName(professional)) }}</div>
 
-        <div class="pro-row" *ngFor="let scope of professional.scopes">
-          <span class="pro-scope">
-            <ion-icon [name]="scopeIcon(scope)" [ngClass]="'pro-scope-icon--' + scope"></ion-icon>
-            {{ scopeLabel(scope) }}
-          </span>
-          <button class="pro-unlink-button" (click)="confirmUnlink(professional, scope)" [disabled]="unlinkingScope === scope">
-            <ion-icon name="close" *ngIf="unlinkingScope !== scope"></ion-icon>
-            <ion-spinner name="dots" *ngIf="unlinkingScope === scope"></ion-spinner>
-            <span *ngIf="unlinkingScope !== scope">Desvincular</span>
-          </button>
+        <div class="pro-body">
+          <span class="pro-name">{{ getProfessionalName(professional) }}</span>
+
+          <div class="pro-row" *ngFor="let scope of professional.scopes">
+            <span class="pro-scope">
+              <ion-icon [name]="scopeIcon(scope)" [ngClass]="'pro-scope-icon--' + scope"></ion-icon>
+              {{ scopeLabel(scope) }}
+            </span>
+            <button class="pro-unlink-button" (click)="confirmUnlink(professional, scope)" [disabled]="unlinkingScope === scope">
+              <ion-icon name="close" *ngIf="unlinkingScope !== scope"></ion-icon>
+              <ion-spinner name="dots" *ngIf="unlinkingScope === scope"></ion-spinner>
+              <span *ngIf="unlinkingScope !== scope">Desvincular</span>
+            </button>
+          </div>
         </div>
       </article>
     </div>

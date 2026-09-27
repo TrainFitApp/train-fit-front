@@ -1,9 +1,5 @@
-<ion-header class="ion-no-border">
-  <!-- Sin [title]: el nombre ya lo muestra la cabecera persistente de abajo
-       (.summary-header, avatar+nombre+badge+programa) — repetirlo aquí
-       arriba era el mismo dato dos veces en dos cabeceras distintas. -->
-  <app-page-header></app-page-header>
-</ion-header>
+<!-- Sin ion-header: su único contenido era el botón "Volver", que ya hace el
+     breadcrumb de abajo (.summary-breadcrumb). -->
 
 <!-- Layout de 2 columnas (mockup "TrainFit Panel" > Perfil cliente): tarjeta
      de resumen persistente + pestañas reales ya existentes, sin tocar su
@@ -43,10 +39,9 @@
         <p><strong>Cliente en solo lectura.</strong> Tu plan admite {{ readOnlyLimit }} clientes activos: puedes consultar su historial, pero no modificar sus rutinas, dietas ni check-ins.</p>
         <button type="button" class="read-only-action" (click)="goToSeats()">Elegir clientes activos</button>
       </div>
-      <!-- Breadcrumb "Cliente Resumen" (mockup claude.ai/design) — solo en
-           esta página, sin tocar app-page-header (compartido con el resto
-           de la app): reutiliza goToClientsList(), ya usado en el estado
-           de error de arriba. -->
+      <!-- Breadcrumb "Cliente Resumen" (mockup claude.ai/design) — único
+           control de "Volver" de la página: reutiliza goToClientsList(),
+           ya usado en el estado de error de arriba. -->
       <nav class="summary-breadcrumb" aria-label="Ruta">
         <button
           type="button"
@@ -456,6 +451,29 @@
             *ngIf="tab.key === 'clientNotes' && clientNotesUnread > 0"
             [attr.aria-label]="clientNotesUnread + ' sin ver'"
           >{{ clientNotesUnread > 99 ? '99+' : clientNotesUnread }}</span>
+        </button>
+        <!-- Scope que le falta al cliente: invitarle desde aquí, al final de
+             la fila, con el mismo borde discontinuo que "Siguiente fase". -->
+        <button
+          type="button"
+          class="sub-tab sub-tab--invite"
+          *ngIf="activeSection === 'plan' && missingScope && clientEmail"
+          [disabled]="missingScopeInvitePending || isSendingScopeInvite"
+          (click)="confirmInviteMissingScope()"
+        >
+          <ion-spinner name="dots" *ngIf="isSendingScopeInvite"></ion-spinner>
+          <ng-container *ngIf="!isSendingScopeInvite">
+            <ion-icon
+              [name]="missingScopeInvitePending ? 'time-outline' : 'add-outline'"
+              class="sub-tab-icon"
+              aria-hidden="true"
+            ></ion-icon>
+            <span class="sub-tab-label">{{
+              missingScopeInvitePending
+                ? 'Invitación a ' + missingScopeLabel + ' enviada'
+                : 'Invitar a ' + missingScopeLabel
+            }}</span>
+          </ng-container>
         </button>
       </nav>
 

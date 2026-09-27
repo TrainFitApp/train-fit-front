@@ -826,6 +826,90 @@
   }
 }
 
+// Profesional activo, versión compacta: avatar a la izquierda y, a su lado,
+// nombre + una fila por scope alineadas con el nombre (sin encabezado aparte
+// ni línea bajo la identidad). Una tarjeta con un scope queda en ~84px.
+.pro-card--active {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+  padding: 12px 8px 4px 12px;
+  margin-bottom: 8px;
+  border-radius: 14px;
+
+  .pro-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.76rem;
+  }
+
+  .pro-name {
+    display: block;
+    line-height: 36px;
+    padding-right: 6px;
+    font-size: 0.95rem;
+  }
+
+  .pro-row {
+    min-height: 40px;
+    padding: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: none;
+  }
+
+  .pro-scope {
+    gap: 9px;
+    font-size: 0.84rem;
+    color: #e0e0e0;
+
+    ion-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 5px;
+      box-sizing: border-box;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .pro-scope-icon--training {
+      background: rgba(144, 169, 194, 0.14);
+    }
+
+    .pro-scope-icon--nutrition {
+      background: rgba(255, 171, 61, 0.14);
+    }
+  }
+
+  .pro-unlink-button {
+    position: relative;
+    height: 32px;
+    padding: 0 8px;
+    color: #8b8b8b;
+
+    // Área táctil de 44px sin engordar la fila.
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -6px 0;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #fe9000;
+      outline-offset: 0;
+    }
+  }
+}
+
+.pro-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .mp-state-message {
   display: flex;
   flex-direction: column;
