@@ -386,8 +386,18 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     this.selectSingleChip((v) => (this.training = v), value);
   }
 
+  // El registro guarda los kcal que ajustó el cliente (deslizador de 50 a
+  // 500, p. ej. −200), no el valor fijo de cada opción (±300): la opción se
+  // marca por la dirección (signo), no por igualdad exacta.
+  public isObjectiveSelected(optionValue: number): boolean {
+    return this.objective !== null && Math.sign(this.objective) === Math.sign(optionValue);
+  }
+
+  // Confirmar la misma dirección conserva su cifra del registro; solo al
+  // cambiar de dirección se toma el valor por defecto de la opción.
   public selectObjective(value: number): void {
-    this.selectSingleChip((v) => (this.objective = v), value);
+    const next = this.isObjectiveSelected(value) ? this.objective! : value;
+    this.selectSingleChip((v) => (this.objective = v), next);
   }
 
   public submit(): void {

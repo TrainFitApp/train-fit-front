@@ -107,7 +107,7 @@
           <div
             class="option-card"
             *ngFor="let option of objectiveOptions"
-            [class.is-selected]="objective === option.value"
+            [class.is-selected]="isObjectiveSelected(option.value!)"
             (click)="selectObjective(option.value!)"
           >
             <div class="option-icon"><ion-icon name="flag-outline"></ion-icon></div>
