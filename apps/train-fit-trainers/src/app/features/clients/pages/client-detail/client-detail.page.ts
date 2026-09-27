@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, skip } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
@@ -182,8 +182,6 @@ export class ClientDetailPage implements OnInit {
   // emite aquí vía (statusChange); por eso queda en blanco hasta que Resumen
   // termine de cargar, aunque se esté viendo otra sección.
   public clientStatus: 'attention' | 'ok' | 'insufficient' | null = null;
-  // Llega por el mismo camino que el badge (app-client-summary).
-  public intakePending = false;
 
   public onSummaryStatus(status: 'attention' | 'ok' | 'insufficient'): void {
     this.clientStatus = status;
@@ -543,7 +541,6 @@ export class ClientDetailPage implements OnInit {
     // TASK-051/TASK-073 más arriba), sin este reset el badge de estado del
     // cliente ANTERIOR seguiría visible mientras carga el nuevo Resumen.
     this.clientStatus = null;
-    this.intakePending = false;
     this.trainerClientsApi.getMyClients().subscribe({
       next: (clients) => {
         const match = clients.find((c) => c.user?._id === this.clientId);
@@ -599,6 +596,12 @@ export class ClientDetailPage implements OnInit {
     const tabDestino: ClientDetailTab | null =
       (tabPedida as string) === 'checkins' ? 'measurements' : tabPedida;
     this.selectTab(tabDestino && SECTION_BY_TAB[tabDestino] ? tabDestino : 'summary');
+    // "Aplicar" desde Plantillas de check-in: abre "Nueva programación" con
+    // esa plantilla. Solo en una entrada nueva: al volver de una pantalla
+    // hija la URL la sigue llevando y no debe reabrir el editor.
+    this.checkinTemplateToOpen = tabGuardada
+      ? null
+      : this.route.snapshot.queryParamMap.get('checkinTemplate');
 
     if (this.scopes.includes('training')) this.loadTraining();
     if (this.scopes.includes('nutrition')) this.loadNutrition();
@@ -1146,8 +1149,14 @@ export class ClientDetailPage implements OnInit {
     (value) => ({ value, label: EQUIPMENT_TAG_LABELS[value] })
   );
 
-  public experienceLabel(level: ClientIntake['experienceLevel']): string {
-    return this.experienceLevelOptions.find((o) => o.value === level)?.label || 'No indicado';
+  // El panel vive fuera de ion-content y se traslada al body al crear la
+  // página (mismo portal que nutrition-preferences-panel): así su
+  // position:fixed no lo captura el contain de ion-content y queda por
+  // encima de las gráficas. Se quita a mano al destruir la página.
+  @ViewChild('intakePanelHost', { static: true })
+  private set intakePanelHost(ref: ElementRef<HTMLElement>) {
+    document.body.appendChild(ref.nativeElement);
+    this.destroyRef.onDestroy(() => ref.nativeElement.remove());
   }
 
   public openIntakePanel(): void {
@@ -2420,6 +2429,7 @@ export class ClientDetailPage implements OnInit {
   // null mientras no se sepa: el chip no aparece hasta entonces (enseñar
   // "0 check-ins" antes de tiempo sería mentir).
   public checkinSchedulesCount: number | null = null;
+  public checkinTemplateToOpen: string | null = null;
   private schedulesPanel: HTMLIonModalElement | null = null;
   private scheduleHistoryPanel: HTMLIonModalElement | null = null;
 

@@ -1,12 +1,17 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar class="hub-toolbar">
-    <ion-buttons slot="start">
-      <ion-button (click)="goBack()">
-        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>Antes de empezar</ion-title>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Cuestionario inicial</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="onboarding-content">
@@ -21,8 +26,11 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <p class="intro-text">
+    <p class="intro-text" *ngIf="pendingCount > 0 || pendingInvites.length">
       Tu profesional necesita conocerte un poco mejor para preparar tu dieta y tu rutina.
+    </p>
+    <p class="intro-text" *ngIf="!pendingCount && !pendingInvites.length && hasEditableIntake">
+      Puedes cambiar tus respuestas hasta que tu profesional las revise.
     </p>
 
     <p class="progress-text" *ngIf="pendingCount > 0">
@@ -55,15 +63,23 @@
       </div>
     </div>
 
-    <!-- Profesionales (ya activos) con el cuestionario sin enviar. -->
+    <!-- Profesionales (ya activos): sin enviar → Completar; enviado y sin
+    revisar → Editar (sobrescribe); revisado → Ver (solo lectura). -->
     <div class="trainer-row" *ngFor="let group of groups; trackBy: trackByTrainerId">
       <div class="trainer-row-icon"><ion-icon name="person-outline"></ion-icon></div>
       <div class="trainer-row-text">
         <div class="trainer-row-name">{{ group.trainerName }}</div>
         <div class="trainer-row-scope">{{ group.scopes.join(' · ') }}</div>
+        <div class="trainer-row-scope" *ngIf="group.intakeStatus === 'submitted'">Enviado · puedes editarlo hasta que lo revise</div>
+        <div class="trainer-row-scope" *ngIf="group.intakeStatus === 'reviewed'">Revisado por tu profesional</div>
       </div>
-      <button class="row-btn row-btn--accent" (click)="openIntakeForm(group)">
-        Completar
+      <button
+        class="row-btn"
+        [class.row-btn--accent]="group.intakeStatus === 'pending'"
+        [class.row-btn--ghost]="group.intakeStatus !== 'pending'"
+        (click)="openIntakeForm(group)"
+      >
+        {{ group.intakeStatus === 'pending' ? 'Completar' : group.intakeStatus === 'submitted' ? 'Editar' : 'Ver' }}
         <ion-icon name="arrow-forward-outline"></ion-icon>
       </button>
     </div>
@@ -81,6 +97,7 @@
   [customQuestions]="fillingGroup?.customQuestions || []"
   [prefill]="intakePrefill"
   [isSubmitting]="isSubmitting"
+  [readonly]="fillingGroup?.intakeStatus === 'reviewed'"
   (submitted)="submitIntake($event)"
   (cancelled)="closeIntakeForm()"
 ></app-intake-wizard>

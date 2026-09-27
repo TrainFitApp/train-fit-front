@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
-import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
+import { IntakeFieldKey, IntakeStatus } from 'src/app/core/services/onboarding/onboarding.service';
 import {
   ClientEmailScopeStatus,
   ClientIntake,
@@ -60,6 +60,16 @@ export class TrainerInvitesApiService {
     >
   ): Observable<ClientIntake> {
     return this.http.put<ClientIntake>(`trainer/clients/${clientId}/intake`, intake);
+  }
+
+  // intakeReviewedGuard: sin enviar o por revisar no se abre la ficha.
+  public getIntakeStatus(clientId: string): Observable<{ status: IntakeStatus | null }> {
+    return this.http.get<{ status: IntakeStatus | null }>(`trainer/clients/${clientId}/intake/status`);
+  }
+
+  // Hasta marcarlo revisado, el cliente puede editar o rehacer su cuestionario.
+  public markIntakeReviewed(clientId: string): Observable<ClientIntake> {
+    return this.http.post<ClientIntake>(`trainer/clients/${clientId}/intake/reviewed`, {});
   }
 
   // TASK-049 — configuración de campos activos del cuestionario inicial.

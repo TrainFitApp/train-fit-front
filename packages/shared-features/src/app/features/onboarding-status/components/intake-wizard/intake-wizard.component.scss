@@ -57,6 +57,31 @@
   &::-webkit-scrollbar {
     display: none;
   }
+
+  // Revisado por el profesional: se ve igual, pero no se puede cambiar
+  // nada. Solo los controles; el scroll del cuerpo sigue funcionando.
+  &.is-readonly {
+    .option-card,
+    input,
+    textarea {
+      pointer-events: none;
+    }
+  }
+}
+
+.readonly-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+
+  ion-icon {
+    font-size: 14px;
+    color: var(--accent-primary);
+    flex-shrink: 0;
+  }
 }
 
 swiper-container {

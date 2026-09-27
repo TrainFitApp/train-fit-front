@@ -44,10 +44,17 @@ export interface IntakeCustomQuestion {
   label: string;
 }
 
-// Una relación ya activa cuyo cuestionario inicial sigue sin enviar.
+// Estado del cuestionario inicial de un profesional (espejo de
+// intakeStatusFor en train-fit-back/components/trainerClients/intake-pending.js):
+// pending = sin enviar; submitted = enviado, editable hasta que el
+// profesional lo revise; reviewed = revisado, solo lectura.
+export type IntakeStatus = 'pending' | 'submitted' | 'reviewed';
+
+// Una relación activa con su cuestionario inicial.
 export interface OnboardingRelation {
   trainerId: string;
   scope: 'training' | 'nutrition';
+  intakeStatus: IntakeStatus;
   trainer: { name: string; lastname: string; email: string } | null;
   // TASK-049 — siempre poblado tras refresh(), nunca undefined: normalizado
   // aquí (fallback al catálogo completo si el backend no lo manda) para que
@@ -82,15 +89,20 @@ function normalizeStatus(status: OnboardingStatus | null): OnboardingStatus {
   };
 }
 
-// Cuestionarios iniciales pendientes del cliente. Aceptar una invitación ya
-// le hace cliente activo: el cuestionario es un recordatorio, nunca bloquea
-// la app. Poblado en user-loader.page.ts junto a CoachService/
-// NotificationsService; lo leen el aviso de Coach y onboarding-status.
+// Cuestionario inicial del cliente. Aceptar una invitación ya le hace
+// cliente activo: el cuestionario es un recordatorio, nunca bloquea la app.
+// Poblado en user-loader.page.ts junto a CoachService/NotificationsService;
+// lo leen el acceso de Coach y onboarding-status.
 @Injectable({ providedIn: 'root' })
 export class OnboardingService {
   private readonly _status: WritableSignal<OnboardingStatus> = signal(EMPTY_STATUS);
-  public readonly relations = computed(() => this._status().relations);
-  public readonly pending = computed(() => this._status().relations.length > 0);
+  // El estado más urgente de todos sus profesionales (lo que enseña el
+  // acceso de Coach); null = no tiene ningún cuestionario.
+  public readonly intakeStatus = computed<IntakeStatus | null>(() => {
+    const statuses = this._status().relations.map((r) => r.intakeStatus);
+    return (['pending', 'submitted', 'reviewed'] as const).find((s) => statuses.includes(s)) ?? null;
+  });
+  public readonly pending = computed(() => this.intakeStatus() === 'pending');
 
   constructor(private http: HttpService) {}
 

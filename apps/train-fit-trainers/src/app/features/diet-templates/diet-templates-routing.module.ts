@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { pendingChangesGuard } from 'src/app/core/guards/pending-changes.guard';
+import { intakeReviewedGuard } from '../clients/guards/intake-reviewed.guard';
 import { DietTemplatesListPage } from './pages/diet-templates-list/diet-templates-list.page';
 import { DietTemplateBuilderPage } from './pages/diet-template-builder/diet-template-builder.page';
 import { DietPhasePickerPage } from './pages/diet-phase-picker/diet-phase-picker.page';
@@ -13,6 +14,7 @@ const routes: Routes = [
   // el atrás, el deep link y un F5 en medio de la elección funcionen solos.
   {
     path: 'for-phase/:clientId',
+    canActivate: [intakeReviewedGuard],
     component: DietPhasePickerPage,
     // Se entró desde la ficha del cliente, no desde la biblioteca.
     data: { parent: '/tabs/clients/:clientId' },
@@ -21,6 +23,7 @@ const routes: Routes = [
   // "editar plantilla existente" (ver diet-template-builder.page.ts).
   {
     path: 'for-client/:clientId',
+    canActivate: [intakeReviewedGuard],
     component: DietTemplateBuilderPage,
     // Se entró desde la ficha del cliente, no desde la biblioteca: el padre
     // canónico es esa ficha.
@@ -33,6 +36,7 @@ const routes: Routes = [
   // diet-template-builder.page.ts#startForAssignedCopy).
   {
     path: 'edit-assignment/:clientId/:planId',
+    canActivate: [intakeReviewedGuard],
     component: DietTemplateBuilderPage,
     data: { parent: '/tabs/clients/:clientId' },
     canDeactivate: [pendingChangesGuard],
@@ -42,6 +46,7 @@ const routes: Routes = [
   // diet-template-builder.page.ts#startForNextWeek).
   {
     path: 'next-week/:clientId/:phaseId',
+    canActivate: [intakeReviewedGuard],
     component: DietTemplateBuilderPage,
     data: { parent: '/tabs/clients/:clientId' },
     canDeactivate: [pendingChangesGuard],

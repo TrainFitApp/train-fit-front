@@ -7,7 +7,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
+import { Subscription, filter, forkJoin } from 'rxjs';
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { ClientRosterApiService } from '../../services/client-roster-api.service';
 import {
@@ -16,6 +16,10 @@ import {
   RosterDimension,
 } from '../../models/client-roster.model';
 import { ClientDetailTab } from '../../pages/client-detail/models/client-detail.model';
+import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
+import { ClientIntake } from '../../../invites/models/trainer-invite.model';
+import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
 
 type ViewState = 'loading' | 'error' | 'empty' | 'loaded';
 
@@ -181,6 +185,16 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   // existe al lado.
   public expandedClientId: string | null = null;
 
+  // Intake por revisar de la fila desplegada: se pide al desplegarla, no
+  // con la Cartera (la mayoría de filas nunca se abren).
+  public intakeState: 'loading' | 'error' | 'loaded' = 'loading';
+  public expandedIntake: ClientIntake | null = null;
+  // Fila con "Marcar revisado" o "Rechazar" en curso.
+  public busyClientId: string | null = null;
+  // Cliente a desplegar en cuanto llegue la Cartera: viene del guard de la
+  // ficha (?review=, ver intake-reviewed.guard.ts).
+  private pendingFocusId: string | null = null;
+
   public readonly dimensionKeys: AdherenceDimensionKey[] = [
     'nutrition',
     'training',
@@ -205,7 +219,10 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   constructor(
     private rosterApi: ClientRosterApiService,
     private router: Router,
-    private navigation: TrainerNavigationService
+    private navigation: TrainerNavigationService,
+    private invitesApi: TrainerInvitesApiService,
+    private clientDetailApi: ClientDetailApiService,
+    private ionicUtilService: IonicUtilService
   ) {}
 
   public ngAfterViewInit(): void {
@@ -255,16 +272,23 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     this.sort = stored.sort;
   }
 
-  public load(): void {
-    this.state = 'loading';
+  // silent: recarga sobre lo ya pintado (volver a Clientes, tirar para
+  // refrescar), sin esqueleto: ni parpadea ni pierde el scroll, y si falla
+  // se queda con las filas que ya había.
+  public load(silent = false): void {
+    const hasData = this.state === 'loaded' || this.state === 'empty';
+    const keepVisible = silent && hasData;
+    if (!keepVisible) this.state = 'loading';
     this.rosterApi.getRoster().subscribe({
       next: (response) => {
         this.periodDays = response.periodDays;
         this.rows = response.clients || [];
         this.state = this.rows.length ? 'loaded' : 'empty';
         this.applySort();
+        this.applyPendingFocus();
       },
       error: () => {
+        if (keepVisible) return;
         this.rows = [];
         this.state = 'error';
       },
@@ -373,8 +397,109 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     return row.nextCheckinDate < new Date().toISOString().slice(0, 10);
   }
 
+  // Intake sin enviar o por revisar: no hay seguimiento todavía y no se
+  // entra en la ficha (el guard tampoco deja); la fila despliega el intake.
+  public isGated(row: RosterClient): boolean {
+    return row.intakeStatus === 'pending' || row.intakeStatus === 'submitted';
+  }
+
+  public onRowClick(row: RosterClient): void {
+    if (this.isGated(row)) this.toggleRow(row);
+    else this.openClient(row);
+  }
+
   public toggleRow(row: RosterClient): void {
     this.expandedClientId = this.expandedClientId === row.clientId ? null : row.clientId;
+    if (this.expandedClientId && row.intakeStatus === 'submitted') this.loadIntake(row.clientId);
+  }
+
+  // Desde el guard: se despliega su fila aunque un filtro la estuviera
+  // ocultando. Espera a la carga si aún no está la fila.
+  public focusClient(clientId: string): void {
+    this.pendingFocusId = clientId;
+    if (this.state === 'loaded') this.applyPendingFocus();
+  }
+
+  private applyPendingFocus(): void {
+    const row = this.rows.find((r) => r.clientId === this.pendingFocusId);
+    if (!row) return;
+    this.pendingFocusId = null;
+    this.searchQuery = '';
+    this.clearFilters();
+    if (this.expandedClientId !== row.clientId) this.toggleRow(row);
+    setTimeout(() =>
+      document.getElementById('roster-detail-' + row.clientId)?.scrollIntoView({ block: 'center' })
+    );
+  }
+
+  public loadIntake(clientId: string): void {
+    this.intakeState = 'loading';
+    this.expandedIntake = null;
+    this.invitesApi.getClientIntake(clientId).subscribe({
+      next: (intake) => {
+        // Pudo desplegar otra fila mientras llegaba.
+        if (this.expandedClientId !== clientId) return;
+        this.expandedIntake = intake;
+        this.intakeState = 'loaded';
+      },
+      error: () => {
+        if (this.expandedClientId === clientId) this.intakeState = 'error';
+      },
+    });
+  }
+
+  // Revisarlo es lo que abre la ficha: marca revisado (el cliente ya no
+  // puede cambiarlo) y entra directamente a su seguimiento.
+  public markIntakeReviewed(row: RosterClient): void {
+    if (this.busyClientId) return;
+    this.busyClientId = row.clientId;
+    this.invitesApi.markIntakeReviewed(row.clientId).subscribe({
+      next: () => {
+        this.busyClientId = null;
+        row.intakeStatus = 'reviewed';
+        this.expandedClientId = null;
+        this.openClient(row);
+      },
+      error: (err) => {
+        this.busyClientId = null;
+        this.ionicUtilService.showToast({
+          message: err?.error?.message || 'No se pudo marcar como revisado',
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  // Sin poder entrar en la ficha, "Rechazar" es la única forma de terminar
+  // con un cliente que no se quiere (y de liberar su plaza).
+  public async confirmReject(row: RosterClient): Promise<void> {
+    await this.ionicUtilService.showAlert({
+      header: `Rechazar a ${row.clientName}`,
+      message: 'Dejará de ser tu cliente y liberarás su plaza. No se puede deshacer.',
+      buttons: [
+        { text: 'Volver', role: 'cancel' },
+        { text: 'Rechazar', cssClass: 'alert-button-danger', handler: () => this.reject(row) },
+      ],
+    });
+  }
+
+  private reject(row: RosterClient): void {
+    if (this.busyClientId || !row.scopes.length) return;
+    this.busyClientId = row.clientId;
+    // Una relación por scope (ver trainer-client-schema.js): se terminan todas.
+    forkJoin(row.scopes.map((scope) => this.clientDetailApi.revokeRelation(row.clientId, scope))).subscribe({
+      next: () => {
+        this.busyClientId = null;
+        this.expandedClientId = null;
+        this.rows = this.rows.filter((r) => r.clientId !== row.clientId);
+        if (!this.rows.length) this.state = 'empty';
+        this.ionicUtilService.showToast({ message: `Has rechazado a ${row.clientName}`, duration: 2500 });
+      },
+      error: () => {
+        this.busyClientId = null;
+        this.ionicUtilService.showToast({ message: 'No se pudo rechazar al cliente', duration: 3000 });
+      },
+    });
   }
 
   public openClient(row: RosterClient): void {

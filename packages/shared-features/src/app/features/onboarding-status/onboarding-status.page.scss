@@ -4,11 +4,6 @@
   @include tf-wizard-tokens;
 }
 
-.hub-toolbar {
-  --background: var(--bg-secondary);
-  --color: var(--text-primary);
-}
-
 .onboarding-content {
   --background: var(--bg-primary);
   --padding-start: 25px;

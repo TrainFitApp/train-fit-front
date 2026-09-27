@@ -2,11 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerClientSummary } from '../../../clients/models/trainer-client-summary.model';
 import { TrainerClientsApiService } from '../../../clients/services/trainer-clients-api.service';
 import { CheckinTemplateDefinition } from '../../models/checkin-template.model';
-import { CheckinTemplatesApiService } from '../../services/checkin-templates-api.service';
 
 // Extraído de checkin-templates.page.ts / templates.page.ts (duplicado en
 // ambas) a un modal standalone real. El panel "Aplicar" vivía como un
@@ -31,16 +29,12 @@ export class ApplyCheckinTemplateModalComponent implements OnInit {
 
   public loadingClients = true;
   public myClients: TrainerClientSummary[] = [];
-  public selectedClientIds = new Set<string>();
-  public isApplying = false;
   public searchQuery = '';
   public filteredClients: TrainerClientSummary[] = [];
 
   constructor(
     private modalController: ModalController,
-    private checkinTemplatesApi: CheckinTemplatesApiService,
-    private trainerClientsApi: TrainerClientsApiService,
-    private ionicUtilService: IonicUtilService
+    private trainerClientsApi: TrainerClientsApiService
   ) {}
 
   public ngOnInit(): void {
@@ -71,39 +65,14 @@ export class ApplyCheckinTemplateModalComponent implements OnInit {
         });
   }
 
-  public toggleClientSelected(client: TrainerClientSummary): void {
-    const id = client.user?._id;
-    if (!id) return;
-    if (this.selectedClientIds.has(id)) this.selectedClientIds.delete(id);
-    else this.selectedClientIds.add(id);
-  }
-
-  public isClientSelected(client: TrainerClientSummary): boolean {
-    return !!client.user && this.selectedClientIds.has(client.user._id);
-  }
-
-  public confirmApply(): void {
-    if (!this.selectedClientIds.size || this.isApplying) return;
-
-    this.isApplying = true;
-    this.checkinTemplatesApi.apply(this.template._id, [...this.selectedClientIds]).subscribe({
-      next: (result) => {
-        this.isApplying = false;
-        const total = result.applied.length + result.skipped.length;
-        this.ionicUtilService.showToast({
-          message:
-            result.skipped.length > 0
-              ? `Aplicada a ${result.applied.length} de ${total} clientes (${result.skipped.length} sin relación activa)`
-              : `Aplicada a ${result.applied.length} cliente${result.applied.length === 1 ? '' : 's'}`,
-          duration: 3500,
-        });
-        this.modalController.dismiss(true);
-      },
-      error: () => {
-        this.isApplying = false;
-        this.ionicUtilService.showErrorToast('No se pudo aplicar la plantilla', 'Error', 3000);
-      },
-    });
+  // Un solo cliente: la programación (fecha, hora, frecuencia) se termina en
+  // su ficha, y quien abrió el modal navega hasta allí con lo elegido.
+  public choose(client: TrainerClientSummary): void {
+    if (!client.user) return;
+    this.modalController.dismiss(
+      { clientId: client.user._id, clientName: this.getFullName(client) },
+      'confirm'
+    );
   }
 
   public getFullName(client: TrainerClientSummary): string {

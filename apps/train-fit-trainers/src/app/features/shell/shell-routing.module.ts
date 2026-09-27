@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ShellPage } from './shell.page';
 import { TableInContextResolver } from 'src/app/features/clients/resolvers/table-in-context.resolver';
+import { intakeReviewedGuard } from 'src/app/features/clients/guards/intake-reviewed.guard';
 
 // Enrutado coherente (2026-09) — cada ruta que NO es una sección del menú
 // lateral declara `data.parent`: el destino canónico de "Volver" cuando no hay
@@ -129,6 +130,7 @@ const routes: Routes = [
         // falta repetirlo. TableInContextResolver se reutiliza tal cual —
         // sigue sembrando la tabla del cliente antes de activar la ruta.
         path: 'clients/:clientId/tables/:tableId/planner',
+        canActivate: [intakeReviewedGuard],
         resolve: { table: TableInContextResolver },
         data: { parent: '/tabs/clients/:clientId' },
         loadChildren: () =>
@@ -144,6 +146,7 @@ const routes: Routes = [
         // Misma posición relativa que 'planner' (más específica antes que
         // 'clients') y mismo resolver, reutilizado tal cual.
         path: 'clients/:clientId/tables/:tableId/statistics',
+        canActivate: [intakeReviewedGuard],
         data: { parent: '/tabs/clients/:clientId' },
         resolve: { table: TableInContextResolver },
         loadChildren: () =>

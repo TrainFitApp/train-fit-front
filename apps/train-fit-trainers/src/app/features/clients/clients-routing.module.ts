@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ClientsPage } from './clients.page';
 import { ClientDetailPage } from './pages/client-detail/client-detail.page';
+import { intakeReviewedGuard } from './guards/intake-reviewed.guard';
 
 const routes: Routes = [
   {
@@ -11,6 +12,7 @@ const routes: Routes = [
   {
     path: ':id',
     component: ClientDetailPage,
+    canActivate: [intakeReviewedGuard],
     data: { parent: '/tabs/clients' },
   },
 ];
