@@ -337,7 +337,11 @@
               [disabled]="false"
               (ionItemReorder)="handleReorder($any($event))"
             >
-              <ion-item-group *ngFor="let set of setList; let i = index">
+              <ion-item-group
+                *ngFor="let set of setList; let i = index"
+                [attr.data-set-id]="set._id"
+                [class.just-added]="set._id === lastAddedSetId"
+              >
                 <ion-item-divider>
                   <ion-reorder
                     [ngClass]="{'current-workout-set-move' : i === 0}"

@@ -73,6 +73,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
   public noteToCreate: boolean;
   public setList: ExerciseSet[] = [];
+  public lastAddedSetId: string | null = null;
+  private lastAddedSetTimer?: ReturnType<typeof setTimeout>;
   public setsToCreate: ExerciseSet[] = [];
   public setsToUpdate: ExerciseSet[] = [];
   public setsToDelete: string[] = [];
@@ -350,6 +352,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     this.pinnedNoteCacheSub?.unsubscribe();
     this.pendingPinNoteText = null;
+    clearTimeout(this.lastAddedSetTimer);
   }
 
   private syncDetailsFromExercise(exercise: Exercise): void {
@@ -903,61 +906,87 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   }
 
   public configSets(set?: ExerciseSet): void {
+    // Planificador de entrenadores (panel lateral): "Serie objetivo" no se
+    // cierra al guardar. Cada guardado añade otra serie aquí y el panel
+    // conserva los valores para la siguiente; si se abrió editando una serie,
+    // el primer guardado la actualiza y los siguientes ya añaden.
+    const continuousAdd =
+      this.isTrainerApp && !!this.modal?.classList.contains("tf-planner-panel");
     const modalOptions: ModalOptions = {
       component: ManageSetComponent,
       componentProps: {
         set: set,
         isCardio: this.isCurrentExerciseCardio,
         isIsometric: this.isCurrentExerciseIsometric,
+        onSetAdded: continuousAdd
+          ? (setConfig: ExerciseSet) => this.applySetConfig(setConfig, set)
+          : undefined,
       },
     };
 
     this.ionicUtilService.showNestedModal(modalOptions, this.modal).then((res) => {
       // Se ha configurado serie
-      if (res.data) {
-        const setConfig: ExerciseSet = res.data;
-        // Añadir nueva serie
-        const indexSet = this.setList.findIndex(
-          (setTemp) => setTemp._id === setConfig._id,
-        );
-
-        if (indexSet < 0) {
-          setConfig._id = --this.idCounter + "";
-          setConfig.order = this.setList ? this.setList.length : 0;
-          if ((setConfig as any).displayOrder == null) {
-            (setConfig as any).displayOrder = this.nextDisplayOrder++;
-          }
-          this.setList.push(setConfig);
-          this.setsToCreate.push(setConfig);
-        }
-        // Actualizar serie
-        else {
-          const existingDisplayOrder = (this.setList[indexSet] as any)
-            ?.displayOrder;
-          if ((setConfig as any).displayOrder == null) {
-            (setConfig as any).displayOrder =
-              existingDisplayOrder ?? this.getInitialDisplayOrder(setConfig);
-          }
-          this.setList[indexSet] = { ...setConfig };
-
-          const indexCreateSet = this.setsToCreate.findIndex(
-            (setTemp) => setTemp._id === setConfig._id,
-          );
-          if (indexCreateSet !== -1)
-            this.setsToCreate[indexCreateSet] = { ...setConfig };
-
-          const indexUpdateSet = this.setsToUpdate.findIndex(
-            (setTemp) => setTemp._id === setConfig._id,
-          );
-          // REVISAR ELSE IF
-          if (indexUpdateSet !== -1)
-            this.setsToUpdate[indexUpdateSet] = { ...setConfig };
-          else if (this.isPersistedSet(set)) this.setsToUpdate.push(setConfig);
-        }
-
-        this.normalizeSetOrder();
-      }
+      if (res.data) this.applySetConfig(res.data, set);
     });
+  }
+
+  private applySetConfig(setConfig: ExerciseSet, set?: ExerciseSet): void {
+    // Añadir nueva serie
+    const indexSet = this.setList.findIndex(
+      (setTemp) => setTemp._id === setConfig._id,
+    );
+
+    if (indexSet < 0) {
+      setConfig._id = --this.idCounter + "";
+      setConfig.order = this.setList ? this.setList.length : 0;
+      if ((setConfig as any).displayOrder == null) {
+        (setConfig as any).displayOrder = this.nextDisplayOrder++;
+      }
+      this.setList.push(setConfig);
+      this.setsToCreate.push(setConfig);
+      this.highlightAddedSet(setConfig._id);
+    }
+    // Actualizar serie
+    else {
+      const existingDisplayOrder = (this.setList[indexSet] as any)
+        ?.displayOrder;
+      if ((setConfig as any).displayOrder == null) {
+        (setConfig as any).displayOrder =
+          existingDisplayOrder ?? this.getInitialDisplayOrder(setConfig);
+      }
+      this.setList[indexSet] = { ...setConfig };
+
+      const indexCreateSet = this.setsToCreate.findIndex(
+        (setTemp) => setTemp._id === setConfig._id,
+      );
+      if (indexCreateSet !== -1)
+        this.setsToCreate[indexCreateSet] = { ...setConfig };
+
+      const indexUpdateSet = this.setsToUpdate.findIndex(
+        (setTemp) => setTemp._id === setConfig._id,
+      );
+      // REVISAR ELSE IF
+      if (indexUpdateSet !== -1)
+        this.setsToUpdate[indexUpdateSet] = { ...setConfig };
+      else if (this.isPersistedSet(set)) this.setsToUpdate.push(setConfig);
+    }
+
+    this.normalizeSetOrder();
+  }
+
+  // Solo en el alta continua del planificador: marca un instante la serie
+  // recién añadida y la trae a la vista, para que se vea crecer la lista
+  // mientras "Serie objetivo" sigue abierto al lado.
+  private highlightAddedSet(setId: string): void {
+    if (!this.isTrainerApp) return;
+    this.lastAddedSetId = setId;
+    clearTimeout(this.lastAddedSetTimer);
+    this.lastAddedSetTimer = setTimeout(() => (this.lastAddedSetId = null), 1200);
+    setTimeout(() =>
+      this.modal
+        ?.querySelector(`[data-set-id="${setId}"]`)
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" }),
+    );
   }
 
   public copySet(set: ExerciseSet): void {

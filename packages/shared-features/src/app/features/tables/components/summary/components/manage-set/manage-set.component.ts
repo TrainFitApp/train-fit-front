@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ModalController, Platform, ToastOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -11,7 +11,7 @@ import { environment } from 'src/environments/environment';
   templateUrl: './manage-set.component.html',
   styleUrls: ['./manage-set.component.scss'],
 })
-export class ManageSetComponent implements OnInit {
+export class ManageSetComponent implements OnInit, OnDestroy {
   public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
   @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLElement>;
   public setForm: FormGroup;
@@ -19,6 +19,15 @@ export class ManageSetComponent implements OnInit {
   public isCardio: boolean;
   public isIsometric: boolean;
   public readonly REST_PRESETS = [60, 90, 120, 180];
+  // Alta continua (planificador de entrenadores): quien abre el panel lo pasa
+  // y cada guardado le entrega la serie sin cerrar el panel ni vaciar el
+  // formulario, para ir añadiendo series seguidas. Si se abrió editando una
+  // serie, el primer guardado la actualiza y los siguientes añaden nuevas.
+  public onSetAdded?: (set: Set) => void;
+  public addedCount = 0;
+  public justAdded = false;
+  public justUpdated = false;
+  private justAddedTimer?: ReturnType<typeof setTimeout>;
 
   private backButtonSubscription: any;
 
@@ -38,6 +47,10 @@ export class ManageSetComponent implements OnInit {
       this.platform.backButton.subscribeWithPriority(9999, () => {
         this.close();
       });
+  }
+
+  public ngOnDestroy(): void {
+    clearTimeout(this.justAddedTimer);
   }
 
   public ionViewWillLeave(): void {
@@ -151,6 +164,18 @@ export class ManageSetComponent implements OnInit {
         this.setForm.get('restSeconds')?.setValue(null, { emitEvent: false });
       }
     });
+  }
+
+  public get isContinuousAdd(): boolean {
+    return this.isTrainerApp && !!this.onSetAdded;
+  }
+
+  public get isEditingExisting(): boolean {
+    return !!this.set?._id;
+  }
+
+  public get canSubmit(): boolean {
+    return !!this.setForm?.valid && !this.isRepsRangeInvalid && !this.isRirRangeInvalid;
   }
 
   public get expectedTimeControl(): FormControl {
@@ -297,6 +322,8 @@ export class ManageSetComponent implements OnInit {
   }
 
   public submit(): void {
+    if (this.isTrainerApp && !this.canSubmit) return;
+
     // Validación: Si rest pause está marcado pero no hay segundos
     if (
       this.setForm.get('restPauseEnabled')?.value &&
@@ -453,6 +480,25 @@ export class ManageSetComponent implements OnInit {
       set.restSeconds = this.setForm.controls.restSecondsEnabled.value
         ? this.setForm.controls.restSeconds.value ?? null
         : null;
+    }
+
+    if (this.isContinuousAdd) {
+      this.onSetAdded(set);
+      this.justUpdated = this.isEditingExisting;
+      if (this.justUpdated) {
+        // La serie editada ya está guardada: lo siguiente es una serie nueva
+        // (sin _id/orden de la editada) con los valores que quedan en pantalla.
+        this.set = undefined;
+      } else {
+        this.addedCount++;
+      }
+      // Los valores se quedan para la siguiente serie; pristine para que
+      // cerrar tras añadir no pregunte por cambios sin guardar.
+      this.setForm.markAsPristine();
+      this.justAdded = true;
+      clearTimeout(this.justAddedTimer);
+      this.justAddedTimer = setTimeout(() => (this.justAdded = false), 1500);
+      return;
     }
 
     this.modalController.dismiss(set);

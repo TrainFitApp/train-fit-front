@@ -2129,6 +2129,7 @@ export class WorkoutComponent implements OnDestroy {
     event.stopPropagation();
     if (
       !this.plannerMode ||
+      this.workout.date ||
       !exercise?.sets?.length ||
       this.quickAddingSetId === exercise._id
     ) {

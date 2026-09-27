@@ -897,6 +897,12 @@
       &:last-child {
         margin-bottom: 0;
       }
+
+      // Alta continua desde "Serie objetivo" (planificador de entrenadores):
+      // la serie recién añadida se marca con el acento y se apaga sola.
+      &.just-added .set-content {
+        animation: set-just-added 1.2s var(--tf-ease-out, ease-out);
+      }
     }
 
     ion-item-divider {
@@ -1714,5 +1720,19 @@ ion-label {
         }
       }
     }
+  }
+}
+
+@keyframes set-just-added {
+  from {
+    background: var(--tf-accent-soft, rgba(254, 144, 0, 0.1));
+    border-color: var(--tf-accent-soft-border, rgba(254, 144, 0, 0.4));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .elegant-list ion-item-group.just-added .set-content {
+    animation: none;
+    border-color: var(--tf-accent-soft-border, rgba(254, 144, 0, 0.4));
   }
 }

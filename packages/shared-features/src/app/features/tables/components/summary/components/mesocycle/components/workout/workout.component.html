@@ -391,7 +391,7 @@
               </tbody>
             </table>
 
-            <button *ngIf="plannerMode && !entry.exercise.exercise?.isCardio && !entry.exercise.exercise?.isIsometric"
+            <button *ngIf="plannerMode && !workout.date && !entry.exercise.exercise?.isCardio && !entry.exercise.exercise?.isIsometric"
               type="button" class="quick-add-set-btn" [disabled]="quickAddingSetId === entry.exercise._id"
               (click)="quickAddSet(entry.exercise, $event)">
               <ion-icon name="add-outline"></ion-icon>

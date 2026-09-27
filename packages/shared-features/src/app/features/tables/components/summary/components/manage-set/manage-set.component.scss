@@ -427,3 +427,76 @@
         }
     }
 }
+
+// Pie de la app de entrenadores (solo se pinta con isTrainerApp, así que los
+// tokens --tf-* existen). Mismo trazo que tf-gradient-button (theme/_buttons.scss
+// de trainers, no importable desde shared): texto oscuro sobre el naranja; el
+// ion-button de antes llevaba whitesmoke sobre #fe9000 (2:1).
+.manage-set-footer-trainer {
+    padding: var(--tf-space-3) var(--tf-space-4) calc(var(--tf-space-4) + env(safe-area-inset-bottom));
+    background: var(--tf-surface-1);
+    border-top: 1px solid var(--tf-border);
+
+    .set-added-status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--tf-space-1);
+        margin: 0 0 var(--tf-space-2);
+        color: var(--tf-text-muted);
+        font-size: var(--tf-font-size-xs);
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+
+        ion-icon {
+            flex-shrink: 0;
+            font-size: 1rem;
+            color: var(--tf-success);
+        }
+    }
+
+    .set-submit-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--tf-space-2);
+        width: 100%;
+        min-height: 48px;
+        padding: 0 var(--tf-space-4);
+        border: none;
+        border-radius: var(--tf-radius-lg);
+        background: var(--tf-accent-gradient);
+        color: var(--tf-accent-contrast);
+        font-family: inherit;
+        font-size: var(--tf-font-size-md);
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+            transform 160ms var(--tf-ease-out),
+            opacity 160ms var(--tf-ease-out),
+            background-color var(--tf-duration-base) var(--tf-ease-out);
+
+        ion-icon {
+            font-size: 1.2rem;
+        }
+
+        &:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        &:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--tf-text);
+            outline-offset: 2px;
+        }
+
+        // Confirmación breve tras añadir: verde de éxito en vez del acento.
+        &.is-added {
+            background: var(--tf-success);
+        }
+    }
+}
