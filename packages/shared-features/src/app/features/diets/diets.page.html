@@ -1,4 +1,4 @@
-<ion-header [class.copy-mode-locked]="copyModeLocked">
+<ion-header [class.copy-mode-locked]="copyModeLocked || isSwitchingMenu">
   <div class="fused-header-section">
     <app-toolbar-calendar
       [load]="load"
@@ -12,12 +12,12 @@
     ></app-toolbar-calendar>
   </div>
   <ion-progress-bar
-    *ngIf="!load || isPasting"
+    *ngIf="!load || isPasting || isSwitchingMenu"
     type="indeterminate"
   ></ion-progress-bar>
 </ion-header>
 
-<ion-content #ionContent class="t-init-diets" [class.content-loading]="!load || isPasting" [class.has-clipboard-bar]="hasActiveClipboard">
+<ion-content #ionContent class="t-init-diets" [class.content-loading]="!load || isPasting || isSwitchingMenu" [class.has-clipboard-bar]="hasActiveClipboard">
   <div class="non-meal-content" [class.copy-mode-locked]="copyModeLocked">
     <!-- Aviso previo de mantenimiento -->
     <app-maintenance-warning-banner
@@ -170,6 +170,7 @@
         (pasteEvent)="paste($event)"
         (copyEvent)="onCopySelection($event)"
         (proposalChosen)="onProposalChosen($event)"
+        (choosingAlternative)="isChoosingAlternative = $event"
       ></app-meal>
     </ion-accordion-group>
   </ion-grid>

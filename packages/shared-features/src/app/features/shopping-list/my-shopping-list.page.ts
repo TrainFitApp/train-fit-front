@@ -2,27 +2,21 @@ import { Component, Injectable, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
+import {
+  ShoppingList,
+  ShoppingListItem,
+  ShoppingMeal,
+  ShoppingMenu,
+  ShoppingSegment,
+  ShoppingSelection,
+  aggregateShopping,
+  alternativeKey,
+  defaultShoppingSelection,
+  shoppingQuantityLabel,
+  unassignedDays,
+} from 'src/app/core/utils/shopping-list.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
-
-export interface ShoppingListItem {
-  name: string;
-  // Siempre en gramos (o ml): es la unidad en la que CustomProduct guarda
-  // las cantidades, no hay conversión que hacer.
-  quantity: number;
-  // En cuántos días del rango aparece. Distingue el pollo de todos los días
-  // del aguacate del domingo, que se compran de forma distinta.
-  dayCount: number;
-}
-
-export interface ShoppingList {
-  items: ShoppingListItem[];
-  // Días del rango que REALMENTE tenían plan. Sin esto, una lista corta
-  // parecería un plan flojo cuando lo que pasa es que solo hay tres días
-  // pautados de los siete pedidos.
-  daysWithPlan: number;
-  period: { from: string; to: string } | null;
-}
 
 @Injectable({ providedIn: 'root' })
 export class MyShoppingListApiService {
@@ -45,9 +39,11 @@ const RANGES = [
 /**
  * Movimiento 5 Coach Pro — qué comprar para cumplir el plan.
  *
- * No hay modelo nuevo detrás: es una lectura distinta de los mismos días de
- * dieta que el cliente ya ve en su calendario, sumados por producto. Se
- * calcula al pedirla y no se guarda, porque el plan cambia.
+ * No hay modelo nuevo detrás: el servidor la calcula del plan (cantidad por
+ * día × días del rango, así que 2 semanas es el doble que 1) y no se guarda,
+ * porque el plan cambia. Como el cliente elige menú cada día y cada comida
+ * puede tener alternativas, aquí reparte los días entre menús y elige la
+ * alternativa; la lista se recalcula en local (shopping-list.util.ts).
  *
  * Marcar lo que ya está en el carro es estado LOCAL de esta pantalla, no del
  * servidor: es una ayuda mientras se recorre el supermercado, no un dato que
@@ -63,6 +59,11 @@ export class MyShoppingListPage implements OnInit {
   public list: ShoppingList | null = null;
   public readonly ranges = RANGES;
   public selectedDays = 7;
+  public segments: ShoppingSegment[] = [];
+  public items: ShoppingListItem[] = [];
+  public selection: ShoppingSelection = {};
+  // Menú que se está repartiendo en cada tramo (planId → nombre).
+  private activeMenus: Record<string, string> = {};
 
   private checked = new Set<string>();
 
@@ -98,6 +99,10 @@ export class MyShoppingListPage implements OnInit {
     this.myShoppingListApi.getMine(from, to).subscribe({
       next: (list) => {
         this.list = list;
+        this.segments = list?.segments || [];
+        this.selection = defaultShoppingSelection(this.segments);
+        this.activeMenus = {};
+        this.items = list?.items || [];
         this.state = 'loaded';
       },
       error: () => {
@@ -107,7 +112,80 @@ export class MyShoppingListPage implements OnInit {
   }
 
   public get isEmpty(): boolean {
-    return this.state === 'loaded' && !this.list?.items?.length;
+    return this.state === 'loaded' && !this.items.length && !this.segments.length;
+  }
+
+  // Solo hay algo que repartir con 2+ menús o alguna comida con 2+
+  // alternativas; con un único menú fijo el bloque sobraría.
+  public get hasChoices(): boolean {
+    return this.segments.some(
+      (segment) => segment.menus.length > 1 || segment.menus.some((menu) => this.mealsWithChoice(menu).length)
+    );
+  }
+
+  public mealsWithChoice(menu: ShoppingMenu): ShoppingMeal[] {
+    return menu.meals.filter((meal) => meal.alternatives.length > 1);
+  }
+
+  public menuDays(segment: ShoppingSegment, menu: ShoppingMenu): number {
+    return this.selection[segment.planId]?.menuDays[menu.name] || 0;
+  }
+
+  public unassigned(segment: ShoppingSegment): number {
+    return unassignedDays(segment, this.selection);
+  }
+
+  // El total del tramo no pasa de sus días: para dar un día a un menú hay
+  // que quitárselo antes a otro.
+  public changeMenuDays(segment: ShoppingSegment, menu: ShoppingMenu, delta: number): void {
+    const menuDays = this.selection[segment.planId]?.menuDays;
+    if (!menuDays) return;
+    const next = (menuDays[menu.name] || 0) + delta;
+    if (next < 0 || (delta > 0 && this.unassigned(segment) <= 0)) return;
+    menuDays[menu.name] = next;
+    this.recompute();
+  }
+
+  public activeMenu(segment: ShoppingSegment): ShoppingMenu | null {
+    const name = this.activeMenus[segment.planId];
+    return segment.menus.find((menu) => menu.name === name) || segment.menus[0] || null;
+  }
+
+  public setActiveMenu(segment: ShoppingSegment, name: string): void {
+    this.activeMenus[segment.planId] = name;
+  }
+
+  // "Menú A 4 d · Menú B 3 d": el reparto entero, ya que el desplegable
+  // solo enseña un menú.
+  public menuSummary(segment: ShoppingSegment): string {
+    return segment.menus.map((menu) => `${menu.name} ${this.menuDays(segment, menu)} d`).join(' · ');
+  }
+
+  public selectedAlternative(segment: ShoppingSegment, menu: ShoppingMenu, meal: ShoppingMeal): number {
+    return this.selection[segment.planId]?.alternatives[alternativeKey(menu, meal)] ?? 0;
+  }
+
+  public selectAlternative(segment: ShoppingSegment, menu: ShoppingMenu, meal: ShoppingMeal, index: number): void {
+    const alternatives = this.selection[segment.planId]?.alternatives;
+    if (!alternatives) return;
+    alternatives[alternativeKey(menu, meal)] = index;
+    this.recompute();
+  }
+
+  public alternativeLabel(label: string, index: number): string {
+    return label || `Opción ${index + 1}`;
+  }
+
+  // Tramo con fechas solo si hay más de uno: con uno solo es el rango pedido.
+  public segmentLabel(segment: ShoppingSegment): string {
+    const fmt = (iso: string) => `${Number(iso.slice(8, 10))}/${Number(iso.slice(5, 7))}`;
+    return `Del ${fmt(segment.from)} al ${fmt(segment.to)}`;
+  }
+
+  // Lo marcado en el carro se conserva: el producto es el mismo, solo cambia
+  // cuánto.
+  private recompute(): void {
+    this.items = aggregateShopping(this.segments, this.selection);
   }
 
   public isChecked(item: ShoppingListItem): boolean {
@@ -120,16 +198,11 @@ export class MyShoppingListPage implements OnInit {
   }
 
   public get checkedCount(): number {
-    return this.checked.size;
+    return this.items.filter((item) => this.checked.has(item.name)).length;
   }
 
-  // Cantidades por encima del kilo en kg: "3400 g de pollo" obliga a hacer
-  // la división mentalmente delante del mostrador.
   public quantityLabel(item: ShoppingListItem): string {
-    if (item.quantity >= 1000) {
-      return `${Math.round(item.quantity / 100) / 10} kg`;
-    }
-    return `${item.quantity} g`;
+    return shoppingQuantityLabel(item.quantity);
   }
 
   public daysLabel(item: ShoppingListItem): string {
@@ -138,6 +211,10 @@ export class MyShoppingListPage implements OnInit {
 
   public trackByName(_index: number, item: ShoppingListItem): string {
     return item.name;
+  }
+
+  public trackByPlan(_index: number, segment: ShoppingSegment): string {
+    return segment.planId;
   }
 
   public trackByDays(_index: number, range: { days: number }): number {

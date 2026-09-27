@@ -26,6 +26,7 @@ import {
 } from '../models/client-detail.model';
 import { CheckinSchedule, CheckinScheduleHistory } from '../components/checkin-workspace/checkin-workspace.model';
 import { PainEntry, PainThreshold } from 'src/app/core/constants/pain';
+import { ShoppingList } from 'src/app/core/utils/shopping-list.util';
 import { ClientNoteDomain, ClientNotesPage, ClientNotesQuery, ClientNotesUnread } from '../models/client-notes.model';
 import {
   ClientBodyProfile,
@@ -257,22 +258,10 @@ export class ClientDetailApiService {
   }
 
   // Movimiento 5 Coach Pro — qué tiene que comprar el cliente para cumplir
-  // el plan de ese rango. Sin modelo nuevo detrás: son los mismos días de
-  // dieta sumados por producto.
-  public getShoppingList(
-    clientId: string,
-    from: string,
-    to: string
-  ): Observable<{
-    items: { name: string; quantity: number; dayCount: number }[];
-    daysWithPlan: number;
-    period: { from: string; to: string } | null;
-  }> {
-    return this.http.get<{
-      items: { name: string; quantity: number; dayCount: number }[];
-      daysWithPlan: number;
-      period: { from: string; to: string } | null;
-    }>(`${this.base(clientId)}/shopping-list?from=${from}&to=${to}`);
+  // el plan de ese rango: menús × días, con sus alternativas. Sin modelo
+  // nuevo detrás: el servidor la calcula del plan al pedirla.
+  public getShoppingList(clientId: string, from: string, to: string): Observable<ShoppingList> {
+    return this.http.get<ShoppingList>(`${this.base(clientId)}/shopping-list?from=${from}&to=${to}`);
   }
 
   // Movimiento 3 Coach Pro — registro diario de dolor del cliente + los

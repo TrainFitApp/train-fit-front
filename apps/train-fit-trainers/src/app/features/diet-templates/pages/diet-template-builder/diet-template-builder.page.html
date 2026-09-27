@@ -4,7 +4,7 @@
   ></app-page-header>
 </ion-header>
 
-<ion-content class="builder-content" [class.has-clipboard]="copyMode" appSubmitOnEnter="saveDiet">
+<ion-content class="builder-content" [class.has-clipboard]="copyMode" [class.has-meal-editor]="mealEditorOpen" appSubmitOnEnter="saveDiet">
   <div class="detail-skeleton" *ngIf="state === 'loading'">
     <div class="skeleton-block" style="height: 60px;"></div>
     <div class="skeleton-block" style="height: 60px;"></div>
@@ -442,7 +442,7 @@
       Añadir menú
     </button>
 
-    <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()" data-enter-submit-action="saveDiet">
+    <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()" data-enter-submit-action="saveDiet">
       <span *ngIf="!isSaving">{{ isPreparingNextWeek ? ('Preparar S' + nextWeekNumber) : (isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla')) }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>

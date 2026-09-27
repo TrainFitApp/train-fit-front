@@ -4,6 +4,18 @@
   display: block;
 }
 
+// Controles compactos: se ven de 28-30px pero siguen tocándose en 44px con
+// una capa invisible (área táctil ≥ 44px).
+@mixin hit-area($vertical: 7px, $horizontal: 0) {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: (-$vertical) (-$horizontal);
+  }
+}
+
 .shopping-panel {
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
@@ -89,14 +101,15 @@
 .range-picker {
   display: inline-flex;
   gap: 2px;
-  padding: 3px;
+  padding: 2px;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-pill);
 }
 
 .range-option {
-  min-height: 44px;
+  @include hit-area(7px);
+  height: 30px;
   padding: 0 var(--tf-space-3);
   background: none;
   border: none;
@@ -190,6 +203,106 @@
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
+}
+
+// --- Menús y alternativas ---
+// Filas de desplegable en vez de tarjetas y chips: un menú a la vez y una
+// fila por comida con alternativas.
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-3);
+}
+
+.segment {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.segment-label {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  color: var(--tf-text-muted);
+}
+
+.choice-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+}
+
+.meal-slot {
+  flex: 0 0 34%;
+  min-width: 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// tf-select (tokens.scss) pone el aspecto; aquí solo el reparto de la fila.
+ion-select.choice-select {
+  flex: 1;
+}
+
+.menu-summary {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: var(--tf-touch-min);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+}
+
+.stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-size: 15px;
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--tf-text-faint);
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.stepper-value {
+  min-width: 30px;
+  text-align: center;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text);
+}
+
+.segment-warning {
+  color: var(--tf-accent-text);
 }
 
 .item {

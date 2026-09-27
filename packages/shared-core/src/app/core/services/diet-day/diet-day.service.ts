@@ -66,6 +66,7 @@ export class DietDayService {
         // macros-bars la lea de aquí, sin otra petición.
         if (response?.dietDay) {
           response.dietDay.plannedTarget = response.plannedTarget ?? null;
+          response.dietDay.week = response.week ?? null;
         }
         return response.dietDay;
       })

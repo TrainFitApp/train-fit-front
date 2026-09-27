@@ -34,41 +34,67 @@
 
   <ng-container *ngIf="state === 'ready' || state === 'loading'">
     <!-- ===== Objetivo de la fase ===== arriba del todo: es el dato que
-         justifica todo lo que hay debajo (ranking incluido). Es un valor de
-         REFERENCIA calculado con los últimos datos del cliente, y es
-         editable: al tocarlo pasa a ser manual y el ranking se rehace
-         contra esos números. -->
+         justifica todo lo que hay debajo (ranking incluido). Se elige de
+         dónde sale: la REFERENCIA calculada con los últimos datos del cliente
+         o el objetivo nutricional que ya tiene. Cada opción enseña sus kcal
+         para compararlas sin alternar; los macros van en los campos de abajo.
+         Los campos son editables: al tocarlos pasa a ser manual (ningún
+         origen marcado) y el ranking se rehace contra esos números. -->
     <section class="target-card" *ngIf="targetDraft as t">
       <div class="target-head">
-        <span class="target-badge">{{ manualTarget ? 'Manual' : 'Valor de referencia calculado' }}</span>
-        <button type="button" class="target-reset" *ngIf="manualTarget" (click)="resetTargetToCalculated()">
-          Volver al calculado
-        </button>
+        <div class="target-toggle" role="group" aria-label="Origen del objetivo de la fase">
+          <button
+            type="button"
+            class="target-toggle__option"
+            [class.is-active]="targetMode === 'calculated'"
+            [attr.aria-pressed]="targetMode === 'calculated'"
+            (click)="selectTargetMode('calculated')"
+          >
+            <span class="target-toggle__label">Referencia calculada</span>
+            <span class="target-toggle__kcal">{{ calculated?.kcal | number: '1.0-0' }} kcal</span>
+          </button>
+          <button
+            type="button"
+            class="target-toggle__option"
+            [class.is-active]="targetMode === 'goal'"
+            [attr.aria-pressed]="targetMode === 'goal'"
+            [disabled]="!currentGoal"
+            (click)="selectTargetMode('goal')"
+          >
+            <span class="target-toggle__label">Objetivo actual</span>
+            <span class="target-toggle__kcal" *ngIf="currentGoal as g; else noGoal">{{ g.kcal | number: '1.0-0' }} kcal</span>
+            <ng-template #noGoal><span class="target-toggle__empty">Sin definir</span></ng-template>
+          </button>
+        </div>
       </div>
       <div class="target-fields">
         <label class="target-field target-field--kcal">
           <span>kcal</span>
           <input type="number" step="10" [(ngModel)]="t.kcal" (ngModelChange)="onTargetEdited()" />
         </label>
-        <label class="target-field">
+        <label class="target-field target-field--protein">
           <span>P (g)</span>
           <input type="number" step="1" [(ngModel)]="t.protein" (ngModelChange)="onTargetEdited()" />
         </label>
-        <label class="target-field">
+        <label class="target-field target-field--carbs">
           <span>C (g)</span>
           <input type="number" step="1" [(ngModel)]="t.carbs" (ngModelChange)="onTargetEdited()" />
         </label>
-        <label class="target-field">
+        <label class="target-field target-field--fat">
           <span>G (g)</span>
           <input type="number" step="1" [(ngModel)]="t.fat" (ngModelChange)="onTargetEdited()" />
         </label>
       </div>
-      <p class="target-source" *ngIf="!manualTarget && weightSource as w">
+      <p class="target-source" *ngIf="targetMode === 'calculated' && weightSource as w">
         Peso {{ w.weightKg | number: '1.0-1' }} kg —
         {{ w.from === 'anthropometry' ? 'de la antropometría del ' + w.date : 'del registro del cliente' }}
       </p>
-      <p class="target-source" *ngIf="manualTarget">
-        Lo has fijado tú: el ranking usa estos números, no los calculados.
+      <p class="target-source" *ngIf="targetMode === 'goal' && currentGoal as g">
+        Objetivo que {{ clientName }} tiene ahora, {{ g.source === 'manual' ? 'fijado a mano' : 'calculado'
+        }}{{ g.updatedAt ? ' el ' + (g.updatedAt | date: 'dd/MM/yyyy') : '' }}.
+      </p>
+      <p class="target-source" *ngIf="targetMode === 'manual'">
+        Lo has fijado tú: el ranking usa estos números. Elige un origen arriba para volver a él.
       </p>
     </section>
 

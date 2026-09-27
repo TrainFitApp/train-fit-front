@@ -56,6 +56,12 @@ export class TrainerNavigationService {
   private arrivedByBack = false;
   private navigatingBack = false;
 
+  // "Volver" sin historial (deep link, F5) sube al padre canónico. Ese padre
+  // SUSTITUYE a la pantalla actual en la pila en vez de apilarse encima: si
+  // no, [constructor] pasaba a [constructor, lista] y el "Volver" de la lista
+  // regresaba al constructor — bucle entre las dos.
+  private replacingCurrent = false;
+
   constructor(private router: Router) {
     this.router.events
       .pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))
@@ -84,6 +90,7 @@ export class TrainerNavigationService {
       .subscribe(() => {
         this.navigatingBack = false;
         this.arrivedByBack = false;
+        this.replacingCurrent = false;
       });
   }
 
@@ -97,9 +104,11 @@ export class TrainerNavigationService {
   }
 
   public back(): void {
-    const target = this.stack[this.stack.length - 2] || this.currentParent;
+    const previous = this.stack[this.stack.length - 2];
+    const target = previous || this.currentParent;
     if (!target) return;
     this.navigatingBack = true;
+    this.replacingCurrent = !previous;
     void this.router.navigateByUrl(target);
   }
 
@@ -123,9 +132,11 @@ export class TrainerNavigationService {
       this.stack = [];
       this.currentParent = null;
       this.navigatingBack = false;
+      this.replacingCurrent = false;
       return;
     }
 
+    if (this.replacingCurrent) this.stack.pop();
     const alreadyVisited = this.stack.lastIndexOf(url);
     if (alreadyVisited >= 0) {
       this.stack.length = alreadyVisited + 1;
@@ -134,6 +145,7 @@ export class TrainerNavigationService {
       this.stack.push(url);
     }
     this.navigatingBack = false;
+    this.replacingCurrent = false;
     this.currentParent = this.resolveParent();
   }
 

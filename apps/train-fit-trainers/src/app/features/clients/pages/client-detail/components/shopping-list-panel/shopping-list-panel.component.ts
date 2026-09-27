@@ -1,13 +1,19 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
+import {
+  ShoppingListItem,
+  ShoppingMeal,
+  ShoppingMenu,
+  ShoppingSegment,
+  ShoppingSelection,
+  aggregateShopping,
+  alternativeKey,
+  defaultShoppingSelection,
+  shoppingQuantityLabel,
+  unassignedDays,
+} from 'src/app/core/utils/shopping-list.util';
 
 type ViewState = 'idle' | 'loading' | 'error' | 'loaded';
-
-interface ShoppingItem {
-  name: string;
-  quantity: number;
-  dayCount: number;
-}
 
 // Los rangos con los que se hace la compra de verdad. Cerrados a propósito:
 // un selector de fechas libre convertiría dos toques en un formulario.
@@ -19,14 +25,16 @@ const RANGES = [
 
 /**
  * Movimiento 5 Coach Pro — lo que el cliente tiene que comprar para cumplir
- * el plan, sumado por producto.
+ * el plan: cantidad por día × días del rango, sumado por producto, con el
+ * mismo reparto de menús y alternativas que ve el cliente
+ * (shopping-list.util.ts).
  *
  * Del lado del entrenador sirve para lo contrario que del lado del cliente:
  * él no va a comprarlo, la usa para comprobar de un vistazo que lo que ha
  * pautado es comprable y razonable ("¿de verdad le estoy mandando 3 kg de
  * pollo a la semana?"). Por eso arranca PLEGADA y no carga nada hasta que se
  * abre: es una comprobación puntual, no algo que se mire cada vez que se
- * entra en la ficha, y su consulta trae los días de dieta poblados enteros.
+ * entra en la ficha.
  */
 @Component({
   selector: 'app-shopping-list-panel',
@@ -38,7 +46,11 @@ export class ShoppingListPanelComponent implements OnChanges {
 
   public state: ViewState = 'idle';
   public expanded = false;
-  public items: ShoppingItem[] = [];
+  public items: ShoppingListItem[] = [];
+  public segments: ShoppingSegment[] = [];
+  public selection: ShoppingSelection = {};
+  // Menú que se está repartiendo en cada tramo (planId → nombre).
+  private activeMenus: Record<string, string> = {};
   public daysWithPlan = 0;
   public readonly ranges = RANGES;
   public selectedDays = 7;
@@ -51,6 +63,7 @@ export class ShoppingListPanelComponent implements OnChanges {
     this.state = 'idle';
     this.expanded = false;
     this.items = [];
+    this.segments = [];
   }
 
   public toggle(): void {
@@ -76,6 +89,9 @@ export class ShoppingListPanelComponent implements OnChanges {
     this.clientDetailApi.getShoppingList(this.clientId, from, to).subscribe({
       next: (list) => {
         this.items = list?.items || [];
+        this.segments = list?.segments || [];
+        this.selection = defaultShoppingSelection(this.segments);
+        this.activeMenus = {};
         this.daysWithPlan = list?.daysWithPlan || 0;
         this.state = 'loaded';
       },
@@ -85,14 +101,83 @@ export class ShoppingListPanelComponent implements OnChanges {
     });
   }
 
-  // Por encima del kilo en kg: "3400 g de pollo" obliga a dividir de cabeza.
-  public quantityLabel(item: ShoppingItem): string {
-    if (item.quantity >= 1000) return `${Math.round(item.quantity / 100) / 10} kg`;
-    return `${item.quantity} g`;
+  // Solo hay algo que repartir con 2+ menús o alguna comida con 2+
+  // alternativas.
+  public get hasChoices(): boolean {
+    return this.segments.some(
+      (segment) => segment.menus.length > 1 || segment.menus.some((menu) => this.mealsWithChoice(menu).length)
+    );
   }
 
-  public trackByName(_index: number, item: ShoppingItem): string {
+  public mealsWithChoice(menu: ShoppingMenu): ShoppingMeal[] {
+    return menu.meals.filter((meal) => meal.alternatives.length > 1);
+  }
+
+  public menuDays(segment: ShoppingSegment, menu: ShoppingMenu): number {
+    return this.selection[segment.planId]?.menuDays[menu.name] || 0;
+  }
+
+  public unassigned(segment: ShoppingSegment): number {
+    return unassignedDays(segment, this.selection);
+  }
+
+  // El total del tramo no pasa de sus días: para dar un día a un menú hay
+  // que quitárselo antes a otro.
+  public changeMenuDays(segment: ShoppingSegment, menu: ShoppingMenu, delta: number): void {
+    const menuDays = this.selection[segment.planId]?.menuDays;
+    if (!menuDays) return;
+    const next = (menuDays[menu.name] || 0) + delta;
+    if (next < 0 || (delta > 0 && this.unassigned(segment) <= 0)) return;
+    menuDays[menu.name] = next;
+    this.items = aggregateShopping(this.segments, this.selection);
+  }
+
+  public activeMenu(segment: ShoppingSegment): ShoppingMenu | null {
+    const name = this.activeMenus[segment.planId];
+    return segment.menus.find((menu) => menu.name === name) || segment.menus[0] || null;
+  }
+
+  public setActiveMenu(segment: ShoppingSegment, name: string): void {
+    this.activeMenus[segment.planId] = name;
+  }
+
+  // "Menú A 4 d · Menú B 3 d": el reparto entero, ya que el desplegable
+  // solo enseña un menú.
+  public menuSummary(segment: ShoppingSegment): string {
+    return segment.menus.map((menu) => `${menu.name} ${this.menuDays(segment, menu)} d`).join(' · ');
+  }
+
+  public selectedAlternative(segment: ShoppingSegment, menu: ShoppingMenu, meal: ShoppingMeal): number {
+    return this.selection[segment.planId]?.alternatives[alternativeKey(menu, meal)] ?? 0;
+  }
+
+  public selectAlternative(segment: ShoppingSegment, menu: ShoppingMenu, meal: ShoppingMeal, index: number): void {
+    const alternatives = this.selection[segment.planId]?.alternatives;
+    if (!alternatives) return;
+    alternatives[alternativeKey(menu, meal)] = index;
+    this.items = aggregateShopping(this.segments, this.selection);
+  }
+
+  public alternativeLabel(label: string, index: number): string {
+    return label || `Opción ${index + 1}`;
+  }
+
+  // Tramo con fechas solo si hay más de uno: con uno solo es el rango pedido.
+  public segmentLabel(segment: ShoppingSegment): string {
+    const fmt = (iso: string) => `${Number(iso.slice(8, 10))}/${Number(iso.slice(5, 7))}`;
+    return `Del ${fmt(segment.from)} al ${fmt(segment.to)}`;
+  }
+
+  public quantityLabel(item: ShoppingListItem): string {
+    return shoppingQuantityLabel(item.quantity);
+  }
+
+  public trackByName(_index: number, item: ShoppingListItem): string {
     return item.name;
+  }
+
+  public trackByPlan(_index: number, segment: ShoppingSegment): string {
+    return segment.planId;
   }
 
   public trackByDays(_index: number, range: { days: number }): number {

@@ -311,6 +311,13 @@ export class ClientDetailPage implements OnInit {
   public complianceSummary: NutritionComplianceSummary | null = null;
   public isRevoking = false;
 
+  // --- Invitar al scope que le falta (botón al final de las subpestañas de Plan) ---
+  // La ficha no tiene el email del cliente: sale de GET /trainer/invites,
+  // que además dice si ya hay una invitación en curso para ese scope.
+  public clientEmail: string | null = null;
+  public missingScopeInvitePending = false;
+  public isSendingScopeInvite = false;
+
   // --- Preferencias nutricionales (F29, transversal a nutrición) ---
   public nutritionPreferences: ClientNutritionPreferences | null = null;
   public isRequestingPreferences = false;
@@ -601,6 +608,7 @@ export class ClientDetailPage implements OnInit {
     this.loadTasks();
     this.loadClientNotesUnread();
     this.loadPreviousRelationCutoff();
+    this.loadMissingScopeInvite();
   }
 
   // TASK-062 (MASTER_BACKLOG.md) — antes, si este cliente había sido
@@ -2890,6 +2898,82 @@ export class ClientDetailPage implements OnInit {
     return table._id;
   }
 
+  // --- Invitar al scope que le falta ---
+  public get missingScope(): ClientScope | null {
+    if (this.scopes.length !== 1) return null;
+    return this.scopes[0] === 'training' ? 'nutrition' : 'training';
+  }
+
+  public get missingScopeLabel(): string {
+    return this.missingScope === 'training' ? 'entrenamiento' : 'nutrición';
+  }
+
+  private loadMissingScopeInvite(): void {
+    this.clientEmail = null;
+    this.missingScopeInvitePending = false;
+    const scope = this.missingScope;
+    if (!scope) return;
+    const clientId = this.clientId;
+    this.trainerInvitesApi.getMyInvites().subscribe({
+      next: (invites) => {
+        if (clientId !== this.clientId) return;
+        const email = invites.find((i) => i.clientId === clientId && i.status === 'active')?.clientEmail;
+        if (!email) return;
+        this.clientEmail = email;
+        this.missingScopeInvitePending = invites.some(
+          (i) =>
+            i.clientEmail === email &&
+            i.scope === scope &&
+            ['pending', 'cuestionario_pendiente', 'en_revision'].includes(i.status)
+        );
+      },
+      // Sin email no hay a quién invitar: el botón simplemente no aparece.
+      error: () => {},
+    });
+  }
+
+  public async confirmInviteMissingScope(): Promise<void> {
+    const scope = this.missingScope;
+    const email = this.clientEmail;
+    if (!scope || !email || this.missingScopeInvitePending) return;
+    const label = this.missingScopeLabel;
+    await this.ionicUtilService.showAlert({
+      header: `Invitar a ${label}`,
+      message: `${this.name} recibirá una invitación para que también lleves su ${label}. Cuando la acepte, aparecerá aquí.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Invitar', handler: () => this.inviteMissingScope(scope, email) },
+      ],
+    });
+  }
+
+  private inviteMissingScope(scope: ClientScope, email: string): void {
+    const label = this.missingScopeLabel;
+    this.isSendingScopeInvite = true;
+    this.trainerInvitesApi.sendInvite(email, [scope]).subscribe({
+      next: (response) => {
+        this.isSendingScopeInvite = false;
+        const result = response.results.find((r) => r.scope === scope);
+        if (!result?.success) {
+          this.ionicUtilService.showErrorToast(result?.error || 'No se pudo enviar la invitación', 'Error', 3000);
+          return;
+        }
+        this.missingScopeInvitePending = true;
+        this.ionicUtilService.showToast({ message: `Invitación de ${label} enviada`, duration: 3000 });
+      },
+      // Con todos los scopes fallidos el backend responde 400 con el mismo
+      // cuerpo `results` (p. ej. el cliente ya lleva ese scope con otro profesional).
+      error: (err) => {
+        this.isSendingScopeInvite = false;
+        this.ionicUtilService.showErrorToast(
+          err?.error?.results?.[0]?.error || err?.error?.message || 'No se pudo enviar la invitación',
+          'Error',
+          3000
+        );
+      },
+    });
+  }
+
   // --- F08: finalizar relación (lado profesional) ---
   public async confirmRevoke(scope: ClientScope): Promise<void> {
     const scopeLabel = scope === 'training' ? 'entrenamiento' : 'nutrición';
@@ -2925,6 +3009,7 @@ export class ClientDetailPage implements OnInit {
         // abierta puede haber dejado de existir, y la sección tiene que
         // moverse con ella.
         this.selectTab(this.scopes[0]);
+        this.loadMissingScopeInvite();
         this.ionicUtilService.showToast({
           message: `Relación de ${
             scope === 'training' ? 'entrenamiento' : 'nutrición'

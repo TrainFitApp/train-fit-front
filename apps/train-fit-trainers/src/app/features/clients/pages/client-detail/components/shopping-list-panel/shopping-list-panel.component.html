@@ -41,19 +41,99 @@
     </div>
 
     <ng-container *ngIf="state === 'loaded'">
-      <div class="panel-empty panel-empty--icon" *ngIf="!items.length">
+      <div class="panel-empty panel-empty--icon" *ngIf="!items.length && !segments.length">
         <ion-icon name="basket-outline" aria-hidden="true"></ion-icon>
         <p>No hay nada pautado en este periodo, así que no hay nada que comprar.</p>
       </div>
 
-      <ng-container *ngIf="items.length">
+      <ng-container *ngIf="items.length || segments.length">
         <p class="panel-hint">
           <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
           <span>
-            Suma de lo que le has pautado en {{ daysWithPlan }} día{{ daysWithPlan === 1 ? '' : 's' }}
-            con plan. Es lo que ve el cliente en su app.
+            Lo de cada día × {{ daysWithPlan }} día{{ daysWithPlan === 1 ? '' : 's' }} con plan. Es lo
+            que ve el cliente en su app, con el mismo reparto de menús y alternativas.
           </span>
         </p>
+
+        <!-- Menús y alternativas: solo si hay algo que elegir. Un menú a la
+             vez (desplegable) y una fila por comida con alternativas. -->
+        <div class="choices" *ngIf="hasChoices">
+          <div class="segment" *ngFor="let segment of segments; trackBy: trackByPlan">
+            <p class="segment-label" *ngIf="segments.length > 1">
+              {{ segmentLabel(segment) }} · {{ segment.days }} día{{ segment.days === 1 ? '' : 's' }}
+            </p>
+
+            <ng-container *ngIf="activeMenu(segment) as menu">
+              <div class="choice-row" *ngIf="segment.menus.length > 1">
+                <ion-select
+                  class="tf-select choice-select"
+                  interface="popover"
+                  toggleIcon="chevron-down-outline"
+                  labelPlacement="stacked"
+                  aria-label="Menú"
+                  [interfaceOptions]="{ animated: false }"
+                  [value]="menu.name"
+                  (ionChange)="setActiveMenu(segment, $event.detail.value)"
+                >
+                  <ion-select-option *ngFor="let option of segment.menus" [value]="option.name">
+                    {{ option.name }}
+                  </ion-select-option>
+                </ion-select>
+
+                <div class="stepper">
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    [disabled]="menuDays(segment, menu) <= 0"
+                    (click)="changeMenuDays(segment, menu, -1)"
+                    [attr.aria-label]="'Un día menos de ' + menu.name"
+                  >
+                    <ion-icon name="remove-outline" aria-hidden="true"></ion-icon>
+                  </button>
+                  <span class="stepper-value">{{ menuDays(segment, menu) }} d</span>
+                  <button
+                    type="button"
+                    class="stepper-btn"
+                    [disabled]="unassigned(segment) <= 0"
+                    (click)="changeMenuDays(segment, menu, 1)"
+                    [attr.aria-label]="'Un día más de ' + menu.name"
+                  >
+                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- El reparto entero de un vistazo, ya que el desplegable solo
+                   enseña un menú. -->
+              <p class="menu-summary" *ngIf="segment.menus.length > 1">
+                {{ menuSummary(segment) }}
+                <span class="segment-warning" *ngIf="unassigned(segment) > 0">
+                  · {{ unassigned(segment) }} sin menú
+                </span>
+              </p>
+
+              <div class="choice-row" *ngFor="let meal of mealsWithChoice(menu)">
+                <span class="meal-slot">{{ meal.slot }}</span>
+                <ion-select
+                  class="tf-select choice-select"
+                  interface="popover"
+                  toggleIcon="chevron-down-outline"
+                  labelPlacement="stacked"
+                  [attr.aria-label]="'Alternativa de ' + meal.slot"
+                  [interfaceOptions]="{ animated: false }"
+                  [value]="selectedAlternative(segment, menu, meal)"
+                  (ionChange)="selectAlternative(segment, menu, meal, $event.detail.value)"
+                >
+                  <ion-select-option *ngFor="let alt of meal.alternatives; let i = index" [value]="i">
+                    {{ alternativeLabel(alt.label, i) }}
+                  </ion-select-option>
+                </ion-select>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+        <p class="panel-empty" *ngIf="!items.length">Con este reparto no hay nada que comprar.</p>
 
         <div class="item" *ngFor="let item of items; trackBy: trackByName">
           <ion-icon class="item-icon" name="nutrition-outline" aria-hidden="true"></ion-icon>

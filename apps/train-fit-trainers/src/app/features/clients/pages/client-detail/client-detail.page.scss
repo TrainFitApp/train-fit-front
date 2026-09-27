@@ -55,11 +55,16 @@
 // tarjetas de adherencia/objetivo activo ocupaban una columna entera para
 // dos datos que ya se ven dentro de cada pestaña — puro hueco vacío en la
 // mayoría de clientes.
+// Sin ion-header (que aplicaba el safe-area superior en global.scss), el
+// padding-top suma env(safe-area-inset-top) aquí. En escritorio env() vale 0.
 .profile-layout {
   padding: var(--tf-space-4);
+  padding-top: calc(var(--tf-space-4) + env(safe-area-inset-top, 0px));
 
   @media (max-width: 760px) {
-    padding: var(--tf-space-3);
+    padding-inline: var(--tf-space-3);
+    padding-bottom: var(--tf-space-3);
+    padding-top: calc(var(--tf-space-3) + env(safe-area-inset-top, 0px));
   }
 }
 
@@ -91,24 +96,27 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: var(--tf-space-3);
-  font-size: var(--tf-font-size-sm);
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-font-size-md);
   color: var(--tf-text-muted);
 }
 
 .breadcrumb-link {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
+  min-height: 44px;
   background: none;
   border: none;
-  padding: 0;
+  padding: 0 var(--tf-space-2) 0 0;
   color: var(--tf-text-muted);
   font-family: inherit;
   font-size: inherit;
+  font-weight: 600;
   cursor: pointer;
 
   ion-icon {
-    font-size: 14px;
+    font-size: 22px;
     margin-right: 2px;
   }
 
@@ -124,10 +132,17 @@
 }
 
 .breadcrumb-sep {
+  flex-shrink: 0;
   color: var(--tf-text-faint);
 }
 
+// Nombre largo en móvil: recorta con puntos suspensivos en vez de romper la
+// línea o desbordar la página.
 .breadcrumb-current {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--tf-text-secondary);
 }
 
@@ -423,6 +438,35 @@
 // Un punto por debajo del texto y en el color tenue: el icono ayuda a
 // localizar la subpestaña de un vistazo, pero la etiqueta es la que manda.
 // En la activa hereda el color del chip, para que no se quede apagado.
+// Invitar al scope que falta: a la derecha del todo y con borde discontinuo,
+// como .next-phase-card--add ("Siguiente fase" / "Programar fase").
+.sub-tab--invite {
+  margin-inline-start: auto;
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--tf-border-strong);
+
+  &:hover:not(:disabled) {
+    color: var(--tf-accent);
+    border-color: var(--tf-accent);
+
+    .sub-tab-icon {
+      color: inherit;
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+    color: var(--tf-text-faint);
+  }
+
+  ion-spinner {
+    width: 20px;
+    height: 20px;
+    color: var(--tf-accent);
+  }
+}
+
 .sub-tab-icon {
   flex-shrink: 0;
   font-size: 16px;

@@ -23,6 +23,14 @@ $clipboard-panel-width: 320px;
       --padding-bottom: 45vh;
     }
   }
+
+  // Editor de comida (.tf-panel-modal, 420px, sin velo): mismo hueco para
+  // poder llegar a las columnas que taparía. En móvil es pantalla completa.
+  &.has-meal-editor {
+    @media (min-width: 768px) {
+      --padding-end: calc(16px + 420px);
+    }
+  }
 }
 
 .detail-skeleton {

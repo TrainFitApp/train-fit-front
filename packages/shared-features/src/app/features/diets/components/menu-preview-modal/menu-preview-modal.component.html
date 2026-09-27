@@ -16,16 +16,30 @@
 
   <section class="menu-preview__meal" *ngFor="let meal of nonEmptyMeals">
     <h3 class="menu-preview__meal-name">{{ meal.name }}</h3>
-    <ul class="menu-preview__items">
-      <li *ngFor="let item of meal.items">
-        <span class="menu-preview__item-name">{{ item.name }}</span>
-        <span class="menu-preview__item-qty" *ngIf="item.quantity !== null">{{ item.quantity }} {{ item.unit }}</span>
-      </li>
-    </ul>
+    <ng-container *ngIf="meal.alternatives?.length; else singleOption">
+      <div class="menu-preview__alt" *ngFor="let alt of meal.alternatives; let i = index">
+        <span class="menu-preview__alt-label">
+          {{ alt.label || ('MEAL.ALTERNATIVE_DEFAULT_LABEL' | translate: { n: i + 1 }) }}
+        </span>
+        <ng-container *ngTemplateOutlet="itemList; context: { items: alt.items }"></ng-container>
+      </div>
+    </ng-container>
+    <ng-template #singleOption>
+      <ng-container *ngTemplateOutlet="itemList; context: { items: meal.items }"></ng-container>
+    </ng-template>
   </section>
 
   <p class="menu-preview__empty" *ngIf="!nonEmptyMeals.length">Este menú no tiene comidas pautadas.</p>
 </ion-content>
+
+<ng-template #itemList let-items="items">
+  <ul class="menu-preview__items">
+    <li *ngFor="let item of items">
+      <span class="menu-preview__item-name">{{ item.name }}</span>
+      <span class="menu-preview__item-qty" *ngIf="item.quantity !== null">{{ item.quantity }} {{ item.unit }}</span>
+    </li>
+  </ul>
+</ng-template>
 
 <ion-footer class="ion-no-border" *ngIf="!isSelected">
   <div class="menu-preview__footer">

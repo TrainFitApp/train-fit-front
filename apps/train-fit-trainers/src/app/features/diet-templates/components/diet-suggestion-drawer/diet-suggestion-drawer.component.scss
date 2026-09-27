@@ -344,7 +344,7 @@
     }
 
     &.is-active {
-      background: var(--tf-accent-soft);
+      background: var(--tf-accent-tint);
       border-color: var(--tf-accent);
       color: var(--tf-accent-text);
     }
@@ -393,26 +393,89 @@
   border: 1px solid var(--tf-border);
   background: var(--tf-surface-2);
 
-  // Objetivo editable: etiqueta de origen + vuelta al calculado.
-.target-badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--tf-surface-2);
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  color: var(--tf-text-muted);
-}
+  // Origen del objetivo: selector EXCLUSIVO de dos opciones, cada una con
+  // sus kcal a la vista para poder compararlas sin alternar. Tocar los
+  // campos de abajo deja las dos sin marcar (objetivo manual). La activa va
+  // en tinte de acento + borde, no sólida: las kcal van en naranja
+  // (--tf-macro-kcal) y no se leerían sobre un relleno naranja.
+  .target-toggle {
+    display: flex;
+    gap: var(--tf-space-1);
+    padding: var(--tf-space-1);
+    border-radius: var(--tf-radius-md);
+    border: 1px solid var(--tf-border);
+    background: var(--tf-surface-1);
+  }
 
-.target-reset {
-  padding: 0;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  color: var(--tf-accent);
-  cursor: pointer;
-}
+  .target-toggle__option {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: var(--tf-touch-min);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: var(--tf-space-1) var(--tf-space-2);
+    border: none;
+    border-radius: var(--tf-radius-sm);
+    background: transparent;
+    font-family: inherit;
+    color: var(--tf-text-secondary);
+    cursor: pointer;
+    transition: background var(--tf-duration-fast) var(--tf-ease-out),
+      color var(--tf-duration-fast) var(--tf-ease-out);
+
+    &:hover:not(:disabled):not(.is-active) {
+      background: var(--tf-surface-3);
+      color: var(--tf-text);
+    }
+
+    &.is-active {
+      background: var(--tf-accent-tint);
+      // Borde por sombra interior: no cambia la caja ni mueve el contenido.
+      box-shadow: inset 0 0 0 1px var(--tf-accent);
+      color: var(--tf-accent-text);
+    }
+
+    // Sin objetivo que ofrecer: atenuado por el color, no por opacidad, para
+    // que el "Sin definir" siga leyéndose (contraste AA sobre la superficie).
+    &:disabled {
+      cursor: not-allowed;
+      color: var(--tf-text-muted);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  // Con poco ancho (~320px) "Referencia calculada" pasa a dos líneas en vez
+  // de cortarse con puntos suspensivos: es lo que distingue a las dos opciones.
+  .target-toggle__label {
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .target-toggle__kcal {
+    font-size: var(--tf-font-size-base);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    color: var(--tf-macro-kcal);
+  }
+
+  .target-toggle__empty {
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+  }
+
+  .target-head {
+    margin-bottom: var(--tf-space-3);
+  }
 
 .target-fields {
   display: flex;
@@ -446,13 +509,25 @@
       font-size: var(--tf-font-size-md);
     }
   }
-}
 
-.target-head {
-    display: flex;
-    flex-direction: column;
-    gap: var(--tf-space-1);
+  // La etiqueta de cada campo lleva el color de su macro, el mismo de las
+  // opciones de arriba: el campo y el número que rellena se leen como uno.
+  &--kcal > span {
+    color: var(--tf-macro-kcal);
   }
+
+  &--protein > span {
+    color: var(--tf-macro-protein);
+  }
+
+  &--carbs > span {
+    color: var(--tf-macro-carbs);
+  }
+
+  &--fat > span {
+    color: var(--tf-macro-fat);
+  }
+}
 
   .target-kcal {
     font-size: 1.35rem;

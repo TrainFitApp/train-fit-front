@@ -2,10 +2,11 @@ import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { DietDay } from 'src/app/core/models/dietDay';
+import { DietDay, DietWeek, PlannedTarget } from 'src/app/core/models/dietDay';
 import { User } from 'src/app/core/models/user';
 import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
@@ -33,10 +34,24 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   public activeGoal: NutritionalGoal | null = null;
   public goals: NutritionalGoal[] = [];
 
-  public get kcalTotal(): number | null { return this.activeGoal?.kcalTotal ?? null; }
-  public get proteinsGTotal(): number | null { return this.activeGoal?.proteinsGTotal ?? null; }
-  public get carbohydratesGTotal(): number | null { return this.activeGoal?.carbohydratesGTotal ?? null; }
-  public get fatGTotal(): number | null { return this.activeGoal?.fatGTotal ?? null; }
+  // Con fase del entrenador, la meta es lo PAUTADO ese día (mismo criterio
+  // que macros-bars) y se presenta como objetivo de la semana en curso; sin
+  // fase, el objetivo nutricional elegido por el cliente.
+  public get weekPlan(): DietWeek | null {
+    return this.dietDay?.plannedTarget && this.dietDay?.week ? this.dietDay.week ?? null : null;
+  }
+  private get planned(): PlannedTarget | null {
+    return this.weekPlan ? this.dietDay.plannedTarget ?? null : null;
+  }
+  public get kcalTotal(): number | null { return this.planned?.kcal ?? this.activeGoal?.kcalTotal ?? null; }
+  public get proteinsGTotal(): number | null { return this.planned?.protein ?? this.activeGoal?.proteinsGTotal ?? null; }
+  public get carbohydratesGTotal(): number | null { return this.planned?.carbs ?? this.activeGoal?.carbohydratesGTotal ?? null; }
+  public get fatGTotal(): number | null { return this.planned?.fat ?? this.activeGoal?.fatGTotal ?? null; }
+  public get hasTarget(): boolean { return !!this.weekPlan || !!this.activeGoal; }
+  // Con un profesional que lleva su nutrición el objetivo es el que él pauta:
+  // se muestra fijo, sin selector.
+  public get readOnly(): boolean { return this.coachService.hasNutritionCoach(); }
+  public weekRangeLabel = '';
 
   private navCtrl = inject(NavController);
   private dietDayService = inject(DietDayService);
@@ -44,6 +59,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   private recipeService = inject(RecipeService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
+  private coachService = inject(CoachService);
   private translate = inject(TranslateService);
   private dietDaySub?: Subscription;
 
@@ -113,9 +129,8 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
       if (!this.dietDay && day) {
         this.dietDay = day;
       }
-      this.calculateNutritionalData();
-      this.buildNutrientArrays();
-      this.updateCalorieText();
+      this.weekRangeLabel = this.formatWeekRange(this.weekPlan);
+      this.afterGoalReady();
     });
 
     this.initializeGoals();
@@ -165,6 +180,23 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
     this.calculateNutritionalData();
     this.buildNutrientArrays();
     this.updateCalorieText();
+  }
+
+  // "22–28 sept" o, si cruza de mes, "29 sept – 5 oct".
+  private formatWeekRange(week: DietWeek | null): string {
+    if (!week) return '';
+    const lang = this.translate.currentLang || 'es';
+    const toDate = (iso: string) => {
+      const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+      return new Date(y, m - 1, d);
+    };
+    const start = toDate(week.start);
+    const end = toDate(week.end);
+    const month = (date: Date) => date.toLocaleDateString(lang, { month: 'short' });
+    if (start.getMonth() === end.getMonth()) {
+      return `${start.getDate()}–${end.getDate()} ${month(end)}`;
+    }
+    return `${start.getDate()} ${month(start)} – ${end.getDate()} ${month(end)}`;
   }
 
   ngOnDestroy(): void {
@@ -408,6 +440,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   }
 
   public onGoalChange(event: any): void {
+    if (this.readOnly) return;
     this.isLoading = true;
     const goalId = event.detail.value;
     const goal = this.goals.find((g) => g._id === goalId);

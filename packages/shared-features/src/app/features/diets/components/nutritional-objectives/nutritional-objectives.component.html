@@ -17,8 +17,33 @@
 <ion-progress-bar *ngIf="isLoading" type="indeterminate"></ion-progress-bar>
 
 <ion-content>
+    <!-- Objetivos de la semana (fase pautada por el entrenador) -->
+    <div class="goal-selector" *ngIf="weekPlan as week; else goalSelector">
+        <div class="goal-trigger">
+            <span class="trigger-title">{{ 'NUTRITIONAL_OBJECTIVES.WEEK_GOALS' | translate: { number: week.number } }}</span>
+            <div class="trigger-right">
+                <ion-icon name="calendar-outline" class="trigger-chevron" aria-hidden="true"></ion-icon>
+                <span class="trigger-value">{{ weekRangeLabel }}</span>
+            </div>
+        </div>
+    </div>
+
+    <ng-template #goalSelector>
+    <!-- Objetivo pautado por el profesional que lleva su nutrición: fijo -->
+    <div class="goal-selector" *ngIf="readOnly && activeGoal; else goalPicker">
+        <div class="goal-trigger">
+            <span class="trigger-title">{{ 'NUTRITIONAL_OBJECTIVES.PRESCRIBED_GOAL' | translate }}</span>
+            <div class="trigger-right">
+                <span class="trigger-value">{{ activeGoal.name }}</span>
+                <ion-icon name="lock-closed-outline" class="trigger-chevron" aria-hidden="true"></ion-icon>
+            </div>
+        </div>
+    </div>
+    </ng-template>
+
     <!-- Goal Selector -->
-    <div class="goal-selector" *ngIf="goals.length >= 1">
+    <ng-template #goalPicker>
+    <div class="goal-selector" *ngIf="!readOnly && goals.length >= 1">
         <div class="select-wrapper">
             <button type="button" class="goal-trigger">
                 <span class="trigger-title">{{ 'NUTRITIONAL_OBJECTIVES.GOAL' | translate }}</span>
@@ -41,9 +66,10 @@
             </ion-select>
         </div>
     </div>
+    </ng-template>
 
     <!-- Calorías Hero -->
-    <div class="calories-hero" *ngIf="activeGoal" [ngClass]="getProgressClass(nutritionalData.energyKcal, kcalTotal, 'limit')">
+    <div class="calories-hero" *ngIf="hasTarget" [ngClass]="getProgressClass(nutritionalData.energyKcal, kcalTotal, 'limit')">
         <div class="calories-hero-content">
             <div class="calories-label">{{ 'NUTRITIONAL_OBJECTIVES.DAILY_CALORIES' | translate }}</div>
             <div class="calories-display">
@@ -65,7 +91,7 @@
     </div>
 
     <!-- Macronutrientes Grid (6 cards) -->
-    <div class="section" *ngIf="activeGoal">
+    <div class="section" *ngIf="hasTarget">
         <div class="section-header">
             <h3 class="section-title">
                 <ion-icon name="nutrition-outline" color="primary"></ion-icon>

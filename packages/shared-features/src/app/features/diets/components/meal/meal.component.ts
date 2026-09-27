@@ -80,6 +80,9 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   public copyEvent = new EventEmitter();
   @Output()
   public proposalChosen = new EventEmitter<{ proposalId: string; chosenIndex: number }>();
+  // Avisa a la página para que bloquee la pantalla mientras cambia la opción.
+  @Output()
+  public choosingAlternative = new EventEmitter<boolean>();
 
   @ViewChild('mealAccordion', { read: ElementRef })
   public mealAccordion!: ElementRef<HTMLIonAccordionElement>;
@@ -1121,6 +1124,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     this.isChoosingProposal = true;
+    this.choosingAlternative.emit(true);
     this.mealProposalApiService.choose(this.dietDay.date, proposal._id, index).subscribe({
       next: (updatedMeal) => {
         this.isChoosingProposal = false;
@@ -1131,6 +1135,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
         this.getMealInfo();
         proposal.chosenIndex = index;
         this.proposalChosen.emit({ proposalId: proposal._id, chosenIndex: index });
+        this.choosingAlternative.emit(false);
         this.ionicUtilService.showToast({
           message: this.translate.instant('MEAL.ALTERNATIVE_CHANGED', {
             label:
@@ -1143,6 +1148,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
       },
       error: (err) => {
         this.isChoosingProposal = false;
+        this.choosingAlternative.emit(false);
         this.ionicUtilService.showErrorToast(
           err?.error?.message || this.translate.instant('MEAL.ALTERNATIVE_CHOOSE_ERROR'),
           this.translate.instant('COMMON.ERROR'),

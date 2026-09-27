@@ -10,6 +10,7 @@ import { DietSuggestionApiService } from '../../services/diet-suggestion-api.ser
 import {
   DietaryFlag,
   DietSource,
+  DietSuggestionResponse,
   MacroSet,
   RankedTemplate,
 } from '../../models/diet-suggestion.model';
@@ -26,10 +27,16 @@ const DIETARY_FLAGS: { key: DietaryFlag; label: string; icon: string; colorClass
 
 type ViewState = 'loading' | 'missing-biometrics' | 'ready' | 'error';
 
+// De dónde salen los números con los que se pauta: la referencia calculada
+// con los datos del cliente, el objetivo nutricional que ya tiene, o lo que el
+// entrenador ha tecleado encima de cualquiera de los dos.
+type TargetMode = 'calculated' | 'goal' | 'manual';
+
 // Sugerencias de dieta — el panel DERECHO al empezar una fase: el objetivo
-// de REFERENCIA calculado con los últimos datos del cliente (editable: si el
-// entrenador teclea encima, pasa a ser manual y el ranking se hace contra
-// sus números), las restricciones y la sugerencia principal + CTA.
+// de REFERENCIA calculado con los últimos datos del cliente, alternable con el
+// objetivo nutricional que el cliente ya tiene (editable: si el entrenador
+// teclea encima, pasa a ser manual y el ranking se hace contra sus números),
+// las restricciones y la sugerencia principal + CTA.
 //
 // Ya no hay "tipo de fase" ni "ajuste de kcal": lo que importa es con qué
 // números se pauta, no de qué preset salieron. La fase empieza HOY; sus
@@ -57,11 +64,11 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
 
   // --- Filtros ---
   public phaseName = 'Nueva fase';
-  // El objetivo con el que se va a pautar: arranca en el calculado y el
-  // entrenador puede teclear encima (entonces `manualTarget` = true y la
-  // etiqueta deja de decir "calculado").
+  // El objetivo con el que se va a pautar: arranca en el calculado, se puede
+  // alternar con el objetivo actual del cliente y el entrenador puede teclear
+  // encima de cualquiera (entonces `targetMode` = 'manual').
   public targetDraft: { kcal: number; protein: number; carbs: number; fat: number } | null = null;
-  public manualTarget = false;
+  public targetMode: TargetMode = 'calculated';
   public readonly dietaryFlagOptions = DIETARY_FLAGS;
   public dietaryFlags = new Set<DietaryFlag>();
 
@@ -133,20 +140,22 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
 
   // --- Filtros ---
 
-  // Teclear encima del valor calculado: el ranking pasa a hacerse contra
-  // estos números y el objetivo queda marcado como manual.
+  // Teclear encima del objetivo: el ranking pasa a hacerse contra estos
+  // números y el objetivo queda marcado como manual.
   public onTargetEdited(): void {
-    this.manualTarget = true;
+    this.targetMode = 'manual';
     this.userTouchedFilters = true;
     this.queueRefetch();
   }
 
-  // Volver al calculado con los datos del cliente.
-  public resetTargetToCalculated(): void {
-    const calculated = this.session.results?.calculated;
-    if (!calculated) return;
-    this.manualTarget = false;
-    this.targetDraft = { ...calculated };
+  // Alternar entre la referencia calculada con los datos del cliente y el
+  // objetivo nutricional que ya tiene. También sirve para volver a uno de los
+  // dos tras teclear encima.
+  public selectTargetMode(mode: 'calculated' | 'goal'): void {
+    const source = mode === 'goal' ? this.currentGoal : this.session.results?.calculated;
+    if (!source || this.targetMode === mode) return;
+    this.targetMode = mode;
+    this.targetDraft = { kcal: source.kcal, protein: source.protein, carbs: source.carbs, fat: source.fat };
     this.queueRefetch();
   }
 
@@ -201,7 +210,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     this.fetchSub?.unsubscribe();
     this.fetchSub = this.suggestionApi
       .suggest(this.clientId, {
-        ...(this.manualTarget && this.targetDraft?.kcal ? { target: this.targetDraft } : {}),
+        ...(this.targetMode !== 'calculated' && this.targetDraft?.kcal ? { target: this.targetDraft } : {}),
         dietaryFlags: [...this.dietaryFlags],
         sources: [...this.sources],
         ...(this.userTouchedMacroRatio && this.proteinPerKg ? { proteinPerKg: this.proteinPerKg } : {}),
@@ -223,7 +232,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
               return;
             }
           }
-          if (!this.manualTarget) this.targetDraft = { ...res.calculated };
+          if (this.targetMode === 'calculated') this.targetDraft = { ...res.calculated };
           this.session.setResults(res);
           this.session.setLoading(false);
           this.loading = false;
@@ -251,6 +260,14 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
 
   public get target(): { kcal: number; protein: number; carbs: number; fat: number } | null {
     return this.session.results?.target ?? null;
+  }
+
+  public get calculated(): { kcal: number; protein: number; carbs: number; fat: number } | null {
+    return this.session.results?.calculated ?? null;
+  }
+
+  public get currentGoal(): DietSuggestionResponse['currentGoal'] {
+    return this.session.results?.currentGoal ?? null;
   }
 
   public get weightSource(): { weightKg: number; from: string; date?: string } | null {
@@ -310,7 +327,9 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
           protein: Math.round(t.protein),
           carbs: Math.round(t.carbs),
           fat: Math.round(t.fat),
-          source: this.manualTarget ? ('manual' as const) : ('calculated' as const),
+          // El objetivo actual del cliente no lo calculó la fórmula para esta
+          // fase: cuenta como fijado, igual que lo tecleado encima.
+          source: this.targetMode === 'calculated' ? ('calculated' as const) : ('manual' as const),
         },
         // Solo si el entrenador los tocó: sin tocar, el backend aplica su
         // fórmula por defecto (misma que rellena estos campos) y así el

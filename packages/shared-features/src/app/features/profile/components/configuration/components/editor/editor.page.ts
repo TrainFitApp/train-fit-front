@@ -5,6 +5,7 @@ import { TranslateService } from "@ngx-translate/core";
 import { Subscription, merge } from "rxjs";
 import { User } from "src/app/core/models/user";
 import { NutritionalGoal } from "src/app/core/models/nutritional-goal";
+import { CoachService } from "src/app/core/services/coach/coach.service";
 import { NutritionalGoalService } from "src/app/core/services/nutritional-goal/nutritional-goal.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
@@ -92,6 +93,7 @@ export class EditorPage implements OnInit {
     private ionicUtilService: IonicUtilService,
     private platform: Platform,
     private translate: TranslateService,
+    private coachService: CoachService,
   ) {}
 
   public get activityType(): ACTIVITY_FACTOR_TYPE {
@@ -346,6 +348,9 @@ export class EditorPage implements OnInit {
   }
 
   private syncActiveGoal(kcalTotal: number, proteins: number, carbs: number, fat: number): void {
+    // El objetivo lo pauta el profesional que lleva su nutrición: cambiar el
+    // perfil no debe pisarlo.
+    if (this.coachService.hasNutritionCoach()) return;
     if (this.user.goalInUse) {
       this.nutritionalGoalService.update(this.user.goalInUse, {
         kcalTotal, proteinsGTotal: proteins, carbohydratesGTotal: carbs, fatGTotal: fat,

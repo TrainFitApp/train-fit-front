@@ -1813,6 +1813,8 @@
     "FAT": "G",
     "EMPTY": "No goals yet. Tap + to start.",
     "IN_USE": "In use",
+    "PRESCRIBED": "Prescribed",
+    "READ_ONLY_HINT": "Your coach sets your nutritional goals. You can only view them.",
     "DELETE_HEADER": "Delete Goal",
     "DELETE_MSG": "Delete \"{{name}}\"?",
     "REQUIRED_FIELDS": "Missing required fields",
@@ -1824,6 +1826,8 @@
   },
   "NUTRITIONAL_OBJECTIVES": {
     "TITLE": "Detailed Information",
+    "WEEK_GOALS": "Week {{number}} goals",
+    "PRESCRIBED_GOAL": "Prescribed goal",
     "DAILY_CALORIES": "Daily Calories",
     "KCAL_REMAINING_PREFIX": "",
     "KCAL_REMAINING_SUFFIX": "kcal remaining to reach your goal",

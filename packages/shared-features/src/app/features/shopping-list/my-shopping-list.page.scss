@@ -14,26 +14,39 @@
   --padding-bottom: 32px;
 }
 
+// Controles compactos: se ven de 30-32px pero siguen tocándose en 44px con
+// una capa invisible (PRODUCT.md, táctil primero).
+@mixin hit-area($vertical: 7px, $horizontal: 0) {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: (-$vertical) (-$horizontal);
+  }
+}
+
 // --- Rango ---
 .range-picker {
   display: inline-flex;
   gap: 2px;
-  margin-bottom: 14px;
-  padding: 3px;
+  margin-bottom: 12px;
+  padding: 2px;
   background: #1a1a1a;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
 }
 
 .range-option {
-  min-height: 44px;
-  padding: 0 14px;
+  @include hit-area(7px);
+  height: 30px;
+  padding: 0 12px;
   background: none;
   border: none;
   border-radius: 999px;
   color: #9a9a9a;
   font-family: inherit;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 160ms ease, color 160ms ease;
@@ -47,6 +60,128 @@
     outline: 2px solid #fe9000;
     outline-offset: 2px;
   }
+}
+
+// --- Menús y alternativas ---
+// Filas de desplegable en vez de tarjetas y chips: un menú a la vez y una
+// fila por comida con alternativas.
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.segment {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.segment + .segment {
+  margin-top: 6px;
+}
+
+.segment-label {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9a9a9a;
+}
+
+.choice-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meal-slot {
+  flex: 0 0 34%;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: #9a9a9a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Sobre el ion-select de global.scss (46px, icono oculto): más bajo, con el
+// chevron de vuelta, como .unit-select-elegant de add-product.
+ion-select.choice-select {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  --padding-start: 12px;
+  --padding-end: 34px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &::part(icon) {
+    display: block;
+    position: absolute;
+    right: 10px;
+    width: 16px;
+    height: 16px;
+    color: #9a9a9a;
+    opacity: 1;
+  }
+}
+
+.menu-summary {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #6b6b6b;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ion-color-step-200, #252525);
+  border-radius: 12px;
+}
+
+.stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 42px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+
+  &:disabled {
+    color: #3f3f3f;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: -2px;
+  }
+}
+
+.stepper-value {
+  min-width: 34px;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+}
+
+.segment-warning {
+  color: #fe9b1a;
 }
 
 .list-progress {
