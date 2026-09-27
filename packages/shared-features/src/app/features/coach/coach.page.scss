@@ -228,6 +228,12 @@
   }
 }
 
+// El heading de dentro pierde su margin-bottom (arriba): sin esto, la
+// tarjeta de "Hábitos de hoy" queda pegada a la primera fila.
+#section-tasks .section-header-row {
+  margin-bottom: 8px;
+}
+
 .section-header-actions {
   display: flex;
   align-items: center;
@@ -623,7 +629,8 @@
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
+  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out),
+    background-color 240ms var(--ease-out), border-color 240ms var(--ease-out);
 
   &:active {
     transform: scale(0.98);
@@ -650,6 +657,21 @@
 
 .task-row--done .task-check {
   color: #2dd36f;
+}
+
+.tasks-card--done {
+  .section-heading {
+    color: #2dd36f;
+  }
+
+  .task-row {
+    background: rgba(45, 211, 111, 0.1);
+    border-color: rgba(45, 211, 111, 0.35);
+  }
+
+  .task-row--done .action-title {
+    color: #2dd36f;
+  }
 }
 
 .plan-card {

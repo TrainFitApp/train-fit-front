@@ -1033,14 +1033,6 @@
                   </p>
                 </div>
               </ng-container>
-
-              <button
-                class="danger-link"
-                (click)="confirmRevoke('training')"
-                [disabled]="isRevoking"
-              >
-                Finalizar relación de entrenamiento
-              </button>
             </div>
           </div>
         </ng-container>
@@ -1095,7 +1087,7 @@
        Las fotos siguen pidiendo scope (entrenamiento y/o nutrición); la
        agenda de check-ins no, como cuando era pestaña propia. === -->
       <div class="tab-panel" *ngIf="activeTab === 'measurements'">
-        <app-checkin-workspace [clientId]="clientId" [templateToSchedule]="checkinTemplateToOpen"></app-checkin-workspace>
+        <app-checkin-workspace [clientId]="clientId" [templateToSchedule]="checkinTemplateToOpen" (openHistory)="openCheckinSchedulesPanel(true)"></app-checkin-workspace>
 
         <ng-container *ngIf="scopes.includes('training') || scopes.includes('nutrition')">
           <!-- Fotos de progreso — mock: todavía sin subida real, placeholder
@@ -2146,14 +2138,6 @@
                   ></app-nutrition-history-feed>
                 </ng-container>
               </ng-container>
-
-              <button
-                class="danger-link"
-                (click)="confirmRevoke('nutrition')"
-                [disabled]="isRevoking"
-              >
-                Finalizar relación de nutrición
-              </button>
             </div>
           </div>
         </ng-container>
@@ -2618,6 +2602,64 @@
             </div>
           </div>
         </ng-container>
+      </div>
+
+      <!-- === RELACIÓN (Gestión) ===
+           Vivía al final de Plan > Entrenamiento y Plan > Nutrición; es
+           administración de la relación, no parte del plan. -->
+      <div class="tab-panel" *ngIf="activeTab === 'relation'">
+        <div class="section-row">
+          <h2 class="section-heading">Servicios que llevas</h2>
+        </div>
+
+        <ul class="relation-list">
+          <li class="relation-row" *ngIf="scopes.includes('training')">
+            <span class="relation-icon" aria-hidden="true">
+              <ion-icon name="barbell-outline"></ion-icon>
+            </span>
+            <div class="relation-text">
+              <span class="relation-title">Entrenamiento</span>
+              <span class="relation-meta" *ngIf="trainingState === 'loaded'">{{
+                currentRoutinePhase?.tableName || 'Sin rutina en curso'
+              }}</span>
+            </div>
+            <button
+              type="button"
+              class="relation-end-button"
+              aria-label="Finalizar relación de entrenamiento"
+              (click)="confirmRevoke('training')"
+              [disabled]="isRevoking"
+            >
+              Finalizar
+            </button>
+          </li>
+          <li class="relation-row" *ngIf="scopes.includes('nutrition')">
+            <span class="relation-icon" aria-hidden="true">
+              <ion-icon name="nutrition-outline"></ion-icon>
+            </span>
+            <div class="relation-text">
+              <span class="relation-title">Nutrición</span>
+              <span class="relation-meta" *ngIf="nutritionState === 'loaded'">{{
+                activePhase?.phaseName || activePhase?.planName || 'Sin fase en curso'
+              }}</span>
+            </div>
+            <button
+              type="button"
+              class="relation-end-button"
+              aria-label="Finalizar relación de nutrición"
+              (click)="confirmRevoke('nutrition')"
+              [disabled]="isRevoking"
+            >
+              Finalizar
+            </button>
+          </li>
+        </ul>
+
+        <p class="relation-note">
+          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+          Finalizar es inmediato y no se puede deshacer. Para volver a llevar
+          ese servicio tendrás que invitarle de nuevo.
+        </p>
       </div>
 
       <!-- === DOLOR (Movimiento 3, subpestaña propia desde el Movimiento final) === -->

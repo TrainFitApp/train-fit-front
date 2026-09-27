@@ -7,13 +7,23 @@
         <div class="workout-row">
           <div class="workout-info">
             <div class="workout-title">
-              <h2>
-                {{ currentWorkout?.name | translateDb }}
-                <span class="microcycle-separator">–</span>
-                <span class="microcycle-badge" *ngIf="currentSplitIndex !== undefined">
-                  {{ 'TABLES.MICROCYCLE' | translate }} {{ currentSplitIndex + 1 }}
-                </span>
-              </h2>
+              <!-- 2026-09 — aviso del entrenador para este día: junto al nombre,
+                   visible todo el entreno sin ocupar espacio. -->
+              <div class="workout-title-row">
+                <h2>
+                  {{ currentWorkout?.name | translateDb }}
+                  <span class="microcycle-separator">–</span>
+                  <span class="microcycle-badge" *ngIf="currentSplitIndex !== undefined">
+                    {{ 'TABLES.MICROCYCLE' | translate }} {{ currentSplitIndex + 1 }}
+                  </span>
+                </h2>
+                <app-trainer-note-dot
+                  *ngIf="hasTrainer"
+                  kind="workout"
+                  [subject]="currentWorkout?.name"
+                  [notes]="currentWorkout?.notes"
+                ></app-trainer-note-dot>
+              </div>
               <div class="workout-chrono" *ngIf="currentWorkout?.startedAt">
                 <span class="chrono-value">{{ elapsedLabel }}</span>
               </div>
@@ -107,23 +117,53 @@
     <ion-label color="medium">{{ 'TABLES.NO_EXERCISES' | translate }}</ion-label>
   </ion-item>
 
-  <app-notes
-    *ngIf="previousWorkout?.notes"
-    [object]="previousWorkout"
-    [notes]="previousWorkout.notes"
-    [type]="'NOTES.PREVIOUS_SESSION_NOTE' | translate"
-    [isPrevious]="true"
-    [canDelete]="false"
-    [canModify]="false"
-  ></app-notes>
+  <!-- 2026-09 — con entrenador, su nota es el círculo de la cabecera (abre
+       TrainerNoteSheet) y aquí solo va lo del cliente, en clientNotes.
+       Sin entrenador, las notas de siempre. -->
+  <ng-container *ngIf="hasTrainer; else ownWorkoutNotes">
+    <app-notes
+      *ngIf="previousWorkout?.clientNotes"
+      [object]="previousWorkout"
+      [notes]="previousWorkout.clientNotes"
+      [type]="'NOTES.YOUR_PREVIOUS_NOTE' | translate"
+      [isPrevious]="true"
+      [canDelete]="false"
+      [canModify]="false"
+    ></app-notes>
 
-  <app-notes
-    *ngIf="currentWorkout?.notes"
-    [object]="currentWorkout"
-    [notes]="currentWorkout.notes"
-    [detail]="true"
-    (update)="updateWorkoutNote($event)"
-  ></app-notes>
+    <button
+      *ngIf="currentWorkout?.clientNotes"
+      type="button"
+      class="client-workout-note"
+      (click)="manageNote()"
+    >
+      <span class="client-workout-note-author">
+        <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+        {{ 'NOTES.YOUR_NOTE' | translate }}
+      </span>
+      <span class="client-workout-note-body">{{ currentWorkout.clientNotes }}</span>
+    </button>
+  </ng-container>
+
+  <ng-template #ownWorkoutNotes>
+    <app-notes
+      *ngIf="previousWorkout?.notes"
+      [object]="previousWorkout"
+      [notes]="previousWorkout.notes"
+      [type]="'NOTES.PREVIOUS_SESSION_NOTE' | translate"
+      [isPrevious]="true"
+      [canDelete]="false"
+      [canModify]="false"
+    ></app-notes>
+
+    <app-notes
+      *ngIf="currentWorkout?.notes"
+      [object]="currentWorkout"
+      [notes]="currentWorkout.notes"
+      [detail]="true"
+      (update)="updateWorkoutNote($event)"
+    ></app-notes>
+  </ng-template>
 
   <ng-container *ngIf="currentWorkout">
     <ion-reorder-group
@@ -166,6 +206,18 @@
                 [src]="(exercise?.exercise.gifUrl ? exercise?.exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT) | safe"
                 (click)="navigateYTVideo(exercise.exercise.videoUrl, exercise); $event.stopPropagation()"
               />
+              <!-- 2026-09 — aviso del entrenador (nota de esta sesión o
+                   anclada) en la esquina de la miniatura: se ve con el
+                   ejercicio cerrado. -->
+              <app-trainer-note-dot
+                *ngIf="!reorderExercisesMode"
+                class="thumbnail-note-dot"
+                size="sm"
+                kind="exercise"
+                [subject]="exercise.exercise?.name"
+                [notes]="hasTrainer ? exercise.notes : null"
+                [pinned]="trainerPinnedNotes.get(i)"
+              ></app-trainer-note-dot>
             </div>
 
             <div class="premium-exercise-info">

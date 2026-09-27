@@ -79,10 +79,20 @@
             </span>
             <ion-icon name="chevron-forward-outline" class="continue-card__arrow"></ion-icon>
           </button>
+          <!-- 2026-09 — aviso del entrenador para hoy, en la esquina de la
+               tarjeta: se ve antes de entrar al entreno. -->
+          <app-trainer-note-dot
+            *ngIf="hasTrainer"
+            class="continue-card__note-dot"
+            kind="workout"
+            [subject]="workout.name"
+            [notes]="workout.notes"
+          ></app-trainer-note-dot>
 
           <div class="workout-summary" *ngIf="isWorkoutSummaryExpanded" (click)="$event.stopPropagation()">
+            <!-- Con entrenador, su nota es el círculo de la tarjeta de arriba. -->
             <app-notes
-              *ngIf="workout.notes"
+              *ngIf="workout.notes && !hasTrainer"
               [notes]="workout.notes"
               [object]="workout"
               type="{{ 'TABLES.WORKOUT_NOTE_TYPE' | translate }}"
@@ -96,17 +106,25 @@
                 </span>
                 <span class="workout-summary__exercise-icons">
                   <ion-icon
-                    *ngIf="getExercisePinnedNote(i)"
+                    *ngIf="getExercisePinnedNote(i) && !getTrainerPinnedNote(i)"
                     name="pin"
                     color="alternative"
                     (click)="showPinnedNoteAlert(i); $event.stopPropagation()"
                   ></ion-icon>
                   <ion-icon
-                    *ngIf="exercise.notes"
+                    *ngIf="exercise.notes && !hasTrainer"
                     name="create-outline"
                     color="primary"
                     (click)="showExerciseNoteAlert(exercise); $event.stopPropagation()"
                   ></ion-icon>
+                  <!-- Lo del entrenador (nota de la sesión o anclada), en un solo aviso. -->
+                  <app-trainer-note-dot
+                    size="sm"
+                    kind="exercise"
+                    [subject]="exercise.exercise?.name"
+                    [notes]="hasTrainer ? exercise.notes : null"
+                    [pinned]="getTrainerPinnedNote(i)"
+                  ></app-trainer-note-dot>
                 </span>
                 <span class="workout-summary__exercise-sets">
                   {{ getExerciseCompletedSets(exercise) }}/{{ exercise.sets.length }}
@@ -130,6 +148,7 @@
            openMesocycle() en vez de selectWorkout() (aun no hay
            workoutInUse que reanudar). -->
       <ng-container *ngIf="tableInUse && !user.workoutInUse && getNextWorkout() as nextWorkout">
+        <div class="continue-card-group">
         <button type="button" class="continue-card" (click)="openMesocycle()">
           <span class="continue-card__icon-badge">
             <ion-icon name="barbell-outline"></ion-icon>
@@ -143,6 +162,14 @@
           </span>
           <ion-icon name="chevron-forward-outline" class="continue-card__arrow"></ion-icon>
         </button>
+        <app-trainer-note-dot
+          *ngIf="hasTrainer"
+          class="continue-card__note-dot"
+          kind="workout"
+          [subject]="nextWorkout.name"
+          [notes]="nextWorkout.notes"
+        ></app-trainer-note-dot>
+        </div>
       </ng-container>
 
       <!-- Rutina en Uso -->

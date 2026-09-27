@@ -14,6 +14,8 @@ import { SessionCheckinModalComponent } from 'src/app/features/tables/components
 import { ActionsFabComponent } from './components/actions-fab/actions-fab.component';
 import { ActionsSheetComponent } from './components/actions-sheet/actions-sheet.component';
 import { ConfirmSheetComponent } from './components/confirm-sheet/confirm-sheet.component';
+import { TrainerNoteSheetComponent } from './components/trainer-note-sheet/trainer-note-sheet.component';
+import { TrainerNoteDotComponent } from './components/trainer-note-dot/trainer-note-dot.component';
 import { AnthropometryCardComponent } from './components/anthropometry/anthropometry-card.component';
 import { AnthropometryModalComponent } from './components/anthropometry/anthropometry-modal.component';
 import { AnthropometryChartComponent } from './components/anthropometry/anthropometry-chart.component';
@@ -46,6 +48,8 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     PopoverActionsComponent,
     ActionsSheetComponent,
     ConfirmSheetComponent,
+    TrainerNoteSheetComponent,
+    TrainerNoteDotComponent,
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,
@@ -99,6 +103,8 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     PopoverActionsComponent,
     ActionsSheetComponent,
     ConfirmSheetComponent,
+    TrainerNoteSheetComponent,
+    TrainerNoteDotComponent,
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,

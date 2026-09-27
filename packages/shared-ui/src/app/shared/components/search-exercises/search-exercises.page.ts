@@ -65,6 +65,13 @@ export class SearchExercisesPage implements OnInit {
   @Input() mode: 'default' | 'library' = 'default';
   @Output() exerciseSelected = new EventEmitter<Exercise>();
 
+  // Biblioteca a pantalla completa (exercise-library, entrenadores): la
+  // página no tiene cabecera propia, así que "Volver" va a la izquierda del
+  // buscador y el alta es la primera tarjeta de la lista. Solo aparecen si
+  // la página escucha el evento (el picker de Puntuaciones no lo hace).
+  @Output() back = new EventEmitter<void>();
+  @Output() create = new EventEmitter<void>();
+
   public exercises: Exercise[];
   public exercisesCount: number;
   public load: boolean;
@@ -132,6 +139,22 @@ export class SearchExercisesPage implements OnInit {
     }
 
     this.searchByFilter();
+  }
+
+  public get canGoBack(): boolean {
+    return this.mode !== 'library' || this.back.observed;
+  }
+
+  public get canCreate(): boolean {
+    return this.create.observed;
+  }
+
+  public goBack(): void {
+    if (this.back.observed) {
+      this.back.emit();
+      return;
+    }
+    void this.modalController.dismiss();
   }
 
   public ionViewWillEnter(): void {

@@ -669,10 +669,10 @@ ion-skeleton-text {
 }
 
 // Opciones de comida — selector persistente de alternativas pautadas
+// Neutro de base; el naranja, tenue, solo marca la opción elegida.
 .meal-proposal-banner {
   padding: 10px 12px;
-  background: rgba(254, 144, 0, 0.08);
-  border-bottom: 1px solid rgba(254, 144, 0, 0.25);
+  border-bottom: 1px solid #222222;
 }
 
 .meal-proposal-item + .meal-proposal-item {
@@ -684,7 +684,7 @@ ion-skeleton-text {
   align-items: center;
   gap: 5px;
   font-size: 0.78rem;
-  color: #e0b060;
+  color: #8f8f8f;
   margin-bottom: 6px;
 
   ion-icon {
@@ -698,20 +698,27 @@ ion-skeleton-text {
   gap: 6px;
 
   ion-chip {
-    --background: rgba(254, 144, 0, 0.18);
-    --color: #fe9000;
-    font-weight: 600;
+    --background: rgba(255, 255, 255, 0.06);
+    --color: #b5b5b5;
+    font-weight: 500;
     cursor: pointer;
     margin: 0;
+    border: 1px solid transparent;
     // La regla global de este componente anula la interacción de TODOS los
     // ion-chip (chips de macros); estos sí se pulsan.
     pointer-events: auto;
 
-    // Opción actualmente elegida — sólida en vez de tenue, para que el
-    // selector persistente deje claro cuál está activa ahora mismo.
+    // Opción elegida: tinte suave y borde fino, sin relleno sólido.
     &.meal-proposal-chip--active {
-      --background: #fe9000;
-      --color: #141414;
+      --background: rgba(254, 144, 0, 0.1);
+      --color: #f0b060;
+      border-color: rgba(254, 144, 0, 0.35);
+      font-weight: 600;
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(254, 144, 0, 0.5);
+      outline-offset: 1px;
     }
   }
 }

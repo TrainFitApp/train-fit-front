@@ -2686,8 +2686,14 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // Panel derecho con las programaciones. Tocar una abre su histórico en un
   // segundo panel a su izquierda (tf-panel-modal-detail-1): la pila la
   // maneja esta página, no los paneles — mismo reparto que
-  // recipe-builder-modal.
-  public async openCheckinSchedulesPanel(): Promise<void> {
+  // recipe-builder-modal. Se abre desde el chip de la fase y desde "Ver
+  // historial" bajo el calendario de Medidas y check-ins; ahí el pie "Ir a
+  // check-ins" sobra (ya se está), y sin onGoToCheckins los paneles no lo
+  // pintan.
+  public async openCheckinSchedulesPanel(fromCheckins = false): Promise<void> {
+    const onGoToCheckins = fromCheckins
+      ? undefined
+      : () => void this.closeCheckinPanels().then(() => this.goToCheckins());
     const modal = await this.modalController.create({
       component: CheckinSchedulesPanelComponent,
       cssClass: 'tf-panel-modal ion-disable-focus-trap',
@@ -2695,9 +2701,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         clientId: this.clientId,
         clientName: this.name,
         onSelect: (schedule: CheckinSchedule) =>
-          void this.openScheduleHistoryPanel(schedule),
-        onGoToCheckins: () =>
-          void this.closeCheckinPanels().then(() => this.goToCheckins()),
+          void this.openScheduleHistoryPanel(schedule, onGoToCheckins),
+        onGoToCheckins,
       },
     });
     this.schedulesPanel = modal;
@@ -2709,7 +2714,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   private async openScheduleHistoryPanel(
-    schedule: CheckinSchedule
+    schedule: CheckinSchedule,
+    onGoToCheckins?: () => void
   ): Promise<void> {
     // El anterior se cierra DESPUÉS de crear el nuevo: al revés, tocar otra
     // programación obliga a tocar dos veces.
@@ -2722,8 +2728,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       componentProps: {
         clientId: this.clientId,
         schedule,
-        onGoToCheckins: () =>
-          void this.closeCheckinPanels().then(() => this.goToCheckins()),
+        onGoToCheckins,
       },
     });
     this.scheduleHistoryPanel = modal;
@@ -3304,10 +3309,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
           void this.router.navigate(['/tabs/clients']);
           return;
         }
-        // selectTab, no asignación directa: al revocar un scope la pestaña
-        // abierta puede haber dejado de existir, y la sección tiene que
-        // moverse con ella.
-        this.selectTab(this.scopes[0]);
+        // Se revoca desde Gestión, que sigue existiendo: solo se mueve la
+        // pestaña si la abierta era la del scope revocado.
+        if (this.activeTab === scope) this.selectTab(this.scopes[0]);
         this.loadMissingScopeInvite();
         this.ionicUtilService.showToast({
           message: `Relación de ${

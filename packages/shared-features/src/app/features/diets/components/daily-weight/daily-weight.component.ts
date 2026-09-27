@@ -22,6 +22,7 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { WEEK_DAYS } from 'src/app/shared/constants/week-days';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { Anthropometry } from '../../../diet-days/components/weight-info/models/anthropometry';
+import { AnthropometryModalComponent } from 'src/app/shared/components/anthropometry';
 
 @Component({
   selector: 'app-daily-weight',
@@ -132,6 +133,31 @@ export class DailyWeightComponent implements OnInit, OnChanges {
 
   public openWeightInfo(): void {
     this.navigationService.goToWeightInfo();
+  }
+
+  // Medidas del día seleccionado sin pasar por weight-info. El modal guarda
+  // él mismo en Anthropometry; aquí solo se refleja el peso si cambió.
+  public async openAnthropometryModal(): Promise<void> {
+    const { role, data } = await this.ionicUtilService.showModal({
+      component: AnthropometryModalComponent,
+      componentProps: {
+        selectedDate: this.selectedDate,
+        existingData: this.anthropometry,
+        allAnthropometryData: this.anthropometry ? [this.anthropometry] : [],
+      },
+      cssClass: 'fullscreen-modal',
+    });
+    const saved = data as Anthropometry | undefined;
+    if (role !== 'saved' || saved?.date !== this.selectedDate) return;
+
+    this.anthropometry = saved;
+    this.initForm();
+    if (saved.weight !== undefined) {
+      if (this.dietDay) this.dietDay.weight = saved.weight;
+      this.updateWeightOnCurrentDate(saved.weight);
+      this.refreshWeekAfterSave();
+    }
+    this.anthropometrySaved.emit(saved);
   }
 
   public toggleChart(): void {

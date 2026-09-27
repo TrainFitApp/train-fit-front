@@ -18,35 +18,30 @@ export class AnthropometryModalComponent implements OnInit {
   form: FormGroup;
   isLoading = false;
   maxDate = new Date().toISOString();
-  // Catálogo completo — mismo campo que ya escribe el check-in del trainer
-  // (ver checkin-field-catalog.js, storage: "anthropometry"): antes este
-  // formulario solo tenía 11 campos y usaba bicepsRelaxed/bicepsContracted/calf
-  // sin lateralidad, ya deprecados (ver anthropometry-schema.js, backend) —
-  // desalineado con lo que el resto de la app ya lee/escribe.
+  // Solo las medidas que apunta el cliente por su cuenta. El resto del
+  // catálogo (masas, hombros, izq./der., tobillos…) es de los check-ins que
+  // pide el entrenador y no se ofrece aquí.
   measurementFields = [
     { key: 'weight', label: 'ANTHROPOMETRY.WEIGHT', unit: 'kg', step: 0.1 },
-    { key: 'muscleMass', label: 'ANTHROPOMETRY.MUSCLE_MASS', unit: 'kg', step: 0.1 },
-    { key: 'fatMass', label: 'ANTHROPOMETRY.FAT_MASS', unit: 'kg', step: 0.1 },
-    { key: 'boneMass', label: 'ANTHROPOMETRY.BONE_MASS', unit: 'kg', step: 0.1 },
-    { key: 'residualMass', label: 'ANTHROPOMETRY.RESIDUAL_MASS', unit: 'kg', step: 0.1 },
     { key: 'neck', label: 'ANTHROPOMETRY.NECK', unit: 'cm', step: 0.1 },
-    { key: 'shoulders', label: 'ANTHROPOMETRY.SHOULDERS', unit: 'cm', step: 0.1 },
     { key: 'chest', label: 'ANTHROPOMETRY.CHEST', unit: 'cm', step: 0.1 },
     { key: 'waist', label: 'ANTHROPOMETRY.WAIST', unit: 'cm', step: 0.1 },
     { key: 'abdomen', label: 'ANTHROPOMETRY.ABDOMEN', unit: 'cm', step: 0.1 },
     { key: 'hip', label: 'ANTHROPOMETRY.HIP', unit: 'cm', step: 0.1 },
-    { key: 'bicepsRelaxedL', label: 'ANTHROPOMETRY.BICEPS_RELAXED_L', unit: 'cm', step: 0.1 },
-    { key: 'bicepsRelaxedR', label: 'ANTHROPOMETRY.BICEPS_RELAXED_R', unit: 'cm', step: 0.1 },
-    { key: 'bicepsContractedL', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED_L', unit: 'cm', step: 0.1 },
-    { key: 'bicepsContractedR', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED_R', unit: 'cm', step: 0.1 },
-    { key: 'quadL', label: 'ANTHROPOMETRY.QUAD_L', unit: 'cm', step: 0.1 },
-    { key: 'quadR', label: 'ANTHROPOMETRY.QUAD_R', unit: 'cm', step: 0.1 },
+    { key: 'bicepsRelaxed', label: 'ANTHROPOMETRY.BICEPS_RELAXED', unit: 'cm', step: 0.1 },
+    { key: 'bicepsContracted', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED', unit: 'cm', step: 0.1 },
     { key: 'thighRelaxed', label: 'ANTHROPOMETRY.THIGH_RELAXED', unit: 'cm', step: 0.1 },
     { key: 'thighContracted', label: 'ANTHROPOMETRY.THIGH_CONTRACTED', unit: 'cm', step: 0.1 },
-    { key: 'calfL', label: 'ANTHROPOMETRY.CALF_L', unit: 'cm', step: 0.1 },
-    { key: 'calfR', label: 'ANTHROPOMETRY.CALF_R', unit: 'cm', step: 0.1 },
-    { key: 'ankleL', label: 'ANTHROPOMETRY.ANKLE_L', unit: 'cm', step: 0.1 },
-    { key: 'ankleR', label: 'ANTHROPOMETRY.ANKLE_R', unit: 'cm', step: 0.1 },
+    { key: 'calf', label: 'ANTHROPOMETRY.CALF', unit: 'cm', step: 0.1 },
+  ];
+
+  // Solo presentación: las mismas medidas agrupadas por zona del cuerpo.
+  // El formulario sigue saliendo de measurementFields.
+  readonly heroField = 'weight';
+  readonly groups: MeasurementGroup[] = [
+    { title: 'ANTHROPOMETRY.GROUP_TORSO', icon: 'body-outline', fields: ['neck', 'chest', 'waist', 'abdomen', 'hip'] },
+    { title: 'ANTHROPOMETRY.GROUP_ARMS', icon: 'barbell-outline', fields: ['bicepsRelaxed', 'bicepsContracted'] },
+    { title: 'ANTHROPOMETRY.GROUP_LEGS', icon: 'walk-outline', fields: ['thighRelaxed', 'thighContracted', 'calf'] },
   ];
 
   async openDatePicker(): Promise<void> {
@@ -199,6 +194,20 @@ export class AnthropometryModalComponent implements OnInit {
     });
   }
 
+  isFilled(key: string): boolean {
+    const value = this.form.get(key)?.value;
+    return value !== null && value !== undefined && value !== '';
+  }
+
+  hasError(key: string): boolean {
+    const control = this.form.get(key);
+    return !!control?.invalid && !!control?.touched;
+  }
+
+  filledCount(group: MeasurementGroup): number {
+    return group.fields.filter((key) => this.isFilled(key)).length;
+  }
+
   getFieldLabel(key: string): string {
     const field = this.measurementFields.find((f) => f.key === key);
     return field ? this.translate.instant(field.label) : key;
@@ -208,4 +217,10 @@ export class AnthropometryModalComponent implements OnInit {
     const field = this.measurementFields.find((f) => f.key === key);
     return field ? field.unit : '';
   }
+}
+
+interface MeasurementGroup {
+  title: string;
+  icon: string;
+  fields: string[];
 }

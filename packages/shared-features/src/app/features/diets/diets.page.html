@@ -86,36 +86,15 @@
       <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
     </button>
 
-    <!-- El peso del día solo se apunta aquí cuando el cliente va por su
-         cuenta. Con profesional activo manda lo que él pide: se entra a
-         weight-info, que es donde están sus medidas pedidas. -->
+    <!-- Peso del día (check), medidas corporales (modal) y acceso a
+         weight-info, con o sin profesional. Lo apuntado aquí rellena los
+         check-ins de ese periodo; no los envía. -->
     <app-daily-weight
-      *ngIf="!coachService.hasActiveTrainer()"
       [user]="user"
       [selectedDate]="selectedDate"
       [anthropometry]="currentAnthropometry"
       (anthropometrySaved)="onAnthropometrySaved($event)"
-
     ></app-daily-weight>
-
-    <!-- Acceso a weight-info, donde el cliente con profesional apunta su
-         peso y sus medidas. Las medidas que le PIDA su profesional van
-         dentro de su check-in (la tarjeta de arriba): esto es el acceso
-         libre, sin fecha ni formulario. Aviso dentro de la app, no
-         notificación push. -->
-    <button
-      type="button"
-      class="checkin-card"
-      *ngIf="coachService.hasActiveTrainer()"
-      (click)="goToWeightInfo()"
-    >
-      <ion-icon name="body-outline" aria-hidden="true"></ion-icon>
-      <span class="checkin-card__text">
-        <strong>Añadir medidas corporales</strong>
-        <small>Apunta tu peso y tus medidas cuando quieras.</small>
-      </span>
-      <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-    </button>
   </div>
 
   <!-- El cliente elige cada día qué menú sigue: chips de

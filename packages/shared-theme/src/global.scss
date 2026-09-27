@@ -1012,6 +1012,19 @@ ion-modal.confirm-sheet-modal {
   --border-radius: 20px 20px 0 0;
 }
 
+/* Nota del entrenador (TrainerNoteSheetComponent) — hoja de alto automático:
+   crece con el texto y el scroll va dentro del componente (.tn-body). */
+ion-modal.trainer-note-sheet-modal {
+  --height: auto;
+  --border-radius: 20px 20px 0 0;
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
 // ===== ALERTS COMO HOJA INFERIOR =====
 // Todos los alerts pasan por IonicUtilService.showAlert, que les pone
 // `custom-alert`, `mode: 'md'` y la animación/arrastre de alert-sheet.ts.

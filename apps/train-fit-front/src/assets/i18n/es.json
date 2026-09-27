@@ -1579,7 +1579,20 @@
     "PIN_TO_POSITION": "Anclar nota",
     "DELETE_PINNED_TITLE": "Eliminar nota anclada",
     "DELETE_PINNED_CONFIRM": "¿Seguro que quieres eliminar esta nota anclada?",
-    "EMPTY_ERROR": "La nota no puede estar vacía"
+    "EMPTY_ERROR": "La nota no puede estar vacía",
+    "OPEN_TRAINER_NOTE": "Ver nota del entrenador",
+    "TRAINER_NOTE_EXERCISE": "Nota de ejercicio · Entrenador",
+    "TRAINER_NOTE_WORKOUT": "Nota de entrenamiento · Entrenador",
+    "TRAINER_NOTE_FOR_SESSION": "Para esta sesión",
+    "TRAINER_NOTE_PINNED": "Anclada · todos los microciclos",
+    "TRAINER_NOTE_UPDATED": "Actualizada el {{date}}",
+    "GOT_IT": "Entendido",
+    "YOUR_NOTE": "Tu nota",
+    "YOUR_PREVIOUS_NOTE": "Tu nota de la sesión anterior",
+    "CLIENT_NOTE": "Nota del cliente",
+    "PINNED_BY_TRAINER": "Anclada por el entrenador",
+    "PINNED_BY_CLIENT": "Anclada por el cliente",
+    "PINNED_NOT_AUTHOR": "Esta nota anclada la escribió otra persona: no se puede cambiar"
   },
   "DISCONNECTED": {
     "EYEBROW": "Sin conexión",
@@ -1666,7 +1679,6 @@
       "ALL_CLEAR_SUB": "No tienes nada pendiente con tu profesional",
       "LOAD_ERROR": "No se pudo cargar tu coach",
       "RETRY": "Reintentar",
-      "MORE": "Ver {{count}} más en Coach",
       "CHECKIN": "Check-in pendiente",
       "UNTIL": "Hasta el {{date}}",
       "REQUESTED_BY": "Pedido por {{name}}",
@@ -2096,7 +2108,10 @@
     "RESIDUAL_MASS": "Masa residual",
     "WEIGHT_AXIS": "Peso (kg)",
     "BODY_AXIS": "Medidas corporales (cm)",
-    "BODY_MEASUREMENTS": "Medidas corporales"
+    "BODY_MEASUREMENTS": "Medidas corporales",
+    "GROUP_TORSO": "Tronco",
+    "GROUP_ARMS": "Brazos",
+    "GROUP_LEGS": "Piernas"
   },
   "GLOSSARY": {
     "RIR": {

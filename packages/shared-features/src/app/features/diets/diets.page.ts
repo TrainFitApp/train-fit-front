@@ -542,10 +542,6 @@ export class DietsPage implements OnInit {
     });
   }
 
-  public goToWeightInfo(): void {
-    void this.router.navigate(['/weight-info']);
-  }
-
   public goToCheckin(): void {
     // returnUrl: el botón atrás de Mis check-ins vuelve aquí, no al tab Coach.
     void this.router.navigate(['/my-checkins'], {

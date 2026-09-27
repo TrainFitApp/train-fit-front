@@ -14,6 +14,7 @@ export type ClientDetailTab =
   | 'measurements'
   | 'notes'
   | 'payments'
+  | 'relation'
   | 'pain'
   | 'tasks'
   | 'clientNotes';
@@ -115,6 +116,9 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
     tabs: [
       { key: 'notes', label: 'Notas', icon: 'document-text-outline' },
       { key: 'payments', label: 'Cobros', icon: 'card-outline' },
+      // Finalizar la relación de entrenamiento o nutrición (antes al final
+      // de Plan > Entrenamiento y Plan > Nutrición).
+      { key: 'relation', label: 'Relación', icon: 'link-outline', requiresScope: 'any' },
     ],
   },
 ];

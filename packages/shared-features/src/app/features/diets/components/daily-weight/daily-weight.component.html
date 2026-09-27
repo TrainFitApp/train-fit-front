@@ -31,6 +31,13 @@
       </form>
       <button
         class="calendar-button"
+        (click)="openAnthropometryModal(); $event.stopPropagation()"
+        aria-label="Apuntar medidas corporales"
+      >
+        <ion-icon name="accessibility-outline"></ion-icon>
+      </button>
+      <button
+        class="calendar-button"
         (click)="openWeightInfo(); $event.stopPropagation()"
         aria-label="Ver calendario de pesos"
       >

@@ -458,6 +458,21 @@ ion-grid {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.workout-note-dot {
+  margin-left: 8px;
+}
+
+// Nota del cliente a nivel de entrenamiento: alineada con la de app-notes.
+.client-note-container--workout {
+  width: auto;
+  margin: 0 8px 8px;
+}
+
+// Anclada por el otro (entrenador o cliente): se lee, no se toca.
+.pinned-note-container .pinned-note-wrapper.pinned-note-wrapper--readonly {
+  cursor: default;
+}
+
 .client-note-author {
   display: flex;
   align-items: center;

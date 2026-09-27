@@ -1,9 +1,14 @@
 <ion-header class="minimal-header">
-  <div class="search-header">
+  <div class="search-header" [class.search-header--library]="mode === 'library'">
     <div class="header-content">
-      <div class="back-section" *ngIf="mode !== 'library'">
-        <button class="back-button" (click)="modalController.dismiss()">
-          <ion-icon name="chevron-back-outline"></ion-icon>
+      <div class="back-section" *ngIf="canGoBack">
+        <button
+          type="button"
+          class="back-button"
+          (click)="goBack()"
+          [attr.aria-label]="'COMMON.BACK' | translate"
+        >
+          <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
         </button>
       </div>
 
@@ -35,6 +40,7 @@
     <!-- Exercise filter icons for Todo / Mis Ejercicios / Favoritos -->
     <app-exercise-filter-icons
       *ngIf="user && user._id"
+      [compact]="mode === 'library'"
       (filterSelection)="setFilterIconsValueBySelection($event)"
     >
     </app-exercise-filter-icons>
@@ -121,8 +127,19 @@
 </ion-header>
 
 <ion-content class="exercises-content">
-  <div class="exercises-list" *ngIf="exercises.length > 0; else emptyExercises">
-    
+  <div class="exercises-list" *ngIf="exercises.length > 0 || canCreate">
+    <!-- Mismo trazo discontinuo que "Siguiente fase" en la ficha del cliente.
+         Sigue ahí con cero resultados: es justo cuando más se echa en falta. -->
+    <button
+      type="button"
+      class="exercise-add-card"
+      *ngIf="canCreate"
+      (click)="create.emit()"
+    >
+      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'SEARCH_EXERCISES.ADD_CARD' | translate }}</span>
+    </button>
+
     <div
       class="translucent-card exercise-card"
       *ngFor="let exercise of exercises; let i = index"
@@ -187,19 +204,15 @@
 
   </div>
 
-  <ng-template #emptyExercises>
-    <ng-container *ngIf="load">
-      <div class="empty-state">
-        <div class="empty-icon">
-          <ion-icon name="search-outline"></ion-icon>
-        </div>
-        <h3 class="empty-title">{{ 'SEARCH_EXERCISES.NO_RESULTS' | translate }}</h3>
-        <p class="empty-message">
-          {{ 'SEARCH_EXERCISES.NO_RESULTS_MSG' | translate }}
-        </p>
-      </div>
-    </ng-container>
-  </ng-template>
+  <div class="empty-state" *ngIf="load && !exercises.length">
+    <div class="empty-icon">
+      <ion-icon name="search-outline"></ion-icon>
+    </div>
+    <h3 class="empty-title">{{ 'SEARCH_EXERCISES.NO_RESULTS' | translate }}</h3>
+    <p class="empty-message">
+      {{ 'SEARCH_EXERCISES.NO_RESULTS_MSG' | translate }}
+    </p>
+  </div>
 
   <div class="skeleton-container" *ngIf="!load">
     <app-skeleton-loader

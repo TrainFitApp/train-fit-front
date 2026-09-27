@@ -131,6 +131,7 @@
       <div class="calendar-weekdays" aria-hidden="true"><span *ngFor="let day of weekdays">{{ day }}</span></div>
       <div class="calendar-days"><button type="button" *ngFor="let day of days; trackBy: trackDay" class="calendar-day" [class.outside]="!day.currentMonth" [class.today]="day.date === today" [class.selected]="day.date === (editor ? editor.startDate : selectedDate)" [attr.aria-label]="day.label" [attr.aria-pressed]="day.date === selectedDate" (click)="chooseDay(day)"><span>{{ day.number }}</span><span class="day-signals" aria-hidden="true"><i *ngFor="let status of day.statuses" [attr.data-status]="status"></i></span><small *ngIf="day.count > 1" class="day-count">{{ day.count }}</small></button></div>
       <div class="calendar-legend"><span><i data-status="scheduled"></i>Programado</span><span><i data-status="open"></i>Abierto</span><span><i data-status="responded"></i>Por revisar</span><span><i data-status="reviewed"></i>Revisado</span><span><i data-status="unanswered"></i>Sin responder</span></div>
+      <button type="button" class="history-button" (click)="openHistory.emit()"><ion-icon name="time-outline" aria-hidden="true"></ion-icon>Ver historial</button>
     </aside>
   </div>
 

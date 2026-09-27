@@ -1,20 +1,9 @@
-<ion-header class="ion-no-border">
-  <app-page-header title="Ejercicios">
-    <ng-container pageActions>
-      <button
-        type="button"
-        class="tf-page-header__back-button"
-        (click)="openExerciseForm()"
-        aria-label="Nuevo ejercicio"
-      >
-        <ion-icon name="add-outline"></ion-icon>
-      </button>
-    </ng-container>
-  </app-page-header>
-</ion-header>
-
+<!-- Sin cabecera de página: "Volver" va a la izquierda del buscador y el alta
+     es la primera tarjeta de la lista (ver app-search-exercises). -->
 <app-search-exercises
   *ngIf="listVisible"
   mode="library"
+  (back)="navigation.back()"
+  (create)="openExerciseForm()"
   (exerciseSelected)="openExerciseDetail($event)"
 ></app-search-exercises>

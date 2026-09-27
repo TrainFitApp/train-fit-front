@@ -325,8 +325,16 @@
   // panel sea hermano del botón (no puede vivir DENTRO del <button>: tiene
   // sus propios iconos clicables y un <button> no debe anidar controles).
   .continue-card-group {
+    position: relative;
     display: block;
     width: 100%;
+  }
+
+  // Aviso del entrenador montado en la esquina de la tarjeta.
+  .continue-card__note-dot {
+    position: absolute;
+    top: -8px;
+    right: -6px;
   }
 
   // Resumen de ejercicios (sustituye a la vieja card suelta "Detalle del

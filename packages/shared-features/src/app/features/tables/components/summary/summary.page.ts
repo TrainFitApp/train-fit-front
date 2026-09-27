@@ -106,6 +106,17 @@ export class SummaryPage {
     }
   }
 
+  // 2026-09 — con rutina asignada, lo del entrenador sale como círculo
+  // (app-trainer-note-dot) y no como nota editable.
+  public get hasTrainer(): boolean {
+    return !!this.tableInUse?.assignedByTrainerId;
+  }
+
+  public getTrainerPinnedNote(exerciseIndex: number): PinnedExerciseNote | undefined {
+    const note = this.getExercisePinnedNote(exerciseIndex);
+    return note?.authorRole === 'trainer' ? note : undefined;
+  }
+
   public getExercisePinnedNote(exerciseIndex: number): PinnedExerciseNote | undefined {
     const workoutIndex = this.getWorkoutIndex();
     if (workoutIndex < 0) return undefined;

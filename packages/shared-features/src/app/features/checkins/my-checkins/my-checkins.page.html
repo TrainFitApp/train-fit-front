@@ -59,6 +59,10 @@
       </button>
 
       <div class="checkin-form" *ngIf="expandedTrainerId === checkinKey(checkin)">
+        <p class="prefill-notice" *ngIf="prefillNotice(checkin) as notice">
+          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+          <span>{{ notice }}</span>
+        </p>
         <div class="checkin-field" *ngFor="let field of fieldsFor(checkin); trackBy: trackByFieldKey">
           <span class="checkin-field-label">
             {{ field.label }}<span *ngIf="field.unit"> ({{ field.unit }})</span
@@ -79,6 +83,9 @@
             [placeholder]="numberPlaceholder(field)"
             [(ngModel)]="formValues[field.key]"
           />
+          <p class="checkin-field-prefill" *ngIf="field.type === 'number' && prefillDateFor(checkin, field.key) as day">
+            Relleno con tu medida del {{ day }}
+          </p>
 
           <!-- Movimiento 2 Coach Pro — la escala deja de ser cinco números
                desnudos. Cada nivel lleva escrito lo que significa, y el

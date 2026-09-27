@@ -27,7 +27,11 @@ export class WorkoutBlock {
 export class Workout {
   _id: string;
   name: string;
+  // 2026-09 — como CustomExercise: notes = indicación de quien construye la
+  // rutina (el entrenador si está asignada); clientNotes = lo que apunta el
+  // cliente al entrenar.
   notes: string;
+  clientNotes?: string;
   date?: Date | null;
   cronometer?: Date;
   // Set once, the moment the workout truly starts (first "play"). Combined

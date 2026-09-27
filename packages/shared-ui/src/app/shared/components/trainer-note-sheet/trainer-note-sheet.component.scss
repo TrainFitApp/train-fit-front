@@ -1,0 +1,129 @@
+// Acento = el naranja de la pestaña Coach. Negro sobre naranja: el blanco da 2:1.
+:host {
+  --tn-accent: var(--tf-accent, var(--ion-color-primary, #fe9000));
+  --tn-accent-soft: var(--tf-accent-soft, rgba(254, 144, 0, 0.12));
+  --tn-on-accent: var(--tf-accent-contrast, #0f0f0f);
+  --tn-text: var(--tf-text, var(--ion-text-color, #ffffff));
+  --tn-text-2: var(--tf-text-secondary, var(--ion-color-step-700, #c7c7c7));
+  --tn-text-3: var(--tf-text-muted, var(--ion-color-medium, #8b8b8b));
+  --tn-line: var(--tf-border, rgba(127, 127, 127, 0.22));
+
+  display: block;
+}
+
+.tn-sheet {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px calc(env(safe-area-inset-bottom) + 16px);
+}
+
+.tn-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--tn-line);
+}
+
+.tn-badge {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--tn-accent-soft);
+  color: var(--tn-accent);
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.tn-head-text {
+  min-width: 0;
+}
+
+.tn-eyebrow {
+  margin: 0 0 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tn-accent);
+}
+
+.tn-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--tn-text);
+  overflow-wrap: anywhere;
+}
+
+// Si no cabe, scroll aquí dentro: el botón queda siempre a la vista.
+.tn-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.tn-section {
+  padding: 16px 0;
+
+  & + & {
+    border-top: 1px solid var(--tn-line);
+  }
+}
+
+.tn-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tn-text-3);
+
+  ion-icon {
+    font-size: 15px;
+  }
+}
+
+// Es para leerlo en el gimnasio, entre series: más grande que el resto de notas.
+.tn-text {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--tn-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+// Mismo azul que el título y el icono de las tarjetas de nota anclada.
+.tn-section--pinned .tn-label {
+  color: var(--ion-color-alternative, #3880ff);
+}
+
+.tn-meta {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--tn-text-3);
+}
+
+.tn-ok {
+  margin: 8px 0 0;
+  min-height: 48px;
+  --background: var(--tn-accent);
+  --background-activated: var(--tn-accent);
+  --color: var(--tn-on-accent);
+  --border-radius: 12px;
+  --box-shadow: none;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}

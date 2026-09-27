@@ -118,16 +118,21 @@
     </tbody>
   </table>
 
-  <!-- Notas de sesión anterior debajo de la tabla -->
-  <app-notes *ngIf="previousWorkoutCustomExercise?.notes" [object]="previousWorkoutCustomExercise"
+  <!-- Notas de sesión anterior debajo de la tabla. Con entrenador, la que
+       apuntó el cliente (la del entrenador está en el chip de la cabecera). -->
+  <app-notes *ngIf="hasTrainer && previousWorkoutCustomExercise?.clientNotes" [object]="previousWorkoutCustomExercise"
+    [notes]="previousWorkoutCustomExercise.clientNotes" [type]="'NOTES.YOUR_PREVIOUS_NOTE' | translate" [detail]="true"
+    [isPrevious]="true" [canDelete]="false" [canModify]="false"></app-notes>
+  <app-notes *ngIf="!hasTrainer && previousWorkoutCustomExercise?.notes" [object]="previousWorkoutCustomExercise"
     [notes]="previousWorkoutCustomExercise.notes" [detail]="true" [isPrevious]="true" [canDelete]="false"
     [canModify]="false"></app-notes>
 </div>
 
 <!-- Premium Current Sets Section -->
 <div class="premium-current-sets" [class.reorder-active]="reorderMode">
-  <!-- Pinned Exercise Note (visible in all splits at this position) -->
-  <div class="pinned-note-container" *ngIf="pinnedNote">
+  <!-- Pinned Exercise Note (visible in all splits at this position).
+       La que ancló el entrenador sale en el chip de la cabecera, no aquí. -->
+  <div class="pinned-note-container" *ngIf="pinnedNote && !isTrainerPinned">
     <div class="pinned-note-wrapper" (click)="editPinnedNote(); $event.stopPropagation()">
       <div class="pinned-note-card">
         <div class="card-header">
@@ -176,7 +181,9 @@
 
        La del CLIENTE se edita con el botón de nota que ya existe abajo
        (manageNote), que ahora escribe en clientNotes. -->
-  <div class="premium-exercise-notes trainer-note" *ngIf="customExercise?.notes">
+  <!-- 2026-09 — con entrenador, su nota va en el chip de la cabecera del
+       ejercicio (current-workout.page.html) y se lee en TrainerNoteSheet. -->
+  <div class="premium-exercise-notes trainer-note" *ngIf="customExercise?.notes && !hasTrainer">
     <span class="note-author">
       <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
       De tu entrenador

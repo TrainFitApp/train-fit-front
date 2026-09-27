@@ -113,6 +113,16 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  public get hasTrainer(): boolean {
+    return !!this.tableInUse?.assignedByTrainerId;
+  }
+
+  // 2026-09 — anclada por el entrenador: solo lectura para el cliente, y la
+  // posición queda ocupada (el back responde 409 si se intenta pisar).
+  public get isTrainerPinned(): boolean {
+    return this.pinnedNote?.authorRole === 'trainer';
+  }
+
   private loadPinnedNote(): void {
     if (this.tableInUse?._id && this.currentWorkout?._id) {
       this.currentSplitIndex = -1;
@@ -362,7 +372,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public manageNote(): void {
-    const showPinOption = !!(this.tableInUse?._id && this.currentWorkoutIndex >= 0);
+    const showPinOption = !!(this.tableInUse?._id && this.currentWorkoutIndex >= 0) && !this.isTrainerPinned;
 
     let shouldPin = false;
 
@@ -446,7 +456,12 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
           next: (note) => {
             this.pinnedNote = note;
           },
-          error: (err) => console.error('[CustomExerciseComponent] Failed to save pinned note', err),
+          error: (err) => {
+            console.error('[CustomExerciseComponent] Failed to save pinned note', err);
+            if (err?.error?.code === 'PINNED_NOTE_NOT_AUTHOR') {
+              this.ionicUtilService.showToast({ message: this.translate.instant('NOTES.PINNED_NOT_AUTHOR'), duration: 3000 });
+            }
+          },
         });
         return;
       }

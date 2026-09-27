@@ -90,7 +90,7 @@
   </ng-container>
 </ion-content>
 
-<ion-footer class="ion-no-border" *ngIf="state !== 'loading'">
+<ion-footer class="ion-no-border" *ngIf="state !== 'loading' && onGoToCheckins">
   <div class="history-panel__footer">
     <button type="button" class="goto-button" (click)="goToCheckins()">Ir a check-ins</button>
   </div>

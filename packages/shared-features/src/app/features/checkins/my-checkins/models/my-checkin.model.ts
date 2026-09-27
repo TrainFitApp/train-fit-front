@@ -39,6 +39,14 @@ export interface MyCheckin {
   trainer: { name: string; lastname: string } | null;
   // Semana de la fase de dieta que abre este check-in (R1, R2…).
   week?: CheckinWeek | null;
+  // Medidas que el cliente ya apuntó en el periodo del check-in, con su día.
+  // Rellenan el formulario; nunca lo envían.
+  prefill?: Record<string, CheckinPrefillValue>;
+}
+
+export interface CheckinPrefillValue {
+  value: number;
+  date: string;
 }
 
 export interface CheckinWeek {
