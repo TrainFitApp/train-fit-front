@@ -138,9 +138,15 @@ export class SummaryPage {
       return;
     }
 
+    // La rutina en uso la pautó el entrenador: la nueva será propia y él no
+    // la verá ni podrá hacerle seguimiento.
+    const trainerWarning = this.tableInUse?.assignedByTrainerId
+      ? ` ${this.translate.instant('TABLES.TRAINER_UNTRACKED_ROUTINE_WARNING')}`
+      : '';
+
     const alertOptions: AlertOptions = {
       header: this.translate.instant('TABLES.CREATE_ROUTINE_ALERT'),
-      message: this.translate.instant('TABLES.CREATE_ROUTINE_MSG'),
+      message: this.translate.instant('TABLES.CREATE_ROUTINE_MSG') + trainerWarning,
       inputs: [
         {
           name: "routineName",

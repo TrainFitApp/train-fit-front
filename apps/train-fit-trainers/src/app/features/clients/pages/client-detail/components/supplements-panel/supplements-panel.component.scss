@@ -114,7 +114,9 @@
 }
 
 .supplement-info {
-  flex: 1;
+  // Crece mucho más que las acciones: con todo en una línea se queda el
+  // hueco; si la fila salta de línea, las acciones lo rellenan.
+  flex: 100 1 140px;
   min-width: 140px;
   display: flex;
   flex-direction: column;
@@ -159,11 +161,17 @@
   }
 }
 
+// Al saltar de línea la fila (columna estrecha), "Editar" se estira hasta
+// el borde y no deja hueco vacío; la papelera conserva su tamaño.
 .supplement-actions {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+
+  .row-action:not(.row-action--danger) {
+    flex: 1;
+  }
 }
 
 .supplement-reason {

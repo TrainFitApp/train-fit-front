@@ -2162,6 +2162,77 @@
   }
 }
 
+// Panel lateral "Ver todas" (Últimas sesiones). El host cuelga de ion-app
+// (ver ngAfterViewInit): mismo esquema que supplements-panel.
+.sessions-panel-portal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tf-z-modal, 500);
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+.sessions-panel-backdrop {
+  @include tf-side-panel-backdrop;
+}
+
+.sessions-panel {
+  @include tf-side-panel(440px);
+  // Cabecera fija y la lista desplaza por dentro.
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sessions-panel-handle {
+  @include tf-side-panel-handle;
+}
+
+// .tf-page-header (global.scss) a sangre, como en supplements-panel.
+.sessions-panel-header {
+  flex-shrink: 0;
+  margin: 0 calc(-1 * var(--tf-space-4)) var(--tf-space-4);
+
+  @media (min-width: 768px) {
+    margin: calc(-1 * var(--tf-space-5)) calc(-1 * var(--tf-space-5)) var(--tf-space-4);
+  }
+}
+
+// Estadísticas (StatisticsPage incrustada) en el hueco a la izquierda del
+// panel. En móvil el panel es hoja inferior: ocupa toda la pantalla, encima.
+.sessions-stats {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--tf-z-modal, 500) + 1);
+  background: var(--tf-bg);
+
+  &--open {
+    display: block;
+  }
+
+  @media (min-width: 768px) {
+    // Mismo ancho que tf-side-panel(440px), con su tope de 92vw.
+    right: min(440px, 92vw);
+    z-index: var(--tf-z-modal, 500);
+    border-right: 1px solid var(--tf-border-strong);
+  }
+}
+
+.history-stats-link--active {
+  border-color: var(--tf-accent);
+}
+
+.sessions-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: var(--tf-space-5);
+}
+
 // --- F26: cobros ---
 .payment-card {
   display: flex;

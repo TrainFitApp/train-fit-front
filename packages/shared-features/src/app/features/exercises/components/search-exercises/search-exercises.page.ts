@@ -11,14 +11,9 @@ import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
 import { Workout } from 'src/app/core/models/workout';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import {
-  ColorMode,
-  ThemeService,
-} from 'src/app/core/services/util/theme.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { FilterInputPage } from 'src/app/shared/components/filter-input/filter-input.page';
 import { SearchFilterGroupExercises } from 'src/app/shared/models/filterGroup';
-import { Theme, THEMES } from 'src/app/shared/models/theme';
 import { ExerciseService } from 'src/app/core/services/exercise/exercise.service';
 import { ConfigExercisePage } from '../config-exercise/config-exercise.page';
 
@@ -39,7 +34,6 @@ export class SearchExercisesPageComponent {
   public tableInUse: Table;
   public isChangeMode: boolean;
   public load: boolean;
-  public theme: ColorMode;
 
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
 
@@ -52,13 +46,7 @@ export class SearchExercisesPageComponent {
   public searchFilterGroupExercises: SearchFilterGroupExercises;
   public cardioMode: 'all' | 'cardio' = 'all';
 
-  protected readonly GIF_LOCAL_ROUTE_LIGHT =
-    '../../../../../assets/img/logo/login_light.svg';
-
-  protected readonly GIF_LOCAL_ROUTE_DARK =
-    '../../../../../assets/img/logo/login_dark.svg';
-
-  public THEMES = THEMES;
+  protected readonly EXERCISE_PLACEHOLDER = 'assets/logo_light.png';
 
   private keyboardWillShowHandle?: PluginListenerHandle;
   private keyboardWillHideHandle?: PluginListenerHandle;
@@ -70,14 +58,12 @@ export class SearchExercisesPageComponent {
   constructor(
     public modalController: ModalController,
     private exerciseService: ExerciseService,
-    private themeService: ThemeService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private platform: Platform
   ) {
     this.initVariables();
     this.searchByFilter();
-    this.themeService.theme.subscribe((res: Theme) => (this.theme = res));
   }
 
   public ionViewWillEnter(): void {

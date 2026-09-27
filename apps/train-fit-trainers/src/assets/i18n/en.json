@@ -1352,6 +1352,7 @@
     "ROUTINE_ALREADY_IN_USE_TOAST": "This routine is already in use",
     "ROUTINE_CAN_PAUSE": "You can always pause and choose another",
     "ROUTINE_WILL_BE_ADDED": "It will be added to My routines and started",
+    "TRAINER_UNTRACKED_ROUTINE_WARNING": "Your trainer won't be able to see or track this routine because they didn't assign it to you.",
     "USE_ROUTINE": "Use {{name}}",
     "ROUTINE_STARTED_SUCCESS": "Routine started successfully",
     "ROUTINE_ACQUIRED_SUCCESS": "Routine acquired and started successfully",

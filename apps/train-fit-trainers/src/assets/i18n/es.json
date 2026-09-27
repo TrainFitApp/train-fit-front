@@ -1358,6 +1358,7 @@
     "ROUTINE_ALREADY_IN_USE_TOAST": "Esta rutina ya está en uso",
     "ROUTINE_CAN_PAUSE": "Siempre puedes pausar y elegir otra",
     "ROUTINE_WILL_BE_ADDED": "Se añadirá a Mis rutinas y se iniciará",
+    "TRAINER_UNTRACKED_ROUTINE_WARNING": "Tu entrenador no podrá ver ni hacer seguimiento de esta rutina porque no te la ha pautado él.",
     "USE_ROUTINE": "Usar {{name}}",
     "ROUTINE_STARTED_SUCCESS": "Rutina iniciada con éxito",
     "ROUTINE_ACQUIRED_SUCCESS": "Rutina adquirida e iniciada con éxito",

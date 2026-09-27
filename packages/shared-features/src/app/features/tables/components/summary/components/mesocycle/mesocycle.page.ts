@@ -393,6 +393,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     const lastSplit = splits[splits.length - 1];
     if (!this.utilService.isSplitDoned(lastSplit)) return;
 
+    // Rutina pautada por el entrenador: los microciclos los añade él, no el
+    // cliente (el backend lo rechazaría con 403).
+    if (this.isReadonly) return;
+
     // No ofrecer lo que no se puede dar — evita el "sí puedes... ah no, hazte Pro".
     if (this.isMicrocycleCreationLimitReached()) return;
 

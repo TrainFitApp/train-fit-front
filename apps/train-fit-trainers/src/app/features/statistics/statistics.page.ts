@@ -2,7 +2,10 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  EventEmitter,
+  Input,
   OnInit,
+  Output,
   ViewChild,
   OnDestroy,
   inject,
@@ -149,6 +152,14 @@ interface CalendarDay {
 export class StatisticsPage implements OnInit, OnDestroy {
   @ViewChild("progressionCanvas") progressionCanvas: ElementRef;
 
+  // Modo incrustado: la ficha del cliente la pinta a la izquierda del panel
+  // de Sesiones (client-detail, "Ver progresión por ejercicio") sin navegar.
+  // Ahí no hay :clientId en la ruta (la ficha usa :id) y "Volver" cierra la
+  // vista en vez de abandonar la ficha.
+  @Input() public clientId: string | null = null;
+  @Input() public embedded = false;
+  @Output() public closed = new EventEmitter<void>();
+
   public table: Table;
 
   // Selectors Data
@@ -278,7 +289,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.translate.instant("COMMON.SAT"),
       this.translate.instant("COMMON.SUN"),
     ];
-    this.clientIdForHistory = this.route.snapshot.paramMap.get("clientId");
+    this.clientIdForHistory =
+      this.clientId ?? this.route.snapshot.paramMap.get("clientId");
 
     this.table = this.tableService.currentTable();
     if (this.table && this.table.splits) {

@@ -556,6 +556,12 @@ ion-grid {
   align-items: center;
   padding: 0 0 2px 0;
 
+  // Rutina del entrenador: sin botón de opciones, "Día" se alinea con las
+  // líneas de detalle de debajo (.header-detail).
+  &.meal-name--readonly {
+    padding-left: var(--ion-grid-column-padding, 16px);
+  }
+
   .workout-actions-buttons {
     gap: 2px;
 
@@ -1052,7 +1058,6 @@ ion-buttons ion-button {
 // afectan a train-fit-front ni train-fit-management.
 .tf-editable-cell {
   cursor: pointer;
-  border-radius: 6px;
   transition: background-color 0.15s ease;
 
   &:hover {

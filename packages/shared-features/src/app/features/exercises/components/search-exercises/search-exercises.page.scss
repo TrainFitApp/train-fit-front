@@ -341,6 +341,12 @@
       object-fit: cover;
       border-radius: 12px;
     }
+
+    // Logo claro sobre placa oscura fija: en tema claro el blanco del
+    // logo se perdería sobre el fondo translúcido de la card.
+    &--placeholder {
+      background: #131313;
+    }
   }
 
   .exercise-info {

@@ -66,6 +66,11 @@ export class ExerciseFormModalComponent implements OnInit {
     this.videoEmbedSrc = id ? this.sanitizer.bypassSecurityTrustResourceUrl(youTubeEmbedUrl(id)) : null;
   }
 
+  public clearVideoUrl(): void {
+    this.videoUrl = '';
+    this.onVideoUrlChange();
+  }
+
   public get canSave(): boolean {
     return !!this.name.trim() && !this.saving;
   }

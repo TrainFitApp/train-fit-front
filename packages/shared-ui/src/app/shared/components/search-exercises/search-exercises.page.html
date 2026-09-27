@@ -132,9 +132,9 @@
       }"
       (click)="onExerciseCardClick(exercise)"
     >
-      <div class="exercise-image">
+      <div class="exercise-image" [class.exercise-image--placeholder]="!exercise?.gifUrl">
         <img
-          [src]="(exercise?.gifUrl ? exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT) | safe"
+          [src]="(exercise?.gifUrl || EXERCISE_PLACEHOLDER) | safe"
           alt="{{ exercise?.name | translateDb }}"
         />
       </div>

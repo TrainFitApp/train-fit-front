@@ -1,7 +1,7 @@
-import { Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, OnInit, ViewChild, ViewContainerRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, skip } from 'rxjs/operators';
-import { of, Subscription } from 'rxjs';
+import { firstValueFrom, of, Subscription } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -159,7 +159,7 @@ function groupPhaseDocs(docs: PlanAssignment[]): PlanAssignment[] {
   templateUrl: 'client-detail.page.html',
   styleUrls: ['client-detail.page.scss'],
 })
-export class ClientDetailPage implements OnInit {
+export class ClientDetailPage implements OnInit, AfterViewInit {
   public clientId = '';
   public name = 'Cliente';
   public scopes: ClientScope[] = [];
@@ -596,8 +596,15 @@ export class ClientDetailPage implements OnInit {
     // pero sigue llegando en enlaces viejos: notificaciones de "check-in
     // respondido" ya enviadas y estados de vista guardados antes de la
     // fusión. Se traduce en vez de caer a Resumen.
+    // Igual con 'history' (Progreso > Sesiones): ahora vive en Plan >
+    // Entrenamiento, así que se abre ahí con el panel de sesiones.
+    if ((tabPedida as string) === 'history') this.showSessionsPanel = true;
     const tabDestino: ClientDetailTab | null =
-      (tabPedida as string) === 'checkins' ? 'measurements' : tabPedida;
+      (tabPedida as string) === 'checkins'
+        ? 'measurements'
+        : (tabPedida as string) === 'history'
+          ? 'training'
+          : tabPedida;
     this.selectTab(tabDestino && SECTION_BY_TAB[tabDestino] ? tabDestino : 'summary');
 
     if (this.scopes.includes('training')) this.loadTraining();
@@ -675,8 +682,7 @@ export class ClientDetailPage implements OnInit {
     // Una sección cuyas subpestañas dependan todas de un scope que este
     // cliente no tiene no llega a mostrarse. Plan ya no puede vaciarse así
     // desde que Hábitos vive ahí (sin requiresScope, siempre visible) —
-    // el caso real hoy es Progreso con un cliente sin scope de entrenamiento
-    // (pierde "Sesiones", pero conserva Medidas y check-ins/Dolor).
+    // Progreso tampoco (Medidas y check-ins/Dolor no piden scope).
     return this.sections.filter((section) => this.visibleTabsOf(section).length > 0);
   }
 
@@ -1044,9 +1050,77 @@ export class ClientDetailPage implements OnInit {
     this.loadTrainingBlocks();
   }
 
-  // --- Tarea 3 bis: vista previa de sesiones (link a Progreso > Sesiones) ---
+  // --- Tarea 3 bis: vista previa de sesiones; "Ver todas" abre el panel
+  // lateral con el historial completo (antes, Progreso > Sesiones) ---
   public get recentCompletedWorkouts(): CompletedWorkoutEntry[] {
     return this.completedWorkouts.slice(0, 3);
+  }
+
+  public showSessionsPanel = false;
+
+  // Siempre en el DOM (fuera de los *ngIf) para poder moverlo a ion-app al
+  // montar: dentro de ion-content el fixed queda capturado y el panel se
+  // pintaría detrás de la gráfica de comparación. Mismo truco que
+  // SupplementsPanelComponent.
+  @ViewChild('sessionsPanelHost') private sessionsPanelHost?: ElementRef<HTMLElement>;
+
+  public ngAfterViewInit(): void {
+    const host = this.sessionsPanelHost?.nativeElement;
+    if (!host) return;
+    (document.querySelector('ion-app') || document.body).appendChild(host);
+    this.destroyRef.onDestroy(() => host.remove());
+  }
+
+  public openSessionsPanel(): void {
+    this.showSessionsPanel = true;
+  }
+
+  public closeSessionsPanel(): void {
+    this.closeSessionsStats();
+    this.showSessionsPanel = false;
+  }
+
+  // "Ver progresión por ejercicio" — Estadísticas se pinta en el hueco a la
+  // izquierda del panel de Sesiones, sin salir de la ficha. Se crea a mano
+  // (import perezoso, como su ruta) y se siembra la tabla igual que hace
+  // TableInContextResolver antes de abrir la ruta.
+  @ViewChild('sessionsStatsHost', { read: ViewContainerRef })
+  private sessionsStatsHost?: ViewContainerRef;
+  public showSessionsStats = false;
+  private isOpeningSessionsStats = false;
+
+  public async openSessionsStats(table: ClientTable): Promise<void> {
+    if (!this.sessionsStatsHost || this.isOpeningSessionsStats) return;
+    this.isOpeningSessionsStats = true;
+    try {
+      // El módulo también: registra el ámbito (pipes y componentes) de la página.
+      const [{ StatisticsPage }, , fullTable] = await Promise.all([
+        import('src/app/features/statistics/statistics.page'),
+        import('src/app/features/statistics/statistics.module'),
+        firstValueFrom(this.tableService.getTableById(table._id)),
+      ]);
+      this.tableService.setCurrentTable = fullTable;
+      this.sessionsStatsHost.clear();
+      const ref = this.sessionsStatsHost.createComponent(StatisticsPage);
+      ref.setInput('clientId', this.clientId);
+      ref.setInput('embedded', true);
+      // ion-header + ion-content necesitan el contenedor flex de una página.
+      ref.location.nativeElement.classList.add('ion-page');
+      ref.instance.closed.subscribe(() => this.closeSessionsStats());
+      this.showSessionsStats = true;
+    } catch (error) {
+      void this.ionicUtilService.showErrorToast(
+        error,
+        'No se pudieron abrir las estadísticas de esta rutina.'
+      );
+    } finally {
+      this.isOpeningSessionsStats = false;
+    }
+  }
+
+  public closeSessionsStats(): void {
+    this.sessionsStatsHost?.clear();
+    this.showSessionsStats = false;
   }
 
   // Cabecera persistente ("Cliente Resumen") — completedWorkouts ya viene
@@ -1079,10 +1153,6 @@ export class ClientDetailPage implements OnInit {
     if (isSameDay(date, now)) return `hoy, ${time}`;
     if (isSameDay(date, yesterday)) return `ayer, ${time}`;
     return `${date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}, ${time}`;
-  }
-
-  public goToSessionsTab(): void {
-    this.selectTab('history');
   }
 
   public goToNotesTab(): void {

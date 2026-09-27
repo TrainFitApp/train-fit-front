@@ -92,8 +92,6 @@
 
 <ion-footer class="ion-no-border" *ngIf="state !== 'loading'">
   <div class="history-panel__footer">
-    <ion-button expand="block" fill="outline" size="small" (click)="goToCheckins()">
-      Ir a check-ins
-    </ion-button>
+    <button type="button" class="goto-button" (click)="goToCheckins()">Ir a check-ins</button>
   </div>
 </ion-footer>

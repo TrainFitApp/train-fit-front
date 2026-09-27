@@ -23,7 +23,7 @@
         </div>
         <div class="actions-section">
           <button
-            *ngIf="stateSelected !== STATES.move"
+            *ngIf="stateSelected !== STATES.move && !isReadonly"
             class="action-button ripple-effect"
             [disabled]="loadingSplit || !currentSplit?.workouts?.length || exerciseCopyActive"
             (click)="enterWorkoutMoveMode()"

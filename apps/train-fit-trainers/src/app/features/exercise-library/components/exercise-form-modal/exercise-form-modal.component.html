@@ -1,24 +1,33 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>{{ isEdit ? 'Editar ejercicio' : 'Nuevo ejercicio' }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="close()" aria-label="Cerrar">
-        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Cerrar">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ isEdit ? 'Editar ejercicio' : 'Nuevo ejercicio' }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="exercise-form-content" [appSubmitOnEnter]="saveExerciseButton">
   <div class="field">
     <label class="field-label" for="exercise-name">Nombre</label>
-    <ion-input
-      id="exercise-name"
-      class="field-input"
-      placeholder="Press banca con mancuernas"
-      maxlength="100"
-      [(ngModel)]="name"
-    ></ion-input>
+    <div class="input-wrapper">
+      <input
+        id="exercise-name"
+        type="text"
+        class="input-field"
+        placeholder="Press banca con mancuernas"
+        maxlength="100"
+        autocomplete="off"
+        [(ngModel)]="name"
+      />
+    </div>
   </div>
 
   <div class="field">
@@ -38,14 +47,13 @@
 
   <div class="field">
     <label class="field-label" for="exercise-description">Descripción</label>
-    <ion-textarea
+    <textarea
       id="exercise-description"
-      class="field-input"
+      class="note-field"
       placeholder="Cómo ejecutarlo: una indicación por línea"
-      [autoGrow]="true"
       rows="3"
       [(ngModel)]="description"
-    ></ion-textarea>
+    ></textarea>
   </div>
 
   <!-- Bloque propio: como un campo más se perdía entre descripción y
@@ -56,17 +64,22 @@
       <span class="video-field-title">Vídeo del ejercicio</span>
       <span class="video-field-optional">Opcional</span>
     </label>
-    <ion-input
-      id="exercise-video"
-      class="field-input video-input"
-      type="url"
-      inputmode="url"
-      placeholder="Pega el enlace de YouTube"
-      [clearInput]="true"
-      [(ngModel)]="videoUrl"
-      (ngModelChange)="onVideoUrlChange()"
-      aria-describedby="exercise-video-help"
-    ></ion-input>
+    <div class="input-wrapper video-input">
+      <input
+        id="exercise-video"
+        type="url"
+        inputmode="url"
+        class="input-field"
+        placeholder="Pega el enlace de YouTube"
+        autocomplete="off"
+        [(ngModel)]="videoUrl"
+        (ngModelChange)="onVideoUrlChange()"
+        aria-describedby="exercise-video-help"
+      />
+      <button type="button" class="input-clear" *ngIf="videoUrl" (click)="clearVideoUrl()" aria-label="Quitar enlace">
+        <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
     <p id="exercise-video-help" class="video-field-help" [class.is-error]="videoUrlInvalid">
       {{ videoUrlInvalid
         ? 'No es un enlace de YouTube válido. Usa youtube.com/watch?v=…, youtu.be/… o youtube.com/embed/…'
