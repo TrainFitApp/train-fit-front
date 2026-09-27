@@ -826,88 +826,99 @@
   }
 }
 
-// Profesional activo, versión compacta: avatar a la izquierda y, a su lado,
-// nombre + una fila por scope alineadas con el nombre (sin encabezado aparte
-// ni línea bajo la identidad). Una tarjeta con un scope queda en ~84px.
+// Profesional activo, versión compacta: una sola línea (avatar + nombre +
+// chips de ámbito). Cada chip es a la vez etiqueta y botón de desvincular
+// (pide confirmación). En pantallas estrechas los chips bajan de línea.
 .pro-card--active {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  column-gap: 12px;
-  align-items: start;
-  padding: 12px 8px 4px 12px;
-  margin-bottom: 8px;
-  border-radius: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 8px 8px 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 12px;
 
   .pro-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: 0.76rem;
+    width: 30px;
+    height: 30px;
+    font-size: 0.7rem;
   }
 
   .pro-name {
-    display: block;
-    line-height: 36px;
-    padding-right: 6px;
-    font-size: 0.95rem;
-  }
-
-  .pro-row {
-    min-height: 40px;
-    padding: 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    border-bottom: none;
-  }
-
-  .pro-scope {
-    gap: 9px;
-    font-size: 0.84rem;
-    color: #e0e0e0;
-
-    ion-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      padding: 5px;
-      box-sizing: border-box;
-      border-radius: 7px;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .pro-scope-icon--training {
-      background: rgba(144, 169, 194, 0.14);
-    }
-
-    .pro-scope-icon--nutrition {
-      background: rgba(255, 171, 61, 0.14);
-    }
-  }
-
-  .pro-unlink-button {
-    position: relative;
-    height: 32px;
-    padding: 0 8px;
-    color: #8b8b8b;
-
-    // Área táctil de 44px sin engordar la fila.
-    &::before {
-      content: '';
-      position: absolute;
-      inset: -6px 0;
-    }
-
-    &:focus-visible {
-      outline: 2px solid #fe9000;
-      outline-offset: 0;
-    }
+    flex: 1 1 120px;
+    font-size: 0.9rem;
   }
 }
 
-.pro-body {
-  min-width: 0;
+.pro-scope-chips {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.pro-scope-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 6px 0 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+
+  // Área táctil de 44px sin engordar la fila.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -8px -3px;
+  }
+
+  ion-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .pro-scope-chip-close {
+    font-size: 12px;
+    color: #8b8b8b;
+  }
+
+  ion-spinner {
+    width: 12px;
+    height: 12px;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      border-color: rgba(235, 68, 90, 0.5);
+
+      .pro-scope-chip-close {
+        color: #eb445a;
+      }
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 }
 
 .mp-state-message {
