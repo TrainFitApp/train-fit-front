@@ -1,17 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { Split } from 'src/app/core/models/split';
-// Movida a utils/planner-metrics.ts (2026-09) — la comparte con el modal de
-// comparación de microciclos, que cuenta las series igual.
-import { countByMuscleGroup } from '../../utils/planner-metrics';
-
-type VolumeStatus = 'low' | 'ok' | 'high';
-
-export interface MuscleVolumeRow {
-  name: string;
-  count: number;
-  previousCount: number | null;
-  status: VolumeStatus;
-}
+import {
+  MuscleTreeRow,
+  buildMuscleTreeRows,
+  countSplitMuscleTree,
+  keepReferenceWhileEqual,
+} from '../../utils/planner-metrics';
 
 const COLLAPSE_KEY = 'tf-muscle-volume-collapsed';
 
@@ -20,9 +14,14 @@ const COLLAPSE_KEY = 'tf-muscle-volume-collapsed';
  * del microciclo SELECCIONADO en el tablero, con delta contra el microciclo
  * anterior.
  *
+ * 2026-09 — cuenta sobre el árbol muscular con énfasis (grupo → porciones,
+ * series fraccionales, ver planner-metrics.ts#countMuscleTree) y lo pinta
+ * <app-muscle-tree>. Antes contaba muscleGroups1 plano, con cada serie
+ * entera para cada músculo principal y los secundarios fuera.
+ *
  * Distinto de <app-session-load-panel>: ese panel reparte una puntuación
  * MANUAL del entrenador dentro de UNA sesión ("Mi método → Puntuaciones");
- * este cuenta series REALES (Exercise.muscleGroups1 × nº de Set) sobre TODO
+ * este cuenta series REALES (Exercise.muscles × nº de Set) sobre TODO
  * un microciclo, sin puntuación previa que mantener. Preguntas distintas
  * ("¿cuánto exige hoy?" vs. "¿le doy suficiente espalda esta semana?"),
  * paneles distintos — ninguno sustituye al otro.
@@ -67,69 +66,23 @@ export class MuscleVolumePanelComponent {
   // primer conteo para siempre. El volumen de un puñado de ejercicios es
   // barato de recalcular en cada ciclo de detección de cambios; correcto
   // siempre le gana a cachear algo que se queda obsoleto en silencio.
-  public get rows(): MuscleVolumeRow[] {
-    return this.computeRows();
+  public get rows(): MuscleTreeRow[] {
+    return this.stableRows(
+      buildMuscleTreeRows(
+        countSplitMuscleTree(this.split),
+        this.previousSplit ? countSplitMuscleTree(this.previousSplit) : null
+      )
+    );
+  }
+
+  private stableRows = keepReferenceWhileEqual<MuscleTreeRow[]>();
+
+  public get unclassifiedSets(): number {
+    return countSplitMuscleTree(this.split).unclassifiedSets;
   }
 
   public toggle(): void {
     this.collapsed = !this.collapsed;
     localStorage.setItem(COLLAPSE_KEY, this.collapsed ? '1' : '0');
   }
-
-  public statusFor(count: number): VolumeStatus {
-    if (count < this.targetMin) return 'low';
-    if (count > this.targetMax) return 'high';
-    return 'ok';
-  }
-
-  // Contra 1.5x el máximo del rango, no contra el propio conteo: así una
-  // barra "por encima" se sigue leyendo como "se sale", en vez de reescalar
-  // el track entero y esconder el exceso.
-  public fillWidth(count: number): number {
-    const scale = this.targetMax * 1.5;
-    return Math.min(100, Math.round((count / scale) * 100));
-  }
-
-  public get rangeStart(): number {
-    return Math.round((this.targetMin / (this.targetMax * 1.5)) * 100);
-  }
-
-  public get rangeWidth(): number {
-    return Math.round(
-      ((this.targetMax - this.targetMin) / (this.targetMax * 1.5)) * 100,
-    );
-  }
-
-  public delta(row: MuscleVolumeRow): number | null {
-    if (row.previousCount === null) return null;
-    return row.count - row.previousCount;
-  }
-
-  public trackByName(_index: number, row: MuscleVolumeRow): string {
-    return row.name;
-  }
-
-  private computeRows(): MuscleVolumeRow[] {
-    const current = countByMuscleGroup(this.split);
-    const previous = countByMuscleGroup(this.previousSplit);
-    const hasPrevious = !!this.previousSplit;
-
-    const names = new Set<string>([
-      ...Object.keys(current),
-      ...Object.keys(previous),
-    ]);
-
-    return Array.from(names)
-      .map((name) => {
-        const count = current[name] || 0;
-        return {
-          name,
-          count,
-          previousCount: hasPrevious ? previous[name] || 0 : null,
-          status: this.statusFor(count),
-        };
-      })
-      .sort((a, b) => b.count - a.count);
-  }
-
 }

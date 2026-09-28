@@ -263,10 +263,10 @@ export interface BlockComparisonSide {
 }
 
 // Tarea 4 (2026-09) — carga por grupo muscular, por microciclo. `group` es
-// el string crudo del catálogo (Exercise.muscleGroups1/2), sin diccionario
-// de traducción propio en el frontend: mismo criterio que `splitName` en
-// TrainingBlock, el backend no inventa una etiqueta distinta de la que ya
-// usa el resto de la app para nombrar grupos musculares.
+// la etiqueta del GRUPO del catálogo muscular ("Pectoral", "Bíceps", ver
+// core/constants/muscle-catalog.ts). `sets` y `volume` son fraccionales
+// (principal ×1, secundario ×0,5), el mismo conteo que el Análisis del
+// Planner (training-service.js#groupFactorsOf).
 export interface BlockMuscleGroup {
   splitId: string;
   name: string;

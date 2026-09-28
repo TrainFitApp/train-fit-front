@@ -24,7 +24,7 @@
       <span>{{ metricLabel }} · B frente a A</span>
     </div>
     <p class="comparison-context">
-      {{ metric === 'muscleGroups' ? 'Series por sesión y grupo. Una serie puede implicar varios grupos.' : metric === 'exercise' ? 'Carga, reps y RIR de la misma serie. Más kg con menos reps o menor RIR implica otro esfuerzo.' : 'Trabajo realizado por sesión; las sesiones pueden estar parcialmente registradas.' }}
+      {{ metric === 'muscleGroups' ? 'Series por sesión y grupo, contadas igual que en el Análisis del Planner: músculo principal ×1, secundario ×0,5.' : metric === 'exercise' ? 'Carga, reps y RIR de la misma serie. Más kg con menos reps o menor RIR implica otro esfuerzo.' : 'Trabajo realizado por sesión; las sesiones pueden estar parcialmente registradas.' }}
     </p>
     <p class="comparison-context" *ngIf="blocks.length < 2">Hace falta otro microciclo registrado para calcular cambios.</p>
     <table>

@@ -111,35 +111,76 @@
     </div>
   </div>
 
-  <div class="field">
-    <label class="field-label">Músculos principales</label>
-    <div class="chip-row">
-      <button
-        type="button"
-        class="chip"
-        *ngFor="let muscle of muscleGroups"
-        [class.is-active]="selectedMuscleGroups1.includes(muscle)"
-        (click)="toggle(selectedMuscleGroups1, muscle)"
-      >
-        {{ muscle }}
-      </button>
+  <!-- Músculos con énfasis (2026-09): un toque por músculo recorre
+       principal → secundario → estabilizador → quitar. Es lo que alimenta
+       la pestaña Análisis del Planner. En cardio no se pide: no suma series
+       de hipertrofia. -->
+  <section class="field muscle-field" *ngIf="mode !== 'cardio'" aria-labelledby="muscle-field-title">
+    <div class="muscle-field-head">
+      <span id="muscle-field-title" class="field-label">Músculos y énfasis</span>
+      <ul class="role-legend" aria-label="Qué significa cada marca">
+        <li><span class="role-swatch role-swatch--primary" aria-hidden="true"></span>Principal ×1</li>
+        <li><span class="role-swatch role-swatch--secondary" aria-hidden="true"></span>Secundario ×0,5</li>
+        <li><span class="role-swatch role-swatch--stabilizer" aria-hidden="true"></span>Estabilizador</li>
+      </ul>
     </div>
-  </div>
+    <p class="field-help">
+      Toca un músculo para marcarlo; cada toque pasa al siguiente rol hasta quitarlo. Marca la
+      porción cuando el ejercicio la enfatiza (press inclinado → pectoral superior) y
+      «Todo el grupo» cuando no.
+    </p>
 
-  <div class="field">
-    <label class="field-label">Músculos secundarios</label>
-    <div class="chip-row">
-      <button
-        type="button"
-        class="chip"
-        *ngFor="let muscle of muscleGroups"
-        [class.is-active]="selectedMuscleGroups2.includes(muscle)"
-        (click)="toggle(selectedMuscleGroups2, muscle)"
-      >
-        {{ muscle }}
-      </button>
+    <div class="muscle-groups">
+      <div class="muscle-group" *ngFor="let group of muscleGroups">
+        <span class="muscle-group-name">{{ group.label }}</span>
+        <div class="chip-row">
+          <button
+            type="button"
+            class="chip muscle-chip"
+            [class.is-primary]="roleOf(group.id) === 'primary'"
+            [class.is-secondary]="roleOf(group.id) === 'secondary'"
+            [class.is-stabilizer]="roleOf(group.id) === 'stabilizer'"
+            [attr.aria-label]="muscleAriaLabel(group.label + ', todo el grupo', group.id)"
+            (click)="cycleMuscle(group.id)"
+          >
+            Todo el grupo
+            <span class="chip-role" *ngIf="roleOf(group.id) as role">{{ roleLabel[role] }}</span>
+          </button>
+          <button
+            type="button"
+            class="chip muscle-chip"
+            *ngFor="let portion of group.muscles"
+            [class.is-primary]="roleOf(portion.id) === 'primary'"
+            [class.is-secondary]="roleOf(portion.id) === 'secondary'"
+            [class.is-stabilizer]="roleOf(portion.id) === 'stabilizer'"
+            [attr.aria-label]="muscleAriaLabel(group.label + ', ' + portion.label, portion.id)"
+            (click)="cycleMuscle(portion.id)"
+          >
+            {{ portion.label }}
+            <span class="chip-role" *ngIf="roleOf(portion.id) as role">{{ roleLabel[role] }}</span>
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
+    <!-- Resumen DEBAJO de los grupos: arriba, al aparecer o crecer,
+         desplazaba las chips bajo el cursor y el siguiente toque caía en
+         otro músculo. -->
+    <div class="muscle-summary" *ngIf="selectedMuscles.length; else noMuscles" aria-live="polite">
+      <ng-container *ngFor="let role of roles">
+        <p class="muscle-summary-line" *ngIf="musclesWithRole(role)">
+          <span class="muscle-summary-role muscle-summary-role--{{ role }}">{{ roleLabel[role] }}</span>
+          <span class="muscle-summary-names">{{ musclesWithRole(role) }}</span>
+        </p>
+      </ng-container>
+    </div>
+    <ng-template #noMuscles>
+      <p class="muscle-summary muscle-summary--empty">Sin músculos marcados.</p>
+    </ng-template>
+    <p class="field-help is-warning" *ngIf="missingPrimary && selectedMuscles.length">
+      Sin músculo principal, este ejercicio no sumará series completas en el Análisis del Planner.
+    </p>
+
+  </section>
 
   <div class="field">
     <label class="field-label">Equipamiento</label>

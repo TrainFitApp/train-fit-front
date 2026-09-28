@@ -7,8 +7,16 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import {
   EXERCISE_CATEGORIES,
   EXERCISE_EQUIPMENT,
-  EXERCISE_MUSCLE_GROUPS,
 } from '../../constants/exercise-taxonomy';
+import {
+  ExerciseMuscle,
+  MUSCLE_GROUPS,
+  MUSCLE_ROLES,
+  MUSCLE_ROLE_LABEL,
+  MuscleRole,
+  muscleFullLabel,
+  normalizeMuscles,
+} from 'src/app/core/constants/muscle-catalog';
 import { parseYouTubeId, youTubeEmbedUrl } from '../../utils/youtube-embed';
 
 type ExerciseMode = 'fuerza' | 'cardio' | 'isometrico';
@@ -28,7 +36,9 @@ export class ExerciseFormModalComponent implements OnInit {
   @Input() exercise?: Exercise;
 
   public readonly categories = EXERCISE_CATEGORIES;
-  public readonly muscleGroups = EXERCISE_MUSCLE_GROUPS;
+  public readonly muscleGroups = MUSCLE_GROUPS;
+  public readonly roleLabel = MUSCLE_ROLE_LABEL;
+  public readonly roles = MUSCLE_ROLES;
   public readonly equipment = EXERCISE_EQUIPMENT;
 
   public name = '';
@@ -39,8 +49,10 @@ export class ExerciseFormModalComponent implements OnInit {
   private videoId = '';
   public mode: ExerciseMode = 'fuerza';
   public selectedCategories: string[] = [];
-  public selectedMuscleGroups1: string[] = [];
-  public selectedMuscleGroups2: string[] = [];
+  // Músculo → rol (ver constants/muscle-catalog.ts). Sustituye a las dos
+  // listas sueltas de principales/secundarios: ahora cada músculo lleva su
+  // énfasis, y el backend proyecta muscleGroups1/2 a partir de aquí.
+  public muscleRoles: Record<string, MuscleRole> = {};
   public selectedEquipment: string[] = [];
   public saving = false;
 
@@ -93,8 +105,9 @@ export class ExerciseFormModalComponent implements OnInit {
       : exercise.category
       ? [exercise.category]
       : [];
-    this.selectedMuscleGroups1 = [...(exercise.muscleGroups1 || [])];
-    this.selectedMuscleGroups2 = [...(exercise.muscleGroups2 || [])];
+    for (const { muscle, role } of normalizeMuscles(exercise.muscles)) {
+      this.muscleRoles[muscle] = role;
+    }
     this.selectedEquipment = [...(exercise.equipment || [])];
   }
 
@@ -107,6 +120,49 @@ export class ExerciseFormModalComponent implements OnInit {
     selection.push(value);
   }
 
+  // Un toque recorre principal → secundario → estabilizador → quitar. Es la
+  // acción que el entrenador repite en cada ejercicio: un solo gesto por
+  // músculo, sin menú ni segundo paso.
+  public cycleMuscle(muscle: string): void {
+    const next: Record<string, MuscleRole | null> = {
+      none: 'primary',
+      primary: 'secondary',
+      secondary: 'stabilizer',
+      stabilizer: null,
+    };
+    const role = next[this.muscleRoles[muscle] || 'none'];
+    const roles = { ...this.muscleRoles };
+    if (role) roles[muscle] = role;
+    else delete roles[muscle];
+    this.muscleRoles = roles;
+  }
+
+  public roleOf(muscle: string): MuscleRole | null {
+    return this.muscleRoles[muscle] || null;
+  }
+
+  public muscleAriaLabel(label: string, muscle: string): string {
+    const role = this.roleOf(muscle);
+    return `${label}: ${role ? this.roleLabel[role].toLowerCase() : 'sin marcar'}`;
+  }
+
+  public get selectedMuscles(): ExerciseMuscle[] {
+    return normalizeMuscles(
+      Object.entries(this.muscleRoles).map(([muscle, role]) => ({ muscle, role }))
+    );
+  }
+
+  public musclesWithRole(role: MuscleRole): string {
+    return this.selectedMuscles
+      .filter((item) => item.role === role)
+      .map((item) => muscleFullLabel(item.muscle))
+      .join(', ');
+  }
+
+  public get missingPrimary(): boolean {
+    return this.mode !== 'cardio' && !this.selectedMuscles.some((item) => item.role === 'primary');
+  }
+
   public save(): void {
     if (!this.canSave) return;
 
@@ -117,8 +173,7 @@ export class ExerciseFormModalComponent implements OnInit {
       description: this.description.trim(),
       videoUrl: this.videoUrl.trim(),
       category: [...this.selectedCategories],
-      muscleGroups1: [...this.selectedMuscleGroups1],
-      muscleGroups2: [...this.selectedMuscleGroups2],
+      muscles: this.mode === 'cardio' ? [] : this.selectedMuscles,
       equipment: [...this.selectedEquipment],
       isCardio: this.mode === 'cardio',
       isIsometric: this.mode === 'isometrico',

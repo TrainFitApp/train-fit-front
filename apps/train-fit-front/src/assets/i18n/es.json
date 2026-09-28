@@ -1615,6 +1615,8 @@
     "EXERCISE_TYPE": "Tipo de ejercicio",
     "CATEGORIES": "Categorías Generales",
     "MAIN_MUSCLES": "Músculos Principales",
+    "MUSCLES_HINT": "Ejercicios en los que es el músculo principal. Elige un grupo y, si quieres, afina por porción.",
+    "REFINE": "Afinar por porción",
     "SECONDARY_MUSCLES": "Músculos Secundarios",
     "EQUIPMENT": "Equipamiento"
   },

@@ -3,7 +3,8 @@ import { Workout } from 'src/app/core/models/workout';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Set as ExerciseSet } from 'src/app/core/models/set';
 import { formatRirValue } from 'src/app/core/models/rir';
-import { countByMuscleGroup } from './planner-metrics';
+import { MUSCLE_GROUPS } from 'src/app/core/constants/muscle-catalog';
+import { countMuscleTree, countSplitMuscleTree } from './planner-metrics';
 
 /**
  * Motor de comparación de dos microciclos (2026-09). Puro y sin
@@ -431,46 +432,43 @@ function exerciseName(customExercise: CustomExercise | null): string {
 // Unión de grupos musculares de A y B, con relleno a 0 en el lado que no lo
 // tiene, ORDENADA POR |delta|: en un comparador se busca lo que cambió, no
 // el ranking (eso ya lo da la pestaña "Semana" del panel lateral).
+//
+// 2026-09 — mismo conteo que la pestaña Análisis (series fraccionales por
+// GRUPO, planner-metrics.ts#countMuscleTree): el mismo microciclo tiene que
+// dar la misma cifra en las dos pantallas. Antes contaba muscleGroups1 plano
+// y "Pectoral" y "Pectoral superior" salían como dos músculos distintos.
 function buildMuscleRows(a: Split | null, b: Split | null): CompareMuscleRow[] {
-  const countsA = countByMuscleGroup(a);
-  const countsB = countByMuscleGroup(b);
+  const countsA = countSplitMuscleTree(a).groups;
+  const countsB = countSplitMuscleTree(b).groups;
   const daysA = countDaysByMuscleGroup(a);
   const daysB = countDaysByMuscleGroup(b);
-  // `Set` aquí es el nativo: el modelo homónimo se importa como ExerciseSet.
-  const names = new Set<string>([...Object.keys(countsA), ...Object.keys(countsB)]);
 
-  return [...names]
-    .map((name) => {
-      const countA = countsA[name] || 0;
-      const countB = countsB[name] || 0;
+  return MUSCLE_GROUPS.filter((group) => countsA[group.id] || countsB[group.id])
+    .map((group) => {
+      const countA = countsA[group.id]?.sets || 0;
+      const countB = countsB[group.id]?.sets || 0;
       return {
-        name,
+        name: group.label,
         a: countA,
         b: countB,
         delta: countB - countA,
-        daysA: daysA[name] || 0,
-        daysB: daysB[name] || 0,
+        daysA: daysA[group.id] || 0,
+        daysB: daysB[group.id] || 0,
       };
     })
     .sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta) || y.b - x.b);
 }
 
-// Frecuencia: en cuántos entrenamientos DISTINTOS aparece cada grupo
-// muscular con al menos una serie. 12 series de pecho en un día y 12
-// repartidas en dos semanas distintas no son la misma programación, y el
-// conteo de series por sí solo no las distingue.
+// Frecuencia: en cuántos entrenamientos DISTINTOS recibe series cada grupo
+// muscular (como principal o secundario; el estabilizador no cuenta, igual
+// que en el volumen). 12 series de pecho en un día y 12 repartidas en dos
+// no son la misma programación, y el conteo de series no las distingue.
 function countDaysByMuscleGroup(split: Split | null): Record<string, number> {
   const days: Record<string, number> = {};
-  if (!split) return days;
-
-  for (const workout of split.workouts || []) {
-    const inThisDay = new Set<string>();
-    for (const exercise of workout.exercises || []) {
-      if (!exercise.sets?.length) continue;
-      for (const group of exercise.exercise?.muscleGroups1 || []) inThisDay.add(group);
+  for (const workout of split?.workouts || []) {
+    for (const groupId of Object.keys(countMuscleTree([workout]).groups)) {
+      days[groupId] = (days[groupId] || 0) + 1;
     }
-    for (const group of inThisDay) days[group] = (days[group] || 0) + 1;
   }
-
   return days;
 }

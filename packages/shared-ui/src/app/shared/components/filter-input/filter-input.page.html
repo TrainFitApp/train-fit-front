@@ -72,44 +72,47 @@
       </div>
     </div>
 
-    <!-- Músculos Principales -->
+    <!-- Músculos (catálogo de dos niveles, 2026-09) -->
     <div class="filter-section">
       <div class="section-header">
         <ion-icon name="body" class="section-icon"></ion-icon>
         <h3 class="section-title">{{ 'FILTER_INPUT.MAIN_MUSCLES' | translate }}</h3>
       </div>
+      <p class="section-hint">{{ 'FILTER_INPUT.MUSCLES_HINT' | translate }}</p>
       <div class="chips-container">
         <button
           type="button"
           class="modern-pill filter-chip"
-          *ngFor="let muscle of muscleGroup1; let i = index"
-          [class.is-active]="searchFilterGroupExercises.muscleGroups1.includes(muscle)"
-          (click)="selectMuscleGroup1(muscle)"
+          *ngFor="let group of muscleGroups"
+          [class.is-active]="isGroupActive(group)"
+          [attr.aria-pressed]="isGroupActive(group)"
+          (click)="toggleMuscleGroup(group)"
         >
-          <span class="label">{{ muscle | translateDb }}</span>
+          <span class="label">{{ group.label | translateDb }}</span>
           <ion-ripple-effect></ion-ripple-effect>
         </button>
       </div>
-    </div>
 
-    <!-- Músculos Secundarios -->
-    <div class="filter-section">
-      <div class="section-header">
-        <ion-icon name="accessibility" class="section-icon"></ion-icon>
-        <h3 class="section-title">{{ 'FILTER_INPUT.SECONDARY_MUSCLES' | translate }}</h3>
-      </div>
-      <div class="chips-container">
-        <button
-          type="button"
-          class="modern-pill filter-chip"
-          *ngFor="let muscle of muscleGroup1"
-          [class.is-active]="searchFilterGroupExercises.muscleGroups2.includes(muscle)"
-          (click)="selectMuscleGroup2(muscle)"
-        >
-          <span class="label">{{ muscle | translateDb }}</span>
-          <ion-ripple-effect></ion-ripple-effect>
-        </button>
-      </div>
+      <ng-container *ngFor="let group of muscleGroups">
+        <div class="portion-refine" *ngIf="group.muscles.length && isGroupActive(group)">
+          <p class="portion-refine-title">
+            {{ group.label | translateDb }} · {{ 'FILTER_INPUT.REFINE' | translate }}
+          </p>
+          <div class="chips-container">
+            <button
+              type="button"
+              class="modern-pill filter-chip filter-chip--portion"
+              *ngFor="let portion of group.muscles"
+              [class.is-active]="isMuscleSelected(portion.id)"
+              [attr.aria-pressed]="isMuscleSelected(portion.id)"
+              (click)="toggleMusclePortion(group, portion.id)"
+            >
+              <span class="label">{{ portion.label | translateDb }}</span>
+              <ion-ripple-effect></ion-ripple-effect>
+            </button>
+          </div>
+        </div>
+      </ng-container>
     </div>
 
     <!-- Equipamiento -->

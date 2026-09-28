@@ -25,23 +25,21 @@
 
       <!-- Series REALES por grupo muscular de ESTA sesión (2026-09). Va
            primero porque no depende de haber puntuado nada: sale de contar
-           Sets sobre los músculos primarios del ejercicio, igual que la
-           pestaña Semana pero de un solo entrenamiento. -->
-      <ng-container *ngIf="seriesByMuscle.length">
+           Sets sobre los músculos del ejercicio, igual que la pestaña Semana
+           pero de un solo entrenamiento y sin rango (10-20 es semanal). -->
+      <ng-container *ngIf="seriesByMuscle.length || unclassifiedSets">
         <h4 class="group-title">
           <span>Series por músculo</span>
           <span class="group-unit">{{ totalWorkoutSets }} en total</span>
         </h4>
-        <div class="bar-row" *ngFor="let row of seriesByMuscle; trackBy: trackByName">
-          <span class="bar-name">{{ row.name | translateDb }}</span>
-          <span class="bar-track">
-            <span class="bar-fill" [style.width.%]="seriesBarWidth(row.count)"></span>
-          </span>
-          <span class="bar-value">{{ row.count }}</span>
-        </div>
+        <app-muscle-tree *ngIf="seriesByMuscle.length" [rows]="seriesByMuscle"></app-muscle-tree>
+        <p class="panel-warning" *ngIf="unclassifiedSets">
+          {{ unclassifiedSets }} {{ unclassifiedSets === 1 ? 'serie no cuenta' : 'series no cuentan' }}:
+          su ejercicio aún no tiene músculos asignados.
+        </p>
         <p class="panel-hint panel-hint--tight">
-          Series de esta sesión por grupo muscular principal. Una serie cuenta entera en cada
-          músculo primario del ejercicio.
+          Principal suma la serie entera, secundario media, estabilizador nada. Debajo de cada
+          grupo, su reparto por porciones; «Todo el grupo» es trabajo sin énfasis en una porción.
         </p>
       </ng-container>
 

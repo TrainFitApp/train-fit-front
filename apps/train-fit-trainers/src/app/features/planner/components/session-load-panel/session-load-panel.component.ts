@@ -1,6 +1,11 @@
 import { Component, DoCheck, Input } from '@angular/core';
 import { Workout } from 'src/app/core/models/workout';
-import { countWorkoutByMuscleGroup } from '../../utils/planner-metrics';
+import {
+  MuscleTreeRow,
+  buildMuscleTreeRows,
+  countWorkoutMuscleTree,
+  keepReferenceWhileEqual,
+} from '../../utils/planner-metrics';
 import {
   ExerciseScoresApiService,
   SessionLoad,
@@ -148,20 +153,21 @@ export class SessionLoadPanelComponent implements DoCheck {
   // reparto de abajo depende de que el entrenador haya puntuado ejercicios
   // en "Mi método". Un panel que empieza pidiendo trabajo previo para
   // enseñar algo es un panel que nadie mira.
-  public get seriesByMuscle(): { name: string; count: number }[] {
-    const counts = countWorkoutByMuscleGroup(this.workout);
-    return Object.entries(counts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
+  //
+  // 2026-09 — árbol grupo → porciones con series fraccionales, igual que la
+  // pestaña Semana (planner-metrics.ts#countMuscleTree).
+  public get seriesByMuscle(): MuscleTreeRow[] {
+    return this.stableSeries(buildMuscleTreeRows(countWorkoutMuscleTree(this.workout)));
+  }
+
+  private stableSeries = keepReferenceWhileEqual<MuscleTreeRow[]>();
+
+  public get unclassifiedSets(): number {
+    return countWorkoutMuscleTree(this.workout).unclassifiedSets;
   }
 
   public get totalWorkoutSets(): number {
     return (this.workout?.exercises || []).reduce((sum, e) => sum + (e.sets?.length || 0), 0);
-  }
-
-  public seriesBarWidth(count: number): number {
-    const max = Math.max(...this.seriesByMuscle.map((row) => row.count), 1);
-    return Math.round((count / max) * 100);
   }
 
   // Tres vacíos distintos que antes se contaban todos como "no has puntuado

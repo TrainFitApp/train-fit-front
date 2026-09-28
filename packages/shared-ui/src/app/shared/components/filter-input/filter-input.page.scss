@@ -154,6 +154,51 @@
   border-color: transparent;
 }
 
+// --- Músculos: grupo y porciones ---
+
+.section-hint {
+  margin: -4px 0 12px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+// Las porciones cuelgan del grupo elegido: separadas por una línea y con
+// menos peso que las chips de grupo, para leerse como "afinar", no como
+// una segunda lista de músculos.
+.portion-refine {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.portion-refine-title {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.modern-pill.filter-chip.filter-chip--portion {
+  min-height: 32px;
+  padding: 6px 12px;
+  box-shadow: none;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.14);
+
+  .label {
+    font-size: 0.85rem;
+  }
+
+  &.is-active {
+    background: rgba(254, 144, 0, 0.14);
+    border-color: #fe9000;
+    color: #fe9000;
+  }
+}
+
 // Removed legacy ion-chip state classes in favor of modern pills
 
 // Responsive Design

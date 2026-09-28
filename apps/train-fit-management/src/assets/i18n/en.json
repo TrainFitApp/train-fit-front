@@ -1530,6 +1530,8 @@
     "TITLE": "Filters",
     "CATEGORIES": "General Categories",
     "MAIN_MUSCLES": "Main Muscles",
+    "MUSCLES_HINT": "Exercises where it is the main muscle. Pick a group and, if you like, narrow it down by portion.",
+    "REFINE": "Narrow down by portion",
     "SECONDARY_MUSCLES": "Secondary Muscles",
     "EQUIPMENT": "Equipment",
     "EXERCISE_TYPE": "Exercise type"

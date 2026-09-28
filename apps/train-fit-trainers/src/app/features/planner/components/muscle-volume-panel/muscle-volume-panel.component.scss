@@ -97,81 +97,11 @@
   border-top: 1px solid var(--tf-border-subtle);
 }
 
-.vol-row {
-  display: grid;
-  grid-template-columns: 64px 1fr 28px 46px;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 0;
-}
-
-.vol-name {
+// Aviso, no pista: son series que el entrenador pautó y que el panel no
+// puede contar. Mismo tono de alerta que una barra fuera de rango.
+.panel-warning {
+  margin: var(--tf-space-3) 0 0;
   font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.vol-track {
-  position: relative;
-  height: 6px;
-  border-radius: var(--tf-radius-pill);
-  background: var(--tf-surface-3);
-}
-
-// La franja del rango de referencia vive DEBAJO del relleno: marca dónde
-// "debería" caer la barra sin competir visualmente con el dato real.
-.vol-range {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  border-radius: var(--tf-radius-pill);
-  background: var(--tf-surface-5);
-}
-
-.vol-fill {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  border-radius: var(--tf-radius-pill);
-  background: var(--tf-accent);
-
-  // Mismo vocabulario de color que el resto de la app: éxito/peligro son
-  // semánticos, no una paleta nueva para este panel.
-  &--low,
-  &--high {
-    background: var(--tf-danger);
-  }
-}
-
-.vol-count {
-  text-align: right;
-  font-size: var(--tf-font-size-xs);
-  font-weight: 700;
-  color: var(--tf-text);
-  font-variant-numeric: tabular-nums;
-
-  &--low,
-  &--high {
-    color: var(--tf-danger-text);
-  }
-}
-
-.vol-delta {
-  text-align: right;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--tf-text-muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-
-  &--up {
-    color: var(--tf-success);
-  }
-
-  &--down {
-    color: var(--tf-danger-text);
-  }
+  line-height: 1.5;
+  color: var(--tf-danger-text);
 }

@@ -1,0 +1,213 @@
+:host {
+  display: block;
+}
+
+.tree,
+.portion-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Separación entre grupos mayor que dentro del grupo: el ojo tiene que
+// agrupar "Pectoral + sus porciones" antes de leer ningún número.
+.tree-group {
+  padding: var(--tf-space-2) 0;
+
+  & + & {
+    border-top: 1px solid var(--tf-border-subtle);
+  }
+}
+
+.group-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+}
+
+.group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 32px;
+  margin: 0 0 0 -4px;
+  padding: 0 4px;
+  background: none;
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(.group-toggle--static) .group-chevron {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 0;
+  }
+
+  &--static {
+    cursor: default;
+  }
+}
+
+.group-chevron {
+  flex-shrink: 0;
+  width: 14px;
+  font-size: 14px;
+  color: var(--tf-text-muted);
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+}
+
+.group-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+}
+
+.group-count {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  cursor: help;
+
+  &--low,
+  &--high {
+    color: var(--tf-danger-text);
+  }
+}
+
+.group-delta {
+  min-width: 40px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+
+  &--up {
+    color: var(--tf-success);
+  }
+
+  &--down {
+    color: var(--tf-danger-text);
+  }
+}
+
+// La barra del grupo va a lo ancho, debajo del nombre, alineada con el
+// texto (no con el chevron): es el dato que se compara con el rango.
+.group-track {
+  position: relative;
+  display: block;
+  height: 6px;
+  margin: 4px 0 0 18px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-3);
+}
+
+// Debajo del relleno: marca dónde "debería" caer la barra sin competir con
+// el dato real.
+.group-range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-5);
+}
+
+.group-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent);
+
+  &--alert {
+    background: var(--tf-danger);
+  }
+}
+
+// Porciones: sangradas bajo el nombre del grupo, texto secundario y barra
+// fina. La barra es el reparto DENTRO del grupo (porcentaje), no el
+// volumen absoluto: por eso es neutra y no lleva rango ni color de alerta.
+.portion-list {
+  margin: 6px 0 0 18px;
+}
+
+.portion-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px 28px;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+
+  &--empty {
+    .portion-name,
+    .portion-count {
+      color: var(--tf-text-muted);
+    }
+  }
+
+  // "Todo el grupo" no es una porción anatómica: separada de las porciones
+  // por una línea fina y en cursiva, para que no se lea como una cuarta
+  // cabeza del bíceps.
+  &--whole {
+    margin-top: 2px;
+    padding-top: 5px;
+    border-top: 1px dashed var(--tf-border-subtle);
+
+    .portion-name {
+      font-style: italic;
+    }
+  }
+}
+
+// Dos líneas antes que cortar: "Trapecio medio y romboides" truncado a
+// "Trapecio medio y r…" obliga a pasar el ratón para saber qué es.
+.portion-name {
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.3;
+  color: var(--tf-text-secondary);
+}
+
+.portion-track {
+  position: relative;
+  height: 4px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-3);
+}
+
+.portion-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-text-muted);
+}
+
+.portion-count {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group-chevron {
+    transition: none;
+  }
+}

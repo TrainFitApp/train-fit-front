@@ -124,11 +124,11 @@
 
     <details class="muscle-section">
       <summary>Volumen por grupo muscular <span>{{ muscles.length }} {{ muscles.length === 1 ? 'grupo' : 'grupos' }}</span></summary>
-      <p class="table-guide">Series por grupo principal · barras A / B en la misma escala · frecuencia en sesiones.</p>
+      <p class="table-guide">Series por grupo, igual que en Análisis: principal ×1, secundario ×0,5 · barras A / B en la misma escala · frecuencia en sesiones.</p>
       <div class="muscle-row" *ngFor="let muscle of muscles">
         <strong>{{ muscle.name | translateDb }}</strong>
         <div class="muscle-bars" aria-hidden="true"><i [style.width.%]="muscle.widthA"></i><i [style.width.%]="muscle.widthB"></i></div>
-        <span>{{ muscle.a }} → <b>{{ muscle.b }}</b><small>{{ muscle.daysA }} → {{ muscle.daysB }} sesiones</small></span>
+        <span>{{ muscle.metric.a }} → <b>{{ muscle.metric.b }}</b><small>{{ muscle.daysA }} → {{ muscle.daysB }} sesiones</small></span>
         <ng-container *ngTemplateOutlet="delta; context: { $implicit: muscle.metric }"></ng-container>
       </div>
       <p class="empty-state" *ngIf="!muscles.length">Sin series asignadas a grupos musculares.</p>

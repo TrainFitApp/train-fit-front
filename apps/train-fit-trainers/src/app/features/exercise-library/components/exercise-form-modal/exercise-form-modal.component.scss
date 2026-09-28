@@ -221,6 +221,184 @@ ion-segment-button {
   }
 }
 
+// --- Músculos y énfasis ---
+//
+// Mismo bloque con superficie que el vídeo: es el campo con más peso del
+// formulario (alimenta el Análisis del Planner) y como lista suelta de
+// chips se leía igual que "Categorías".
+.muscle-field {
+  padding: var(--tf-space-4);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-2);
+}
+
+.muscle-field-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2) var(--tf-space-4);
+
+  .field-label {
+    margin-bottom: 0;
+  }
+}
+
+.role-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+// Las muestras usan el mismo trazo que las chips: la leyenda se aprende
+// mirando, no leyendo.
+.role-swatch {
+  width: 14px;
+  height: 10px;
+  border-radius: 3px;
+  border: 1px solid var(--tf-border-strong);
+
+  &--primary {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+  }
+
+  &--secondary {
+    border-color: var(--tf-accent-soft-border);
+  }
+
+  &--stabilizer {
+    border-style: dashed;
+  }
+}
+
+.field-help {
+  margin: var(--tf-space-2) 0 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+  color: var(--tf-text-muted);
+
+  &.is-warning {
+    color: var(--tf-danger-text);
+  }
+}
+
+.muscle-summary {
+  margin: var(--tf-space-3) 0 0;
+  padding: var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-3);
+
+  &--empty {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+}
+
+.muscle-summary-line {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: var(--tf-space-2);
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.45;
+
+  & + & {
+    margin-top: 4px;
+  }
+}
+
+.muscle-summary-role {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.9;
+  color: var(--tf-text-muted);
+
+  &--primary {
+    color: var(--tf-accent-text);
+  }
+}
+
+.muscle-summary-names {
+  color: var(--tf-text);
+}
+
+.muscle-groups {
+  margin-top: var(--tf-space-3);
+}
+
+// Nombre del grupo encima y sus opciones a todo el ancho: el modal es
+// estrecho y, con el nombre en columna, las chips caían una por línea. Se
+// recorre de arriba abajo como una lista anatómica, sin perder de qué grupo
+// es "Cabeza larga".
+.muscle-group {
+  padding: var(--tf-space-3) 0;
+
+  & + & {
+    border-top: 1px solid var(--tf-border-subtle);
+  }
+}
+
+.muscle-group-name {
+  display: block;
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.muscle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+
+  // Principal: relleno de acento. Secundario: solo contorno de acento.
+  // Estabilizador: contorno discontinuo neutro. Tres pesos visuales para
+  // tres pesos en el conteo.
+  &.is-primary,
+  &.is-primary:hover {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-text);
+  }
+
+  &.is-secondary {
+    background: transparent;
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-text);
+  }
+
+  &.is-stabilizer {
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--tf-border-strong);
+    color: var(--tf-text-secondary);
+  }
+}
+
+.chip-role {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.85;
+}
+
 .exercise-form-footer {
   background: var(--tf-bg);
   padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);

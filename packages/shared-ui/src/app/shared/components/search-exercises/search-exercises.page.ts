@@ -28,6 +28,7 @@ import { ExerciseService } from 'src/app/core/services/exercise/exercise.service
 import { UserService } from 'src/app/core/services/user/user.service';
 import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
 import { ACTIONS_FAB_TYPES } from '../../constants/actions-fab';
+import { muscleGroupOf, muscleLabel, muscleNeedsGroup } from 'src/app/core/constants/muscle-catalog';
 
 @Component({
   selector: 'app-search-exercises',
@@ -451,6 +452,21 @@ export class SearchExercisesPage implements OnInit {
     const indexCategory =
       this.searchFilterGroupExercises.category.indexOf(category);
     this.searchFilterGroupExercises.category.splice(indexCategory, 1);
+    this.searchByFilter();
+  }
+
+  public muscleFilterLabel(id: string): string {
+    return muscleLabel(id);
+  }
+
+  public muscleFilterGroup(id: string): string | null {
+    return muscleNeedsGroup(id) ? muscleGroupOf(id)?.label || null : null;
+  }
+
+  public spliceMuscle(id: string): void {
+    this.searchFilterGroupExercises.muscles = (this.searchFilterGroupExercises.muscles || []).filter(
+      (muscle) => muscle !== id
+    );
     this.searchByFilter();
   }
 

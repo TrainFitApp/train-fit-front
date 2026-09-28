@@ -52,6 +52,36 @@
     </div>
   </div>
 
+  <!-- Músculos del catálogo de dos niveles (2026-09). Una porción que
+       suelta no dice de qué músculo es lleva su grupo delante. -->
+  <div
+    class="filters-section"
+    *ngIf="searchFilterGroupExercises?.muscles?.length"
+  >
+    <div class="filter-group">
+      <div class="filter-header">
+        <ion-icon name="barbell-outline" class="filter-icon"></ion-icon>
+        <span class="filter-title">{{ 'SEARCH_EXERCISES.MAIN_MUSCLES' | translate }}</span>
+      </div>
+      <div class="chips-container">
+        <ion-chip
+          *ngFor="let muscle of searchFilterGroupExercises.muscles"
+          class="modern-chip"
+          [outline]="true"
+          color="primary"
+        >
+          <ion-label>
+            <ng-container *ngIf="muscleFilterGroup(muscle) as group">{{ group | translateDb }} · </ng-container>{{ muscleFilterLabel(muscle) | translateDb }}
+          </ion-label>
+          <ion-icon
+            name="close-circle"
+            (click)="spliceMuscle(muscle)"
+          ></ion-icon>
+        </ion-chip>
+      </div>
+    </div>
+  </div>
+
   <div
     class="filters-section"
     *ngIf="searchFilterGroupExercises?.muscleGroups1.length > 0"

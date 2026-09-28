@@ -1,0 +1,78 @@
+<ul class="tree">
+  <li class="tree-group" *ngFor="let row of rows; trackBy: trackByGroup">
+    <div class="group-head">
+      <button
+        *ngIf="hasPortions(row); else staticName"
+        type="button"
+        class="group-toggle"
+        [attr.aria-expanded]="isExpanded(row)"
+        [attr.aria-label]="(isExpanded(row) ? 'Ocultar porciones de ' : 'Ver porciones de ') + (row.label | translateDb)"
+        (click)="toggle(row)"
+      >
+        <ion-icon
+          class="group-chevron"
+          [name]="isExpanded(row) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+          aria-hidden="true"
+        ></ion-icon>
+        <span class="group-name">{{ row.label | translateDb }}</span>
+      </button>
+      <ng-template #staticName>
+        <span class="group-toggle group-toggle--static">
+          <span class="group-chevron" aria-hidden="true"></span>
+          <span class="group-name">{{ row.label | translateDb }}</span>
+        </span>
+      </ng-template>
+
+      <span
+        class="group-count"
+        [class.group-count--low]="statusFor(row) === 'low'"
+        [class.group-count--high]="statusFor(row) === 'high'"
+        [title]="setsTitle(row)"
+      >{{ row.sets | number: '1.0-1' }}</span>
+      <span
+        class="group-delta"
+        *ngIf="delta(row) !== null"
+        [class.group-delta--up]="delta(row)! > 0"
+        [class.group-delta--down]="delta(row)! < 0"
+        title="Diferencia de series frente al microciclo anterior"
+      >{{ delta(row) === 0 ? '·' : (delta(row)! > 0 ? '▲ +' : '▼ ') }}{{ delta(row) === 0 ? '' : (delta(row) | number: '1.0-1') }}</span>
+    </div>
+
+    <span
+      class="group-track"
+      [title]="showRange ? 'Barra: series del grupo frente al rango de referencia (zona sombreada, ' + targetMin + '–' + targetMax + ').' : ''"
+    >
+      <span
+        *ngIf="showRange"
+        class="group-range"
+        [style.left.%]="rangeStart"
+        [style.width.%]="rangeWidth"
+      ></span>
+      <span
+        class="group-fill"
+        [class.group-fill--alert]="statusFor(row) !== 'ok'"
+        [style.width.%]="fillWidth(row)"
+      ></span>
+    </span>
+
+    <ul class="portion-list" *ngIf="hasPortions(row) && isExpanded(row)">
+      <li
+        class="portion-row"
+        *ngFor="let portion of row.portions; trackBy: trackByPortion"
+        [class.portion-row--empty]="portion.sets === 0"
+        [class.portion-row--whole]="portion.isWholeGroup"
+      >
+        <span
+          class="portion-name"
+          [title]="portion.isWholeGroup
+            ? 'Series de ejercicios que trabajan ' + (row.label | translateDb) + ' entero, sin énfasis en una porción'
+            : (portion.label | translateDb)"
+        >{{ portion.label | translateDb }}</span>
+        <span class="portion-track" [title]="portion.share + '% de las series de ' + (row.label | translateDb)">
+          <span class="portion-fill" [style.width.%]="portion.share"></span>
+        </span>
+        <span class="portion-count">{{ portion.sets | number: '1.0-1' }}</span>
+      </li>
+    </ul>
+  </li>
+</ul>

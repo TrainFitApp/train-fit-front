@@ -11,6 +11,7 @@ import { SessionLoadPanelComponent } from './components/session-load-panel/sessi
 import { MuscleVolumePanelComponent } from './components/muscle-volume-panel/muscle-volume-panel.component';
 import { PlannerInsightsPanelComponent } from './components/planner-insights-panel/planner-insights-panel.component';
 import { CompareSplitsModalComponent } from './components/compare-splits-modal/compare-splits-modal.component';
+import { MuscleTreeComponent } from './components/muscle-tree/muscle-tree.component';
 
 @NgModule({
   imports: [SharedModule, NavigationModule, PlannerPageRoutingModule, DragDropModule, WorkoutComponentModule],
@@ -22,6 +23,7 @@ import { CompareSplitsModalComponent } from './components/compare-splits-modal/c
     MuscleVolumePanelComponent,
     PlannerInsightsPanelComponent,
     CompareSplitsModalComponent,
+    MuscleTreeComponent,
   ],
 })
 export class PlannerPageModule {}

@@ -88,3 +88,52 @@ ion-header ion-toolbar {
   border-radius: var(--tf-radius-sm);
   padding: 4px 10px;
 }
+
+// Músculos por énfasis: mismo código visual que el formulario — relleno de
+// acento el principal, contorno de acento el secundario, contorno
+// discontinuo el estabilizador.
+.muscle-role-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--tf-space-2);
+
+  & + & {
+    margin-top: var(--tf-space-2);
+  }
+}
+
+.muscle-role-label {
+  padding-top: 4px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--tf-text-muted);
+
+  &--primary {
+    color: var(--tf-accent-text);
+  }
+}
+
+.muscle-chip {
+  border: 1px solid transparent;
+
+  &--primary {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-text);
+  }
+
+  &--secondary {
+    background: transparent;
+    border-color: var(--tf-accent-soft-border);
+  }
+
+  &--stabilizer {
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--tf-border-strong);
+    color: var(--tf-text-secondary);
+  }
+}

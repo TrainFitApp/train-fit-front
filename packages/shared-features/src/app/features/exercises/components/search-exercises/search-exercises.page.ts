@@ -16,6 +16,7 @@ import { FilterInputPage } from 'src/app/shared/components/filter-input/filter-i
 import { SearchFilterGroupExercises } from 'src/app/shared/models/filterGroup';
 import { ExerciseService } from 'src/app/core/services/exercise/exercise.service';
 import { ConfigExercisePage } from '../config-exercise/config-exercise.page';
+import { muscleGroupOf, muscleLabel, muscleNeedsGroup } from 'src/app/core/constants/muscle-catalog';
 
 @Component({
   selector: 'app-exercises',
@@ -181,6 +182,21 @@ export class SearchExercisesPageComponent {
     const indexCategory =
       this.searchFilterGroupExercises.category.indexOf(category);
     this.searchFilterGroupExercises.category.splice(indexCategory, 1);
+    this.searchByFilter();
+  }
+
+  public muscleFilterLabel(id: string): string {
+    return muscleLabel(id);
+  }
+
+  public muscleFilterGroup(id: string): string | null {
+    return muscleNeedsGroup(id) ? muscleGroupOf(id)?.label || null : null;
+  }
+
+  public spliceMuscle(id: string): void {
+    this.searchFilterGroupExercises.muscles = (this.searchFilterGroupExercises.muscles || []).filter(
+      (muscle) => muscle !== id
+    );
     this.searchByFilter();
   }
 

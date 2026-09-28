@@ -4,6 +4,7 @@ import { Exercise } from "src/app/core/models/exercise";
 import { ExerciseService } from "src/app/core/services/exercise/exercise.service";
 import { UtilService } from "src/app/core/services/util/util.service";
 import { SearchFilterGroupExercises } from "../../models/filterGroup";
+import { MUSCLE_GROUPS, MuscleGroup } from "src/app/core/constants/muscle-catalog";
 
 @Component({
   selector: "app-filter-input",
@@ -29,31 +30,10 @@ export class FilterInputPage implements OnInit {
     "Torso/Tren superior",
   ];
 
-  public muscleGroup1: string[] = [
-    "Brazos",
-    "Bíceps",
-    "Tríceps",
-    "Antebrazo",
-    "Hombro",
-    "Deltoides anterior",
-    "Deltoides lateral",
-    "Deltoides posterior",
-    "Pectoral",
-    "Pectoral superior",
-    "Pectoral inferior",
-    "Abdomen",
-    "Cuello",
-    "Espalda",
-    "Espalda alta",
-    "Espalda baja",
-    "Piernas",
-    "Cuádriceps",
-    "Aductor",
-    "Femoral",
-    "Glúteo",
-    "Gemelo",
-    "Sóleo",
-  ];
+  // Catálogo muscular de dos niveles (2026-09): los 14 grupos a la vista y,
+  // al elegir uno, sus porciones para afinar. El cliente casi siempre busca
+  // "pectoral"; el entrenador puede bajar a "pectoral superior".
+  public readonly muscleGroups = MUSCLE_GROUPS;
 
   public equipment: string[] = [
     "Barra",
@@ -101,25 +81,42 @@ export class FilterInputPage implements OnInit {
     this.searchExercises();
   }
 
-  public selectMuscleGroup1(muscle: string): void {
-    if (this.searchFilterGroupExercises.muscleGroups1.includes(muscle)) {
-      const indexCategory =
-        this.searchFilterGroupExercises.muscleGroups1.indexOf(muscle);
-      this.searchFilterGroupExercises.muscleGroups1.splice(indexCategory, 1);
-    } else {
-      this.searchFilterGroupExercises.muscleGroups1.push(muscle);
-    }
+  private get selectedMuscles(): string[] {
+    // Filtros guardados antes de 2026-09 no traen el campo.
+    return (this.searchFilterGroupExercises.muscles ||= []);
+  }
+
+  public isMuscleSelected(id: string): boolean {
+    return this.selectedMuscles.includes(id);
+  }
+
+  // Un grupo está activo si se filtra por él entero o por alguna porción.
+  public isGroupActive(group: MuscleGroup): boolean {
+    return (
+      this.isMuscleSelected(group.id) ||
+      group.muscles.some((portion) => this.isMuscleSelected(portion.id))
+    );
+  }
+
+  public toggleMuscleGroup(group: MuscleGroup): void {
+    const ids = [group.id, ...group.muscles.map((portion) => portion.id)];
+    const wasActive = this.isGroupActive(group);
+    this.searchFilterGroupExercises.muscles = this.selectedMuscles.filter(
+      (id) => !ids.includes(id),
+    );
+    if (!wasActive) this.selectedMuscles.push(group.id);
     this.searchExercises();
   }
 
-  public selectMuscleGroup2(muscle: string): void {
-    if (this.searchFilterGroupExercises.muscleGroups2.includes(muscle)) {
-      const indexCategory =
-        this.searchFilterGroupExercises.muscleGroups2.indexOf(muscle);
-      this.searchFilterGroupExercises.muscleGroups2.splice(indexCategory, 1);
-    } else {
-      this.searchFilterGroupExercises.muscleGroups2.push(muscle);
-    }
+  // Afinar sustituye al grupo entero por las porciones elegidas; quitar la
+  // última porción vuelve al grupo entero en vez de dejarlo sin filtro.
+  public toggleMusclePortion(group: MuscleGroup, portionId: string): void {
+    const selected = this.selectedMuscles.filter((id) => id !== group.id);
+    const next = selected.includes(portionId)
+      ? selected.filter((id) => id !== portionId)
+      : [...selected, portionId];
+    const hasPortion = group.muscles.some((portion) => next.includes(portion.id));
+    this.searchFilterGroupExercises.muscles = hasPortion ? next : [...next, group.id];
     this.searchExercises();
   }
 
