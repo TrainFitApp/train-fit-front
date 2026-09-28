@@ -49,6 +49,22 @@
       </div>
     </div>
 
+    <!-- Cobros a clientes: lo que te pagan ELLOS fuera de la app. Aparte de
+         "Suscripción", que es lo que tú pagas a TrainFit. -->
+    <section class="account-section" aria-labelledby="payments-section-title">
+      <h2 class="section-title" id="payments-section-title">Cobros a clientes</h2>
+      <div class="section-card">
+        <button type="button" class="row-item" (click)="goToPayments()">
+          <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
+          <div class="row-item-text">
+            <span class="row-item-label">Cobros</span>
+            <span class="row-item-sub">Pendientes, vencidos, pagos recibidos y avisos de toda tu cartera</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="row-item-chevron" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </section>
+
     <!-- Privacidad y seguridad -->
     <section class="account-section" aria-labelledby="security-section-title">
       <h2 class="section-title" id="security-section-title">Seguridad</h2>

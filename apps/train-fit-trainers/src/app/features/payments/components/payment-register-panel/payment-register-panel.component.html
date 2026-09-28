@@ -1,0 +1,103 @@
+<app-payments-sheet title="Registrar pago" [subtitle]="subtitle" (closed)="closed.emit()">
+  <form [id]="formId" class="register-form" (ngSubmit)="submit()" novalidate>
+    <section class="form-group">
+      <div class="field">
+        <label class="field-label" [for]="formId + '-amount'">Importe recibido</label>
+        <div class="input-wrapper input-wrapper--money" [class.input-wrapper--invalid]="amountError && amountText">
+          <input
+            [id]="formId + '-amount'"
+            class="input-field"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            name="amount"
+            [(ngModel)]="amountText"
+            [attr.aria-invalid]="amountError ? 'true' : null"
+            [attr.aria-describedby]="formId + '-amount-help'"
+          />
+          <span class="input-suffix" aria-hidden="true">€</span>
+        </div>
+        <p class="field-error" *ngIf="amountError; else amountHint" [id]="formId + '-amount-help'">{{ amountError }}</p>
+        <ng-template #amountHint>
+          <p class="field-hint" [id]="formId + '-amount-help'">
+            Pendiente {{ money(balanceCents) }}. Reduce el importe para anotar un pago parcial.
+            <button type="button" class="inline-link" *ngIf="!isFullAmount" (click)="useFullBalance()">
+              Poner el saldo completo
+            </button>
+          </p>
+        </ng-template>
+      </div>
+
+      <div class="field">
+        <label class="field-label" [for]="formId + '-day'">Fecha en que lo recibiste</label>
+        <div class="input-wrapper">
+          <ion-icon name="calendar-outline" class="input-icon" aria-hidden="true"></ion-icon>
+          <app-date-field
+            class="input-field"
+            name="receivedDay"
+            [inputId]="formId + '-day'"
+            [max]="today"
+            pickerTitle="Recibido el"
+            ariaLabel="Fecha de recepción"
+            [(ngModel)]="receivedDay"
+          ></app-date-field>
+        </div>
+        <p class="field-error" *ngIf="dayError">{{ dayError }}</p>
+        <p class="field-hint" *ngIf="!dayError">Si lo recibiste antes, cuenta en el mes en que llegó el dinero.</p>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label" [id]="formId + '-method'">Método</p>
+      <div class="segmented" role="radiogroup" [attr.aria-labelledby]="formId + '-method'">
+        <button
+          type="button"
+          class="segment"
+          role="radio"
+          *ngFor="let option of methods"
+          [class.segment--active]="method === option.value"
+          [attr.aria-checked]="method === option.value"
+          (click)="selectMethod(option.value)"
+        >
+          <ion-icon [name]="option.icon" aria-hidden="true"></ion-icon>
+          {{ option.label }}
+        </button>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <label class="field-label" [for]="formId + '-note'">
+        Nota interna <span class="field-optional">(solo la ves tú)</span>
+      </label>
+      <div class="input-wrapper">
+        <textarea
+          [id]="formId + '-note'"
+          class="input-field"
+          name="note"
+          rows="2"
+          maxlength="500"
+          placeholder="Referencia de la transferencia, quién pagó…"
+          [(ngModel)]="note"
+        ></textarea>
+      </div>
+    </section>
+
+    <div class="outcome" [class.outcome--settles]="remainingCents === 0" aria-live="polite">
+      <span class="outcome__label">{{ remainingCents === 0 ? 'Con este pago' : 'Quedará pendiente' }}</span>
+      <span class="outcome__value">
+        {{ remainingCents === null ? '—' : remainingCents === 0 ? 'Cobro liquidado' : money(remainingCents) }}
+      </span>
+    </div>
+
+    <div class="notice notice--danger" role="alert" *ngIf="errorMessage">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+  </form>
+
+  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">Cancelar</button>
+  <button sheetFooter type="submit" class="submit-button" [attr.form]="formId" [disabled]="!canSubmit">
+    <ion-spinner name="dots" *ngIf="saving"></ion-spinner>
+    <span *ngIf="!saving">{{ submitLabel }}</span>
+  </button>
+</app-payments-sheet>

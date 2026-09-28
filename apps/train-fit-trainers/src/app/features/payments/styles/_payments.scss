@@ -1,0 +1,435 @@
+// Vocabulario visual de Cobros. No es un estilo global: cada componente de
+// features/payments lo importa. Todo sale de los tokens --tf-* y de los
+// mixins del tema (theme/_hierarchy, _buttons, _inputs, _skeleton); aquí
+// solo se nombran las piezas que se repiten entre la ficha, la tarjeta del
+// Resumen, Configuración > Cobros y los paneles.
+@import '../../../../theme/hierarchy';
+@import '../../../../theme/buttons';
+@import '../../../../theme/inputs';
+@import '../../../../theme/skeleton';
+
+// Cifras de dinero: tabulares, para que columnas y saldos se comparen de un vistazo.
+@mixin pay-money {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tf-tracking-value);
+  white-space: nowrap;
+}
+
+// Chip de estado. Pago y temporalidad son ejes distintos: pueden ir dos juntos.
+@mixin pay-chips {
+  .pay-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tf-space-1);
+  }
+
+  .pay-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 0 var(--tf-space-2);
+    border-radius: var(--tf-radius-pill);
+    border: 1px solid var(--tf-border);
+    background: var(--tf-surface-3);
+    color: var(--tf-text-secondary);
+    font-size: var(--tf-font-size-xs);
+    font-weight: var(--tf-weight-label);
+    line-height: 1;
+    white-space: nowrap;
+
+    &--danger {
+      background: var(--tf-danger-soft);
+      border-color: var(--tf-danger-border);
+      color: var(--tf-danger-text);
+    }
+
+    &--warning {
+      background: var(--tf-warning-soft);
+      border-color: var(--tf-warning-border);
+      color: var(--tf-warning);
+    }
+
+    &--accent {
+      background: var(--tf-accent-soft);
+      border-color: var(--tf-accent-soft-border);
+      color: var(--tf-accent-text);
+    }
+
+    &--success {
+      background: var(--tf-success-soft);
+      border-color: var(--tf-success-border);
+      color: var(--tf-success);
+    }
+  }
+}
+
+// Estados de carga, error y vacío (mismo aspecto que el resto del Resumen).
+@mixin pay-states {
+  .pay-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tf-space-3);
+  }
+
+  .skeleton-block {
+    @include tf-skeleton-shimmer;
+    border-radius: var(--tf-radius-md);
+    height: 64px;
+  }
+
+  .pay-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--tf-space-2);
+    padding: var(--tf-space-4) 0;
+    color: var(--tf-text-muted);
+
+    ion-icon {
+      font-size: 22px;
+      color: var(--tf-text-faint);
+    }
+
+    p {
+      @include tf-help;
+      max-width: 52ch;
+    }
+  }
+
+  .retry-button {
+    @include tf-secondary-button(var(--tf-radius-md));
+    min-height: var(--tf-touch-min);
+    padding: 0 var(--tf-space-5);
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+  }
+}
+
+// Botones de la sección: primario (gradiente de marca), secundario y discreto.
+@mixin pay-buttons {
+  .pay-primary {
+    @include tf-gradient-button(var(--tf-radius-md));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tf-space-2);
+    min-height: var(--tf-touch-min);
+    padding: 0 var(--tf-space-5);
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  .pay-secondary {
+    @include tf-secondary-button(var(--tf-radius-md));
+    min-height: var(--tf-touch-min);
+    padding: 0 var(--tf-space-4);
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+
+    ion-icon {
+      font-size: 17px;
+    }
+  }
+
+  .pay-quiet {
+    @include tf-btn-quiet;
+    min-height: var(--tf-touch-min);
+    font-family: inherit;
+  }
+
+  .pay-danger-quiet {
+    @include tf-btn-quiet;
+    min-height: var(--tf-touch-min);
+    color: var(--tf-danger-text);
+
+    &:hover:not(:disabled) {
+      background: var(--tf-danger-soft);
+    }
+  }
+}
+
+// Formularios de los paneles (registrar pago, cuota, cobro puntual).
+@mixin pay-form {
+  .form-group {
+    padding-bottom: var(--tf-space-4);
+    margin-bottom: var(--tf-space-4);
+    border-bottom: 1px solid var(--tf-border-subtle);
+
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+  }
+
+  .group-label {
+    @include tf-label;
+    margin: 0 0 var(--tf-space-3);
+  }
+
+  .field + .field,
+  .field + .field-row,
+  .field-row + .field,
+  .field-row + .field-row {
+    margin-top: var(--tf-space-4);
+  }
+
+  .field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tf-space-3);
+
+    > .field {
+      flex: 1 1 150px;
+      min-width: 0;
+      margin-top: 0;
+    }
+  }
+
+  .field-label {
+    display: block;
+    margin-bottom: var(--tf-space-2);
+    font-size: var(--tf-font-size-sm);
+    font-weight: var(--tf-weight-label);
+    color: var(--tf-text-secondary);
+  }
+
+  .field-optional {
+    margin-left: var(--tf-space-1);
+    font-weight: var(--tf-weight-regular);
+    color: var(--tf-text-muted);
+  }
+
+  .field-hint {
+    @include tf-meta;
+    margin-top: var(--tf-space-2);
+  }
+
+  .field-error {
+    margin: var(--tf-space-2) 0 0;
+    font-size: var(--tf-font-size-xs);
+    font-weight: var(--tf-weight-label);
+    color: var(--tf-danger-text);
+  }
+
+  .input-wrapper {
+    @include tf-input-wrapper;
+    min-height: 46px;
+
+    &--invalid {
+      border-color: var(--tf-danger-border);
+    }
+
+    &--money .input-field {
+      @include pay-money;
+      font-size: var(--tf-font-size-lg);
+      font-weight: var(--tf-weight-value);
+    }
+  }
+
+  .input-icon {
+    @include tf-input-icon;
+  }
+
+  .input-field {
+    @include tf-input-field;
+    min-height: 44px;
+    font-size: var(--tf-font-size-base);
+  }
+
+  .input-suffix {
+    color: var(--tf-text-muted);
+    font-weight: var(--tf-weight-label);
+  }
+
+  textarea.input-field {
+    padding: var(--tf-space-3) 0;
+    resize: vertical;
+    min-height: 72px;
+    line-height: 1.45;
+  }
+
+  select.input-field {
+    appearance: none;
+    cursor: pointer;
+  }
+
+  // Opciones de una sola elección (método, frecuencia).
+  .segmented {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tf-space-2);
+  }
+
+  .segment {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tf-space-2);
+    min-height: var(--tf-touch-min);
+    padding: 0 var(--tf-space-4);
+    border: 1px solid var(--tf-border-strong);
+    border-radius: var(--tf-radius-md);
+    background: var(--tf-surface-2);
+    color: var(--tf-text-secondary);
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    font-weight: var(--tf-weight-label);
+    cursor: pointer;
+    transition:
+      background var(--tf-duration-fast) var(--tf-ease-out),
+      border-color var(--tf-duration-fast) var(--tf-ease-out),
+      color var(--tf-duration-fast) var(--tf-ease-out);
+
+    ion-icon {
+      font-size: 17px;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+
+    &--active {
+      background: var(--tf-accent-soft);
+      border-color: var(--tf-accent-soft-border);
+      color: var(--tf-accent-text);
+    }
+  }
+
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--tf-space-3);
+    min-height: var(--tf-touch-min);
+    padding: var(--tf-space-2) 0;
+    cursor: pointer;
+    font-size: var(--tf-font-size-sm);
+    line-height: 1.45;
+    color: var(--tf-text-secondary);
+
+    input {
+      width: 20px;
+      height: 20px;
+      margin: 1px 0 0;
+      accent-color: var(--tf-accent);
+      flex-shrink: 0;
+    }
+  }
+
+  // Resultado antes de confirmar: el saldo que quedará.
+  .outcome {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tf-space-3);
+    padding: var(--tf-space-3) var(--tf-space-4);
+    border-radius: var(--tf-radius-md);
+    background: var(--tf-surface-2);
+    border: 1px solid var(--tf-border);
+
+    &__label {
+      @include tf-help;
+    }
+
+    &__value {
+      @include pay-money;
+      font-size: var(--tf-font-size-md);
+      font-weight: var(--tf-weight-value);
+      color: var(--tf-text);
+    }
+
+    &--settles {
+      background: var(--tf-success-soft);
+      border-color: var(--tf-success-border);
+
+      .outcome__value {
+        color: var(--tf-success);
+      }
+    }
+
+    &--warning {
+      background: var(--tf-warning-soft);
+      border-color: var(--tf-warning-border);
+    }
+  }
+
+  .notice {
+    display: flex;
+    gap: var(--tf-space-3);
+    padding: var(--tf-space-3) var(--tf-space-4);
+    border-radius: var(--tf-radius-md);
+    background: var(--tf-surface-2);
+    border: 1px solid var(--tf-border);
+    font-size: var(--tf-font-size-sm);
+    line-height: 1.5;
+    color: var(--tf-text-secondary);
+
+    ion-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 18px;
+      color: var(--tf-text-muted);
+    }
+
+    &--warning {
+      background: var(--tf-warning-soft);
+      border-color: var(--tf-warning-border);
+
+      ion-icon {
+        color: var(--tf-warning);
+      }
+    }
+
+    &--danger {
+      background: var(--tf-danger-soft);
+      border-color: var(--tf-danger-border);
+      color: var(--tf-text);
+
+      ion-icon {
+        color: var(--tf-danger-text);
+      }
+    }
+  }
+
+  .submit-button {
+    @include tf-gradient-button(var(--tf-radius-md));
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tf-space-2);
+    min-height: 46px;
+    padding: 0 var(--tf-space-5);
+    font-family: inherit;
+    font-size: var(--tf-font-size-base);
+
+    &--danger {
+      background: var(--tf-danger);
+      color: var(--tf-text);
+    }
+  }
+
+  .ghost-button {
+    min-height: 46px;
+    padding: 0 var(--tf-space-5);
+    background: none;
+    border: 1px solid var(--tf-border-strong);
+    border-radius: var(--tf-radius-md);
+    color: var(--tf-text-secondary);
+    font-family: inherit;
+    font-weight: var(--tf-weight-label);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--tf-text);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+}

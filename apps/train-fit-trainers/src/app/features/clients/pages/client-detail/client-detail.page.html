@@ -236,7 +236,9 @@
           [clientId]="clientId"
           [clientName]="name"
           [hasTrainingScope]="scopes.includes('training')"
+          [paymentsRefreshToken]="paymentsRefreshToken"
           (openTab)="selectTab($event)"
+          (openPayments)="openPayments($event)"
           (statusChange)="onSummaryStatus($event)"
         ></app-client-summary>
       </div>
@@ -2304,113 +2306,18 @@
         </ng-container>
       </div>
 
-      <!-- === COBROS (F26) === -->
+      <!-- === COBROS === -->
+      <!-- Cuota, cobros concretos, pagos registrados y avisos (features/payments). -->
       <div class="tab-panel" *ngIf="activeTab === 'payments'">
-        <div class="detail-skeleton" *ngIf="paymentsState === 'loading'">
-          <div class="skeleton-block skeleton-block--md"></div>
-          <div class="skeleton-block skeleton-block--md"></div>
-        </div>
-
-        <div class="section-error" *ngIf="paymentsState === 'error'">
-          <p>No se pudieron cargar los cobros de este cliente.</p>
-          <button class="retry-button" (click)="loadPayments()">
-            Reintentar
-          </button>
-        </div>
-
-        <ng-container *ngIf="paymentsState === 'loaded'">
-          <div class="section-row">
-            <h2 class="section-heading">Cobros</h2>
-            <button class="add-button" (click)="openPaymentPanel()">
-              <ion-icon name="add-outline"></ion-icon>
-              Añadir cobro
-            </button>
-          </div>
-
-          <p class="empty-hint" *ngIf="!payments.length">
-            Todavía no has anotado ningún cobro para este cliente.
-          </p>
-
-          <div
-            class="payment-card"
-            *ngFor="let payment of payments; trackBy: trackByPaymentId"
-          >
-            <div class="payment-card-main">
-              <span class="payment-amount"
-                >{{ payment.amount }}{{ payment.currency === 'EUR' ? '€' :
-                payment.currency }}</span
-              >
-              <span class="payment-due"
-                >Vence {{ payment.dueDate | date: 'd MMM y' }}</span
-              >
-              <span class="payment-note" *ngIf="payment.note"
-                >{{ payment.note }}</span
-              >
-            </div>
-            <button
-              class="payment-status-btn"
-              [class.payment-status-btn--paid]="payment.paidAt"
-              (click)="togglePaymentPaid(payment)"
-            >
-              {{ payment.paidAt ? 'Pagado' : 'Marcar pagado' }}
-            </button>
-          </div>
-        </ng-container>
-
-        <!-- Panel: añadir cobro -->
-        <div
-          class="panel-backdrop"
-          *ngIf="showPaymentPanel"
-          (click)="closePaymentPanel()"
-        ></div>
-        <div class="panel-sheet" *ngIf="showPaymentPanel" appSubmitOnEnter="submitPayment">
-          <div class="panel-handle"></div>
-          <h3 class="panel-title">Añadir cobro</h3>
-
-          <div class="input-wrapper">
-            <ion-icon name="cash-outline" class="input-icon"></ion-icon>
-            <input
-              type="number"
-              class="input-field"
-              placeholder="Importe (€)"
-              [(ngModel)]="paymentAmount"
-              min="0.01"
-              step="0.01"
-            />
-          </div>
-          <div class="input-wrapper">
-            <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-            <app-date-field
-              class="input-field"
-              ariaLabel="Vencimiento"
-              placeholder="Fecha de vencimiento"
-              pickerTitle="Vence"
-              [(ngModel)]="paymentDueDate"
-            ></app-date-field>
-          </div>
-          <div class="input-wrapper">
-            <ion-icon
-              name="document-text-outline"
-              class="input-icon"
-            ></ion-icon>
-            <input
-              type="text"
-              class="input-field"
-              placeholder="Nota (opcional)"
-              [(ngModel)]="paymentNote"
-            />
-          </div>
-
-          <button
-            class="submit-button"
-            (click)="submitPayment()"
-            data-enter-submit-action="submitPayment"
-            [disabled]="!paymentAmount || paymentAmount <= 0 || !paymentDueDate || isSavingPayment"
-          >
-            <span *ngIf="!isSavingPayment">Guardar cobro</span>
-            <ion-spinner name="dots" *ngIf="isSavingPayment"></ion-spinner>
-          </button>
-        </div>
+        <app-client-payments-ledger
+          [clientId]="clientId"
+          [clientName]="name"
+          [readOnly]="readOnlyLimit !== null"
+          [refreshToken]="paymentsRefreshToken"
+          [intent]="paymentsIntent"
+          [focusChargeId]="paymentsFocusChargeId"
+          (intentConsumed)="onPaymentsIntentConsumed()"
+        ></app-client-payments-ledger>
       </div>
 
       <!-- === TAREAS/HÁBITOS (coach-tab FASE4) === -->

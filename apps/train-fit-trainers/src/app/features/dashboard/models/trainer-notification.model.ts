@@ -6,7 +6,10 @@ export type TrainerNotificationType =
   | 'invite_accepted'
   | 'intake_submitted_trainer'
   | 'checkin_responded'
-  | 'nutrition_preferences_updated';
+  | 'nutrition_preferences_updated'
+  // Cobros 2026-09 — recordatorio de un cobro con saldo (job del backend).
+  // payload.current trae el estado VIGENTE del cobro al leer la lista.
+  | 'payment_reminder';
 
 export interface TrainerNotificationClient {
   _id: string;

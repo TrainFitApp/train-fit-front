@@ -1,0 +1,23 @@
+@import '../../styles/payments';
+
+@include pay-form;
+
+.charge-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+}
+
+.notice {
+  margin-top: var(--tf-space-3);
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tf-space-2);
+  }
+}
+
+.notice-text {
+  margin: 0;
+}

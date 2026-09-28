@@ -15,6 +15,7 @@ import {
 import { CoachAlertsApiService } from 'src/app/features/dashboard/services/coach-alerts-api.service';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import { ClientDetailTab } from '../../models/client-detail.model';
+import { PaymentsCardRequest } from '../../../../../payments/components/client-payments-card/client-payments-card.component';
 import {
   AdherenceDimension,
   AdherenceDimensionKey,
@@ -169,6 +170,13 @@ export class ClientSummaryComponent implements OnInit {
   // pestañas conviviendo con el que ya funciona.
   @Output() public openTab = new EventEmitter<ClientDetailTab>();
 
+  // Tarjeta Cobros: "Configurar cuota" y "Registrar pago" tienen que llegar al
+  // formulario, no solo a la pestaña — por eso viajan con su intención. Ver
+  // y gestionar reutilizan openTab('payments') como el resto de enlaces.
+  @Output() public openPayments = new EventEmitter<PaymentsCardRequest>();
+  // La ficha lo incrementa al volver a entrar (Ionic no repite ngOnInit).
+  @Input() public paymentsRefreshToken = 0;
+
   // La cabecera persistente (avatar/nombre/badge/programa) vive en
   // client-detail.page.html, no aquí — así se ve igual en las 4 secciones,
   // no solo en Resumen (ver petición del usuario 2026-09). El badge de
@@ -245,6 +253,14 @@ export class ClientSummaryComponent implements OnInit {
   }
 
   // --- Entrenamiento (Fase 6) ---
+
+  public onPaymentsCard(request: PaymentsCardRequest): void {
+    if (request.action === 'manage' || request.action === 'history') {
+      this.openTab.emit('payments');
+      return;
+    }
+    this.openPayments.emit(request);
+  }
 
   public loadTraining(): void {
     if (!this.clientId || !this.hasTrainingScope) return;

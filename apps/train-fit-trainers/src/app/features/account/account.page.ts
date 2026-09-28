@@ -168,6 +168,11 @@ export class AccountPage implements OnInit {
     });
   }
 
+  // Cobros a clientes (lo que te pagan ellos), no la suscripción a TrainFit.
+  public goToPayments(): void {
+    void this.router.navigate(['/tabs/account/payments']);
+  }
+
   public goToSubscription(): void {
     void this.router.navigate(['/tabs/subscription']);
   }

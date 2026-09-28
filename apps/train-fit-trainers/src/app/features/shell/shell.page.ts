@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { TrainerNavigationService } from '../../core/services/trainer-navigation.service';
+import { LegacyPaymentRemindersService } from '../payments/services/legacy-payment-reminders.service';
 
 export interface ShellMenuItem {
   label: string;
@@ -92,10 +93,15 @@ export class ShellPage implements OnInit, OnDestroy {
 
   constructor(
     private navigation: TrainerNavigationService,
-    private platform: Platform
+    private platform: Platform,
+    private legacyPaymentReminders: LegacyPaymentRemindersService
   ) {}
 
   public ngOnInit(): void {
+    // Cobros 2026-09: los avisos de cobro ya no se programan en el móvil; se
+    // retiran solo los antiguos que se reconocen como de cobros.
+    void this.legacyPaymentReminders.cleanUp();
+
     // El atrás del sistema ejecuta exactamente lo mismo que el botón de la
     // cabecera (regla de docs/frontend.md: ambos llevan al mismo sitio). El
     // atrás del navegador no necesita enganche: es una navegación normal del

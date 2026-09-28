@@ -42,11 +42,15 @@ export interface CoachNutritionPreferencesStatus {
   requestedByName: string;
 }
 
+// `amount` es el SALDO RESTANTE (tras pagos parciales), no el importe original.
+// Solo informativo: el cliente no registra ni confirma pagos.
 export interface CoachPendingPayment {
   paymentId: string;
   amount: number;
   currency: string;
   dueDate: string;
+  dueDay?: string;
+  concept?: string | null;
   trainerName: string;
 }
 
@@ -79,7 +83,9 @@ export type CoachNotificationType =
   | 'client_confirmed'
   | 'meal_prescribed'
   // Histórico, ya no se emite — ver ANTHROPOMETRY_REQUESTED en coach.page.ts.
-  | 'anthropometry_requested';
+  | 'anthropometry_requested'
+  // Recordatorio de un pago pendiente, solo si el entrenador lo activó.
+  | 'payment_reminder';
 
 export interface CoachNotification {
   _id: string;

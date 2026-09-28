@@ -33,13 +33,15 @@ Pestañas: **dashboard**, **clients**, **templates**, **method**. Además: accou
 | `automations/`, `protocols/` | Reglas WHEN/IF/THEN y protocolos |
 | `method/` | Pestaña que agrupa automatizaciones, formularios de check-in y protocolos |
 | `templates/` | Pestaña que agrupa plantillas de dieta, plantillas de rutina y rutinas |
-| `account/`, `profile/` | Cuenta y perfil del entrenador |
+| `account/`, `profile/` | Cuenta y perfil del entrenador. `account/payments` → Configuración > Cobros |
+| `payments/` (2026-09-27) | Cobros a clientes: libro de la ficha (`client-payments-ledger`), tarjeta del Resumen (`client-payments-card`), paneles de pago, cuota, cobro puntual, detalle y avisos (`payments-sheet` = marco común `tf-side-panel`), página global `pages/payments-overview`. Lógica de vista PURA en `utils/payments-view.util.ts` (test `payments-view.test.cjs`). API en `trainer/payments/*`; `TrainerPaymentsService.changes$` refresca ficha, tarjeta y global tras cualquier escritura |
 
 La ficha del cliente incluye:
 - **Nutrición**: fases, semanas (`next-week-modal`, `week-summary-panel`, `week-comparison-cards`), desglose de la necesidad (`need-breakdown`), gráfica de peso y adherencia, historial y preferencias.
 - **Entrenamiento**: calendario de fases (`phase-schedule-calendar`) y comparación de microciclos.
 - **Check-ins**: `checkin-schedules-panel` y `checkin-schedule-history-panel`.
-- Resumen con dolor y perímetros, y adherencia.
+- Resumen con dolor y perímetros, y adherencia. Tarjeta **Cobros** (vencido / vence hoy / próximo / pausada / sin cuota / sin pendientes).
+- **Gestión > Cobros**: cuota (configurar, precio con vigencia, pausar, reanudar, finalizar, avisos al cliente), cobros con pagos parciales, correcciones con motivo y anulación de saldo. `?tab=payments&charge=<id>` abre un cobro. Ya no programa avisos locales de Capacitor: `payments/services/legacy-payment-reminders.service.ts` cancela solo los antiguos de cobros ("Recuerda cobrar a …") al entrar en el panel.
 
 Piezas compartidas propias: `macro-adjust` (ajuste de macros con candados, en "Empezar fase" y "Siguiente semana"), `diet-card`, `product-search-modal`, `recipe-builder-modal`, etc. Los paneles laterales usan `tf-side-panel` (`_panel-sheet.scss`).
 
@@ -52,6 +54,8 @@ Piezas compartidas propias: `macro-adjust` (ajuste de macros con candados, en "E
 | **Retiradas** (dentro de la rama) | Intercambios de alimentos (`food-exchanges`), petición de antropometría (`anthropometry-request`), "tipos de día" (sustituidos por menús) |
 
 `packages/shared-ui` añade `confirm-sheet` y la directiva `numeric-keypad`.
+
+Cobros (2026-09-27): el Coach del cliente y la tarjeta "Tu coach" muestran el **saldo restante** con dos decimales (`coach-notification-view.ts#money`) y el aviso nuevo `payment_reminder` (solo informativo, sin acciones de gestión). Test en `coach-notification-view.test.cjs`.
 
 ## `packages/shared-core`
 - Modelos y servicios de API para todo lo nuevo del back.
@@ -67,5 +71,5 @@ Solo 13 ficheros: marca (logo, `app-shell.config.ts`), i18n, `capacitor.config.t
 
 ## Pendiente antes de fusionar
 - **1.363 ficheros compilados versionados** en `apps/train-fit-trainers/android/app/src/main/assets/public/` (en la app del cliente hay 0). Es la salida de `cap sync`. Conviene añadirlos a `.gitignore` y sacarlos del repo.
-- Comprobación: `npx ng build` en cada app (`apps/train-fit-front`, `apps/train-fit-trainers`, `apps/train-fit-management`). `npm test` solo cubre `body-metrics`. `npm run lint:t` arrastra unos 2.570 errores antiguos.
+- Comprobación: `npx ng build` en cada app (`apps/train-fit-front`, `apps/train-fit-trainers`, `apps/train-fit-management`). `npm test` cubre utilidades puras (body-metrics, lista de la compra, facturación, cobros, avisos del Coach…). `npm run lint:t` arrastra unos 2.570 errores antiguos.
 - Ramas **sin integrar**: `pagos` y `fixes-cliente` (Davvidar), `resumen-checkins` y `refactor-checkins` (solo en local, 6 commits sin push).

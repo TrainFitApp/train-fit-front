@@ -31,8 +31,6 @@ const TRAINING_GOAL_TYPE_LABELS: Record<TrainingGoalType, string> = {
   mobility: 'Movilidad',
   general: 'General',
 };
-import { Capacitor } from '@capacitor/core';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import {
   checkinAnchorFor,
   checkinScaleSuffix,
@@ -102,11 +100,12 @@ import {
   TrainingGoalType,
   NutritionComplianceSummary,
   TrainerNote,
-  TrainerPayment,
   TrainerTask,
   TrainerTaskType,
 } from './models/client-detail.model';
 import { ClientNote } from './models/client-notes.model';
+import { LedgerIntent } from '../../../payments/components/client-payments-ledger/client-payments-ledger.component';
+import { PaymentsCardRequest } from '../../../payments/components/client-payments-card/client-payments-card.component';
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
@@ -209,13 +208,13 @@ export class ClientDetailPage implements OnInit {
   public checkinResponses: CheckinResponseEntry[] = [];
 
   // --- Cobros (F26, transversal a los scopes) ---
-  public paymentsState: SectionState = 'loading';
-  public payments: TrainerPayment[] = [];
-  public showPaymentPanel = false;
-  public paymentAmount: number | null = null;
-  public paymentDueDate = '';
-  public paymentNote = '';
-  public isSavingPayment = false;
+  // Cobros 2026-09 — Gestión > Cobros vive en features/payments. La ficha
+  // solo le dice cuándo releer (al volver a la página: Ionic no repite
+  // ngOnInit), qué abrir al llegar (?charge= de un aviso, "Configurar cuota"
+  // desde la tarjeta del Resumen) y si el cliente está en solo lectura.
+  public paymentsRefreshToken = 0;
+  public paymentsIntent: LedgerIntent = null;
+  public paymentsFocusChargeId: string | null = null;
 
   // --- Fechas de la fase vigente (panel; antes un alert con <input type="date">) ---
   public showPhaseDatesPanel = false;
@@ -595,11 +594,14 @@ export class ClientDetailPage implements OnInit {
     this.checkinTemplateToOpen = tabGuardada
       ? null
       : this.route.snapshot.queryParamMap.get('checkinTemplate');
+    // Aviso de cobro → ?tab=payments&charge=<id>: abre ese cobro, solo en una
+    // entrada nueva (al volver de una pantalla hija la URL aún lo lleva).
+    this.paymentsFocusChargeId = tabGuardada ? null : this.route.snapshot.queryParamMap.get('charge');
 
     if (this.scopes.includes('training')) this.loadTraining();
     if (this.scopes.includes('nutrition')) this.loadNutrition();
     this.loadNotes();
-    this.loadPayments();
+    this.paymentsRefreshToken += 1;
     this.loadTasks();
     this.loadClientNotesUnread();
     this.loadPreviousRelationCutoff();
@@ -3214,119 +3216,17 @@ export class ClientDetailPage implements OnInit {
     return response._id;
   }
 
-  // --- Cobros (F26) ---
-  public loadPayments(): void {
-    this.paymentsState = 'loading';
-    this.clientDetailApi.getPayments(this.clientId).subscribe({
-      next: (payments) => {
-        this.payments = payments || [];
-        this.paymentsState = 'loaded';
-      },
-      error: () => {
-        this.paymentsState = 'error';
-      },
-    });
+  // --- Cobros (features/payments) ---
+  // La tarjeta del Resumen pide abrir Gestión > Cobros; con "Configurar
+  // cuota" o "Registrar pago" el libro abre directamente ese formulario.
+  public openPayments(request: PaymentsCardRequest): void {
+    this.paymentsIntent = request.action === 'configure-fee' || request.action === 'register' ? request.action : null;
+    this.selectTab('payments');
   }
 
-  public openPaymentPanel(): void {
-    this.showPaymentPanel = true;
-    this.paymentAmount = null;
-    this.paymentDueDate = '';
-    this.paymentNote = '';
-  }
-
-  public closePaymentPanel(): void {
-    this.showPaymentPanel = false;
-  }
-
-  public submitPayment(): void {
-    if (
-      !this.paymentAmount ||
-      this.paymentAmount <= 0 ||
-      !this.paymentDueDate ||
-      this.isSavingPayment
-    ) {
-      return;
-    }
-
-    this.isSavingPayment = true;
-    this.clientDetailApi
-      .createPayment(this.clientId, {
-        amount: this.paymentAmount,
-        dueDate: this.paymentDueDate,
-        note: this.paymentNote.trim() || undefined,
-      })
-      .subscribe({
-        next: (payment) => {
-          this.isSavingPayment = false;
-          this.showPaymentPanel = false;
-          this.payments = [payment, ...this.payments];
-          void this.schedulePaymentReminder(payment);
-        },
-        error: (err) => {
-          this.isSavingPayment = false;
-          this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo crear el cobro',
-            'Error',
-            3000
-          );
-        },
-      });
-  }
-
-  // F26 — recordatorio local en el dispositivo del profesional. Best-effort:
-  // solo en plataforma nativa (Capacitor.isNativePlatform, mismo criterio que
-  // NotificationService), un fallo aquí nunca bloquea la creación del cobro
-  // (ya se guardó en el backend).
-  private async schedulePaymentReminder(
-    payment: TrainerPayment
-  ): Promise<void> {
-    if (!Capacitor.isNativePlatform()) return;
-    try {
-      const perm = await LocalNotifications.requestPermissions();
-      if (perm.display !== 'granted') return;
-
-      const idSeed = payment._id.slice(-8);
-      const numericId = parseInt(idSeed, 16) % 2147483647;
-
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            id: numericId,
-            title: 'TrainFit',
-            body: `Recuerda cobrar a ${this.name}: ${payment.amount}${
-              payment.currency === 'EUR' ? '€' : payment.currency
-            }`,
-            schedule: { at: new Date(payment.dueDate), allowWhileIdle: true },
-          },
-        ],
-      });
-    } catch (e) {
-      console.warn('[F26] No se pudo programar el recordatorio local', e);
-    }
-  }
-
-  public togglePaymentPaid(payment: TrainerPayment): void {
-    this.clientDetailApi
-      .setPaymentPaid(this.clientId, payment._id, !payment.paidAt)
-      .subscribe({
-        next: (updated) => {
-          this.payments = this.payments.map((p) =>
-            p._id === updated._id ? updated : p
-          );
-        },
-        error: () => {
-          this.ionicUtilService.showErrorToast(
-            'No se pudo actualizar el cobro',
-            'Error',
-            2500
-          );
-        },
-      });
-  }
-
-  public trackByPaymentId(_index: number, payment: TrainerPayment): string {
-    return payment._id;
+  public onPaymentsIntentConsumed(): void {
+    this.paymentsIntent = null;
+    this.paymentsFocusChargeId = null;
   }
 
   // --- Tareas/hábitos (coach-tab FASE4) ---

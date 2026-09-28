@@ -178,16 +178,6 @@ export interface CheckinResponseEntry {
   week?: { phaseId: string; number: number; start: string; end: string | null } | null;
 }
 
-// F26 — recordatorio de cobro (agenda manual, sin pagos reales).
-export interface TrainerPayment {
-  _id: string;
-  amount: number;
-  currency: string;
-  dueDate: string;
-  paidAt: string | null;
-  note?: string;
-}
-
 // F20 — adherencia calórica: lo consumido contra lo pautado de cada día.
 // Fase 1 Coach Pro — `percentage` pasa a ser sobre los días CON PLAN (antes
 // sobre todos los días del calendario del rango, lo que hundía el número de

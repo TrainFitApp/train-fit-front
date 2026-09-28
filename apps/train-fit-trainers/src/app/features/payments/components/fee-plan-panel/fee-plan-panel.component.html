@@ -1,0 +1,203 @@
+<app-payments-sheet [title]="title" [subtitle]="subtitle" (closed)="closed.emit()">
+  <form [id]="formId" class="plan-form" (ngSubmit)="submit()" novalidate>
+    <!-- Importe y concepto -->
+    <section class="form-group">
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" [for]="formId + '-amount'">Importe por vencimiento</label>
+          <div class="input-wrapper input-wrapper--money" [class.input-wrapper--invalid]="amountError">
+            <input
+              [id]="formId + '-amount'"
+              class="input-field"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              name="amount"
+              placeholder="0,00"
+              [(ngModel)]="amountText"
+              (ngModelChange)="refreshPreview()"
+            />
+            <span class="input-suffix" aria-hidden="true">€</span>
+          </div>
+          <p class="field-error" *ngIf="amountError">{{ amountError }}</p>
+        </div>
+        <div class="field" *ngIf="mode === 'configure'">
+          <label class="field-label" [for]="formId + '-concept'">
+            Concepto <span class="field-optional">(visible en avisos)</span>
+          </label>
+          <div class="input-wrapper">
+            <input
+              [id]="formId + '-concept'"
+              class="input-field"
+              type="text"
+              name="concept"
+              maxlength="80"
+              [(ngModel)]="concept"
+              (ngModelChange)="refreshPreview()"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Frecuencia -->
+    <section class="form-group" *ngIf="mode === 'configure'">
+      <p class="group-label" [id]="formId + '-freq'">Frecuencia</p>
+      <div class="segmented" role="radiogroup" [attr.aria-labelledby]="formId + '-freq'">
+        <button
+          type="button"
+          class="segment"
+          role="radio"
+          *ngFor="let preset of presets"
+          [class.segment--active]="presetKey === preset.key"
+          [attr.aria-checked]="presetKey === preset.key"
+          (click)="selectPreset(preset.key)"
+        >
+          {{ preset.label }}
+        </button>
+        <button
+          type="button"
+          class="segment"
+          role="radio"
+          [class.segment--active]="presetKey === 'custom'"
+          [attr.aria-checked]="presetKey === 'custom'"
+          (click)="selectPreset('custom')"
+        >
+          Otra
+        </button>
+      </div>
+      <p class="field-hint" *ngIf="presetHint">{{ presetHint }}</p>
+
+      <div class="field-row custom-frequency" *ngIf="presetKey === 'custom'">
+        <div class="field">
+          <label class="field-label" [for]="formId + '-interval'">Cada</label>
+          <div class="input-wrapper" [class.input-wrapper--invalid]="intervalError">
+            <input
+              [id]="formId + '-interval'"
+              class="input-field"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              name="interval"
+              [(ngModel)]="customInterval"
+              (ngModelChange)="refreshPreview()"
+            />
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" [for]="formId + '-unit'">Unidad</label>
+          <div class="input-wrapper">
+            <select
+              [id]="formId + '-unit'"
+              class="input-field"
+              name="unit"
+              [(ngModel)]="customUnit"
+              (ngModelChange)="refreshPreview()"
+            >
+              <option value="week">semanas</option>
+              <option value="month">meses</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <p class="field-error" *ngIf="intervalError">{{ intervalError }}</p>
+    </section>
+
+    <!-- Fechas -->
+    <section class="form-group">
+      <div class="field">
+        <label class="field-label" [for]="formId + '-start'">
+          {{ mode === 'resume' ? 'Próximo vencimiento' : isNew ? 'Primer vencimiento' : 'Próximo vencimiento' }}
+        </label>
+        <div class="input-wrapper">
+          <ion-icon name="calendar-outline" class="input-icon" aria-hidden="true"></ion-icon>
+          <app-date-field
+            class="input-field"
+            name="nextDueDay"
+            [inputId]="formId + '-start'"
+            [min]="today"
+            pickerTitle="Vence el"
+            ariaLabel="Fecha de vencimiento"
+            [(ngModel)]="nextDueDay"
+            (ngModelChange)="refreshPreview()"
+          ></app-date-field>
+        </div>
+        <p class="field-error" *ngIf="startError && (nextDueDay || mode === 'resume')">{{ startError }}</p>
+        <p class="field-hint" *ngIf="!startError">
+          Los vencimientos no se mueven aunque te paguen tarde<ng-container *ngIf="anchorAtMonthEnd">; en los meses más cortos, el último día del mes</ng-container>.
+        </p>
+      </div>
+
+      <div class="field" *ngIf="choosesEffectiveDay">
+        <p class="field-label" [id]="formId + '-effective'">El precio nuevo se aplica desde</p>
+        <div class="segmented" role="radiogroup" [attr.aria-labelledby]="formId + '-effective'">
+          <button
+            type="button"
+            class="segment"
+            role="radio"
+            *ngFor="let option of effectiveOptions"
+            [class.segment--active]="effectiveFromDay === option"
+            [attr.aria-checked]="effectiveFromDay === option"
+            (click)="effectiveFromDay = option; refreshPreview()"
+          >
+            {{ day(option) }}
+          </button>
+        </div>
+        <p class="field-hint">Los vencimientos anteriores y los que ya tienen pagos conservan su importe.</p>
+      </div>
+    </section>
+
+    <!-- Previsualización -->
+    <section class="preview" aria-live="polite" *ngIf="nextDates.length || previewState === 'loading'">
+      <p class="group-label">Próximos vencimientos</p>
+      <ol class="preview-dates" *ngIf="nextDates.length; else previewLoading">
+        <li *ngFor="let item of nextDates">
+          <span class="preview-day">{{ dayLong(item.day) }}</span>
+          <span class="preview-amount">{{ money(item.amountCents) }}</span>
+        </li>
+      </ol>
+      <ng-template #previewLoading>
+        <p class="field-hint">Calculando fechas…</p>
+      </ng-template>
+      <p class="field-hint">{{ frequencyText() }}</p>
+
+      <ul class="effects" *ngIf="preview && mode === 'configure'">
+        <li *ngFor="let update of preview.effects.updates">
+          <ion-icon name="swap-vertical-outline" aria-hidden="true"></ion-icon>
+          Se actualiza el vencimiento del {{ day(update.dueDay) }}: {{ money(update.fromCents) }} → {{ money(update.toCents) }}
+        </li>
+        <li *ngFor="let item of preview.effects.voids">
+          <ion-icon name="remove-circle-outline" aria-hidden="true"></ion-icon>
+          Se anula la previsión del {{ day(item.dueDay) }} ({{ money(item.amountCents) }}): el calendario cambia
+        </li>
+        <li *ngFor="let item of preview.effects.protected">
+          <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+          El vencimiento del {{ day(item.dueDay) }}
+          {{ item.reason === 'has_movements' ? 'ya tiene pagos' : 'se editó a mano' }}: conserva su importe
+        </li>
+      </ul>
+    </section>
+
+    <!-- Avisos al cliente -->
+    <section class="form-group reminders" *ngIf="mode === 'configure'">
+      <label class="check-row">
+        <input type="checkbox" name="remindClient" [(ngModel)]="remindClient" />
+        <span>
+          <strong>Avisar también al cliente</strong><br />
+          Recordatorios dentro de su app en los días que tengas configurados. Nunca ve tus notas ni puede tocar sus cobros.
+        </span>
+      </label>
+    </section>
+
+    <div class="notice notice--danger" role="alert" *ngIf="errorMessage">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+  </form>
+
+  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">Cancelar</button>
+  <button sheetFooter type="submit" class="submit-button" [attr.form]="formId" [disabled]="!canSubmit">
+    <ion-spinner name="dots" *ngIf="saving"></ion-spinner>
+    <span *ngIf="!saving">{{ mode === 'resume' ? 'Reanudar cuota' : isNew ? 'Guardar cuota' : 'Guardar cambios' }}</span>
+  </button>
+</app-payments-sheet>

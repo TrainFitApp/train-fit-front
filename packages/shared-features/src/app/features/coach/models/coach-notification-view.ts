@@ -21,7 +21,39 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   // check-in). Se mantiene para que las que siguen en la bandeja de un
   // cliente se lean y se abran como siempre, no como "Nueva actividad".
   anthropometry_requested: 'body-outline',
+  payment_reminder: 'wallet-outline',
 };
+
+const MONEY = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+
+export function money(value: unknown, currency: unknown): string {
+  const amount = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(amount)) return '';
+  if (currency && currency !== 'EUR') return `${amount.toFixed(2)} ${currency}`;
+  return MONEY.format(amount);
+}
+
+// Día civil "YYYY-MM-DD" → "5 nov", sin que la zona del dispositivo lo mueva.
+export function shortDay(value: unknown): string {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+  return new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+    .format(new Date(`${value}T12:00:00Z`))
+    .replace('.', '');
+}
+
+// Recordatorio de pago: el saldo de AHORA (payload.current) y, si el cobro ya
+// se cerró, se dice en vez de seguir reclamando un importe antiguo.
+function paymentReminderTitle(p: Record<string, unknown>): string {
+  const current = (p['current'] || null) as { status?: string; balanceCents?: number; dueDay?: string; currency?: string } | null;
+  if ((current && current.status !== 'open') || (!current && p['resolution'])) {
+    return 'Recordatorio de pago: ya no está pendiente';
+  }
+  const cents = current?.balanceCents ?? (p['balanceCents'] as number | undefined);
+  const due = shortDay(current?.dueDay ?? p['dueDay']);
+  const amount = typeof cents === 'number' ? money(cents / 100, current?.currency ?? p['currency']) : '';
+  if (!amount) return 'Tu profesional te recuerda un pago pendiente';
+  return `Tu profesional te recuerda un pago pendiente de ${amount}${due ? `, con vencimiento el ${due}` : ''}`;
+}
 
 export interface CoachRoute {
   commands: string[];
@@ -43,7 +75,9 @@ export function notificationTitle(notification: CoachNotification): string {
     case 'meal_proposal':
       return `Nueva propuesta para ${p['mealSlot'] || 'una comida'}`;
     case 'payment_created':
-      return `Nuevo cobro: ${p['amount']}${p['currency'] === 'EUR' ? '€' : p['currency'] || ''}`;
+      return `Nuevo cobro: ${money(p['amount'], p['currency'])}`;
+    case 'payment_reminder':
+      return paymentReminderTitle(p);
     case 'nutrition_preferences_requested':
       return 'Te ha pedido tus preferencias nutricionales';
     case 'checkin_reviewed':
@@ -65,7 +99,7 @@ export function notificationTitle(notification: CoachNotification): string {
   }
 }
 
-// null = puramente informativa (payment_created, task_assigned,
+// null = puramente informativa (payment_created, payment_reminder, task_assigned,
 // intake_submitted, client_confirmed): sin pantalla propia a la que ir. De
 // aquí sale también el chevron que indica que la tarjeta es tocable.
 export function notificationRoute(notification: CoachNotification): CoachRoute | null {

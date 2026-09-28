@@ -1,0 +1,54 @@
+@import '../../styles/payments';
+
+@include pay-form;
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+}
+
+.outcome__value--text {
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-label);
+  white-space: normal;
+  text-align: right;
+}
+
+.change-preview {
+  padding: var(--tf-space-4);
+  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--tf-border);
+  background: var(--tf-surface-2);
+
+  .field-hint + .field-hint {
+    margin-top: var(--tf-space-2);
+  }
+}
+
+.samples {
+  margin: var(--tf-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--tf-space-3);
+    padding: var(--tf-space-2) 0;
+    border-top: 1px solid var(--tf-border-subtle);
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+  }
+
+  &__change {
+    @include pay-money;
+    color: var(--tf-text);
+    text-align: right;
+    white-space: normal;
+  }
+
+  &__equivalent {
+    color: var(--tf-text-muted);
+  }
+}

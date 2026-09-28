@@ -184,6 +184,16 @@
   </div>
 </section>
 
+<!-- ================= COBROS DE ESTE CLIENTE ================= -->
+<!-- ¿Hay algo que cobrar o configurar para esta persona? Carga y falla por
+     su cuenta (features/payments): un error aquí no tapa el seguimiento. -->
+<app-client-payments-card
+  class="summary-card"
+  [clientId]="clientId"
+  [refreshToken]="paymentsRefreshToken"
+  (open)="onPaymentsCard($event)"
+></app-client-payments-card>
+
 <!-- ================= ADHERENCIA + PERÍMETROS (misma fila en desktop) =================
      Misma pantalla de decisión, dos ángulos del mismo periodo: dónde falla
      (Adherencia) y cómo evolucionan las medidas (Perímetros). Apiladas en

@@ -13,6 +13,7 @@ import {
   CoachDashboard,
   CoachNotification,
   CoachPendingCheckin,
+  CoachPendingPayment,
   CoachTask,
 } from './models/coach-dashboard.model';
 import {
@@ -20,6 +21,8 @@ import {
   notificationRoute,
   notificationTitle,
   notificationTrainerName,
+  money as formatPaymentMoney,
+  shortDay,
 } from './models/coach-notification-view';
 import {
   HistoryEntry,
@@ -732,6 +735,17 @@ export class CoachPage implements OnInit {
 
   public trackByProposalId(_index: number, item: { proposalId: string }): string {
     return item.proposalId;
+  }
+
+  // Saldo restante en euros con formato español ("40,00 €"), igual que la
+  // tarjeta "Tu coach" del perfil; el pipe currency seguiría la locale en-US.
+  public paymentAmount(item: CoachPendingPayment): string {
+    return formatPaymentMoney(item.amount, item.currency);
+  }
+
+  // Día civil del vencimiento: nunca se corre por la zona del dispositivo.
+  public paymentDue(item: CoachPendingPayment): string {
+    return shortDay(item.dueDay || String(item.dueDate || '').slice(0, 10));
   }
 
   public trackByPaymentId(_index: number, item: { paymentId: string }): string {

@@ -1,0 +1,242 @@
+@import '../../styles/payments';
+
+@include pay-form;
+@include pay-chips;
+@include pay-states;
+@include pay-buttons;
+
+.detail-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-4);
+}
+
+.due {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+
+  &__day {
+    font-size: var(--tf-font-size-md);
+    font-weight: var(--tf-weight-title);
+    color: var(--tf-text);
+  }
+
+  &__relative {
+    @include tf-meta;
+  }
+}
+
+// Importe, recibido, anulado y pendiente en una fila; la barra debajo.
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: var(--tf-space-3) var(--tf-space-4);
+  padding: var(--tf-space-4);
+  margin-bottom: var(--tf-space-4);
+  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--tf-border);
+  background: var(--tf-surface-2);
+
+  &__bar {
+    grid-column: 1 / -1;
+  }
+}
+
+.figure {
+  @include tf-pair;
+
+  &__label {
+    @include tf-label;
+  }
+
+  &__value {
+    @include tf-value(var(--tf-font-size-lg));
+    @include pay-money;
+
+    &--received {
+      color: var(--tf-success);
+    }
+
+    &--cancelled {
+      color: var(--tf-text-muted);
+    }
+
+    &--overdue {
+      color: var(--tf-danger-text);
+    }
+
+    &--zero {
+      color: var(--tf-text-muted);
+    }
+  }
+
+  &__meta {
+    @include tf-meta;
+  }
+}
+
+.notice {
+  margin-bottom: var(--tf-space-3);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-4);
+}
+
+.inline-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4);
+  margin-bottom: var(--tf-space-4);
+  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--tf-border-strong);
+  background: var(--tf-surface-2);
+
+  &--danger {
+    border-color: var(--tf-danger-border);
+  }
+
+  &__title {
+    @include tf-card-title;
+    font-size: var(--tf-font-size-md);
+  }
+
+  &__text {
+    @include tf-help;
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--tf-space-3);
+  }
+
+  .field-label {
+    margin-bottom: 0;
+  }
+}
+
+.block {
+  padding-top: var(--tf-space-4);
+  margin-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-border-subtle);
+
+  &__title {
+    @include tf-label;
+    margin: 0 0 var(--tf-space-3);
+  }
+
+  &__empty {
+    @include tf-help;
+  }
+}
+
+.movements,
+.history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.movement {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-1);
+  padding: var(--tf-space-3) 0;
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &__main {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tf-space-3);
+  }
+
+  &__amount {
+    @include pay-money;
+    font-size: var(--tf-font-size-md);
+    font-weight: var(--tf-weight-value);
+    color: var(--tf-text);
+  }
+
+  &__method {
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+  }
+
+  &__meta,
+  &__correction {
+    @include tf-meta;
+  }
+
+  &__note {
+    margin: 0;
+    font-size: var(--tf-font-size-sm);
+    line-height: 1.45;
+    color: var(--tf-text-secondary);
+    white-space: pre-wrap;
+  }
+
+  &__action {
+    align-self: flex-start;
+    margin-left: calc(-1 * var(--tf-space-2));
+  }
+
+  &--voided {
+    .movement__amount {
+      color: var(--tf-text-muted);
+      text-decoration: line-through;
+      text-decoration-thickness: 1px;
+    }
+
+    .movement__method {
+      color: var(--tf-text-muted);
+    }
+  }
+
+  .inline-form {
+    margin: var(--tf-space-2) 0 0;
+  }
+}
+
+.private-note {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.5;
+  color: var(--tf-text-secondary);
+  white-space: pre-wrap;
+}
+
+.history li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--tf-space-2) 0;
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.history__text {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text);
+}
+
+.history__meta {
+  @include tf-meta;
+}
+
+.ghost-button--wide {
+  flex: 1;
+}

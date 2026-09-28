@@ -1,0 +1,31 @@
+<div class="card-header">
+  <h2 class="card-title">Cobros</h2>
+  <span class="card-hint" *ngIf="view?.context as context">{{ context }}</span>
+</div>
+
+<div class="card-skeleton" *ngIf="state === 'loading'" aria-busy="true" aria-label="Cargando cobros">
+  <div class="skeleton-block skeleton-block--value"></div>
+  <div class="skeleton-block skeleton-block--line"></div>
+</div>
+
+<div class="card-state" *ngIf="state === 'error'" role="alert">
+  <p>No se pudieron cargar sus cobros.</p>
+  <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+</div>
+
+<div class="card-body" *ngIf="state === 'loaded' && view as v" [ngClass]="'card-body--' + v.tone">
+  <div class="card-status">
+    <span class="card-headline">{{ v.headline }}</span>
+    <span class="card-amount" *ngIf="v.amount">{{ v.amount }}</span>
+    <span class="card-detail" *ngIf="v.detail">{{ v.detail }}</span>
+  </div>
+  <ul class="card-notes" *ngIf="v.notes.length">
+    <li *ngFor="let note of v.notes">{{ note }}</li>
+  </ul>
+  <div class="card-actions">
+    <button type="button" class="card-primary" (click)="trigger(v.primary.action)">{{ v.primary.label }}</button>
+    <button type="button" class="card-secondary" *ngIf="v.secondary as secondary" (click)="trigger(secondary.action)">
+      {{ secondary.label }}
+    </button>
+  </div>
+</div>

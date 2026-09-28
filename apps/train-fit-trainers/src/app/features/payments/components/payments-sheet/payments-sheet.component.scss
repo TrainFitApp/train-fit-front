@@ -1,0 +1,75 @@
+@import '../../../../../theme/panel-sheet';
+
+// El host se traslada a <ion-app>: capa propia por encima del contenido, sin
+// capturar clics fuera de sus hijos.
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tf-z-modal, 500);
+  pointer-events: none;
+}
+
+:host > * {
+  pointer-events: auto;
+}
+
+.sheet-backdrop {
+  @include tf-side-panel-backdrop;
+}
+
+.sheet {
+  @include tf-side-panel(460px);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+  outline: none;
+
+  @media (min-width: 768px) {
+    &--wide {
+      width: 760px;
+    }
+  }
+}
+
+.sheet-handle {
+  @include tf-side-panel-handle;
+}
+
+// Cabecera a sangre (el panel tiene relleno propio).
+.sheet-header {
+  flex-shrink: 0;
+  margin: 0 calc(-1 * var(--tf-space-4)) var(--tf-space-3);
+
+  @media (min-width: 768px) {
+    margin: calc(-1 * var(--tf-space-5)) calc(-1 * var(--tf-space-5)) var(--tf-space-3);
+  }
+}
+
+.sheet-subtitle {
+  margin: 0 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.5;
+  color: var(--tf-text-secondary);
+}
+
+// Crece para empujar el pie abajo, pero nunca encoge: si encogiera, su
+// contenido desbordaría por debajo del pie en vez de desplazar el panel.
+.sheet-body {
+  flex: 1 0 auto;
+  padding-bottom: var(--tf-space-4);
+}
+
+// Pie siempre visible: el contenido largo desplaza por dentro.
+.sheet-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) 0 var(--tf-space-5);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
+
+  &:empty {
+    display: none;
+  }
+}

@@ -1,0 +1,78 @@
+@import '../../styles/payments';
+
+@include pay-form;
+
+.plan-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+}
+
+.custom-frequency {
+  margin-top: var(--tf-space-3);
+}
+
+// Las tres próximas fechas: la prueba de que el calendario es el esperado.
+.preview {
+  padding: var(--tf-space-4);
+  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--tf-border);
+  background: var(--tf-surface-2);
+}
+
+.preview-dates {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--tf-space-3);
+    padding: var(--tf-space-2) 0;
+    border-bottom: 1px solid var(--tf-border-subtle);
+    font-size: var(--tf-font-size-base);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.preview-day {
+  color: var(--tf-text);
+}
+
+.preview-amount {
+  @include pay-money;
+  font-weight: var(--tf-weight-value);
+  color: var(--tf-text);
+}
+
+.effects {
+  margin: var(--tf-space-3) 0 0;
+  padding: var(--tf-space-3) 0 0;
+  list-style: none;
+  border-top: 1px solid var(--tf-border-subtle);
+
+  li {
+    display: flex;
+    gap: var(--tf-space-2);
+    padding: var(--tf-space-1) 0;
+    font-size: var(--tf-font-size-sm);
+    line-height: 1.45;
+    color: var(--tf-text-secondary);
+
+    ion-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 16px;
+      color: var(--tf-text-muted);
+    }
+  }
+}
+
+.reminders strong {
+  color: var(--tf-text);
+  font-weight: var(--tf-weight-label);
+}

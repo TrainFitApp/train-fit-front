@@ -1,0 +1,20 @@
+<div
+  class="bar"
+  [class.bar--md]="size === 'md'"
+  role="img"
+  [attr.aria-label]="label"
+>
+  <span class="bar__segment bar__segment--received" [style.width.%]="segments.received"></span>
+  <span
+    class="bar__segment bar__segment--cancelled"
+    [style.left.%]="segments.received"
+    [style.width.%]="segments.cancelled"
+  ></span>
+  <span
+    class="bar__segment bar__segment--pending"
+    [class.bar__segment--overdue]="pendingTone === 'overdue'"
+    [class.bar__segment--today]="pendingTone === 'today'"
+    [style.left.%]="segments.received + segments.cancelled"
+    [style.width.%]="segments.pending"
+  ></span>
+</div>

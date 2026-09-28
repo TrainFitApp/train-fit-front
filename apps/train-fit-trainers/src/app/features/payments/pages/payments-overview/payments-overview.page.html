@@ -1,0 +1,225 @@
+<ion-header class="ion-no-border">
+  <app-page-header title="Cobros"></app-page-header>
+</ion-header>
+
+<ion-content class="payments-content">
+  <div class="page">
+    <p class="intro">
+      Lo que tus clientes te pagan fuera de TrainFit: Bizum, transferencia, efectivo… Aquí solo se anota; ni el cliente ni
+      TrainFit mueven dinero. Es distinto de tu suscripción a TrainFit.
+    </p>
+
+    <!-- ===== Totales ===== -->
+    <section class="totals" aria-label="Totales de cobros" *ngIf="data as d; else totalsPlaceholder">
+      <div class="total">
+        <span class="total__label">Pendiente total</span>
+        <span class="total__value">{{ money(d.totals.pendingCents) }}</span>
+        <span class="total__meta">Incluye lo vencido; no las cuotas futuras previstas</span>
+      </div>
+      <div class="total" [class.total--danger]="d.totals.overdueCents > 0">
+        <span class="total__label">Vencido</span>
+        <span class="total__value">{{ money(d.totals.overdueCents) }}</span>
+        <span class="total__meta">
+          {{ d.totals.overdueCount }} {{ d.totals.overdueCount === 1 ? 'cobro' : 'cobros' }} con el día ya terminado
+        </span>
+      </div>
+      <div class="total" [class.total--success]="d.totals.receivedThisMonthCents > 0">
+        <span class="total__label">Recibido en {{ monthName }}</span>
+        <span class="total__value">{{ money(d.totals.receivedThisMonthCents) }}</span>
+        <span class="total__meta">Por fecha real de recepción; lo anulado no cuenta</span>
+      </div>
+    </section>
+    <ng-template #totalsPlaceholder>
+      <div class="totals totals--loading" *ngIf="state === 'loading'" aria-busy="true">
+        <div class="skeleton-block"></div>
+        <div class="skeleton-block"></div>
+        <div class="skeleton-block"></div>
+      </div>
+    </ng-template>
+
+    <p class="scope" *ngIf="data as d">
+      Totales de {{ scopeLabel }}, en euros, a {{ day(d.scope.today) }} ({{ d.scope.timeZone }}). No cambian con el filtro de
+      estado, las fechas ni la página.
+      <ng-container *ngFor="let other of d.totals.otherCurrencies">
+        Además, {{ money(other.pendingCents, other.currency) }} pendientes en {{ other.currency }} (divisa antigua, aparte).
+      </ng-container>
+    </p>
+
+    <!-- ===== Filtros ===== -->
+    <section class="filters" aria-label="Filtros">
+      <div class="search">
+        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+        <input
+          type="search"
+          class="search__input"
+          placeholder="Buscar cliente por nombre o email"
+          aria-label="Buscar cliente"
+          [ngModel]="searchText"
+          (ngModelChange)="onSearch($event)"
+        />
+      </div>
+
+      <div class="chips" role="group" aria-label="Estado">
+        <button
+          type="button"
+          class="filter"
+          *ngFor="let option of states"
+          [class.filter--active]="stateFilter === option.key"
+          [attr.aria-pressed]="stateFilter === option.key"
+          (click)="setState(option.key)"
+        >
+          {{ option.label }}
+        </button>
+      </div>
+
+      <div class="filters__row">
+        <label class="select">
+          <span class="sr-only">Clientes</span>
+          <select [ngModel]="relation" (ngModelChange)="setRelation($event)" aria-label="Clientes">
+            <option *ngFor="let option of relations" [value]="option.key">{{ option.label }}</option>
+          </select>
+          <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
+        </label>
+        <div class="dates">
+          <div class="date-box">
+          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+          <app-date-field
+            class="dates__field"
+            placeholder="Vence desde"
+            ariaLabel="Vencimiento desde"
+            pickerTitle="Desde"
+            [clearable]="true"
+            [(ngModel)]="from"
+            (ngModelChange)="onDatesChange()"
+          ></app-date-field>
+          </div>
+          <div class="date-box">
+          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+          <app-date-field
+            class="dates__field"
+            placeholder="hasta"
+            ariaLabel="Vencimiento hasta"
+            pickerTitle="Hasta"
+            [clearable]="true"
+            [min]="from || null"
+            [(ngModel)]="to"
+            (ngModelChange)="onDatesChange()"
+          ></app-date-field>
+          </div>
+          <button type="button" class="link-button" *ngIf="from || to" (click)="clearDates()">Quitar fechas</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Lista ===== -->
+    <div class="pay-state" *ngIf="state === 'error'" role="alert">
+      <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+      <p>No se pudieron cargar los cobros. No se muestra ningún total hasta poder leerlos.</p>
+      <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    </div>
+
+    <ng-container *ngIf="state === 'loaded' && data as d">
+      <p class="results" aria-live="polite">
+        {{ d.results.count }} {{ d.results.count === 1 ? 'cobro' : 'cobros' }}
+        <ng-container *ngIf="d.results.balanceCents > 0">· suman {{ money(d.results.balanceCents) }} sin cobrar, previsiones incluidas</ng-container>
+      </p>
+
+      <div class="empty" *ngIf="!d.rows.length">
+        <ion-icon name="receipt-outline" aria-hidden="true"></ion-icon>
+        <p *ngIf="d.scope.clients === 0">Todavía no tienes clientes con cobros que mostrar aquí.</p>
+        <p *ngIf="d.scope.clients > 0">Ningún cobro con estos filtros.</p>
+      </div>
+
+      <ul class="rows" *ngIf="d.rows.length">
+        <li class="row" *ngFor="let row of d.rows; trackBy: trackById" [class.row--closed]="row.temporal === 'closed'">
+          <button type="button" class="row__main" (click)="openDetail(row)" [attr.aria-label]="row.clientName + ', ' + title(row) + ', vence ' + day(row.dueDay) + '. Ver detalle'">
+            <span class="row__top">
+              <span class="row__client">
+                {{ row.clientName }}
+                <span class="pay-chip" *ngIf="row.clientRelation === 'former'">Antiguo cliente</span>
+                <span class="pay-chip" *ngIf="isReadOnly(row)">Solo lectura</span>
+              </span>
+              <span class="row__amount" [class.row__amount--overdue]="row.temporal === 'overdue'">
+                {{ row.status === 'open' ? money(row.balanceCents, row.currency) : money(row.amountCents, row.currency) }}
+              </span>
+            </span>
+            <span class="row__meta">
+              <span>{{ title(row) }} · {{ day(row.dueDay) }}<ng-container *ngIf="relative(row) as rel"> · {{ rel }}</ng-container></span>
+              <span class="row__figures">{{ figures(row) }}</span>
+            </span>
+            <ng-container *ngIf="chips(row) as list">
+              <span class="pay-chips" *ngIf="list.length">
+                <span class="pay-chip" *ngFor="let chip of list" [ngClass]="'pay-chip--' + chip.tone">{{ chip.label }}</span>
+              </span>
+            </ng-container>
+            <app-payment-balance-bar [charge]="row"></app-payment-balance-bar>
+          </button>
+          <div class="row__actions">
+            <button type="button" class="pay-secondary" *ngIf="canRegister(row)" (click)="openRegister(row)">Registrar pago</button>
+            <button type="button" class="pay-quiet" (click)="openLedger(row)">Ver cuota y cobros</button>
+          </div>
+        </li>
+      </ul>
+
+      <nav class="pager" *ngIf="pageCount > 1" aria-label="Páginas">
+        <button type="button" class="pay-secondary" [disabled]="page === 0" (click)="goToPage(page - 1)">
+          <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+          Anteriores
+        </button>
+        <span class="pager__label">Página {{ page + 1 }} de {{ pageCount }}</span>
+        <button type="button" class="pay-secondary" [disabled]="page >= pageCount - 1" (click)="goToPage(page + 1)">
+          Siguientes
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </nav>
+    </ng-container>
+
+    <!-- ===== Avisos (preferencias comunes) ===== -->
+    <section class="reminders" aria-labelledby="reminders-title">
+      <div class="reminders__text">
+        <h2 class="reminders__title" id="reminders-title">Avisos de cobro</h2>
+        <p class="reminders__summary" *ngIf="settingsState === 'loaded'">{{ reminderSummary }}</p>
+        <p class="reminders__summary" *ngIf="settingsState === 'error'">No se pudieron cargar tus preferencias de avisos.</p>
+        <p class="reminders__help">Dentro de las apps, sin notificaciones del móvil. Al cliente solo si lo activas en su cuota.</p>
+      </div>
+      <button type="button" class="pay-secondary" *ngIf="settingsState === 'loaded'" (click)="showSettings = true">Editar avisos</button>
+      <button type="button" class="retry-button" *ngIf="settingsState === 'error'" (click)="loadSettings()">Reintentar</button>
+    </section>
+  </div>
+</ion-content>
+
+<!-- ===== Paneles ===== -->
+<app-charge-detail-panel
+  *ngIf="openCharge && data"
+  [clientId]="openCharge.clientId"
+  [clientName]="openCharge.clientName"
+  [chargeId]="openCharge.chargeId"
+  [today]="data.scope.today"
+  [access]="openCharge.access"
+  [readOnly]="openCharge.access === 'active' && isClientReadOnly(openCharge.clientId)"
+  (closed)="openCharge = null"
+></app-charge-detail-panel>
+
+<app-payment-register-panel
+  *ngIf="registerRow && registerCharge && data"
+  [clientId]="registerRow.clientId"
+  [clientName]="registerRow.clientName"
+  [charge]="registerCharge"
+  [today]="data.scope.today"
+  (closed)="closeRegister()"
+></app-payment-register-panel>
+
+<app-payments-sheet *ngIf="openClient" [wide]="true" [title]="openClient.clientName" subtitle="Cuota y cobros" (closed)="openClient = null">
+  <app-client-payments-ledger
+    [clientId]="openClient.clientId"
+    [clientName]="openClient.clientName"
+    [readOnly]="isClientReadOnly(openClient.clientId)"
+  ></app-client-payments-ledger>
+</app-payments-sheet>
+
+<app-payment-settings-panel
+  *ngIf="showSettings && settings"
+  [settings]="settings"
+  (saved)="onSettingsSaved($event)"
+  (closed)="showSettings = false"
+></app-payment-settings-panel>
