@@ -238,7 +238,9 @@
           [clientId]="clientId"
           [clientName]="name"
           [hasTrainingScope]="scopes.includes('training')"
+          [paymentsRefreshToken]="paymentsRefreshToken"
           (openTab)="selectTab($event)"
+          (openPayments)="openPayments($event)"
           (statusChange)="onSummaryStatus($event)"
         ></app-client-summary>
       </div>
@@ -2197,113 +2199,89 @@
         </div>
       </div>
 
-      <!-- === COBROS (F26) === -->
-      <div class="tab-panel" *ngIf="activeTab === 'payments'">
-        <div class="detail-skeleton" *ngIf="paymentsState === 'loading'">
+      <!-- === SESIONES HECHAS (F09; antes "Historial") === -->
+      <div
+        class="tab-panel"
+        *ngIf="scopes.includes('training') && activeTab === 'history'"
+      >
+        <div class="detail-skeleton" *ngIf="trainingState === 'loading'">
           <div class="skeleton-block skeleton-block--md"></div>
           <div class="skeleton-block skeleton-block--md"></div>
         </div>
 
-        <div class="section-error" *ngIf="paymentsState === 'error'">
-          <p>No se pudieron cargar los cobros de este cliente.</p>
-          <button class="retry-button" (click)="loadPayments()">
-            Reintentar
+        <ng-container *ngIf="trainingState === 'loaded'">
+          <!-- TASK-040 (MASTER_BACKLOG.md) — este historial es un log plano
+           (un entrenamiento completado = una fila); la agregación por
+           ejercicio y la comparación semana a semana ya existen en
+           StatisticsPage (TASK-007/020), pero antes no había ningún enlace
+           entre ambas pantallas. -->
+          <button
+            type="button"
+            class="history-stats-link"
+            *ngIf="tables.length > 0"
+            (click)="openStatistics(tables[0])"
+          >
+            <ion-icon name="stats-chart-outline"></ion-icon>
+            Ver progresión por ejercicio
           </button>
-        </div>
 
-        <ng-container *ngIf="paymentsState === 'loaded'">
-          <div class="section-row">
-            <h2 class="section-heading">Cobros</h2>
-            <button class="add-button" (click)="openPaymentPanel()">
-              <ion-icon name="add-outline"></ion-icon>
-              Añadir cobro
-            </button>
-          </div>
-
-          <p class="empty-hint" *ngIf="!payments.length">
-            Todavía no has anotado ningún cobro para este cliente.
+          <p class="empty-hint" *ngIf="!completedWorkouts.length">
+            Este cliente todavía no ha completado ningún entrenamiento.
           </p>
 
           <div
-            class="payment-card"
-            *ngFor="let payment of payments; trackBy: trackByPaymentId"
+            class="history-card"
+            *ngFor="let workout of completedWorkouts; trackBy: trackByWorkoutId"
           >
-            <div class="payment-card-main">
-              <span class="payment-amount"
-                >{{ payment.amount }}{{ payment.currency === 'EUR' ? '€' :
-                payment.currency }}</span
-              >
-              <span class="payment-due"
-                >Vence {{ payment.dueDate | date: 'd MMM y' }}</span
-              >
-              <span class="payment-note" *ngIf="payment.note"
-                >{{ payment.note }}</span
+            <div class="history-card-header">
+              <span class="list-card-title">{{ workout.name }}</span>
+              <span class="history-date"
+                >{{ workout.date | date: 'd MMM y' }}</span
               >
             </div>
-            <button
-              class="payment-status-btn"
-              [class.payment-status-btn--paid]="payment.paidAt"
-              (click)="togglePaymentPaid(payment)"
-            >
-              {{ payment.paidAt ? 'Pagado' : 'Marcar pagado' }}
-            </button>
+            <p class="history-subtitle">
+              {{ workout.tableName }} · {{ workout.splitName }}
+            </p>
+            <div class="history-meta">
+              <span *ngIf="workoutDuration(workout) as duration">
+                <ion-icon name="time-outline"></ion-icon> {{ duration }}
+              </span>
+              <span
+                ><ion-icon name="barbell-outline"></ion-icon> {{
+                workout.exercises?.length || 0 }} ejercicios</span
+              >
+              <!-- F18 -->
+              <span class="pulse-badge" *ngIf="workout.readinessPre"
+                >Readiness {{ workout.readinessPre }}/5</span
+              >
+              <span class="pulse-badge" *ngIf="workout.perceivedEffortPost"
+                >Esfuerzo {{ workout.perceivedEffortPost }}/5</span
+              >
+            </div>
+
+            <!-- Movimiento 2 Coach Pro — agujetas con las que LLEGÓ a esta
+             sesión (ver soreness.ts). Solo los grupos que marcó por encima
+             de "nada": una sesión sin nada apuntado no pinta nada. -->
+            <p class="soreness-line" *ngIf="sorenessLabel(workout) as soreness">
+              <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
+              Agujetas al llegar: {{ soreness }}
+            </p>
           </div>
         </ng-container>
+      </div>
 
-        <!-- Panel: añadir cobro -->
-        <div
-          class="panel-backdrop"
-          *ngIf="showPaymentPanel"
-          (click)="closePaymentPanel()"
-        ></div>
-        <div class="panel-sheet" *ngIf="showPaymentPanel" appSubmitOnEnter="submitPayment">
-          <div class="panel-handle"></div>
-          <h3 class="panel-title">Añadir cobro</h3>
-
-          <div class="input-wrapper">
-            <ion-icon name="cash-outline" class="input-icon"></ion-icon>
-            <input
-              type="number"
-              class="input-field"
-              placeholder="Importe (€)"
-              [(ngModel)]="paymentAmount"
-              min="0.01"
-              step="0.01"
-            />
-          </div>
-          <div class="input-wrapper">
-            <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-            <app-date-field
-              class="input-field"
-              ariaLabel="Vencimiento"
-              placeholder="Fecha de vencimiento"
-              pickerTitle="Vence"
-              [(ngModel)]="paymentDueDate"
-            ></app-date-field>
-          </div>
-          <div class="input-wrapper">
-            <ion-icon
-              name="document-text-outline"
-              class="input-icon"
-            ></ion-icon>
-            <input
-              type="text"
-              class="input-field"
-              placeholder="Nota (opcional)"
-              [(ngModel)]="paymentNote"
-            />
-          </div>
-
-          <button
-            class="submit-button"
-            (click)="submitPayment()"
-            data-enter-submit-action="submitPayment"
-            [disabled]="!paymentAmount || paymentAmount <= 0 || !paymentDueDate || isSavingPayment"
-          >
-            <span *ngIf="!isSavingPayment">Guardar cobro</span>
-            <ion-spinner name="dots" *ngIf="isSavingPayment"></ion-spinner>
-          </button>
-        </div>
+      <!-- === COBROS === -->
+      <!-- Cuota, cobros concretos, pagos registrados y avisos (features/payments). -->
+      <div class="tab-panel" *ngIf="activeTab === 'payments'">
+        <app-client-payments-ledger
+          [clientId]="clientId"
+          [clientName]="name"
+          [readOnly]="readOnlyLimit !== null"
+          [refreshToken]="paymentsRefreshToken"
+          [intent]="paymentsIntent"
+          [focusChargeId]="paymentsFocusChargeId"
+          (intentConsumed)="onPaymentsIntentConsumed()"
+        ></app-client-payments-ledger>
       </div>
 
       <!-- === TAREAS/HÁBITOS (coach-tab FASE4) === -->

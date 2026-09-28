@@ -102,11 +102,13 @@
     </div>
 
     <p class="panel-hint">
-      Hasta el umbral de trabajo entrena con normalidad. A partir del de dolor, para.
+      El cliente apunta su dolor de 0 a 10. Con dos números partes esa escala en tramos: hasta el
+      primero entrena con normalidad y desde el segundo para el ejercicio. Si queda hueco entre los
+      dos, en ese tramo sigue con cuidado (menos carga o menos rango).
     </p>
 
     <div class="threshold-field">
-      <span class="field-label">Puede trabajar hasta</span>
+      <span class="field-label">Entrena con normalidad hasta</span>
       <div class="level-picker">
         <button
           type="button"
@@ -114,6 +116,7 @@
           *ngFor="let level of levels; trackBy: trackByLevel"
           [class.selected]="formWork === level"
           [attr.aria-pressed]="formWork === level"
+          [disabled]="isWorkBlocked(level)"
           (click)="setFormWork(level)"
         >
           {{ level }}
@@ -123,7 +126,7 @@
     </div>
 
     <div class="threshold-field">
-      <span class="field-label">Para a partir de</span>
+      <span class="field-label">Parar el ejercicio a partir de</span>
       <div class="level-picker">
         <button
           type="button"
@@ -131,12 +134,38 @@
           *ngFor="let level of levels; trackBy: trackByLevel"
           [class.selected]="formPain === level"
           [attr.aria-pressed]="formPain === level"
+          [disabled]="isPainBlocked(level)"
           (click)="setFormPain(level)"
         >
           {{ level }}
         </button>
       </div>
       <p class="level-label">{{ labelFor(formPain) }}</p>
+    </div>
+
+    <!-- Los tramos que salen de los dos números: es lo que explica por qué
+         parar tiene que ir por encima. -->
+    <div class="threshold-scale" aria-live="polite">
+      <div class="scale-bar" aria-hidden="true">
+        <span
+          *ngFor="let band of formBands; trackBy: trackByBand"
+          class="scale-segment"
+          [attr.data-kind]="band.kind"
+          [style.flex-grow]="band.to - band.from + 1"
+        ></span>
+      </div>
+      <ul class="scale-legend">
+        <li *ngFor="let band of formBands; trackBy: trackByBand" [attr.data-kind]="band.kind">
+          <span class="scale-dot" aria-hidden="true"></span>
+          <strong>{{ bandRange(band) }}</strong>
+          {{ band.kind === 'normal' ? 'Entrena normal' : band.kind === 'caution' ? 'Sigue con cuidado' : 'Para el ejercicio' }}
+        </li>
+      </ul>
+      <p class="scale-note">
+        Por eso el nivel de parar siempre es mayor: si fuera igual o menor, un mismo dolor diría a la
+        vez «sigue» y «para». Los niveles que no encajan salen bloqueados; para subir el primero,
+        sube antes el de parar.
+      </p>
     </div>
 
     <div class="threshold-field">

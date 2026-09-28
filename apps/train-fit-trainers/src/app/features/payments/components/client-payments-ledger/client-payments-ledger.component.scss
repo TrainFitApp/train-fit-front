@@ -1,0 +1,344 @@
+@import '../../styles/payments';
+
+@include pay-chips;
+@include pay-states;
+@include pay-buttons;
+@include pay-form;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-5);
+}
+
+.skeleton-block--fee {
+  height: 132px;
+}
+
+.notice {
+  align-items: flex-start;
+}
+
+// ---- Cuota ----
+.fee {
+  @include tf-card-static;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-5);
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: var(--tf-space-3);
+  }
+
+  &__title {
+    @include tf-label;
+    margin: 0;
+  }
+
+  &__amount {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--tf-space-2) var(--tf-space-3);
+    margin: 0;
+  }
+
+  &__money {
+    @include tf-value(1.6rem);
+    @include pay-money;
+    display: inline;
+  }
+
+  &__freq {
+    font-size: var(--tf-font-size-md);
+    font-weight: var(--tf-weight-label);
+    color: var(--tf-text-secondary);
+  }
+
+  &__line,
+  &__empty {
+    @include tf-help;
+
+    strong {
+      color: var(--tf-text);
+      font-weight: var(--tf-weight-label);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tf-space-2);
+    margin-top: var(--tf-space-1);
+  }
+
+  &__reminders {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tf-space-4);
+    padding-top: var(--tf-space-3);
+    margin-top: var(--tf-space-1);
+    border-top: 1px solid var(--tf-border-subtle);
+
+    ion-toggle {
+      flex-shrink: 0;
+      --handle-background-checked: var(--tf-accent-contrast);
+      --track-background-checked: var(--tf-accent);
+    }
+  }
+
+  &__reminders-text {
+    @include tf-pair;
+  }
+
+  &__reminders-title {
+    font-size: var(--tf-font-size-sm);
+    font-weight: var(--tf-weight-label);
+    color: var(--tf-text);
+  }
+
+  &__reminders-help {
+    @include tf-meta;
+    max-width: 52ch;
+  }
+}
+
+// ---- Cobros ----
+.charges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+
+  &__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--tf-space-3);
+  }
+
+  &__heading {
+    @include tf-pair(var(--tf-space-1));
+  }
+
+  &__title {
+    @include tf-section-title;
+  }
+
+  &__summary {
+    @include tf-help;
+    @include pay-money;
+    white-space: normal;
+
+    strong {
+      color: var(--tf-text);
+    }
+  }
+
+  &__overdue {
+    color: var(--tf-danger-text);
+    font-weight: var(--tf-weight-label);
+  }
+
+  &__empty {
+    @include tf-help;
+    padding: var(--tf-space-4) 0;
+  }
+}
+
+.filters {
+  display: flex;
+  gap: var(--tf-space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0 var(--tf-space-4);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-pill);
+  background: transparent;
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-label);
+  cursor: pointer;
+  @include tf-touch-expander-y(2px);
+
+  &__count {
+    font-variant-numeric: tabular-nums;
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-accent-text);
+
+    .filter__count {
+      color: var(--tf-accent-text);
+    }
+  }
+}
+
+.group-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-2);
+  margin: var(--tf-space-3) 0 0;
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-title);
+  color: var(--tf-text);
+
+  &__meta {
+    @include tf-meta;
+    @include pay-money;
+  }
+
+  &--overdue {
+    color: var(--tf-danger-text);
+  }
+}
+
+.charge-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-1);
+  overflow: hidden;
+}
+
+// Fila de cobro: el área grande abre el detalle; "Registrar pago" es su
+// propio botón (nunca un botón dentro de otro).
+.charge-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding-right: var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--tf-space-2);
+    padding: var(--tf-space-4);
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: -2px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--tf-surface-2);
+      }
+    }
+  }
+
+  &__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tf-space-3);
+  }
+
+  &__title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--tf-font-size-base);
+    font-weight: var(--tf-weight-label);
+    color: var(--tf-text);
+  }
+
+  &__amount {
+    @include pay-money;
+    flex-shrink: 0;
+    font-size: var(--tf-font-size-md);
+    font-weight: var(--tf-weight-value);
+    color: var(--tf-text);
+
+    &--overdue {
+      color: var(--tf-danger-text);
+    }
+  }
+
+  &__meta {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--tf-space-1) var(--tf-space-3);
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+
+  &__figures {
+    @include pay-money;
+    white-space: normal;
+  }
+
+  &__pay {
+    flex-shrink: 0;
+  }
+
+  &--closed {
+    .charge-row__title,
+    .charge-row__amount {
+      color: var(--tf-text-secondary);
+      font-weight: var(--tf-weight-label);
+    }
+  }
+
+  // Móvil: la acción baja bajo la fila para no estrujar las cifras.
+  @media (max-width: 599px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding-right: 0;
+
+    &__pay {
+      margin: 0 var(--tf-space-4) var(--tf-space-4);
+    }
+  }
+}
+
+.voided {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+
+  .pay-quiet {
+    align-self: flex-start;
+  }
+}

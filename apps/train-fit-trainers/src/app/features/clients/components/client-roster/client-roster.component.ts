@@ -7,7 +7,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
-import { Subscription, filter, forkJoin } from 'rxjs';
+import { Observable, Subscription, catchError, filter, forkJoin, of } from 'rxjs';
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { ClientRosterApiService } from '../../services/client-roster-api.service';
 import {
@@ -18,10 +18,20 @@ import {
 import { ClientDetailTab } from '../../pages/client-detail/models/client-detail.model';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
-import { ClientIntake } from '../../../invites/models/trainer-invite.model';
+import { ClientIntake, TrainerInvite } from '../../../invites/models/trainer-invite.model';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
 
-type ViewState = 'loading' | 'error' | 'empty' | 'loaded';
+type ViewState = 'loading' | 'error' | 'loaded';
+
+// Invitación sin aceptar, agrupada por email: invitar entrenamiento y
+// nutrición a la vez crea una por scope (mismo criterio que invites.page.ts).
+interface PendingInviteGroup {
+  clientEmail: string;
+  clientName: string | null;
+  invites: TrainerInvite[];
+  // La más antigua: lo que lleva esperando.
+  invitedAt: string;
+}
 
 interface RosterFilters {
   weakest: AdherenceDimensionKey | null;
@@ -56,6 +66,11 @@ interface SortState {
   // true = de mayor a menor / más reciente primero.
   descending: boolean;
 }
+
+const SCOPE_LABELS: Record<string, string> = {
+  training: 'Entrenamiento',
+  nutrition: 'Nutrición',
+};
 
 const DIMENSION_LABELS: Record<AdherenceDimensionKey, string> = {
   nutrition: 'Nutrición',
@@ -119,6 +134,28 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   public periodDays = 28;
   public rows: RosterClient[] = [];
 
+  // Bloque "Pendientes" sobre la tabla: invitaciones sin aceptar y clientes
+  // con el intake sin enviar o por revisar. Dentro de la tabla caían al
+  // final (sin adherencia, los nulos van abajo) y con muchos clientes no se
+  // veían. Búsqueda y filtros no los tocan: es la lista de cosas por hacer.
+  public pendingInvites: PendingInviteGroup[] = [];
+  public cancellingEmail: string | null = null;
+
+  // Por revisar primero (te toca a ti), luego sin enviar (se espera al cliente).
+  public get gatedRows(): RosterClient[] {
+    return this.rows
+      .filter((row) => this.isGated(row))
+      .sort((a, b) => Number(b.intakeStatus === 'submitted') - Number(a.intakeStatus === 'submitted'));
+  }
+
+  public get activeRows(): RosterClient[] {
+    return this.rows.filter((row) => !this.isGated(row));
+  }
+
+  public get pendingCount(): number {
+    return this.pendingInvites.length + this.gatedRows.length;
+  }
+
   // Búsqueda y filtros se aplican EN CLIENTE sobre las filas ya cargadas: la
   // Cartera trae la cartera entera de una vez (una petición con presupuesto
   // fijo, ver roster-service), así que pedir al servidor por cada tecla
@@ -148,7 +185,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       ...override,
     };
     const consulta = this.searchQuery.trim().toLowerCase();
-    return this.rows.filter((row) => {
+    return this.activeRows.filter((row) => {
       if (consulta) {
         const heno = `${row.clientName} ${row.clientEmail || ''}`.toLowerCase();
         if (!heno.includes(consulta)) return false;
@@ -276,14 +313,18 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   // refrescar), sin esqueleto: ni parpadea ni pierde el scroll, y si falla
   // se queda con las filas que ya había.
   public load(silent = false): void {
-    const hasData = this.state === 'loaded' || this.state === 'empty';
-    const keepVisible = silent && hasData;
+    const keepVisible = silent && this.state === 'loaded';
     if (!keepVisible) this.state = 'loading';
-    this.rosterApi.getRoster().subscribe({
-      next: (response) => {
+    // Si fallan las invitaciones, la Cartera sale igual (sin ese bloque).
+    const invites$: Observable<TrainerInvite[] | null> = this.invitesApi
+      .getMyInvites()
+      .pipe(catchError(() => of(null)));
+    forkJoin([this.rosterApi.getRoster(), invites$]).subscribe({
+      next: ([response, invites]) => {
         this.periodDays = response.periodDays;
         this.rows = response.clients || [];
-        this.state = this.rows.length ? 'loaded' : 'empty';
+        if (invites) this.pendingInvites = groupPendingInvites(invites);
+        this.state = 'loaded';
         this.applySort();
         this.applyPendingFocus();
       },
@@ -398,14 +439,10 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   // Intake sin enviar o por revisar: no hay seguimiento todavía y no se
-  // entra en la ficha (el guard tampoco deja); la fila despliega el intake.
-  public isGated(row: RosterClient): boolean {
+  // entra en la ficha (el guard tampoco deja): va a "Pendientes" y despliega
+  // el intake.
+  private isGated(row: RosterClient): boolean {
     return row.intakeStatus === 'pending' || row.intakeStatus === 'submitted';
-  }
-
-  public onRowClick(row: RosterClient): void {
-    if (this.isGated(row)) this.toggleRow(row);
-    else this.openClient(row);
   }
 
   public toggleRow(row: RosterClient): void {
@@ -413,8 +450,8 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     if (this.expandedClientId && row.intakeStatus === 'submitted') this.loadIntake(row.clientId);
   }
 
-  // Desde el guard: se despliega su fila aunque un filtro la estuviera
-  // ocultando. Espera a la carga si aún no está la fila.
+  // Desde el guard: se despliega su fila en "Pendientes" (búsqueda y filtros
+  // no la ocultan). Espera a la carga si aún no está la fila.
   public focusClient(clientId: string): void {
     this.pendingFocusId = clientId;
     if (this.state === 'loaded') this.applyPendingFocus();
@@ -424,8 +461,6 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     const row = this.rows.find((r) => r.clientId === this.pendingFocusId);
     if (!row) return;
     this.pendingFocusId = null;
-    this.searchQuery = '';
-    this.clearFilters();
     if (this.expandedClientId !== row.clientId) this.toggleRow(row);
     setTimeout(() =>
       document.getElementById('roster-detail-' + row.clientId)?.scrollIntoView({ block: 'center' })
@@ -492,7 +527,6 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
         this.busyClientId = null;
         this.expandedClientId = null;
         this.rows = this.rows.filter((r) => r.clientId !== row.clientId);
-        if (!this.rows.length) this.state = 'empty';
         this.ionicUtilService.showToast({ message: `Has rechazado a ${row.clientName}`, duration: 2500 });
       },
       error: () => {
@@ -500,6 +534,53 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
         this.ionicUtilService.showToast({ message: 'No se pudo rechazar al cliente', duration: 3000 });
       },
     });
+  }
+
+  // --- Invitaciones sin aceptar ---
+  public scopesLabel(scopes: string[]): string {
+    return scopes.map((scope) => SCOPE_LABELS[scope] || scope).join(' · ');
+  }
+
+  public inviteScopes(group: PendingInviteGroup): string[] {
+    return group.invites.map((invite) => invite.scope);
+  }
+
+  public invitedLabel(group: PendingInviteGroup): string {
+    const days = daysSinceDate(group.invitedAt);
+    if (days <= 0) return 'Enviada hoy';
+    if (days === 1) return 'Enviada ayer';
+    return `Enviada hace ${days} días`;
+  }
+
+  public async confirmCancelInvite(group: PendingInviteGroup): Promise<void> {
+    await this.ionicUtilService.showAlert({
+      header: 'Cancelar invitación',
+      message: `${group.clientName || group.clientEmail} ya no podrá aceptarla.`,
+      buttons: [
+        { text: 'Volver', role: 'cancel' },
+        { text: 'Cancelar invitación', cssClass: 'alert-button-danger', handler: () => this.cancelInvite(group) },
+      ],
+    });
+  }
+
+  private cancelInvite(group: PendingInviteGroup): void {
+    if (this.cancellingEmail) return;
+    this.cancellingEmail = group.clientEmail;
+    forkJoin(group.invites.map((invite) => this.invitesApi.cancelInvite(invite._id))).subscribe({
+      next: () => {
+        this.cancellingEmail = null;
+        this.pendingInvites = this.pendingInvites.filter((g) => g !== group);
+        this.ionicUtilService.showToast({ message: 'Invitación cancelada', duration: 2500 });
+      },
+      error: () => {
+        this.cancellingEmail = null;
+        this.ionicUtilService.showToast({ message: 'No se pudo cancelar la invitación', duration: 3000 });
+      },
+    });
+  }
+
+  public trackByEmail(_index: number, group: PendingInviteGroup): string {
+    return group.clientEmail;
   }
 
   public openClient(row: RosterClient): void {
@@ -545,6 +626,35 @@ function valueFor(row: RosterClient, key: RosterSortKey): number | null {
     default:
       return null;
   }
+}
+
+// Solo las 'pending': cuestionario_pendiente/en_revision son datos antiguos
+// de clientes que ya aceptaron (salen en la Cartera).
+function groupPendingInvites(invites: TrainerInvite[]): PendingInviteGroup[] {
+  const groups = new Map<string, PendingInviteGroup>();
+  for (const invite of invites) {
+    if (invite.status !== 'pending') continue;
+    const key = invite.clientEmail.toLowerCase();
+    const name = [invite.client?.name, invite.client?.lastname].filter(Boolean).join(' ') || null;
+    const group = groups.get(key);
+    if (!group) {
+      groups.set(key, { clientEmail: invite.clientEmail, clientName: name, invites: [invite], invitedAt: invite.invitedAt });
+      continue;
+    }
+    group.invites.push(invite);
+    group.clientName = group.clientName || name;
+    if (invite.invitedAt < group.invitedAt) group.invitedAt = invite.invitedAt;
+  }
+  // Las que más llevan esperando, arriba.
+  return [...groups.values()].sort((a, b) => a.invitedAt.localeCompare(b.invitedAt));
+}
+
+function daysSinceDate(iso: string): number {
+  const start = new Date(iso);
+  const today = new Date();
+  start.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  return Math.round((today.getTime() - start.getTime()) / 86400000);
 }
 
 function formatEs(value: number): string {

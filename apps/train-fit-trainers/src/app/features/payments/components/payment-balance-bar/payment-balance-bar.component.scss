@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.bar {
+  position: relative;
+  height: 4px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  overflow: hidden;
+
+  &--md {
+    height: 8px;
+  }
+}
+
+// Los tres tramos se reparten el ancho; al cambiar un importe, el tramo se
+// desliza (ease-out corto). Con reduce-motion las duraciones del tema caen a ~0.
+.bar__segment {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  transition:
+    width var(--tf-duration-slow) var(--tf-ease-out),
+    left var(--tf-duration-slow) var(--tf-ease-out);
+
+  &--received {
+    background: var(--tf-success);
+  }
+
+  // Anulado: gris sólido y sin brillo — ni se cobró ni se debe.
+  &--cancelled {
+    background: var(--tf-text-faint);
+    opacity: 0.55;
+  }
+
+  &--pending {
+    background: var(--tf-accent);
+  }
+
+  &--today {
+    background: var(--tf-warning);
+  }
+
+  &--overdue {
+    background: var(--tf-danger);
+  }
+}

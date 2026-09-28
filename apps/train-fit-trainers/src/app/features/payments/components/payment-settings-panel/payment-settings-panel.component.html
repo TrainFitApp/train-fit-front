@@ -1,0 +1,127 @@
+<app-payments-sheet
+  title="Avisos de cobro"
+  subtitle="Solo dentro de las apps, sin notificaciones del móvil. Te llegan siempre; al cliente, solo si lo activas en su cuota."
+  (closed)="closed.emit()"
+>
+  <form id="payment-settings-form" class="settings-form" (ngSubmit)="submit()" novalidate>
+    <section class="form-group">
+      <p class="group-label">Cuándo avisar</p>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="settings-before">Días antes</label>
+          <div class="input-wrapper">
+            <input
+              id="settings-before"
+              class="input-field"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              [max]="-limits.offsetMin"
+              name="before"
+              [(ngModel)]="beforeDays"
+              (ngModelChange)="onChange()"
+            />
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="settings-after">Días después</label>
+          <div class="input-wrapper">
+            <input
+              id="settings-after"
+              class="input-field"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              [max]="limits.offsetMax"
+              name="after"
+              [(ngModel)]="afterDays"
+              (ngModelChange)="onChange()"
+            />
+          </div>
+        </div>
+      </div>
+      <label class="check-row">
+        <input type="checkbox" name="onDue" [(ngModel)]="onDue" (ngModelChange)="onChange()" />
+        <span>Avisar el mismo día del vencimiento</span>
+      </label>
+      <p class="field-error" *ngIf="daysError">{{ daysError }}</p>
+      <p class="field-hint">0 = sin ese aviso. Los avisos de después solo salen si queda saldo pendiente.</p>
+      <p class="field-hint" *ngIf="simplified">Tenías una configuración con más avisos: al guardar quedará como se ve aquí.</p>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">Hora y zona</p>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="settings-time">Hora</label>
+          <div class="input-wrapper">
+            <ion-icon name="time-outline" class="input-icon" aria-hidden="true"></ion-icon>
+            <app-date-field
+              class="input-field"
+              name="time"
+              inputId="settings-time"
+              presentation="time"
+              pickerTitle="Hora de los avisos"
+              ariaLabel="Hora de los avisos"
+              [(ngModel)]="time"
+              (ngModelChange)="onChange()"
+            ></app-date-field>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="settings-zone">Zona horaria</label>
+          <div class="input-wrapper">
+            <select id="settings-zone" class="input-field" name="timeZone" [(ngModel)]="timeZone" (ngModelChange)="onChange()">
+              <optgroup label="Habituales">
+                <option *ngFor="let zone of commonZones" [value]="zone">{{ zone }}</option>
+              </optgroup>
+              <optgroup label="Todas" *ngIf="allZones.length">
+                <option *ngFor="let zone of allZones" [value]="zone">{{ zone }}</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+      </div>
+      <p class="field-hint">
+        Decide qué día es «hoy» para tus cobros y a qué hora salen los avisos, uses el dispositivo que uses.
+      </p>
+    </section>
+
+    <div class="outcome">
+      <span class="outcome__label">Quedará así</span>
+      <span class="outcome__value outcome__value--text">{{ summary }}</span>
+    </div>
+
+    <section class="change-preview" *ngIf="zoneOrTimeChanged" aria-live="polite">
+      <p class="group-label">Efecto del cambio</p>
+      <p class="field-hint">
+        Las fechas de vencimiento y de recepción no cambian. Solo se recalculan los avisos que aún no han salido; ninguno se repite.
+      </p>
+      <p class="field-hint" *ngIf="preview?.todayChanges as change">
+        Ojo: con esta zona, «hoy» pasa a ser el {{ day(change.to) }} (ahora es el {{ day(change.from) }}).
+      </p>
+      <ul class="samples" *ngIf="preview?.samples?.length">
+        <li *ngFor="let sample of preview?.samples">
+          <span>Vence el {{ day(sample.dueDay) }}</span>
+          <span class="samples__change">
+            {{ instant(sample.currentNext?.instant, settings.timeZone) }} → {{ instant(sample.nextNext?.instant, timeZone) }}
+            <ng-container *ngIf="timeZone !== settings.timeZone && sample.nextNext">
+              <br /><span class="samples__equivalent">({{ instant(sample.nextNext.instant, settings.timeZone) }} en {{ settings.timeZone }})</span>
+            </ng-container>
+          </span>
+        </li>
+      </ul>
+    </section>
+
+    <div class="notice notice--danger" role="alert" *ngIf="errorMessage">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+  </form>
+
+  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">Cancelar</button>
+  <button sheetFooter type="submit" class="submit-button" form="payment-settings-form" [disabled]="!canSubmit">
+    <ion-spinner name="dots" *ngIf="saving"></ion-spinner>
+    <span *ngIf="!saving">Guardar avisos</span>
+  </button>
+</app-payments-sheet>

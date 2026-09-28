@@ -31,6 +31,7 @@ import { PhaseScheduleCalendarComponent } from './components/phase-schedule-cale
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
 import { CheckinFieldSelectorComponent } from '../../shared/components/checkin-field-selector/checkin-field-selector.component';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
+import { PaymentsSharedModule } from '../payments/payments-shared.module';
 import { MacroAdjustComponent } from '../../shared/components/macro-adjust/macro-adjust.component';
 import { TrackingStatusComponent } from './pages/client-detail/components/tracking-status/tracking-status.component';
 
@@ -53,6 +54,8 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     // Standalone: selector de fecha/hora con ion-datetime (sustituye al
     // <input type="date|time"> nativo).
     DateFieldComponent,
+    // Cobros: Gestión > Cobros y la tarjeta del Resumen (features/payments).
+    PaymentsSharedModule,
   ],
   declarations: [
     ClientsPage,

@@ -1,0 +1,284 @@
+<app-payments-sheet [title]="title" [subtitle]="subtitle" (closed)="closed.emit()">
+  <div class="pay-skeleton" *ngIf="state === 'loading'" aria-busy="true">
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+  </div>
+
+  <div class="pay-state" *ngIf="state === 'error'" role="alert">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <p>No se pudo cargar este cobro. Los importes no se muestran hasta poder leerlos.</p>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded' && charge as c">
+    <!-- Cabecera: cuándo y en qué estado -->
+    <section class="detail-head">
+      <div class="due">
+        <span class="due__day">{{ dayLong(c.dueDay) }}</span>
+        <span class="due__relative" *ngIf="c.status === 'open'">{{ relative(c.dueDay) }}</span>
+      </div>
+      <div class="pay-chips">
+        <span class="pay-chip" *ngFor="let chip of chips" [ngClass]="'pay-chip--' + chip.tone">{{ chip.label }}</span>
+      </div>
+    </section>
+
+    <!-- Cifras: la fórmula del saldo -->
+    <section class="figures" aria-label="Importes del cobro">
+      <div class="figure">
+        <span class="figure__label">Importe</span>
+        <span class="figure__value">{{ money(c.amountCents) }}</span>
+        <span class="figure__meta" *ngIf="c.originalAmountCents !== c.amountCents">Original {{ money(c.originalAmountCents) }}</span>
+      </div>
+      <div class="figure">
+        <span class="figure__label">Recibido</span>
+        <span class="figure__value figure__value--received">{{ money(c.receivedCents) }}</span>
+      </div>
+      <div class="figure" *ngIf="c.cancelledCents > 0">
+        <span class="figure__label">Anulado</span>
+        <span class="figure__value figure__value--cancelled">{{ money(c.cancelledCents) }}</span>
+      </div>
+      <div class="figure">
+        <span class="figure__label">Pendiente</span>
+        <span
+          class="figure__value"
+          [class.figure__value--overdue]="c.temporal === 'overdue' && c.balanceCents > 0"
+          [class.figure__value--zero]="c.balanceCents === 0"
+        >{{ money(c.balanceCents) }}</span>
+      </div>
+      <app-payment-balance-bar class="figures__bar" size="md" [charge]="c"></app-payment-balance-bar>
+    </section>
+
+    <div class="notice" *ngIf="voidNote">
+      <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+      <span>{{ voidNote }}</span>
+    </div>
+    <div class="notice notice--warning" *ngFor="let note of anomalyNotes">
+      <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+      <span>{{ note }}</span>
+    </div>
+    <div class="notice" *ngIf="readOnly">
+      <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+      <span>Cliente en solo lectura por las plazas de tu plan: puedes consultar, no modificar.</span>
+    </div>
+
+    <!-- Acciones -->
+    <section class="actions" *ngIf="writable">
+      <button type="button" class="pay-primary" *ngIf="canRegister" (click)="openRegister()">
+        <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+        Registrar pago
+      </button>
+      <button type="button" class="pay-secondary" (click)="openEdit()">
+        <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+        Editar cobro
+      </button>
+      <button type="button" class="pay-danger-quiet" *ngIf="canCancel && action !== 'cancel'" (click)="startAction('cancel')">
+        Anular saldo pendiente
+      </button>
+      <button type="button" class="pay-quiet" *ngIf="canRestore && action !== 'restore'" (click)="startAction('restore')">
+        Recuperar saldo anulado
+      </button>
+    </section>
+
+    <!-- Anular saldo -->
+    <section class="inline-form inline-form--danger" *ngIf="action === 'cancel'" aria-labelledby="cancel-title">
+      <h2 class="inline-form__title" id="cancel-title">Anular {{ money(c.balanceCents) }} pendientes</h2>
+      <p class="inline-form__text">
+        El cobro queda cerrado sin cobrar ese resto.
+        <ng-container *ngIf="c.receivedCents > 0">Lo ya recibido ({{ money(c.receivedCents) }}) se conserva.</ng-container>
+        No es un cobro ni una devolución y deja de generar avisos.
+      </p>
+      <label class="field-label" for="cancel-reason">Motivo</label>
+      <div class="input-wrapper">
+        <input id="cancel-reason" class="input-field" type="text" maxlength="300" placeholder="Descuento acordado, baja…" [(ngModel)]="cancelReason" />
+      </div>
+      <div class="inline-form__actions">
+        <button type="button" class="ghost-button" (click)="cancelAction()">Volver</button>
+        <button type="button" class="submit-button submit-button--danger" [disabled]="busy || cancelReason.trim().length < 3" (click)="submitCancel()">
+          Anular {{ money(c.balanceCents) }}
+        </button>
+      </div>
+    </section>
+
+    <!-- Recuperar saldo anulado -->
+    <section class="inline-form" *ngIf="action === 'restore'" aria-labelledby="restore-title">
+      <h2 class="inline-form__title" id="restore-title">Recuperar saldo anulado</h2>
+      <p class="inline-form__text">Rectifica una anulación: el importe vuelve a quedar pendiente. No se enviarán avisos atrasados.</p>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="restore-amount">Importe a recuperar</label>
+          <div class="input-wrapper input-wrapper--money">
+            <input id="restore-amount" class="input-field" type="text" inputmode="decimal" [(ngModel)]="restoreAmountText" />
+            <span class="input-suffix" aria-hidden="true">€</span>
+          </div>
+          <p class="field-hint">Máximo {{ money(c.cancelledCents) }}.</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="restore-reason">Motivo</label>
+          <div class="input-wrapper">
+            <input id="restore-reason" class="input-field" type="text" maxlength="300" [(ngModel)]="restoreReason" />
+          </div>
+        </div>
+      </div>
+      <div class="outcome outcome--warning" *ngIf="restoreResultCents !== null">
+        <span class="outcome__label">Volverá a quedar pendiente</span>
+        <span class="outcome__value">{{ money(restoreResultCents) }}</span>
+      </div>
+      <div class="inline-form__actions">
+        <button type="button" class="ghost-button" (click)="cancelAction()">Volver</button>
+        <button
+          type="button"
+          class="submit-button"
+          [disabled]="busy || restoreResultCents === null || restoreReason.trim().length < 3"
+          (click)="submitRestore()"
+        >
+          Confirmar y reabrir
+        </button>
+      </div>
+    </section>
+
+    <div class="notice notice--danger" role="alert" *ngIf="errorMessage && action !== 'correct'">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <!-- Pagos registrados -->
+    <section class="block" aria-labelledby="payments-title">
+      <h2 class="block__title" id="payments-title">Pagos registrados</h2>
+      <p class="block__empty" *ngIf="!c.payments.length">Todavía no has registrado ningún pago de este cobro.</p>
+      <ul class="movements" *ngIf="c.payments.length">
+        <li class="movement" *ngFor="let m of c.payments" [class.movement--voided]="m.status === 'voided'">
+          <div class="movement__main">
+            <span class="movement__amount">{{ money(m.amountCents) }}</span>
+            <span class="movement__method">{{ method(m.method) }}</span>
+          </div>
+          <p class="movement__meta">
+            <ng-container *ngIf="m.receivedDaySource === 'entered'; else markedPaid">Recibido el {{ day(m.receivedDay) }}</ng-container>
+            <ng-template #markedPaid>Marcado como pagado el {{ day(m.receivedDay) }} · fecha real de recepción no registrada</ng-template>
+            <ng-container *ngIf="m.recordedAt"> · anotado el {{ instant(m.recordedAt) }}</ng-container>
+          </p>
+          <p class="movement__note" *ngIf="m.note">{{ m.note }}</p>
+          <p class="movement__correction" *ngIf="m.status === 'voided'">Corregido: {{ m.voidReason || 'sin motivo' }}</p>
+          <p class="movement__correction" *ngIf="isReplacement(m) && m.status === 'valid'">Sustituye a un pago corregido</p>
+          <button
+            type="button"
+            class="pay-quiet movement__action"
+            *ngIf="writable && m.status === 'valid' && !(action === 'correct' && correctTarget?.id === m.id)"
+            (click)="startAction('correct', m)"
+          >
+            Corregir
+          </button>
+
+          <!-- Corrección de este pago -->
+          <div class="inline-form" *ngIf="action === 'correct' && correctTarget?.id === m.id">
+            <p class="inline-form__text">El pago original se conserva marcado como corregido, con su motivo.</p>
+            <div class="segmented" role="radiogroup" aria-label="Tipo de corrección">
+              <button type="button" class="segment" role="radio" [class.segment--active]="correctMode === 'replace'" [attr.aria-checked]="correctMode === 'replace'" (click)="correctMode = 'replace'">
+                Cambiar importe, fecha o método
+              </button>
+              <button type="button" class="segment" role="radio" [class.segment--active]="correctMode === 'void'" [attr.aria-checked]="correctMode === 'void'" (click)="correctMode = 'void'">
+                No se recibió: anular
+              </button>
+            </div>
+            <ng-container *ngIf="correctMode === 'replace'">
+              <div class="field-row">
+                <div class="field">
+                  <label class="field-label" [for]="'fix-amount-' + m.id">Importe</label>
+                  <div class="input-wrapper input-wrapper--money">
+                    <input [id]="'fix-amount-' + m.id" class="input-field" type="text" inputmode="decimal" [(ngModel)]="correctAmountText" />
+                    <span class="input-suffix" aria-hidden="true">€</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="field-label" [for]="'fix-day-' + m.id">Recibido el</label>
+                  <div class="input-wrapper">
+                    <ion-icon name="calendar-outline" class="input-icon" aria-hidden="true"></ion-icon>
+                    <app-date-field
+                      class="input-field" [inputId]="'fix-day-' + m.id" [max]="today" pickerTitle="Recibido el" ariaLabel="Fecha de recepción" [(ngModel)]="correctDay"></app-date-field>
+                      </div>
+                      </div>
+                      </div>
+                      <div class="segmented" role="radiogroup" aria-label="Método">
+                      <button
+                      type="button"
+                      class="segment"
+                      role="radio"
+                      *ngFor="let option of methods"
+                      [class.segment--active]="correctMethod === option.value"
+                      [attr.aria-checked]="correctMethod === option.value"
+                      (click)="correctMethod = option.value"
+                      >
+                      {{ option.label }}
+                      </button>
+                      </div>
+                      </ng-container>
+                      <label class="field-label" [for]="'fix-reason-' + m.id">Motivo</label>
+                      <div class="input-wrapper">
+                      <input [id]="'fix-reason-' + m.id" class="input-field" type="text" maxlength="300" placeholder="Importe mal anotado, pago duplicado…" [(ngModel)]="correctReason" />
+                      </div>
+                      <div class="notice notice--warning" role="alert" *ngIf="reopenBalanceCents !== null">
+                      <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+                      <span>El cobro vuelve a tener <strong>{{ money(reopenBalanceCents) }}</strong> pendientes. Confírmalo para reabrirlo; no se enviarán avisos atrasados.</span>
+                      </div>
+                      <div class="notice notice--danger" role="alert" *ngIf="errorMessage">
+                      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                      <span>{{ errorMessage }}</span>
+                      </div>
+                      <div class="inline-form__actions">
+                      <button type="button" class="ghost-button" (click)="cancelAction()">Volver</button>
+                      <button
+                      type="button"
+                      class="submit-button"
+                      *ngIf="reopenBalanceCents === null"
+                      [disabled]="!canSubmitCorrection"
+                      (click)="submitCorrection()"
+                      >
+                      Guardar corrección
+                      </button>
+                      <button type="button" class="submit-button" *ngIf="reopenBalanceCents !== null" [disabled]="busy" (click)="submitCorrection(true)">
+                      Confirmar y reabrir
+                      </button>
+                      </div>
+                      </div>
+                      </li>
+                      </ul>
+                      </section>
+                      
+                      <section class="block" *ngIf="c.note">
+                      <h2 class="block__title">Nota interna</h2>
+                      <p class="private-note">{{ c.note }}</p>
+                      </section>
+                      
+                      <section class="block" *ngIf="adjustments.length" aria-labelledby="history-title">
+                      <h2 class="block__title" id="history-title">Historial de cambios</h2>
+                      <ul class="history">
+                      <li *ngFor="let item of adjustments">
+                      <span class="history__text">{{ adjustmentText(item) }}</span>
+                      <span class="history__meta">{{ instant(item.at) }}<ng-container *ngIf="item.reason"> · {{ item.reason }}</ng-container></span>
+                      </li>
+                      </ul>
+                      </section>
+                      </ng-container>
+                      
+                      <button sheetFooter type="button" class="ghost-button ghost-button--wide" (click)="closed.emit()">Cerrar</button>
+                      </app-payments-sheet>
+                      
+                      <app-payment-register-panel
+                      *ngIf="showRegister && charge"
+                      [clientId]="clientId"
+                      [clientName]="clientName"
+                      [charge]="charge"
+                      [today]="today"
+                      (saved)="onSubpanelSaved()"
+                      (closed)="showRegister = false"
+                      ></app-payment-register-panel>
+                      
+                      <app-charge-form-panel
+                      *ngIf="showEdit && charge"
+                      [clientId]="clientId"
+                      [clientName]="clientName"
+                      [today]="today"
+                      [charge]="charge"
+                      (saved)="onSubpanelSaved()"
+                      (closed)="showEdit = false"
+                      ></app-charge-form-panel>
+                      

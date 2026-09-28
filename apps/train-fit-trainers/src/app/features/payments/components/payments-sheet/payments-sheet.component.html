@@ -1,0 +1,37 @@
+<div class="sheet-backdrop" (click)="close()"></div>
+<section
+  #panel
+  class="sheet"
+  [class.sheet--wide]="wide"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-labelledby]="titleId"
+  tabindex="-1"
+  (keydown.escape)="close()"
+>
+  <div class="sheet-handle" aria-hidden="true"></div>
+
+  <div class="tf-page-header sheet-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Cerrar">
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title" [id]="titleId">{{ title }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+
+  <p class="sheet-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+
+  <div class="sheet-body">
+    <ng-content></ng-content>
+  </div>
+
+  <footer class="sheet-footer">
+    <ng-content select="[sheetFooter]"></ng-content>
+  </footer>
+</section>

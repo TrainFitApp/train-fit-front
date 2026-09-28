@@ -6,6 +6,12 @@ import { TrainerNotificationsApiService } from './services/trainer-notifications
 import { TrainerNotification, TrainerNotificationType } from './models/trainer-notification.model';
 import { TrainerPaymentsApiService } from './services/trainer-payments-api.service';
 import { PaymentsSummary } from './models/payments-summary.model';
+import {
+  PaymentNoticePayload,
+  formatCents,
+  trainerPaymentNoticeRoute,
+  trainerPaymentNoticeTitle,
+} from '../payments/utils/payments-view.util';
 import { CoachAlertsApiService } from './services/coach-alerts-api.service';
 import { CoachTasksApiService } from './services/coach-tasks-api.service';
 import { CoachAlert, CoachAlertPriority, CoachAlertType } from './models/coach-alert.model';
@@ -19,6 +25,7 @@ const NOTIFICATION_ICONS: Record<TrainerNotificationType, string> = {
   intake_submitted_trainer: 'document-text-outline',
   checkin_responded: 'clipboard-outline',
   nutrition_preferences_updated: 'nutrition-outline',
+  payment_reminder: 'wallet-outline',
 };
 
 // Un icono por TIPO de problema, no por prioridad: la prioridad ya se lee en
@@ -57,6 +64,7 @@ const TASK_TITLE_BY_ALERT: Record<CoachAlertType, string> = {
   no_training_activity: 'Revisar por qué no entrena',
 };
 
+const EUROS_COMPACT = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 // Fase 1 Coach Pro — el dashboard deja de ser un panel de métricas para
@@ -441,6 +449,8 @@ export class DashboardPage implements OnInit {
         return `${name} respondió un check-in`;
       case 'nutrition_preferences_updated':
         return `${name} actualizó sus preferencias nutricionales`;
+      case 'payment_reminder':
+        return trainerPaymentNoticeTitle(notification.payload as PaymentNoticePayload, name);
       default:
         return 'Nueva actividad';
     }
@@ -453,6 +463,20 @@ export class DashboardPage implements OnInit {
     }
 
     switch (notification.type) {
+      case 'payment_reminder': {
+        const clientId = notification.client?._id;
+        if (!clientId) {
+          void this.router.navigate(['/tabs/account/payments']);
+          break;
+        }
+        const target = trainerPaymentNoticeRoute(
+          clientId,
+          notification.payload as PaymentNoticePayload,
+          this.notificationClientName(notification)
+        );
+        void this.router.navigate(target.commands, { queryParams: target.queryParams });
+        break;
+      }
       case 'checkin_responded':
         // A la ficha del cliente, subpestaña "Medidas y check-ins" (la
         // agenda abre el panel). Antes iba a la bandeja agregada, que se
@@ -515,6 +539,26 @@ export class DashboardPage implements OnInit {
         this.paymentsSummary = null;
       },
     });
+  }
+
+  // Recibido por fecha real de recepción (último punto de receivedSeries).
+  public receivedThisMonth(summary: PaymentsSummary): string | null {
+    const points = summary.receivedSeries;
+    const current = points?.[points.length - 1];
+    return current ? formatCents(Math.round(current.totalAmount * 100)) : null;
+  }
+
+  public euros(amount: number): string {
+    return formatCents(Math.round(amount * 100));
+  }
+
+  // Etiqueta corta de barra: sin decimales para que quepa en la columna.
+  public eurosCompact(amount: number): string {
+    return EUROS_COMPACT.format(amount);
+  }
+
+  public goToPayments(): void {
+    void this.router.navigate(['/tabs/account/payments']);
   }
 
   public monthLabel(month: string): string {

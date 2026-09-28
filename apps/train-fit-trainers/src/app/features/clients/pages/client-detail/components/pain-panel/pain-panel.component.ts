@@ -13,6 +13,13 @@ import { ClientDetailApiService } from '../../services/client-detail-api.service
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
+// Tramos de la escala 0-10 según los dos umbrales, para la barra del panel.
+interface ThresholdBand {
+  kind: 'normal' | 'caution' | 'stop';
+  from: number;
+  to: number;
+}
+
 interface ZoneSummary {
   zone: string;
   // El nivel MÁS ALTO del periodo. No la media: una rodilla que un día llega
@@ -133,7 +140,7 @@ export class PainPanelComponent implements OnChanges {
 
   public thresholdLabel(summary: ZoneSummary): string {
     if (!summary.threshold) return 'Sin umbrales fijados';
-    return `Trabaja hasta ${summary.threshold.workLevel} · Para en ${summary.threshold.painLevel}`;
+    return `Normal hasta ${summary.threshold.workLevel} · Parar desde ${summary.threshold.painLevel}`;
   }
 
   // Zonas que todavía no aparecen en la tabla, para el desplegable de
@@ -149,23 +156,56 @@ export class PainPanelComponent implements OnChanges {
     this.formWork = existing?.workLevel ?? 3;
     this.formPain = existing?.painLevel ?? 5;
     this.formNote = existing?.note || '';
+    // Umbrales antiguos con los dos iguales (el back lo admite): ese nivel
+    // diría "sigue" y "para" a la vez. Se abre con el de trabajo un punto
+    // por debajo.
+    if (this.formWork >= this.formPain) {
+      if (this.formPain === 0) this.formPain = 1;
+      this.formWork = this.formPain - 1;
+    }
   }
 
   public closeThreshold(): void {
     this.editingZone = null;
   }
 
+  // Parar siempre por encima de entrenar normal: si no, un mismo nivel diría
+  // "sigue" y "para" a la vez. Antes el otro selector se movía solo y parecía
+  // un fallo; ahora los niveles imposibles salen bloqueados y el panel explica
+  // por qué.
+  public isWorkBlocked(level: number): boolean {
+    return level >= this.formPain;
+  }
+
+  public isPainBlocked(level: number): boolean {
+    return level <= this.formWork;
+  }
+
   public setFormWork(level: number): void {
-    this.formWork = level;
-    // El de dolor nunca puede quedar por debajo del de trabajo: la pauta
-    // diría "sigue" y "para" a la vez. Se arrastra en vez de bloquear el
-    // clic, que dejaría al entrenador sin saber por qué no responde.
-    if (this.formPain < level) this.formPain = level;
+    if (!this.isWorkBlocked(level)) this.formWork = level;
   }
 
   public setFormPain(level: number): void {
-    this.formPain = level;
-    if (this.formWork > level) this.formWork = level;
+    if (!this.isPainBlocked(level)) this.formPain = level;
+  }
+
+  // Normal (0..trabajo) · con cuidado (entre los dos, si hay hueco) · parar
+  // (dolor..10).
+  public get formBands(): ThresholdBand[] {
+    const bands: ThresholdBand[] = [{ kind: 'normal', from: 0, to: this.formWork }];
+    if (this.formPain - this.formWork > 1) {
+      bands.push({ kind: 'caution', from: this.formWork + 1, to: this.formPain - 1 });
+    }
+    bands.push({ kind: 'stop', from: this.formPain, to: 10 });
+    return bands;
+  }
+
+  public bandRange(band: ThresholdBand): string {
+    return band.from === band.to ? `${band.from}` : `${band.from}–${band.to}`;
+  }
+
+  public trackByBand(_index: number, band: ThresholdBand): string {
+    return band.kind;
   }
 
   public saveThreshold(): void {

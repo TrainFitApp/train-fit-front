@@ -679,6 +679,19 @@
   flex-wrap: wrap;
 }
 
+// Qué suman las barras (vencimiento, no dinero recibido) y acceso a la lista.
+.payments-basis {
+  margin: 0;
+  padding: var(--tf-space-3) var(--tf-space-5) 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
+
+  .link-button {
+    font-size: inherit;
+  }
+}
+
 .payments-pending {
   font-size: var(--tf-font-size-xs);
   font-weight: 600;

@@ -1,0 +1,138 @@
+<app-payments-sheet [title]="title" [subtitle]="subtitle" (closed)="closed.emit()">
+  <form [id]="formId" class="charge-form" (ngSubmit)="submit()" novalidate>
+    <section class="form-group">
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" [for]="formId + '-amount'">Importe</label>
+          <div class="input-wrapper input-wrapper--money" [class.input-wrapper--invalid]="amountError && amountText">
+            <input
+              [id]="formId + '-amount'"
+              class="input-field"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              name="amount"
+              placeholder="0,00"
+              [ngModel]="amountText"
+              (ngModelChange)="amountText = $event; reopenBalanceCents = null"
+              [attr.aria-invalid]="amountError && amountText ? 'true' : null"
+            />
+            <span class="input-suffix" aria-hidden="true">€</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" [for]="formId + '-due'">Vencimiento</label>
+          <div class="input-wrapper">
+            <ion-icon name="calendar-outline" class="input-icon" aria-hidden="true"></ion-icon>
+            <app-date-field
+              class="input-field"
+              name="dueDay"
+              [inputId]="formId + '-due'"
+              pickerTitle="Vence el"
+              ariaLabel="Fecha de vencimiento"
+              [(ngModel)]="dueDay"
+            ></app-date-field>
+          </div>
+        </div>
+      </div>
+      <p class="field-error" *ngIf="amountError && amountText">{{ amountError }}</p>
+      <p class="field-hint" *ngIf="charge && charge.receivedCents + charge.cancelledCents > 0 && !(amountError && amountText)">
+        Ya hay {{ money(charge.receivedCents) }} recibidos<ng-container *ngIf="charge.cancelledCents > 0"> y {{ money(charge.cancelledCents) }} anulados</ng-container>.
+      </p>
+
+      <div class="notice notice--warning" *ngIf="pastDue">
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+        <div>
+          <p class="notice-text">
+            El vencimiento es anterior a hoy: se incorpora como <strong>deuda anterior</strong>. Contará como vencida y no se
+            enviará ningún aviso atrasado.
+          </p>
+          <label class="check-row">
+            <input type="checkbox" name="confirmPastDue" [(ngModel)]="confirmPastDue" />
+            <span>Confirmo que es una deuda de antes</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <div class="field">
+        <label class="field-label" [for]="formId + '-concept'">
+          Concepto <span class="field-optional">(opcional · lo verá el cliente en sus avisos)</span>
+        </label>
+        <div class="input-wrapper">
+          <input
+            [id]="formId + '-concept'"
+            class="input-field"
+            type="text"
+            name="concept"
+            maxlength="80"
+            placeholder="Plan de nutrición, sesión extra…"
+            [(ngModel)]="concept"
+          />
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" [for]="formId + '-note'">
+          Nota interna <span class="field-optional">(solo la ves tú)</span>
+        </label>
+        <div class="input-wrapper">
+          <textarea
+            [id]="formId + '-note'"
+            class="input-field"
+            name="note"
+            rows="2"
+            maxlength="500"
+            [(ngModel)]="note"
+          ></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-group" *ngIf="editing && needsReason">
+      <div class="field">
+        <label class="field-label" [for]="formId + '-reason'">Motivo del cambio</label>
+        <div class="input-wrapper">
+          <input
+            [id]="formId + '-reason'"
+            class="input-field"
+            type="text"
+            name="reason"
+            maxlength="300"
+            placeholder="Precio acordado distinto, error al anotar…"
+            [(ngModel)]="reason"
+          />
+        </div>
+        <p class="field-hint">Queda en el historial del cobro junto al valor anterior.</p>
+      </div>
+    </section>
+
+    <div class="notice notice--warning" role="alert" *ngIf="reopenBalanceCents !== null">
+      <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+      <div>
+        <p class="notice-text">
+          Con este cambio el cobro vuelve a tener <strong>{{ money(reopenBalanceCents) }}</strong> pendientes. No se enviarán
+          avisos atrasados.
+        </p>
+        <button type="button" class="submit-button" [disabled]="saving" (click)="confirmReopen()">Confirmar y reabrir</button>
+      </div>
+    </div>
+
+    <div class="notice notice--danger" role="alert" *ngIf="errorMessage">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+  </form>
+
+  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">Cancelar</button>
+  <button
+    sheetFooter
+    type="submit"
+    class="submit-button"
+    [attr.form]="formId"
+    [disabled]="!canSubmit || reopenBalanceCents !== null"
+  >
+    <ion-spinner name="dots" *ngIf="saving"></ion-spinner>
+    <span *ngIf="!saving">{{ editing ? 'Guardar cambios' : 'Añadir cobro' }}</span>
+  </button>
+</app-payments-sheet>

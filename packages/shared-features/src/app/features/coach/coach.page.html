@@ -227,8 +227,8 @@
       <div class="action-card action-card--static" *ngFor="let item of d.pendingPayments; trackBy: trackByPaymentId">
         <ion-icon name="cash-outline" class="action-icon"></ion-icon>
         <div class="action-info">
-          <span class="action-title">{{ item.amount }}{{ item.currency === 'EUR' ? '€' : item.currency }} pendiente</span>
-          <span class="action-subtitle">{{ item.trainerName }} · vence {{ item.dueDate | date: 'd MMM y' }}</span>
+          <span class="action-title">{{ paymentAmount(item) }} pendiente<ng-container *ngIf="item.concept"> · {{ item.concept }}</ng-container></span>
+          <span class="action-subtitle">{{ item.trainerName }} · vence {{ paymentDue(item) }}</span>
         </div>
       </div>
     </div>

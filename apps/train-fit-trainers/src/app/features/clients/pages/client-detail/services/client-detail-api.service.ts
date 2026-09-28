@@ -19,7 +19,6 @@ import {
   Supplement,
   SupplementTiming,
   TrainerNote,
-  TrainerPayment,
   TrainerTask,
   TrainerTaskType,
   TrainingGoal,
@@ -364,20 +363,6 @@ export class ClientDetailApiService {
     );
   }
 
-  public getPayments(clientId: string): Observable<TrainerPayment[]> {
-    return this.http.get<TrainerPayment[]>(`${this.base(clientId)}/payments`);
-  }
-
-  public createPayment(
-    clientId: string,
-    payment: { amount: number; dueDate: string; note?: string }
-  ): Observable<TrainerPayment> {
-    return this.http.post<TrainerPayment>(`${this.base(clientId)}/payments`, payment);
-  }
-
-  public setPaymentPaid(clientId: string, paymentId: string, paid: boolean): Observable<TrainerPayment> {
-    return this.http.patch<TrainerPayment>(`${this.base(clientId)}/payments/${paymentId}`, { paid });
-  }
 
   // coach-tab FASE4 — tareas/hábitos.
   public getTasks(clientId: string): Observable<TrainerTask[]> {

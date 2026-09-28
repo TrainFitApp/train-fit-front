@@ -7,6 +7,7 @@ import { NotificationsService } from 'src/app/core/services/notifications/notifi
 import { CoachDashboard, CoachNotification, CoachTask } from '../../../coach/models/coach-dashboard.model';
 import {
   CoachRoute,
+  money,
   notificationIcon,
   notificationRoute,
   notificationTitle,
@@ -162,7 +163,7 @@ export class ProfileCoachCardComponent implements OnInit {
         id: `payment-${p.paymentId}`,
         kind: 'action',
         icon: 'cash-outline',
-        title: t('PAYMENT', { amount: `${p.amount}${p.currency === 'EUR' ? '€' : ' ' + p.currency}` }),
+        title: t('PAYMENT', { amount: money(p.amount, p.currency) }),
         subtitle: `${p.trainerName} · ${t('DUE', { date: this.shortDate(p.dueDate) })}`,
         route: null,
       });
