@@ -26,6 +26,7 @@ import { formatRirValue, isRirFail } from "src/app/core/models/rir";
 import { Set as ExerciseSet } from "src/app/core/models/set";
 import { Split } from "src/app/core/models/split";
 import { Table } from "src/app/core/models/table";
+import { environment } from "src/environments/environment";
 import { User } from "src/app/core/models/user";
 import {
   Workout,
@@ -133,6 +134,8 @@ export class WorkoutComponent implements OnDestroy {
   // del backend, así que tampoco hace falta ocultarlas aquí.
   @Input()
   public isReadonly = false;
+
+  public readonly isTrainerApp = environment.auth?.clientFamily === "trainfit-trainers";
 
   // Rediseño de entrenamiento (Fase A) — mismo campo/semántica que
   // mesocycle.page.ts#isModal (panel del entrenador desde train-fit-trainers).
@@ -311,6 +314,30 @@ export class WorkoutComponent implements OnDestroy {
     }
   }
 
+  // 2026-09 — cada uno edita solo lo que ancló él (el back responde 409).
+  // Las anteriores a authorRole las puede tocar cualquiera.
+  public canEditPinnedNote(note: PinnedExerciseNote): boolean {
+    if (this.isReadonly) return false;
+    const myRole = this.isTrainerApp ? "trainer" : "client";
+    return !note.authorRole || note.authorRole === myRole;
+  }
+
+  public pinnedNoteTitleKey(note: PinnedExerciseNote): string {
+    if (this.canEditPinnedNote(note) || !note.authorRole) return "NOTES.PINNED_TO_POSITION";
+    return note.authorRole === "trainer" ? "NOTES.PINNED_BY_TRAINER" : "NOTES.PINNED_BY_CLIENT";
+  }
+
+  public getTrainerPinnedNote(workoutIndex: number, exerciseIndex: number): PinnedExerciseNote | undefined {
+    const note = this.getPinnedNote(workoutIndex, exerciseIndex);
+    return note?.authorRole === "trainer" ? note : undefined;
+  }
+
+  // Tarjeta de anclada: la del entrenador, para el cliente, va en el círculo.
+  public getPinnedNoteCard(workoutIndex: number, exerciseIndex: number): PinnedExerciseNote | undefined {
+    if (this.isReadonly && this.getTrainerPinnedNote(workoutIndex, exerciseIndex)) return undefined;
+    return this.getPinnedNote(workoutIndex, exerciseIndex);
+  }
+
   public getPinnedNote(
     workoutIndex: number,
     exerciseIndex: number,
@@ -341,7 +368,7 @@ export class WorkoutComponent implements OnDestroy {
       (n) =>
         n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex,
     );
-    if (!note) return;
+    if (!note || !this.canEditPinnedNote(note)) return;
 
     const alertOptions: AlertOptions = {
       header: this.translate.instant("NOTES.DELETE_PINNED_TITLE"),
@@ -385,7 +412,7 @@ export class WorkoutComponent implements OnDestroy {
       (n) =>
         n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex,
     );
-    if (!note) return;
+    if (!note || !this.canEditPinnedNote(note)) return;
 
     const alertOptions: AlertOptions = {
       header: this.translate.instant("NOTES.TITLE"),
@@ -2129,6 +2156,7 @@ export class WorkoutComponent implements OnDestroy {
     event.stopPropagation();
     if (
       !this.plannerMode ||
+      this.workout.date ||
       !exercise?.sets?.length ||
       this.quickAddingSetId === exercise._id
     ) {

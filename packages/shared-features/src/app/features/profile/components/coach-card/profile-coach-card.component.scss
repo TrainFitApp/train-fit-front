@@ -8,8 +8,8 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
 }
 
 .coach-card {
-  margin: 16px;
-  padding: 1.25rem 1.25rem 0.75rem;
+  margin: 16px 16px 24px;
+  padding: 0.75rem 1.25rem;
   background: #141414;
   border: 1px solid #252525;
   border-radius: 16px;
@@ -185,24 +185,6 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
   flex-shrink: 0;
   font-size: 16px;
   color: var(--pe-muted-2);
-}
-
-.coach-card__more {
-  width: 100%;
-  min-height: 44px;
-  margin-top: 2px;
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: none;
-  color: var(--pe-muted);
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:active {
-    opacity: 0.6;
-  }
 }
 
 .coach-card__message {

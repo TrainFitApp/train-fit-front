@@ -263,6 +263,7 @@ td ion-icon { font-size: var(--tf-font-size-sm); vertical-align: middle; }
 .day-count { position: absolute; right: 2px; top: 0; font-size: .6rem; color: var(--tf-text-muted); }
 .calendar-legend { display: flex; flex-wrap: wrap; gap: var(--tf-space-2) var(--tf-space-3); margin-top: var(--tf-space-4); padding-top: var(--tf-space-3); border-top: 1px solid var(--tf-border-subtle); color: var(--tf-text-muted); font-size: var(--tf-font-size-xs); }
 .calendar-legend span { display: flex; align-items: center; gap: var(--tf-space-1); }
+.history-button { width: 100%; margin-top: var(--tf-space-4); }
 
 .schedule-actions { display: flex; flex-wrap: wrap; gap: var(--tf-space-2); }
 

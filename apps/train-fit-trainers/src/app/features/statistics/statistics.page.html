@@ -1,5 +1,14 @@
 <ion-header>
-  <app-page-header [title]="'TABLES.STATS_PAGE_TITLE' | translate"></app-page-header>
+  <app-page-header
+    *ngIf="!embedded; else embeddedHeader"
+    [title]="'TABLES.STATS_PAGE_TITLE' | translate"
+  ></app-page-header>
+  <ng-template #embeddedHeader>
+    <app-page-header
+      [title]="'TABLES.STATS_PAGE_TITLE' | translate"
+      (back)="closed.emit()"
+    ></app-page-header>
+  </ng-template>
 </ion-header>
 
 

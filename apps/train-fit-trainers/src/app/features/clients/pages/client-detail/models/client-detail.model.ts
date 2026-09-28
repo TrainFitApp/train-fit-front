@@ -13,8 +13,8 @@ export type ClientDetailTab =
   | ClientScope
   | 'measurements'
   | 'notes'
-  | 'history'
   | 'payments'
+  | 'relation'
   | 'pain'
   | 'tasks'
   | 'clientNotes';
@@ -104,12 +104,9 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
       // programar piernas: enterrarlo tras dos bloques de scroll era
       // esconder lo único que puede obligarle a cambiar la sesión de hoy.
       { key: 'pain', label: 'Dolor', icon: 'bandage-outline' },
-      // "Historial" no decía historial DE QUÉ, con tres pestañas más al lado
-      // que también son histórico (medidas, check-ins, cobros). "Sesiones" y
-      // no "Entrenamientos": dentro de *Progreso* ya se entiende que son las
-      // hechas, y "Entrenamientos" se distinguiría del "Entrenamiento" de
-      // *Plan* por una sola letra.
-      { key: 'history', label: 'Sesiones', icon: 'time-outline', requiresScope: 'training' },
+      // "Sesiones" ya no es subpestaña: vive en Plan > Entrenamiento
+      // ("Últimas sesiones" + panel lateral "Ver todas"). Tenerlas en dos
+      // sitios obligaba a saltar de sección para ver el detalle.
     ],
   },
   {
@@ -119,6 +116,9 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
     tabs: [
       { key: 'notes', label: 'Notas', icon: 'document-text-outline' },
       { key: 'payments', label: 'Cobros', icon: 'card-outline' },
+      // Finalizar la relación de entrenamiento o nutrición (antes al final
+      // de Plan > Entrenamiento y Plan > Nutrición).
+      { key: 'relation', label: 'Relación', icon: 'link-outline', requiresScope: 'any' },
     ],
   },
 ];

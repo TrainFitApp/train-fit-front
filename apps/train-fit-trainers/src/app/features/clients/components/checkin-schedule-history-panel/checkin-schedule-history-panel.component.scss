@@ -1,4 +1,5 @@
 @import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
 
 .history-panel {
   --background: var(--tf-surface-1);
@@ -162,7 +163,17 @@
 }
 
 .history-panel__footer {
-  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-4);
+  padding: var(--tf-space-3) var(--tf-space-4)
+    calc(var(--tf-space-4) + var(--ion-safe-area-bottom, 0px));
   background: var(--tf-surface-1);
   border-top: 1px solid var(--tf-border);
+}
+
+// Mismo botón de pie de panel que "Aplicar" o "Preparar S2": primario de la app.
+.goto-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 48px;
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
 }

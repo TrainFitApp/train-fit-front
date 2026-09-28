@@ -143,7 +143,12 @@ export class NotesComponent implements OnInit, OnChanges {
           };
           this.pinnedExerciseNoteService.upsert(dto).subscribe({
             next: () => console.debug('[NotesComponent] Pinned note saved'),
-            error: (err) => console.error('[NotesComponent] Failed to save pinned note', err),
+            error: (err) => {
+              console.error('[NotesComponent] Failed to save pinned note', err);
+              if (err?.error?.code === 'PINNED_NOTE_NOT_AUTHOR') {
+                this.ionicUtilService.showToast({ message: this.translate.instant('NOTES.PINNED_NOT_AUTHOR'), duration: 3000 });
+              }
+            },
           });
           return;
         }

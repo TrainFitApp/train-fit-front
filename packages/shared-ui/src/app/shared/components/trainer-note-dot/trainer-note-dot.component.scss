@@ -1,0 +1,67 @@
+// Naranja translúcido, como el resto de la app (badge "En curso"): fondo al
+// 15 % y borde al 30 % del primario, icono en naranja. El tinte va sobre una
+// base opaca (--tn-dot-ring, el fondo de alrededor) para que, montado sobre
+// una miniatura, no se transparente la imagen; el mismo color hace de anillo.
+:host {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.tn-dot {
+  --tn-dot-size: 28px;
+
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--tn-dot-size);
+  height: var(--tn-dot-size);
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.3);
+  border-radius: 50%;
+  background:
+    linear-gradient(rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.15), rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.15)),
+    var(--tn-dot-ring, var(--ion-background-color, #0f0f0f));
+  color: var(--ion-color-primary, #fe9000);
+  box-shadow: 0 0 0 2px var(--tn-dot-ring, var(--ion-background-color, #0f0f0f));
+  cursor: pointer;
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  ion-icon {
+    font-size: calc(var(--tn-dot-size) * 0.6);
+  }
+
+  // Área táctil de 44px sin agrandar el disco.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: calc((var(--tn-dot-size) - 44px) / 2);
+    border-radius: 50%;
+  }
+
+  &:active {
+    transform: scale(0.9);
+    background:
+      linear-gradient(rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.25), rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.25)),
+      var(--tn-dot-ring, var(--ion-background-color, #0f0f0f));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent, var(--ion-color-primary, #fe9000));
+    outline-offset: 3px;
+  }
+}
+
+.tn-dot--sm {
+  --tn-dot-size: 22px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tn-dot {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}

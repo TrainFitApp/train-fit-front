@@ -1,4 +1,4 @@
-<div class="filter-icons-container">
+<div class="filter-icons-container" [class.filter-icons-container--compact]="compact">
   <div class="filter-chips-scroll">
     <div class="filter-chips">
       <button
@@ -38,7 +38,7 @@
       </button>
     </div>
   </div>
-  <div class="filter-info-row">
+  <div class="filter-info-row" *ngIf="!compact">
     <button type="button" class="modern-pill info-pill">
       <span class="label">{{ filterDescription }}</span>
       <ion-icon name="search-outline" color="primary"></ion-icon>

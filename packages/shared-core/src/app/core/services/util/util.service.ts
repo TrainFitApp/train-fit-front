@@ -417,7 +417,10 @@ export class UtilService {
       | CustomExerciseService
       | DietDayService
       | MealService
-      | TableService
+      | TableService,
+    // 2026-09 — 'clientNotes' para la nota del cliente en un workout con
+    // entrenador (Workout.notes es la del entrenador).
+    field: 'notes' | 'clientNotes' = 'notes'
   ): Promise<boolean> {
     const alertOptions = {
       header: this.translate.instant('COMMON.NOTES'),
@@ -426,7 +429,7 @@ export class UtilService {
           name: 'notes',
           type: 'textarea' as 'textarea',
           placeholder: this.translate.instant('COMMON.WRITE_NOTES_HERE'),
-          value: object['notes'] || '',
+          value: (object as any)[field] || '',
           attributes: { maxlength: 500 },
         },
       ],
@@ -446,7 +449,7 @@ export class UtilService {
       if (result.role !== 'cancel' && result.data?.values?.notes !== undefined) {
         // Empty text means "clear the note" — must go through so it's persisted
         // as such, instead of being silently dropped like before.
-        object['notes'] = (result.data.values.notes || '').trim();
+        (object as any)[field] = (result.data.values.notes || '').trim();
 
         if ((object as Workout).exercises)
           this.handleWorkout(object as Workout, service as WorkoutService);

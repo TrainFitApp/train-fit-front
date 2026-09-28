@@ -4,14 +4,14 @@
     <ion-row>
       <ion-col class="ion-no-padding" size="9.6">
         <ion-row>
-          <ion-col class="meal-name">
-            <ion-buttons class="workout-actions-buttons">
+          <ion-col class="meal-name" [class.meal-name--readonly]="isReadonly">
+            <ion-buttons class="workout-actions-buttons" *ngIf="!isReadonly">
               <ion-button fill="clear" class="action-btn menu-btn ripple-effect" [ngClass]="{
                   'workout-actions-button':
                     workoutIndex === 0 && splitIndex === 0
                 }" (click)="
                   workoutActions($event, workoutIndex); $event.stopPropagation()
-                " [disabled]="!load || exercisePasteMode || exerciseCopyActive || stateSelected !== STATES.static || isReadonly">
+                " [disabled]="!load || exercisePasteMode || exerciseCopyActive || stateSelected !== STATES.static">
                 <ion-icon color="primary" name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>
               </ion-button>
             </ion-buttons>
@@ -22,6 +22,10 @@
               <span [style.color]="getWorkoutStatusColor('var(--ion-text-color)')">{{ workout.name | translateDb
                 }}</span>
             </div>
+            <!-- 2026-09 — cliente con rutina asignada: la nota del entrenador
+                 para este día es un aviso junto al nombre, no una tarjeta. -->
+            <app-trainer-note-dot *ngIf="isReadonly" class="workout-note-dot" kind="workout"
+              [subject]="workout.name" [notes]="workout.notes"></app-trainer-note-dot>
             &nbsp;
             <ion-icon *ngIf="workout.exercises.length !== 0" name="chevron-down-outline"
               [ngClass]="arrowRotate ? 'rotate' : 'start'"></ion-icon>
@@ -140,8 +144,19 @@
   </ion-grid>
 
   <div slot="content" *ngIf="workout?.exercises.length !== 0">
-    <app-notes *ngIf="workout?.notes" [notes]="workout.notes" [object]="workout" [detail]="true"
+    <!-- 2026-09 — workout.notes es de quien construye la rutina. Con rutina
+         asignada, el cliente la ve en el círculo de la cabecera. -->
+    <app-notes *ngIf="workout?.notes && !isReadonly" [notes]="workout.notes" [object]="workout" [detail]="true"
       (update)="updateWorkoutNote($event)"></app-notes>
+    <!-- Lo que apuntó el cliente en la sesión (Workout.clientNotes). Solo
+         lectura: se escribe desde current-workout. -->
+    <div *ngIf="workout?.clientNotes" class="client-note-container client-note-container--workout">
+      <span class="client-note-author">
+        <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+        {{ (isTrainerApp ? 'NOTES.CLIENT_NOTE' : 'NOTES.YOUR_NOTE') | translate }}
+      </span>
+      <p class="client-note-body">{{ workout.clientNotes }}</p>
+    </div>
     <ng-container *ngIf="workout?.exercises.length !== 0; else emptyWorkout">
       <ng-container *ngFor="let group of exerciseGroupEntries; trackBy: trackByBlockGroup">
         <div class="workout-block-header" *ngIf="group.block" (click)="editBlockAlert(group.block); $event.stopPropagation()">
@@ -174,9 +189,10 @@
             [class.exercise-copy-mode]="exerciseSelectionMode"
             cdkDrag [cdkDragDisabled]="!canReorderExercises" cdkDragLockAxis="y">
           <div class="exercise-item">
-            <div class="pinned-note-container" *ngIf="getPinnedNote(workoutIndex, entry.index) as pinnedNote"
+            <div class="pinned-note-container" *ngIf="getPinnedNoteCard(workoutIndex, entry.index) as pinnedNote"
               (click)="$event.stopPropagation()">
-              <div class="pinned-note-wrapper" (click)="editPinnedNote(workoutIndex, entry.index); $event.stopPropagation()">
+              <div class="pinned-note-wrapper" [class.pinned-note-wrapper--readonly]="!canEditPinnedNote(pinnedNote)"
+                (click)="editPinnedNote(workoutIndex, entry.index); $event.stopPropagation()">
                 <div class="pinned-note-card">
                   <div class="card-header">
                     <div class="left-section">
@@ -184,10 +200,10 @@
                         <ion-icon name="pin"></ion-icon>
                       </div>
                       <div class="header-row">
-                        <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+                        <span class="title">{{ pinnedNoteTitleKey(pinnedNote) | translate }}</span>
                       </div>
                     </div>
-                    <div class="action-wrapper">
+                    <div class="action-wrapper" *ngIf="canEditPinnedNote(pinnedNote)">
                       <ion-button fill="clear" size="small" class="close-button"
                         (click)="deletePinnedNote(workoutIndex, entry.index); $event.stopPropagation()">
                         <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -208,6 +224,11 @@
                 {{ (entry.exercise.exercise?.name || 'Ejercicio eliminado del catálogo') | translateDb }}
               </div>
               <div class="exercise-icons">
+                <!-- Cliente con rutina asignada: nota y anclada del
+                     entrenador en un solo aviso. -->
+                <app-trainer-note-dot *ngIf="isReadonly && !exerciseSelectionMode" size="sm" kind="exercise"
+                  [subject]="entry.exercise.exercise?.name" [notes]="entry.exercise.notes"
+                  [pinned]="getTrainerPinnedNote(workoutIndex, entry.index)"></app-trainer-note-dot>
                 <ion-checkbox
                   *ngIf="exerciseSelectionMode"
                   mode="ios"
@@ -391,7 +412,7 @@
               </tbody>
             </table>
 
-            <button *ngIf="plannerMode && !entry.exercise.exercise?.isCardio && !entry.exercise.exercise?.isIsometric"
+            <button *ngIf="plannerMode && !workout.date && !entry.exercise.exercise?.isCardio && !entry.exercise.exercise?.isIsometric"
               type="button" class="quick-add-set-btn" [disabled]="quickAddingSetId === entry.exercise._id"
               (click)="quickAddSet(entry.exercise, $event)">
               <ion-icon name="add-outline"></ion-icon>
@@ -400,7 +421,7 @@
             </button>
           </div>
 
-          <div *ngIf="entry.exercise?.notes" class="notes-container">
+          <div *ngIf="entry.exercise?.notes && !isReadonly" class="notes-container">
             <app-notes [object]="entry.exercise" [notes]="entry.exercise.notes" [tableId]="tableInUse._id"
               [workoutIndex]="workoutIndex" [exerciseIndex]="entry.index"
               (update)="updateExerciseNote($event, entry.exercise)"></app-notes>

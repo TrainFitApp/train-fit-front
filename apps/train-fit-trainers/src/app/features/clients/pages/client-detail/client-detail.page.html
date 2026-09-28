@@ -834,49 +834,27 @@
               <!-- Sesiones recientes y catálogo de rutinas. -->
               <div class="training-plan-row">
                 <div class="training-plan-col">
-                  <!-- Tarea 3 bis — vista previa, no el historial completo: eso ya
-                   vive en Progreso > Sesiones — aquí solo contexto de un
-                   vistazo con enlace directo. -->
+                  <!-- Tarea 3 bis — vista previa con el mismo detalle que el
+                   historial; "Ver todas" abre el historial completo en el
+                   panel lateral (antes, Progreso > Sesiones). -->
                   <div class="section-row" *ngIf="completedWorkouts.length">
                     <h3 class="subsection-heading">Últimas sesiones</h3>
                     <button
                       type="button"
                       class="add-button"
-                      (click)="goToSessionsTab()"
+                      (click)="openSessionsPanel()"
                     >
                       Ver todas
                       <ion-icon name="arrow-forward-outline"></ion-icon>
                     </button>
                   </div>
-                  <div
-                    class="history-card"
+                  <ng-container
                     *ngFor="let workout of recentCompletedWorkouts; trackBy: trackByWorkoutId"
                   >
-                    <div class="history-card-header">
-                      <span class="list-card-title">{{ workout.name }}</span>
-                      <span class="history-date"
-                        >{{ workout.date | date: 'd MMM y' }}</span
-                      >
-                    </div>
-                    <p class="history-subtitle">
-                      {{ workout.tableName }} · {{ workout.splitName }}
-                    </p>
-                    <!-- F18 — mismo badge que la pestaña Sesiones (Progreso >
-                     Sesiones): antes solo se veía ahí, aparte de Entrenamiento. -->
-                    <div
-                      class="history-meta"
-                      *ngIf="workout.readinessPre || workout.perceivedEffortPost"
-                    >
-                      <span class="pulse-badge" *ngIf="workout.readinessPre"
-                        >Readiness {{ workout.readinessPre }}/5</span
-                      >
-                      <span
-                        class="pulse-badge"
-                        *ngIf="workout.perceivedEffortPost"
-                        >Esfuerzo {{ workout.perceivedEffortPost }}/5</span
-                      >
-                    </div>
-                  </div>
+                    <ng-container
+                      *ngTemplateOutlet="sessionCard; context: { $implicit: workout }"
+                    ></ng-container>
+                  </ng-container>
                 </div>
 
                 <div class="training-plan-col">
@@ -1057,14 +1035,6 @@
                   </p>
                 </div>
               </ng-container>
-
-              <button
-                class="danger-link"
-                (click)="confirmRevoke('training')"
-                [disabled]="isRevoking"
-              >
-                Finalizar relación de entrenamiento
-              </button>
             </div>
           </div>
         </ng-container>
@@ -1119,7 +1089,7 @@
        Las fotos siguen pidiendo scope (entrenamiento y/o nutrición); la
        agenda de check-ins no, como cuando era pestaña propia. === -->
       <div class="tab-panel" *ngIf="activeTab === 'measurements'">
-        <app-checkin-workspace [clientId]="clientId" [templateToSchedule]="checkinTemplateToOpen"></app-checkin-workspace>
+        <app-checkin-workspace [clientId]="clientId" [templateToSchedule]="checkinTemplateToOpen" (openHistory)="openCheckinSchedulesPanel(true)"></app-checkin-workspace>
 
         <ng-container *ngIf="scopes.includes('training') || scopes.includes('nutrition')">
           <!-- Fotos de progreso — mock: todavía sin subida real, placeholder
@@ -2170,14 +2140,6 @@
                   ></app-nutrition-history-feed>
                 </ng-container>
               </ng-container>
-
-              <button
-                class="danger-link"
-                (click)="confirmRevoke('nutrition')"
-                [disabled]="isRevoking"
-              >
-                Finalizar relación de nutrición
-              </button>
             </div>
           </div>
         </ng-container>
@@ -2620,6 +2582,64 @@
         </ng-container>
       </div>
 
+      <!-- === RELACIÓN (Gestión) ===
+           Vivía al final de Plan > Entrenamiento y Plan > Nutrición; es
+           administración de la relación, no parte del plan. -->
+      <div class="tab-panel" *ngIf="activeTab === 'relation'">
+        <div class="section-row">
+          <h2 class="section-heading">Servicios que llevas</h2>
+        </div>
+
+        <ul class="relation-list">
+          <li class="relation-row" *ngIf="scopes.includes('training')">
+            <span class="relation-icon" aria-hidden="true">
+              <ion-icon name="barbell-outline"></ion-icon>
+            </span>
+            <div class="relation-text">
+              <span class="relation-title">Entrenamiento</span>
+              <span class="relation-meta" *ngIf="trainingState === 'loaded'">{{
+                currentRoutinePhase?.tableName || 'Sin rutina en curso'
+              }}</span>
+            </div>
+            <button
+              type="button"
+              class="relation-end-button"
+              aria-label="Finalizar relación de entrenamiento"
+              (click)="confirmRevoke('training')"
+              [disabled]="isRevoking"
+            >
+              Finalizar
+            </button>
+          </li>
+          <li class="relation-row" *ngIf="scopes.includes('nutrition')">
+            <span class="relation-icon" aria-hidden="true">
+              <ion-icon name="nutrition-outline"></ion-icon>
+            </span>
+            <div class="relation-text">
+              <span class="relation-title">Nutrición</span>
+              <span class="relation-meta" *ngIf="nutritionState === 'loaded'">{{
+                activePhase?.phaseName || activePhase?.planName || 'Sin fase en curso'
+              }}</span>
+            </div>
+            <button
+              type="button"
+              class="relation-end-button"
+              aria-label="Finalizar relación de nutrición"
+              (click)="confirmRevoke('nutrition')"
+              [disabled]="isRevoking"
+            >
+              Finalizar
+            </button>
+          </li>
+        </ul>
+
+        <p class="relation-note">
+          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+          Finalizar es inmediato y no se puede deshacer. Para volver a llevar
+          ese servicio tendrás que invitarle de nuevo.
+        </p>
+      </div>
+
       <!-- === DOLOR (Movimiento 3, subpestaña propia desde el Movimiento final) === -->
       <div class="tab-panel" *ngIf="activeTab === 'pain'">
         <app-pain-panel [clientId]="clientId"></app-pain-panel>
@@ -2635,6 +2655,117 @@
         ></app-client-notes>
       </div>
 
+    </div>
+  </div>
+  <!-- Tarjeta de sesión hecha: la comparten "Últimas sesiones" (Plan >
+   Entrenamiento) y el panel "Ver todas". -->
+  <ng-template #sessionCard let-workout>
+    <div class="history-card">
+      <div class="history-card-header">
+        <span class="list-card-title">{{ workout.name }}</span>
+        <span class="history-date">{{ workout.date | date: 'd MMM y' }}</span>
+      </div>
+      <p class="history-subtitle">
+        {{ workout.tableName }} · {{ workout.splitName }}
+      </p>
+      <div class="history-meta">
+        <span *ngIf="workoutDuration(workout) as duration">
+          <ion-icon name="time-outline"></ion-icon> {{ duration }}
+        </span>
+        <span
+          ><ion-icon name="barbell-outline"></ion-icon> {{
+          workout.exercises?.length || 0 }} ejercicios</span
+        >
+        <!-- F18 -->
+        <span class="pulse-badge" *ngIf="workout.readinessPre"
+          >Readiness {{ workout.readinessPre }}/5</span
+        >
+        <span class="pulse-badge" *ngIf="workout.perceivedEffortPost"
+          >Esfuerzo {{ workout.perceivedEffortPost }}/5</span
+        >
+      </div>
+
+      <!-- Movimiento 2 Coach Pro — agujetas con las que LLEGÓ a esta
+       sesión (ver soreness.ts). Solo los grupos que marcó por encima
+       de "nada": una sesión sin nada apuntado no pinta nada. -->
+      <p class="soreness-line" *ngIf="sorenessLabel(workout) as soreness">
+        <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
+        Agujetas al llegar: {{ soreness }}
+      </p>
+    </div>
+  </ng-template>
+
+  <!-- === SESIONES HECHAS (F09; antes pestaña Progreso > Sesiones) ===
+   Panel lateral. El host se mueve a ion-app en ngAfterViewInit. -->
+  <div class="sessions-panel-portal" #sessionsPanelHost>
+    <div
+      class="sessions-panel-backdrop"
+      *ngIf="showSessionsPanel"
+      (click)="closeSessionsPanel()"
+    ></div>
+    <div
+      class="sessions-panel"
+      *ngIf="showSessionsPanel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sessions-panel-title"
+    >
+      <div class="sessions-panel-handle"></div>
+
+      <div class="tf-page-header sessions-panel-header">
+        <div class="tf-page-header__content">
+          <div class="tf-page-header__back-section">
+            <button
+              type="button"
+              class="tf-page-header__back-button"
+              (click)="closeSessionsPanel()"
+              aria-label="Cerrar"
+            >
+              <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+          <div class="tf-page-header__title-section">
+            <h1 class="tf-page-header__title" id="sessions-panel-title">
+              Sesiones
+            </h1>
+          </div>
+          <div class="tf-page-header__actions"></div>
+        </div>
+      </div>
+
+      <div class="sessions-panel-body">
+        <!-- TASK-040 (MASTER_BACKLOG.md) — este historial es un log plano
+         (un entrenamiento completado = una fila); la agregación por
+         ejercicio y la comparación semana a semana viven en
+         StatisticsPage, que se abre a la izquierda de este panel. -->
+        <button
+          type="button"
+          class="history-stats-link"
+          [class.history-stats-link--active]="showSessionsStats"
+          *ngIf="tables.length > 0"
+          (click)="openSessionsStats(tables[0])"
+        >
+          <ion-icon name="stats-chart-outline"></ion-icon>
+          Ver progresión por ejercicio
+        </button>
+
+        <p class="empty-hint" *ngIf="!completedWorkouts.length">
+          Este cliente todavía no ha completado ningún entrenamiento.
+        </p>
+
+        <ng-container
+          *ngFor="let workout of completedWorkouts; trackBy: trackByWorkoutId"
+        >
+          <ng-container
+            *ngTemplateOutlet="sessionCard; context: { $implicit: workout }"
+          ></ng-container>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Estadísticas en el hueco a la izquierda del panel (openSessionsStats). -->
+    <div class="sessions-stats" [class.sessions-stats--open]="showSessionsStats">
+      <ng-container #sessionsStatsHost></ng-container>
     </div>
   </div>
 </ion-content>

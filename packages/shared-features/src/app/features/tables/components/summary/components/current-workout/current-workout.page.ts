@@ -17,11 +17,13 @@ import {
   ToastOptions,
 } from '@ionic/angular';
 import { Subject, Subscription, interval } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { take, takeUntil } from 'rxjs/operators';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
 import { Workout, WorkoutBlock } from 'src/app/core/models/workout';
+import { PinnedExerciseNote } from 'src/app/core/models/pinned-exercise-note';
+import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
 import {
   SessionCheckinModalComponent,
   SessionCheckinResult,
@@ -130,6 +132,11 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   // estando su accordion cerrado (se activa desde el popover de opciones).
   public seriesReorderExerciseIndex: number | null = null;
 
+  // 2026-09 — notas que ancló EL ENTRENADOR en este día, por índice de
+  // ejercicio. Salen en el círculo de la miniatura (la del cliente sigue en
+  // custom-exercise, editable).
+  public trainerPinnedNotes = new Map<number, PinnedExerciseNote>();
+
   @ViewChildren(IonAccordionGroup)
   private accordionGroups: QueryList<IonAccordionGroup>;
   @ViewChildren(CustomExerciseComponent)
@@ -143,6 +150,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly adMobService = inject(AdMobService);
   private readonly exerciseHistoryService = inject(ExerciseHistoryService);
   public readonly restTimerService = inject(RestTimerService);
+  private readonly pinnedExerciseNoteService = inject(PinnedExerciseNoteService);
 
   constructor(
     private navigationService: NavigationService,
@@ -168,6 +176,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
         if (!this.previousWorkout && this.currentWorkout) {
           this.setPreviousWorkout();
         }
+        this.loadTrainerPinnedNotes();
       }
     });
 
@@ -185,6 +194,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
           // Recalcular previousWorkout solo si cambió a un workout diferente
           if (isNewWorkout && this.tableInUse) {
             this.setPreviousWorkout();
+            this.loadTrainerPinnedNotes();
           }
 
           // Un timer de descanso de OTRO workout no debe seguir visible aquí.
@@ -209,6 +219,11 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
     // Suscripciones principales
     this.initVariables();
+
+    // Anclar/borrar/mover ejercicios cambia la caché de notas ancladas.
+    this.pinnedExerciseNoteService.cache$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.loadTrainerPinnedNotes());
   }
 
   public ngOnDestroy(): void {
@@ -700,8 +715,46 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     }
   }
 
+  // 2026-09 — con entrenador, Workout.notes es suya (solo lectura: círculo de
+  // la cabecera + hoja) y el cliente escribe en clientNotes. Sin entrenador,
+  // todo como antes.
+  public get hasTrainer(): boolean {
+    return !!this.tableInUse?.assignedByTrainerId;
+  }
+
   public manageNote(): void {
-    this.utilService.manageNote(this.currentWorkout, this.workoutService);
+    this.utilService.manageNote(
+      this.currentWorkout,
+      this.workoutService,
+      this.hasTrainer ? 'clientNotes' : 'notes'
+    );
+  }
+
+  private loadTrainerPinnedNotes(): void {
+    const tableId = this.tableInUse?._id;
+    const workoutIndex = this.getCurrentWorkoutIndex();
+    if (!tableId || workoutIndex < 0) {
+      this.trainerPinnedNotes = new Map();
+      return;
+    }
+    this.pinnedExerciseNoteService
+      .getByTable(tableId)
+      .pipe(take(1))
+      .subscribe((notes) => {
+        this.trainerPinnedNotes = new Map(
+          notes
+            .filter((note) => note.authorRole === 'trainer' && note.workoutIndex === workoutIndex)
+            .map((note) => [note.exerciseIndex, note] as [number, PinnedExerciseNote])
+        );
+      });
+  }
+
+  private getCurrentWorkoutIndex(): number {
+    for (const split of this.tableInUse?.splits || []) {
+      const index = split.workouts.findIndex((workout) => workout._id === this.currentWorkout?._id);
+      if (index >= 0) return index;
+    }
+    return -1;
   }
 
   public openWorkoutOptions(event: Event): void {

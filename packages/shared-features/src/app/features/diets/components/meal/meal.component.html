@@ -82,10 +82,11 @@
         <ion-icon name="restaurant-outline"></ion-icon>
         {{ "MEAL.ALTERNATIVES_LABEL" | translate }}
       </span>
-      <div class="meal-proposal-chips">
+      <div class="meal-proposal-chips" role="group" [attr.aria-label]="'MEAL.ALTERNATIVES_LABEL' | translate">
         <ion-chip
           *ngFor="let alt of proposal.alternatives; let i = index"
           [class.meal-proposal-chip--active]="proposal.chosenIndex === i"
+          [attr.aria-pressed]="proposal.chosenIndex === i"
           [disabled]="isChoosingProposal"
           (click)="chooseAlternative(proposal, i)"
         >

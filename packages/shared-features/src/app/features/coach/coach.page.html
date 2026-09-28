@@ -43,37 +43,6 @@
     <ion-icon class="onboarding-reminder-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
   </button>
 
-  <!-- === Hábitos de hoy (coach-tab FASE4) === -->
-  <!-- Arriba del todo: es lo único de esta pantalla que el cliente toca a
-       diario. Antes vivía al fondo, tras las notificaciones, con una tarjeta
-       del menú que solo bajaba hasta aquí. -->
-  <div class="detail-skeleton" *ngIf="tasksState === 'loading'">
-    <div class="skeleton-block" style="height: 48px;"></div>
-  </div>
-
-  <div class="section-card" id="section-tasks" *ngIf="tasksState === 'loaded' && tasks.length">
-    <div class="section-header-row">
-      <h2 class="section-heading">Hábitos de hoy</h2>
-      <span class="tasks-progress" [class.tasks-progress--done]="completedTasksCount === tasks.length">
-        {{ completedTasksCount }}/{{ tasks.length }}
-      </span>
-    </div>
-
-    <button
-      class="task-row"
-      *ngFor="let task of tasks; trackBy: trackByTaskId"
-      [class.task-row--done]="task.completedToday"
-      (click)="toggleTask(task)"
-      [disabled]="togglingTaskId === task._id"
-    >
-      <ion-icon [name]="task.completedToday ? 'checkmark-circle' : 'ellipse-outline'" class="task-check"></ion-icon>
-      <div class="action-info">
-        <span class="action-title">{{ task.label }}</span>
-        <span class="action-subtitle">{{ taskTargetLabel(task) }} · {{ task.trainerName }}</span>
-      </div>
-    </button>
-  </div>
-
   <!-- === Menú de un vistazo — antes toda la info de abajo aparecía apilada
        directamente; ahora estas tarjetas resumen cada sección y llevan a
        ella (scroll a su ancla más abajo, no hay pantallas propias por
@@ -117,6 +86,41 @@
         </span>
       </button>
     </div>
+  </div>
+
+  <!-- === Hábitos de hoy (coach-tab FASE4) === -->
+  <!-- Bajo los accesos de arriba: es lo único de esta pantalla que el
+       cliente toca a diario. Todos marcados = tarjeta en verde. -->
+  <div class="detail-skeleton" *ngIf="tasksState === 'loading'">
+    <div class="skeleton-block" style="height: 48px;"></div>
+  </div>
+
+  <div
+    class="section-card"
+    id="section-tasks"
+    *ngIf="tasksState === 'loaded' && tasks.length"
+    [class.tasks-card--done]="completedTasksCount === tasks.length"
+  >
+    <div class="section-header-row">
+      <h2 class="section-heading">Hábitos de hoy</h2>
+      <span class="tasks-progress" [class.tasks-progress--done]="completedTasksCount === tasks.length">
+        {{ completedTasksCount }}/{{ tasks.length }}
+      </span>
+    </div>
+
+    <button
+      class="task-row"
+      *ngFor="let task of tasks; trackBy: trackByTaskId"
+      [class.task-row--done]="task.completedToday"
+      (click)="toggleTask(task)"
+      [disabled]="togglingTaskId === task._id"
+    >
+      <ion-icon [name]="task.completedToday ? 'checkmark-circle' : 'ellipse-outline'" class="task-check"></ion-icon>
+      <div class="action-info">
+        <span class="action-title">{{ task.label }}</span>
+        <span class="action-subtitle">{{ taskTargetLabel(task) }} · {{ task.trainerName }}</span>
+      </div>
+    </button>
   </div>
 
   <!-- Lo que el cliente APORTA: check-ins, dolor y preferencias son datos

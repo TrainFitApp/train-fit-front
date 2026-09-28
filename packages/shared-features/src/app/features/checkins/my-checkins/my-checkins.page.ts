@@ -81,9 +81,31 @@ export class MyCheckinsPage implements OnInit {
   public checkinKey(checkin: MyCheckin): string { return checkin._id; }
 
   // Lo ya respondido, para corregirlo sin volver a teclearlo todo mientras
-  // la semana siga abierta.
+  // la semana siga abierta. Sin responder, arranca con las medidas que ya
+  // apuntó en el periodo (autorrelleno): el cliente revisa y envía.
   private valuesOf(checkin: MyCheckin): Record<string, number | string | boolean | null> {
-    return { ...(checkin.values || {}) };
+    if (checkin.respondedAt) return { ...(checkin.values || {}) };
+    const prefilled: Record<string, number> = {};
+    for (const [key, { value }] of Object.entries(checkin.prefill || {})) prefilled[key] = value;
+    return prefilled;
+  }
+
+  // Día de la medida que rellenó este campo, mientras el cliente no la cambie.
+  public prefillDateFor(checkin: MyCheckin, key: string): string | null {
+    const prefilled = checkin.prefill?.[key];
+    if (!prefilled || checkin.respondedAt || this.formValues[key] !== prefilled.value) return null;
+    return this.shortDay(prefilled.date);
+  }
+
+  // Aviso encima del formulario cuando se ha autorrellenado: cuántos campos
+  // y de qué días son las medidas que apuntó el cliente.
+  public prefillNotice(checkin: MyCheckin): string | null {
+    const prefilled = Object.values(checkin.prefill || {});
+    if (checkin.respondedAt || !prefilled.length) return null;
+    const days = [...new Set(prefilled.map((p) => p.date))].sort().map((d) => `el ${this.shortDay(d)}`);
+    const when = days.length > 1 ? `${days.slice(0, -1).join(', ')} y ${days[days.length - 1]}` : days[0];
+    const fields = prefilled.length === 1 ? '1 campo' : `${prefilled.length} campos`;
+    return `Autorrellenado ${fields} con las medidas que apuntaste ${when}. Revísalos y cambia lo que haga falta antes de enviar.`;
   }
 
   public cardIcon(checkin: MyCheckin): string {

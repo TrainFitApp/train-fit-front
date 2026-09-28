@@ -11,6 +11,11 @@ export class ExerciseFilterIconsComponent implements OnInit {
   @Input()
   public disabled: boolean;
 
+  // Pegado al buscador (biblioteca del entrenador): sin márgenes laterales
+  // propios y sin la fila de descripción, que repetía el chip activo.
+  @Input()
+  public compact = false;
+
   @Output()
   public filterSelection = new EventEmitter<SearchFilterGroup>();
 

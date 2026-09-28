@@ -1,17 +1,5 @@
 @import '../../../../../theme/buttons';
-
-ion-header ion-toolbar {
-  --background: var(--tf-bg);
-
-  ion-title {
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-
-  ion-button {
-    @include tf-icon-button;
-  }
-}
+@import '../../../../../theme/inputs';
 
 .exercise-form-content {
   --background: var(--tf-bg);
@@ -35,16 +23,47 @@ ion-header ion-toolbar {
   color: var(--tf-text-muted);
 }
 
-.field-input {
-  --background: var(--tf-surface-3);
-  --color: var(--tf-text);
-  --placeholder-color: var(--tf-text-muted);
-  --padding-start: var(--tf-space-3);
-  --padding-end: var(--tf-space-3);
-  --padding-top: var(--tf-space-2);
-  --padding-bottom: var(--tf-space-2);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-md);
+// Mismo campo que el resto de la app (input nativo en .input-wrapper, mixins
+// de theme/_inputs.scss). Antes eran ion-input/ion-textarea con el borde y el
+// radio puestos en el host: el fondo cuadrado del shadow DOM sobresalía por
+// las esquinas y en foco salía la barra azul de Ionic.
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: 48px;
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: var(--tf-font-size-base);
+}
+
+.note-field {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 88px;
+  max-height: 240px;
+  padding: 12px 14px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 12px;
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
+  line-height: 1.45;
+  resize: vertical;
+  // Crece con el texto donde el motor lo soporta; si no, se queda en 3 filas.
+  field-sizing: content;
+  transition: border-color 160ms var(--tf-ease-out);
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
 }
 
 // Vídeo: bloque propio (superficie + borde) para que no pase por un campo
@@ -82,18 +101,40 @@ ion-header ion-toolbar {
   color: var(--tf-text-muted);
 }
 
+// Un nivel por encima de la superficie del bloque.
 .video-input {
-  min-height: var(--tf-touch-min);
-  border-width: 1.5px;
-  border-color: var(--tf-border-strong);
-  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
-
-  &:focus-within {
-    border-color: var(--tf-border-focus);
-  }
+  background: var(--tf-surface-3);
 
   .is-invalid & {
     border-color: var(--tf-danger-border);
+  }
+}
+
+// Ancho de 44px pegado al borde derecho: el icono es pequeño, la zona
+// pulsable no.
+.input-clear {
+  flex-shrink: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tf-touch-min);
+  margin: 0 -14px 0 0;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--tf-text-muted);
+  font-size: 18px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+    border-radius: 12px;
   }
 }
 
@@ -125,9 +166,24 @@ ion-header ion-toolbar {
   }
 }
 
+// Mismo lenguaje que las chips de abajo: elegido = acento suave. Sin estos
+// tokens Ionic pinta el indicador en blanco y el texto con su paleta clara.
 ion-segment {
-  --background: var(--tf-surface-3);
-  border-radius: var(--tf-radius-md);
+  --background: var(--tf-surface-2);
+  min-height: var(--tf-touch-min);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 12px;
+}
+
+ion-segment-button {
+  --color: var(--tf-text-muted);
+  --color-checked: var(--tf-accent-text);
+  --indicator-color: var(--tf-accent-soft);
+  min-height: 38px;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .chip-row {

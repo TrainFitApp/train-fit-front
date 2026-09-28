@@ -458,6 +458,21 @@ ion-grid {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.workout-note-dot {
+  margin-left: 8px;
+}
+
+// Nota del cliente a nivel de entrenamiento: alineada con la de app-notes.
+.client-note-container--workout {
+  width: auto;
+  margin: 0 8px 8px;
+}
+
+// Anclada por el otro (entrenador o cliente): se lee, no se toca.
+.pinned-note-container .pinned-note-wrapper.pinned-note-wrapper--readonly {
+  cursor: default;
+}
+
 .client-note-author {
   display: flex;
   align-items: center;
@@ -555,6 +570,12 @@ ion-grid {
   display: flex;
   align-items: center;
   padding: 0 0 2px 0;
+
+  // Rutina del entrenador: sin botón de opciones, "Día" se alinea con las
+  // líneas de detalle de debajo (.header-detail).
+  &.meal-name--readonly {
+    padding-left: var(--ion-grid-column-padding, 16px);
+  }
 
   .workout-actions-buttons {
     gap: 2px;
@@ -1052,7 +1073,6 @@ ion-buttons ion-button {
 // afectan a train-fit-front ni train-fit-management.
 .tf-editable-cell {
   cursor: pointer;
-  border-radius: 6px;
   transition: background-color 0.15s ease;
 
   &:hover {

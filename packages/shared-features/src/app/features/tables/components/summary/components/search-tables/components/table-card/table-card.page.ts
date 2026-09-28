@@ -229,9 +229,19 @@ export class TableCardPage {
     }
 
     if (this.user.tableInUse) {
+      // Se cambia una rutina pautada por el entrenador por otra que no lo
+      // está: él no la verá ni podrá hacerle seguimiento.
+      const activeTable = this.tableService.tableInUse;
+      const trainerWarning =
+        activeTable?._id === activeId &&
+        activeTable.assignedByTrainerId &&
+        !this.tableCard.assignedByTrainerId
+          ? ` ${this.translate.instant('TABLES.TRAINER_UNTRACKED_ROUTINE_WARNING')}`
+          : '';
+
       const alOptions = {
         header: this.translate.instant('TABLES.ROUTINE_IN_USE'),
-        message: this.translate.instant('TABLES.ROUTINE_IN_USE_MSG'),
+        message: this.translate.instant('TABLES.ROUTINE_IN_USE_MSG') + trainerWarning,
         buttons: [
           {
             text: this.translate.instant('COMMON.CANCEL'),

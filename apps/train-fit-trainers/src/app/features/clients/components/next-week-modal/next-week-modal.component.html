@@ -16,7 +16,7 @@
 
 <ion-content class="week-content" [appSubmitOnEnter]="prepareButton">
   <p class="week-period">
-    <strong>R{{ next.number }}</strong> · {{ periodLabel }}
+    <strong>S{{ next.number }}</strong> · {{ periodLabel }}
     <span class="week-period__edited" *ngIf="alreadyPrepared">· ya preparada</span>
   </p>
 
@@ -35,7 +35,7 @@
       <div class="weight-row" *ngIf="suggestion.hasData">
         Peso {{ suggestion.weightStartKg }} → {{ suggestion.weightEndKg }} kg
         <span *ngIf="suggestion.actualWeeklyRateKg !== null">({{ deltaLabel(suggestion.actualWeeklyRateKg) }} kg/sem)</span>
-        <span *ngIf="suggestion.comparedToWeek"> · vs R{{ suggestion.comparedToWeek }}</span>
+        <span *ngIf="suggestion.comparedToWeek"> · vs S{{ suggestion.comparedToWeek }}</span>
       </div>
       <div class="weight-row" *ngIf="suggestion.adherencePct !== null">
         Adherencia de la semana en curso: <strong>{{ suggestion.adherencePct }} %</strong>
@@ -76,7 +76,7 @@
   </section>
 
   <section class="target-edit">
-    <label class="field-label">kcal de R{{ next.number }}</label>
+    <label class="field-label">kcal de S{{ next.number }}</label>
     <input type="number" step="50" [(ngModel)]="targetKcal" (ngModelChange)="onKcalChange()" />
     <p class="delta-hint">
       Pautado ahora: {{ baseKcal || '—' }} kcal
@@ -108,14 +108,14 @@
 
   <p class="muted">
     Al preparar, todas las cantidades de lo pautado hoy se escalan en proporción a estas kcal y se abren
-    en el editor para retocarlas. Si no cambias nada, R{{ next.number }} repetirá lo actual.
+    en el editor para retocarlas. Si no cambias nada, S{{ next.number }} repetirá lo actual.
   </p>
 </ion-content>
 
 <ion-footer class="ion-no-border">
   <div class="footer-actions">
     <button #prepareButton type="button" class="confirm-button" [disabled]="!(targetKcal > 0)" (click)="prepare()">
-      Preparar R{{ next.number }} en el editor
+      Preparar S{{ next.number }} en el editor
     </button>
     <button type="button" class="discard-link" *ngIf="alreadyPrepared" [disabled]="discarding" (click)="discard()">
       {{ discarding ? 'Descartando…' : 'Descartar la semana preparada' }}

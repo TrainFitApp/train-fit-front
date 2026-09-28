@@ -21,32 +21,14 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
     { key: 'weight', label: 'ANTHROPOMETRY.WEIGHT', color: '#d4af37', unit: 'kg', yAxisID: 'yWeight' },
     { key: 'neck', label: 'ANTHROPOMETRY.NECK', color: '#ef4444', unit: 'cm', yAxisID: 'yBody' },
     { key: 'chest', label: 'ANTHROPOMETRY.CHEST', color: '#f97316', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'shoulders', label: 'ANTHROPOMETRY.SHOULDERS', color: '#fb923c', unit: 'cm', yAxisID: 'yBody' },
-    // bicepsRelaxed/bicepsContracted (sin L/R) — deprecados (MVP-trainers
-    // D8), se mantienen para seguir mostrando entradas antiguas que ya no
-    // tienen desglose por lado.
     { key: 'bicepsRelaxed', label: 'ANTHROPOMETRY.BICEPS_RELAXED', color: '#eab308', unit: 'cm', yAxisID: 'yBody' },
     { key: 'bicepsContracted', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED', color: '#84cc16', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'bicepsRelaxedL', label: 'ANTHROPOMETRY.BICEPS_RELAXED_L', color: '#eab308', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'bicepsRelaxedR', label: 'ANTHROPOMETRY.BICEPS_RELAXED_R', color: '#ca8a04', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'bicepsContractedL', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED_L', color: '#84cc16', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'bicepsContractedR', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED_R', color: '#4d7c0f', unit: 'cm', yAxisID: 'yBody' },
     { key: 'waist', label: 'ANTHROPOMETRY.WAIST', color: '#22c55e', unit: 'cm', yAxisID: 'yBody' },
     { key: 'abdomen', label: 'ANTHROPOMETRY.ABDOMEN', color: '#06b6d4', unit: 'cm', yAxisID: 'yBody' },
     { key: 'hip', label: 'ANTHROPOMETRY.HIP', color: '#3b82f6', unit: 'cm', yAxisID: 'yBody' },
     { key: 'thighContracted', label: 'ANTHROPOMETRY.THIGH_CONTRACTED', color: '#8b5cf6', unit: 'cm', yAxisID: 'yBody' },
     { key: 'thighRelaxed', label: 'ANTHROPOMETRY.THIGH_RELAXED', color: '#ec4899', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'quadL', label: 'ANTHROPOMETRY.QUAD_L', color: '#a855f7', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'quadR', label: 'ANTHROPOMETRY.QUAD_R', color: '#7e22ce', unit: 'cm', yAxisID: 'yBody' },
     { key: 'calf', label: 'ANTHROPOMETRY.CALF', color: '#f43f5e', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'calfL', label: 'ANTHROPOMETRY.CALF_L', color: '#f43f5e', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'calfR', label: 'ANTHROPOMETRY.CALF_R', color: '#be123c', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'ankleL', label: 'ANTHROPOMETRY.ANKLE_L', color: '#14b8a6', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'ankleR', label: 'ANTHROPOMETRY.ANKLE_R', color: '#0f766e', unit: 'cm', yAxisID: 'yBody' },
-    { key: 'muscleMass', label: 'ANTHROPOMETRY.MUSCLE_MASS', color: '#65a30d', unit: 'kg', yAxisID: 'yWeight' },
-    { key: 'fatMass', label: 'ANTHROPOMETRY.FAT_MASS', color: '#dc2626', unit: 'kg', yAxisID: 'yWeight' },
-    { key: 'boneMass', label: 'ANTHROPOMETRY.BONE_MASS', color: '#78716c', unit: 'kg', yAxisID: 'yWeight' },
-    { key: 'residualMass', label: 'ANTHROPOMETRY.RESIDUAL_MASS', color: '#a8a29e', unit: 'kg', yAxisID: 'yWeight' },
   ];
 
   constructor(

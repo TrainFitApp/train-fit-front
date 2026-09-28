@@ -1,0 +1,10 @@
+<button
+  *ngIf="hasContent"
+  type="button"
+  class="tn-dot"
+  [class.tn-dot--sm]="size === 'sm'"
+  [attr.aria-label]="'NOTES.OPEN_TRAINER_NOTE' | translate"
+  (click)="open($event)"
+>
+  <ion-icon name="glasses-outline" aria-hidden="true"></ion-icon>
+</button>

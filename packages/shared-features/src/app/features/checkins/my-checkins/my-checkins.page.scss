@@ -310,6 +310,32 @@
   color: #9a9a9a;
 }
 
+.prefill-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 14px 0 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(254, 144, 0, 0.1);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #e6e6e6;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 18px;
+    color: #fe9000;
+  }
+}
+
+.checkin-field-prefill {
+  margin: 6px 0 0;
+  font-size: 0.75rem;
+  color: #9a9a9a;
+}
+
 /* Escala con anclas escritas.
    En columna y no en fila: la frase de cada nivel es lo que hay que leer, y
    cinco frases en horizontal no caben ni se leen. El número se queda al

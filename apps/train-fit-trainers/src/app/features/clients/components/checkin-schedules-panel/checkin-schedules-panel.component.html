@@ -55,10 +55,8 @@
   </ng-container>
 </ion-content>
 
-<ion-footer class="ion-no-border" *ngIf="state !== 'loading'">
+<ion-footer class="ion-no-border" *ngIf="state !== 'loading' && onGoToCheckins">
   <div class="schedules-panel__footer">
-    <ion-button expand="block" fill="outline" size="small" (click)="goToCheckins()">
-      Ir a check-ins
-    </ion-button>
+    <button type="button" class="goto-button" (click)="goToCheckins()">Ir a check-ins</button>
   </div>
 </ion-footer>

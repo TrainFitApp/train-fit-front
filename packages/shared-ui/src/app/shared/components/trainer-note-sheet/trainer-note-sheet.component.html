@@ -1,0 +1,40 @@
+<div class="tn-sheet">
+  <header class="tn-head">
+    <span class="tn-badge" aria-hidden="true">
+      <ion-icon name="glasses-outline"></ion-icon>
+    </span>
+    <div class="tn-head-text">
+      <p class="tn-eyebrow">
+        {{ (kind === 'exercise' ? 'NOTES.TRAINER_NOTE_EXERCISE' : 'NOTES.TRAINER_NOTE_WORKOUT') | translate }}
+      </p>
+      <h2 class="tn-title" *ngIf="subject">{{ subject | translateDb }}</h2>
+    </div>
+  </header>
+
+  <div class="tn-body">
+    <!-- La anclada primero: vale para todos los microciclos. En azul, como
+         las notas ancladas del resto de la app. -->
+    <section class="tn-section tn-section--pinned" *ngIf="pinnedNotes">
+      <h3 class="tn-label">
+        <ion-icon name="pin" aria-hidden="true"></ion-icon>
+        {{ 'NOTES.TRAINER_NOTE_PINNED' | translate }}
+      </h3>
+      <p class="tn-text">{{ pinnedNotes }}</p>
+      <p class="tn-meta" *ngIf="pinnedUpdatedAt">
+        {{ 'NOTES.TRAINER_NOTE_UPDATED' | translate: { date: (pinnedUpdatedAt | date: 'dd/MM/yyyy') } }}
+      </p>
+    </section>
+
+    <section class="tn-section" *ngIf="notes">
+      <h3 class="tn-label">
+        <ion-icon name="today-outline" aria-hidden="true"></ion-icon>
+        {{ 'NOTES.TRAINER_NOTE_FOR_SESSION' | translate }}
+      </h3>
+      <p class="tn-text">{{ notes }}</p>
+    </section>
+  </div>
+
+  <ion-button expand="block" class="tn-ok" (click)="close()">
+    {{ 'NOTES.GOT_IT' | translate }}
+  </ion-button>
+</div>

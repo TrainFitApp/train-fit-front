@@ -33,6 +33,10 @@ interface CoachCardItem {
 
 const COACH_TAB: CoachRoute = { commands: ['/tabs/coach'] };
 const PREVIEW_COUNT = 3;
+const coachSection = (section: string): CoachRoute => ({
+  commands: ['/tabs/coach'],
+  extras: { state: { coachSection: section } },
+});
 
 // Resumen del tab Coach en el perfil: solo con un profesional ACTIVO (lo
 // decide ProfilePage). Primero lo que le toca hacer (check-ins, elegir
@@ -93,10 +97,6 @@ export class ProfileCoachCardComponent implements OnInit {
     });
   }
 
-  public get hiddenCount(): number {
-    return this.items.length - this.visibleItems.length;
-  }
-
   public open(item: CoachCardItem): void {
     const notification = item.notification;
     if (notification && !notification.read) {
@@ -113,7 +113,7 @@ export class ProfileCoachCardComponent implements OnInit {
   }
 
   public goToCoach(): void {
-    this.go(COACH_TAB);
+    this.go(coachSection('section-pending'));
   }
 
   public trackById(_index: number, item: CoachCardItem): string {
@@ -176,7 +176,7 @@ export class ProfileCoachCardComponent implements OnInit {
         icon: 'checkbox-outline',
         title: t('HABITS'),
         subtitle: t('HABITS_PROGRESS', { done, total: tasks.length }),
-        route: null,
+        route: coachSection('section-tasks'),
       });
     }
     return items;

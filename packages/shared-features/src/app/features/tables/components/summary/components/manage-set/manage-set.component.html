@@ -538,14 +538,48 @@
   </form>
 </ion-content>
 
-<ion-footer>
-  <ion-button
-    expand="block"
-    shape="round"
-    class="ion-margin t-add-workout"
+<ion-footer *ngIf="isTrainerApp; else defaultFooter" class="manage-set-footer-trainer">
+  <p *ngIf="isContinuousAdd" class="set-added-status" aria-live="polite">
+    <ng-container *ngIf="addedCount; else addHint">
+      <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+      {{ 'TABLES.SETS_ADDED_COUNT' | translate: { count: addedCount } }}
+    </ng-container>
+    <ng-template #addHint>
+      {{ (isEditingExisting ? 'TABLES.SET_EDIT_HINT' : 'TABLES.SET_ADD_HINT') | translate }}
+    </ng-template>
+  </p>
+  <button
+    type="button"
+    class="set-submit-button t-add-workout"
+    [class.is-added]="justAdded"
+    [disabled]="!canSubmit"
     (click)="submit()"
     #enterSubmitTarget
   >
-    <strong>{{ 'TABLES.SAVE_BTN' | translate }}</strong>
-  </ion-button>
+    <ion-icon
+      [name]="isContinuousAdd && !justAdded && !isEditingExisting ? 'add' : 'checkmark'"
+      aria-hidden="true"
+    ></ion-icon>
+    <span *ngIf="isContinuousAdd && !isEditingExisting; else saveLabel">
+      {{
+        (justAdded ? (justUpdated ? 'TABLES.SET_UPDATED_BTN' : 'TABLES.SET_ADDED_BTN') : 'TABLES.SET_ADD_BTN')
+          | translate
+      }}
+    </span>
+    <ng-template #saveLabel><span>{{ 'TABLES.SET_SAVE_BTN' | translate }}</span></ng-template>
+  </button>
 </ion-footer>
+
+<ng-template #defaultFooter>
+  <ion-footer>
+    <ion-button
+      expand="block"
+      shape="round"
+      class="ion-margin t-add-workout"
+      (click)="submit()"
+      #enterSubmitTarget
+    >
+      <strong>{{ 'TABLES.SAVE_BTN' | translate }}</strong>
+    </ion-button>
+  </ion-footer>
+</ng-template>

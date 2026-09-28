@@ -18,17 +18,12 @@ import { CustomExerciseService } from 'src/app/core/services/custom-exercise/cus
 import { TableService } from 'src/app/core/services/table/table.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import {
-  ColorMode,
-  ThemeService,
-} from 'src/app/core/services/util/theme.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { FilterInputPage } from '../filter-input/filter-input.page';
 import {
   SearchFilterGroup,
   SearchFilterGroupExercises,
 } from '../../models/filterGroup';
-import { Theme, THEMES } from '../../models/theme';
 import { ExerciseService } from 'src/app/core/services/exercise/exercise.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
@@ -70,10 +65,16 @@ export class SearchExercisesPage implements OnInit {
   @Input() mode: 'default' | 'library' = 'default';
   @Output() exerciseSelected = new EventEmitter<Exercise>();
 
+  // Biblioteca a pantalla completa (exercise-library, entrenadores): la
+  // página no tiene cabecera propia, así que "Volver" va a la izquierda del
+  // buscador y el alta es la primera tarjeta de la lista. Solo aparecen si
+  // la página escucha el evento (el picker de Puntuaciones no lo hace).
+  @Output() back = new EventEmitter<void>();
+  @Output() create = new EventEmitter<void>();
+
   public exercises: Exercise[];
   public exercisesCount: number;
   public load: boolean;
-  public theme: ColorMode;
 
   // pickerMode — selección múltiple: antes cada tap (tarjeta o checkbox)
   // cerraba el modal al instante con un solo ejercicio, así que marcar el
@@ -87,13 +88,7 @@ export class SearchExercisesPage implements OnInit {
 
   public searchFilterGroupExercises: SearchFilterGroupExercises;
 
-  protected readonly GIF_LOCAL_ROUTE_LIGHT =
-    '../../../../../assets/img/logo/login_light.svg';
-
-  protected readonly GIF_LOCAL_ROUTE_DARK =
-    '../../../../../assets/img/logo/login_dark.svg';
-
-  public THEMES = THEMES;
+  protected readonly EXERCISE_PLACEHOLDER = 'assets/logo_light.png';
 
   private keyboardWillShowHandle?: PluginListenerHandle;
   private keyboardWillHideHandle?: PluginListenerHandle;
@@ -114,7 +109,6 @@ export class SearchExercisesPage implements OnInit {
     public modalController: ModalController,
     private exerciseService: ExerciseService,
     private translate: TranslateService,
-    private themeService: ThemeService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private userService: UserService,
@@ -122,9 +116,7 @@ export class SearchExercisesPage implements OnInit {
     private customExerciseService: CustomExerciseService,
     private workoutService: WorkoutService,
     private tableService: TableService
-  ) {
-    this.themeService.theme.subscribe((res: Theme) => (this.theme = res));
-  }
+  ) {}
 
   public ngOnInit(): void {
     // Inputs from Ionic modal are available here
@@ -147,6 +139,22 @@ export class SearchExercisesPage implements OnInit {
     }
 
     this.searchByFilter();
+  }
+
+  public get canGoBack(): boolean {
+    return this.mode !== 'library' || this.back.observed;
+  }
+
+  public get canCreate(): boolean {
+    return this.create.observed;
+  }
+
+  public goBack(): void {
+    if (this.back.observed) {
+      this.back.emit();
+      return;
+    }
+    void this.modalController.dismiss();
   }
 
   public ionViewWillEnter(): void {

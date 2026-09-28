@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
@@ -22,6 +22,9 @@ export class CheckinWorkspaceComponent implements OnChanges {
   // Plantilla con la que abrir "Nueva programación" (llega desde "Aplicar"
   // en Plantillas de check-in).
   @Input() templateToSchedule: string | null = null;
+  // "Ver historial": la pila de paneles (programaciones → histórico de una)
+  // la monta client-detail.page.ts, igual que desde el chip de la fase.
+  @Output() openHistory = new EventEmitter<void>();
   private readonly http = inject(HttpService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly router = inject(Router);

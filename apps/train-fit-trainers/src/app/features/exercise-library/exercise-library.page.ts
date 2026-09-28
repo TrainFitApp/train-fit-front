@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Exercise } from 'src/app/core/models/exercise';
 import { ExerciseService } from 'src/app/core/services/exercise/exercise.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { TrainerNavigationService } from '../../core/services/trainer-navigation.service';
 import { ExerciseDetailModalComponent } from './components/exercise-detail-modal/exercise-detail-modal.component';
 import { ExerciseFormModalComponent } from './components/exercise-form-modal/exercise-form-modal.component';
 
@@ -9,11 +10,12 @@ import { ExerciseFormModalComponent } from './components/exercise-form-modal/exe
 // alcanzable como modal picker dentro de construir un workout. Ahora esta
 // pantalla reutiliza directamente SearchExercisesPage (app-search-exercises,
 // la misma que usa routine-builder para buscar ejercicios) en mode="library":
-// header/buscador/chips/infinite-scroll idénticos, pero el tap emite
+// buscador/chips/infinite-scroll idénticos, pero el tap emite
 // exerciseSelected en vez de abrir ConfigExercisePage, así que aquí solo
 // abrimos ExerciseDetailModalComponent (lectura), y el alta/edición va por
 // ExerciseFormModalComponent, que guarda contra /exercises sin necesitar una
-// rutina abierta.
+// rutina abierta. La página no lleva cabecera: Volver y "+ Ejercicio" los
+// pinta el propio buscador al escuchar (back) y (create).
 @Component({
   selector: 'app-exercise-library',
   templateUrl: 'exercise-library.page.html',
@@ -27,6 +29,7 @@ export class ExerciseLibraryPage {
   public listVisible = true;
 
   constructor(
+    public navigation: TrainerNavigationService,
     private ionicUtilService: IonicUtilService,
     private exerciseService: ExerciseService
   ) {}

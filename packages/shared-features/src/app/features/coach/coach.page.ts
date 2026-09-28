@@ -128,6 +128,10 @@ export class CoachPage implements OnInit {
   public tasks: CoachTask[] = [];
   public togglingTaskId: string | null = null;
 
+  // Sección a la que bajar al entrar (state.coachSection, p. ej. desde la
+  // tarjeta del perfil).
+  private sectionToReveal: string | null = null;
+
   constructor(
     private router: Router,
     private professionalsApi: ProfessionalsApiService,
@@ -154,6 +158,26 @@ export class CoachPage implements OnInit {
     if (this.dashboardState === 'loaded') this.loadDashboard(true);
   }
 
+  // Se borra del history al leerla: volver atrás a Coach no debe repetir
+  // el salto.
+  public ionViewDidEnter(): void {
+    const state = window.history.state;
+    if (!state?.coachSection) return;
+    this.sectionToReveal = state.coachSection;
+    window.history.replaceState({ ...state, coachSection: null }, '');
+    this.revealSection();
+  }
+
+  // Espera a que todo haya cargado: lo que aparece después por encima
+  // (hábitos, pendientes) empujaría la sección fuera de la vista.
+  private revealSection(): void {
+    if (!this.sectionToReveal) return;
+    if (!this.professionalsResolved || this.dashboardState === 'loading' || this.tasksState === 'loading') return;
+    const sectionId = this.sectionToReveal;
+    this.sectionToReveal = null;
+    setTimeout(() => this.scrollToSection(sectionId));
+  }
+
   public load(): void {
     this.state = 'loading';
     Promise.all([
@@ -165,10 +189,12 @@ export class CoachPage implements OnInit {
         this.activeProfessionals = professionals || [];
         this.state = 'loaded';
         this.professionalsResolved = true;
+        this.revealSection();
       })
       .catch(() => {
         this.state = 'error';
         this.professionalsResolved = true;
+        this.revealSection();
       });
 
     // No bloquea el resto de la pantalla si falla, es una sección aparte.
@@ -188,9 +214,11 @@ export class CoachPage implements OnInit {
       next: (dashboard) => {
         this.dashboard = dashboard;
         this.dashboardState = 'loaded';
+        this.revealSection();
       },
       error: () => {
         if (!silent) this.dashboardState = 'error';
+        this.revealSection();
       },
     });
   }
@@ -421,9 +449,11 @@ export class CoachPage implements OnInit {
       next: (tasks) => {
         this.tasks = tasks || [];
         this.tasksState = 'loaded';
+        this.revealSection();
       },
       error: () => {
         this.tasksState = 'error';
+        this.revealSection();
       },
     });
   }

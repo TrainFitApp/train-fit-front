@@ -8,12 +8,13 @@ import { checkinCadenceLabel, shortDayLabel } from '../../checkin-labels.util';
 type ViewState = 'loading' | 'ready' | 'error';
 
 // Las programaciones de check-in del cliente, como panel derecho. Se abre
-// desde el chip "n check-ins" de la tarjeta de la fase.
+// desde el chip "n check-ins" de la tarjeta de la fase y desde "Ver
+// historial" bajo el calendario de Medidas y check-ins.
 //
 // Solo lectura: tocar una card abre SU histórico en un segundo panel, a la
 // izquierda de este (lo monta client-detail.page.ts, que es quien controla
 // la pila). Crear y editar programaciones sigue viviendo en Medidas y
-// check-ins, y el pie lleva ahí.
+// check-ins, y el pie lleva ahí (sin onGoToCheckins, no hay pie).
 @Component({
   selector: 'app-checkin-schedules-panel',
   standalone: true,

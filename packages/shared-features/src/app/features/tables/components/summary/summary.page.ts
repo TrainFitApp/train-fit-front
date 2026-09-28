@@ -106,6 +106,17 @@ export class SummaryPage {
     }
   }
 
+  // 2026-09 — con rutina asignada, lo del entrenador sale como círculo
+  // (app-trainer-note-dot) y no como nota editable.
+  public get hasTrainer(): boolean {
+    return !!this.tableInUse?.assignedByTrainerId;
+  }
+
+  public getTrainerPinnedNote(exerciseIndex: number): PinnedExerciseNote | undefined {
+    const note = this.getExercisePinnedNote(exerciseIndex);
+    return note?.authorRole === 'trainer' ? note : undefined;
+  }
+
   public getExercisePinnedNote(exerciseIndex: number): PinnedExerciseNote | undefined {
     const workoutIndex = this.getWorkoutIndex();
     if (workoutIndex < 0) return undefined;
@@ -138,9 +149,15 @@ export class SummaryPage {
       return;
     }
 
+    // La rutina en uso la pautó el entrenador: la nueva será propia y él no
+    // la verá ni podrá hacerle seguimiento.
+    const trainerWarning = this.tableInUse?.assignedByTrainerId
+      ? ` ${this.translate.instant('TABLES.TRAINER_UNTRACKED_ROUTINE_WARNING')}`
+      : '';
+
     const alertOptions: AlertOptions = {
       header: this.translate.instant('TABLES.CREATE_ROUTINE_ALERT'),
-      message: this.translate.instant('TABLES.CREATE_ROUTINE_MSG'),
+      message: this.translate.instant('TABLES.CREATE_ROUTINE_MSG') + trainerWarning,
       inputs: [
         {
           name: "routineName",
