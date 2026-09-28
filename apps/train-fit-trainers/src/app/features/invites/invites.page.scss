@@ -222,18 +222,27 @@
 // 3 columnas fijas — antes era una lista apilada de 9 filas a todo lo ancho,
 // dejando muchísimo espacio vacío a la derecha de cada checkbox. En móvil
 // estrecho se reduce a 2 y luego a 1 en vez de forzar columnas ilegibles.
+//
+// Las pistas son `minmax(0, 1fr)` y no `1fr`: con `1fr` el mínimo implícito es
+// el contenido de la celda, así que las etiquetas largas ("Nivel de
+// experiencia") ensanchaban la retícula por encima del ancho disponible y se
+// salían de la pantalla en vez de recortarse.
+//
+// El salto a 3 columnas se mide a 840px y no a 560px porque a partir de 768px
+// el split-pane deja el menú lateral fijo (~280px): el ancho real del
+// contenido es el del viewport menos el menú, no el del viewport.
 .field-toggle-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 4px;
 
-  @media (max-width: 560px) {
-    grid-template-columns: repeat(2, 1fr);
+  @media (min-width: 840px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  @media (max-width: 360px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 400px) {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -266,6 +275,9 @@
   }
 
   span {
+    // `min-width: 0` es lo que permite que el ellipsis actúe: sin él el mínimo
+    // del ítem flex es el ancho del texto completo y la fila desborda la celda.
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

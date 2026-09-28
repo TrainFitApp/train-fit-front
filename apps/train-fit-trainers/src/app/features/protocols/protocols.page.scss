@@ -166,13 +166,23 @@
 .content-chips {
   display: flex;
   flex-wrap: wrap;
+  // El contenedor (`.protocol-main`) alinea con `flex-start`, así que sin
+  // `align-self: stretch` esta fila se dimensionaba a su contenido completo y
+  // se salía de la card en vez de envolver dentro de ella.
+  align-self: stretch;
+  min-width: 0;
   gap: var(--tf-space-2);
 }
 
+// El nombre de una plantilla puede ser largo ("Plantilla privada · fuerza con
+// material"): sin `min-width: 0` en el chip y sin un elemento propio para el
+// texto, el ancho mínimo del chip era el del texto completo y arrastraba a la
+// fila entera fuera de la pantalla en móvil.
 .content-chip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -196,6 +206,13 @@
     color: var(--tf-text-muted);
     font-weight: 400;
   }
+}
+
+.content-chip__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .protocol-actions {

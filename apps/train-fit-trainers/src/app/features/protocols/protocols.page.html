@@ -82,7 +82,8 @@
 
         <span class="content-chips">
           <span class="content-chip" *ngFor="let part of contentSummary(protocol); trackBy: trackByIndex">
-            <ion-icon [name]="part.icon" aria-hidden="true"></ion-icon>{{ part.text }}
+            <ion-icon [name]="part.icon" aria-hidden="true"></ion-icon
+            ><span class="content-chip__text">{{ part.text }}</span>
           </span>
           <span class="content-chip content-chip--empty" *ngIf="!contentSummary(protocol).length">Vacío</span>
         </span>

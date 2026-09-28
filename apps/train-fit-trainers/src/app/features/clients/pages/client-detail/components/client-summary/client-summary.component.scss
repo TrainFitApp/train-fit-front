@@ -590,10 +590,28 @@
   align-items: center;
   gap: 2px var(--tf-space-3);
   padding: 6px 0 6px calc(var(--tf-space-5) + 20px + var(--tf-space-3));
+
+  // En móvil las cuatro columnas más el sangrado no caben: la fila se salía de
+  // la card, que recorta. Apiladas, el objetivo y la barra pasan debajo del
+  // nombre del hábito y se conserva el porcentaje a la derecha.
+  @media (max-width: 560px) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'label value'
+      'target target'
+      'bar bar'
+      'detail detail';
+    gap: 4px var(--tf-space-3);
+    padding-left: var(--tf-space-5);
+  }
 }
 
 .habit-label {
   grid-area: label;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--tf-font-size-sm);
   color: var(--tf-text-muted);
 }
@@ -723,19 +741,29 @@
 // ---------------------------------------------------------------------------
 // Contexto (qué tiene asignado)
 // ---------------------------------------------------------------------------
+// `minmax(0, 1fr)` y no `1fr`: el mínimo implícito de una pista `1fr` es el
+// contenido, así que valores largos ("Hipertrofia torso-pierna", "Próximo
+// 2026-10-01") ensanchaban la retícula más allá de la card, que recorta a
+// hueso por su `overflow: hidden`. Con minmax(0, …) cada celda recorta su
+// propio texto con puntos suspensivos y la retícula respeta el ancho real.
 .context-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid var(--tf-border);
 
   @media (max-width: 720px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 400px) {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 .context-item {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   gap: 2px;
   min-height: 72px;
   justify-content: center;
@@ -766,6 +794,9 @@
 .context-label {
   font-size: var(--tf-font-size-xs);
   color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .context-value {
@@ -773,6 +804,9 @@
   font-weight: 700;
   color: var(--tf-text);
   font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   // El nombre de una rutina es texto largo, no una cifra: se recorta en vez
   // de romper la retícula de cuatro columnas.

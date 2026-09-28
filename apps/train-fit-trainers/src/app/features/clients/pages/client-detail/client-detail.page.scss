@@ -278,18 +278,36 @@
   color: var(--tf-text-secondary);
 }
 
+// `margin-left: auto` la empuja al final de la fila en escritorio; en pantallas
+// estrechas la fila envuelve y la línea pasa a ocupar todo el ancho. Sin
+// `min-width: 0` + `max-width: 100%` el `white-space: nowrap` la sacaba fuera
+// del viewport y el texto se cortaba a hueso, sin puntos suspensivos.
 .summary-header-activity {
   display: inline-flex;
   align-items: center;
   margin-left: auto;
   gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--tf-text-muted);
   white-space: nowrap;
 
   ion-icon {
+    flex-shrink: 0;
     font-size: 13px;
     color: var(--tf-text-muted);
   }
+}
+
+// El texto va en su propio elemento porque `text-overflow` no actúa sobre el
+// ítem anónimo que genera un nodo de texto suelto dentro de un contenedor flex.
+.summary-header-activity-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .summary-header-actions {

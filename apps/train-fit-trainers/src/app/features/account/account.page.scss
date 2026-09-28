@@ -11,9 +11,14 @@
   --padding-bottom: 32px;
 }
 
+// `flex-wrap: wrap` + una base de 140px en `.account-info`: en pantallas muy
+// estrechas (320px) el avatar y el botón no cedían espacio y el nombre se
+// quedaba en "T…". Al envolver, el botón baja a su propia línea y el nombre
+// recupera el ancho de la card.
 .account-card {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   text-align: left;
   gap: var(--tf-space-4);
@@ -46,7 +51,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  flex: 1;
+  flex: 1 1 140px;
   min-width: 0;
 }
 

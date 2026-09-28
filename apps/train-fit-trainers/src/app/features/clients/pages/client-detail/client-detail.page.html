@@ -111,7 +111,9 @@
               *ngIf="lastActivityLabel as activity"
             >
               <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
-              Última actividad: {{ activity }}
+              <span class="summary-header-activity-text"
+                >Última actividad: {{ activity }}</span
+              >
             </span>
           </div>
           <!-- Línea de nutrición, misma forma que la de entrenamiento: fase
