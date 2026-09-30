@@ -3,12 +3,12 @@
 // single-page-application hace que recargar en una ruta interna
 // (/tabs/clients/…) devuelva index.html.
 //
-//   PRO: Worker trainfit-trainers     → https://trainers.trainfit.net
+//   PRO: Worker train-fit-trainers     → https://trainers.trainfit.net
 //        deploy: npx wrangler deploy
-//   PRE: Worker trainfit-trainers-pre → https://trainers-pre.trainfit.net
+//   PRE: Worker train-fit-trainers-pre → https://trainers-pre.trainfit.net
 //        deploy: npx wrangler deploy --env pre
 {
-  "name": "trainfit-trainers",
+  "name": "train-fit-trainers",
   "compatibility_date": "2026-09-01",
   "assets": {
     "directory": "./apps/train-fit-trainers/www",
@@ -16,7 +16,7 @@
   },
   "env": {
     "pre": {
-      "name": "trainfit-trainers-pre"
+      "name": "train-fit-trainers-pre"
     }
   }
 }
