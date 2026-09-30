@@ -283,15 +283,28 @@ export class ProgressPhotosComponent implements OnInit, OnChanges {
     });
   }
 
-  public async toggleDayVisibility(day: ProgressDayView): Promise<void> {
+  public async toggleDayVisibility(day: ProgressDayView, undoable = true): Promise<void> {
+    let updated: ProgressDayView;
     try {
-      const { day: updated } = await firstValueFrom(
+      ({ day: updated } = await firstValueFrom(
         this.mediaApi.updateDay(day.date, { hiddenFromTrainers: !day.hiddenFromTrainers })
-      );
+      ));
       this.days = this.days.map((item) => (item.date === updated.date ? updated : item));
     } catch (error) {
       this.showError(error);
+      return;
     }
+    // El ojo se confunde con «ver»: se confirma qué ha pasado y, si se ha
+    // ocultado, se deja deshacer sin buscar el botón otra vez.
+    const hidden = updated.hiddenFromTrainers;
+    const { role } = await this.ionicUtilService.showToast({
+      message: this.translate.instant(hidden ? 'MEDIA.DAY_HIDDEN_TOAST' : 'MEDIA.DAY_SHOWN_TOAST'),
+      duration: 4000,
+      position: 'bottom',
+      icon: hidden ? 'eye-off-outline' : 'eye-outline',
+      buttons: hidden && undoable ? [{ text: this.translate.instant('MEDIA.UNDO'), role: 'undo' }] : undefined,
+    });
+    if (role === 'undo') await this.toggleDayVisibility(updated, false);
   }
 
   public async answerHistory(trainer: ProgressTrainerShare, shared: boolean): Promise<void> {

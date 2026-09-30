@@ -52,5 +52,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Usamos la cámara para grabar los vídeos de técnica de tu biblioteca.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Usamos el micrófono al grabar un vídeo de técnica para tus clientes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Puedes elegir de tu galería los vídeos de técnica que quieras subir a TrainFit.</string>
 </dict>
 </plist>
