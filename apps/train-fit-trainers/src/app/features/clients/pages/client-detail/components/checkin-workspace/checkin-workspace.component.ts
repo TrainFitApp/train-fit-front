@@ -175,6 +175,15 @@ export class CheckinWorkspaceComponent implements OnChanges {
     if (!this.comparisonTabs.some(tab => tab.key === this.selectedComparisonTab)) this.selectedComparisonTab = this.comparisonTabs[0]?.key || null;
     this.chooseComparisonTab(this.selectedComparisonTab);
   }
+  // Respuesta de referencia elegida (para la pestaña de fotos).
+  public get referenceEntry(): CheckinEntry | null {
+    return this.references.find(r => r._id === this.referenceId) || null;
+  }
+  // Id del día de fotos con el que se respondió (campo progress_photos).
+  public photosDayOf(entry: CheckinEntry | null): string | null {
+    const value = entry?.values?.['progress_photos'];
+    return typeof value === 'string' ? value : null;
+  }
   public chooseComparisonTab(tab: ComparisonTab | null): void {
     this.selectedComparisonTab = tab;
     this.visibleRows = this.rows.filter(row => row.tab === tab);

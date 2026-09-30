@@ -85,7 +85,8 @@
 }
 
 // Video Card
-.video-card {
+.video-card,
+.form-check-card {
   .video-header {
     margin-bottom: 16px;
 
@@ -343,5 +344,89 @@
   .historical-stats-empty {
     display: block;
     font-size: 0.85rem;
+  }
+}
+
+// Vídeo del entrenador y revisiones de técnica (docs/plan-medidas-multimedia.md).
+.trainer-video-card {
+  border-color: rgba(254, 144, 0, 0.35) !important;
+}
+
+// Lo pautado por el entrenador: icono naranja sobre fondo tintado, no el verde del catálogo.
+.video-card .video-header .video-info .trainer-video-icon {
+  background: rgba(254, 144, 0, 0.16);
+
+  ion-icon {
+    color: #fe9000;
+  }
+}
+
+.trainer-video-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.trainer-video-sub {
+  font-size: 0.8rem;
+  color: #9a9a9a;
+}
+
+.trainer-video-cues {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(254, 144, 0, 0.07);
+  color: #f1f1f1;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.catalog-toggle {
+  display: block;
+  min-height: 44px;
+  margin: 6px 0 -8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #9a9a9a;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.form-check-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-check-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: #fe9000;
+  color: #111;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
   }
 }

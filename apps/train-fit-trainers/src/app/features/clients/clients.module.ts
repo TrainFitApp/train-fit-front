@@ -20,6 +20,8 @@ import { ClientSummaryComponent } from './pages/client-detail/components/client-
 import { ClientRosterComponent } from './components/client-roster/client-roster.component';
 import { IntakeAnswersComponent } from './components/intake-answers/intake-answers.component';
 import { PainPanelComponent } from './pages/client-detail/components/pain-panel/pain-panel.component';
+import { ClientMediaPanelComponent } from './pages/client-detail/components/client-media-panel/client-media-panel.component';
+import { CheckinPhotosCompareComponent } from './pages/client-detail/components/checkin-photos-compare/checkin-photos-compare.component';
 import { ClientNotesComponent } from './pages/client-detail/components/client-notes/client-notes.component';
 import { SupplementsPanelComponent } from './pages/client-detail/components/supplements-panel/supplements-panel.component';
 import { ShoppingListPanelComponent } from './pages/client-detail/components/shopping-list-panel/shopping-list-panel.component';
@@ -74,6 +76,8 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     ClientRosterComponent,
     IntakeAnswersComponent,
     PainPanelComponent,
+    ClientMediaPanelComponent,
+    CheckinPhotosCompareComponent,
     ClientNotesComponent,
     SupplementsPanelComponent,
     ShoppingListPanelComponent,

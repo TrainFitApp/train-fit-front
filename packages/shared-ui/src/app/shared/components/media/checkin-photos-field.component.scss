@@ -1,0 +1,57 @@
+@use './media-shared' as *;
+
+:host {
+  display: block;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-loading {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  color: $media-muted;
+}
+
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 72px));
+  gap: 6px;
+
+  img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #0b0b0b;
+  }
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.82rem;
+  color: $media-muted;
+
+  ion-icon {
+    font-size: 17px;
+    color: #ffb347;
+
+    &.ok {
+      color: $media-success;
+    }
+  }
+}
+
+.open-button {
+  @include media-ghost-button;
+  align-self: flex-start;
+  border-color: rgba($media-accent, 0.45);
+  color: $media-accent;
+}

@@ -1094,19 +1094,17 @@
         <app-checkin-workspace [clientId]="clientId" [templateToSchedule]="checkinTemplateToOpen" (openHistory)="openCheckinSchedulesPanel(true)"></app-checkin-workspace>
 
         <ng-container *ngIf="scopes.includes('training') || scopes.includes('nutrition')">
-          <!-- Fotos de progreso — mock: todavía sin subida real, placeholder
-           para que el flujo se vea completo en la ficha. -->
+          <!-- Fotos de progreso: viven en su propia subpestaña (Progreso ›
+               Fotos y vídeos, docs/plan-medidas-multimedia.md). Aquí solo el
+               acceso, para quien las busque junto a las medidas. -->
           <div class="section-row section-row--top">
-            <h2 class="section-heading">Fotos de progreso</h2>
+            <h2 class="section-heading">{{ 'MEDIA.SESSION_TITLE' | translate }}</h2>
+            <button type="button" class="section-action" (click)="selectTab('media')">
+              {{ 'MEDIA.TRAINER.OPEN_MEDIA' | translate }}
+              <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </button>
           </div>
-          <div class="photos-mock-grid">
-            <div class="photo-mock-slot" *ngFor="let i of [0, 1, 2, 3]">
-              <ion-icon name="camera-outline"></ion-icon>
-            </div>
-          </div>
-          <p class="empty-hint">
-            Próximamente: el cliente podrá subir fotos de progreso desde su app.
-          </p>
+          <p class="empty-hint">{{ 'MEDIA.TRAINER.PHOTOS_MOVED' | translate }}</p>
         </ng-container>
       </div>
 
@@ -2202,7 +2200,7 @@
       <!-- === SESIONES HECHAS (F09; antes "Historial") === -->
       <div
         class="tab-panel"
-        *ngIf="scopes.includes('training') && activeTab === 'history'"
+        *ngIf="scopes.includes('training') && $any(activeTab) === 'history'"
       >
         <div class="detail-skeleton" *ngIf="trainingState === 'loading'">
           <div class="skeleton-block skeleton-block--md"></div>
@@ -2643,6 +2641,10 @@
       </div>
 
       <!-- === DOLOR (Movimiento 3, subpestaña propia desde el Movimiento final) === -->
+      <div class="tab-panel" *ngIf="activeTab === 'media'">
+        <app-client-media-panel [clientId]="clientId" [hasTraining]="scopes.includes('training')"></app-client-media-panel>
+      </div>
+
       <div class="tab-panel" *ngIf="activeTab === 'pain'">
         <app-pain-panel [clientId]="clientId"></app-pain-panel>
       </div>

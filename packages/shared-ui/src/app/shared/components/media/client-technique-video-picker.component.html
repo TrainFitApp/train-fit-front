@@ -1,0 +1,32 @@
+<div class="picker" *ngIf="clientId && exerciseId">
+  <div class="picker-head">
+    <ion-icon name="videocam-outline"></ion-icon>
+    <div class="picker-text">
+      <span class="picker-title">{{ 'MEDIA.CLIENT_VIDEO_TITLE' | translate }}</span>
+      <span class="picker-sub" *ngIf="!loading">
+        {{ selectedId
+          ? ('MEDIA.CLIENT_VIDEO_ASSIGNED' | translate)
+          : defaultVideo
+            ? ('MEDIA.CLIENT_VIDEO_DEFAULT' | translate: { title: defaultVideo.title })
+            : ('MEDIA.CLIENT_VIDEO_CATALOG' | translate) }}
+      </span>
+    </div>
+  </div>
+
+  <ion-select
+    *ngIf="!loading && videos.length; else emptyLibrary"
+    class="picker-select"
+    interface="popover"
+    [value]="selectedId || '__default'"
+    [disabled]="saving"
+    (ionChange)="select($event)"
+    [attr.aria-label]="'MEDIA.CLIENT_VIDEO_TITLE' | translate"
+  >
+    <ion-select-option value="__default">{{ 'MEDIA.CLIENT_VIDEO_NONE' | translate }}</ion-select-option>
+    <ion-select-option *ngFor="let video of videos" [value]="video.id">{{ video.title }}</ion-select-option>
+  </ion-select>
+
+  <ng-template #emptyLibrary>
+    <p class="picker-empty" *ngIf="!loading">{{ 'MEDIA.CLIENT_VIDEO_EMPTY_LIBRARY' | translate }}</p>
+  </ng-template>
+</div>

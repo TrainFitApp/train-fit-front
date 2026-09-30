@@ -1,0 +1,17 @@
+<div class="field">
+  <div class="field-loading" *ngIf="loading"><ion-spinner name="dots"></ion-spinner></div>
+
+  <ng-container *ngIf="!loading">
+    <div class="thumbs" *ngIf="day?.photos?.length">
+      <img *ngFor="let photo of day?.photos" [src]="photo.asset.thumbUrl || photo.asset.url" [alt]="('MEDIA.POSE_' + photo.pose.toUpperCase()) | translate" />
+    </div>
+    <p class="status" *ngIf="day?.photos?.length">
+      <ion-icon [name]="missing ? 'alert-circle-outline' : 'checkmark-circle'" [class.ok]="!missing"></ion-icon>
+      {{ (missing ? 'MEDIA.CHECKIN_MISSING' : 'MEDIA.CHECKIN_READY') | translate: { count: missing } }}
+    </p>
+    <button type="button" class="open-button" (click)="open()">
+      <ion-icon [name]="day?.photos?.length ? 'create-outline' : 'camera-outline'"></ion-icon>
+      <span>{{ (day?.photos?.length ? 'MEDIA.CHECKIN_EDIT' : 'MEDIA.CHECKIN_TAKE') | translate }}</span>
+    </button>
+  </ng-container>
+</div>

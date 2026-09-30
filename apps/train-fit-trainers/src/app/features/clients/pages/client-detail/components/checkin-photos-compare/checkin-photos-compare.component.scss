@@ -1,0 +1,109 @@
+:host {
+  display: block;
+  margin: var(--tf-space-3) 0;
+}
+
+.compare-loading {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  color: var(--tf-text-muted);
+}
+
+.compare-empty {
+  margin: var(--tf-space-2) 0 0;
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
+}
+
+.compare-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
+}
+
+.pose-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+.pose-chip {
+  min-height: 36px;
+  padding: 0 var(--tf-space-4);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-pill);
+  background: transparent;
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  &.active {
+    background: var(--tf-text);
+    border-color: var(--tf-text);
+    color: var(--tf-bg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.mode-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-3);
+
+  button {
+    width: 40px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: var(--tf-radius-sm);
+    background: transparent;
+    color: var(--tf-text-muted);
+    font-size: 18px;
+    cursor: pointer;
+
+    &.active {
+      background: var(--tf-surface-5);
+      color: var(--tf-text);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.compare-stage {
+  max-width: 560px;
+}
+
+.single {
+  margin: 0;
+  max-width: 280px;
+
+  img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: var(--tf-radius-lg);
+    background: var(--tf-surface-3);
+  }
+
+  figcaption {
+    margin-top: var(--tf-space-2);
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+  }
+}

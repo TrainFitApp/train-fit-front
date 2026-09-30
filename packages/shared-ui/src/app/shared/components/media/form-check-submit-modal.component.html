@@ -1,0 +1,99 @@
+<ion-header class="ion-no-border">
+  <div class="media-modal-header">
+    <button type="button" class="media-icon-button" (click)="close()" [disabled]="uploading" [attr.aria-label]="'MEDIA.CLOSE' | translate">
+      <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+    <h1 class="media-modal-title">
+      {{ 'MEDIA.FORM_CHECK_TITLE' | translate }}
+      <span class="media-modal-subtitle">{{ exerciseName | translateDb }}</span>
+    </h1>
+    <span></span>
+  </div>
+</ion-header>
+
+<ion-content class="submit-content">
+  <!-- 1. El vídeo -->
+  <section class="step">
+    <h2 class="step-title">{{ 'MEDIA.FORM_CHECK_STEP_VIDEO' | translate }}</h2>
+
+    <div class="pickers" *ngIf="!file">
+      <label class="picker picker--primary" [class.picker--busy]="inspecting">
+        <input type="file" accept="video/*" capture="environment" (change)="onFile($event)" [disabled]="inspecting" />
+        <ion-icon name="videocam-outline"></ion-icon>
+        <span>{{ 'MEDIA.RECORD_VIDEO' | translate }}</span>
+      </label>
+      <label class="picker" [class.picker--busy]="inspecting">
+        <input type="file" accept="video/*" (change)="onFile($event)" [disabled]="inspecting" />
+        <ion-icon name="images-outline"></ion-icon>
+        <span>{{ 'MEDIA.FROM_GALLERY' | translate }}</span>
+      </label>
+    </div>
+    <p class="step-hint" *ngIf="!file">{{ 'MEDIA.FORM_CHECK_VIDEO_HINT' | translate }}</p>
+
+    <div class="preview" *ngIf="file && previewUrl">
+      <video class="preview-video" [src]="previewUrl" controls playsinline preload="metadata"></video>
+      <div class="preview-meta">
+        <span>{{ duration(durationSec) }}</span>
+        <button type="button" class="link-button" (click)="clearFile()" [disabled]="uploading">{{ 'MEDIA.CHANGE_VIDEO' | translate }}</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. La serie -->
+  <section class="step" *ngIf="sets?.length">
+    <h2 class="step-title">{{ 'MEDIA.FORM_CHECK_STEP_SET' | translate }}</h2>
+    <div class="sets" role="radiogroup" [attr.aria-label]="'MEDIA.FORM_CHECK_STEP_SET' | translate">
+      <button
+        *ngFor="let set of sets; let i = index"
+        type="button"
+        role="radio"
+        class="set-option"
+        [class.set-option--active]="selectedSet === i"
+        [attr.aria-checked]="selectedSet === i"
+        (click)="selectedSet = selectedSet === i ? null : i"
+        [disabled]="uploading"
+      >
+        <span class="set-index">{{ 'MEDIA.SET_N' | translate: { n: i + 1 } }}</span>
+        <span class="set-lines">
+          <span class="set-line" *ngIf="executed(set) as done">{{ done }}</span>
+          <span class="set-line set-line--prescribed" *ngIf="prescribed(set) as plan">
+            {{ 'MEDIA.PRESCRIBED' | translate }}: {{ plan }}
+          </span>
+          <span class="set-line set-line--empty" *ngIf="!executed(set) && !prescribed(set)">—</span>
+        </span>
+        <ion-icon class="set-check" [name]="selectedSet === i ? 'radio-button-on' : 'radio-button-off'"></ion-icon>
+      </button>
+    </div>
+  </section>
+
+  <!-- 3. Nota -->
+  <section class="step">
+    <h2 class="step-title">{{ 'MEDIA.FORM_CHECK_STEP_NOTE' | translate }}</h2>
+    <textarea
+      class="note"
+      rows="3"
+      maxlength="500"
+      [value]="note"
+      (input)="onNote($event)"
+      [disabled]="uploading"
+      [placeholder]="'MEDIA.FORM_CHECK_NOTE_PLACEHOLDER' | translate"
+      [attr.aria-label]="'MEDIA.FORM_CHECK_STEP_NOTE' | translate"
+    ></textarea>
+  </section>
+</ion-content>
+
+<ion-footer class="ion-no-border submit-footer">
+  <div class="upload-progress" *ngIf="uploading" role="status">
+    <span class="bar"><span class="bar-fill" [style.transform]="'scaleX(' + progress + ')'"></span></span>
+    <span>{{ 'MEDIA.UPLOADING_PERCENT' | translate: { percent: (progress * 100 | number: '1.0-0') } }}</span>
+  </div>
+  <p class="retention">
+    <ion-icon name="time-outline"></ion-icon>
+    <span>{{ (uploading ? 'MEDIA.KEEP_APP_OPEN' : 'MEDIA.FORM_CHECK_RETENTION') | translate }}</span>
+  </p>
+  <button type="button" class="send-button" (click)="send()" [disabled]="!file || uploading">
+    <ion-spinner *ngIf="uploading" name="crescent"></ion-spinner>
+    <ion-icon *ngIf="!uploading" name="send-outline"></ion-icon>
+    <span>{{ 'MEDIA.FORM_CHECK_SEND' | translate }}</span>
+  </button>
+</ion-footer>

@@ -1025,6 +1025,19 @@ ion-modal.trainer-note-sheet-modal {
   }
 }
 
+/* Consentimiento de fotos y vídeos (MediaConsentSheetComponent) — hoja de
+   alto automático: el texto cambia de largo según idioma y entrenador. */
+ion-modal.media-consent-sheet-modal {
+  --height: auto;
+  --border-radius: 20px 20px 0 0;
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
 // ===== ALERTS COMO HOJA INFERIOR =====
 // Todos los alerts pasan por IonicUtilService.showAlert, que les pone
 // `custom-alert`, `mode: 'md'` y la animación/arrastre de alert-sheet.ts.

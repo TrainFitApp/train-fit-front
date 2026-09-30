@@ -96,6 +96,23 @@
   100% { width: 100%; }
 }
 
+.section-switch {
+  padding: 0 16px 12px;
+}
+
+.section-segment {
+  --background: rgba(255, 255, 255, 0.05);
+}
+
+// [hidden] pierde contra el display:flex de abajo: se fuerza aquí.
+.weight-info-container[hidden] {
+  display: none;
+}
+
+.media-container {
+  padding-bottom: calc(24px + var(--ion-safe-area-bottom, 0px));
+}
+
 .weight-info-container {
   padding: 16px;
   display: flex;

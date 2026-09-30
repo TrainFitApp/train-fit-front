@@ -265,3 +265,31 @@
 #tf-main-content {
   background: var(--tf-bg);
 }
+
+// Contador de revisiones de técnica pendientes.
+.menu-item {
+  position: relative;
+}
+
+.menu-badge {
+  margin-left: auto;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent);
+  color: var(--tf-accent-contrast);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+
+  &--dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    min-width: 8px;
+    width: 8px;
+    height: 8px;
+    padding: 0;
+  }
+}

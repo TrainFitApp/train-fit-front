@@ -9,7 +9,11 @@ export type TrainerNotificationType =
   | 'nutrition_preferences_updated'
   // Cobros 2026-09 — recordatorio de un cobro con saldo (job del backend).
   // payload.current trae el estado VIGENTE del cobro al leer la lista.
-  | 'payment_reminder';
+  | 'payment_reminder'
+  // Revisiones de técnica (docs/plan-medidas-multimedia.md): el cliente
+  // mandó un vídeo, y aviso único de que una revisión se borra en 7 días.
+  | 'form_check_submitted'
+  | 'form_check_expiring';
 
 export interface TrainerNotificationClient {
   _id: string;

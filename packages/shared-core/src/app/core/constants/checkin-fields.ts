@@ -13,13 +13,16 @@ export type CheckinFieldType =
   | 'text'
   | 'yes_no'
   | 'select'
-  | 'frequency';
-export type CheckinFieldStorage = 'anthropometry' | 'wellbeing';
+  | 'frequency'
+  // Fotos de progreso (docs/plan-medidas-multimedia.md): la respuesta es el
+  // id del día de progreso que el cliente rellena con la captura guiada.
+  | 'photos';
+export type CheckinFieldStorage = 'anthropometry' | 'wellbeing' | 'media';
 
 // Los PASOS no son un campo de check-in: se pautan como hábito diario
 // (TrainerTask type "steps") y el cliente los marca bajo sus comidas.
 // Ver docs/plan-semanas.md §12.
-export type CheckinFieldGroup = 'composicion_corporal' | 'perimetros' | 'bienestar';
+export type CheckinFieldGroup = 'composicion_corporal' | 'perimetros' | 'bienestar' | 'fotos';
 
 export interface CheckinField {
   key: string;
@@ -57,6 +60,8 @@ export interface CheckinField {
   // de nadie.
   min?: number;
   max?: number;
+  // Solo tipo `photos`: poses que se piden (front, side, back, extra).
+  poses?: Array<'front' | 'side' | 'back' | 'extra'>;
 }
 
 // Niveles por defecto de una escala sin anclas — las preguntas propias del
@@ -278,6 +283,21 @@ export const CHECKIN_FIELDS: CheckinField[] = [
   // junto a las medidas de composición corporal/perímetros de esa misma
   // respuesta). Un único campo genérico, no un mecanismo aparte.
   { key: "comment", label: "Comentario", type: "text", group: "bienestar", storage: "wellbeing" },
+
+  // --- Fotos de progreso (storage: media) — docs/plan-medidas-multimedia.md ---
+  // La respuesta es el _id del día de progreso (ProgressMediaDay) que el
+  // cliente rellena con el mismo flujo de captura guiada de Medidas › Fotos.
+  // Responder se lo envía al profesional: ese día lo ve siempre, aunque el
+  // cliente lo haya ocultado en su galería.
+  {
+    key: "progress_photos",
+    label: "Fotos de progreso",
+    type: "photos",
+    group: "fotos",
+    storage: "media",
+    poses: ["front", "side", "back"],
+    hint: "Mismo sitio, misma luz y a la misma hora. En ayunas y con la misma ropa. Móvil a la altura del ombligo, a unos 2 metros.",
+  },
 ];
 
 export const CHECKIN_FIELD_KEYS = CHECKIN_FIELDS.map((f) => f.key);

@@ -452,6 +452,15 @@
       </ng-template>
     </div>
 
+    <!-- App del entrenador, rutina de un cliente: qué vídeo de su biblioteca
+         ve este cliente en este ejercicio (docs/plan-medidas-multimedia.md). -->
+    <app-client-technique-video-picker
+      *ngIf="techniqueVideoClientId && techniqueVideoExerciseId && !isCreateMode"
+      class="technique-video-picker"
+      [clientId]="techniqueVideoClientId"
+      [exerciseId]="techniqueVideoExerciseId"
+    ></app-client-technique-video-picker>
+
     <!-- Video Section — al crear o editar el propio ejercicio ya se ve en
          la vista previa del bloque de vídeo de arriba. -->
     <div *ngIf="videoEmbedSrcSafe && !isCreateMode && !isEditingOwnExercise" class="elegant-card video-card">

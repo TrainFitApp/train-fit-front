@@ -1,0 +1,453 @@
+@use './media-shared' as *;
+
+:host {
+  display: block;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.progress-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-block {
+  height: 90px;
+  border-radius: 14px;
+  background: #1a1a1a;
+  position: relative;
+  overflow: hidden;
+
+  &--tall {
+    height: 260px;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    animation: progress-shimmer 1.4s infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      animation: none;
+    }
+  }
+}
+
+@keyframes progress-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px 16px;
+  text-align: center;
+  color: $media-muted;
+
+  ion-icon {
+    font-size: 38px;
+    color: $media-faint;
+  }
+
+  p {
+    margin: 0;
+    max-width: 34ch;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+}
+
+.progress-note {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: $media-muted;
+}
+
+.primary-button {
+  @include media-primary-button;
+
+  &--small {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 0.85rem;
+  }
+}
+
+.ghost-button {
+  @include media-ghost-button;
+}
+
+.session-button {
+  width: 100%;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 19px;
+  cursor: pointer;
+
+  @include media-focus;
+}
+
+// Pregunta única de historial: franja con acento, no una card más.
+.history-prompt {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba($media-accent, 0.07);
+  border: 1px solid rgba($media-accent, 0.28);
+}
+
+.history-prompt-icon {
+  font-size: 22px;
+  color: $media-accent;
+}
+
+.history-prompt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-prompt-text {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #fff;
+}
+
+.history-prompt-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #c9b79d;
+}
+
+.history-prompt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.block-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.compare-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mode-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+
+  button {
+    width: 40px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: $media-muted;
+    font-size: 18px;
+    cursor: pointer;
+
+    &.active {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+
+    @include media-focus;
+  }
+}
+
+.pose-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pose-chip {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: transparent;
+  color: #d0d0d0;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &.active {
+    background: #fff;
+    border-color: #fff;
+    color: #111;
+  }
+
+  @include media-focus;
+}
+
+.compare-dates {
+  display: grid;
+  grid-template-columns: 1fr 20px 1fr;
+  align-items: center;
+  gap: 6px;
+}
+
+.date-select {
+  min-height: 44px;
+  width: 100%;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: $media-surface;
+  border: 1px solid $media-border;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+
+  @include media-focus;
+}
+
+.compare-arrow {
+  justify-self: center;
+  color: $media-muted;
+}
+
+.deltas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+}
+
+.delta-label {
+  font-size: 0.72rem;
+  color: $media-muted;
+}
+
+.delta-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.compare-empty {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: $media-muted;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.day {
+  padding: 12px;
+  border-radius: 14px;
+  background: $media-surface;
+  border: 1px solid $media-border;
+}
+
+.day-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.day-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.day-date {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #fff;
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.day-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  @include media-chip;
+
+  &--neutral {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e0e0e0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &--accent {
+    background: rgba($media-accent, 0.14);
+    color: $media-accent;
+  }
+
+  &--muted {
+    background: rgba(255, 255, 255, 0.05);
+    color: $media-muted;
+  }
+}
+
+.day-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.day-photos {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.day-photo {
+  position: relative;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  background: #0b0b0b;
+  cursor: pointer;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @include media-focus;
+}
+
+.day-photo-tag {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.privacy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid $media-border;
+}
+
+.privacy-intro {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: $media-muted;
+}
+
+.privacy-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+}
+
+.privacy-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 0.9rem;
+    color: #fff;
+  }
+
+  span {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: $media-muted;
+  }
+}
+
+// App del entrenador (escritorio): comparador y días con más aire.
+.progress--trainer {
+  .compare-block {
+    max-width: 560px;
+  }
+
+  .day-photos {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 160px));
+  }
+}

@@ -70,6 +70,15 @@ export class TemplatesPage implements OnInit {
       colorVar: 'var(--tf-danger, #ff5c5c)',
       path: '/tabs/exercises',
     },
+    // Vídeos de técnica propios (subidos o enlazados) que ven sus clientes
+    // en cada ejercicio (docs/plan-medidas-multimedia.md).
+    {
+      name: 'Vídeos de técnica',
+      description: 'Tus vídeos de ejecución, vinculados a ejercicios para que los vean tus clientes',
+      icon: 'videocam-outline',
+      colorVar: 'var(--tf-secondary, #ffc455)',
+      path: '/tabs/technique-videos',
+    },
   ];
 
   public routineTemplates: WorkoutTemplate[] = [];

@@ -1,0 +1,31 @@
+@use './media-shared' as *;
+
+:host {
+  display: block;
+}
+
+.embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.embed-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.unavailable {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  background: $media-surface;
+  color: $media-muted;
+  font-size: 0.85rem;
+}

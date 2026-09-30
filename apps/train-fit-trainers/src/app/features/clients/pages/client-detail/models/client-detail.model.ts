@@ -16,6 +16,7 @@ export type ClientDetailTab =
   | 'payments'
   | 'relation'
   | 'pain'
+  | 'media'
   | 'tasks'
   | 'clientNotes';
 
@@ -104,6 +105,10 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
       // programar piernas: enterrarlo tras dos bloques de scroll era
       // esconder lo único que puede obligarle a cambiar la sesión de hoy.
       { key: 'pain', label: 'Dolor', icon: 'bandage-outline' },
+      // Fotos y vídeos de progreso y revisiones de técnica
+      // (docs/plan-medidas-multimedia.md). 'any': el nutricionista también
+      // ve las fotos; las revisiones solo salen con entrenamiento.
+      { key: 'media', label: 'Fotos y vídeos', icon: 'images-outline', requiresScope: 'any' },
       // "Sesiones" ya no es subpestaña: vive en Plan > Entrenamiento
       // ("Últimas sesiones" + panel lateral "Ver todas"). Tenerlas en dos
       // sitios obligaba a saltar de sección para ver el detalle.

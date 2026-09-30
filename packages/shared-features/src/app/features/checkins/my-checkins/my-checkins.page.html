@@ -148,6 +148,15 @@
             </button>
           </div>
 
+          <!-- Fotos de progreso: la respuesta es el día de fotos, hecho con
+               la misma captura guiada de Medidas › Fotos. -->
+          <app-checkin-photos-field
+            *ngIf="field.type === 'photos'"
+            [value]="formValues[field.key]"
+            [poses]="field.poses"
+            (valueChange)="setPhotosValue(field.key, $event)"
+          ></app-checkin-photos-field>
+
           <div class="option-picker" *ngIf="field.type === 'select' || field.type === 'frequency'">
             <button
               *ngFor="let option of optionsFor(field)"

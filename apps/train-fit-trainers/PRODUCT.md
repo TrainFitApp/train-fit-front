@@ -1,5 +1,11 @@
 # Product
 
+<!-- impeccable:product-schema 1 -->
+
+## Platform
+
+web
+
 ## Register
 
 product
@@ -18,6 +24,32 @@ permita construir rutinas y dietas reales para cada cliente, hacer seguimiento d
 gestionar la relación profesional (cobros, check-ins, tareas) desde un solo sitio. El éxito es que
 un entrenador con 20-30 clientes reales pueda operar el día a día sin fricción ni tener que salir
 a otra herramienta.
+
+## Positioning
+
+TrainFit conecta al profesional con sus clientes en la misma plataforma: lo que pauta aquí (rutinas, dietas por menús, hábitos, check-ins, vídeos de técnica) llega a la app del cliente, y lo que el cliente registra (series, comidas, medidas, fotos, vídeos de técnica, dolor) vuelve aquí para revisarlo. Entrenamiento y nutrición en la misma herramienta. Sustituye el seguimiento por WhatsApp y Excel.
+
+## Operating Context
+
+- Día a día con una cartera de 20-30 clientes: pautar y ajustar rutinas y dietas, revisar check-ins y revisiones de técnica, gestionar cobros y tareas.
+- Sobre todo en escritorio (`ion-split-pane`, paneles laterales); también desde el móvil entre sesiones.
+- Relaciones por ámbito: entrenamiento y/o nutrición. Un nutricionista ve las fotos de progreso de su cliente pero no sus revisiones de técnica.
+
+## Capabilities and Constraints
+
+- Planes del profesional por número de clientes (Pro 20, Growth 50, Scale 150) con Stripe; ver `train-fit-back/components/trainerBilling/README.md`.
+- Fotos y vídeos: el profesional ve las fotos del cliente desde que empezó la relación, salvo los días que el cliente oculte; lo anterior solo si el cliente lo comparte. Las revisiones de técnica duran 90 días salvo «Conservar». Detalle en `docs/plan-medidas-multimedia.md`.
+- Se empaqueta con Capacitor para iOS y Android con un diseño propio común; no sigue las convenciones visuales nativas de cada sistema.
+
+## Evidence on Hand
+
+No hay todavía testimonios, métricas de uso, número de clientes ni menciones en prensa. No se deben inventar en la interfaz ni en textos de marketing.
+
+## Product Principles
+
+- **Lo que se pauta aquí se ve y se registra allí**: cada pauta tiene su sitio en la app del cliente y su vuelta para revisarla.
+- **Entrenamiento y nutrición en un solo sitio**: la ficha de un cliente cuenta su progreso completo sin salir a otra herramienta.
+- **Más rápido que WhatsApp y Excel**: si una tarea diaria cuesta más aquí que en un mensaje o una hoja, el profesional vuelve a ellos.
 
 ## Brand Personality
 

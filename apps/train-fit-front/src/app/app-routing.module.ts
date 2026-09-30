@@ -111,6 +111,16 @@ const routes: Routes = [
       ).then((m) => m.ConfigurationPageModule),
   },
   {
+    // Revisiones de técnica: los vídeos que el cliente manda a su entrenador
+    // y sus respuestas (docs/plan-medidas-multimedia.md).
+    path: 'my-form-checks',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import(
+        'src/app/features/tables/components/my-form-checks/my-form-checks.module'
+      ).then((m) => m.MyFormChecksPageModule),
+  },
+  {
     // MVP-trainers F17 — check-ins periódicos pedidos por profesionales activos.
     path: 'my-checkins',
     canMatch: [authMatchGuard],

@@ -1,6 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
+import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { MediaApiService } from 'src/app/core/services/media/media-api.service';
 import { TrainerNavigationService } from '../../core/services/trainer-navigation.service';
 import { LegacyPaymentRemindersService } from '../payments/services/legacy-payment-reminders.service';
 
@@ -11,6 +14,8 @@ export interface ShellMenuItem {
   // Para resaltar el item activo aunque la ruta real tenga subrutas
   // (p. ej. clients/:id) — se compara con startsWith, no con igualdad exacta.
   matchPrefix?: boolean;
+  // Contador junto al destino (revisiones de técnica pendientes).
+  badgeKey?: 'formChecks';
   // Precalculado una vez (no en la plantilla) para que routerLinkActiveOptions
   // reciba siempre la misma referencia de objeto entre ciclos de detección de
   // cambios, en vez de una nueva en cada uno.
@@ -70,6 +75,8 @@ export class ShellPage implements OnInit, OnDestroy {
         // a qué categoría de software pertenece.
         { label: 'Hoy', path: '/tabs/dashboard', icon: 'today-outline' },
         { label: 'Clientes', path: '/tabs/clients', icon: 'people-outline', matchPrefix: true },
+        // Vídeos de técnica que mandan los clientes (docs/plan-medidas-multimedia.md).
+        { label: 'Revisiones', path: '/tabs/form-checks', icon: 'videocam-outline', matchPrefix: true, badgeKey: 'formChecks' },
       ]),
     },
     {
@@ -90,17 +97,33 @@ export class ShellPage implements OnInit, OnDestroy {
   ];
 
   private backButtonSubscription: Subscription | null = null;
+  private routerSubscription: Subscription | null = null;
+  // Revisiones de técnica pendientes: se refresca al navegar (sin sondeo).
+  public badges: { formChecks: number } = { formChecks: 0 };
 
   constructor(
     private navigation: TrainerNavigationService,
     private platform: Platform,
-    private legacyPaymentReminders: LegacyPaymentRemindersService
+    private legacyPaymentReminders: LegacyPaymentRemindersService,
+    private router: Router,
+    private mediaApi: MediaApiService
   ) {}
+
+  private refreshBadges(): void {
+    this.mediaApi.trainerFormChecksPendingCount().subscribe({
+      next: ({ pendingCount }) => (this.badges = { formChecks: pendingCount || 0 }),
+      error: () => undefined,
+    });
+  }
 
   public ngOnInit(): void {
     // Cobros 2026-09: los avisos de cobro ya no se programan en el móvil; se
     // retiran solo los antiguos que se reconocen como de cobros.
     void this.legacyPaymentReminders.cleanUp();
+    this.refreshBadges();
+    this.routerSubscription = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => this.refreshBadges());
 
     // El atrás del sistema ejecuta exactamente lo mismo que el botón de la
     // cabecera (regla de docs/frontend.md: ambos llevan al mismo sitio). El
@@ -115,5 +138,6 @@ export class ShellPage implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.backButtonSubscription?.unsubscribe();
+    this.routerSubscription?.unsubscribe();
   }
 }

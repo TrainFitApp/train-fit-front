@@ -1,6 +1,7 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import {
   CHECKIN_FIELDS_BY_KEY,
   CheckinField,
@@ -49,6 +50,7 @@ export class MyCheckinsPage implements OnInit {
   // ciclo desde la plantilla hacía que *ngFor destruyese y recrease las
   // filas sin parar.
   private historyRows = new Map<string, HistoryRow[]>();
+  private readonly translate = inject(TranslateService);
 
   constructor(
     private myCheckinsApi: MyCheckinsApiService,
@@ -160,7 +162,11 @@ export class MyCheckinsPage implements OnInit {
       this.history.map((entry) => [
         entry._id,
         Object.entries(entry.values || {}).map(([key, value]) => {
-          const text = this.historyValueLabel(value);
+          // Fotos: el valor es el id del día de fotos, no algo que leer.
+          const text =
+            CHECKIN_FIELDS_BY_KEY.get(key)?.type === 'photos'
+              ? this.translate.instant('MEDIA.CHECKIN_HISTORY_SENT')
+              : this.historyValueLabel(value);
           return {
             label:
               entry.customQuestions?.find((q) => customQuestionKey(q._id) === key)?.label ||
@@ -356,6 +362,10 @@ export class MyCheckinsPage implements OnInit {
     this.formValues[key] = value;
   }
 
+  public setPhotosValue(key: string, dayId: string | null): void {
+    this.formValues[key] = dayId;
+  }
+
   public hasAnyValue(): boolean {
     return Object.values(this.formValues).some((v) => v !== null && v !== undefined && v !== ('' as unknown));
   }
@@ -379,7 +389,7 @@ export class MyCheckinsPage implements OnInit {
 
       if (field.type === 'text') {
         values[field.key] = String(value).trim();
-      } else if (field.type === 'select' || field.type === 'frequency') {
+      } else if (field.type === 'select' || field.type === 'frequency' || field.type === 'photos') {
         values[field.key] = String(value);
       } else if (field.type === 'yes_no') {
         values[field.key] = value === true || value === 'true';

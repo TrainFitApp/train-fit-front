@@ -1,0 +1,138 @@
+<ion-header class="ion-no-border">
+  <app-page-header [title]="(check?.exerciseName | translateDb) || ('MEDIA.TRAINER.REVIEW_TITLE' | translate)"></app-page-header>
+</ion-header>
+
+<ion-content class="review-content">
+  <div class="review-state" *ngIf="state === 'loading'"><ion-spinner name="dots"></ion-spinner></div>
+
+  <div class="review-state" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <p>{{ 'MEDIA.TRAINER.REVIEW_LOAD_ERROR' | translate }}</p>
+    <button type="button" class="secondary-button" (click)="load()">{{ 'MEDIA.RETRY' | translate }}</button>
+  </div>
+
+  <div class="review" *ngIf="state === 'loaded' && check">
+    <!-- Vídeo y comentario nuevo -->
+    <section class="review-main">
+      <app-media-video-player
+        [src]="videoSrc"
+        [poster]="videoPoster"
+        [status]="check.video?.status || 'failed'"
+        [durationSec]="check.video?.durationSec || null"
+        [markers]="markers"
+        [ariaLabel]="check.exerciseName"
+        (timeChange)="onTime($event)"
+      ></app-media-video-player>
+
+      <div class="composer">
+        <div class="composer-head">
+          <h2 class="composer-title">{{ 'MEDIA.TRAINER.ADD_COMMENT' | translate }}</h2>
+          <label class="anchor-toggle">
+            <ion-toggle [checked]="anchorToTime" (ionChange)="anchorToTime = $any($event).detail.checked" [attr.aria-label]="'MEDIA.TRAINER.ANCHOR_TIME' | translate"></ion-toggle>
+            <span>{{ anchorToTime ? ('MEDIA.TRAINER.AT_SECOND' | translate: { time: time(currentTime) }) : ('MEDIA.TRAINER.GENERAL_COMMENT' | translate) }}</span>
+          </label>
+        </div>
+        <textarea
+          class="composer-text"
+          rows="3"
+          maxlength="1000"
+          [value]="text"
+          (input)="onText($event)"
+          [placeholder]="'MEDIA.TRAINER.COMMENT_PLACEHOLDER' | translate"
+          [attr.aria-label]="'MEDIA.TRAINER.ADD_COMMENT' | translate"
+        ></textarea>
+        <div class="composer-foot">
+          <ion-select
+            *ngIf="library.length"
+            class="tf-select attach-select"
+            interface="popover"
+            [value]="attachVideoId"
+            (ionChange)="onAttach($event)"
+            [placeholder]="'MEDIA.TRAINER.ATTACH_VIDEO' | translate"
+            [attr.aria-label]="'MEDIA.TRAINER.ATTACH_VIDEO' | translate"
+          >
+            <ion-select-option [value]="null">{{ 'MEDIA.TRAINER.NO_ATTACHMENT' | translate }}</ion-select-option>
+            <ion-select-option *ngFor="let video of library" [value]="video.id">{{ video.title }}</ion-select-option>
+          </ion-select>
+          <span class="attach-hint" *ngIf="libraryLoaded && !library.length">{{ 'MEDIA.TRAINER.LIBRARY_HINT' | translate }}</span>
+          <button type="button" class="primary-button" (click)="addComment()" [disabled]="!canComment || busy">
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.TRAINER.ADD' | translate }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contexto, comentarios y cierre -->
+    <aside class="review-side">
+      <div class="context">
+        <button type="button" class="client-link" (click)="openClient()">
+          <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>{{ check.clientName }}
+        </button>
+        <p class="context-date">{{ dateLabel(check.date) }}</p>
+        <dl class="set">
+          <div *ngIf="executed">
+            <dt>{{ 'MEDIA.TRAINER.EXECUTED' | translate }}</dt>
+            <dd>{{ executed }}</dd>
+          </div>
+          <div *ngIf="prescribed">
+            <dt>{{ 'MEDIA.PRESCRIBED' | translate }}</dt>
+            <dd class="set-prescribed">{{ prescribed }}</dd>
+          </div>
+        </dl>
+        <p class="client-note" *ngIf="check.clientNote">“{{ check.clientNote }}”</p>
+      </div>
+
+      <div class="comments">
+        <h2 class="side-title">{{ 'MEDIA.TRAINER.COMMENTS' | translate }}</h2>
+        <p class="side-empty" *ngIf="!check.comments.length">{{ 'MEDIA.TRAINER.NO_COMMENTS' | translate }}</p>
+        <ol class="comment-list" *ngIf="check.comments.length">
+          <li class="comment" *ngFor="let comment of check.comments; trackBy: trackComment">
+            <button
+              type="button"
+              class="comment-time"
+              *ngIf="comment.atSec != null; else general"
+              (click)="seek(comment)"
+              [attr.aria-label]="'MEDIA.JUMP_TO' | translate: { time: time(comment.atSec) }"
+            >
+              {{ time(comment.atSec) }}
+            </button>
+            <ng-template #general><span class="comment-time comment-time--general">{{ 'MEDIA.TRAINER.GENERAL' | translate }}</span></ng-template>
+            <div class="comment-body">
+              <p *ngIf="comment.text">{{ comment.text }}</p>
+              <span class="comment-video" *ngIf="comment.techniqueVideo">
+                <ion-icon name="play-circle-outline" aria-hidden="true"></ion-icon>{{ comment.techniqueVideo.title }}
+              </span>
+            </div>
+            <button
+              type="button"
+              class="comment-remove"
+              (click)="removeComment(comment)"
+              [disabled]="busy"
+              [attr.aria-label]="'MEDIA.TRAINER.REMOVE_COMMENT' | translate"
+            >
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </li>
+        </ol>
+      </div>
+
+      <div class="close-block">
+        <button type="button" class="primary-button primary-button--block" (click)="review()" [disabled]="!check.comments.length || busy">
+          <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
+          {{ (check.status === 'reviewed' ? 'MEDIA.TRAINER.RESEND_REVIEW' : 'MEDIA.TRAINER.SEND_REVIEW') | translate }}
+        </button>
+        <p class="close-note" *ngIf="check.status === 'reviewed'">{{ 'MEDIA.TRAINER.REVIEWED_ON' | translate: { date: dateLabel(check.reviewedAt) } }}</p>
+
+        <div class="keep" [class.keep--soon]="check.expiringSoon && !check.keep">
+          <ion-icon [name]="check.keep ? 'bookmark' : 'time-outline'" aria-hidden="true"></ion-icon>
+          <span class="keep-text">
+            {{ check.keep ? ('MEDIA.TRAINER.KEPT_FOREVER' | translate) : ('MEDIA.EXPIRES_IN' | translate: { days: check.daysLeft }) }}
+          </span>
+          <button type="button" class="secondary-button" (click)="toggleKeep()" [disabled]="busy">
+            {{ (check.keep ? 'MEDIA.TRAINER.UNKEEP' : 'MEDIA.TRAINER.KEEP') | translate }}
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</ion-content>

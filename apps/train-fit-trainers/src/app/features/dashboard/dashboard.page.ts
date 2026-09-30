@@ -26,6 +26,8 @@ const NOTIFICATION_ICONS: Record<TrainerNotificationType, string> = {
   checkin_responded: 'clipboard-outline',
   nutrition_preferences_updated: 'nutrition-outline',
   payment_reminder: 'wallet-outline',
+  form_check_submitted: 'videocam-outline',
+  form_check_expiring: 'time-outline',
 };
 
 // Un icono por TIPO de problema, no por prioridad: la prioridad ya se lee en
@@ -451,6 +453,14 @@ export class DashboardPage implements OnInit {
         return `${name} actualizó sus preferencias nutricionales`;
       case 'payment_reminder':
         return trainerPaymentNoticeTitle(notification.payload as PaymentNoticePayload, name);
+      case 'form_check_submitted': {
+        const exercise = notification.payload?.['exerciseName'];
+        return `${name} te ha mandado un vídeo${exercise ? ` de ${exercise}` : ''}`;
+      }
+      case 'form_check_expiring': {
+        const exercise = notification.payload?.['exerciseName'];
+        return `El vídeo de ${name}${exercise ? ` (${exercise})` : ''} se borra en menos de 7 días`;
+      }
       default:
         return 'Nueva actividad';
     }
@@ -489,6 +499,12 @@ export class DashboardPage implements OnInit {
           void this.router.navigate(['/tabs/clients']);
         }
         break;
+      case 'form_check_submitted':
+      case 'form_check_expiring': {
+        const formCheckId = notification.payload?.['formCheckId'];
+        void this.router.navigate(formCheckId ? ['/tabs/form-checks', String(formCheckId)] : ['/tabs/form-checks']);
+        break;
+      }
       case 'nutrition_preferences_updated':
       case 'intake_submitted_trainer':
       case 'invite_accepted':

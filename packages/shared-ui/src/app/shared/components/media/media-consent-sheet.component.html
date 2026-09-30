@@ -1,0 +1,33 @@
+<div class="consent">
+  <ion-icon class="consent-icon" name="shield-checkmark-outline"></ion-icon>
+  <h2 class="consent-title">{{ 'MEDIA.CONSENT_TITLE' | translate }}</h2>
+
+  <ul class="consent-points">
+    <li>
+      <ion-icon name="lock-closed-outline"></ion-icon>
+      <span>{{ 'MEDIA.CONSENT_PRIVATE' | translate }}</span>
+    </li>
+    <li>
+      <ion-icon name="eye-outline"></ion-icon>
+      <span>{{ (hasTrainer ? 'MEDIA.CONSENT_TRAINER' : 'MEDIA.CONSENT_TRAINER_FUTURE') | translate }}</span>
+    </li>
+    <li>
+      <ion-icon name="images-outline"></ion-icon>
+      <span>{{ 'MEDIA.CONSENT_GALLERY' | translate }}</span>
+    </li>
+    <li>
+      <ion-icon name="trash-outline"></ion-icon>
+      <span>{{ 'MEDIA.CONSENT_DELETE' | translate }}</span>
+    </li>
+  </ul>
+
+  <p class="consent-error" *ngIf="failed" role="alert">{{ 'MEDIA.ERRORS.GENERIC' | translate }}</p>
+
+  <div class="consent-actions">
+    <button type="button" class="consent-cancel" (click)="cancel()">{{ 'MEDIA.CONSENT_LATER' | translate }}</button>
+    <button type="button" class="consent-accept" (click)="accept()" [disabled]="saving">
+      <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
+      <span>{{ 'MEDIA.CONSENT_ACCEPT' | translate }}</span>
+    </button>
+  </div>
+</div>

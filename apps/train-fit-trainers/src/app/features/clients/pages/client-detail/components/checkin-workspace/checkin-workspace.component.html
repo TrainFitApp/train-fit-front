@@ -105,7 +105,16 @@
                 {{ tab.label }}<span class="count-chip">{{ tab.count }}</span>
               </button>
             </div>
-            <div class="comparison-table-wrap"><table class="comparison-table"><caption>Respuesta actual frente a la referencia del mismo formulario</caption><thead><tr><th scope="col">Dato</th><th scope="col">Referencia</th><th scope="col">Actual</th><th scope="col">Cambio</th></tr></thead><tbody><tr *ngFor="let row of visibleRows; trackBy: trackRow"><th scope="row">{{ row.label }}</th><td>{{ row.previous }}</td><td class="current-value">{{ row.current }}<small *ngIf="row.anchor">{{ row.anchor }}</small></td><td [attr.data-direction]="row.direction"><ion-icon *ngIf="row.direction === 'up' || row.direction === 'down'" [name]="row.direction === 'up' ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>{{ row.change }}</td></tr></tbody></table></div>
+            <!-- Fotos de progreso: antes y después en vez de la tabla -->
+            <app-checkin-photos-compare
+              *ngIf="selectedComparisonTab === 'fotos'"
+              [clientId]="clientId"
+              [currentDayId]="photosDayOf(entry)"
+              [referenceDayId]="photosDayOf(referenceEntry)"
+              [currentLabel]="formatDate(entry.respondedAt)"
+              [referenceLabel]="referenceEntry ? formatDate(referenceEntry.respondedAt) : ''"
+            ></app-checkin-photos-compare>
+            <div class="comparison-table-wrap" *ngIf="selectedComparisonTab !== 'fotos'"><table class="comparison-table"><caption>Respuesta actual frente a la referencia del mismo formulario</caption><thead><tr><th scope="col">Dato</th><th scope="col">Referencia</th><th scope="col">Actual</th><th scope="col">Cambio</th></tr></thead><tbody><tr *ngFor="let row of visibleRows; trackBy: trackRow"><th scope="row">{{ row.label }}</th><td>{{ row.previous }}</td><td class="current-value">{{ row.current }}<small *ngIf="row.anchor">{{ row.anchor }}</small></td><td [attr.data-direction]="row.direction"><ion-icon *ngIf="row.direction === 'up' || row.direction === 'down'" [name]="row.direction === 'up' ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>{{ row.change }}</td></tr></tbody></table></div>
             <p class="comparison-note"><ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>La flecha indica hacia dónde se ha movido el dato, no si es bueno o malo.</p>
             <button type="button" class="evolution-toggle" [attr.aria-expanded]="showEvolution" (click)="showEvolution = !showEvolution"><ion-icon name="analytics-outline" aria-hidden="true"></ion-icon>{{ showEvolution ? 'Ocultar evolución' : 'Ver evolución de todas sus respuestas' }}<ion-icon [name]="showEvolution ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon></button>
             <app-checkin-history-chart *ngIf="showEvolution" [responses]="trendResponses" [customQuestions]="entry.customQuestions || emptyQuestions"></app-checkin-history-chart>

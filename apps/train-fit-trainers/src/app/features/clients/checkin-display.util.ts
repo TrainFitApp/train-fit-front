@@ -99,7 +99,9 @@ function rowFor(
   const before = previous?.values?.[key];
 
   let shown: string;
-  if (typeof value === 'number') shown = isScale ? `${fmt(value)}/${levels}` : `${fmt(value)}${unit ? ' ' + unit : ''}`;
+  // Fotos: el valor es el id del día; las fotos se ven en la revisión.
+  if (type === 'photos') shown = 'Fotos enviadas';
+  else if (typeof value === 'number') shown = isScale ? `${fmt(value)}/${levels}` : `${fmt(value)}${unit ? ' ' + unit : ''}`;
   else shown = checkinValueLabel(value);
 
   return {

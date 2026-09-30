@@ -1,0 +1,320 @@
+@import '../../../theme/buttons';
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-4) var(--tf-space-3);
+  background: var(--tf-surface-1);
+  border-bottom: 1px solid var(--tf-border-subtle);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: var(--tf-font-size-lg);
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.panel-close {
+  @include tf-icon-button(44px, var(--tf-radius-md), 22px);
+}
+
+.panel-content {
+  --background: var(--tf-surface-1);
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-5);
+  padding: var(--tf-space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.field-label {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--tf-text-faint);
+}
+
+.field-hint {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
+}
+
+.tf-input {
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
+  line-height: 1.45;
+
+  &::placeholder {
+    color: var(--tf-text-faint);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 1px;
+  }
+}
+
+textarea.tf-input {
+  resize: vertical;
+}
+
+.source-switch {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tf-space-2);
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tf-space-1);
+    min-height: var(--tf-touch-min);
+    border: 1px solid var(--tf-border);
+    border-radius: var(--tf-radius-md);
+    background: var(--tf-surface-2);
+    color: var(--tf-text-secondary);
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 17px;
+    }
+
+    &.active {
+      border-color: var(--tf-accent-soft-border);
+      background: var(--tf-accent-soft);
+      color: var(--tf-accent-text);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.file-drop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-height: 88px;
+  padding: var(--tf-space-4);
+  border: 1px dashed var(--tf-border-strongest);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-2);
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 28px;
+    color: var(--tf-accent);
+    flex-shrink: 0;
+  }
+
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &--filled {
+    border-style: solid;
+    border-color: var(--tf-accent-soft-border);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.file-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: var(--tf-font-size-base);
+    color: var(--tf-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  min-height: 32px;
+  padding: 0 var(--tf-space-1) 0 var(--tf-space-3);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+
+  button {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+    }
+  }
+}
+
+.exercise-search {
+  padding: 0;
+  --background: var(--tf-surface-2);
+  --border-radius: var(--tf-radius-md);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: var(--tf-radius-md);
+  overflow: hidden;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-3);
+  border: none;
+  border-bottom: 1px solid var(--tf-border-subtle);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  text-align: left;
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--tf-accent);
+  }
+
+  &:hover {
+    background: var(--tf-surface-3);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.error {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-danger-text);
+}
+
+.panel-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3) var(--tf-space-4) calc(var(--tf-space-3) + var(--ion-safe-area-bottom, 0px));
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.upload {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--tf-radius-pill);
+  overflow: hidden;
+  background: var(--tf-surface-4);
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--tf-accent);
+  transform-origin: left center;
+  transition: transform 200ms linear;
+}
+
+.save-button {
+  @include tf-gradient-button(var(--tf-radius-md));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  width: 100%;
+  min-height: 48px;
+
+  ion-spinner {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}

@@ -36,6 +36,11 @@
             >
               <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
               <span *ngIf="!collapsed">{{ item.label }}</span>
+              <span
+                class="menu-badge"
+                [class.menu-badge--dot]="collapsed"
+                *ngIf="item.badgeKey && badges[item.badgeKey]"
+              >{{ collapsed ? '' : badges[item.badgeKey] }}</span>
             </a>
           </ion-menu-toggle>
         </div>

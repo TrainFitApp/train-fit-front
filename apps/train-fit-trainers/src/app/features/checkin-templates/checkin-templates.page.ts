@@ -21,12 +21,14 @@ const GROUP_LABELS: Record<CheckinFieldGroup, string> = {
   composicion_corporal: 'Composición corporal',
   perimetros: 'Perímetros',
   bienestar: 'Bienestar',
+  fotos: 'Fotos de progreso',
 };
 
 const GROUP_ICONS: Record<CheckinFieldGroup, string> = {
   composicion_corporal: 'body-outline',
   perimetros: 'resize-outline',
   bienestar: 'heart-outline',
+  fotos: 'camera-outline',
 };
 
 @Component({
@@ -39,7 +41,7 @@ export class CheckinTemplatesPage implements OnInit {
   public templates: CheckinTemplateDefinition[] = [];
 
   public groups: { key: CheckinFieldGroup; label: string; fields: CheckinField[] }[] = (
-    ['composicion_corporal', 'perimetros', 'bienestar'] as CheckinFieldGroup[]
+    ['composicion_corporal', 'perimetros', 'bienestar', 'fotos'] as CheckinFieldGroup[]
   ).map((key) => ({
     key,
     label: GROUP_LABELS[key],

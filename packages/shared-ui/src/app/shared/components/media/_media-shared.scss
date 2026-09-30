@@ -1,0 +1,154 @@
+// Piezas comunes de las pantallas de fotos y vídeos (docs/plan-medidas-multimedia.md).
+// Misma paleta literal que el resto de shared-features (ver _client-page.scss):
+// superficie #141414, bordes blancos al 8 %, texto secundario #9a9a9a y el
+// naranja de marca para lo que es acción o lo pautado por el entrenador.
+
+$media-surface: #141414;
+$media-surface-2: #1b1b1b;
+$media-border: rgba(255, 255, 255, 0.08);
+$media-muted: #9a9a9a;
+$media-faint: #6b6b6b;
+$media-accent: #fe9000;
+$media-accent-rgb: 254, 144, 0;
+$media-danger: #ff6b6b;
+$media-success: #2dd36f;
+$media-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+@mixin media-focus {
+  &:focus-visible {
+    outline: 2px solid $media-accent;
+    outline-offset: 2px;
+  }
+}
+
+// Botón principal: bloque naranja, 48 px, para la acción de la pantalla.
+@mixin media-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 12px;
+  background: $media-accent;
+  color: #111;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms $media-ease, opacity 120ms ease;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  @include media-focus;
+}
+
+// Botón secundario: contorno sobre superficie, 44 px.
+@mixin media-ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.09);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  @include media-focus;
+}
+
+// Cabecera de modal a pantalla completa: volver, título centrado, hueco.
+@mixin media-modal-header {
+  .media-modal-header {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 12px 10px;
+    padding-top: calc(12px + var(--ion-safe-area-top, 0px));
+    background: $media-surface;
+    border-bottom: 1px solid $media-border;
+  }
+
+  .media-modal-title {
+    margin: 0;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    text-wrap: balance;
+  }
+
+  .media-modal-subtitle {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: $media-muted;
+  }
+
+  .media-icon-button {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 20px;
+    cursor: pointer;
+
+    @include media-focus;
+  }
+}
+
+// Etiqueta pequeña de estado (pendiente, revisada, en check-in…).
+@mixin media-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 13px;
+  }
+}

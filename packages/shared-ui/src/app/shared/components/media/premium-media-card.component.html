@@ -1,0 +1,26 @@
+<div class="premium-media" [class.premium-media--showcase]="showcase">
+  <!-- Muestra del comparador: dos marcos vacíos y el divisor. Es la forma de
+       la herramienta, no la foto de nadie. -->
+  <div class="premium-media-sample" *ngIf="showcase" aria-hidden="true">
+    <div class="sample-frame sample-frame--before">
+      <span class="sample-tag">{{ 'MEDIA.PREMIUM_SAMPLE_BEFORE' | translate }}</span>
+    </div>
+    <div class="sample-frame sample-frame--after">
+      <span class="sample-tag">{{ 'MEDIA.PREMIUM_SAMPLE_AFTER' | translate }}</span>
+    </div>
+    <span class="sample-divider"><span class="sample-handle"><ion-icon name="code-outline"></ion-icon></span></span>
+  </div>
+
+  <button type="button" class="premium-banner" (click)="goToPremium()">
+    <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
+    <span class="premium-banner__text">
+      <span class="premium-banner__title">
+        {{ (variant === 'videos' ? 'MEDIA.PREMIUM_VIDEOS_TITLE' : 'MEDIA.PREMIUM_PHOTOS_TITLE') | translate }}
+      </span>
+      <span class="premium-banner__sub">
+        {{ (variant === 'videos' ? 'MEDIA.PREMIUM_VIDEOS_SUB' : 'MEDIA.PREMIUM_PHOTOS_SUB') | translate }}
+      </span>
+    </span>
+    <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
+  </button>
+</div>

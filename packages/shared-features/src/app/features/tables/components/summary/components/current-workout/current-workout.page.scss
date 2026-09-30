@@ -771,3 +771,74 @@ ion-content.has-rest-timer {
   right: -5px;
   --tn-dot-ring: #1e1e1e;
 }
+
+// Revisiones de técnica (docs/plan-medidas-multimedia.md): fila bajo las series.
+.thumbnail-video-badge {
+  position: absolute;
+  left: -5px;
+  bottom: -5px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fe9000;
+  color: #111;
+  box-shadow: 0 0 0 2px #1e1e1e;
+  pointer-events: none;
+
+  ion-icon {
+    font-size: 11px;
+    margin-left: 1px;
+  }
+}
+
+.form-check-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 14px;
+}
+
+.form-check-send,
+.form-check-answers {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
+  }
+}
+
+.form-check-send {
+  border: 1px solid rgba(254, 144, 0, 0.4);
+  background: rgba(254, 144, 0, 0.08);
+  color: #fe9000;
+}
+
+.form-check-answers {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e6e6e6;
+
+  .unseen-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fe9000;
+  }
+}

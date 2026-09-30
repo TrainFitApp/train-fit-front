@@ -1,0 +1,49 @@
+<div class="photos-compare">
+  <div class="compare-loading" *ngIf="loading"><ion-spinner name="dots"></ion-spinner></div>
+
+  <ng-container *ngIf="!loading">
+    <p class="compare-empty" *ngIf="!current">{{ 'MEDIA.TRAINER.COMPARE_LOAD_ERROR' | translate }}</p>
+
+    <ng-container *ngIf="current">
+      <div class="compare-toolbar">
+        <div class="pose-chips" role="tablist" [attr.aria-label]="'MEDIA.POSE_LABEL' | translate">
+          <button
+            *ngFor="let item of poses"
+            type="button"
+            role="tab"
+            class="pose-chip"
+            [class.active]="item === pose"
+            [attr.aria-selected]="item === pose"
+            (click)="selectPose(item)"
+          >
+            {{ ('MEDIA.POSE_' + item.toUpperCase()) | translate }}
+          </button>
+        </div>
+        <div class="mode-switch" *ngIf="referenceSide && currentSide" role="radiogroup" [attr.aria-label]="'MEDIA.COMPARE_MODE' | translate">
+          <button type="button" role="radio" [attr.aria-checked]="mode === 'side'" [class.active]="mode === 'side'" (click)="mode = 'side'" [attr.aria-label]="'MEDIA.COMPARE_SIDE_MODE' | translate">
+            <ion-icon name="grid-outline"></ion-icon>
+          </button>
+          <button type="button" role="radio" [attr.aria-checked]="mode === 'slider'" [class.active]="mode === 'slider'" (click)="mode = 'slider'" [attr.aria-label]="'MEDIA.COMPARE_SLIDER_MODE' | translate">
+            <ion-icon name="swap-horizontal-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="compare-stage">
+        <app-photo-compare
+          *ngIf="referenceSide && currentSide; else single"
+          [before]="referenceSide"
+          [after]="currentSide"
+          [mode]="mode"
+        ></app-photo-compare>
+        <ng-template #single>
+          <figure class="single" *ngIf="currentSide">
+            <img [src]="currentSide.url" [alt]="currentSide.label" />
+            <figcaption>{{ currentSide.label }}<span *ngIf="currentSide.sub"> · {{ currentSide.sub }}</span></figcaption>
+          </figure>
+          <p class="compare-empty" *ngIf="!referenceDayId">{{ 'MEDIA.TRAINER.COMPARE_NO_REFERENCE' | translate }}</p>
+        </ng-template>
+      </div>
+    </ng-container>
+  </ng-container>
+</div>

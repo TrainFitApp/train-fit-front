@@ -1,0 +1,128 @@
+@use './media-shared' as *;
+
+:host {
+  display: block;
+}
+
+.premium-media {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// Mismo banner que perfil y dieta (profile.page.scss .premium-banner).
+.premium-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba($media-accent, 0.1) 0%, rgba($media-accent, 0.05) 100%);
+  border: 1px solid rgba($media-accent, 0.3);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 150ms ease, transform 130ms ease;
+
+  &:active {
+    transform: scale(0.985);
+    background: rgba($media-accent, 0.14);
+  }
+
+  @include media-focus;
+}
+
+.premium-banner__icon {
+  font-size: 22px;
+  color: $media-accent;
+  flex-shrink: 0;
+}
+
+.premium-banner__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.premium-banner__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $media-accent;
+}
+
+.premium-banner__sub {
+  font-size: 12px;
+  line-height: 1.4;
+  color: $media-muted;
+}
+
+.premium-banner__arrow {
+  font-size: 16px;
+  color: $media-faint;
+  flex-shrink: 0;
+}
+
+.premium-media-sample {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid $media-border;
+}
+
+.sample-frame {
+  position: relative;
+  background: linear-gradient(180deg, #1d1d1d 0%, #151515 100%);
+
+  &--after {
+    background: linear-gradient(180deg, rgba($media-accent, 0.12) 0%, #151515 100%);
+  }
+}
+
+.sample-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.sample-frame--after .sample-tag {
+  left: auto;
+  right: 10px;
+}
+
+.sample-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.sample-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  font-size: 18px;
+}

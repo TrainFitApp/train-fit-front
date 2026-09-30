@@ -50,6 +50,18 @@ import { environment } from "src/environments/environment";
 })
 export class ConfigExercisePage implements OnInit, OnDestroy {
   public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
+
+  // Vídeo de técnica por cliente: solo en la app del entrenador y en la
+  // rutina de un cliente (no en sus plantillas, cuyo dueño es él mismo).
+  public get techniqueVideoClientId(): string | null {
+    if (!this.isTrainerApp) return null;
+    const owner = this.tableInUse?.userId ? String(this.tableInUse.userId) : null;
+    return owner && owner !== String(this.user?._id || '') ? owner : null;
+  }
+
+  public get techniqueVideoExerciseId(): string | null {
+    return this.customExercise?.exercise?._id || this.exercise?._id || null;
+  }
   @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLElement>;
   public muscleGroups: string[] = [
     "Espalda",

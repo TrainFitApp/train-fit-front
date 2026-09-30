@@ -22,6 +22,7 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   // cliente se lean y se abran como siempre, no como "Nueva actividad".
   anthropometry_requested: 'body-outline',
   payment_reminder: 'wallet-outline',
+  form_check_reviewed: 'videocam-outline',
 };
 
 const MONEY = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
@@ -94,6 +95,8 @@ export function notificationTitle(notification: CoachNotification): string {
       return `Nueva comida pautada: ${p['mealName'] || ''}`;
     case 'anthropometry_requested':
       return 'Te ha pedido nuevas medidas corporales';
+    case 'form_check_reviewed':
+      return `Ha revisado tu vídeo${p['exerciseName'] ? ' de ' + p['exerciseName'] : ''}`;
     default:
       return 'Nueva actividad';
   }
@@ -116,6 +119,8 @@ export function notificationRoute(notification: CoachNotification): CoachRoute |
       return { commands: ['/tabs/summary'] };
     case 'anthropometry_requested':
       return { commands: ['/weight-info'] };
+    case 'form_check_reviewed':
+      return { commands: ['/my-form-checks'], extras: { queryParams: { id: p['formCheckId'] } } };
     default:
       return null;
   }

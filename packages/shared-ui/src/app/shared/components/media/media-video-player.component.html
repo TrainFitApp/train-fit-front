@@ -1,0 +1,39 @@
+<div class="player" [ngSwitch]="status">
+  <ng-container *ngSwitchCase="'ready'">
+    <video
+      #video
+      class="player-video"
+      [src]="src"
+      [attr.poster]="poster"
+      [attr.aria-label]="ariaLabel || null"
+      [autoplay]="autoplay"
+      controls
+      playsinline
+      preload="metadata"
+      (loadedmetadata)="onMetadata()"
+      (timeupdate)="onTimeUpdate()"
+    ></video>
+
+    <div class="player-markers" *ngIf="markers?.length && (duration || durationSec)" aria-hidden="true">
+      <span
+        *ngFor="let marker of markers; trackBy: trackMarker"
+        class="player-marker"
+        [class.player-marker--active]="activeMarker === marker.atSec"
+        [style.left.%]="markerLeft(marker)"
+      ></span>
+    </div>
+  </ng-container>
+
+  <div *ngSwitchCase="'failed'" class="player-state player-state--failed">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <span>{{ 'MEDIA.VIDEO_FAILED' | translate }}</span>
+  </div>
+
+  <div *ngSwitchDefault class="player-state">
+    <img *ngIf="poster" class="player-poster" [src]="poster" alt="" />
+    <div class="player-state-label">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>{{ 'MEDIA.VIDEO_PROCESSING' | translate }}</span>
+    </div>
+  </div>
+</div>

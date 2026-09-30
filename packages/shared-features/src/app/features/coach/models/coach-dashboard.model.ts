@@ -85,7 +85,9 @@ export type CoachNotificationType =
   // Histórico, ya no se emite — ver ANTHROPOMETRY_REQUESTED en coach.page.ts.
   | 'anthropometry_requested'
   // Recordatorio de un pago pendiente, solo si el entrenador lo activó.
-  | 'payment_reminder';
+  | 'payment_reminder'
+  // El entrenador respondió a un vídeo de técnica (docs/plan-medidas-multimedia.md).
+  | 'form_check_reviewed';
 
 export interface CoachNotification {
   _id: string;

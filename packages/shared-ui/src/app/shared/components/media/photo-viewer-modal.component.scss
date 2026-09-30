@@ -1,0 +1,80 @@
+@use './media-shared' as *;
+
+.viewer {
+  --background: #000;
+}
+
+.viewer-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(10px + var(--ion-safe-area-top, 0px)) 12px 10px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.viewer-close {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+
+  @include media-focus;
+}
+
+.viewer-date {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.viewer-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.viewer-poses {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 12px calc(14px + var(--ion-safe-area-bottom, 0px));
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.75), transparent);
+}
+
+.viewer-pose {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &--active {
+    background: #fff;
+    border-color: #fff;
+    color: #111;
+  }
+
+  @include media-focus;
+}

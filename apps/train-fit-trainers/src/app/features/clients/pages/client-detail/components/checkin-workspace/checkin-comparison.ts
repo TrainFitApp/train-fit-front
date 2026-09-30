@@ -4,11 +4,12 @@ import { CheckinEntry, CheckinComparisonRow, ComparisonTab } from './checkin-wor
 // Pestañas de la revisión: peso aparte de la composición corporal, y el
 // seguimiento del entrenamiento y el comentario con la suya propia. El resto
 // de bienestar cae en "Bienestar" para que ningún dato se quede sin pestaña.
-const TAB_ORDER: ComparisonTab[] = ['peso', 'composicion_corporal', 'perimetros', 'entrenamiento', 'bienestar', 'comentario', 'custom'];
+const TAB_ORDER: ComparisonTab[] = ['peso', 'composicion_corporal', 'perimetros', 'fotos', 'entrenamiento', 'bienestar', 'comentario', 'custom'];
 const TAB_LABELS: Record<ComparisonTab, string> = {
   peso: 'Peso',
   composicion_corporal: 'Composición corporal',
   perimetros: 'Perímetros',
+  fotos: 'Fotos',
   entrenamiento: 'Seguimiento del entrenamiento',
   bienestar: 'Bienestar',
   comentario: 'Comentario',
@@ -26,6 +27,7 @@ function tabOf(key: string): ComparisonTab {
   if (key === 'training_adherence') return 'entrenamiento';
   if (key === 'comment') return 'comentario';
   const group = CHECKIN_FIELDS_BY_KEY.get(key)?.group;
+  if (group === 'fotos') return 'fotos';
   return group === 'composicion_corporal' || group === 'perimetros' ? group : 'bienestar';
 }
 
@@ -41,6 +43,8 @@ function description(entry: CheckinEntry | null, key: string): { label: string; 
 }
 function display(value: unknown, info: ReturnType<typeof description>): string {
   if (value == null) return '—';
+  // Fotos: el valor es el id del día; las fotos se ven en su pestaña.
+  if (info.type === 'photos') return 'Enviadas';
   if (typeof value === 'boolean') return value ? 'Sí' : 'No';
   if (typeof value === 'number') return `${number(value)}${info.max ? '/' + info.max : info.unit ? ' ' + info.unit : ''}`;
   return String(value);

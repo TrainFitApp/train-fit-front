@@ -105,6 +105,24 @@ const routes: Routes = [
           ),
       },
       {
+        // Revisiones de técnica: vídeos que mandan los clientes
+        // (docs/plan-medidas-multimedia.md). Sección raíz del menú.
+        path: 'form-checks',
+        loadChildren: () =>
+          import('src/app/features/form-checks/form-checks.module').then(
+            (m) => m.FormChecksPageModule
+          ),
+      },
+      {
+        // Biblioteca de vídeos de técnica del entrenador.
+        path: 'technique-videos',
+        data: { parent: '/tabs/templates' },
+        loadChildren: () =>
+          import('src/app/features/technique-videos/technique-videos.module').then(
+            (m) => m.TechniqueVideosPageModule
+          ),
+      },
+      {
         // TASK-042 (MASTER_BACKLOG.md) — catálogo de ejercicios como pantalla
         // propia, alcanzable desde la categoría "Ejercicios" en Biblioteca
         // (/tabs/templates), no como destino nuevo del sidebar.

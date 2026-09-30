@@ -1,0 +1,78 @@
+<div class="checks">
+  <div class="checks-loading" *ngIf="loading"><ion-spinner name="dots"></ion-spinner></div>
+
+  <ng-container *ngIf="!loading">
+    <article
+      class="check"
+      *ngFor="let check of formChecks; trackBy: trackCheck"
+      [class.check--open]="expanded === check.id"
+    >
+      <button type="button" class="check-head" (click)="toggle(check)" [attr.aria-expanded]="expanded === check.id">
+        <span class="check-date">{{ dateLabel(check.date) }}</span>
+        <span class="check-set" *ngIf="showExercise">{{ check.exerciseName | translateDb }}</span>
+        <span class="check-set" *ngIf="!showExercise && executed(check) as done">{{ done }}</span>
+        <span class="check-set" *ngIf="!showExercise && !executed(check)"></span>
+        <span class="check-status" [class.check-status--reviewed]="check.status === 'reviewed'">
+          <span class="unseen-dot" *ngIf="check.unseenFeedback" aria-hidden="true"></span>
+          {{ (check.status === 'reviewed' ? 'MEDIA.STATUS_REVIEWED' : 'MEDIA.STATUS_PENDING') | translate }}
+        </span>
+        <ion-icon class="check-chevron" [name]="expanded === check.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </button>
+
+      <div class="check-body" *ngIf="expanded === check.id">
+        <app-media-video-player
+          [src]="check.video?.url || null"
+          [poster]="check.video?.thumbUrl || null"
+          [status]="check.video?.status || 'failed'"
+          [durationSec]="check.video?.durationSec || null"
+          [markers]="markersOf(check)"
+        ></app-media-video-player>
+
+        <p class="check-prescribed" *ngIf="showExercise && executed(check) as done">{{ done }}</p>
+        <p class="check-prescribed" *ngIf="prescribed(check) as plan">{{ 'MEDIA.PRESCRIBED' | translate }}: {{ plan }}</p>
+        <p class="check-note" *ngIf="check.clientNote">“{{ check.clientNote }}”</p>
+
+        <ol class="comments" *ngIf="check.comments.length; else waiting">
+          <li class="comment" *ngFor="let comment of check.comments; trackBy: trackComment">
+            <button
+              type="button"
+              class="comment-time"
+              *ngIf="comment.atSec != null"
+              (click)="seek(check, comment)"
+              [attr.aria-label]="'MEDIA.JUMP_TO' | translate: { time: time(comment.atSec) }"
+            >
+              <ion-icon name="play"></ion-icon>{{ time(comment.atSec) }}
+            </button>
+            <div class="comment-body">
+              <p class="comment-text" *ngIf="comment.text">{{ comment.text }}</p>
+              <div class="comment-video" *ngIf="comment.techniqueVideo as reference">
+                <span class="comment-video-title">
+                  <ion-icon name="play-circle-outline"></ion-icon>{{ reference.title }}
+                </span>
+                <app-technique-video-player [video]="reference"></app-technique-video-player>
+              </div>
+            </div>
+          </li>
+        </ol>
+        <ng-template #waiting>
+          <p class="waiting">
+            <ion-icon name="hourglass-outline"></ion-icon>{{ 'MEDIA.WAITING_TRAINER' | translate }}
+          </p>
+        </ng-template>
+
+        <p class="expiry" *ngIf="check.daysLeft != null" [class.expiry--soon]="check.expiringSoon">
+          <ion-icon name="time-outline"></ion-icon>{{ 'MEDIA.EXPIRES_IN' | translate: { days: check.daysLeft } }}
+        </p>
+      </div>
+    </article>
+
+    <div class="empty" *ngIf="!formChecks.length">
+      <ion-icon name="videocam-outline"></ion-icon>
+      <p>{{ 'MEDIA.FORM_CHECKS_EMPTY' | translate }}</p>
+    </div>
+
+    <p class="weekly" *ngIf="formChecks.length || weeklyUsed">
+      {{ 'MEDIA.WEEKLY_USAGE' | translate: { used: weeklyUsed, limit: weeklyLimit } }}
+    </p>
+  </ng-container>
+</div>

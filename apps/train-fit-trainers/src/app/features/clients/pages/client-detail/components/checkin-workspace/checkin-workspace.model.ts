@@ -99,7 +99,7 @@ export interface CheckinDay {
   label: string;
 }
 
-export type ComparisonTab = 'peso' | 'composicion_corporal' | 'perimetros' | 'entrenamiento' | 'bienestar' | 'comentario' | 'custom';
+export type ComparisonTab = 'peso' | 'composicion_corporal' | 'perimetros' | 'fotos' | 'entrenamiento' | 'bienestar' | 'comentario' | 'custom';
 
 export interface CheckinComparisonRow {
   key: string;

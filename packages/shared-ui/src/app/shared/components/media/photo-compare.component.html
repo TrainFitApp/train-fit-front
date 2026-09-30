@@ -1,0 +1,50 @@
+<div class="compare" *ngIf="before && after">
+  <ng-container *ngIf="mode === 'slider'; else sideBySide">
+    <div class="compare-stage">
+      <img class="compare-img" [src]="after.url" [alt]="after.label" draggable="false" />
+      <img
+        class="compare-img compare-img--before"
+        [src]="before.url"
+        [alt]="before.label"
+        [style.clip-path]="clip"
+        draggable="false"
+      />
+      <div class="compare-divider" [style.left.%]="position" aria-hidden="true">
+        <span class="compare-handle">
+          <ion-icon name="code-outline"></ion-icon>
+        </span>
+      </div>
+      <span class="compare-tag compare-tag--left">{{ before.label }}</span>
+      <span class="compare-tag compare-tag--right">{{ after.label }}</span>
+      <input
+        class="compare-range"
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        [value]="position"
+        (input)="onSlide($event)"
+        [attr.aria-label]="'MEDIA.COMPARE_SLIDER' | translate"
+      />
+    </div>
+  </ng-container>
+
+  <ng-template #sideBySide>
+    <div class="compare-side">
+      <figure class="compare-figure">
+        <img [src]="before.url" [alt]="before.label" />
+        <figcaption>
+          <strong>{{ before.label }}</strong>
+          <span *ngIf="before.sub">{{ before.sub }}</span>
+        </figcaption>
+      </figure>
+      <figure class="compare-figure">
+        <img [src]="after.url" [alt]="after.label" />
+        <figcaption>
+          <strong>{{ after.label }}</strong>
+          <span *ngIf="after.sub">{{ after.sub }}</span>
+        </figcaption>
+      </figure>
+    </div>
+  </ng-template>
+</div>
