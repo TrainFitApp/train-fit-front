@@ -1,0 +1,93 @@
+name: Web CI
+
+# Verificación de la rama de PRO. NO despliega: la web de trainers la publican
+# las apps de Cloudflare Workers por su cuenta (develop -> PRE, main -> PRO), y
+# las apps móviles se publican con mobile-release.yml o a mano.
+#
+#   lint ──┐
+#   test ──┴──> build (3 apps en paralelo, configuración production)
+#
+# lint y test corren a la vez. build es matriz porque las tres apps comparten
+# packages/: un cambio ahí puede romper el AOT de una app y compilar en otra.
+# No hay secretos: lo único que cambia entre entornos está en
+# apps/<app>/src/environments/ y lo elige angular.json.
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: web-ci-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci --no-audit --fund=false
+
+      # Las tres apps: el lint de una no mira el código local de las otras.
+      - run: npm run lint:all
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 22: varios tests importan los `.ts` de la app con
+      # --experimental-strip-types, que Node 20 no conoce.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci --no-audit --fund=false
+
+      - run: npm test
+
+  build:
+    name: Build ${{ matrix.app }}
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - train-fit-trainers
+          - train-fit-front
+          - train-fit-management
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci --no-audit --fund=false
+
+      # El mismo script que se usa en local; llama a `ng build`, no a
+      # `ionic build` (@ionic/cli no está en las dependencias del repo).
+      - name: Compilar Angular
+        working-directory: apps/${{ matrix.app }}
+        run: npm run build:pro

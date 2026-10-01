@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "scripts": {
+    "prepare": "node .githooks/install.js",
     "serve": "npm run start --workspace @trainfit/train-fit-front",
     "serve:pre": "npm run start:pre --workspace @trainfit/train-fit-front",
     "serve:pro": "npm run start:pro --workspace @trainfit/train-fit-front",
@@ -35,6 +36,7 @@
     "test": "node --experimental-strip-types --test \"packages/**/*.test.{js,cjs}\" \"apps/*/src/**/*.test.{js,cjs}\" \"tests/**/*.test.{js,cjs}\"",
     "test:trainer-billing": "node --test apps/train-fit-trainers/src/app/features/subscription/trainer-billing.test.cjs apps/train-fit-trainers/src/app/shared/components/date-field/date-field-value.test.js",
     "lint": "npm run lint --workspace @trainfit/train-fit-front",
+    "lint:all": "npm run lint && npm run lint:t && npm run lint:m",
     "lint:m": "npm run lint --workspace @trainfit/train-fit-management",
     "serve:t": "npm run start --workspace @trainfit/train-fit-trainers",
     "serve:pre:t": "npm run start:pre --workspace @trainfit/train-fit-trainers",

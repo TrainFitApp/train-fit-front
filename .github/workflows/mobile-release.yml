@@ -117,10 +117,9 @@ jobs:
       - name: Instalar dependencias
         run: npm ci --no-audit --fund=false
 
-      # Se llama a `ng` directamente en vez de al script `build:pro`, que usa
-      # `ionic build`: @ionic/cli no está en las dependencias del repo, solo
-      # instalado a mano en local, así que en CI el script fallaría con
-      # "ionic: command not found". `ionic build` no es más que `ng build`.
+      # Se llama a `ng` directamente en vez de al script `build:pro` porque el
+      # script no acepta una configuración por parámetro y aquí la elige el input
+      # del workflow. Los dos acaban en el mismo `ng build`.
       - name: Compilar Angular
         working-directory: ${{ needs.prepare.outputs.app_dir }}
         run: npx ng build --configuration=${{ needs.prepare.outputs.ng_configuration }}
