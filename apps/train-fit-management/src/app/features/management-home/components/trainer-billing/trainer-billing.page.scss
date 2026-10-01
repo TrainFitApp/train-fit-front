@@ -1,0 +1,193 @@
+// Mismo lenguaje visual que las demás pantallas de Gestión (maintenance-config).
+.billing-content {
+  --background: var(--ion-color-light);
+}
+
+.billing-sections {
+  padding: 0 16px 32px;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin: 20px 0 12px;
+  padding: 0 4px;
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--ion-color-primary);
+    margin-right: 8px;
+  }
+
+  span {
+    font-size: 16px;
+    font-weight: 600;
+    color: #8b8b8b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.billing-card {
+  display: block;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--ion-background-color, #fff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: var(--ion-text-color);
+  text-align: left;
+  font: inherit;
+
+  p {
+    margin: 4px 0;
+  }
+}
+
+.warning-card,
+.error-card {
+  border-left: 4px solid var(--ion-color-warning);
+}
+
+.error-card {
+  border-left-color: var(--ion-color-danger);
+}
+
+.lookup-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.case-card {
+  cursor: pointer;
+  min-height: 44px;
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.case-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.case-line {
+  display: block;
+  font-size: 14px;
+  color: var(--ion-color-step-700, #555);
+}
+
+.due {
+  color: var(--ion-color-danger);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--ion-color-medium);
+  font-size: 13px;
+}
+
+.priority {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(var(--ion-color-medium-rgb), 0.15);
+  color: var(--ion-color-medium-shade);
+
+  &.high {
+    background: rgba(var(--ion-color-danger-rgb), 0.15);
+    color: var(--ion-color-danger);
+  }
+}
+
+.case-detail.resolved {
+  opacity: 0.75;
+}
+
+.suggestion {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  font-size: 14px;
+}
+
+.fact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.12);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  span {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+  }
+
+  &.intervention {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.warn {
+  color: var(--ion-color-danger);
+}
+
+.links {
+  display: flex;
+  gap: 16px;
+  padding-top: 8px;
+  font-size: 14px;
+}
+
+.form-card {
+  ion-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+  }
+}
+
+.help {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+
+  &.warn {
+    color: var(--ion-color-danger);
+  }
+}
+
+.state-line {
+  padding: 8px 4px;
+  color: var(--ion-color-medium);
+}
+
+.mode-chip {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(var(--ion-color-warning-rgb), 0.2);
+  color: var(--ion-color-warning-shade);
+
+  &.live {
+    background: rgba(var(--ion-color-success-rgb), 0.2);
+    color: var(--ion-color-success-shade);
+  }
+}

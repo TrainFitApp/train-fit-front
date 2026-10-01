@@ -917,7 +917,9 @@
       "RESTART_SERVER": "Restart Server",
       "RESTART_SERVER_DESC": "Restart nginx + reload PM2",
       "MAINTENANCE": "Maintenance & versions",
-      "MAINTENANCE_DESC": "Maintenance mode and forced update"
+      "MAINTENANCE_DESC": "Maintenance mode and forced update",
+      "TRAINER_BILLING": "Trainers billing",
+      "TRAINER_BILLING_DESC": "Refunds, disputes and subscription interventions"
     },
     "CONFIRM_RESTART": {
       "HEADER": "Restart Server",

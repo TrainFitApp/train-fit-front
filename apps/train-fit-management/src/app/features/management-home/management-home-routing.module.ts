@@ -35,6 +35,13 @@ const routes: Routes = [
         (m) => m.MaintenanceConfigPageModule
       ),
   },
+  {
+    path: 'trainer-billing',
+    loadChildren: () =>
+      import('./components/trainer-billing/trainer-billing.module').then(
+        (m) => m.TrainerBillingPageModule
+      ),
+  },
 ];
 
 @NgModule({

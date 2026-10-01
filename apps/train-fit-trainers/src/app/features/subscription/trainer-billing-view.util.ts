@@ -1,4 +1,6 @@
-import type { TrainerBillingInterval, TrainerEntitlements, TrainerPlanCatalog, TrainerTier } from './models/trainer-entitlements.model';
+import type {
+  TrainerBillingInterval, TrainerEntitlements, TrainerInvoice, TrainerPaymentMethod, TrainerPlanCatalog, TrainerTier,
+} from './models/trainer-entitlements.model';
 
 export const TRAINER_PLAN_NAMES: Record<TrainerTier, string> = {
   free: 'Free',
@@ -33,21 +35,46 @@ export function formatTrainerDate(value: string | Date | null | undefined, withY
 }
 
 export type TrainerStateTone = 'ok' | 'warning' | 'danger' | 'neutral';
-export type TrainerBillingStateKind = 'renewal_failed' | 'change_unpaid' | 'canceling' | 'change_scheduled' | 'active' | 'ended';
+export type TrainerBillingStateKind = 'access_revoked' | 'on_hold' | 'renewal_failed' | 'change_unpaid' | 'canceling' |
+  'change_scheduled' | 'exception' | 'active' | 'ended';
 
 // Estado único de una suscripción Stripe: de aquí salen la etiqueta, la línea
 // temporal y el aviso con su acción. Orden = urgencia para el entrenador.
 export function trainerBillingState(entitlements: TrainerEntitlements | null): { kind: TrainerBillingStateKind; tone: TrainerStateTone; label: string } | null {
   if (!entitlements || entitlements.provider !== 'stripe') return null;
   const billing = entitlements.billing;
+  // Disputa perdida: el pago del periodo volvió al banco (los datos se conservan).
+  if (billing?.accessRevokedUntil && !billing.accessException) return { kind: 'access_revoked', tone: 'danger', label: 'Acceso retirado' };
+  // Cobros en pausa por una incidencia: no se cobra ni se ofrece pagar hasta que facturación lo resuelva.
+  if (billing?.hold) return { kind: 'on_hold', tone: 'warning', label: 'Cobros en pausa' };
   if (billing?.renewalPayment || ['past_due', 'unpaid'].includes(entitlements.status || '')) {
     return { kind: 'renewal_failed', tone: 'danger', label: 'Pago pendiente' };
   }
   if (billing?.pendingPayment) return { kind: 'change_unpaid', tone: 'warning', label: 'Cambio sin pagar' };
   if (entitlements.cancelAtPeriodEnd && entitlements.isPremium) return { kind: 'canceling', tone: 'warning', label: 'No se renovará' };
   if (billing?.pendingChange) return { kind: 'change_scheduled', tone: 'neutral', label: 'Cambio programado' };
+  if (billing?.accessException && entitlements.isPremium) return { kind: 'exception', tone: 'neutral', label: 'Acceso concedido' };
   if (entitlements.status === 'active' && entitlements.isPremium) return { kind: 'active', tone: 'ok', label: 'Activa' };
   if (entitlements.status === 'canceled') return { kind: 'ended', tone: 'neutral', label: 'Finalizada' };
+  return null;
+}
+
+const CARD_BRANDS: Record<string, string> = { visa: 'Visa', mastercard: 'Mastercard', amex: 'American Express' };
+const WALLETS: Record<string, string> = { apple_pay: 'Apple Pay', google_pay: 'Google Pay' };
+
+// "Visa •••• 4242", "Mastercard •••• 4444 · Apple Pay" o "Link".
+export function trainerPaymentMethodLabel(method: TrainerPaymentMethod | null | undefined): string | null {
+  if (!method) return null;
+  if (method.kind === 'link') return 'Link';
+  const brand = CARD_BRANDS[method.brand] || method.brand.charAt(0).toUpperCase() + method.brand.slice(1);
+  const wallet = method.wallet && WALLETS[method.wallet] ? ` · ${WALLETS[method.wallet]}` : '';
+  return `${brand} •••• ${method.last4}${wallet}`;
+}
+
+// Devoluciones y abonos de una factura: el estado "Pagada" de Stripe no cambia al reembolsar.
+export function trainerInvoiceAdjustment(invoice: TrainerInvoice): string | null {
+  if (invoice.refundedAmount) return `Reembolsado ${formatTrainerAmount(invoice.refundedAmount, invoice.currency)}`;
+  if (invoice.creditedAmount) return `Abonado ${formatTrainerAmount(invoice.creditedAmount, invoice.currency)}`;
   return null;
 }
 
@@ -77,6 +104,19 @@ function validDate(value: string | null | undefined): string | null {
 export function trainerBillingSummary(entitlements: TrainerEntitlements | null): TrainerBillingSummary {
   if (!entitlements) return { label: 'Estado no disponible', date: null, attention: false };
   const date = validDate(entitlements.currentPeriodEnd || entitlements.expiresAt);
+  const billing = entitlements.billing;
+  if (billing?.accessException && entitlements.isPremium) {
+    return { label: 'Acceso concedido por TrainFit hasta', date: validDate(billing.accessException.until), attention: false };
+  }
+  if (billing?.accessRevokedUntil) {
+    return { label: 'El pago de este periodo se devolvió. Acceso de pago retirado hasta', date: validDate(billing.accessRevokedUntil), attention: true };
+  }
+  if (billing?.hold) {
+    return { label: 'Cobros en pausa mientras revisamos una incidencia con un pago. Tu acceso se mantiene.', date: null, attention: true };
+  }
+  if (billing?.renewalNotice && entitlements.isPremium && !entitlements.cancelAtPeriodEnd) {
+    return { label: 'Tu plan anual se renueva el', date: validDate(billing.renewalNotice.at), attention: true };
+  }
   if (entitlements.billing?.pendingPayment) {
     return { label: 'El cambio de plan está pendiente de pago.', date: null, attention: true };
   }

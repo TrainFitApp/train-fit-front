@@ -1,6 +1,7 @@
 export type PurchasableTrainerTier = 'trainer_pro' | 'trainer_growth' | 'trainer_scale';
 export type TrainerTier = 'free' | PurchasableTrainerTier | 'trainer_unlimited';
 export type TrainerBillingInterval = 'monthly' | 'annual';
+export type TrainerTaxPolicy = 'test_no_tax' | 'stripe_tax' | 'managed_payments' | 'pending';
 
 export interface TrainerBillingPrice {
   amount: number;
@@ -13,14 +14,22 @@ export interface TrainerPlan {
   prices: Record<TrainerBillingInterval, TrainerBillingPrice>;
 }
 
+// Buzón de facturación y condiciones de contratación (vacíos si no están configurados).
+export interface TrainerBillingSupport {
+  email: string | null;
+  termsUrl: string | null;
+}
+
 export interface TrainerPlanCatalog {
   enabled: boolean;
   mode: 'test' | 'live';
   currency: 'EUR';
-  // stripe_tax: los precios del catálogo son sin IVA; Stripe lo añade al cobrar.
-  taxPolicy: 'test_no_tax' | 'stripe_tax' | 'pending';
+  // stripe_tax y managed_payments: los precios del catálogo son sin IVA; Stripe lo añade al cobrar.
+  // managed_payments: además, Stripe (a través de Link) es el vendedor que factura (decisión 2026-10-01).
+  taxPolicy: TrainerTaxPolicy;
   plans: TrainerPlan[];
   capabilities: { checkout: boolean; portal: boolean; planChanges: boolean };
+  support?: TrainerBillingSupport;
 }
 
 export interface TrainerCheckoutSession {
@@ -63,11 +72,24 @@ export interface TrainerInvoice {
   periodEnd: string | null;
   hostedUrl?: string;
   pdfUrl?: string;
+  // Devuelto (reembolsos registrados) y abonado con notas de crédito de Stripe.
+  refundedAmount?: number;
+  creditedAmount?: number;
+}
+
+export interface TrainerPaymentMethod {
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+  // link: pago guardado con Link; wallet: Apple Pay / Google Pay sobre una tarjeta.
+  kind?: 'card' | 'link';
+  wallet?: string | null;
 }
 
 export interface TrainerBillingDetails {
   invoices: TrainerInvoice[];
-  paymentMethod: { brand: string; last4: string; expMonth: number; expYear: number } | null;
+  paymentMethod: TrainerPaymentMethod | null;
 }
 
 export interface TrainerChangeQuote {
@@ -119,8 +141,16 @@ export interface TrainerEntitlements {
   billing?: {
     enabled: boolean;
     mode: 'test' | 'live';
-    taxPolicy?: 'test_no_tax' | 'stripe_tax' | 'pending';
-    review?: { reason: 'dispute' | 'refund'; at: string } | null;
+    taxPolicy?: TrainerTaxPolicy;
+    // Cobros en pausa por una incidencia con un pago (el acceso pagado se mantiene).
+    hold?: { since: string } | null;
+    // Acceso concedido por TrainFit hasta una fecha (no es un cobro).
+    accessException?: { until: string; tier: PurchasableTrainerTier } | null;
+    // El pago de este periodo se perdió en una disputa: sin acceso de pago hasta esa fecha.
+    accessRevokedUntil?: string | null;
+    // Renovación anual en los próximos 30 días.
+    renewalNotice?: { at: string; amount: number | null; daysLeft: number } | null;
+    support?: TrainerBillingSupport;
     portalAvailable: boolean;
     planChanges: boolean;
     actions?: TrainerBillingActions;

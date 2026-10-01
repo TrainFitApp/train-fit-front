@@ -37,6 +37,10 @@ export class ManagementHomePage {
     void this.navController.navigateForward(['/management-home', 'maintenance-config']);
   }
 
+  public goToTrainerBilling(): void {
+    void this.navController.navigateForward(['/management-home', 'trainer-billing']);
+  }
+
   public goBack(): void {
     this.navigationService.goBack();
   }

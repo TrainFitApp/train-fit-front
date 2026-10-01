@@ -6,13 +6,13 @@ import { catchError, finalize, timeout } from 'rxjs/operators';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { TrainerBillingApiService } from './services/trainer-billing-api.service';
 import {
-  PurchasableTrainerTier, TrainerBillingActions, TrainerBillingDetails, TrainerBillingInterval, TrainerChangeQuote,
-  TrainerEntitlements, TrainerInvoice, TrainerPlan, TrainerPlanCatalog, TrainerQuoteLine, TrainerSeats,
+  PurchasableTrainerTier, TrainerBillingActions, TrainerBillingDetails, TrainerBillingInterval, TrainerBillingSupport,
+  TrainerChangeQuote, TrainerEntitlements, TrainerInvoice, TrainerPlan, TrainerPlanCatalog, TrainerQuoteLine, TrainerSeats,
 } from './models/trainer-entitlements.model';
 import {
   TRAINER_INTERVAL_NAMES, TRAINER_PLAN_NAMES, TrainerStateTone, canStartTrainerCheckout, checkoutConfirmationState,
   formatTrainerAmount, formatTrainerDate, isBillingMode, isCheckoutSessionId, isLegacyTrainerPlan, safeStripeRedirectUrl,
-  trainerBillingState, trainerBillingSummary, trainerPlanLabel, trainerPlanName,
+  trainerBillingState, trainerBillingSummary, trainerInvoiceAdjustment, trainerPaymentMethodLabel, trainerPlanLabel, trainerPlanName,
 } from './trainer-billing-view.util';
 
 type ViewState = 'loading' | 'error' | 'loaded' | 'forbidden';
@@ -40,6 +40,8 @@ export interface InvoiceRow {
   amount: string;
   status: { label: string; tone: TrainerStateTone };
   linkLabel: string;
+  // "Reembolsado 29,00 €" / "Abonado 10,00 €": la factura sigue pagada en Stripe.
+  adjustment: string | null;
 }
 
 // Qué pasa hoy y en la próxima fecha relevante: renovación, cambio programado,
@@ -55,8 +57,8 @@ const DIALOG_TITLES: Record<ManagementDialog, string> = {
 const INVOICE_REASONS: Record<TrainerInvoice['reason'], string> = {
   subscription_create: 'Alta', subscription_cycle: 'Renovación', subscription_update: 'Cambio de plan', other: 'Factura',
 };
-const CARD_BRANDS: Record<string, string> = { visa: 'Visa', mastercard: 'Mastercard', amex: 'American Express' };
 const ERROR_MESSAGES: Record<string, string> = {
+  COLLECTION_PAUSED: 'Los cobros de tu suscripción están en pausa mientras revisamos una incidencia con un pago. Escríbenos para cambiar de plan.',
   ACTIVE_SUBSCRIPTION: 'Ya tienes una suscripción. Gestiona la existente desde esta página.',
   LEGACY_SUBSCRIPTION: 'Tu plan anterior se conserva. Contacta con TrainFit para solicitar un cambio.',
   EXISTING_CHECKOUT: 'Ya hay una contratación en curso. Retoma el mismo plan o comprueba tu suscripción.',
@@ -223,15 +225,24 @@ export class SubscriptionPage implements OnDestroy {
   public get showSyncRetry(): boolean {
     return ['delayed', 'error', 'payment_required'].includes(this.returnState) && !this.invalidSession;
   }
-  public get cardLabel(): string | null {
-    const card = this.billingDetails?.paymentMethod;
-    if (!card) return null;
-    return `${CARD_BRANDS[card.brand] || card.brand.charAt(0).toUpperCase() + card.brand.slice(1)} •••• ${card.last4}`;
-  }
+  public get cardLabel(): string | null { return trainerPaymentMethodLabel(this.billingDetails?.paymentMethod); }
   public get cardExpiry(): string | null {
     const card = this.billingDetails?.paymentMethod;
-    return card ? `${String(card.expMonth).padStart(2, '0')}/${card.expYear}` : null;
+    return card && card.kind !== 'link' && card.expYear ? `${String(card.expMonth).padStart(2, '0')}/${card.expYear}` : null;
   }
+  // Buzón de facturación y condiciones: los da el backend (entitlements o catálogo).
+  public get support(): TrainerBillingSupport | null { return this.entitlements?.billing?.support || this.catalog?.support || null; }
+  public get supportMailto(): string | null {
+    const email = this.support?.email;
+    return email ? `mailto:${email}?subject=${encodeURIComponent('Facturación de TrainFit Trainers')}` : null;
+  }
+  public get termsUrl(): string | null {
+    const url = this.support?.termsUrl;
+    return url && /^https:\/\//.test(url) ? url : null;
+  }
+  public get renewalNotice() { return this.entitlements?.billing?.renewalNotice || null; }
+  public get accessException() { return this.entitlements?.billing?.accessException || null; }
+  public get accessRevokedUntil(): string | null { return this.entitlements?.billing?.accessRevokedUntil || null; }
   // Mayor ahorro anual del catálogo real (12 mensualidades frente al pago anual).
   public get annualSavingLabel(): string | null {
     const best = Math.max(0, ...this.plans.map((plan) => plan.prices.monthly.amount * 12 - plan.prices.annual.amount));
@@ -381,10 +392,14 @@ export class SubscriptionPage implements OnDestroy {
     return `${this.formatAmount(amount, currency)} /${this.intervalLabel(interval)}`;
   }
 
-  // Con Stripe Tax los precios del catálogo son base imponible (IVA aparte, decisión 2026-09-21).
+  // Con Stripe Tax o Managed Payments los precios del catálogo son base imponible (IVA aparte, decisión 2026-09-21).
   public get pricesExcludeTax(): boolean {
-    return (this.catalog?.taxPolicy || this.entitlements?.billing?.taxPolicy) === 'stripe_tax';
+    return ['stripe_tax', 'managed_payments'].includes(this.taxPolicy || '');
   }
+  // Managed Payments (2026-10-01): Stripe vende a través de Link y emite la factura. Se avisa
+  // antes de pagar para que el cargo no sorprenda (prevención de disputas).
+  public get soldByStripe(): boolean { return this.taxPolicy === 'managed_payments'; }
+  private get taxPolicy() { return this.catalog?.taxPolicy || this.entitlements?.billing?.taxPolicy; }
 
   // Importe calculado por Stripe: con IVA aparte ya lo incluye, y se dice para que cuadre con "29 € + IVA".
   public stripeAmount(amount: number, currency?: string): string {
@@ -656,7 +671,7 @@ export class SubscriptionPage implements OnDestroy {
       ? ` · ${formatTrainerDate(invoice.periodStart, false)} – ${formatTrainerDate(invoice.periodEnd)}` : '';
     return { invoice, date: formatTrainerDate(invoice.createdAt), concept: `${this.invoiceReason(invoice)}${period}`,
       amount: this.formatAmount(invoice.total, invoice.currency), status: this.invoiceStatus(invoice),
-      linkLabel: invoice.status === 'open' ? 'Pagar' : 'Ver' };
+      linkLabel: invoice.status === 'open' ? 'Pagar' : 'Ver', adjustment: trainerInvoiceAdjustment(invoice) };
   }
 
   private catalogRequest() {

@@ -1,0 +1,167 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ detail?.user?.email || ('MANAGEMENT.HOME.TRAINER_BILLING' | translate) }}</h1>
+      </div>
+      <div class="tf-page-header__actions">
+        <span class="mode-chip" *ngIf="mode" [class.live]="mode === 'live'">{{ mode === 'live' ? 'Real' : 'Pruebas' }}</span>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="billing-content">
+  <div class="billing-sections">
+    <p class="state-line" *ngIf="loading" role="status">Cargando…</p>
+    <div class="billing-card error-card" *ngIf="error" role="alert">
+      <p>{{ error }}</p>
+      <ion-button fill="outline" size="small" (click)="load()">Reintentar</ion-button>
+    </div>
+
+    <!-- Bandeja de casos -->
+    <ng-container *ngIf="!userId && !loading && !error">
+      <div class="billing-card warning-card" *ngIf="pendingEvents > 0" role="status">
+        <strong>{{ pendingEvents }} evento(s) de Stripe sin procesar</strong>
+        <p>Se reintentan solos cada minuto. Si siguen aquí mañana, revisa el log de PM2 (avisos [TrainerBilling]) y el webhook en Stripe.</p>
+      </div>
+
+      <div class="section-header"><ion-icon name="search-outline"></ion-icon><span>Ficha de un entrenador</span></div>
+      <div class="billing-card lookup-row">
+        <ion-input type="email" placeholder="email del entrenador" [(ngModel)]="lookupEmail" (keyup.enter)="lookup()" aria-label="Email del entrenador"></ion-input>
+        <ion-button size="small" (click)="lookup()" [disabled]="!lookupEmail.trim()">Abrir</ion-button>
+      </div>
+
+      <div class="section-header"><ion-icon name="alert-circle-outline"></ion-icon><span>Casos</span></div>
+      <ion-segment [value]="filter" (ionChange)="setFilter($any($event.detail.value))">
+        <ion-segment-button value="open"><ion-label>Abiertos</ion-label></ion-segment-button>
+        <ion-segment-button value="resolved"><ion-label>Resueltos</ion-label></ion-segment-button>
+        <ion-segment-button value="all"><ion-label>Todos</ion-label></ion-segment-button>
+      </ion-segment>
+      <p class="state-line" *ngIf="!cases.length">No hay casos {{ filter === 'open' ? 'abiertos' : filter === 'resolved' ? 'resueltos' : '' }}.</p>
+      <button type="button" class="billing-card case-card" *ngFor="let entry of cases" (click)="openTrainer(entry.userId)">
+        <span class="case-head">
+          <span class="priority" [class.high]="entry.priority === 'high'">{{ entry.priority === 'high' ? 'Prioridad alta' : 'Normal' }}</span>
+          <strong>{{ caseTitle(entry) }}</strong>
+        </span>
+        <span class="case-line">{{ entry.email || entry.userId }}</span>
+        <span class="case-line">{{ financedLabel(entry.financed) }}</span>
+        <span class="case-line due" *ngIf="entry.dueBy && entry.status === 'open'">Responder antes del {{ formatDate(entry.dueBy, true) }}</span>
+        <span class="case-line muted">Abierto el {{ formatDate(entry.openedAt, true) }}{{ entry.status === 'resolved' ? ' · resuelto' : '' }}</span>
+      </button>
+    </ng-container>
+
+    <!-- Ficha del entrenador -->
+    <ng-container *ngIf="userId && detail && !loading">
+      <div class="section-header"><ion-icon name="card-outline"></ion-icon><span>Suscripción y acceso</span></div>
+      <div class="billing-card">
+        <ng-container *ngIf="detail.account as account; else noAccount">
+          <div class="fact"><span>Plan pagado</span><strong>{{ planLabel(account.tier, account.interval) }}</strong></div>
+          <div class="fact"><span>Estado en Stripe</span><strong>{{ account.status }}{{ account.cancelAtPeriodEnd ? ' · no se renovará' : '' }}</strong></div>
+          <div class="fact"><span>Pagado hasta</span><strong>{{ formatDate(account.paidUntil) }}</strong></div>
+          <div class="fact" *ngIf="account.renewal"><span>Próxima renovación</span><strong>{{ formatDate(account.renewal.at) }} · {{ formatAmount(account.renewal.amount) }}</strong></div>
+          <div class="fact" *ngIf="account.hold || account.collectionPaused"><span>Cobros</span><strong class="warn">En pausa desde {{ formatDate(account.hold?.since || null) }}{{ account.hold?.kind === 'dispute' ? ' (disputa)' : '' }}</strong></div>
+          <div class="fact" *ngIf="account.change"><span>Último cambio</span><strong>{{ planLabel(account.change.from.tier, account.change.from.interval) }} → {{ planLabel(account.change.to.tier, account.change.to.interval) }} · {{ account.change.status }}</strong></div>
+          <div class="fact" *ngIf="account.termsAcceptance"><span>Condiciones aceptadas</span><strong>{{ formatDate(account.termsAcceptance.at, true) }}</strong></div>
+          <div class="fact" *ngIf="account.deletedAt"><span>Cuenta</span><strong class="warn">En eliminación</strong></div>
+        </ng-container>
+        <ng-template #noAccount><p class="state-line">Sin cuenta de facturación: no ha contratado nunca.</p></ng-template>
+        <div class="fact" *ngIf="detail.access as access">
+          <span>Acceso ahora</span>
+          <strong [class.warn]="!access.entitled">{{ access.entitled ? planLabel(access.tier, access.interval) : 'Free' }}{{ access.basis === 'exception' ? ' · por excepción' : '' }}{{ access.expiresAt ? ' hasta ' + formatDate(access.expiresAt) : '' }}{{ access.revokedUntil ? ' · periodo retirado hasta ' + formatDate(access.revokedUntil) : '' }}</strong>
+        </div>
+        <div class="links" *ngIf="detail.links as links">
+          <a [href]="links.customer" target="_blank" rel="noopener noreferrer">Cliente en Stripe</a>
+          <a *ngIf="links.subscription" [href]="links.subscription" target="_blank" rel="noopener noreferrer">Suscripción en Stripe</a>
+        </div>
+      </div>
+
+      <ng-container *ngIf="detail.account?.adjustments?.length">
+        <div class="section-header"><ion-icon name="options-outline"></ion-icon><span>Ajustes de acceso</span></div>
+        <div class="billing-card">
+          <div class="fact" *ngFor="let adjustment of detail.account?.adjustments">
+            <span>{{ adjustment.kind === 'grant' ? 'Excepción ' + planLabel(adjustment.tier) : 'Periodo retirado' }} · {{ formatDate(adjustment.from) }} – {{ formatDate(adjustment.until) }}</span>
+            <strong [class.muted]="adjustment.liftedAt">{{ adjustment.liftedAt ? 'Retirado el ' + formatDate(adjustment.liftedAt) : adjustment.reason }}</strong>
+            <ion-button *ngIf="!adjustment.liftedAt" fill="clear" size="small" (click)="prepareAdjustment(adjustment)">{{ adjustment.kind === 'grant' ? 'Retirar' : 'Devolver acceso' }}</ion-button>
+          </div>
+        </div>
+      </ng-container>
+
+      <div class="section-header"><ion-icon name="alert-circle-outline"></ion-icon><span>Casos</span></div>
+      <p class="state-line" *ngIf="!detail.cases.length">Sin reembolsos, disputas ni avisos de fraude.</p>
+      <div class="billing-card case-detail" *ngFor="let entry of detail.cases" [class.resolved]="entry.status === 'resolved'">
+        <div class="case-head">
+          <span class="priority" [class.high]="entry.priority === 'high' && entry.status === 'open'">{{ entry.status === 'resolved' ? 'Resuelto' : entry.priority === 'high' ? 'Prioridad alta' : 'Abierto' }}</span>
+          <strong>{{ caseTitle(entry) }}</strong>
+        </div>
+        <p class="case-line">{{ financedLabel(entry.financed) }} · {{ roleLabels[entry.role] }}</p>
+        <p class="case-line" *ngFor="let refund of entry.refunds || []">Reembolso {{ formatAmount(refund.amount) }} · {{ refundStatus[refund.status] || refund.status }}{{ refund.reason ? ' · ' + refund.reason : '' }}{{ refund.failureReason ? ' · ' + refund.failureReason : '' }}</p>
+        <p class="case-line due" *ngIf="entry.dueBy && entry.status === 'open'">Responder en Stripe antes del {{ formatDate(entry.dueBy, true) }}</p>
+        <p class="case-line" *ngIf="entry.effects.length">Efectos automáticos: {{ entry.effects.join(', ') }}</p>
+        <p class="suggestion" *ngIf="entry.status === 'open'">{{ suggestions[entry.suggestion] || entry.suggestion }}</p>
+        <p class="case-line muted" *ngFor="let note of entry.notes">{{ note }}</p>
+        <p class="case-line muted" *ngIf="entry.resolution as resolution">{{ actionLabels[resolution.action] }} por {{ resolution.by.email || resolution.by.id }} el {{ formatDate(resolution.at, true) }}: {{ resolution.reason }}</p>
+        <ion-button *ngIf="entry.status === 'open'" fill="outline" size="small" (click)="useCase(entry)">Usar este caso</ion-button>
+      </div>
+
+      <div class="section-header"><ion-icon name="hammer-outline"></ion-icon><span>Intervención</span></div>
+      <div class="billing-card form-card">
+        <ion-item lines="none">
+          <ion-select label="Acción" labelPlacement="stacked" interface="popover" [(ngModel)]="form.action" placeholder="Elige una acción">
+            <ion-select-option *ngFor="let action of actions" [value]="action">{{ actionLabels[action] }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <p class="help" *ngIf="form.action">{{ actionHelp[$any(form.action)] }}</p>
+        <ion-item lines="none" *ngIf="openCases.length">
+          <ion-select label="Caso" labelPlacement="stacked" interface="popover" [(ngModel)]="form.caseId" placeholder="Sin caso">
+            <ion-select-option value="">Sin caso</ion-select-option>
+            <ion-select-option *ngFor="let entry of openCases" [value]="entry.caseId">{{ caseTitle(entry) }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item lines="none" *ngIf="form.caseId && form.action && form.action !== 'resolve_case'">
+          <ion-checkbox [(ngModel)]="form.resolveCase" labelPlacement="end">Resolver también el caso</ion-checkbox>
+        </ion-item>
+        <ng-container *ngIf="form.action === 'grant_access'">
+          <ion-item lines="none">
+            <ion-select label="Plan concedido" labelPlacement="stacked" interface="popover" [(ngModel)]="form.tier">
+              <ion-select-option *ngFor="let tier of tiers" [value]="tier">{{ planNames[tier] }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-input label="Hasta" labelPlacement="stacked" type="date" [(ngModel)]="form.until"></ion-input>
+          </ion-item>
+        </ng-container>
+        <ion-item lines="none" *ngIf="form.action === 'end_grant' || form.action === 'restore_period_access'">
+          <ion-select label="Ajuste" labelPlacement="stacked" interface="popover" [(ngModel)]="form.adjustmentId" placeholder="Elige el ajuste">
+            <ion-select-option *ngFor="let adjustment of activeAdjustments" [value]="adjustment.id">{{ formatDate(adjustment.from) }} – {{ formatDate(adjustment.until) }} · {{ adjustment.reason }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-input label="Motivo (obligatorio)" labelPlacement="stacked" [(ngModel)]="form.reason" maxlength="300" placeholder="Ej.: devolución anual en los 7 días"></ion-input>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-textarea label="Nota interna (opcional)" labelPlacement="stacked" [(ngModel)]="form.note" maxlength="1000" autoGrow="true"></ion-textarea>
+        </ion-item>
+        <p class="help warn" *ngIf="form.action && formProblem">{{ formProblem }}</p>
+        <ion-button expand="block" [disabled]="submitting || !!formProblem" (click)="submit()">{{ submitting ? 'Aplicando…' : 'Aplicar intervención' }}</ion-button>
+        <p class="help">Los reembolsos se hacen en Stripe (mejor desde la factura, con nota de crédito). Aquí se decide qué pasa con la suscripción y el acceso.</p>
+      </div>
+
+      <div class="section-header"><ion-icon name="time-outline"></ion-icon><span>Historial de intervenciones</span></div>
+      <p class="state-line" *ngIf="!detail.interventions.length">Sin intervenciones registradas.</p>
+      <div class="billing-card" *ngIf="detail.interventions.length">
+        <div class="fact intervention" *ngFor="let entry of detail.interventions">
+          <span>{{ formatDate(entry.at, true) }} · {{ entry.by.email || entry.by.id }}</span>
+          <strong [class.warn]="entry.status !== 'applied'">{{ actionLabels[entry.action] }}{{ entry.status === 'failed' ? ' (fallida: ' + (entry.error || 'error') + ')' : entry.status === 'pending' ? ' (sin terminar)' : '' }}</strong>
+          <span class="muted">{{ entry.reason }}{{ entry.note ? ' — ' + entry.note : '' }}</span>
+          <span class="muted" *ngIf="entry.before && entry.after">{{ entry.before.entitled ? planLabel(entry.before.tier, entry.before.interval) : 'Free' }} → {{ entry.after.entitled ? planLabel(entry.after.tier, entry.after.interval) : 'Free' }}</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

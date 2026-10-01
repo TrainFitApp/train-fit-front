@@ -923,7 +923,9 @@
       "RESTART_SERVER": "Reiniciar Servidor",
       "RESTART_SERVER_DESC": "Reiniciar nginx + recargar PM2",
       "MAINTENANCE": "Mantenimiento y versiones",
-      "MAINTENANCE_DESC": "Modo mantenimiento y actualización obligatoria"
+      "MAINTENANCE_DESC": "Modo mantenimiento y actualización obligatoria",
+      "TRAINER_BILLING": "Facturación Trainers",
+      "TRAINER_BILLING_DESC": "Reembolsos, disputas e intervenciones sobre suscripciones"
     },
     "CONFIRM_RESTART": {
       "HEADER": "Reiniciar Servidor",

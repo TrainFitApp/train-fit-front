@@ -705,3 +705,50 @@ test('con Stripe Tax las tarifas del catálogo se muestran + IVA; sin él, no', 
   assert.equal(sandbox.page.tariff(2900, 'monthly'), sandbox.page.recurring(2900, 'monthly'));
   sandbox.page.ngOnDestroy();
 });
+
+// Política de dinero 2026-09-28: cobros en pausa, excepciones, acceso retirado, aviso anual y soporte.
+const { trainerBillingState, trainerPaymentMethodLabel, trainerInvoiceAdjustment } = compiled.exports;
+
+test('una incidencia con un pago pausa los cobros: se explica, se conserva el acceso y se ofrece el buzón de facturación', () => {
+  const held = active({ billing: { enabled: true, mode: 'test', portalAvailable: true, planChanges: true, hold: { since: '2026-09-28T10:00:00Z' },
+    support: { email: 'facturacion@example.test', termsUrl: 'https://trainfit.example.test/condiciones' },
+    actions: { canChange: false, canCancel: true, canResume: false, canDiscardChange: false } } });
+  assert.deepEqual(trainerBillingState(held), { kind: 'on_hold', tone: 'warning', label: 'Cobros en pausa' });
+  assert.equal(trainerBillingSummary(held).attention, true);
+  const h = harness({ entitlements: held });
+  h.page.ionViewWillEnter();
+  assert.equal(h.page.supportMailto, 'mailto:facturacion@example.test?subject=Facturaci%C3%B3n%20de%20TrainFit%20Trainers');
+  assert.equal(h.page.termsUrl, 'https://trainfit.example.test/condiciones');
+  assert.equal(h.page.changesAvailable, false, 'sin cambios de plan mientras los cobros están en pausa');
+  h.page.ngOnDestroy();
+});
+
+test('excepción concedida, acceso retirado y aviso de renovación anual', () => {
+  const base = active().billing;
+  const exception = active({ billing: { ...base, accessException: { until: '2026-11-01T00:00:00Z', tier: 'trainer_growth' } } });
+  assert.equal(trainerBillingState(exception).kind, 'exception');
+  assert.equal(trainerBillingSummary(exception).label, 'Acceso concedido por TrainFit hasta');
+  const revoked = active({ isPremium: false, billing: { ...base, accessRevokedUntil: '2026-10-18T12:00:00Z' } });
+  assert.equal(trainerBillingState(revoked).kind, 'access_revoked');
+  const renewal = active({ plan: 'annual', billing: { ...base, renewalNotice: { at: '2026-10-18T12:00:00Z', amount: 29700, daysLeft: 20 } } });
+  assert.deepEqual(trainerBillingSummary(renewal), { label: 'Tu plan anual se renueva el', date: '2026-10-18T12:00:00Z', attention: true });
+  assert.ok(trainerBillingSummary({ ...renewal, cancelAtPeriodEnd: true }).label.startsWith('No se renovará'));
+});
+
+test('método de pago con tarjeta, cartera o Link, y facturas con reembolso o abono', () => {
+  assert.equal(trainerPaymentMethodLabel({ brand: 'visa', last4: '4242', expMonth: 1, expYear: 2030, kind: 'card', wallet: null }), 'Visa •••• 4242');
+  assert.equal(trainerPaymentMethodLabel({ brand: 'mastercard', last4: '4444', expMonth: 1, expYear: 2030, kind: 'card', wallet: 'google_pay' }),
+    'Mastercard •••• 4444 · Google Pay');
+  assert.equal(trainerPaymentMethodLabel(null), null);
+  assert.match(trainerInvoiceAdjustment({ id: 'in_1', currency: 'eur', total: 2900, refundedAmount: 2900 }), /^Reembolsado 29,00\s€$/);
+  assert.match(trainerInvoiceAdjustment({ id: 'in_1', currency: 'eur', total: 2900, creditedAmount: 1000 }), /^Abonado 10,00\s€$/);
+  assert.equal(trainerInvoiceAdjustment({ id: 'in_1', currency: 'eur', total: 2900 }), null);
+  const h = harness({ entitlements: active(), details: { paymentMethod: { brand: 'link', last4: '', expMonth: 0, expYear: 0, kind: 'link', wallet: null },
+    invoices: [{ id: 'in_r', number: 'TF-1', status: 'paid', createdAt: '2026-09-18T10:00:00Z', total: 2900, amountPaid: 2900, amountDue: 0,
+      currency: 'eur', reason: 'subscription_create', periodStart: null, periodEnd: null, refundedAmount: 2900 }] } });
+  h.page.ionViewWillEnter();
+  assert.equal(h.page.cardLabel, 'Link');
+  assert.equal(h.page.cardExpiry, null);
+  assert.match(h.page.invoiceRows[0].adjustment, /^Reembolsado/);
+  h.page.ngOnDestroy();
+});

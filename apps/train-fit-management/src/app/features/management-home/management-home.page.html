@@ -82,6 +82,19 @@
         </div>
       </ion-card>
 
+      <ion-card class="management-card" (click)="goToTrainerBilling()" tappable>
+        <div class="management-item">
+          <div class="item-icon-container users-icon">
+            <ion-icon name="card-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'MANAGEMENT.HOME.TRAINER_BILLING' | translate }}</h3>
+            <p>{{ 'MANAGEMENT.HOME.TRAINER_BILLING_DESC' | translate }}</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+        </div>
+      </ion-card>
+
       <ion-card class="management-card" (click)="confirmRestart()" tappable>
         <div class="management-item">
           <div class="item-icon-container restart-icon">

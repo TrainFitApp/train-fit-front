@@ -69,6 +69,21 @@
 
         <!-- Una sola acción principal por estado, justo debajo de lo que explica. -->
         <ng-container [ngSwitch]="statusBadge?.kind">
+          <div class="state-actions" *ngSwitchCase="'on_hold'">
+            <p class="state-note">Estamos revisando una incidencia con uno de tus pagos. Mientras tanto no se te cobrará nada y tu acceso actual se mantiene. <a *ngIf="supportMailto" [href]="supportMailto">Escríbenos si tienes dudas</a></p>
+          </div>
+          <div class="state-actions" *ngSwitchCase="'access_revoked'">
+            <p class="state-note">Tu banco devolvió el pago de este periodo, así que el acceso de pago queda retirado<ng-container *ngIf="accessRevokedUntil"> hasta el {{ formatDate(accessRevokedUntil) }}</ng-container>. Tus datos se conservan. <a *ngIf="supportMailto" [href]="supportMailto">Escríbenos si crees que es un error</a></p>
+          </div>
+          <div class="state-actions" *ngSwitchCase="'exception'">
+            <p class="state-note" *ngIf="accessException as exception">TrainFit te ha concedido acceso {{ planNames[exception.tier] }} hasta el {{ formatDate(exception.until) }}. No es un cobro: después se aplicará el plan que tengas pagado.</p>
+          </div>
+          <ng-container *ngSwitchCase="'active'">
+            <div class="state-actions" *ngIf="renewalNotice as notice">
+              <p class="state-note">Tu plan anual se renueva el {{ formatDate(notice.at) }}<ng-container *ngIf="notice.amount !== null"> por {{ stripeAmount(notice.amount) }}</ng-container>. Si no quieres renovarlo, cancela la renovación antes de esa fecha: mantendrás el acceso hasta entonces.</p>
+              <button type="button" class="text-button" *ngIf="canManage('canCancel')" [disabled]="busy" (click)="openManagementDialog('cancel')">Cancelar renovación</button>
+            </div>
+          </ng-container>
           <div class="state-actions" *ngSwitchCase="'renewal_failed'">
             <button type="button" class="primary-button" *ngIf="renewalPayment && renewalPaymentUrl" [disabled]="busy" (click)="payRenewal()">Pagar {{ formatAmount(renewalPayment.amount) }} ahora</button>
             <button type="button" class="secondary-button" *ngIf="portalAvailable" [disabled]="busy" (click)="openPortal()">Cambiar método de pago</button>
@@ -198,6 +213,8 @@
           </article>
         </div>
         <p class="secondary-copy catalog-footnote" *ngIf="changesAvailable">Antes de confirmar verás cuánto se cobra, cuándo se aplica y cómo cambia tu cupo.</p>
+        <p class="secondary-copy catalog-footnote" *ngIf="checkoutAvailable || changesAvailable">La suscripción se renueva automáticamente hasta que canceles la renovación; cancelarla no devuelve el periodo ya pagado.<ng-container *ngIf="termsUrl"> Consulta las <a [href]="termsUrl" target="_blank" rel="noopener noreferrer">condiciones de contratación</a>.</ng-container></p>
+        <p class="secondary-copy catalog-footnote" *ngIf="soldByStripe && (checkoutAvailable || changesAvailable)">El pago lo gestiona Stripe como vendedor por cuenta de TrainFit, a través de Link: la factura la emite Link y el cargo puede aparecer con su nombre.</p>
       </section>
 
       <section class="invoices" *ngIf="billingDetailsState !== 'idle'" aria-labelledby="invoices-title">
@@ -216,6 +233,7 @@
             <div class="invoice-main">
               <span class="invoice-date">{{ row.date }}</span>
               <span class="invoice-concept">{{ row.concept }}</span>
+              <span class="invoice-concept" *ngIf="row.adjustment">{{ row.adjustment }}</span>
             </div>
             <span class="invoice-amount">{{ row.amount }}</span>
             <span class="status-pill" [attr.data-tone]="row.status.tone">{{ row.status.label }}</span>
@@ -226,6 +244,12 @@
           </li>
         </ul>
       </section>
+
+      <!-- Soporte de facturación siempre a mano (prevención de disputas). -->
+      <p class="secondary-copy" *ngIf="supportMailto || termsUrl">
+        <ng-container *ngIf="supportMailto">¿Dudas con un cobro o una factura? Escríbenos a <a [href]="supportMailto">{{ support?.email }}</a>. </ng-container>
+        <a *ngIf="termsUrl" [href]="termsUrl" target="_blank" rel="noopener noreferrer">Condiciones de contratación</a>
+      </p>
     </ng-container>
   </div>
 
