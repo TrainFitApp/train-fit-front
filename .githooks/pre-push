@@ -37,7 +37,7 @@ if ! node --experimental-strip-types -e 0 >/dev/null 2>&1; then
   exit 1
 fi
 
-npm run lint:all && npm test || {
+npm run verify || {
   echo ""
   echo "pre-push: lint o tests fallan; push a $protected cancelado."
   exit 1

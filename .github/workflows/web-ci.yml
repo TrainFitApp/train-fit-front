@@ -45,8 +45,8 @@ jobs:
 
       - run: npm ci --no-audit --fund=false
 
-      # Las tres apps: el lint de una no mira el código local de las otras.
-      - run: npm run lint:all
+      # packages/ y las tres apps.
+      - run: npm run lint
 
   test:
     name: Tests
@@ -92,7 +92,9 @@ jobs:
       - name: Instalar Ionic CLI
         run: npm install -g @ionic/cli@7 --no-audit --fund=false
 
-      # El mismo script que se usa en local.
+      # El mismo script que se usa en local, sin su `prebuild:pro` (lint +
+      # test): ya han pasado en sus propios trabajos, y aquí el test fallaría
+      # porque este trabajo va en Node 20.
       - name: Compilar Angular
         working-directory: apps/${{ matrix.app }}
-        run: npm run build:pro
+        run: npm run build:pro --ignore-scripts
