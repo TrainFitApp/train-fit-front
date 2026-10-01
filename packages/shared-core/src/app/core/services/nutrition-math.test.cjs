@@ -1,8 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
-const Module = require('node:module');
-const { buildSync } = require('esbuild');
 
 // ESPEJO DEL BACKEND.
 //
@@ -22,32 +21,20 @@ const { buildSync } = require('esbuild');
 // como un documento completo cuando el front manda solo los campos que
 // cambian: la misma receta daba 195 kcal aquí y 0 allí.
 
-const CORE = path.resolve(__dirname, '..');
+// Arnés común: compila el TypeScript real y lo carga sin arrancar Angular.
+function repoRoot(from) {
+  let dir = path.resolve(from);
+  while (!fs.existsSync(path.join(dir, 'apps')) || !fs.existsSync(path.join(dir, 'packages'))) {
+    dir = path.dirname(dir);
+  }
+  return dir;
+}
+const { loadFromSource } = require(path.join(repoRoot(__dirname), 'tests/support/ng-harness.cjs'));
 
-const bundled = buildSync({
-  stdin: {
-    contents:
-      "export { RecipeService } from 'src/app/core/services/recipe/recipe.service';" +
-      "export { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';",
-    resolveDir: CORE,
-    loader: 'ts',
-  },
-  tsconfig: path.resolve(__dirname, '../../../../../../apps/train-fit-front/tsconfig.json'),
-  bundle: true,
-  platform: 'node',
-  format: 'cjs',
-  write: false,
-  external: ['@angular/*', '@ionic/*', 'rxjs', 'rxjs/*', '@ngx-translate/*', '@capacitor/*'],
+const { RecipeService, CustomProductService } = loadFromSource(__filename, __dirname, {
+  RecipeService: 'src/app/core/services/recipe/recipe.service',
+  CustomProductService: 'src/app/core/services/custom-product/custom-product.service',
 });
-const compiled = new Module(__filename);
-compiled.require = (name) => {
-  if (name === '@angular/core') return { Injectable: () => (target) => target };
-  if (name === '@ngx-translate/core') return { TranslateService: class {} };
-  if (name === '@ionic/angular') return { ModalController: class {} };
-  return require(name);
-};
-compiled._compile(bundled.outputFiles[0].text, __filename);
-const { RecipeService, CustomProductService } = compiled.exports;
 
 // Ninguno de los métodos que se prueban aquí toca la API ni los modales.
 const recipes = new RecipeService(null, { instant: (key) => key });

@@ -1,9 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
-const Module = require('node:module');
-const { buildSync } = require('esbuild');
-const { of, Subject, throwError } = require('rxjs');
+const { Subject, of, throwError } = require('rxjs');
 
 // Un día de dieta que todavía no está en base de datos se "estrena" con la
 // primera escritura, y es esa misma petición la que lo crea. Si dos
@@ -16,32 +15,23 @@ const { of, Subject, throwError } = require('rxjs');
 // El backend tiene un índice único {userId, date} como última red, pero quien
 // decide si se manda una segunda creación es esta clase.
 
-const CORE = path.resolve(__dirname, '../..');
+// Arnés común: compila el TypeScript real y lo carga sin arrancar Angular.
+function repoRoot(from) {
+  let dir = path.resolve(from);
+  while (!fs.existsSync(path.join(dir, 'apps')) || !fs.existsSync(path.join(dir, 'packages'))) {
+    dir = path.dirname(dir);
+  }
+  return dir;
+}
+const { loadFromSource } = require(path.join(repoRoot(__dirname), 'tests/support/ng-harness.cjs'));
 
-const bundled = buildSync({
-  stdin: {
-    contents: "export { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';",
-    resolveDir: CORE,
-    loader: 'ts',
-  },
-  tsconfig: path.resolve(__dirname, '../../../../../../../apps/train-fit-front/tsconfig.json'),
-  bundle: true,
-  platform: 'node',
-  format: 'cjs',
-  write: false,
-  external: ['@angular/*', '@ionic/*', 'rxjs', 'rxjs/*', '@ngx-translate/*', '@capacitor/*'],
+// Lo único que se sustituye de Angular es toObservable, que necesita un
+// contexto de inyección y aquí no se usa (nada de esta prueba lee el
+// observable del día actual). El resto, incluidos los `signal` que guardan el
+// estado de la carrera, es código real.
+const { DietDayService } = loadFromSource(__filename, __dirname, {
+  DietDayService: 'src/app/core/services/diet-day/diet-day.service',
 });
-const compiled = new Module(__filename);
-compiled.require = (name) =>
-  // Lo único que se sustituye de Angular: toObservable necesita un contexto de
-  // inyección y aquí no se usa (nada de esta prueba lee el observable del día
-  // actual). Los `signal`, que son justo lo que guarda el estado de la
-  // carrera, son los de verdad.
-  name === '@angular/core/rxjs-interop'
-    ? { toObservable: () => new Subject() }
-    : require(name);
-compiled._compile(bundled.outputFiles[0].text, __filename);
-const { DietDayService } = compiled.exports;
 
 const DATE = '2026-10-01';
 const OTHER_DATE = '2026-10-02';

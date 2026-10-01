@@ -1,36 +1,27 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
-const Module = require('node:module');
-const { buildSync } = require('esbuild');
 
 // El pipe que convierte los valores nutricionales a lo que se lee en pantalla
 // según el filtro de medida (por 100 g / ración / envase / auto). Lo usan las
 // tarjetas del buscador de alimentos y las fichas de producto, así que un
 // error aquí sale como un número mal en todas.
 
-const SHARED_UI = path.resolve(__dirname, '../../..');
+// Arnés común: compila el TypeScript real y lo carga sin arrancar Angular.
+function repoRoot(from) {
+  let dir = path.resolve(from);
+  while (!fs.existsSync(path.join(dir, 'apps')) || !fs.existsSync(path.join(dir, 'packages'))) {
+    dir = path.dirname(dir);
+  }
+  return dir;
+}
+const { loadFromSource } = require(path.join(repoRoot(__dirname), 'tests/support/ng-harness.cjs'));
 
-const bundled = buildSync({
-  stdin: {
-    contents:
-      "export { MeasurePipe } from 'src/app/shared/pipes/measure.pipe';" +
-      "export { MEASURE_FILTER_TYPES } from 'src/app/shared/constants/measureFilter';",
-    resolveDir: SHARED_UI,
-    loader: 'ts',
-  },
-  tsconfig: path.resolve(__dirname, '../../../../../../apps/train-fit-front/tsconfig.json'),
-  bundle: true,
-  platform: 'node',
-  format: 'cjs',
-  write: false,
-  external: ['@angular/*', '@ionic/*', 'rxjs', 'rxjs/*', '@ngx-translate/*'],
+const { MeasurePipe, MEASURE_FILTER_TYPES } = loadFromSource(__filename, __dirname, {
+  MeasurePipe: 'src/app/shared/pipes/measure.pipe',
+  MEASURE_FILTER_TYPES: 'src/app/shared/constants/measureFilter',
 });
-const compiled = new Module(__filename);
-compiled.require = (name) =>
-  name === '@angular/core' ? { Pipe: () => (target) => target } : require(name);
-compiled._compile(bundled.outputFiles[0].text, __filename);
-const { MeasurePipe, MEASURE_FILTER_TYPES } = compiled.exports;
 
 const pipe = new MeasurePipe();
 const ENERGY = 'energyKcal100g';

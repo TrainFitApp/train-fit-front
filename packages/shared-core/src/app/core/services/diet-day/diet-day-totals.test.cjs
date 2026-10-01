@@ -1,9 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
-const Module = require('node:module');
-const { buildSync } = require('esbuild');
-const { Subject } = require('rxjs');
 
 // Los cuatro números grandes de la pantalla de dieta: kcal, proteína,
 // carbohidratos y grasa del día. Es lo primero que mira el cliente cada día,
@@ -14,31 +12,21 @@ const { Subject } = require('rxjs');
 // marcó como tomado; lo que añadió él suma siempre. El gemelo del backend es
 // components/dietDays/diet-days-nutrition-util.test.js (computeDayTracking).
 
-const CORE = path.resolve(__dirname, '../..');
+// Arnés común: compila el TypeScript real y lo carga sin arrancar Angular.
+function repoRoot(from) {
+  let dir = path.resolve(from);
+  while (!fs.existsSync(path.join(dir, 'apps')) || !fs.existsSync(path.join(dir, 'packages'))) {
+    dir = path.dirname(dir);
+  }
+  return dir;
+}
+const { loadFromSource } = require(path.join(repoRoot(__dirname), 'tests/support/ng-harness.cjs'));
 
-const bundled = buildSync({
-  stdin: {
-    contents:
-      "export { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';" +
-      "export { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';" +
-      "export { RecipeService } from 'src/app/core/services/recipe/recipe.service';",
-    resolveDir: CORE,
-    loader: 'ts',
-  },
-  tsconfig: path.resolve(__dirname, '../../../../../../../apps/train-fit-front/tsconfig.json'),
-  bundle: true,
-  platform: 'node',
-  format: 'cjs',
-  write: false,
-  external: ['@angular/*', '@ionic/*', 'rxjs', 'rxjs/*', '@ngx-translate/*', '@capacitor/*'],
+const { DietDayService, CustomProductService, RecipeService } = loadFromSource(__filename, __dirname, {
+  DietDayService: 'src/app/core/services/diet-day/diet-day.service',
+  CustomProductService: 'src/app/core/services/custom-product/custom-product.service',
+  RecipeService: 'src/app/core/services/recipe/recipe.service',
 });
-const compiled = new Module(__filename);
-compiled.require = (name) =>
-  name === '@angular/core/rxjs-interop'
-    ? { toObservable: () => new Subject() }
-    : require(name);
-compiled._compile(bundled.outputFiles[0].text, __filename);
-const { DietDayService, CustomProductService, RecipeService } = compiled.exports;
 
 // Servicios de verdad: lo que se prueba es justo cómo encajan entre ellos.
 const customProducts = new CustomProductService(null, null);
