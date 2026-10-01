@@ -1,135 +1,16 @@
+// Las reglas están en ../../.eslintrc.base.json, compartidas con las otras dos
+// apps y con packages/. Aquí solo va lo propio de esta app: qué tsconfig da
+// los tipos a las reglas que los necesitan.
 {
   "root": true,
-  "ignorePatterns": ["projects/**/*"],
+  "ignorePatterns": ["projects/**/*", "www/**/*", "dist/**/*", "out-tsc/**/*"],
+  "extends": ["../../.eslintrc.base.json"],
   "overrides": [
     {
       "files": ["*.ts"],
-      "parser": "@typescript-eslint/parser",
       "parserOptions": {
-        "project": ["tsconfig.json"],
-        "createDefaultProgram": true,
-        "ecmaVersion": 2022,
-        "sourceType": "module"
-      },
-      "plugins": ["@typescript-eslint"],
-      "extends": [
-        "plugin:@angular-eslint/recommended",
-        "plugin:@angular-eslint/template/process-inline-templates",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:@typescript-eslint/recommended-requiring-type-checking"
-      ],
-      "rules": {
-        "@angular-eslint/component-class-suffix": [
-          "error",
-          {
-            "suffixes": ["Page", "Component"]
-          }
-        ],
-        "@angular-eslint/component-selector": [
-          "error",
-          {
-            "type": "element",
-            "prefix": "app",
-            "style": "kebab-case"
-          }
-        ],
-        "@angular-eslint/directive-selector": [
-          "error",
-          {
-            "type": "attribute",
-            "prefix": "app",
-            "style": "camelCase"
-          }
-        ],
-        // Modificadores de acceso obligatorios
-        "@typescript-eslint/explicit-member-accessibility": [
-          "error",
-          {
-            "accessibility": "explicit",
-            "overrides": {
-              "constructors": "no-public"
-            }
-          }
-        ],
-        // Tipos de retorno obligatorios en funciones y métodos
-        "@typescript-eslint/explicit-function-return-type": [
-          "error",
-          {
-            "allowExpressions": false,
-            "allowTypedFunctionExpressions": false,
-            "allowHigherOrderFunctions": false,
-            "allowDirectConstAssertionInArrowFunctions": false,
-            "allowConciseArrowFunctionExpressionsStartingWithVoid": false
-          }
-        ],
-        // Tipos explícitos en variables
-        "@typescript-eslint/no-inferrable-types": "off",
-        "@typescript-eslint/typedef": [
-          "error",
-          {
-            "arrayDestructuring": true,
-            "arrowParameter": true,
-            "memberVariableDeclaration": true,
-            "objectDestructuring": true,
-            "parameter": true,
-            "propertyDeclaration": true,
-            "variableDeclaration": true,
-            "variableDeclarationIgnoreFunction": false
-          }
-        ],
-        // Prohibir any explícito
-        "@typescript-eslint/no-explicit-any": "error",
-        // Requerir tipos de parámetros en funciones
-        "@typescript-eslint/explicit-module-boundary-types": "error",
-        // Prohibir variables no utilizadas
-        "@typescript-eslint/no-unused-vars": [
-          "error",
-          {
-            "argsIgnorePattern": "^_",
-            "varsIgnorePattern": "^_"
-          }
-        ],
-        // Preferir readonly para arrays que no se modifican
-        "@typescript-eslint/prefer-readonly": "error",
-        // Requerir inicialización de propiedades de clase
-        "@typescript-eslint/no-uninitialized-class-properties": "error",
-        // Prohibir constructores vacíos
-        "@typescript-eslint/no-useless-constructor": "error",
-        // Preferir tipos de unión sobre enums
-        "@typescript-eslint/prefer-enum-initializers": "error",
-        // Requerir await en funciones async
-        "@typescript-eslint/require-await": "error",
-        // Prohibir promesas flotantes
-        "@typescript-eslint/no-floating-promises": "error",
-        // Requerir manejo de promesas
-        "@typescript-eslint/no-misused-promises": "error",
-        // Consistencia en tipos de arrays
-        "@typescript-eslint/array-type": [
-          "error",
-          {
-            "default": "array-simple"
-          }
-        ],
-        // Preferir interfaces sobre type aliases para objetos
-        "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
-        // Ordenar miembros de clase
-        "@typescript-eslint/member-ordering": [
-          "error",
-          {
-            "default": [
-              "signature",
-              "field",
-              "constructor",
-              "method"
-            ]
-          }
-        ]
+        "project": ["tsconfig.json"]
       }
-    },
-    {
-      "files": ["*.html"],
-      "extends": ["plugin:@angular-eslint/template/recommended"],
-      "rules": {}
     }
   ]
 }
