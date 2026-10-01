@@ -50,7 +50,7 @@ Piezas compartidas propias: `macro-adjust` (ajuste de macros con candados, en "E
 | | Features |
 |---|---|
 | **Nuevas** | `coach/` (pestaña Coach: sus profesionales, tareas y hábitos, y avisos), `checkins/my-checkins`, `onboarding-status/` (intake), `nutrition-preferences/`, `pain/`, `supplements/`, `shopping-list/` |
-| **Cambian** | `diets/`: menús del día (`day-menu`, `menu-preview-modal`), alternativas de comida, lo pautado por el entrenador de solo lectura con cantidad pautada vs. consumida, y saltar día. `tables/`, `exercises/` (`quick-series-modal`, notas del entrenador), `profile/`, `authentication/`, `premium/` |
+| **Cambian** | `diets/`: menús del día (`day-menu`, `menu-preview-modal`), alternativas de comida, lo pautado por el entrenador de solo lectura con cantidad pautada vs. consumida, saltar día y **adición rápida** (3.ª opción del + del buscador: kcal y macros a mano, sin crear producto ni receta; solo cliente/management). `tables/`, `exercises/` (`quick-series-modal`, notas del entrenador), `profile/`, `authentication/`, `premium/` |
 | **Retiradas** (dentro de la rama) | Intercambios de alimentos (`food-exchanges`), petición de antropometría (`anthropometry-request`), "tipos de día" (sustituidos por menús) |
 
 `packages/shared-ui` añade `confirm-sheet` y la directiva `numeric-keypad`.

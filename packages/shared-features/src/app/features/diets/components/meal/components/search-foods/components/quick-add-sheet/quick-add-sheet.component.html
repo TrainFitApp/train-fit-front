@@ -1,0 +1,141 @@
+<form
+  class="quick-add"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  aria-labelledby="quick-add-sheet-title"
+  novalidate
+>
+  <header class="quick-add__head">
+    <h2 class="quick-add__title" id="quick-add-sheet-title">
+      {{
+        (isEditMode ? 'SEARCH_FOODS.QUICK_ADD_EDIT_TITLE' : 'SEARCH_FOODS.QUICK_ADD_TITLE')
+          | translate
+      }}
+    </h2>
+    <p class="quick-add__hint">
+      {{
+        mealName
+          ? ('SEARCH_FOODS.QUICK_ADD_HINT_MEAL' | translate : { mealName: mealName })
+          : ('SEARCH_FOODS.QUICK_ADD_HINT' | translate)
+      }}
+    </p>
+  </header>
+
+  <div class="quick-add__field">
+    <span class="quick-add__label">{{ 'SEARCH_FOODS.QUICK_ADD_NAME' | translate }}</span>
+    <ion-input
+      class="quick-add__input"
+      type="text"
+      maxlength="100"
+      autocapitalize="sentences"
+      formControlName="name"
+      [attr.aria-label]="'SEARCH_FOODS.QUICK_ADD_NAME' | translate"
+      [placeholder]="'SEARCH_FOODS.QUICK_ADD_NAME_PLACEHOLDER' | translate"
+    ></ion-input>
+  </div>
+
+  <!-- appNumericKeypad: en nativo abre el teclado a medida de la app (que
+       encoge ion-app, así que no tapa esta hoja); en web, teclado del
+       sistema con inputmode decimal. Mismo par appNumericKeypad +
+       appDecimalInput que usan manage-set y el modal de medidas. -->
+  <div class="quick-add__field quick-add__field--kcal">
+    <span class="quick-add__label">{{ 'SEARCH_FOODS.QUICK_ADD_KCAL' | translate }}</span>
+    <div class="quick-add__control">
+      <ion-input
+        class="quick-add__input quick-add__input--number"
+        type="text"
+        inputmode="decimal"
+        maxlength="6"
+        appNumericKeypad
+        appDecimalInput
+        [maxDecimals]="0"
+        formControlName="kcal"
+        [attr.aria-label]="'SEARCH_FOODS.QUICK_ADD_KCAL' | translate"
+        placeholder="0"
+        (ionInput)="onKcalInput()"
+      ></ion-input>
+      <span class="quick-add__unit">kcal</span>
+    </div>
+  </div>
+
+  <div class="quick-add__grid">
+    <div class="quick-add__field">
+      <span class="quick-add__label">{{ 'SEARCH_FOODS.QUICK_ADD_PROTEIN' | translate }}</span>
+      <div class="quick-add__control">
+        <ion-input
+          class="quick-add__input quick-add__input--number"
+          type="text"
+          inputmode="decimal"
+          maxlength="6"
+          appNumericKeypad
+          appDecimalInput
+          [maxDecimals]="1"
+          formControlName="protein"
+          [attr.aria-label]="'SEARCH_FOODS.QUICK_ADD_PROTEIN' | translate"
+          placeholder="0"
+          (ionInput)="onMacroInput()"
+        ></ion-input>
+        <span class="quick-add__unit">g</span>
+      </div>
+    </div>
+
+    <div class="quick-add__field">
+      <span class="quick-add__label">{{ 'SEARCH_FOODS.QUICK_ADD_CARBS' | translate }}</span>
+      <div class="quick-add__control">
+        <ion-input
+          class="quick-add__input quick-add__input--number"
+          type="text"
+          inputmode="decimal"
+          maxlength="6"
+          appNumericKeypad
+          appDecimalInput
+          [maxDecimals]="1"
+          formControlName="carbs"
+          [attr.aria-label]="'SEARCH_FOODS.QUICK_ADD_CARBS' | translate"
+          placeholder="0"
+          (ionInput)="onMacroInput()"
+        ></ion-input>
+        <span class="quick-add__unit">g</span>
+      </div>
+    </div>
+
+    <div class="quick-add__field">
+      <span class="quick-add__label">{{ 'SEARCH_FOODS.QUICK_ADD_FAT' | translate }}</span>
+      <div class="quick-add__control">
+        <ion-input
+          class="quick-add__input quick-add__input--number"
+          type="text"
+          inputmode="decimal"
+          maxlength="6"
+          appNumericKeypad
+          appDecimalInput
+          [maxDecimals]="1"
+          formControlName="fat"
+          [attr.aria-label]="'SEARCH_FOODS.QUICK_ADD_FAT' | translate"
+          placeholder="0"
+          (ionInput)="onMacroInput()"
+        ></ion-input>
+        <span class="quick-add__unit">g</span>
+      </div>
+    </div>
+  </div>
+
+  <button
+    *ngIf="showKcalHint"
+    type="button"
+    class="quick-add__kcal-hint"
+    (click)="applyKcalFromMacros()"
+  >
+    <ion-icon name="calculator-outline" aria-hidden="true"></ion-icon>
+    {{ 'SEARCH_FOODS.QUICK_ADD_KCAL_FROM_MACROS' | translate : { kcal: kcalFromMacros } }}
+  </button>
+
+  <footer class="quick-add__actions">
+    <ion-button expand="block" fill="outline" color="medium" type="button" (click)="cancel()">
+      {{ 'COMMON.CANCEL' | translate | uppercase }}
+    </ion-button>
+    <ion-button expand="block" color="primary" type="submit" [disabled]="!canSubmit">
+      {{ (isEditMode ? 'COMMON.SAVE' : 'SEARCH_FOODS.QUICK_ADD_SUBMIT') | translate | uppercase }}
+    </ion-button>
+  </footer>
+</form>

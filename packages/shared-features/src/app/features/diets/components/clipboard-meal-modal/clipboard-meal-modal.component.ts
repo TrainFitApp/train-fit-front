@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { CustomRecipe } from 'src/app/core/models/customRecipe';
 
@@ -27,11 +28,23 @@ export class ClipboardMealModalComponent implements OnInit {
   public localSelectedProductIds = new Set<string>();
   public localSelectedRecipeIds = new Set<string>();
 
-  constructor(private modalController: ModalController) {}
+  constructor(
+    private modalController: ModalController,
+    private translate: TranslateService
+  ) {}
 
   public ngOnInit(): void {
     this.selectedProductIds.forEach((id) => this.localSelectedProductIds.add(id));
     this.selectedRecipeIds.forEach((id) => this.localSelectedRecipeIds.add(id));
+  }
+
+  // El del catálogo, o el que escribió el cliente si es una adición rápida
+  // (ver CustomProduct#name) — si no, la fila saldría sin nombre.
+  public getProductName(product: CustomProduct): string {
+    return (
+      (product?.product?.name || product?.name || '').trim() ||
+      this.translate.instant('SEARCH_FOODS.QUICK_ADD_DEFAULT_NAME')
+    );
   }
 
   public getRecipeName(recipe: CustomRecipe): string {

@@ -2,7 +2,11 @@ import { Injectable } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Observable, take } from 'rxjs';
 import { IProduct } from 'src/app/core/models/product';
-import { CustomProduct } from '../../models/customProduct';
+import {
+  CustomProduct,
+  QUICK_ADD_QUANTITY,
+  QuickAddMacros,
+} from '../../models/customProduct';
 import { CustomProductAPIService } from './custom-product-api.service';
 
 @Injectable()
@@ -72,6 +76,39 @@ export class CustomProductService {
 
   public deleteCustomProduct(id: string): Observable<CustomProduct> {
     return this.customAPIService.deleteCustomProduct(id).pipe(take(1));
+  }
+
+  /**
+   * El nombre que se pinta de un CustomProduct. El del producto del catálogo
+   * cuando lo hay; si no, el que el cliente escribió en la adición rápida
+   * (ver CustomProduct#name). Mismo orden que usa el backend para la lista de
+   * la compra (shopping-list-service.js#productName).
+   */
+  public customProductName(customProduct: CustomProduct): string {
+    return (customProduct?.product?.name || customProduct?.name || '').trim();
+  }
+
+  /**
+   * Adición rápida: una línea con sus macros escritas a mano, sin Product en
+   * el catálogo detrás. Se guarda con `quantity` 100 y los macros tal cual en
+   * los campos "por 100 g", para que el cálculo de siempre (valor × cantidad
+   * / 100, ver getCustomProductInfo) devuelva exactamente lo que escribió el
+   * cliente sin ningún caso especial en toda la app.
+   */
+  public composeQuickAddCustomProduct(
+    values: QuickAddMacros,
+    order = 0
+  ): CustomProduct {
+    const customProduct = new CustomProduct();
+    customProduct.quantity = QUICK_ADD_QUANTITY;
+    customProduct.order = order;
+    customProduct.quickAdd = true;
+    customProduct.name = values.name;
+    customProduct.energyKcal100g = values.kcal;
+    customProduct.protein100g = values.protein;
+    customProduct.carbohydrates100g = values.carbs;
+    customProduct.fat100g = values.fat;
+    return customProduct;
   }
 
   /**

@@ -26,6 +26,7 @@ import { forkJoin, map, Observable, shareReplay, Subscription, switchMap, take }
 import {
   CustomProduct,
   CUSTOM_PRODUCT_VALUES,
+  QuickAddMacros,
 } from "src/app/core/models/customProduct";
 import { DietDay } from "src/app/core/models/dietDay";
 import { Meal } from "src/app/core/models/meal";
@@ -36,6 +37,7 @@ import { DietDayService } from "src/app/core/services/diet-day/diet-day.service"
 import { DietService } from "src/app/core/services/diet/diet.service";
 import { MealService } from "src/app/core/services/meal/meal.service";
 import { ProductService } from "src/app/core/services/product/product.service";
+import { CustomProductService } from "src/app/core/services/custom-product/custom-product.service";
 import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
 import { RecipeApiService } from "src/app/core/services/recipe/recipe-api.service";
 import { UserService } from "src/app/core/services/user/user.service";
@@ -60,6 +62,10 @@ import {
   CREATE_FOOD_SHEET_OPTIONS,
   CreateFoodSheetComponent,
 } from "./components/create-food-sheet/create-food-sheet.component";
+import {
+  QUICK_ADD_SHEET_OPTIONS,
+  QuickAddSheetComponent,
+} from "./components/quick-add-sheet/quick-add-sheet.component";
 import {
   RECENT_FOODS_SHEET_OPTIONS,
   RecentFoodItem,
@@ -288,6 +294,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     private productService: ProductService,
     private recipeApiService: RecipeApiService,
     private recipeDraftService: RecipeDraftService,
+    private customProductService: CustomProductService,
     private userService: UserService,
     private activatedRoute: ActivatedRoute,
     private navigationService: NavigationService,
@@ -1193,7 +1200,23 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       case ACTIONS_FAB_TYPES.createRecipe:
         void this.createRecipe();
         break;
+      case ACTIONS_FAB_TYPES.quickAdd:
+        void this.quickAdd();
+        break;
     }
+  }
+
+  // Adición rápida: apuntar kcal y macros sueltos en ESTA comida, sin crear
+  // nada en el catálogo. Solo tiene sentido sobre una comida real del propio
+  // cliente — el entrenador pauta alimentos de verdad (trainerContext) y un
+  // ingrediente de receta también tiene que serlo (ingredientMode).
+  public get canQuickAdd(): boolean {
+    return (
+      !this.trainerContext &&
+      !this.ingredientMode &&
+      !!this.meal &&
+      !!this.dietDay
+    );
   }
 
   public async openCreateActionSheet(): Promise<void> {
@@ -1222,20 +1245,95 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
   }
 
-  // Modal-hoja "nuevo producto / nueva receta" (CreateFoodSheetComponent).
-  // El flag evita abrir dos hojas con un doble toque en el +.
+  // Modal-hoja "nuevo producto / nueva receta / adición rápida"
+  // (CreateFoodSheetComponent). El flag evita abrir dos hojas con un doble
+  // toque en el +.
   private async pickCreateType(): Promise<ACTIONS_FAB_TYPES | undefined> {
     if (this.isCreateSheetOpen) return undefined;
     this.isCreateSheetOpen = true;
     try {
       const { data } = await this.ionicUtilService.showModal({
         component: CreateFoodSheetComponent,
+        componentProps: { allowQuickAdd: this.canQuickAdd },
         ...CREATE_FOOD_SHEET_OPTIONS,
       });
       return data;
     } finally {
       this.isCreateSheetOpen = false;
     }
+  }
+
+  /**
+   * Adición rápida — pide los valores en su hoja y crea la línea en la comida
+   * por la misma vía que un producto normal del buscador
+   * (DietDayService#createCustomProduct), así que el día se estrena solo si
+   * hacía falta y la pantalla de dieta se refresca sin nada aparte.
+   *
+   * Al terminar vuelve a la dieta en vez de quedarse en el buscador: aquí no
+   * hay nada más que buscar, y lo apuntado se ve ya en su comida.
+   */
+  public async quickAdd(): Promise<void> {
+    if (!this.canQuickAdd) return;
+
+    const values = await this.pickQuickAddValues();
+    if (!values) return;
+
+    // El nombre se guarda tal cual lo escribió el cliente, vacío incluido: si
+    // no puso ninguno, lo rotula quien lo pinta con el texto traducido (ver
+    // MealComponent#getProductName), así que sigue al idioma de la app en vez
+    // de quedarse congelado en el que tuviera al apuntarlo.
+    const customProduct = this.customProductService.composeQuickAddCustomProduct(
+      values,
+      this.meal.customProducts?.length || 0,
+    );
+
+    const t = this.translate.instant.bind(this.translate);
+    this.dietDayService
+      .createCustomProduct(
+        { value: false },
+        this.dietDay,
+        customProduct,
+        this.meal,
+        this.userService.getLocalUser?.dietInUse,
+      )
+      .subscribe({
+        next: () => {
+          this.ionicUtilService.showToast({
+            message: t('SEARCH_FOODS.QUICK_ADD_SUCCESS', {
+              name: customProduct.name || this.defaultQuickAddName(),
+            }),
+            duration: 1500,
+            color: 'success',
+          });
+          void this.close();
+        },
+        error: () => {
+          this.ionicUtilService.showToast({
+            message: t('SEARCH_FOODS.QUICK_ADD_ERROR'),
+            duration: 2000,
+            color: 'danger',
+          });
+        },
+      });
+  }
+
+  private async pickQuickAddValues(): Promise<QuickAddMacros | undefined> {
+    if (this.isCreateSheetOpen) return undefined;
+    this.isCreateSheetOpen = true;
+    try {
+      const { data } = await this.ionicUtilService.showModal({
+        component: QuickAddSheetComponent,
+        componentProps: { mealName: this.getMealDisplayName() },
+        ...QUICK_ADD_SHEET_OPTIONS,
+      });
+      return data;
+    } finally {
+      this.isCreateSheetOpen = false;
+    }
+  }
+
+  private defaultQuickAddName(): string {
+    return this.translate.instant('SEARCH_FOODS.QUICK_ADD_DEFAULT_NAME');
   }
 
   /**

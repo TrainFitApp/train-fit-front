@@ -1,6 +1,7 @@
 // Colores de Ionic (no literales) para que la hoja siga al tema claro y al
 // oscuro. Producto en el naranja de marca y receta en el secundario, como en
-// el selector producto/receta de la propia página.
+// el selector producto/receta de la propia página; la adición rápida va en el
+// azul "alternative" porque no crea nada reutilizable (ver más abajo).
 :host {
   --create-ease: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -69,6 +70,14 @@
 .create-option--recipe {
   --option-rgb: var(--ion-color-secondary-rgb, 255, 196, 85);
   --option-color: var(--ion-color-secondary, #ffc455);
+}
+
+// Adición rápida en el azul "alternative": no crea nada reutilizable, así que
+// tiene que distinguirse de un vistazo de las dos que sí (producto y receta),
+// y el terciario del tema es casi el mismo amarillo que el secundario.
+.create-option--quick {
+  --option-rgb: var(--ion-color-alternative-rgb, 56, 128, 255);
+  --option-color: var(--ion-color-alternative, #3880ff);
 }
 
 .create-option__icon {

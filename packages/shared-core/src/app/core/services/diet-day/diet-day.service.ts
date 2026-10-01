@@ -170,10 +170,13 @@ export class DietDayService {
     this.setCurrentDietDay = response;
   }
 
+  // Se mira `meals` (el día) y no `product` (el producto): una adición rápida
+  // es un CustomProduct SIN `product`, así que discriminar por ahí la tomaba
+  // por un DietDay y publicaba el producto suelto como día actual.
   private isCustomProductResponse(
     response: CustomProduct | DietDay
   ): response is CustomProduct {
-    return !!response && 'product' in response;
+    return !!response && !('meals' in response);
   }
 
   private addCreatedCustomProductToMeal(

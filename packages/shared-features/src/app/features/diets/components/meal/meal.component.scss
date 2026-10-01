@@ -117,6 +117,27 @@
             margin-left: 6px;
           }
 
+          // Adición rápida: en vez de los gramos (que no significan nada
+          // ahí, ver QUICK_ADD_QUANTITY) va su distintivo, en el mismo azul
+          // que la opción de la hoja del + que la creó.
+          .item-quick-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ion-color-alternative);
+            background: rgba(var(--ion-color-alternative-rgb), 0.14);
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 6px;
+            white-space: nowrap;
+
+            ion-icon {
+              font-size: 12px;
+            }
+          }
+
           // Delta sobre lo pautado, a la derecha de la cantidad — mismo
           // verde/rojo que el resto de la app usa para "más"/"menos" (ver
           // pautado-item-view.component.scss, mismo criterio ahí).

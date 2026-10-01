@@ -16,6 +16,7 @@ import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.
 import {
   CUSTOM_PRODUCT_KEYS,
   CustomProduct,
+  QuickAddMacros,
 } from 'src/app/core/models/customProduct';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
@@ -43,6 +44,10 @@ import { PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view
 import { MealProposal } from '../../models/meal-proposal.model';
 import { MealProposalApiService } from '../../services/meal-proposal-api.service';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
+import {
+  QUICK_ADD_SHEET_OPTIONS,
+  QuickAddSheetComponent,
+} from './components/search-foods/components/quick-add-sheet/quick-add-sheet.component';
 
 @Component({
   selector: 'app-meal',
@@ -211,6 +216,14 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     // #assertMealEditable, ya lo rechazaría igualmente; esto solo evita
     // navegar a un editor que fallaría al guardar).
     if (this.selectionMode || customProduct.assignedByTrainerId) return;
+
+    // Adición rápida: no hay Product detrás que AddProductPage pueda editar,
+    // así que se vuelve a abrir la hoja con la que se escribió.
+    if (this.isQuickAdd(customProduct)) {
+      void this.editQuickAdd(customProduct);
+      return;
+    }
+
     const product = customProduct.product;
     const isOwnProduct = !!product?.userId;
     const queryParams: any = {
@@ -230,6 +243,46 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
         selectedDate: this.dietDay.date,
       },
     });
+  }
+
+  // Nombre que se pinta de un producto de la comida: el del catálogo, o el
+  // que escribió el cliente en la adición rápida (ver CustomProduct#name).
+  public getProductName(customProduct: CustomProduct): string {
+    return (
+      this.customProductService.customProductName(customProduct) ||
+      this.translate.instant('SEARCH_FOODS.QUICK_ADD_DEFAULT_NAME')
+    );
+  }
+
+  public isQuickAdd(customProduct: CustomProduct): boolean {
+    return !!customProduct?.quickAdd;
+  }
+
+  /**
+   * Reabre la hoja de adición rápida con lo que ya tenía y guarda lo que
+   * salga. La cantidad no se toca (siempre QUICK_ADD_QUANTITY): lo que se
+   * edita son los macros en sí, no una cantidad de nada.
+   */
+  private async editQuickAdd(customProduct: CustomProduct): Promise<void> {
+    const { data } = await this.ionicUtilService.showModal({
+      component: QuickAddSheetComponent,
+      componentProps: { mealName: this.meal?.name, customProduct },
+      ...QUICK_ADD_SHEET_OPTIONS,
+    });
+
+    const values: QuickAddMacros | undefined = data;
+    if (!values) return;
+
+    const updated: CustomProduct = {
+      ...customProduct,
+      name: values.name,
+      energyKcal100g: values.kcal,
+      protein100g: values.protein,
+      carbohydrates100g: values.carbs,
+      fat100g: values.fat,
+    };
+
+    this.dietDayService.updateCustomProduct(updated, this.meal, this.dietDay);
   }
 
   public editCustomRecipe(instance: CustomRecipe): void {
@@ -290,11 +343,12 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   public deleteProduct(meal: Meal, product: CustomProduct): void {
     if (product.assignedByTrainerId) return;
 
-    const productTemp = product.product;
     const t = this.translate.instant.bind(this.translate);
     const alertOptions: AlertOptions = {
       header: t('MEAL.DELETE_PRODUCT_HEADER'),
-      message: t('MEAL.DELETE_PRODUCT_CONFIRM', { name: productTemp.name }),
+      message: t('MEAL.DELETE_PRODUCT_CONFIRM', {
+        name: this.getProductName(product),
+      }),
       buttons: [
         {
           text: t('COMMON.CANCEL').toUpperCase(),
