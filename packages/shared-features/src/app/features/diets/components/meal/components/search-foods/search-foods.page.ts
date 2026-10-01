@@ -266,6 +266,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private isCreateSheetOpen = false;
   private currentDietDay$?: Subscription;
   private recentProductsSub?: Subscription;
+  // Carga de recientes que NO pinta la lista (solo alimenta el icono de
+  // reciente y la prioridad en la búsqueda): va en su propia suscripción para
+  // no pisarse con la que sí pinta.
+  private recentProductsPrefetchSub?: Subscription;
+  private recentProductsPrefetched = false;
   private recentRecipesSub?: Subscription;
   private searchProductsSub?: Subscription;
   private searchRecipesSub?: Subscription;
@@ -320,6 +325,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.searchFilterGroup.userId = this.user?._id;
       this.searchFilterGroup.ownFilter = false;
       this.hasStartedFoodSearch = false;
+      this.recentProductsPrefetched = false;
       this.trainerSelection = [];
       const trainerUser = this.userService.getLocalUser;
       this.trainerFavoriteProductIds = new Set(trainerUser?.archivedProducts || []);
@@ -518,6 +524,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.currentMode = "products";
       // Reset search state so loadRecentProductsForMeal runs (page may be reused)
       this.hasStartedFoodSearch = false;
+      this.recentProductsPrefetched = false;
 
       // Store ingredient mode state in tempData for back button handler
       // This ensures the state persists even if ionViewWillEnter is called multiple times
@@ -732,6 +739,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       }
     }
 
+    // Los recientes hacen falta siempre, con búsqueda o sin ella.
+    this.ensureRecentProductsLoaded();
+
     // Execute search only once if needed
     if (shouldSearch) {
       this.search();
@@ -781,6 +791,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     this.currentDietDay$?.unsubscribe();
     this.recentProductsSub?.unsubscribe();
+    this.recentProductsPrefetchSub?.unsubscribe();
     this.recentRecipesSub?.unsubscribe();
     this.searchProductsSub?.unsubscribe();
     this.searchRecipesSub?.unsubscribe();
@@ -835,6 +846,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
     this.cancelProductLookup();
     this.recentProductsSub?.unsubscribe();
+    this.recentProductsPrefetchSub?.unsubscribe();
     this.recentRecipesSub?.unsubscribe();
     this.searchProductsSub?.unsubscribe();
     this.searchRecipesSub?.unsubscribe();
@@ -2105,8 +2117,63 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   private markFoodSearchStarted(): void {
     this.hasStartedFoodSearch = true;
+    // La petición en vuelo se cancela (ya no va a pintar la lista), pero los
+    // recientes que ya estén en memoria se conservan: son los que llevan el
+    // icono de reciente y los que el backend prioriza en la búsqueda.
     this.recentProductsSub?.unsubscribe();
     this.recentRecipesSub?.unsubscribe();
+    this.ensureRecentProductsLoaded();
+  }
+
+  // Los recientes se usan para dos cosas distintas: pintarlos cuando no hay
+  // texto en el buscador, y mandar sus ids al backend para que los suba en el
+  // ranking cuando sí lo hay (meal-dao.js#searchAllWithFilters). Por eso se
+  // cargan SIEMPRE al entrar, también cuando se vuelve con una búsqueda ya
+  // empezada: antes solo se pedían si no se había buscado nada, y al volver
+  // de la ficha de un producto se perdían el icono de reciente y la prioridad.
+  private ensureRecentProductsLoaded(): void {
+    // Una sola petición por visita, con recientes o sin ellos: se llama desde
+    // markFoodSearchStarted(), es decir en cada pulsación de tecla, y un
+    // usuario sin recientes acabaría pidiéndolos letra a letra.
+    if (this.recentProductsPrefetched || this.recentCustomProducts.length > 0) {
+      return;
+    }
+
+    const dietId =
+      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
+    const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
+
+    if (!dietId || mealIndex === -1) {
+      return;
+    }
+
+    this.recentProductsPrefetched = true;
+    this.recentProductsPrefetchSub?.unsubscribe();
+    this.recentProductsPrefetchSub = this.dietService
+      .getRecentMealProducts(dietId, mealIndex, {
+        limit: this.recentProductsLimit,
+      })
+      .subscribe({
+        next: (customProducts) => {
+          this.recentCustomProducts = customProducts || [];
+        },
+        error: () => {
+          this.recentCustomProducts = [];
+        },
+      });
+  }
+
+  private getRecentProductIds(): string[] {
+    const ids: string[] = [];
+
+    for (const customProduct of this.recentCustomProducts || []) {
+      const product =
+        typeof customProduct?.product === "object" ? customProduct.product : null;
+      const productId = this.getProductId(product);
+      if (productId && !ids.includes(productId)) ids.push(productId);
+    }
+
+    return ids;
   }
 
   private loadRecentProductsForMeal(force = false): void {
@@ -2342,7 +2409,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     );
     this.load = false;
     this.searchProductsSub = this.mealService
-      .searchAllWithFilters(this.searchFilterGroup)
+      .searchAllWithFilters(this.searchFilterGroup, this.getRecentProductIds())
       .subscribe((resFoods: IProduct[]) => {
         if (requestVersion !== this.productsRequestVersion) {
           return;
