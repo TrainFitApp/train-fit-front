@@ -105,8 +105,17 @@ const routes: Routes = [
           ),
       },
       {
-        // Revisiones de técnica: vídeos que mandan los clientes
-        // (docs/plan-medidas-multimedia.md). Sección raíz del menú.
+        // Bandeja «Por revisar»: check-ins, vídeos de técnica y
+        // cuestionarios de alta que esperan respuesta. Sección raíz del menú.
+        path: 'review',
+        loadChildren: () =>
+          import('src/app/features/review-queue/review-queue.module').then(
+            (m) => m.ReviewQueuePageModule
+          ),
+      },
+      {
+        // Revisión de un vídeo de técnica (docs/plan-medidas-multimedia.md).
+        // Su lista es la bandeja «Por revisar».
         path: 'form-checks',
         loadChildren: () =>
           import('src/app/features/form-checks/form-checks.module').then(

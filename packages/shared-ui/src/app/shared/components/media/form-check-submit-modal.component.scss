@@ -49,6 +49,7 @@
   background: $media-surface;
   border: 1px solid $media-border;
   color: #fff;
+  font-family: inherit;
   font-size: 0.86rem;
   font-weight: 700;
   cursor: pointer;
@@ -78,7 +79,8 @@
     cursor: pointer;
   }
 
-  &:focus-within {
+  &:focus-within,
+  &:focus-visible {
     outline: 2px solid $media-accent;
     outline-offset: 2px;
   }

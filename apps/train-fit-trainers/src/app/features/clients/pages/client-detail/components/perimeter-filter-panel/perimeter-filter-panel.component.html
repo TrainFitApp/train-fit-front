@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Perímetros principales</h1>
+        <h1 class="tf-page-header__title">{{ 'CLIENTS.PERIMETROS_PRINCIPALES' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -16,12 +16,12 @@
 
 <ion-content class="filter-panel-content">
   <p class="panel-subtitle">
-    Cuáles ver siempre en Resumen (hasta {{ max }}).
+    {{ 'CLIENTS.CUALES_VER_SIEMPRE_EN_RESUMEN' | translate }} {{ max }}).
     <ng-container *ngIf="selected.length">{{ selected.length }}/{{ max }}</ng-container>
   </p>
 
   <p class="empty-hint" *ngIf="!options.length">
-    Sin perímetros con datos en esta ventana todavía.
+    {{ 'CLIENTS.SIN_PERIMETROS_CON_DATOS_EN' | translate }}
   </p>
 
   <div class="metric-option-list" *ngIf="options.length">
@@ -42,5 +42,5 @@
 </ion-content>
 
 <ion-footer class="filter-panel-footer">
-  <button class="submit-button" (click)="confirm()">Aplicar</button>
+  <button class="submit-button" (click)="confirm()">{{ 'TRAINER_COMMON.APPLY' | translate }}</button>
 </ion-footer>

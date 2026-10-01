@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRouteSnapshot, Router, Resolve } from '@angular/router';
 import { EMPTY, Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -17,6 +18,8 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 // CLIENTE, no una tabla ajena o vacía.
 @Injectable({ providedIn: 'root' })
 export class TableInContextResolver implements Resolve<Table> {
+  private readonly translate = inject(TranslateService);
+
   constructor(
     private tableService: TableService,
     private ionicUtilService: IonicUtilService,
@@ -45,7 +48,7 @@ export class TableInContextResolver implements Resolve<Table> {
       catchError((error) => {
         void this.ionicUtilService.showErrorToast(
           error,
-          'No se pudo abrir este entrenamiento. Puede que ya no exista o que no tengas acceso.'
+          this.translate.instant('CLIENTS.NO_SE_PUDO_ABRIR_ESTE')
         );
         void this.router.navigate(fallbackRoute);
         return EMPTY;

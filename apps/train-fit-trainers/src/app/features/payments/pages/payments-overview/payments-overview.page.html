@@ -1,32 +1,31 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Cobros"></app-page-header>
+  <app-page-header [title]="'TRAINER_COMMON.CHARGES' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="payments-content">
   <div class="page">
     <p class="intro">
-      Lo que tus clientes te pagan fuera de TrainFit: Bizum, transferencia, efectivo… Aquí solo se anota; ni el cliente ni
-      TrainFit mueven dinero. Es distinto de tu suscripción a TrainFit.
+      {{ 'PAYMENTS.LO_QUE_TUS_CLIENTES_TE' | translate }}
     </p>
 
     <!-- ===== Totales ===== -->
-    <section class="totals" aria-label="Totales de cobros" *ngIf="data as d; else totalsPlaceholder">
+    <section class="totals" [attr.aria-label]="'PAYMENTS.TOTALES_DE_COBROS' | translate" *ngIf="data as d; else totalsPlaceholder">
       <div class="total">
-        <span class="total__label">Pendiente total</span>
+        <span class="total__label">{{ 'PAYMENTS.PENDIENTE_TOTAL' | translate }}</span>
         <span class="total__value">{{ money(d.totals.pendingCents) }}</span>
-        <span class="total__meta">Incluye lo vencido; no las cuotas futuras previstas</span>
+        <span class="total__meta">{{ 'PAYMENTS.INCLUYE_LO_VENCIDO_NO_LAS' | translate }}</span>
       </div>
       <div class="total" [class.total--danger]="d.totals.overdueCents > 0">
-        <span class="total__label">Vencido</span>
+        <span class="total__label">{{ 'PAYMENTS.VENCIDO' | translate }}</span>
         <span class="total__value">{{ money(d.totals.overdueCents) }}</span>
         <span class="total__meta">
-          {{ d.totals.overdueCount }} {{ d.totals.overdueCount === 1 ? 'cobro' : 'cobros' }} con el día ya terminado
+          {{ d.totals.overdueCount }} {{ (d.totals.overdueCount === 1 ? 'TRAINER_COMMON.PL_CHARGE_ONE' : 'TRAINER_COMMON.PL_CHARGE_MANY') | translate }} {{ 'TRAINER_MISC.CON_EL_DIA_YA_TERMINADO' | translate }}
         </span>
       </div>
       <div class="total" [class.total--success]="d.totals.receivedThisMonthCents > 0">
-        <span class="total__label">Recibido en {{ monthName }}</span>
+        <span class="total__label">{{ 'PAYMENTS.RECIBIDO_EN' | translate }} {{ monthName }}</span>
         <span class="total__value">{{ money(d.totals.receivedThisMonthCents) }}</span>
-        <span class="total__meta">Por fecha real de recepción; lo anulado no cuenta</span>
+        <span class="total__meta">{{ 'PAYMENTS.POR_FECHA_REAL_DE_RECEPCION' | translate }}</span>
       </div>
     </section>
     <ng-template #totalsPlaceholder>
@@ -38,28 +37,27 @@
     </ng-template>
 
     <p class="scope" *ngIf="data as d">
-      Totales de {{ scopeLabel }}, en euros, a {{ day(d.scope.today) }} ({{ d.scope.timeZone }}). No cambian con el filtro de
-      estado, las fechas ni la página.
+      {{ 'PAYMENTS.TOTALES_DE' | translate }} {{ scopeLabel }}, {{ 'PAYMENTS.EN_EUROS' | translate }} {{ day(d.scope.today) }} ({{ d.scope.timeZone }}{{ 'PAYMENTS.NO_CAMBIAN_CON_EL_FILTRO' | translate }}
       <ng-container *ngFor="let other of d.totals.otherCurrencies">
-        Además, {{ money(other.pendingCents, other.currency) }} pendientes en {{ other.currency }} (divisa antigua, aparte).
+        {{ 'PAYMENTS.ADEMAS' | translate }}, {{ money(other.pendingCents, other.currency) }} {{ 'PAYMENTS.PENDIENTES_EN' | translate }} {{ other.currency }} ({{ 'PAYMENTS.DIVISA_ANTIGUA_APARTE' | translate }}
       </ng-container>
     </p>
 
     <!-- ===== Filtros ===== -->
-    <section class="filters" aria-label="Filtros">
+    <section class="filters" [attr.aria-label]="'MANAGEMENT.USERS.FILTERS' | translate">
       <div class="search">
         <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
         <input
           type="search"
           class="search__input"
-          placeholder="Buscar cliente por nombre o email"
-          aria-label="Buscar cliente"
+          [placeholder]="'PAYMENTS.BUSCAR_CLIENTE_POR_NOMBRE_EMAIL' | translate"
+          [attr.aria-label]="'PAYMENTS.BUSCAR_CLIENTE' | translate"
           [ngModel]="searchText"
           (ngModelChange)="onSearch($event)"
         />
       </div>
 
-      <div class="chips" role="group" aria-label="Estado">
+      <div class="chips" role="group" [attr.aria-label]="'PAYMENTS.ESTADO' | translate">
         <button
           type="button"
           class="filter"
@@ -74,8 +72,8 @@
 
       <div class="filters__row">
         <label class="select">
-          <span class="sr-only">Clientes</span>
-          <select [ngModel]="relation" (ngModelChange)="setRelation($event)" aria-label="Clientes">
+          <span class="sr-only">{{ 'TRAINER_COMMON.CLIENTS' | translate }}</span>
+          <select [ngModel]="relation" (ngModelChange)="setRelation($event)" [attr.aria-label]="'TRAINER_COMMON.CLIENTS' | translate">
             <option *ngFor="let option of relations" [value]="option.key">{{ option.label }}</option>
           </select>
           <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
@@ -85,7 +83,7 @@
           <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
           <app-date-field
             class="dates__field"
-            placeholder="Vence desde"
+            [placeholder]="'PAYMENTS.VENCE_DESDE' | translate"
             ariaLabel="Vencimiento desde"
             pickerTitle="Desde"
             [clearable]="true"
@@ -97,7 +95,7 @@
           <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
           <app-date-field
             class="dates__field"
-            placeholder="hasta"
+            [placeholder]="'PAYMENTS.HASTA' | translate"
             ariaLabel="Vencimiento hasta"
             pickerTitle="Hasta"
             [clearable]="true"
@@ -106,7 +104,7 @@
             (ngModelChange)="onDatesChange()"
           ></app-date-field>
           </div>
-          <button type="button" class="link-button" *ngIf="from || to" (click)="clearDates()">Quitar fechas</button>
+          <button type="button" class="link-button" *ngIf="from || to" (click)="clearDates()">{{ 'PAYMENTS.QUITAR_FECHAS' | translate }}</button>
         </div>
       </div>
     </section>
@@ -114,30 +112,30 @@
     <!-- ===== Lista ===== -->
     <div class="pay-state" *ngIf="state === 'error'" role="alert">
       <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-      <p>No se pudieron cargar los cobros. No se muestra ningún total hasta poder leerlos.</p>
-      <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+      <p>{{ 'PAYMENTS.NO_SE_PUDIERON_CARGAR_LOS_2' | translate }}</p>
+      <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
     </div>
 
     <ng-container *ngIf="state === 'loaded' && data as d">
       <p class="results" aria-live="polite">
-        {{ d.results.count }} {{ d.results.count === 1 ? 'cobro' : 'cobros' }}
-        <ng-container *ngIf="d.results.balanceCents > 0">· suman {{ money(d.results.balanceCents) }} sin cobrar, previsiones incluidas</ng-container>
+        {{ d.results.count }} {{ (d.results.count === 1 ? 'TRAINER_COMMON.PL_CHARGE_ONE' : 'TRAINER_COMMON.PL_CHARGE_MANY') | translate }}
+        <ng-container *ngIf="d.results.balanceCents > 0">· {{ 'PAYMENTS.SUMAN' | translate }} {{ money(d.results.balanceCents) }} {{ 'PAYMENTS.SIN_COBRAR_PREVISIONES_INCLUIDAS' | translate }}</ng-container>
       </p>
 
       <div class="empty" *ngIf="!d.rows.length">
         <ion-icon name="receipt-outline" aria-hidden="true"></ion-icon>
-        <p *ngIf="d.scope.clients === 0">Todavía no tienes clientes con cobros que mostrar aquí.</p>
-        <p *ngIf="d.scope.clients > 0">Ningún cobro con estos filtros.</p>
+        <p *ngIf="d.scope.clients === 0">{{ 'PAYMENTS.TODAVIA_NO_TIENES_CLIENTES_CON' | translate }}</p>
+        <p *ngIf="d.scope.clients > 0">{{ 'PAYMENTS.NINGUN_COBRO_CON_ESTOS_FILTROS' | translate }}</p>
       </div>
 
       <ul class="rows" *ngIf="d.rows.length">
         <li class="row" *ngFor="let row of d.rows; trackBy: trackById" [class.row--closed]="row.temporal === 'closed'">
-          <button type="button" class="row__main" (click)="openDetail(row)" [attr.aria-label]="row.clientName + ', ' + title(row) + ', vence ' + day(row.dueDay) + '. Ver detalle'">
+          <button type="button" class="row__main" (click)="openDetail(row)" [attr.aria-label]="row.clientName + ', ' + title(row) + ', vence ' + day(row.dueDay) + ('PAYMENTS.VER_DETALLE' | translate)">
             <span class="row__top">
               <span class="row__client">
                 {{ row.clientName }}
-                <span class="pay-chip" *ngIf="row.clientRelation === 'former'">Antiguo cliente</span>
-                <span class="pay-chip" *ngIf="isReadOnly(row)">Solo lectura</span>
+                <span class="pay-chip" *ngIf="row.clientRelation === 'former'">{{ 'PAYMENTS.ANTIGUO_CLIENTE' | translate }}</span>
+                <span class="pay-chip" *ngIf="isReadOnly(row)">{{ 'PAYMENTS.SOLO_LECTURA' | translate }}</span>
               </span>
               <span class="row__amount" [class.row__amount--overdue]="row.temporal === 'overdue'">
                 {{ row.status === 'open' ? money(row.balanceCents, row.currency) : money(row.amountCents, row.currency) }}
@@ -155,20 +153,20 @@
             <app-payment-balance-bar [charge]="row"></app-payment-balance-bar>
           </button>
           <div class="row__actions">
-            <button type="button" class="pay-secondary" *ngIf="canRegister(row)" (click)="openRegister(row)">Registrar pago</button>
-            <button type="button" class="pay-quiet" (click)="openLedger(row)">Ver cuota y cobros</button>
+            <button type="button" class="pay-secondary" *ngIf="canRegister(row)" (click)="openRegister(row)">{{ 'PAYMENTS.REGISTRAR_PAGO' | translate }}</button>
+            <button type="button" class="pay-quiet" (click)="openLedger(row)">{{ 'PAYMENTS.VER_CUOTA_COBROS' | translate }}</button>
           </div>
         </li>
       </ul>
 
-      <nav class="pager" *ngIf="pageCount > 1" aria-label="Páginas">
+      <nav class="pager" *ngIf="pageCount > 1" [attr.aria-label]="'PAYMENTS.PAGINAS' | translate">
         <button type="button" class="pay-secondary" [disabled]="page === 0" (click)="goToPage(page - 1)">
           <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
-          Anteriores
+          {{ 'PAYMENTS.ANTERIORES' | translate }}
         </button>
-        <span class="pager__label">Página {{ page + 1 }} de {{ pageCount }}</span>
+        <span class="pager__label">{{ 'PAYMENTS.PAGINA' | translate }} {{ page + 1 }} {{ 'PAYMENTS.DE' | translate }} {{ pageCount }}</span>
         <button type="button" class="pay-secondary" [disabled]="page >= pageCount - 1" (click)="goToPage(page + 1)">
-          Siguientes
+          {{ 'PAYMENTS.SIGUIENTES' | translate }}
           <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
         </button>
       </nav>
@@ -177,13 +175,13 @@
     <!-- ===== Avisos (preferencias comunes) ===== -->
     <section class="reminders" aria-labelledby="reminders-title">
       <div class="reminders__text">
-        <h2 class="reminders__title" id="reminders-title">Avisos de cobro</h2>
+        <h2 class="reminders__title" id="reminders-title">{{ 'PAYMENTS.AVISOS_DE_COBRO' | translate }}</h2>
         <p class="reminders__summary" *ngIf="settingsState === 'loaded'">{{ reminderSummary }}</p>
-        <p class="reminders__summary" *ngIf="settingsState === 'error'">No se pudieron cargar tus preferencias de avisos.</p>
-        <p class="reminders__help">Dentro de las apps, sin notificaciones del móvil. Al cliente solo si lo activas en su cuota.</p>
+        <p class="reminders__summary" *ngIf="settingsState === 'error'">{{ 'PAYMENTS.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</p>
+        <p class="reminders__help">{{ 'PAYMENTS.DENTRO_DE_LAS_APPS_SIN' | translate }}</p>
       </div>
-      <button type="button" class="pay-secondary" *ngIf="settingsState === 'loaded'" (click)="showSettings = true">Editar avisos</button>
-      <button type="button" class="retry-button" *ngIf="settingsState === 'error'" (click)="loadSettings()">Reintentar</button>
+      <button type="button" class="pay-secondary" *ngIf="settingsState === 'loaded'" (click)="showSettings = true">{{ 'PAYMENTS.EDITAR_AVISOS' | translate }}</button>
+      <button type="button" class="retry-button" *ngIf="settingsState === 'error'" (click)="loadSettings()">{{ 'COMMON.RETRY' | translate }}</button>
     </section>
   </div>
 </ion-content>
@@ -209,7 +207,7 @@
   (closed)="closeRegister()"
 ></app-payment-register-panel>
 
-<app-payments-sheet *ngIf="openClient" [wide]="true" [title]="openClient.clientName" subtitle="Cuota y cobros" (closed)="openClient = null">
+<app-payments-sheet *ngIf="openClient" [wide]="true" [title]="openClient.clientName" [subtitle]="'PAYMENTS.CUOTA_COBROS' | translate" (closed)="openClient = null">
   <app-client-payments-ledger
     [clientId]="openClient.clientId"
     [clientName]="openClient.clientName"

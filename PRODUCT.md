@@ -71,7 +71,8 @@ La misma línea que la app del entrenador: naranja `#fe9000` sobre fondo oscuro 
 - **Colores de macros fijos**, los mismos que en la app del entrenador: kcal `#fe9000`, proteína `#3880ff`, carbohidratos `#2dd36f`, grasa `#ffc409`.
 - **Velocidad sobre ceremonia**: la respuesta al tocar es inmediata y sin adornos.
 - **Táctil primero**: áreas pulsables de 44px como mínimo, y la app se usa con una mano.
-- **Todo texto va en i18n**, en `es.json` y `en.json`.
+- **Todo texto va en i18n**, en `es.json` y `en.json` (capa común en
+  `packages/shared-core/src/assets/i18n`, capa propia en cada app).
 
 ## Accessibility & Inclusion
 

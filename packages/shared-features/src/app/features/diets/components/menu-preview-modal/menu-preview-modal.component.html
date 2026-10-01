@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="dismiss()" aria-label="Cerrar">
+      <ion-button (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -11,7 +11,7 @@
 
 <ion-content class="menu-preview">
   <p class="menu-preview__hint">
-    {{ isSelected ? 'Este es el menú que tienes elegido hoy.' : 'Así es este menú. Si lo eliges, sus comidas pasan a ser las de hoy.' }}
+    {{ (isSelected ? 'DIETS.MENU_SELECTED_HINT' : 'DIETS.MENU_PREVIEW_HINT') | translate }}
   </p>
 
   <section class="menu-preview__meal" *ngFor="let meal of nonEmptyMeals">
@@ -29,7 +29,7 @@
     </ng-template>
   </section>
 
-  <p class="menu-preview__empty" *ngIf="!nonEmptyMeals.length">Este menú no tiene comidas pautadas.</p>
+  <p class="menu-preview__empty" *ngIf="!nonEmptyMeals.length">{{ 'DIETS.MENU_EMPTY' | translate }}</p>
 </ion-content>
 
 <ng-template #itemList let-items="items">
@@ -43,6 +43,6 @@
 
 <ion-footer class="ion-no-border" *ngIf="!isSelected">
   <div class="menu-preview__footer">
-    <ion-button expand="block" class="menu-preview__choose" (click)="choose()">Elegir este menú</ion-button>
+    <ion-button expand="block" class="menu-preview__choose" (click)="choose()">{{ 'DIETS.CHOOSE_MENU' | translate }}</ion-button>
   </div>
 </ion-footer>

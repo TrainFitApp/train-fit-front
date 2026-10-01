@@ -177,7 +177,8 @@
     >
       <ion-accordion
         [value]="'exercise-' + i"
-        [readonly]="reorderExercisesMode || seriesReorderExerciseIndex === i"
+        [readonly]="reorderExercisesMode"
+        [class.series-reorder-locked]="seriesReorderExerciseIndex === i"
       >
         <ion-item
           slot="header"

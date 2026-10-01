@@ -14,6 +14,8 @@ import {
   checkinWeekLabel,
   shortDayLabel,
 } from '../../checkin-labels.util';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
+import { TranslateModule } from '@ngx-translate/core';
 
 type ViewState = 'loading' | 'ready' | 'error';
 
@@ -24,6 +26,7 @@ const STATUS_LABELS: Record<CheckinStatus, string> = {
   responded: 'Respondido',
   reviewed: 'Revisado',
 };
+localizeRecord(STATUS_LABELS, 'CLIENTS.CHECKIN_STATUS');
 
 // Todo lo que se le ha pedido a UNA programación de check-in, de lo más
 // nuevo a lo más viejo, respondido o no. Segundo panel de la pila: se abre a
@@ -34,7 +37,7 @@ const STATUS_LABELS: Record<CheckinStatus, string> = {
 @Component({
   selector: 'app-checkin-schedule-history-panel',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './checkin-schedule-history-panel.component.html',
   styleUrls: ['./checkin-schedule-history-panel.component.scss'],
 })

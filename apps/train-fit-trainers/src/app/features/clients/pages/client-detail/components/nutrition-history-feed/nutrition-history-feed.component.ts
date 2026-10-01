@@ -1,9 +1,11 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import {
   NutritionWeekEvent,
   NutritionWeekStatus,
   NutritionHistoryEvent,
 } from '../../../../../../shared/models/plan-assignment.model';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 export interface WeekOpenRequest {
   number: number;
@@ -18,6 +20,7 @@ const STATUS_LABELS: Record<NutritionWeekStatus, string> = {
   missed: 'No cumplido',
   no_data: 'Sin datos',
 };
+localizeRecord(STATUS_LABELS, 'CLIENTS.WEEK_STATUS');
 
 // Historial de nutrición de la ficha: feed plano de eventos (fase, semana),
 // del más reciente al más antiguo. El desglose por semana es el que importa:
@@ -30,6 +33,8 @@ const STATUS_LABELS: Record<NutritionWeekStatus, string> = {
   styleUrls: ['./nutrition-history-feed.component.scss'],
 })
 export class NutritionHistoryFeedComponent {
+  private readonly translate = inject(TranslateService);
+
   @Input() public events: NutritionHistoryEvent[] = [];
   // Color por fase — el mismo que la fila de fases de arriba (phaseColorMap).
   @Input() public phaseColorOf: (phaseId: string) => string = () => 'var(--tf-accent)';
@@ -46,7 +51,7 @@ export class NutritionHistoryFeedComponent {
 
 
   public phaseLabel(event: NutritionHistoryEvent): string {
-    return event.phaseName || 'Fase sin nombre';
+    return event.phaseName || this.translate.instant('CLIENTS.FASE_SIN_NOMBRE');
   }
 
   public kcalDeltaLabel(week: NutritionWeekEvent): string | null {

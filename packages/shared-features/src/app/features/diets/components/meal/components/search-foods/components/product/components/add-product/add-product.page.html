@@ -2,7 +2,7 @@
   <div class="add-product-header">
     <div class="header-content">
       <div class="back-section">
-        <button class="back-button" (click)="goBack()" aria-label="Volver">
+        <button class="back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
@@ -232,7 +232,7 @@
                   type="button"
                   class="input-restore-btn"
                   (click)="restoreOriginalValue('energyKcal100g')"
-                  aria-label="Restaurar calorías originales"
+                  [attr.aria-label]="'ADD_PRODUCT.RESTORE_KCAL' | translate"
                 >
                   <ion-icon name="arrow-undo-outline"></ion-icon>
                 </button>
@@ -276,7 +276,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('fat100g')"
-                      aria-label="Restaurar grasas originales"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_FAT' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -309,7 +309,7 @@
                         type="button"
                         class="input-restore-btn"
                         (click)="restoreOriginalValue('saturatedFat100g')"
-                        aria-label="Restaurar grasas saturadas originales"
+                        [attr.aria-label]="'ADD_PRODUCT.RESTORE_SATURATED' | translate"
                       >
                         <ion-icon name="arrow-undo-outline"></ion-icon>
                       </button>
@@ -341,7 +341,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('carbohydrates100g')"
-                      aria-label="Restaurar carbohidratos originales"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_CARBS' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -375,7 +375,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('sugars100g')"
-                      aria-label="Restaurar azúcares originales"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_SUGARS' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -408,7 +408,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('fiber100g')"
-                      aria-label="Restaurar fibra original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_FIBER' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -440,7 +440,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('protein100g')"
-                      aria-label="Restaurar proteína original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_PROTEIN' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -494,7 +494,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('calcium100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -520,7 +520,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('iron100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -546,7 +546,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('magnesium100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -572,7 +572,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('phosphorus100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -598,7 +598,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('potassium100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -624,7 +624,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('zinc100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -650,7 +650,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('copper100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -676,7 +676,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('manganese100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -702,7 +702,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('selenium100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -728,7 +728,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('iodine100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -754,7 +754,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('sodium100g')"
-                      aria-label="Restaurar sodio original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_SODIUM' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -780,7 +780,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('salt100g')"
-                      aria-label="Restaurar sal original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_SALT' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -814,7 +814,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminA100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -840,7 +840,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminD100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -866,7 +866,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminE100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -892,7 +892,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminK100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -918,7 +918,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminC100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -944,7 +944,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminB1100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -970,7 +970,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminB2100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -996,7 +996,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminB3100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1022,7 +1022,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminB5100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1048,7 +1048,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminB6100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1075,7 +1075,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminB9100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1102,7 +1102,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('vitaminB12100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1129,7 +1129,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('biotin100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1163,7 +1163,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('cholesterol100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1190,7 +1190,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('transFat100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1218,7 +1218,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('omega3100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1246,7 +1246,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('omega6100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1274,7 +1274,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('omega9100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1302,7 +1302,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('caffeine100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1329,7 +1329,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('taurine100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1356,7 +1356,7 @@
                       type="button"
                       class="input-restore-btn"
                       (click)="restoreOriginalValue('alcohol100g')"
-                      aria-label="Restaurar valor original"
+                      [attr.aria-label]="'ADD_PRODUCT.RESTORE_VALUE' | translate"
                     >
                       <ion-icon name="arrow-undo-outline"></ion-icon>
                     </button>
@@ -1387,7 +1387,7 @@
                   class="custom-info-textarea"
                   formControlName="ingredients"
                   [placeholder]="'ADD_PRODUCT.INGREDIENTS_PLACEHOLDER' | translate"
-                  [maxlength]="2000"
+                  [maxlength]="5000"
                   [counter]="true"
                 ></ion-textarea>
               </div>

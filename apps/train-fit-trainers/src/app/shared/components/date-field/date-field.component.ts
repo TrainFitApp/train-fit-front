@@ -1,12 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, Input, ViewChild, forwardRef } from '@angular/core';
+import { Component, HostListener, Input, ViewChild, forwardRef, inject } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IonDatetime, IonicModule, ModalController } from '@ionic/angular';
 import { toDateValue, toTimeValue } from './date-field-value.util';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type DateFieldPresentation = 'date' | 'time';
 
-const DATE_FORMAT = new Intl.DateTimeFormat('es-ES', {
+const DATE_FORMAT = () => new Intl.DateTimeFormat(uiLocale(), {
   weekday: 'short',
   day: 'numeric',
   month: 'short',
@@ -25,7 +27,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat('es-ES', {
 @Component({
   selector: 'app-date-picker-sheet',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, TranslateModule],
   template: `
     <ion-datetime
       #datetime
@@ -91,7 +93,7 @@ export class DatePickerSheetComponent {
 @Component({
   selector: 'app-date-field',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './date-field.component.html',
   styleUrls: ['./date-field.component.scss'],
   providers: [
@@ -99,6 +101,8 @@ export class DatePickerSheetComponent {
   ],
 })
 export class DateFieldComponent implements ControlValueAccessor {
+  private readonly translate = inject(TranslateService);
+
   @Input() public presentation: DateFieldPresentation = 'date';
   @Input() public min: string | null = null;
   @Input() public max: string | null = null;
@@ -125,11 +129,11 @@ export class DateFieldComponent implements ControlValueAccessor {
     if (!this.value) return '';
     if (this.presentation === 'time') return this.value;
     const [year, month, day] = this.value.split('-').map(Number);
-    return DATE_FORMAT.format(new Date(year, month - 1, day));
+    return DATE_FORMAT().format(new Date(year, month - 1, day));
   }
 
   public get placeholderText(): string {
-    return this.placeholder || (this.presentation === 'time' ? 'Elegir hora' : 'Elegir fecha');
+    return this.placeholder || (this.presentation === 'time' ? this.translate.instant('SHARED_COMPONENTS.ELEGIR_HORA') : this.translate.instant('SHARED_COMPONENTS.ELEGIR_FECHA'));
   }
 
   public get icon(): string {

@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Subject, Subscription, of } from 'rxjs';
 import { catchError, debounceTime, switchMap } from 'rxjs/operators';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -37,6 +38,8 @@ let formSeq = 0;
   styleUrls: ['./fee-plan-panel.component.scss'],
 })
 export class FeePlanPanelComponent implements OnInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
   @Input() public clientName: string | null = null;
   @Input() public today = '';
@@ -48,7 +51,7 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
 
   public readonly presets = FREQUENCY_PRESETS;
   public readonly formId = `fee-plan-${++formSeq}`;
-  public concept = 'Cuota';
+  public concept = this.translate.instant('PAYMENTS.CUOTA');
   public amountText = '';
   public presetKey = 'monthly';
   public customUnit: RecurrenceUnit = 'month';
@@ -90,7 +93,7 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
           return this.payments.previewPlan(this.clientId, body).pipe(
             catchError((error) => {
               this.previewState = 'error';
-              this.errorMessage = paymentsErrorMessage(error, 'No se pudo calcular la previsualización.');
+              this.errorMessage = paymentsErrorMessage(error, this.translate.instant('PAYMENTS.NO_SE_PUDO_CALCULAR_LA'));
               return of(null);
             })
           );
@@ -117,15 +120,15 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
   }
 
   public get title(): string {
-    if (this.mode === 'resume') return 'Reanudar cuota';
-    if (!this.plan) return 'Configurar cuota';
-    return this.plan.status === 'ended' ? 'Nueva cuota' : 'Editar cuota';
+    if (this.mode === 'resume') return this.translate.instant('PAYMENTS.REANUDAR_CUOTA');
+    if (!this.plan) return this.translate.instant('PAYMENTS.CONFIGURAR_CUOTA');
+    return this.plan.status === 'ended' ? this.translate.instant('PAYMENTS.NUEVA_CUOTA') : this.translate.instant('PAYMENTS.EDITAR_CUOTA');
   }
 
   public get subtitle(): string | null {
-    if (this.mode === 'resume') return 'No se generan cuotas del tiempo en pausa: elige cuándo vuelve a vencer.';
-    if (this.plan?.status === 'ended') return 'Empieza un calendario nuevo; los cobros anteriores se conservan tal cual.';
-    return this.clientName ? `Una sola cuota para ${this.clientName}: engloba todos sus servicios.` : null;
+    if (this.mode === 'resume') return this.translate.instant('PAYMENTS.NO_SE_GENERAN_CUOTAS_DEL');
+    if (this.plan?.status === 'ended') return this.translate.instant('PAYMENTS.EMPIEZA_UN_CALENDARIO_NUEVO_LOS');
+    return this.clientName ? this.translate.instant('PAYMENTS.UNA_SOLA_CUOTA_PARA_ENGLOBA', { clientName: this.clientName }) : null;
   }
 
   public get unit(): RecurrenceUnit {
@@ -148,7 +151,7 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
     const value = Number(this.customInterval);
     return Number.isInteger(value) && value >= limits.min && value <= limits.max
       ? null
-      : `Entre ${limits.min} y ${limits.max} ${this.customUnit === 'week' ? 'semanas' : 'meses'}.`;
+      : this.translate.instant('PAYMENTS.ENTRE', { min: limits.min, max: limits.max, p2: this.customUnit === 'week' ? 'semanas' : 'meses' });
   }
 
   public get amountCents(): number | null {
@@ -157,7 +160,7 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
 
   public get amountError(): string | null {
     if (!this.amountText.trim()) return null;
-    return this.amountCents === null ? 'Importe no válido: usa como mucho dos decimales.' : null;
+    return this.amountCents === null ? this.translate.instant('PAYMENTS.IMPORTE_NO_VALIDO_USA_COMO_2') : null;
   }
 
   public get scheduleChanged(): boolean {
@@ -195,9 +198,9 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
   }
 
   public get startError(): string | null {
-    if (!this.nextDueDay) return this.mode === 'resume' || this.isNew ? 'Elige la fecha del vencimiento.' : null;
+    if (!this.nextDueDay) return this.mode === 'resume' || this.isNew ? this.translate.instant('PAYMENTS.ELIGE_LA_FECHA_DEL_VENCIMIENTO') : null;
     if ((this.mode === 'resume' || this.isNew || this.scheduleChanged) && this.nextDueDay < this.today) {
-      return 'No puede ser anterior a hoy. Una deuda antigua se añade como cobro puntual.';
+      return this.translate.instant('PAYMENTS.NO_PUEDE_SER_ANTERIOR_HOY');
     }
     return null;
   }
@@ -267,7 +270,7 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
       next: (result) => (this.remindersDirty ? this.savePreferences(result) : this.finish(result)),
       error: (error) => {
         this.saving = false;
-        this.errorMessage = paymentsErrorMessage(error, 'No se pudo guardar la cuota. Vuelve a intentarlo.');
+        this.errorMessage = paymentsErrorMessage(error, this.translate.instant('PAYMENTS.NO_SE_PUDO_GUARDAR_LA'));
       },
     });
   }
@@ -278,19 +281,19 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
       error: (error) => {
         if (result) {
           // La cuota ya está guardada: no se deshace por la preferencia.
-          void this.ionicUtil.showErrorToast(error, 'Cuota guardada, pero no se pudo cambiar el aviso al cliente.');
+          void this.ionicUtil.showErrorToast(error, this.translate.instant('PAYMENTS.CUOTA_GUARDADA_PERO_NO_SE'));
           this.finish(result);
           return;
         }
         this.saving = false;
-        this.errorMessage = paymentsErrorMessage(error, 'No se pudo cambiar el aviso al cliente.');
+        this.errorMessage = paymentsErrorMessage(error, this.translate.instant('PAYMENTS.NO_SE_PUDO_CAMBIAR_EL'));
       },
     });
   }
 
   private finish(result: PlanResult | null): void {
     this.saving = false;
-    const message = this.mode === 'resume' ? 'Cuota reanudada' : this.isNew ? 'Cuota configurada' : 'Cuota actualizada';
+    const message = this.mode === 'resume' ? this.translate.instant('PAYMENTS.CUOTA_REANUDADA') : this.isNew ? this.translate.instant('PAYMENTS.CUOTA_CONFIGURADA') : this.translate.instant('PAYMENTS.CUOTA_ACTUALIZADA');
     void this.ionicUtil.showSuccessToast(message);
     this.saved.emit(result);
     this.closed.emit();
@@ -302,7 +305,7 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
 
   private buildBody(): PlanBody {
     return {
-      concept: this.concept.trim() || 'Cuota',
+      concept: this.concept.trim() || this.translate.instant('PAYMENTS.CUOTA'),
       amount: this.amountText.trim(),
       unit: this.unit,
       interval: this.interval,

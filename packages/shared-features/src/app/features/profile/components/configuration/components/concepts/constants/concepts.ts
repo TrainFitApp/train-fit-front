@@ -1,3 +1,5 @@
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
+
 export enum CONCEPT_TYPES {
   general = '',
   nutrition = 'Nutrición',
@@ -483,3 +485,8 @@ export const CONCEPTS: Concept[] = [
 ];
 
 export const CONCEPT_VALUES = Object.values(CONCEPTS);
+
+// El nombre sigue al idioma (CONCEPTS.<key>) para que el orden, las letras
+// del índice y la búsqueda casen con lo que se ve. La descripción la traduce
+// translateDb al pintarla.
+CONCEPTS.forEach((concept) => localizeProp(concept, 'name', `CONCEPTS.${concept.key}`));

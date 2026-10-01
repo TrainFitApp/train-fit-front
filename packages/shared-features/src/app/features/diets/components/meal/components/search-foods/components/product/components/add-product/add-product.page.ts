@@ -1643,7 +1643,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     // Minerales
     this.addCustomProductForm = new FormGroup({
-      name: new FormControl(this.product.name, [Validators.required, Validators.maxLength(200)]),
+      name: new FormControl(this.product.name, [Validators.required, Validators.maxLength(300)]),
       brand: new FormControl(this.product.brand, Validators.maxLength(200)),
       quantity: new FormControl(
         quantity,
@@ -1796,7 +1796,7 @@ export class AddProductPage implements OnInit, OnDestroy {
       ingredients: new FormControl(
         Array.isArray(cpOrP("ingredients"))
           ? (cpOrP("ingredients") as string[]).join(", ")
-          : cpOrP("ingredients"), Validators.maxLength(2000),
+          : cpOrP("ingredients"), Validators.maxLength(5000),
       ),
       allergens: new FormControl(
         Array.isArray(cpOrP("allergens"))

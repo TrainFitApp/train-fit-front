@@ -1,4 +1,5 @@
 import type { TrainerBillingInterval, TrainerEntitlements, TrainerPlanCatalog, TrainerTier } from './models/trainer-entitlements.model';
+import { uiLocale, uiText } from 'src/app/core/i18n/localized-catalog';
 
 export const TRAINER_PLAN_NAMES: Record<TrainerTier, string> = {
   free: 'Free',
@@ -17,19 +18,20 @@ export function trainerPlanLabel(tier: TrainerTier, interval: TrainerBillingInte
 // Formateadores creados una vez: Intl es caro y la página los usa en cada
 // ciclo de render. La app no registra LOCALE_ID, así que el DatePipe sale en inglés.
 const MONEY = new Map<string, Intl.NumberFormat>();
-const DATE_LONG = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
-const DATE_SHORT = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' });
+const DATE_LONG = () => new Intl.DateTimeFormat(uiLocale(), { day: 'numeric', month: 'short', year: 'numeric' });
+const DATE_SHORT = () => new Intl.DateTimeFormat(uiLocale(), { day: 'numeric', month: 'short' });
 
 export function formatTrainerAmount(cents: number, currency = 'EUR'): string {
   const code = currency.toUpperCase();
-  if (!MONEY.has(code)) MONEY.set(code, new Intl.NumberFormat('es-ES', { style: 'currency', currency: code }));
-  return MONEY.get(code)!.format(cents / 100);
+  const cacheKey = `${uiLocale()}|${code}`;
+  if (!MONEY.has(cacheKey)) MONEY.set(cacheKey, new Intl.NumberFormat(uiLocale(), { style: 'currency', currency: code }));
+  return MONEY.get(cacheKey)!.format(cents / 100);
 }
 
 export function formatTrainerDate(value: string | Date | null | undefined, withYear = true): string {
   if (!value) return '';
   const date = new Date(value);
-  return Number.isFinite(date.getTime()) ? (withYear ? DATE_LONG : DATE_SHORT).format(date).replace('.', '') : '';
+  return Number.isFinite(date.getTime()) ? (withYear ? DATE_LONG() : DATE_SHORT()).format(date).replace('.', '') : '';
 }
 
 export type TrainerStateTone = 'ok' | 'warning' | 'danger' | 'neutral';
@@ -41,13 +43,13 @@ export function trainerBillingState(entitlements: TrainerEntitlements | null): {
   if (!entitlements || entitlements.provider !== 'stripe') return null;
   const billing = entitlements.billing;
   if (billing?.renewalPayment || ['past_due', 'unpaid'].includes(entitlements.status || '')) {
-    return { kind: 'renewal_failed', tone: 'danger', label: 'Pago pendiente' };
+    return { kind: 'renewal_failed', tone: 'danger', label: uiText('SUBSCRIPTION.PAGO_PENDIENTE') };
   }
-  if (billing?.pendingPayment) return { kind: 'change_unpaid', tone: 'warning', label: 'Cambio sin pagar' };
-  if (entitlements.cancelAtPeriodEnd && entitlements.isPremium) return { kind: 'canceling', tone: 'warning', label: 'No se renovará' };
-  if (billing?.pendingChange) return { kind: 'change_scheduled', tone: 'neutral', label: 'Cambio programado' };
-  if (entitlements.status === 'active' && entitlements.isPremium) return { kind: 'active', tone: 'ok', label: 'Activa' };
-  if (entitlements.status === 'canceled') return { kind: 'ended', tone: 'neutral', label: 'Finalizada' };
+  if (billing?.pendingPayment) return { kind: 'change_unpaid', tone: 'warning', label: uiText('SUBSCRIPTION.CAMBIO_SIN_PAGAR') };
+  if (entitlements.cancelAtPeriodEnd && entitlements.isPremium) return { kind: 'canceling', tone: 'warning', label: uiText('SUBSCRIPTION.NO_SE_RENOVARA') };
+  if (billing?.pendingChange) return { kind: 'change_scheduled', tone: 'neutral', label: uiText('SUBSCRIPTION.CAMBIO_PROGRAMADO') };
+  if (entitlements.status === 'active' && entitlements.isPremium) return { kind: 'active', tone: 'ok', label: uiText('CLIENT_DETAIL.PHASE_ACTIVE') };
+  if (entitlements.status === 'canceled') return { kind: 'ended', tone: 'neutral', label: uiText('CLIENT_DETAIL.PHASE_ENDED') };
   return null;
 }
 
@@ -66,7 +68,7 @@ export function isLegacyTrainerPlan(entitlements: TrainerEntitlements | null): b
 
 export function trainerPlanName(entitlements: TrainerEntitlements | null): string {
   if (!entitlements) return '—';
-  const name = TRAINER_PLAN_NAMES[entitlements.tier] || 'Plan actual';
+  const name = TRAINER_PLAN_NAMES[entitlements.tier] || uiText('SUBSCRIPTION.PLAN_ACTUAL');
   return isLegacyTrainerPlan(entitlements) ? `${name} (plan anterior)` : name;
 }
 
@@ -75,37 +77,37 @@ function validDate(value: string | null | undefined): string | null {
 }
 
 export function trainerBillingSummary(entitlements: TrainerEntitlements | null): TrainerBillingSummary {
-  if (!entitlements) return { label: 'Estado no disponible', date: null, attention: false };
+  if (!entitlements) return { label: uiText('SUBSCRIPTION.ESTADO_NO_DISPONIBLE'), date: null, attention: false };
   const date = validDate(entitlements.currentPeriodEnd || entitlements.expiresAt);
   if (entitlements.billing?.pendingPayment) {
-    return { label: 'El cambio de plan está pendiente de pago.', date: null, attention: true };
+    return { label: uiText('SUBSCRIPTION.EL_CAMBIO_DE_PLAN_ESTA'), date: null, attention: true };
   }
   if (entitlements.billing?.renewalPayment) {
-    return { label: 'No hemos podido cobrar la renovación.', date: null, attention: true };
+    return { label: uiText('SUBSCRIPTION.NO_HEMOS_PODIDO_COBRAR_LA'), date: null, attention: true };
   }
   if (entitlements.cancelAtPeriodEnd && entitlements.isPremium) {
-    return { label: date ? 'No se renovará. Acceso hasta' : 'Renovación cancelada', date, attention: false };
+    return { label: date ? uiText('SUBSCRIPTION.NO_SE_RENOVARA_ACCESO_HASTA') : uiText('SUBSCRIPTION.RENOVACION_CANCELADA'), date, attention: false };
   }
   if (['past_due', 'unpaid', 'incomplete'].includes(entitlements.status || '')) {
-    return { label: 'Hay un pago pendiente. Revisa tu suscripción.', date: null, attention: true };
+    return { label: uiText('SUBSCRIPTION.HAY_UN_PAGO_PENDIENTE_REVISA'), date: null, attention: true };
   }
   if (entitlements.isPremium) {
     if (entitlements.provider === 'stripe' && entitlements.status === 'active') {
-      return { label: date ? 'Próxima renovación' : 'Plan activo', date, attention: false };
+      return { label: date ? uiText('SUBSCRIPTION.PROXIMA_RENOVACION') : uiText('SUBSCRIPTION.PLAN_ACTIVO'), date, attention: false };
     }
     if (entitlements.provider === 'stripe' && entitlements.status === 'trialing') {
-      return { label: date ? 'Prueba hasta' : 'Prueba activa', date, attention: false };
+      return { label: date ? uiText('SUBSCRIPTION.PRUEBA_HASTA') : uiText('SUBSCRIPTION.PRUEBA_ACTIVA'), date, attention: false };
     }
     const accessDate = validDate(entitlements.expiresAt);
-    return { label: accessDate ? 'Acceso hasta' : 'Plan activo', date: accessDate, attention: false };
+    return { label: accessDate ? uiText('SUBSCRIPTION.ACCESO_HASTA') : uiText('SUBSCRIPTION.PLAN_ACTIVO'), date: accessDate, attention: false };
   }
   if (entitlements.status === 'checkout_pending') {
-    return { label: 'Contratación pendiente', date: null, attention: true };
+    return { label: uiText('SUBSCRIPTION.CONTRATACION_PENDIENTE'), date: null, attention: true };
   }
   if (entitlements.status === 'paused') {
-    return { label: 'Suscripción pausada', date: null, attention: true };
+    return { label: uiText('SUBSCRIPTION.SUSCRIPCION_PAUSADA'), date: null, attention: true };
   }
-  return { label: entitlements.status === 'canceled' ? 'Suscripción finalizada' : 'Plan gratuito', date: null, attention: false };
+  return { label: entitlements.status === 'canceled' ? uiText('SUBSCRIPTION.SUSCRIPCION_FINALIZADA') : uiText('SUBSCRIPTION.PLAN_GRATUITO'), date: null, attention: false };
 }
 
 export function canStartTrainerCheckout(

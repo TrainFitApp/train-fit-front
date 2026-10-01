@@ -5,7 +5,9 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  inject,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { NavigationStart, Router } from '@angular/router';
 import { Observable, Subscription, catchError, filter, forkJoin, of } from 'rxjs';
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
@@ -20,6 +22,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
 import { ClientIntake, TrainerInvite } from '../../../invites/models/trainer-invite.model';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -37,6 +40,7 @@ interface RosterFilters {
   weakest: AdherenceDimensionKey | null;
   onlyWithAlerts: boolean;
   onlyOverdueCheckin: boolean;
+  onlyWithPending: boolean;
 }
 
 interface RosterViewState {
@@ -45,6 +49,7 @@ interface RosterViewState {
   filterWeakest: AdherenceDimensionKey | null;
   filterOnlyWithAlerts: boolean;
   filterOnlyOverdueCheckin: boolean;
+  filterOnlyWithPending?: boolean;
   sort: SortState;
 }
 
@@ -59,6 +64,7 @@ export type RosterSortKey =
   | 'weight'
   | 'checkin'
   | 'sessions'
+  | 'review'
   | 'alerts';
 
 interface SortState {
@@ -71,6 +77,7 @@ const SCOPE_LABELS: Record<string, string> = {
   training: 'Entrenamiento',
   nutrition: 'Nutrición',
 };
+localizeRecord(SCOPE_LABELS, 'CLIENTS.SCOPES');
 
 const DIMENSION_LABELS: Record<AdherenceDimensionKey, string> = {
   nutrition: 'Nutrición',
@@ -78,6 +85,7 @@ const DIMENSION_LABELS: Record<AdherenceDimensionKey, string> = {
   habits: 'Hábitos',
   checkins: 'Check-ins',
 };
+localizeRecord(DIMENSION_LABELS, 'CLIENT_SUMMARY.DIMENSIONS');
 
 // A qué subpestaña de la ficha del cliente lleva cada dimensión del
 // desglose. "habits" se llama "tasks" ahí (ver client-detail.model.ts) —
@@ -104,6 +112,7 @@ const UNAVAILABLE_LABELS: Record<string, string> = {
   sin_cadencia: 'Sin check-in configurado',
   periodo_corto: 'Aún no tocaba ninguno',
 };
+localizeRecord(UNAVAILABLE_LABELS, 'CLIENTS.ROSTER_UNAVAILABLE');
 
 // Umbrales de color de la adherencia. Los mismos que usa el evaluador de
 // señales para decidir qué es "baja" y qué es "crítica"
@@ -130,6 +139,8 @@ const ADHERENCE_CRITICAL = 50;
   styleUrls: ['client-roster.component.scss'],
 })
 export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
+  private readonly translate = inject(TranslateService);
+
   public state: ViewState = 'loading';
   public periodDays = 28;
   public rows: RosterClient[] = [];
@@ -165,6 +176,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   public filterWeakest: AdherenceDimensionKey | null = null;
   public filterOnlyWithAlerts = false;
   public filterOnlyOverdueCheckin = false;
+  public filterOnlyWithPending = false;
 
   public get visibleRows(): RosterClient[] {
     return this.rowsMatching({});
@@ -178,10 +190,11 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private rowsMatching(override: Partial<RosterFilters>): RosterClient[] {
-    const { weakest, onlyWithAlerts, onlyOverdueCheckin }: RosterFilters = {
+    const { weakest, onlyWithAlerts, onlyOverdueCheckin, onlyWithPending }: RosterFilters = {
       weakest: this.filterWeakest,
       onlyWithAlerts: this.filterOnlyWithAlerts,
       onlyOverdueCheckin: this.filterOnlyOverdueCheckin,
+      onlyWithPending: this.filterOnlyWithPending,
       ...override,
     };
     const consulta = this.searchQuery.trim().toLowerCase();
@@ -195,6 +208,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       // "Vencido" = pasó la fecha del siguiente check-in. El dato exacto lo tiene el
       // motor de alertas; aquí basta con el umbral visible de la columna.
       if (onlyOverdueCheckin && (row.daysSinceCheckin ?? 0) <= 7) return false;
+      if (onlyWithPending && !pendingOf(row)) return false;
       return true;
     });
   }
@@ -203,7 +217,8 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     return (
       (this.filterWeakest ? 1 : 0) +
       (this.filterOnlyWithAlerts ? 1 : 0) +
-      (this.filterOnlyOverdueCheckin ? 1 : 0)
+      (this.filterOnlyOverdueCheckin ? 1 : 0) +
+      (this.filterOnlyWithPending ? 1 : 0)
     );
   }
 
@@ -211,6 +226,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     this.filterWeakest = null;
     this.filterOnlyWithAlerts = false;
     this.filterOnlyOverdueCheckin = false;
+    this.filterOnlyWithPending = false;
   }
 
   // Por defecto, la adherencia más baja primero: es el orden que responde
@@ -291,6 +307,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       filterWeakest: this.filterWeakest,
       filterOnlyWithAlerts: this.filterOnlyWithAlerts,
       filterOnlyOverdueCheckin: this.filterOnlyOverdueCheckin,
+      filterOnlyWithPending: this.filterOnlyWithPending,
       sort: this.sort,
     });
   }
@@ -305,6 +322,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     this.filterWeakest = stored.filterWeakest;
     this.filterOnlyWithAlerts = stored.filterOnlyWithAlerts;
     this.filterOnlyOverdueCheckin = stored.filterOnlyOverdueCheckin;
+    this.filterOnlyWithPending = stored.filterOnlyWithPending ?? false;
     // El orden se aplica sobre las filas en load(), que llega después.
     this.sort = stored.sort;
   }
@@ -404,7 +422,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
 
   public dimensionValue(dimension: RosterDimension): string {
     if (!dimension?.applicable) {
-      return UNAVAILABLE_LABELS[dimension?.reason || ''] || 'No aplica';
+      return UNAVAILABLE_LABELS[dimension?.reason || ''] || this.translate.instant('CLIENTS.NO_APLICA');
     }
     return `${dimension.percentage}%`;
   }
@@ -419,16 +437,16 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   public weightDetail(row: RosterClient): string {
-    if (!row.weightChange) return `Sin peso registrado en ${this.periodDays} días`;
+    if (!row.weightChange) return this.translate.instant('CLIENTS.SIN_PESO_REGISTRADO_EN_DIAS', { periodDays: this.periodDays });
     const { from, to, measurements } = row.weightChange;
     return `${formatEs(from.weight)} → ${formatEs(to.weight)} kg · ${measurements} mediciones`;
   }
 
   public checkinLabel(row: RosterClient): string {
-    if (row.daysSinceCheckin === null) return 'Nunca';
-    if (row.daysSinceCheckin === 0) return 'Hoy';
-    if (row.daysSinceCheckin === 1) return 'Ayer';
-    return `Hace ${row.daysSinceCheckin} días`;
+    if (row.daysSinceCheckin === null) return this.translate.instant('CLIENTS.NUNCA');
+    if (row.daysSinceCheckin === 0) return this.translate.instant('TRAINER_COMMON.TODAY');
+    if (row.daysSinceCheckin === 1) return this.translate.instant('TRAINER_COMMON.YESTERDAY');
+    return this.translate.instant('CLIENTS.HACE_DIAS', { daysSinceCheckin: row.daysSinceCheckin });
   }
 
   // Atrasado = ya pasó la fecha del siguiente check-in programado y sigue
@@ -498,7 +516,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       error: (err) => {
         this.busyClientId = null;
         this.ionicUtilService.showToast({
-          message: err?.error?.message || 'No se pudo marcar como revisado',
+          message: err?.error?.message || this.translate.instant('CLIENTS.NO_SE_PUDO_MARCAR_COMO'),
           duration: 3000,
         });
       },
@@ -509,11 +527,11 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   // con un cliente que no se quiere (y de liberar su plaza).
   public async confirmReject(row: RosterClient): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: `Rechazar a ${row.clientName}`,
-      message: 'Dejará de ser tu cliente y liberarás su plaza. No se puede deshacer.',
+      header: this.translate.instant('CLIENTS.RECHAZAR', { clientName: row.clientName }),
+      message: this.translate.instant('CLIENTS.DEJARA_DE_SER_TU_CLIENTE'),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
-        { text: 'Rechazar', cssClass: 'alert-button-danger', handler: () => this.reject(row) },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
+        { text: this.translate.instant('ONBOARDING.DECLINE'), cssClass: 'alert-button-danger', handler: () => this.reject(row) },
       ],
     });
   }
@@ -527,11 +545,11 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
         this.busyClientId = null;
         this.expandedClientId = null;
         this.rows = this.rows.filter((r) => r.clientId !== row.clientId);
-        this.ionicUtilService.showToast({ message: `Has rechazado a ${row.clientName}`, duration: 2500 });
+        this.ionicUtilService.showToast({ message: this.translate.instant('CLIENTS.HAS_RECHAZADO', { clientName: row.clientName }), duration: 2500 });
       },
       error: () => {
         this.busyClientId = null;
-        this.ionicUtilService.showToast({ message: 'No se pudo rechazar al cliente', duration: 3000 });
+        this.ionicUtilService.showToast({ message: this.translate.instant('CLIENTS.NO_SE_PUDO_RECHAZAR_AL'), duration: 3000 });
       },
     });
   }
@@ -547,18 +565,18 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
 
   public invitedLabel(group: PendingInviteGroup): string {
     const days = daysSinceDate(group.invitedAt);
-    if (days <= 0) return 'Enviada hoy';
-    if (days === 1) return 'Enviada ayer';
-    return `Enviada hace ${days} días`;
+    if (days <= 0) return this.translate.instant('CLIENTS.ENVIADA_HOY');
+    if (days === 1) return this.translate.instant('CLIENTS.ENVIADA_AYER');
+    return this.translate.instant('CLIENTS.ENVIADA_HACE_DIAS', { days });
   }
 
   public async confirmCancelInvite(group: PendingInviteGroup): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Cancelar invitación',
-      message: `${group.clientName || group.clientEmail} ya no podrá aceptarla.`,
+      header: this.translate.instant('CLIENTS.CANCELAR_INVITACION'),
+      message: this.translate.instant('CLIENTS.YA_NO_PODRA_ACEPTARLA', { p0: group.clientName || group.clientEmail }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
-        { text: 'Cancelar invitación', cssClass: 'alert-button-danger', handler: () => this.cancelInvite(group) },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
+        { text: this.translate.instant('CLIENTS.CANCELAR_INVITACION'), cssClass: 'alert-button-danger', handler: () => this.cancelInvite(group) },
       ],
     });
   }
@@ -570,11 +588,11 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       next: () => {
         this.cancellingEmail = null;
         this.pendingInvites = this.pendingInvites.filter((g) => g !== group);
-        this.ionicUtilService.showToast({ message: 'Invitación cancelada', duration: 2500 });
+        this.ionicUtilService.showToast({ message: this.translate.instant('CLIENTS.INVITACION_CANCELADA'), duration: 2500 });
       },
       error: () => {
         this.cancellingEmail = null;
-        this.ionicUtilService.showToast({ message: 'No se pudo cancelar la invitación', duration: 3000 });
+        this.ionicUtilService.showToast({ message: this.translate.instant('CLIENTS.NO_SE_PUDO_CANCELAR_LA'), duration: 3000 });
       },
     });
   }
@@ -598,6 +616,21 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
+  // «Por revisar»: los check-ins se revisan en la ficha (Progreso › Medidas
+  // y check-ins abre en «Esperan tu respuesta»); los vídeos, en la bandeja
+  // filtrada por ese cliente.
+  public openPendingCheckins(row: RosterClient, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/tabs/clients', row.clientId], {
+      queryParams: { name: row.clientName, tab: 'measurements' },
+    });
+  }
+
+  public openPendingFormChecks(row: RosterClient, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/tabs/review'], { queryParams: { type: 'form_check', client: row.clientId } });
+  }
+
   public trackByClientId(_index: number, row: RosterClient): string {
     return row.clientId;
   }
@@ -609,6 +642,10 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
 
 // --- helpers de módulo ---
 
+function pendingOf(row: RosterClient): number {
+  return (row.pendingCheckins || 0) + (row.pendingFormChecks || 0);
+}
+
 function valueFor(row: RosterClient, key: RosterSortKey): number | null {
   switch (key) {
     case 'adherence':
@@ -619,6 +656,8 @@ function valueFor(row: RosterClient, key: RosterSortKey): number | null {
       return row.daysSinceCheckin;
     case 'sessions':
       return row.sessions;
+    case 'review':
+      return pendingOf(row);
     case 'alerts':
       // Las urgentes desempatan: 1 urgente pesa más que 2 menores, y sin
       // esto quedarían mezcladas en el mismo escalón.

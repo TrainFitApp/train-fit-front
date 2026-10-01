@@ -1,8 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>{{ mode === 'reschedule' ? 'Cambiar fecha' : 'Programar rutina' }}</ion-title>
+    <ion-title>{{ mode === 'reschedule' ? ('CLIENTS.CAMBIAR_FECHA' | translate) : ('CLIENTS.PROGRAMAR_RUTINA' | translate) }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">Cerrar</ion-button>
+      <ion-button (click)="dismiss()">{{ 'COMMON.CLOSE_ARIA' | translate }}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -14,7 +14,7 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar las rutinas de este cliente.</p>
+    <p>{{ 'CLIENTS.NO_SE_PUDIERON_CARGAR_LAS' | translate }}</p>
   </div>
 
   <ng-container *ngIf="mode === 'reschedule' && (state === 'loaded' || state === 'applying')">
@@ -27,7 +27,7 @@
 
     <div class="date-picker-block">
       <span class="date-picker-label">
-        Empieza el <strong>{{ selectedDateLabel }}</strong>
+        {{ 'CLIENTS.EMPIEZA_EL' | translate }} <strong>{{ selectedDateLabel }}</strong>
       </span>
       <app-phase-schedule-calendar
         [phases]="phasesForPicker"
@@ -44,7 +44,7 @@
 
   <ng-container *ngIf="mode === 'apply' && (state === 'loaded' || state === 'applying')">
     <p class="empty-hint" *ngIf="!tables.length">
-      Este cliente todavía no tiene ninguna rutina asignada.
+      {{ 'CLIENTS.ESTE_CLIENTE_TODAVIA_NO_TIENE' | translate }}
     </p>
 
     <div
@@ -56,17 +56,17 @@
       <ion-icon name="barbell-outline"></ion-icon>
       <div class="template-info">
         <span class="template-name">{{ table.name }}</span>
-        <span class="template-meta" *ngIf="table.isActive">En uso ahora</span>
+        <span class="template-meta" *ngIf="table.isActive">{{ 'CLIENTS.EN_USO_AHORA' | translate }}</span>
       </div>
       <ion-icon class="selected-check" *ngIf="selectedTableId === table._id" name="checkmark-circle"></ion-icon>
     </div>
 
     <div class="date-picker-block">
       <span class="date-picker-label">
-        Empieza el <strong>{{ selectedDateLabel }}</strong>
+        {{ 'CLIENTS.EMPIEZA_EL' | translate }} <strong>{{ selectedDateLabel }}</strong>
       </span>
       <p class="date-hint" *ngIf="selectedTableId && previousPhaseName">
-        Encadena con <strong>{{ previousPhaseName }}</strong>.
+        {{ 'CLIENTS.ENCADENA_CON' | translate }} <strong>{{ previousPhaseName }}</strong>.
       </p>
       <app-phase-schedule-calendar
         [phases]="phasesForPicker"
@@ -84,7 +84,7 @@
 
 <ion-footer class="apply-modal-footer" *ngIf="state === 'loaded' || state === 'applying'">
   <button class="submit-button" [disabled]="!canConfirm || state === 'applying'" (click)="confirm()">
-    <span *ngIf="state !== 'applying'">{{ mode === 'reschedule' ? 'Guardar nueva fecha' : 'Aplicar a ' + clientName }}</span>
+    <span *ngIf="state !== 'applying'">{{ mode === 'reschedule' ? ('CLIENTS.GUARDAR_NUEVA_FECHA' | translate) : ('CLIENTS.APLICAR_2' | translate) + clientName }}</span>
     <ion-spinner name="dots" *ngIf="state === 'applying'"></ion-spinner>
   </button>
 </ion-footer>

@@ -31,8 +31,8 @@ import { OBJETIVES_VALUES } from 'src/app/shared/constants/objetives';
 const STEPS_NOT_COUNTED = STEPS[STEPS_TYPES.notCounted].value;
 
 const SEX_OPTIONS: { value: number; label: string }[] = [
-  { value: SEX_TYPES.female, label: 'Femenino' },
-  { value: SEX_TYPES.male, label: 'Masculino' },
+  { value: SEX_TYPES.female, label: 'INTAKE.SEX.FEMALE' },
+  { value: SEX_TYPES.male, label: 'INTAKE.SEX.MALE' },
 ];
 
 export type IntakeWizardResult = Omit<IntakeSubmission, 'trainerId'>;
@@ -62,41 +62,41 @@ export interface IntakeWizardPrefill {
 }
 
 const EXPERIENCE_OPTIONS: { value: IntakeSubmission['experienceLevel']; label: string }[] = [
-  { value: 'none', label: 'Sin experiencia' },
-  { value: 'beginner', label: 'Principiante' },
-  { value: 'intermediate', label: 'Intermedio' },
-  { value: 'advanced', label: 'Avanzado' },
+  { value: 'none', label: 'INTAKE.EXPERIENCE.none' },
+  { value: 'beginner', label: 'INTAKE.EXPERIENCE.beginner' },
+  { value: 'intermediate', label: 'INTAKE.EXPERIENCE.intermediate' },
+  { value: 'advanced', label: 'INTAKE.EXPERIENCE.advanced' },
 ];
 
 const COOKS_OPTIONS: { value: IntakeSubmission['cooksAtHome']; label: string }[] = [
-  { value: 'yes', label: 'Sí' },
-  { value: 'no', label: 'No' },
-  { value: 'sometimes', label: 'A veces' },
+  { value: 'yes', label: 'INTAKE.COOKS.yes' },
+  { value: 'no', label: 'INTAKE.COOKS.no' },
+  { value: 'sometimes', label: 'INTAKE.COOKS.sometimes' },
 ];
 
 const TRAINING_LOCATION_OPTIONS: { value: TrainingLocation; label: string }[] = [
-  { value: 'gym', label: 'Gimnasio' },
-  { value: 'home', label: 'Casa' },
-  { value: 'outdoor', label: 'Exterior' },
-  { value: 'mixed', label: 'Mixto' },
+  { value: 'gym', label: 'INTAKE.LOCATION.gym' },
+  { value: 'home', label: 'INTAKE.LOCATION.home' },
+  { value: 'outdoor', label: 'INTAKE.LOCATION.outdoor' },
+  { value: 'mixed', label: 'INTAKE.LOCATION.mixed' },
 ];
 
 const DIETARY_FLAG_OPTIONS: { value: DietaryFlag; label: string }[] = [
-  { value: 'vegan', label: 'Vegana' },
-  { value: 'vegetarian', label: 'Vegetariana' },
-  { value: 'lactoseFree', label: 'Sin lactosa' },
-  { value: 'glutenFree', label: 'Sin gluten' },
+  { value: 'vegan', label: 'INTAKE.DIETARY.vegan' },
+  { value: 'vegetarian', label: 'INTAKE.DIETARY.vegetarian' },
+  { value: 'lactoseFree', label: 'INTAKE.DIETARY.lactoseFree' },
+  { value: 'glutenFree', label: 'INTAKE.DIETARY.glutenFree' },
 ];
 
 const EQUIPMENT_TAG_OPTIONS: { value: EquipmentTag; label: string }[] = [
-  { value: 'dumbbells', label: 'Mancuernas' },
-  { value: 'barbell', label: 'Barra y discos' },
-  { value: 'machines', label: 'Máquinas de gimnasio' },
-  { value: 'bands', label: 'Bandas elásticas' },
-  { value: 'kettlebells', label: 'Kettlebells' },
-  { value: 'bench', label: 'Banco' },
-  { value: 'pullup_bar', label: 'Barra de dominadas' },
-  { value: 'none', label: 'Sin material' },
+  { value: 'dumbbells', label: 'INTAKE.EQUIPMENT.dumbbells' },
+  { value: 'barbell', label: 'INTAKE.EQUIPMENT.barbell' },
+  { value: 'machines', label: 'INTAKE.EQUIPMENT.machines' },
+  { value: 'bands', label: 'INTAKE.EQUIPMENT.bands' },
+  { value: 'kettlebells', label: 'INTAKE.EQUIPMENT.kettlebells' },
+  { value: 'bench', label: 'INTAKE.EQUIPMENT.bench' },
+  { value: 'pullup_bar', label: 'INTAKE.EQUIPMENT.pullup_bar' },
+  { value: 'none', label: 'INTAKE.EQUIPMENT.none' },
 ];
 
 // Cuestionario inicial del entrenador, como wizard paso a paso — mismo

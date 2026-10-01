@@ -1,4 +1,4 @@
-<div class="pay-skeleton" *ngIf="state === 'loading'" aria-busy="true" aria-label="Cargando cobros">
+<div class="pay-skeleton" *ngIf="state === 'loading'" aria-busy="true" [attr.aria-label]="'PAYMENTS.CARGANDO_COBROS' | translate">
   <div class="skeleton-block skeleton-block--fee"></div>
   <div class="skeleton-block"></div>
   <div class="skeleton-block"></div>
@@ -6,26 +6,26 @@
 
 <div class="pay-state" *ngIf="state === 'error'" role="alert">
   <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-  <p>No se pudieron cargar los cobros de este cliente. No se muestra ningún saldo hasta poder leerlo.</p>
-  <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  <p>{{ 'PAYMENTS.NO_SE_PUDIERON_CARGAR_LOS' | translate }}</p>
+  <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
 </div>
 
 <ng-container *ngIf="state === 'loaded' && ledger as l">
   <div class="notice" *ngIf="l.access === 'former'">
     <ion-icon name="archive-outline" aria-hidden="true"></ion-icon>
     <span>
-      Antiguo cliente: la relación terminó. Puedes registrar pagos, corregir o anular su deuda; no crear cuotas ni cobros nuevos.
+      {{ 'PAYMENTS.ANTIGUO_CLIENTE_LA_RELACION_TERMINO' | translate }}
     </span>
   </div>
   <div class="notice" *ngIf="readOnly && l.access === 'active'">
     <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
-    <span>Solo lectura por las plazas de tu plan: puedes consultar sus cobros, no modificarlos.</span>
+    <span>{{ 'PAYMENTS.SOLO_LECTURA_POR_LAS_PLAZAS' | translate }}</span>
   </div>
 
   <!-- ===== Cuota (la regla) ===== -->
   <section class="fee" [attr.aria-labelledby]="uid + '-fee'">
     <div class="fee__head">
-      <h2 class="fee__title" [id]="uid + '-fee'">Cuota</h2>
+      <h2 class="fee__title" [id]="uid + '-fee'">{{ 'PAYMENTS.CUOTA' | translate }}</h2>
       <span
         class="pay-chip"
         *ngIf="l.plan"
@@ -40,55 +40,54 @@
         <span class="fee__freq">{{ frequency(l.plan) }}</span>
       </p>
       <p class="fee__line" *ngIf="l.plan.status === 'active' && l.plan.nextDueDay">
-        Próximo vencimiento <strong>{{ dayLong(l.plan.nextDueDay) }}</strong>
+        {{ 'PAYMENTS.PROXIMO_VENCIMIENTO' | translate }} <strong>{{ dayLong(l.plan.nextDueDay) }}</strong>
       </p>
       <p class="fee__line" *ngIf="l.plan.status === 'paused'">
-        Pausada desde el {{ instantDay(l.plan.pausedAt) }}: no se generan vencimientos. La deuda anterior sigue abajo.
+        {{ 'PAYMENTS.PAUSADA_DESDE_EL' | translate }} {{ instantDay(l.plan.pausedAt) }}: {{ 'PAYMENTS.NO_SE_GENERAN_VENCIMIENTOS_LA' | translate }}
       </p>
       <p class="fee__line" *ngIf="l.plan.scheduledPrice as scheduled">
-        Desde el {{ day(scheduled.fromDay) }}: <strong>{{ money(scheduled.amountCents) }}</strong>
+        {{ 'PAYMENTS.DESDE_EL' | translate }} {{ day(scheduled.fromDay) }}: <strong>{{ money(scheduled.amountCents) }}</strong>
       </p>
       <div class="fee__actions" *ngIf="manageable">
         <button type="button" class="pay-secondary" *ngIf="l.plan.status === 'active'" (click)="openConfigure()">
           <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
-          Editar cuota
+          {{ 'PAYMENTS.EDITAR_CUOTA' | translate }}
         </button>
         <button type="button" class="pay-primary" *ngIf="l.plan.status === 'paused'" (click)="openResume()">
           <ion-icon name="play-outline" aria-hidden="true"></ion-icon>
-          Reanudar
+          {{ 'PAYMENTS.REANUDAR' | translate }}
         </button>
-        <button type="button" class="pay-quiet" *ngIf="l.plan.status === 'active'" [disabled]="busy" (click)="pause()">Pausar</button>
-        <button type="button" class="pay-danger-quiet" [disabled]="busy" (click)="end()">Finalizar cuota</button>
+        <button type="button" class="pay-quiet" *ngIf="l.plan.status === 'active'" [disabled]="busy" (click)="pause()">{{ 'PAYMENTS.PAUSAR' | translate }}</button>
+        <button type="button" class="pay-danger-quiet" [disabled]="busy" (click)="end()">{{ 'PAYMENTS.FINALIZAR_CUOTA' | translate }}</button>
       </div>
     </ng-container>
 
     <ng-template #noActivePlan>
       <p class="fee__empty" *ngIf="!l.plan && l.access === 'active'">
-        Sin cuota configurada. Defínela una vez: los vencimientos se generan solos y no se mueven aunque te paguen tarde.
+        {{ 'PAYMENTS.SIN_CUOTA_CONFIGURADA_DEFINELA_UNA' | translate }}
       </p>
-      <p class="fee__empty" *ngIf="!l.plan && l.access === 'former'">Sin cuota: la relación con este cliente terminó.</p>
+      <p class="fee__empty" *ngIf="!l.plan && l.access === 'former'">{{ 'PAYMENTS.SIN_CUOTA_LA_RELACION_CON' | translate }}</p>
       <p class="fee__empty" *ngIf="l.plan?.status === 'ended'">
-        Finalizada el {{ instantDay(l.plan?.endedAt ?? null)
-        }}<ng-container *ngIf="l.plan?.endReason === 'relation_ended'"> al terminar la relación</ng-container>. Su historial y
-        la deuda que quede siguen abajo.
+        {{ 'PAYMENTS.FINALIZADA_EL' | translate }} {{ instantDay(l.plan?.endedAt ?? null)
+        }}<ng-container *ngIf="l.plan?.endReason === 'relation_ended'"> {{ 'PAYMENTS.AL_TERMINAR_LA_RELACION' | translate }}</ng-container>{{ 'PAYMENTS.SU_HISTORIAL_LA_DEUDA_QUE' | translate }}
       </p>
       <div class="fee__actions" *ngIf="manageable">
         <button type="button" class="pay-primary" (click)="openConfigure()">
           <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-          {{ l.plan ? 'Configurar una cuota nueva' : 'Configurar cuota' }}
+          {{ l.plan ? ('PAYMENTS.CONFIGURAR_UNA_CUOTA_NUEVA' | translate) : ('PAYMENTS.CONFIGURAR_CUOTA' | translate) }}
         </button>
       </div>
     </ng-template>
 
     <div class="fee__reminders">
       <div class="fee__reminders-text">
-        <span class="fee__reminders-title" [id]="uid + '-rem'">Avisos al cliente</span>
+        <span class="fee__reminders-title" [id]="uid + '-rem'">{{ 'PAYMENTS.AVISOS_AL_CLIENTE' | translate }}</span>
         <span class="fee__reminders-help">
           <ng-container *ngIf="l.access === 'former'; else activeReminderHelp">
-            Desactivados: la relación terminó. Solo tú recibes avisos de esta deuda.
+            {{ 'PAYMENTS.DESACTIVADOS_LA_RELACION_TERMINO_SOLO' | translate }}
           </ng-container>
           <ng-template #activeReminderHelp>
-            Recordatorios dentro de su app en tus días de aviso. No puede marcar pagos ni ve tus notas.
+            {{ 'PAYMENTS.RECORDATORIOS_DENTRO_DE_SU_APP' | translate }}
           </ng-template>
         </span>
       </div>
@@ -105,21 +104,21 @@
   <section class="charges" [attr.aria-labelledby]="uid + '-charges'">
     <div class="charges__head">
       <div class="charges__heading">
-        <h2 class="charges__title" [id]="uid + '-charges'">Cobros</h2>
+        <h2 class="charges__title" [id]="uid + '-charges'">{{ 'TRAINER_COMMON.CHARGES' | translate }}</h2>
         <p class="charges__summary" *ngIf="l.summary.pendingCents > 0 || l.summary.overdue">
-          Pendiente <strong>{{ money(l.summary.pendingCents) }}</strong>
+          {{ 'MY_CHECKINS.PENDING' | translate }} <strong>{{ money(l.summary.pendingCents) }}</strong>
           <ng-container *ngIf="l.summary.overdue as overdue">
-            · <span class="charges__overdue">{{ money(overdue.balanceCents) }} vencidos</span>
+            · <span class="charges__overdue">{{ money(overdue.balanceCents) }} {{ 'PAYMENTS.VENCIDOS' | translate }}</span>
           </ng-container>
         </p>
       </div>
       <button type="button" class="pay-secondary" *ngIf="manageable" (click)="openOneOff()">
         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-        Cobro puntual
+        {{ 'PAYMENTS.COBRO_PUNTUAL' | translate }}
       </button>
     </div>
 
-    <div class="filters" role="group" aria-label="Filtrar cobros" *ngIf="counts.all > 0">
+    <div class="filters" role="group" [attr.aria-label]="'PAYMENTS.FILTRAR_COBROS' | translate" *ngIf="counts.all > 0">
       <button
         type="button"
         class="filter"
@@ -133,12 +132,12 @@
     </div>
 
     <p class="charges__empty" *ngIf="counts.all === 0">
-      Todavía no hay cobros.
+      {{ 'TRAINER_MISC.TODAVIA_NO_HAY_COBROS' | translate }}
       {{ l.plan?.status === 'active'
-        ? 'Los vencimientos de la cuota aparecen aquí unos días antes de cada fecha.'
-        : manageable ? 'Configura la cuota o añade un cobro puntual.' : '' }}
+        ? ('PAYMENTS.LOS_VENCIMIENTOS_DE_LA_CUOTA' | translate)
+        : manageable ? ('PAYMENTS.CONFIGURA_LA_CUOTA_ANADE_UN' | translate) : '' }}
     </p>
-    <p class="charges__empty" *ngIf="counts.all > 0 && !visibleGroups.length">Nada en este filtro.</p>
+    <p class="charges__empty" *ngIf="counts.all > 0 && !visibleGroups.length">{{ 'PAYMENTS.NADA_EN_ESTE_FILTRO' | translate }}</p>
 
     <ng-container *ngFor="let group of visibleGroups">
       <h3 class="group-title" [class.group-title--overdue]="group.key === 'overdue'">
@@ -169,7 +168,7 @@
             <app-payment-balance-bar class="charge-row__bar" [charge]="charge"></app-payment-balance-bar>
           </button>
           <button type="button" class="pay-secondary charge-row__pay" *ngIf="canRegister(charge)" (click)="openRegister(charge)">
-            Registrar pago
+            {{ 'PAYMENTS.REGISTRAR_PAGO' | translate }}
           </button>
         </li>
       </ul>
@@ -177,7 +176,7 @@
 
     <div class="voided" *ngIf="filter === 'history' && l.voided.length">
       <button type="button" class="pay-quiet" [attr.aria-expanded]="showVoided" (click)="showVoided = !showVoided">
-        {{ showVoided ? 'Ocultar' : 'Ver' }} previsiones anuladas ({{ l.voided.length }})
+        {{ showVoided ? ('PAYMENTS.OCULTAR' | translate) : ('ONBOARDING.VIEW' | translate) }} {{ 'TRAINER_MISC.PREVISIONES_ANULADAS' | translate }}{{ l.voided.length }})
       </button>
       <ul class="charge-list" *ngIf="showVoided">
         <li class="charge-row charge-row--closed" *ngFor="let charge of l.voided; trackBy: trackById">
@@ -186,7 +185,7 @@
               <span class="charge-row__title">{{ title(charge) }}</span>
               <span class="charge-row__amount">{{ money(charge.amountCents, charge.currency) }}</span>
             </span>
-            <span class="charge-row__meta"><span>{{ day(charge.dueDay) }}</span><span class="charge-row__figures">Previsión anulada, sin dinero</span></span>
+            <span class="charge-row__meta"><span>{{ day(charge.dueDay) }}</span><span class="charge-row__figures">{{ 'PAYMENTS.PREVISION_ANULADA_SIN_DINERO' | translate }}</span></span>
           </button>
         </li>
       </ul>

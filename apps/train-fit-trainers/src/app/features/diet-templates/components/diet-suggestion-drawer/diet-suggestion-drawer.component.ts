@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { SubmitOnEnterDirective } from 'src/app/shared/directives/submit-on-enter.directive';
 import { IonicModule, ModalController } from '@ionic/angular';
@@ -46,14 +47,16 @@ type TargetMode = 'calculated' | 'goal' | 'manual';
 @Component({
   selector: 'app-diet-suggestion-drawer',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, DietCardModule, MacroAdjustComponent, SubmitOnEnterDirective],
+  imports: [CommonModule, FormsModule, IonicModule, DietCardModule, MacroAdjustComponent, SubmitOnEnterDirective, TranslateModule],
   templateUrl: './diet-suggestion-drawer.component.html',
   styleUrls: ['./diet-suggestion-drawer.component.scss'],
 })
 export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLButtonElement>;
   @Input() public clientId!: string;
-  @Input() public clientName = 'este cliente';
+  @Input() public clientName = this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
 
   public state: ViewState = 'loading';
   // Barra de carga bajo la cabecera. Sube en cuanto se toca un filtro (no
@@ -63,7 +66,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   public missing: string[] = [];
 
   // --- Filtros ---
-  public phaseName = 'Nueva fase';
+  public phaseName = this.translate.instant('DIET_TEMPLATES.NUEVA_FASE');
   // El objetivo con el que se va a pautar: arranca en el calculado, se puede
   // alternar con el objetivo actual del cliente y el entrenador puede teclear
   // encima de cualquiera (entonces `targetMode` = 'manual').
@@ -84,8 +87,8 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   // chip "Todas" es solo un atajo para marcar las tres de golpe, no un
   // cuarto valor de origen.
   public readonly sourceOptions: { key: DietSource; label: string; icon: string }[] = [
-    { key: 'general', label: 'Añadidas por mí', icon: 'person' },
-    { key: 'client', label: 'De este cliente', icon: 'person-circle' },
+    { key: 'general', label: this.translate.instant('DIET_TEMPLATES.ANADIDAS_POR_MI'), icon: 'person' },
+    { key: 'client', label: this.translate.instant('DIET_TEMPLATES.DE_ESTE_CLIENTE'), icon: 'person-circle' },
     { key: 'verified', label: 'By TrainFit', icon: 'shield' },
   ];
   public sources = new Set<DietSource>(['general', 'client', 'verified']);
@@ -248,8 +251,8 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
           }
           this.state = this.session.results ? 'ready' : 'error';
           this.ionicUtil.showErrorToast(
-            err?.error?.message || 'No se pudieron cargar las sugerencias',
-            'Error',
+            err?.error?.message || this.translate.instant('DIET_TEMPLATES.NO_SE_PUDIERON_CARGAR_LAS_2'),
+            this.translate.instant('COMMON.ERROR'),
             3500
           );
         },
@@ -308,7 +311,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   private macrosOk(): boolean {
     const macroError = this.macroAdjust?.validate();
     if (!macroError) return true;
-    this.ionicUtil.showErrorToast(macroError, 'Error', 4500);
+    this.ionicUtil.showErrorToast(macroError, this.translate.instant('COMMON.ERROR'), 4500);
     return false;
   }
 
@@ -355,7 +358,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (assignment) => {
           this.ionicUtil.showToast({
-            message: `Fase "${this.phaseName}" aplicada a ${this.clientName} desde hoy`,
+            message: this.translate.instant('DIET_TEMPLATES.FASE_APLICADA_DESDE_HOY', { phaseName: this.phaseName, clientName: this.clientName }),
             duration: 3000,
           });
           this.session.reset();
@@ -365,9 +368,9 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
           this.applying = false;
           this.ionicUtil.showErrorToast(
             err?.status === 409
-              ? err?.error?.message || 'Esas fechas se solapan con otra fase'
-              : err?.error?.message || 'No se pudo aplicar la fase',
-            'Error',
+              ? err?.error?.message || this.translate.instant('DIET_TEMPLATES.ESAS_FECHAS_SE_SOLAPAN_CON')
+              : err?.error?.message || this.translate.instant('DIET_TEMPLATES.NO_SE_PUDO_APLICAR_LA'),
+            this.translate.instant('COMMON.ERROR'),
             4000
           );
         },

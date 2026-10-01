@@ -1,13 +1,13 @@
 <section class="macros-adjust" [class.is-open]="open">
   <button type="button" class="macros-adjust__toggle" [attr.aria-expanded]="open" (click)="open = !open">
     <ion-icon [name]="open ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
-    <span class="macros-adjust__label">Ajustar macros</span>
+    <span class="macros-adjust__label">{{ 'SHARED_COMPONENTS.AJUSTAR_MACROS' | translate }}</span>
     <span class="macros-adjust__summary">
       <span class="macro-chip macro-chip--protein">P {{ grams('protein') }}</span>
       <span class="macro-chip macro-chip--carbs">C {{ grams('carbs') }}</span>
       <span class="macro-chip macro-chip--fat">G {{ grams('fat') }}</span>
-      <span class="macro-chip macro-chip--touched" *ngIf="touched && balanced">ajustado</span>
-      <span class="macro-chip macro-chip--off" *ngIf="!balanced">descuadrado</span>
+      <span class="macro-chip macro-chip--touched" *ngIf="touched && balanced">{{ 'SHARED_COMPONENTS.AJUSTADO' | translate }}</span>
+      <span class="macro-chip macro-chip--off" *ngIf="!balanced">{{ 'SHARED_COMPONENTS.DESCUADRADO' | translate }}</span>
     </span>
   </button>
 
@@ -39,11 +39,11 @@
           class="macro-slider__handle"
           role="slider"
           tabindex="0"
-          aria-label="Reparto entre proteína y carbohidratos"
+          [attr.aria-label]="'SHARED_COMPONENTS.REPARTO_ENTRE_PROTEINA_CARBOHIDRATOS' | translate"
           aria-valuemin="0"
           aria-valuemax="100"
           [attr.aria-valuenow]="h1Pos | number: '1.0-0'"
-          [attr.aria-valuetext]="'Proteína ' + (rawPct('protein') | number: '1.0-0') + ' %'"
+          [attr.aria-valuetext]="('SHARED_COMPONENTS.PROTEINA' | translate) + (rawPct('protein') | number: '1.0-0') + ' %'"
           [attr.aria-disabled]="handleBlocked('h1')"
           [class.is-blocked]="handleBlocked('h1')"
           [style.left.%]="h1Pos"
@@ -53,11 +53,11 @@
           class="macro-slider__handle"
           role="slider"
           tabindex="0"
-          aria-label="Reparto entre carbohidratos y grasa"
+          [attr.aria-label]="'SHARED_COMPONENTS.REPARTO_ENTRE_CARBOHIDRATOS_GRASA' | translate"
           aria-valuemin="0"
           aria-valuemax="100"
           [attr.aria-valuenow]="h2Pos | number: '1.0-0'"
-          [attr.aria-valuetext]="'Grasa ' + (rawPct('fat') | number: '1.0-0') + ' %'"
+          [attr.aria-valuetext]="('SHARED_COMPONENTS.GRASA' | translate) + (rawPct('fat') | number: '1.0-0') + ' %'"
           [attr.aria-disabled]="handleBlocked('h2')"
           [class.is-blocked]="handleBlocked('h2')"
           [style.left.%]="h2Pos"
@@ -84,8 +84,8 @@
           type="button"
           class="lock-toggle"
           [class.is-locked]="locks[m.key]"
-          [attr.aria-label]="locks[m.key] ? 'Desbloquear ' + m.label : 'Bloquear ' + m.label"
-          [title]="locks[m.key] ? 'Desbloquear: vuelve a repartirse al tocar otros' : 'Bloquear: no cambia al tocar otros'"
+          [attr.aria-label]="locks[m.key] ? ('SHARED_COMPONENTS.DESBLOQUEAR' | translate) + m.label : ('SHARED_COMPONENTS.BLOQUEAR' | translate) + m.label"
+          [title]="locks[m.key] ? ('SHARED_COMPONENTS.DESBLOQUEAR_VUELVE_REPARTIRSE_AL_TOCAR' | translate) : ('SHARED_COMPONENTS.BLOQUEAR_NO_CAMBIA_AL_TOCAR' | translate)"
           (click)="toggleLock(m.key)"
         >
           <ion-icon [name]="locks[m.key] ? 'lock-closed' : 'lock-open-outline'" aria-hidden="true"></ion-icon>
@@ -98,7 +98,7 @@
         </label>
         <label class="macro-input" *ngIf="weightKg">
           <input type="number" min="0" step="0.1" [value]="fieldValue(m.key, 'kg')" [readonly]="locks[m.key]" (focus)="onFieldFocus(m.key, 'kg')" (blur)="onFieldBlur()" (input)="onPerKgInput(m.key, $event)" />
-          <span>g/kg</span>
+          <span>{{ 'SHARED_COMPONENTS.KG' | translate }}</span>
         </label>
       </div>
     </div>
@@ -109,16 +109,16 @@
     <div class="macros-adjust__warning" [class.is-error]="saveBlocked" role="alert" *ngIf="!balanced">
       <ion-icon [name]="saveBlocked ? 'alert-circle' : 'warning-outline'" aria-hidden="true"></ion-icon>
       <p>
-        <strong>{{ saveBlocked ? 'No se puede guardar: los macros no cuadran' : 'Los macros no cuadran con las kcal' }}</strong>
+        <strong>{{ saveBlocked ? ('SHARED_COMPONENTS.NO_SE_PUEDE_GUARDAR_LOS' | translate) : ('SHARED_COMPONENTS.LOS_MACROS_NO_CUADRAN_CON' | translate) }}</strong>
         {{ imbalanceMessage }}
       </p>
     </div>
 
     <p class="macros-adjust__foot">
-      Macros: <strong [class.is-off]="!balanced">{{ macrosKcal }} kcal</strong>
-      <ng-container *ngIf="macroBudget !== targetKcal"> de {{ targetKcal }} de la dieta (el resto no es macro: fibra, alcohol, redondeos)</ng-container>
-      <ng-container *ngIf="weightKg"> · g/kg sobre {{ weightKg | number: '1.0-1' }} kg</ng-container>
-      <span *ngIf="!weightKg"> · sin peso del cliente, no hay g/kg</span>
+      {{ 'SHARED_COMPONENTS.MACROS' | translate }} <strong [class.is-off]="!balanced">{{ macrosKcal }} kcal</strong>
+      <ng-container *ngIf="macroBudget !== targetKcal"> {{ 'SHARED_COMPONENTS.DE' | translate }} {{ targetKcal }} {{ 'SHARED_COMPONENTS.DE_LA_DIETA_EL_RESTO' | translate }})</ng-container>
+      <ng-container *ngIf="weightKg"> · {{ 'SHARED_COMPONENTS.KG_SOBRE' | translate }} {{ weightKg | number: '1.0-1' }} kg</ng-container>
+      <span *ngIf="!weightKg"> {{ 'SHARED_COMPONENTS.SIN_PESO_DEL_CLIENTE_NO' | translate }}</span>
       <button
         type="button"
         class="macros-adjust__reset"

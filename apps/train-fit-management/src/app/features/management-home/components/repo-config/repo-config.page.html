@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Repositorio</h1>
+        <h1 class="tf-page-header__title">{{ 'MANAGEMENT.REPO.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -20,7 +20,7 @@
     <div class="section-group">
       <div class="section-header">
         <ion-icon name="key-outline"></ion-icon>
-        <span>TOKEN GITHUB</span>
+        <span>{{ 'MANAGEMENT.REPO.TOKEN_LABEL' | translate }}</span>
       </div>
 
       <ion-card class="env-card">
@@ -49,7 +49,7 @@
 
       <ion-button expand="block" color="danger" class="pull-btn" (click)="confirmPull()" [disabled]="isPulling">
         <ion-icon slot="start" name="download-outline"></ion-icon>
-        {{ isPulling ? 'Ejecutando...' : 'Ejecutar Pull' }}
+        {{ (isPulling ? 'MANAGEMENT.REPO.RUNNING' : 'MANAGEMENT.REPO.RUN_PULL') | translate }}
       </ion-button>
 
       <!-- Spinner -->

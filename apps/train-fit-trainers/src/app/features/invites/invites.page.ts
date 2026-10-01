@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -47,6 +48,8 @@ interface HistoryGroup extends GroupedInvite {
   styleUrls: ['invites.page.scss'],
 })
 export class InvitesPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   public form: FormGroup;
   public isSending = false;
 
@@ -121,15 +124,15 @@ export class InvitesPage implements OnInit {
   // Partial: `dietaryFlags` es un IntakeFieldKey pero NO toggleable (el
   // backend lo fuerza en scope nutrición), así que no aparece aquí.
   public readonly intakeFieldLabels: Partial<Record<IntakeFieldKey, string>> = {
-    goals: 'Objetivos',
-    healthConditions: 'Salud y lesiones',
-    experienceLevel: 'Nivel de experiencia',
-    availability: 'Disponibilidad',
-    equipment: 'Equipamiento disponible',
-    allergies: 'Alergias',
-    favoriteFoods: 'Alimentos favoritos',
-    dislikedFoods: 'Alimentos que no le gustan',
-    cooksAtHome: 'Cocina en casa',
+    goals: this.translate.instant('INVITES.OBJETIVOS'),
+    healthConditions: this.translate.instant('INTAKE.HEALTH_TITLE'),
+    experienceLevel: this.translate.instant('INVITES.NIVEL_DE_EXPERIENCIA'),
+    availability: this.translate.instant('INVITES.DISPONIBILIDAD'),
+    equipment: this.translate.instant('INTAKE.EQUIPMENT_TITLE'),
+    allergies: this.translate.instant('INTAKE.ALLERGIES_TITLE'),
+    favoriteFoods: this.translate.instant('INTAKE.FAVORITES_TITLE'),
+    dislikedFoods: this.translate.instant('INVITES.ALIMENTOS_QUE_NO_LE_GUSTAN'),
+    cooksAtHome: this.translate.instant('INVITES.COCINA_EN_CASA'),
   };
   public intakeConfigState: 'loading' | 'error' | 'loaded' = 'loading';
   // El catálogo de campos es un conjunto cerrado ya conocido en compilación
@@ -239,15 +242,15 @@ export class InvitesPage implements OnInit {
     if (!state?.blocked) return null;
     switch (state.status) {
       case 'active':
-        return 'Ya es tu cliente en este ámbito';
+        return this.translate.instant('INVITES.YA_ES_TU_CLIENTE_EN');
       case 'pending':
-        return 'Ya tiene una invitación pendiente de respuesta';
+        return this.translate.instant('INVITES.YA_TIENE_UNA_INVITACION_PENDIENTE');
       case 'cuestionario_pendiente':
-        return 'Ya aceptó, esperando que complete el cuestionario';
+        return this.translate.instant('INVITES.YA_ACEPTO_ESPERANDO_QUE_COMPLETE');
       case 'en_revision':
-        return 'Cuestionario recibido, pendiente de tu confirmación';
+        return this.translate.instant('INVITES.CUESTIONARIO_RECIBIDO_PENDIENTE_DE_TU');
       default:
-        return 'Ya existe una relación en curso con este ámbito';
+        return this.translate.instant('INVITES.YA_EXISTE_UNA_RELACION_EN');
     }
   }
 
@@ -352,7 +355,7 @@ export class InvitesPage implements OnInit {
           if (err?.error?.code === 'TRAINER_LIMIT_REACHED') {
             this.ionicUtilService.showErrorToast(
               err.error.message,
-              'Límite de tu plan alcanzado',
+              this.translate.instant('INVITES.LIMITE_DE_TU_PLAN_ALCANZADO'),
               3500
             );
             void this.router.navigate(['/tabs/subscription']);
@@ -365,8 +368,8 @@ export class InvitesPage implements OnInit {
             return;
           }
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo enviar la invitación',
-            'Error',
+            err?.error?.message || this.translate.instant('INVITES.NO_SE_PUDO_ENVIAR_LA'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
         },
@@ -382,7 +385,7 @@ export class InvitesPage implements OnInit {
     if (succeeded.length) {
       const labels = succeeded.map((r) => this.scopeLabel(r.scope)).join(' y ');
       this.ionicUtilService.showToast({
-        message: `Invitación de ${labels} enviada correctamente`,
+        message: this.translate.instant('INVITES.INVITACION_DE_ENVIADA_CORRECTAMENTE', { labels }),
         duration: 3500,
       });
       this.form.reset({ clientEmail: null, training: false, nutrition: false });
@@ -392,7 +395,7 @@ export class InvitesPage implements OnInit {
     failed.forEach((r) => {
       this.ionicUtilService.showErrorToast(
         `${this.scopeLabel(r.scope)}: ${r.error}`,
-        'No se pudo invitar',
+        this.translate.instant('INVITES.NO_SE_PUDO_INVITAR'),
         4000
       );
     });
@@ -400,12 +403,12 @@ export class InvitesPage implements OnInit {
 
   public async confirmCancel(invite: TrainerInvite): Promise<void> {
     const alert = await this.ionicUtilService.showAlert({
-      header: 'Cancelar invitación',
-      message: `¿Seguro que quieres cancelar la invitación de ${this.scopeLabel(invite.scope)} a ${invite.clientEmail}?`,
+      header: this.translate.instant('INVITES.CANCELAR_INVITACION'),
+      message: this.translate.instant('INVITES.SEGURO_QUE_QUIERES_CANCELAR_LA', { p0: this.scopeLabel(invite.scope), clientEmail: invite.clientEmail }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Cancelar invitación',
+          text: this.translate.instant('INVITES.CANCELAR_INVITACION'),
           cssClass: 'alert-button-danger',
           handler: () => this.cancelInvite(invite),
         },
@@ -420,7 +423,7 @@ export class InvitesPage implements OnInit {
       next: () => {
         this.cancellingId = null;
         this.ionicUtilService.showToast({
-          message: 'Invitación cancelada',
+          message: this.translate.instant('INVITES.INVITACION_CANCELADA'),
           duration: 2500,
         });
         this.loadInvites();
@@ -428,8 +431,8 @@ export class InvitesPage implements OnInit {
       error: () => {
         this.cancellingId = null;
         this.ionicUtilService.showErrorToast(
-          'No se pudo cancelar la invitación',
-          'Error',
+          this.translate.instant('INVITES.NO_SE_PUDO_CANCELAR_LA'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
@@ -437,23 +440,23 @@ export class InvitesPage implements OnInit {
   }
 
   public scopeLabel(scope: TrainerInviteScope): string {
-    return scope === 'training' ? 'Entrenamiento' : 'Nutrición';
+    return scope === 'training' ? this.translate.instant('TRAINER_COMMON.TRAINING') : this.translate.instant('TRAINER_COMMON.NUTRITION');
   }
 
   public statusLabel(status: TrainerInvite['status']): string {
     switch (status) {
       case 'pending':
-        return 'Invitación enviada';
+        return this.translate.instant('INVITES.INVITACION_ENVIADA');
       case 'cuestionario_pendiente':
-        return 'Esperando cuestionario';
+        return this.translate.instant('INVITES.ESPERANDO_CUESTIONARIO');
       case 'en_revision':
-        return 'Cuestionario recibido';
+        return this.translate.instant('INVITES.CUESTIONARIO_RECIBIDO');
       case 'active':
-        return 'Aceptada';
+        return this.translate.instant('INVITES.ACEPTADA');
       case 'declined':
-        return 'Rechazada';
+        return this.translate.instant('COACH.HISTORY_DECLINED');
       case 'revoked':
-        return 'Finalizada';
+        return this.translate.instant('CLIENT_DETAIL.PHASE_ENDED');
       default:
         return status;
     }
@@ -573,8 +576,8 @@ export class InvitesPage implements OnInit {
         error: (err) => {
           this.savingIntakeConfig = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo guardar la configuración',
-            'Error',
+            err?.error?.message || this.translate.instant('INVITES.NO_SE_PUDO_GUARDAR_LA'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
         },

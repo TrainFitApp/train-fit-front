@@ -1,10 +1,10 @@
 <div class="phase-calendar">
   <div class="phase-calendar__header">
-    <button type="button" class="phase-calendar__nav-btn" aria-label="Mes anterior" (click)="previousMonth()">
+    <button type="button" class="phase-calendar__nav-btn" [attr.aria-label]="'CLIENTS.MES_ANTERIOR' | translate" (click)="previousMonth()">
       <ion-icon name="chevron-back-outline"></ion-icon>
     </button>
     <span class="phase-calendar__month-label">{{ monthLabel }}</span>
-    <button type="button" class="phase-calendar__nav-btn" aria-label="Mes siguiente" (click)="nextMonth()">
+    <button type="button" class="phase-calendar__nav-btn" [attr.aria-label]="'CLIENTS.MES_SIGUIENTE' | translate" (click)="nextMonth()">
       <ion-icon name="chevron-forward-outline"></ion-icon>
     </button>
   </div>

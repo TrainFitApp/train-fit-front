@@ -4,18 +4,21 @@
   [class.is-failed]="loadFailed"
 >
   <!-- El propio logo hace de barra de progreso: una copia fantasma en gris
-       y encima la de color, recortada en diagonal según `progress`. -->
-  <div class="logo-stage" [style.--fill]="progress">
+       y encima la de color, revelada en diagonal por una máscara que cruza
+       la marca. Es animación CSS pura (ver user-loader.page.scss): no la
+       mueve ningún temporizador ni ninguna petición, así que se ve siempre,
+       aunque el hilo principal esté ocupado arrancando la app. -->
+  <div class="logo-stage">
     <img class="logo-layer logo-ghost" src="../../../../assets/logo_light.png" alt="" />
-    <img class="logo-layer logo-fill" src="../../../../assets/logo_light.png" alt="TrainFit" />
+    <div class="logo-sweep">
+      <div class="logo-sweep-frame">
+        <img class="logo-layer logo-fill" src="../../../../assets/logo_light.png" alt="TrainFit" />
+      </div>
+    </div>
 
-    <div
-      class="progress-bar"
-      role="progressbar"
-      aria-valuemin="0"
-      aria-valuemax="100"
-      [attr.aria-valuenow]="progress"
-    >
+    <!-- Indeterminada a propósito: el barrido indica actividad, no mide las
+         peticiones, así que no hay un valuenow honesto que anunciar. -->
+    <div class="progress-bar" role="progressbar" aria-busy="true">
       <div class="progress-fill"></div>
     </div>
 

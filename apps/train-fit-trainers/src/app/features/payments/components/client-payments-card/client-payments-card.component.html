@@ -1,16 +1,16 @@
 <div class="card-header">
-  <h2 class="card-title">Cobros</h2>
+  <h2 class="card-title">{{ 'TRAINER_COMMON.CHARGES' | translate }}</h2>
   <span class="card-hint" *ngIf="view?.context as context">{{ context }}</span>
 </div>
 
-<div class="card-skeleton" *ngIf="state === 'loading'" aria-busy="true" aria-label="Cargando cobros">
+<div class="card-skeleton" *ngIf="state === 'loading'" aria-busy="true" [attr.aria-label]="'PAYMENTS.CARGANDO_COBROS' | translate">
   <div class="skeleton-block skeleton-block--value"></div>
   <div class="skeleton-block skeleton-block--line"></div>
 </div>
 
 <div class="card-state" *ngIf="state === 'error'" role="alert">
-  <p>No se pudieron cargar sus cobros.</p>
-  <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  <p>{{ 'PAYMENTS.NO_SE_PUDIERON_CARGAR_SUS' | translate }}</p>
+  <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
 </div>
 
 <div class="card-body" *ngIf="state === 'loaded' && view as v" [ngClass]="'card-body--' + v.tone">

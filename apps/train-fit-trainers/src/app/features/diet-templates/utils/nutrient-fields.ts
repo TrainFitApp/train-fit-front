@@ -4,6 +4,7 @@ import { IProduct } from 'src/app/core/models/product';
 import { Recipe } from 'src/app/core/models/recipe';
 import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 export interface NutrientFieldDef {
   key: string;
@@ -46,6 +47,7 @@ export const TOTALS_NUTRIENT_FIELDS: NutrientFieldDef[] = [
   { key: 'vitaminB9100g', label: 'Vitamina B9 (fólico)', unit: 'µg', toDisplay: 1000000 },
   { key: 'vitaminB12100g', label: 'Vitamina B12', unit: 'µg', toDisplay: 1000000 },
 ];
+TOTALS_NUTRIENT_FIELDS.forEach((item) => localizeProp(item, 'label', `DIET_TEMPLATES.NUTRIENTS.${item.key}`));
 
 interface MicroSourceItem {
   product?: IProduct;

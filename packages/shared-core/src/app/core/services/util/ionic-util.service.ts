@@ -470,7 +470,7 @@ export class IonicUtilService {
    */
   public async showErrorToast(
     error: any,
-    defaultMessage: string = 'Ocurrió un error', // kept as literal fallback, consumer should provide translated message
+    defaultMessage: string = this.injector.get(TranslateService).instant('HTTP_ERRORS.GENERIC'),
     duration: number = 3000
   ): Promise<void> {
     const errorMessage = this.errorHandlerService.getFormattedErrorMessage(

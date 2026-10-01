@@ -5,7 +5,11 @@ import Foundation
 // sistema ejecuta esto en el proceso de la app, no en el del widget: es la
 // única forma de poder actualizar la Live Activity desde un botón.
 //
-// PASO 4: check, steppers y flechas de serie/ejercicio.
+// Steppers de KG/REPS/RIR y check. Las flechas de serie (‹ ›) y ejercicio
+// (« ») estaban aquí y se han quitado: navegar obligaba a guardar un cursor
+// que solo conocía la tarjeta, y cuando iOS no conseguía repintar (app
+// levantada en segundo plano) ese cursor y lo que se veía dejaban de
+// coincidir. La tarjeta se queda en la serie que toca y punto.
 
 @available(iOS 17.0, *)
 public struct AdjustSetValueIntent: LiveActivityIntent {
@@ -34,9 +38,12 @@ public struct AdjustSetValueIntent: LiveActivityIntent {
         let field = self.field
         let delta = self.delta
         await WorkoutSessionMutator.shared.apply(signature: "adjust:\(field):\(delta)") { session in
-            guard session.items.indices.contains(session.currentIndex) else { return }
+            // El índice se captura una vez: es derivado (la primera serie sin
+            // hacer) y leerlo dos veces invita a que se mueva a media mutación.
+            let index = session.currentIndex
+            guard session.items.indices.contains(index) else { return }
 
-            var item = session.items[session.currentIndex]
+            var item = session.items[index]
             switch field {
             case "weight":
                 // Redondeo a 2 decimales: 12.5 - 1 en coma flotante deja
@@ -45,13 +52,43 @@ public struct AdjustSetValueIntent: LiveActivityIntent {
             case "reps":
                 item.reps = max(0, item.reps + Int(delta))
             case "rir":
-                item.rir = max(0, item.rir + Int(delta))
+                item.rir = Self.steppedRir(item.rir, delta: Int(delta))
             default:
                 break
             }
-            session.items[session.currentIndex] = item
+
+            if item.doned {
+                // Corregir una serie ya hecha: se anota para la app como
+                // cualquier marcado. Sin flechas la tarjeta no enseña series
+                // hechas, pero el caso se mantiene por si la app republica una
+                // marcada mientras la tarjeta la estaba enseñando.
+                WorkoutActivityStore.appendPending(
+                    PendingSetAction(
+                        setId: item.setId,
+                        reps: item.reps,
+                        weight: item.weight,
+                        rir: item.rir,
+                        doned: true,
+                        skipped: false,
+                        at: Date()
+                    )
+                )
+            } else {
+                item.edited = true
+            }
+            session.items[index] = item
         }
         return .result()
+    }
+
+    /// RIR del stepper: «—» (sin dato) → 0 → 1 … 10 al subir; al bajar,
+    /// 1 → 0 → fallo (-1) → «—». Así se puede dejar sin registrar, que es
+    /// distinto de un 0 real.
+    static func steppedRir(_ value: Int?, delta: Int) -> Int? {
+        guard let value = value else { return delta > 0 ? 0 : nil }
+        if delta > 0 { return value < 0 ? 0 : min(value + delta, 10) }
+        if value > 0 { return value - 1 }
+        return value == 0 ? -1 : nil
     }
 }
 
@@ -66,11 +103,15 @@ public struct CompleteSetIntent: LiveActivityIntent {
         guard #available(iOS 16.2, *) else { return .result() }
 
         await WorkoutSessionMutator.shared.apply(signature: "complete") { session in
+            let index = session.currentIndex
             guard let item = session.currentItem else { return }
 
-            // Interruptor: si la serie ya está hecha, la desmarca.
+            // Interruptor: si la serie ya está hecha, la desmarca. Sin flechas
+            // la tarjeta solo enseña series pendientes, así que en la práctica
+            // siempre marca; desmarcar se hace en la app.
             let doned = !item.doned
-            session.items[session.currentIndex].doned = doned
+            session.items[index].doned = doned
+            session.items[index].edited = false
 
             // La app no está viva aquí: la serie queda anotada para que la
             // sincronice con el backend en cuanto vuelva a primer plano.
@@ -86,50 +127,8 @@ public struct CompleteSetIntent: LiveActivityIntent {
                 )
             )
 
-            // Al marcar, a la siguiente serie pendiente (saltando las hechas).
-            // Al desmarcar se queda, para que se vea el check apagado.
-            if doned, let next = session.nextPendingIndex() {
-                session.currentIndex = next
-            }
-        }
-        return .result()
-    }
-}
-
-/// Flechas de la notificación: las exteriores cambian de ejercicio (a su
-/// primera serie), las interiores de serie dentro del ejercicio.
-@available(iOS 17.0, *)
-public struct NavigateSetIntent: LiveActivityIntent {
-    public static var title: LocalizedStringResource = "Cambiar de serie o ejercicio"
-    public static var isDiscoverable: Bool = false
-
-    @Parameter(title: "Ámbito")
-    public var scope: String
-
-    @Parameter(title: "Dirección")
-    public var step: Int
-
-    public init() {
-        self.scope = "set"
-        self.step = 0
-    }
-
-    public init(scope: String, step: Int) {
-        self.scope = scope
-        self.step = step
-    }
-
-    public func perform() async throws -> some IntentResult {
-        guard #available(iOS 16.2, *) else { return .result() }
-
-        let scope = self.scope
-        let step = self.step
-        await WorkoutSessionMutator.shared.apply(signature: "navigate:\(scope):\(step)") { session in
-            let target = scope == "exercise"
-                ? session.indexForExerciseStep(step)
-                : session.indexForSetStep(step)
-            guard let target = target else { return }
-            session.currentIndex = target
+            // No hay que mover nada: `currentIndex` es la primera serie sin
+            // hacer, así que marcarla ya avanza la tarjeta.
         }
         return .result()
     }

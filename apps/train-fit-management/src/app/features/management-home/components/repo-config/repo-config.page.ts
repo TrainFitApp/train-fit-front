@@ -75,7 +75,7 @@ export class RepoConfigPage implements OnInit {
           }
         },
         error: (err) => {
-          this.pullResult = { success: false, stdout: '', stderr: err.message || 'Error de conexión' };
+          this.pullResult = { success: false, stdout: '', stderr: err.message || this.translate.instant('MANAGEMENT.REPO.CONNECTION_ERROR') };
           this.ionicUtil.showErrorToast(err, this.translate.instant('MANAGEMENT.REPO.PULL_EXEC_ERROR'));
         },
       });

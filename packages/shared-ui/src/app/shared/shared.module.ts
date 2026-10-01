@@ -40,6 +40,7 @@ import { PhotoCompareComponent } from './components/media/photo-compare.componen
 import { PremiumMediaCardComponent } from './components/media/premium-media-card.component';
 import { MediaConsentSheetComponent } from './components/media/media-consent-sheet.component';
 import { PhotoSessionModalComponent } from './components/media/photo-session-modal.component';
+import { MediaCameraModalComponent } from './components/media/media-camera-modal.component';
 import { PhotoViewerModalComponent } from './components/media/photo-viewer-modal.component';
 import { ProgressPhotosComponent } from './components/media/progress-photos.component';
 import { ProgressVideosComponent } from './components/media/progress-videos.component';
@@ -54,6 +55,7 @@ import { MeasurePipe } from './pipes/measure.pipe';
 import { SafePipe } from './pipes/safe.pipe';
 import { TranslateDbPipe } from './pipes/translate-db.pipe';
 import { TranslateDescPipe } from './pipes/translate-desc.pipe';
+import { LocalDatePipe } from './pipes/local-date.pipe';
 import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
 
 @NgModule({
@@ -80,6 +82,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     CategoryPipe,
     TranslateDbPipe,
     TranslateDescPipe,
+    LocalDatePipe,
     DisconnectedComponent,
     RoutineCalendarComponent,
     VideoModalComponent,
@@ -100,6 +103,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     PremiumMediaCardComponent,
     MediaConsentSheetComponent,
     PhotoSessionModalComponent,
+    MediaCameraModalComponent,
     PhotoViewerModalComponent,
     ProgressPhotosComponent,
     ProgressVideosComponent,
@@ -148,6 +152,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     CategoryPipe,
     TranslateDbPipe,
     TranslateDescPipe,
+    LocalDatePipe,
     DisconnectedComponent,
     RoutineCalendarComponent,
     CursorEndDirective,
@@ -165,6 +170,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     PremiumMediaCardComponent,
     MediaConsentSheetComponent,
     PhotoSessionModalComponent,
+    MediaCameraModalComponent,
     PhotoViewerModalComponent,
     ProgressPhotosComponent,
     ProgressVideosComponent,

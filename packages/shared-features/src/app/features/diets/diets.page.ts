@@ -14,6 +14,7 @@ import {
   CUSTOM_PRODUCT_VALUES,
   CustomProduct,
 } from 'src/app/core/models/customProduct';
+import { HABIT_TYPE_ICONS } from 'src/app/core/constants/habit-icons';
 import { CustomRecipe } from 'src/app/core/models/customRecipe';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
@@ -206,17 +207,12 @@ export class DietsPage implements OnInit {
     );
   }
 
+  // La comida solo avisa cuando el pegado se ha completado: cancelar no toca el
+  // portapapeles ni los botones de pegar de las demás comidas.
   public paste(event): void {
     if (event?.pasted) {
       this.clearClipboard();
-      return;
     }
-
-    this.pasteMode = event?.paste ?? undefined;
-    this.mealIdPaste = event?.mealId ?? undefined;
-    this.mealIndexPaste = event?.mealIndex ?? undefined;
-    this.copyMealId = undefined;
-    this.copyMealIndex = undefined;
   }
 
   public onCopySelection(event: {
@@ -561,9 +557,14 @@ export class DietsPage implements OnInit {
     });
   }
 
+  // Mismo icono por tipo de hábito que ve el entrenador al pautarlo.
+  public habitIcon(habit: CoachTask): string {
+    return HABIT_TYPE_ICONS[habit.type] || HABIT_TYPE_ICONS.custom;
+  }
+
   // "10.000 a 15.000 pasos" / "2 L".
   public habitTargetLabel(habit: CoachTask): string {
-    const rango = habit.targetMax ? ` a ${habit.targetMax}` : '';
+    const rango = habit.targetMax ? ` ${this.translate.instant('COACH.RANGE_TO')} ${habit.targetMax}` : '';
     return `${habit.target}${rango} ${habit.unit}`;
   }
 
@@ -580,7 +581,7 @@ export class DietsPage implements OnInit {
       },
       error: () => {
         this.togglingHabitId = null;
-        this.ionicUtilService.showErrorToast('No se pudo marcar el hábito', 'Error', 2500);
+        this.ionicUtilService.showErrorToast(this.translate.instant('DIETS.HABIT_ERROR'), this.translate.instant('COMMON.ERROR'), 2500);
       },
     });
   }
@@ -613,7 +614,7 @@ export class DietsPage implements OnInit {
   }
 
   public supplementTiming(supplement: MySupplement): string {
-    if (supplement.timing === 'custom') return supplement.customTiming || 'Otro momento';
+    if (supplement.timing === 'custom') return supplement.customTiming || this.translate.instant('DIETS.OTHER_TIME');
     return this.supplementTimings[supplement.timing] || supplement.timing;
   }
 
@@ -676,13 +677,12 @@ export class DietsPage implements OnInit {
   public leaveMenu(): void {
     if (this.isLeavingMenu || !this.selectedMenu) return;
     const alertOptions: AlertOptions = {
-      header: 'Salir del menú',
-      message:
-        'Se borrará lo que has marcado de lo pautado de este día. Lo que hayas anotado por tu cuenta se queda. ¿Seguro?',
+      header: this.translate.instant('DIETS.LEAVE_MENU'),
+      message: this.translate.instant('DIETS.LEAVE_MENU_MSG'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Salir',
+          text: this.translate.instant('COMMON.EXIT'),
           role: 'destructive',
           handler: () => {
             this.isLeavingMenu = true;

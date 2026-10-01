@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ModalController } from '@ionic/angular';
 import { Exercise } from 'src/app/core/models/exercise';
@@ -32,6 +33,8 @@ interface MuscleRoleRow {
   styleUrls: ['./exercise-detail-modal.component.scss'],
 })
 export class ExerciseDetailModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() exercise: Exercise;
 
   public videoEmbedSrcSafe: SafeResourceUrl | null = null;
@@ -94,9 +97,9 @@ export class ExerciseDetailModalComponent implements OnInit {
   }
 
   public get exerciseTypeLabel(): string {
-    if (this.exercise?.isCardio) return 'Cardio';
-    if (this.exercise?.isIsometric) return 'Isométrico';
-    return 'Fuerza';
+    if (this.exercise?.isCardio) return this.translate.instant('EXERCISE_LIBRARY.CARDIO');
+    if (this.exercise?.isIsometric) return this.translate.instant('EXERCISE_LIBRARY.ISOMETRICO');
+    return this.translate.instant('EXERCISE_LIBRARY.FUERZA');
   }
 
   private buildVideoEmbedSrc(url?: string): SafeResourceUrl | null {

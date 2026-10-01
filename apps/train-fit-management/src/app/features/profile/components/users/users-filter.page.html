@@ -2,7 +2,7 @@
   <div class="filter-toolbar">
     <div class="header-content">
       <div class="title-section">
-        <ion-title class="filter-title">Filtros</ion-title>
+        <ion-title class="filter-title">{{ 'MANAGEMENT.USERS.FILTERS' | translate }}</ion-title>
       </div>
       <ion-buttons slot="end">
         <button class="close-action-button ripple-effect" (click)="apply()">
@@ -18,7 +18,7 @@
     <div class="filter-section">
       <div class="section-header">
         <ion-icon name="diamond-outline" class="section-icon"></ion-icon>
-        <h3 class="section-title">Suscripción</h3>
+        <h3 class="section-title">{{ 'MANAGEMENT.USERS.SUBSCRIPTION' | translate }}</h3>
       </div>
       <div class="chips-container">
         <button
@@ -27,7 +27,7 @@
           [class.is-active]="draftFilter.premiumOnly"
           (click)="togglePremiumFilter()"
         >
-          <span class="label">Premium</span>
+          <span class="label">{{ 'MANAGEMENT.USERS.FILTER_PREMIUM' | translate }}</span>
           <ion-ripple-effect></ion-ripple-effect>
         </button>
       </div>
@@ -36,7 +36,7 @@
     <div class="filter-section">
       <div class="section-header">
         <ion-icon name="key-outline" class="section-icon"></ion-icon>
-        <h3 class="section-title">Hash</h3>
+        <h3 class="section-title">{{ 'MANAGEMENT.USERS.FILTER_HASH' | translate }}</h3>
       </div>
       <div class="chips-container">
         <button
@@ -45,7 +45,7 @@
           [class.is-active]="draftFilter.withHashOnly"
           (click)="toggleHashFilter()"
         >
-          <span class="label">Hash</span>
+          <span class="label">{{ 'MANAGEMENT.USERS.FILTER_HASH' | translate }}</span>
           <ion-ripple-effect></ion-ripple-effect>
         </button>
       </div>
@@ -54,7 +54,7 @@
     <div class="filter-section">
       <div class="section-header">
         <ion-icon name="time-outline" class="section-icon"></ion-icon>
-        <h3 class="section-title">Actividad</h3>
+        <h3 class="section-title">{{ 'MANAGEMENT.USERS.ACTIVITY' | translate }}</h3>
       </div>
       <div class="chips-container">
         <button
@@ -63,7 +63,7 @@
           [class.is-active]="isActivityActive"
           (click)="toggleActivityFilter()"
         >
-          <span class="label">Actividad</span>
+          <span class="label">{{ 'MANAGEMENT.USERS.ACTIVITY' | translate }}</span>
           <ion-ripple-effect></ion-ripple-effect>
         </button>
 
@@ -75,7 +75,7 @@
           (click)="setActivitySort('desc')"
         >
           <ion-icon name="arrow-down-outline"></ion-icon>
-          <span class="label">Descendente</span>
+          <span class="label">{{ 'MANAGEMENT.USERS.DESCENDING' | translate }}</span>
           <ion-ripple-effect></ion-ripple-effect>
         </button>
 
@@ -87,7 +87,7 @@
           (click)="setActivitySort('asc')"
         >
           <ion-icon name="arrow-up-outline"></ion-icon>
-          <span class="label">Ascendente</span>
+          <span class="label">{{ 'MANAGEMENT.USERS.ASCENDING' | translate }}</span>
           <ion-ripple-effect></ion-ripple-effect>
         </button>
       </div>

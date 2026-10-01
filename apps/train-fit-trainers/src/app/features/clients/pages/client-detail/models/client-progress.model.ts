@@ -1,4 +1,5 @@
 import { CoachAlert } from 'src/app/features/dashboard/models/coach-alert.model';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 // Fase 2 Coach Pro — espejo de components/clientProgress/ (backend).
 
@@ -195,6 +196,7 @@ export const TRAINING_COMPARISON_METRIC_LABELS: Record<TrainingComparisonMetric,
   readiness: 'Readiness y esfuerzo percibido',
   adherence: 'Adherencia a lo pautado',
 };
+localizeRecord(TRAINING_COMPARISON_METRIC_LABELS, 'CLIENTS.COMPARISON_METRICS');
 
 // 2026-09 — granularidad del comparador: por microciclo (promedia/agrega,
 // como hasta ahora) o por sesión individual (una sesión suelta mala no se
@@ -256,6 +258,8 @@ export interface BlockReadiness {
 
 export interface BlockComparisonSide {
   name: string;
+  // Tipo de microciclo (split-schema SPLIT_PURPOSES): 'deload', 'regular'…
+  purpose?: string;
   start: string;
   end: string;
   volumePerSession: number;
@@ -339,6 +343,8 @@ export interface ClientTrainingProgress {
     previous: BlockComparisonSide;
     absolute: number;
     percentage: number;
+    // El bloque actual es de descarga o vacaciones: bajar es lo previsto.
+    reducedLoad?: boolean;
   } | null;
   blockReadiness: BlockReadiness[];
   blockMuscleGroups: BlockMuscleGroup[];
@@ -373,6 +379,8 @@ export interface ClientTrainingProgress {
     previous: number;
     absolute: number;
     percentage: number;
+    // La semana actual es entera de descarga o vacaciones.
+    reducedLoad?: boolean;
   } | null;
   personalRecords?: PersonalRecord[];
   loadEvolution?: LoadEvolutionExercise[];

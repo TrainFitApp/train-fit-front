@@ -1,12 +1,12 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Invitar"></app-page-header>
+  <app-page-header [title]="'INVITES.INVITAR' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="invites-content" appScrollMemory="invites">
   <form class="invite-form" [formGroup]="form" (ngSubmit)="submit()" appSubmitOnEnter="sendInvite">
-    <h2 class="form-title">Invita a un cliente</h2>
+    <h2 class="form-title">{{ 'INVITES.INVITA_UN_CLIENTE' | translate }}</h2>
     <p class="form-subtitle">
-      Introduce su email y elige qué vas a llevarle. Puedes marcar los dos ámbitos a la vez.
+      {{ 'INVITES.INTRODUCE_SU_EMAIL_ELIGE_QUE' | translate }}
     </p>
 
     <div class="scope-options">
@@ -19,7 +19,7 @@
           (click)="toggleScope('training')"
         >
           <ion-icon name="barbell-outline"></ion-icon>
-          <span>Entrenamiento</span>
+          <span>{{ 'TRAINER_COMMON.TRAINING' | translate }}</span>
           <ion-icon
             class="scope-check"
             [name]="form.value.training ? 'checkmark-circle' : 'ellipse-outline'"
@@ -34,7 +34,7 @@
         <ng-template #trainingScopeError>
           <p class="scope-blocked-hint scope-blocked-hint--error" *ngIf="form.touched && !hasScopeSelected">
             <ion-icon name="alert-circle-outline"></ion-icon>
-            Elige un ámbito
+            {{ 'INVITES.ELIGE_UN_AMBITO' | translate }}
           </p>
         </ng-template>
       </div>
@@ -47,7 +47,7 @@
           (click)="toggleScope('nutrition')"
         >
           <ion-icon name="nutrition-outline"></ion-icon>
-          <span>Nutrición</span>
+          <span>{{ 'TRAINER_COMMON.NUTRITION' | translate }}</span>
           <ion-icon
             class="scope-check"
             [name]="form.value.nutrition ? 'checkmark-circle' : 'ellipse-outline'"
@@ -62,7 +62,7 @@
         <ng-template #nutritionScopeError>
           <p class="scope-blocked-hint scope-blocked-hint--error" *ngIf="form.touched && !hasScopeSelected">
             <ion-icon name="alert-circle-outline"></ion-icon>
-            Elige un ámbito
+            {{ 'INVITES.ELIGE_UN_AMBITO' | translate }}
           </p>
         </ng-template>
       </div>
@@ -75,18 +75,18 @@
       </div>
 
       <div class="section-error" *ngIf="intakeConfigState === 'error'">
-        <p>No se pudo cargar la configuración del cuestionario.</p>
-        <button class="retry-button" (click)="loadIntakeConfig()">Reintentar</button>
+        <p>{{ 'INVITES.NO_SE_PUDO_CARGAR_LA' | translate }}</p>
+        <button class="retry-button" (click)="loadIntakeConfig()">{{ 'COMMON.RETRY' | translate }}</button>
       </div>
 
       <ng-container *ngIf="intakeConfigState === 'loaded'">
         <div class="intake-config-hint-row">
           <p class="intake-config-hint">
-            Elige qué le preguntas a un cliente nuevo. Los campos que desactives no aparecerán en su cuestionario.
+            {{ 'INVITES.ELIGE_QUE_LE_PREGUNTAS_UN' | translate }}
           </p>
           <span class="intake-config-save-status" *ngIf="savingIntakeConfig">
             <ion-spinner name="dots"></ion-spinner>
-            Guardando
+            {{ 'INVITES.GUARDANDO' | translate }}
           </span>
         </div>
         <div class="field-toggle-grid">
@@ -104,7 +104,7 @@
           </button>
         </div>
 
-        <h4 class="intake-config-subheading">Preguntas personalizadas</h4>
+        <h4 class="intake-config-subheading">{{ 'INVITES.PREGUNTAS_PERSONALIZADAS' | translate }}</h4>
 
         <div class="custom-question-list" *ngIf="customQuestions.length">
           <div class="custom-question-row" *ngFor="let question of customQuestions; trackBy: trackByQuestionId">
@@ -115,7 +115,7 @@
               ></ion-icon>
               <span class="custom-question-label">{{ question.label }}</span>
             </button>
-            <button type="button" class="custom-question-remove" (click)="removeCustomQuestion(question.id)" aria-label="Borrar pregunta">
+            <button type="button" class="custom-question-remove" (click)="removeCustomQuestion(question.id)" [attr.aria-label]="'INVITES.BORRAR_PREGUNTA' | translate">
               <ion-icon name="trash-outline"></ion-icon>
             </button>
           </div>
@@ -127,7 +127,7 @@
             <input
               type="text"
               class="input-field"
-              placeholder="Ej. ¿Alguna cirugía reciente?"
+              [placeholder]="'INVITES.EJ_ALGUNA_CIRUGIA_RECIENTE' | translate"
               [(ngModel)]="newQuestionLabel"
               [ngModelOptions]="{standalone: true}"
             />
@@ -137,7 +137,7 @@
               [disabled]="!canAddCustomQuestion"
               (click)="addCustomQuestion()"
               data-enter-submit-action="addQuestion"
-              aria-label="Añadir pregunta"
+              [attr.aria-label]="'INVITES.ANADIR_PREGUNTA' | translate"
             >
               <ion-icon name="return-down-back-outline"></ion-icon>
             </button>
@@ -154,7 +154,7 @@
           type="email"
           formControlName="clientEmail"
           class="input-field"
-          placeholder="Email del cliente"
+          [placeholder]="'INVITES.EMAIL_DEL_CLIENTE' | translate"
           (blur)="onEmailBlur()"
         />
         <ion-spinner name="dots" class="email-check-spinner" *ngIf="checkingEmail"></ion-spinner>
@@ -163,8 +163,8 @@
         class="validation-error"
         *ngIf="form.get('clientEmail')?.invalid && form.get('clientEmail')?.touched"
       >
-        <span *ngIf="form.get('clientEmail')?.errors?.['required']">El email es obligatorio</span>
-        <span *ngIf="form.get('clientEmail')?.errors?.['email']">Introduce un email válido</span>
+        <span *ngIf="form.get('clientEmail')?.errors?.['required']">{{ 'INVITES.EL_EMAIL_ES_OBLIGATORIO' | translate }}</span>
+        <span *ngIf="form.get('clientEmail')?.errors?.['email']">{{ 'INVITES.INTRODUCE_UN_EMAIL_VALIDO' | translate }}</span>
       </div>
     </div>
 
@@ -174,13 +174,13 @@
       [disabled]="form.invalid || !hasScopeSelected || isSending"
       data-enter-submit-action="sendInvite"
     >
-      <span *ngIf="!isSending">Enviar invitación</span>
+      <span *ngIf="!isSending">{{ 'INVITES.ENVIAR_INVITACION' | translate }}</span>
       <ion-spinner name="dots" *ngIf="isSending"></ion-spinner>
     </button>
   </form>
 
   <div class="invites-list-section">
-    <h2 class="section-heading">Invitaciones pendientes</h2>
+    <h2 class="section-heading">{{ 'COACH.PENDING_INVITES' | translate }}</h2>
 
     <div class="history-list" *ngIf="listState === 'loading'">
       <div class="history-card skeleton" *ngFor="let i of [1, 2]">
@@ -190,13 +190,13 @@
     </div>
 
     <div class="section-error" *ngIf="listState === 'error'">
-      <p>No se pudieron cargar tus invitaciones.</p>
-      <button class="retry-button" (click)="loadInvites()">Reintentar</button>
+      <p>{{ 'INVITES.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</p>
+      <button class="retry-button" (click)="loadInvites()">{{ 'COMMON.RETRY' | translate }}</button>
     </div>
 
     <ng-container *ngIf="listState === 'loaded'">
       <p class="empty-hint" *ngIf="!pendingInvites.length">
-        No tienes invitaciones pendientes.
+        {{ 'INVITES.NO_TIENES_INVITACIONES_PENDIENTES' | translate }}
       </p>
 
       <!-- Misma card que "Historial" (ver más abajo) — la diferencia es
@@ -205,7 +205,7 @@
       <div class="history-list">
         <div class="history-card" *ngFor="let group of groupedPendingInvites; trackBy: trackByClientEmail">
           <div class="history-card-header">
-            <span class="history-card-name">{{ clientDisplayName(group) || 'Cliente' }}</span>
+            <span class="history-card-name">{{ clientDisplayName(group) || ('TRAINER_COMMON.CLIENT' | translate) }}</span>
             <span class="history-card-email">{{ group.clientEmail }}</span>
           </div>
 
@@ -227,8 +227,8 @@
                 class="cancel-button"
                 (click)="confirmCancel(inv)"
                 [disabled]="cancellingId === inv._id"
-                [title]="'Cancelar invitación de ' + scopeLabel(inv.scope)"
-                [attr.aria-label]="'Cancelar invitación de ' + scopeLabel(inv.scope)"
+                [title]="('INVITES.CANCELAR_INVITACION_DE' | translate) + scopeLabel(inv.scope)"
+                [attr.aria-label]="('INVITES.CANCELAR_INVITACION_DE' | translate) + scopeLabel(inv.scope)"
               >
                 <ion-spinner name="dots" *ngIf="cancellingId === inv._id"></ion-spinner>
                 <ion-icon name="close-outline" *ngIf="cancellingId !== inv._id"></ion-icon>
@@ -239,11 +239,11 @@
       </div>
 
       <ng-container *ngIf="historyInvites.length">
-        <h2 class="section-heading section-heading--secondary">Historial</h2>
+        <h2 class="section-heading section-heading--secondary">{{ 'COACH.HISTORY' | translate }}</h2>
         <div class="history-list">
           <div class="history-card" *ngFor="let group of groupedHistoryInvites; trackBy: trackByClientEmail">
             <div class="history-card-header">
-              <span class="history-card-name">{{ clientDisplayName(group) || 'Cliente' }}</span>
+              <span class="history-card-name">{{ clientDisplayName(group) || ('TRAINER_COMMON.CLIENT' | translate) }}</span>
               <span class="history-card-email">{{ group.clientEmail }}</span>
             </div>
 

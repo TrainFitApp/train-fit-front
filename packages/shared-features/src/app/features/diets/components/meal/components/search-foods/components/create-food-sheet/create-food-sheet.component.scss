@@ -1,0 +1,109 @@
+// Colores de Ionic (no literales) para que la hoja siga al tema claro y al
+// oscuro. Producto en el naranja de marca y receta en el secundario, como en
+// el selector producto/receta de la propia página.
+:host {
+  --create-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  display: block;
+  padding: 26px 16px calc(env(safe-area-inset-bottom) + 16px);
+}
+
+.create-title {
+  margin: 0 4px 16px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.create-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-option {
+  --option-rgb: var(--ion-color-primary-rgb, 254, 144, 0);
+  --option-color: var(--ion-color-primary, #fe9000);
+
+  display: grid;
+  grid-template-columns: 48px 1fr 20px;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 76px;
+  padding: 12px 14px;
+  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.08);
+  border-radius: 16px;
+  background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.03);
+  color: var(--ion-text-color);
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 140ms var(--create-ease),
+    background-color 140ms ease,
+    border-color 140ms ease;
+
+  &:active {
+    transform: scale(0.985);
+    background: rgba(var(--option-rgb), 0.08);
+    border-color: rgba(var(--option-rgb), 0.35);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--option-color);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.create-option--recipe {
+  --option-rgb: var(--ion-color-secondary-rgb, 255, 196, 85);
+  --option-color: var(--ion-color-secondary, #ffc455);
+}
+
+.create-option__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(var(--option-rgb), 0.14);
+  color: var(--option-color);
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.create-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.create-option__label {
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.create-option__hint {
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--ion-color-medium);
+}
+
+.create-option__chevron {
+  font-size: 18px;
+  color: var(--ion-color-medium);
+}

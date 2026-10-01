@@ -1,3 +1,4 @@
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
 // Icono + color por restricción dietética (vegan/vegetarian/lactoseFree/
 // glutenFree) — usado tanto en las cards de dieta (diet-card, sus chips de
 // "apta para") como en el filtro de restricciones del cajón de sugerencias
@@ -16,6 +17,7 @@ export const DIETARY_FLAG_UI: Record<string, DietaryFlagUi> = {
   lactoseFree: { label: 'Sin lactosa', icon: 'water-outline', colorClass: 'flag-lactose-free' },
   glutenFree: { label: 'Sin gluten', icon: 'ban-outline', colorClass: 'flag-gluten-free' },
 };
+Object.entries(DIETARY_FLAG_UI).forEach(([key, ui]) => localizeProp(ui, 'label', `INTAKE.DIETARY.${key}`));
 
 export function dietaryFlagUi(flag: string): DietaryFlagUi {
   return DIETARY_FLAG_UI[flag] ?? { label: flag, icon: 'ellipse-outline', colorClass: 'flag-generic' };

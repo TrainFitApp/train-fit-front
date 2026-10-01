@@ -8,23 +8,23 @@
     type="button"
     class="panel-toggle"
     [attr.aria-expanded]="!collapsed"
-    [attr.aria-label]="collapsed ? 'Mostrar el volumen por grupo muscular' : 'Ocultar el volumen por grupo muscular'"
+    [attr.aria-label]="collapsed ? ('PLANNER.MOSTRAR_EL_VOLUMEN_POR_GRUPO' | translate) : ('PLANNER.OCULTAR_EL_VOLUMEN_POR_GRUPO' | translate)"
     (click)="toggle()"
   >
     <ion-icon [name]="collapsed ? 'chevron-back-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
-    <span class="panel-toggle-label" *ngIf="!collapsed">Volumen semanal</span>
+    <span class="panel-toggle-label" *ngIf="!collapsed">{{ 'PLANNER.VOLUMEN_SEMANAL' | translate }}</span>
   </button>
 
   <div class="panel-body" *ngIf="embedded || !collapsed">
     <p class="panel-empty" *ngIf="!split">
-      Selecciona un microciclo (toca su cabecera) para ver sus series por grupo muscular.
+      {{ 'PLANNER.SELECCIONA_UN_MICROCICLO_TOCA_SU' | translate }}
     </p>
 
     <ng-container *ngIf="split">
-      <p class="panel-session">{{ splitLabel || 'Microciclo' }}</p>
+      <p class="panel-session">{{ splitLabel || ('CLIENT_DETAIL.MICROCYCLE' | translate) }}</p>
 
       <p class="panel-empty" *ngIf="rows.length === 0 && !unclassifiedSets">
-        Todavía no hay series en este microciclo.
+        {{ 'PLANNER.TODAVIA_NO_HAY_SERIES_EN' | translate }}
       </p>
 
       <app-muscle-tree
@@ -36,16 +36,12 @@
       ></app-muscle-tree>
 
       <p class="panel-warning" *ngIf="unclassifiedSets">
-        {{ unclassifiedSets }} {{ unclassifiedSets === 1 ? 'serie no cuenta' : 'series no cuentan' }}:
-        su ejercicio aún no tiene músculos asignados. Asígnalos en Biblioteca → Ejercicios.
+        {{ unclassifiedSets }} {{ unclassifiedSets === 1 ? ('PLANNER.SERIE_NO_CUENTA' | translate) : ('PLANNER.SERIES_NO_CUENTAN' | translate) }}: {{ 'TRAINER_MISC.SU_EJERCICIO_AUN_NO_TIENE' | translate }}
       </p>
 
       <p class="panel-hint" *ngIf="rows.length">
-        Series por grupo muscular. El músculo principal del ejercicio suma la serie entera, el
-        secundario suma media y el estabilizador no suma. Debajo de cada grupo, cómo se reparte
-        entre sus porciones; «Todo el grupo» son ejercicios que lo trabajan entero, sin énfasis en
-        una porción (p. ej. curl con barra). Rango de referencia {{ targetMin }}–{{ targetMax }} series/semana por grupo.
-        {{ previousSplit ? 'La flecha compara con el microciclo anterior.' : '' }}
+        {{ 'TRAINER_MISC.SERIES_POR_GRUPO_MUSCULAR_EL' | translate }} {{ targetMin }}–{{ targetMax }} {{ 'TRAINER_MISC.SERIES_SEMANA_POR_GRUPO' | translate }}
+        {{ previousSplit ? ('PLANNER.LA_FLECHA_COMPARA_CON_EL' | translate) : '' }}
       </p>
     </ng-container>
   </div>

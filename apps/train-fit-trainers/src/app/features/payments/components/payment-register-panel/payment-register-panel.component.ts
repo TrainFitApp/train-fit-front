@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ChargeMutationResult, PaymentCharge, PaymentMethod } from '../../models/payments.model';
 import { TrainerPaymentsService } from '../../services/trainer-payments.service';
@@ -29,6 +30,8 @@ type ChargeForRegister = Pick<PaymentCharge, 'id' | 'concept' | 'origin' | 'dueD
   styleUrls: ['./payment-register-panel.component.scss'],
 })
 export class PaymentRegisterPanelComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
   @Input() public clientName: string | null = null;
   @Input() public charge!: ChargeForRegister;
@@ -73,10 +76,10 @@ export class PaymentRegisterPanelComponent implements OnInit {
   }
 
   public get amountError(): string | null {
-    if (!this.amountText.trim()) return 'Indica el importe recibido.';
+    if (!this.amountText.trim()) return this.translate.instant('PAYMENTS.INDICA_EL_IMPORTE_RECIBIDO');
     const cents = this.amountCents;
-    if (cents === null) return 'Importe no válido: usa como mucho dos decimales (p. ej. 20,50).';
-    if (cents > this.balanceCents) return `Supera el saldo pendiente (${this.money(this.balanceCents)}).`;
+    if (cents === null) return this.translate.instant('PAYMENTS.IMPORTE_NO_VALIDO_USA_COMO_3');
+    if (cents > this.balanceCents) return this.translate.instant('PAYMENTS.SUPERA_EL_SALDO_PENDIENTE', { p0: this.money(this.balanceCents) });
     return null;
   }
 
@@ -90,8 +93,8 @@ export class PaymentRegisterPanelComponent implements OnInit {
   }
 
   public get dayError(): string | null {
-    if (!this.receivedDay) return 'Indica cuándo lo recibiste.';
-    if (this.receivedDay > this.today) return 'La fecha de recepción no puede ser futura.';
+    if (!this.receivedDay) return this.translate.instant('PAYMENTS.INDICA_CUANDO_LO_RECIBISTE');
+    if (this.receivedDay > this.today) return this.translate.instant('PAYMENTS.LA_FECHA_DE_RECEPCION_NO');
     return null;
   }
 
@@ -101,7 +104,7 @@ export class PaymentRegisterPanelComponent implements OnInit {
 
   public get submitLabel(): string {
     const cents = this.amountCents;
-    return cents && cents <= this.balanceCents ? `Registrar ${this.money(cents)}` : 'Registrar pago';
+    return cents && cents <= this.balanceCents ? this.translate.instant('PAYMENTS.REGISTRAR', { p0: this.money(cents) }) : this.translate.instant('PAYMENTS.REGISTRAR_PAGO');
   }
 
   public money(cents: number): string {
@@ -135,8 +138,8 @@ export class PaymentRegisterPanelComponent implements OnInit {
           const received = this.amountCents ?? 0;
           void this.ionicUtil.showSuccessToast(
             result.charge.balanceCents === 0
-              ? `Pago de ${this.money(received)} registrado · cobro liquidado`
-              : `Pago de ${this.money(received)} registrado · quedan ${this.money(result.charge.balanceCents)}`
+              ? this.translate.instant('PAYMENTS.PAGO_DE_REGISTRADO_COBRO_LIQUIDADO', { p0: this.money(received) })
+              : this.translate.instant('PAYMENTS.PAGO_DE_REGISTRADO_QUEDAN', { p0: this.money(received), p1: this.money(result.charge.balanceCents) })
           );
           this.saved.emit(result);
           this.closed.emit();
@@ -146,7 +149,7 @@ export class PaymentRegisterPanelComponent implements OnInit {
           // Otro pago entró antes: se muestra el saldo real para ajustar.
           const balance = errorDetail(error, 'balanceCents');
           if (errorCode(error) === 'AMOUNT_EXCEEDS_BALANCE' && balance !== null) this.balanceCents = balance;
-          this.errorMessage = paymentsErrorMessage(error, 'No se pudo registrar el pago. Vuelve a intentarlo: no se duplicará.');
+          this.errorMessage = paymentsErrorMessage(error, this.translate.instant('PAYMENTS.NO_SE_PUDO_REGISTRAR_EL'));
         },
       });
   }

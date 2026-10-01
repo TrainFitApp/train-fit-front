@@ -17,11 +17,10 @@
     <h2 class="step-title">{{ 'MEDIA.FORM_CHECK_STEP_VIDEO' | translate }}</h2>
 
     <div class="pickers" *ngIf="!file">
-      <label class="picker picker--primary" [class.picker--busy]="inspecting">
-        <input type="file" accept="video/*" capture="environment" (change)="onFile($event)" [disabled]="inspecting" />
+      <button type="button" class="picker picker--primary" [class.picker--busy]="inspecting" [disabled]="inspecting" (click)="record()">
         <ion-icon name="videocam-outline"></ion-icon>
         <span>{{ 'MEDIA.RECORD_VIDEO' | translate }}</span>
-      </label>
+      </button>
       <label class="picker" [class.picker--busy]="inspecting">
         <input type="file" accept="video/*" (change)="onFile($event)" [disabled]="inspecting" />
         <ion-icon name="images-outline"></ion-icon>

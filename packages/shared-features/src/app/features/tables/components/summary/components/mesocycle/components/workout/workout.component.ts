@@ -356,7 +356,7 @@ export class WorkoutComponent implements OnDestroy {
   private guardReadonly(): boolean {
     if (!this.isReadonly) return false;
     this.ionicUtilService.showToast({
-      message: 'Esta rutina te la asignó tu entrenador. Pídele el cambio en vez de editarla tú mismo.',
+      message: this.translate.instant('TABLES.READONLY_ASSIGNED'),
       duration: 3000,
     });
     return true;
@@ -967,7 +967,7 @@ export class WorkoutComponent implements OnDestroy {
         {
           name: "description",
           type: "textarea",
-          placeholder: "Descripción (opcional)",
+          placeholder: this.translate.instant("TABLES.TEMPLATE_DESCRIPTION_OPTIONAL"),
         },
       ],
       buttons: [
@@ -986,13 +986,13 @@ export class WorkoutComponent implements OnDestroy {
               .subscribe({
                 next: () => {
                   this.ionicUtilService.showToast({
-                    message: "Plantilla guardada",
+                    message: this.translate.instant("TABLES.TEMPLATE_SAVED"),
                     duration: 1500,
                   });
                 },
                 error: () => {
                   this.ionicUtilService.showToast({
-                    message: "No se pudo guardar la plantilla",
+                    message: this.translate.instant("TABLES.TEMPLATE_SAVE_ERROR"),
                     duration: 2500,
                   });
                 },
@@ -1351,11 +1351,12 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public async deleteExercisesAlert(
-    exerciseName: string,
+    exerciseName: string | undefined,
     indexWorkout: number,
     indexExercise: number,
   ) {
     if (this.guardReadonly()) return;
+    exerciseName = exerciseName || this.translate.instant("TABLES.EXERCISE_DELETED");
     const alertOptions: AlertOptions = {
       header: this.translate.instant("TABLES.DELETE_EXERCISE"),
       message: this.translate.instant("TABLES.DELETE_EXERCISE_CONFIRM", {

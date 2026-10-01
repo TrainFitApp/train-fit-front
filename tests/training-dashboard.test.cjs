@@ -6,10 +6,23 @@ const vm = require('node:vm');
 const ts = require('typescript');
 const rx = require('rxjs');
 const root = path.resolve(__dirname, '..');
+const { esTranslator } = require('./i18n-es.cjs');
+// Traducción en español para el código que usa uiText / TranslateService.
+const es = esTranslator('train-fit-trainers');
+const i18nMocks = {
+  'src/app/core/i18n/localized-catalog': {
+    uiText: es.instant,
+    uiLocale: () => 'es-ES',
+    localizeProp() {},
+    localizeList() {},
+    localizeRecord() {},
+  },
+  '@ngx-translate/core': { TranslateService: class {} },
+};
 function load(file, mocks = {}) {
   const code = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, experimentalDecorators: true } }).outputText;
   const module = { exports: {} };
-  vm.runInNewContext(code, { exports: module.exports, module, require: (name) => mocks[name] || require(name), console: { info() {}, warn() {}, error() {} }, localStorage: { removeItem() {} }, atob: (value) => Buffer.from(value, 'base64').toString('binary'), Date }, { filename: file });
+  vm.runInNewContext(code, { exports: module.exports, module, require: (name) => mocks[name] || i18nMocks[name] || require(name), console: { info() {}, warn() {}, error() {} }, localStorage: { removeItem() {} }, atob: (value) => Buffer.from(value, 'base64').toString('binary'), Date }, { filename: file });
   return module.exports;
 }
 const chart = load('apps/train-fit-trainers/src/app/features/clients/pages/client-detail/components/training-comparison-chart/training-comparison.ts');
@@ -21,6 +34,7 @@ const { TrainingComparisonChartComponent } = load('apps/train-fit-trainers/src/a
     Output: () => () => {},
     ViewChild: () => () => {},
     EventEmitter: class { emit() {} },
+    inject: () => es,
   },
   '../../models/client-progress.model': load('apps/train-fit-trainers/src/app/features/clients/pages/client-detail/models/client-progress.model.ts'),
   './training-comparison': chart,

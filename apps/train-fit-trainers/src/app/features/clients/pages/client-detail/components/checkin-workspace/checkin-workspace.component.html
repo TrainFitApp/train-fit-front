@@ -11,71 +11,71 @@
 
   <div class="feedback error" *ngIf="error" role="alert">{{ error }}</div>
   <p class="feedback" *ngIf="notice" role="status">{{ notice }}</p>
-  <div class="load-state" *ngIf="state === 'loading'" role="status">Cargando agenda…<div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
-  <div class="load-state" *ngIf="state === 'error'" role="alert"><p>No se pudo cargar la agenda.</p><button type="button" (click)="load()">Reintentar</button></div>
+  <div class="load-state" *ngIf="state === 'loading'" role="status">{{ 'CLIENTS.CARGANDO_AGENDA' | translate }}<div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+  <div class="load-state" *ngIf="state === 'error'" role="alert"><p>{{ 'CLIENTS.NO_SE_PUDO_CARGAR_LA_2' | translate }}</p><button type="button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button></div>
 
   <div class="workspace-grid" *ngIf="state === 'loaded' && data">
     <main class="review-panel">
       <form class="schedule-editor" *ngIf="editor as draft; else reviewPanel" (ngSubmit)="save()" appSubmitOnEnter="saveSchedule">
-        <div class="panel-heading"><h3>{{ editingId ? 'Editar programación' : 'Nueva programación' }}</h3><button type="button" class="icon-button" aria-label="Cerrar programación" (click)="editor = null" [disabled]="busy"><ion-icon name="close-outline"></ion-icon></button></div>
-        <p class="muted">Elige la primera fecha. Las siguientes se repetirán sin depender de cuándo responda el cliente.</p>
+        <div class="panel-heading"><h3>{{ editingId ? ('CLIENTS.EDITAR_PROGRAMACION' | translate) : ('CLIENTS.NUEVA_PROGRAMACION' | translate) }}</h3><button type="button" class="icon-button" [attr.aria-label]="'CLIENTS.CERRAR_PROGRAMACION' | translate" (click)="editor = null" [disabled]="busy"><ion-icon name="close-outline"></ion-icon></button></div>
+        <p class="muted">{{ 'CLIENTS.ELIGE_LA_PRIMERA_FECHA_LAS' | translate }}</p>
 
         <!-- La plantilla guardada es el camino rápido para lo que se repite;
              los campos sueltos, para lo que no merece plantilla aparte. -->
-        <div class="view-tabs" role="tablist" aria-label="De dónde salen las preguntas">
-          <button type="button" role="tab" [attr.aria-selected]="sourceMode === 'template'" [class.active]="sourceMode === 'template'" (click)="chooseSourceMode('template')">Elegir una plantilla</button>
-          <button type="button" role="tab" [attr.aria-selected]="sourceMode === 'fields'" [class.active]="sourceMode === 'fields'" (click)="chooseSourceMode('fields')">Elegir campos sueltos</button>
+        <div class="view-tabs" role="tablist" [attr.aria-label]="'CLIENTS.DE_DONDE_SALEN_LAS_PREGUNTAS' | translate">
+          <button type="button" role="tab" [attr.aria-selected]="sourceMode === 'template'" [class.active]="sourceMode === 'template'" (click)="chooseSourceMode('template')">{{ 'CLIENTS.ELEGIR_UNA_PLANTILLA' | translate }}</button>
+          <button type="button" role="tab" [attr.aria-selected]="sourceMode === 'fields'" [class.active]="sourceMode === 'fields'" (click)="chooseSourceMode('fields')">{{ 'CLIENTS.ELEGIR_CAMPOS_SUELTOS' | translate }}</button>
         </div>
 
         <ng-container *ngIf="sourceMode === 'template'">
-          <label>Plantilla
-            <ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" aria-label="Plantilla" placeholder="Selecciona una plantilla" name="template" [ngModel]="draft.sourceTemplateId" (ngModelChange)="chooseTemplate($event)" required [disabled]="templatesState !== 'loaded'">
+          <label>{{ 'CLIENTS.PLANTILLA' | translate }}
+            <ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" [attr.aria-label]="'CLIENTS.PLANTILLA' | translate" [placeholder]="'CLIENTS.SELECCIONA_UNA_PLANTILLA' | translate" name="template" [ngModel]="draft.sourceTemplateId" (ngModelChange)="chooseTemplate($event)" required [disabled]="templatesState !== 'loaded'">
               <ion-select-option *ngFor="let template of templates; trackBy: trackId" [value]="template._id">{{ template.name }}</ion-select-option>
             </ion-select>
           </label>
-          <p class="muted" *ngIf="templatesState === 'loading'">Cargando plantillas…</p>
-          <p class="muted" *ngIf="templatesState === 'loaded' && !templates.length">Crea primero una plantilla con las preguntas que quieres pedir, o elige "Elegir campos sueltos" arriba.</p>
-          <button type="button" *ngIf="templatesState === 'error'" (click)="loadTemplates()">Reintentar carga de plantillas</button>
-          <button type="button" class="text-button" (click)="manageTemplates()">Gestionar plantillas<ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon></button>
+          <p class="muted" *ngIf="templatesState === 'loading'">{{ 'CLIENTS.CARGANDO_PLANTILLAS' | translate }}</p>
+          <p class="muted" *ngIf="templatesState === 'loaded' && !templates.length">{{ 'CLIENTS.CREA_PRIMERO_UNA_PLANTILLA_CON' | translate }}</p>
+          <button type="button" *ngIf="templatesState === 'error'" (click)="loadTemplates()">{{ 'CLIENTS.REINTENTAR_CARGA_DE_PLANTILLAS' | translate }}</button>
+          <button type="button" class="text-button" (click)="manageTemplates()">{{ 'CLIENTS.GESTIONAR_PLANTILLAS' | translate }}<ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon></button>
         </ng-container>
 
         <ng-container *ngIf="sourceMode === 'fields'">
-          <p class="muted">Elige qué le pides. No queda guardado como plantilla; solo para esta programación.</p>
+          <p class="muted">{{ 'CLIENTS.ELIGE_QUE_LE_PIDES_NO' | translate }}</p>
           <app-checkin-field-selector [selected]="draft.enabledFields || []" (selectedChange)="setDraftFields($event)"></app-checkin-field-selector>
         </ng-container>
 
-        <label>Nombre para este cliente<input name="name" [(ngModel)]="draft.name" maxlength="100" required placeholder="Ej. Bienestar semanal"></label>
+        <label>{{ 'CLIENTS.NOMBRE_PARA_ESTE_CLIENTE' | translate }}<input name="name" [(ngModel)]="draft.name" maxlength="100" required [placeholder]="'CLIENTS.EJ_BIENESTAR_SEMANAL' | translate"></label>
         <div class="form-row">
-          <label>Primera solicitud<app-date-field name="startDate" pickerTitle="Primera solicitud" [showIcon]="true" [(ngModel)]="draft.startDate" [min]="editingId ? null : today" required></app-date-field></label>
-          <label>Hora del aviso<app-date-field presentation="time" name="time" pickerTitle="Hora del aviso" [showIcon]="true" [(ngModel)]="draft.time" required></app-date-field></label>
+          <label>{{ 'CLIENTS.PRIMERA_SOLICITUD' | translate }}<app-date-field name="startDate" pickerTitle="Primera solicitud" [showIcon]="true" [(ngModel)]="draft.startDate" [min]="editingId ? null : today" required></app-date-field></label>
+          <label>{{ 'CLIENTS.HORA_DEL_AVISO' | translate }}<app-date-field presentation="time" name="time" pickerTitle="Hora del aviso" [showIcon]="true" [(ngModel)]="draft.time" required></app-date-field></label>
         </div>
         <div class="form-row">
-          <label>Repetir<ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" aria-label="Repetir" name="frequency" [(ngModel)]="draft.frequency"><ion-select-option value="once">Una sola vez</ion-select-option><ion-select-option value="daily">Por días</ion-select-option><ion-select-option value="weekly">Por semanas</ion-select-option><ion-select-option value="monthly">Por meses</ion-select-option></ion-select></label>
-          <label *ngIf="draft.frequency !== 'once'">Cada {{ draft.frequency === 'daily' ? 'cuántos días' : draft.frequency === 'weekly' ? 'cuántas semanas' : 'cuántos meses' }}<input type="number" name="interval" [(ngModel)]="draft.interval" min="1" max="52" required></label>
+          <label>{{ 'CLIENTS.REPETIR' | translate }}<ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" [attr.aria-label]="'CLIENTS.REPETIR' | translate" name="frequency" [(ngModel)]="draft.frequency"><ion-select-option value="once">{{ 'CLIENTS.UNA_SOLA_VEZ' | translate }}</ion-select-option><ion-select-option value="daily">{{ 'CLIENTS.POR_DIAS' | translate }}</ion-select-option><ion-select-option value="weekly">{{ 'CLIENTS.POR_SEMANAS' | translate }}</ion-select-option><ion-select-option value="monthly">{{ 'CLIENTS.POR_MESES' | translate }}</ion-select-option></ion-select></label>
+          <label *ngIf="draft.frequency !== 'once'">{{ 'CLIENTS.EVERY' | translate }} {{ draft.frequency === 'daily' ? ('CLIENTS.CUANTOS_DIAS' | translate) : draft.frequency === 'weekly' ? ('CLIENTS.CUANTAS_SEMANAS' | translate) : ('CLIENTS.CUANTOS_MESES' | translate) }}<input type="number" name="interval" [(ngModel)]="draft.interval" min="1" max="52" required></label>
         </div>
-        <p class="muted">La hora es de reloj: a las {{ draft.time }} del cliente, esté donde esté.</p>
-        <div class="schedule-summary"><ion-icon name="notifications-outline" aria-hidden="true"></ion-icon><span><strong>{{ cadence(draft) }} · {{ draft.time }}</strong><small>El cliente lo verá al abrir la app. El anterior cierra cuando llega el siguiente.</small></span></div>
-        <p class="muted" *ngIf="draft.frequency === 'monthly'">Si ese día no existe en un mes, se usará su último día.</p>
-        <p class="muted" *ngIf="editingId">Lo ya respondido conserva sus preguntas. Los cambios afectan a las fechas que aún no ha respondido.</p>
-        <div class="form-actions"><button type="button" (click)="editor = null" [disabled]="busy">Cancelar</button><button type="submit" class="primary" [disabled]="!canSave" data-enter-submit-action="saveSchedule">{{ busy ? 'Guardando…' : 'Guardar programación' }}</button></div>
+        <p class="muted">{{ 'CLIENTS.LA_HORA_ES_DE_RELOJ' | translate }} {{ draft.time }} {{ 'CLIENTS.DEL_CLIENTE_ESTE_DONDE_ESTE' | translate }}</p>
+        <div class="schedule-summary"><ion-icon name="notifications-outline" aria-hidden="true"></ion-icon><span><strong>{{ cadence(draft) }} · {{ draft.time }}</strong><small>{{ 'CLIENTS.EL_CLIENTE_LO_VERA_AL' | translate }}</small></span></div>
+        <p class="muted" *ngIf="draft.frequency === 'monthly'">{{ 'CLIENTS.SI_ESE_DIA_NO_EXISTE' | translate }}</p>
+        <p class="muted" *ngIf="editingId">{{ 'CLIENTS.LO_YA_RESPONDIDO_CONSERVA_SUS' | translate }}</p>
+        <div class="form-actions"><button type="button" (click)="editor = null" [disabled]="busy">{{ 'COMMON.CANCEL' | translate }}</button><button type="submit" class="primary" [disabled]="!canSave" data-enter-submit-action="saveSchedule">{{ busy ? ('COMMON.SAVING' | translate) : ('CLIENTS.GUARDAR_PROGRAMACION' | translate) }}</button></div>
       </form>
 
       <ng-template #reviewPanel>
         <header class="block-head">
-          <h2 class="block-title">Respuestas</h2>
-          <p class="block-sub">Lee lo que ha contestado, compáralo con una respuesta anterior y ciérralo con un comentario.</p>
+          <h2 class="block-title">{{ 'CLIENTS.RESPUESTAS' | translate }}</h2>
+          <p class="block-sub">{{ 'CLIENTS.LEE_LO_QUE_HA_CONTESTADO' | translate }}</p>
         </header>
-        <div class="view-tabs" role="tablist" aria-label="Qué respuestas ver">
+        <div class="view-tabs" role="tablist" [attr.aria-label]="'CLIENTS.QUE_RESPUESTAS_VER' | translate">
           <button type="button" role="tab" [class.active]="reviewOnly" [attr.aria-selected]="reviewOnly" (click)="reviewOnly = true; rebuild()">
-            Esperan tu respuesta
+            {{ 'CLIENTS.ESPERAN_TU_RESPUESTA' | translate }}
             <span class="tab-count" *ngIf="data.reviewCount">{{ data.reviewCount }}</span>
           </button>
           <button type="button" role="tab" [class.active]="!reviewOnly" [attr.aria-selected]="!reviewOnly" (click)="reviewOnly = false; rebuild()">
-            Buscar por fecha
+            {{ 'CLIENTS.BUSCAR_POR_FECHA' | translate }}
           </button>
         </div>
-        <div class="panel-heading"><h3>{{ reviewOnly ? 'Contestados y sin revisar' : formatDay(selectedDate) }}</h3><span class="panel-count">{{ agenda.length }} {{ agenda.length === 1 ? 'check-in' : 'check-ins' }}</span></div>
-        <p class="muted list-hint" *ngIf="agenda.length > 1">Toca uno para ver sus respuestas.</p>
+        <div class="panel-heading"><h3>{{ reviewOnly ? ('CLIENTS.CONTESTADOS_SIN_REVISAR' | translate) : formatDay(selectedDate) }}</h3><span class="panel-count">{{ agenda.length }} {{ agenda.length === 1 ? 'check-in' : 'check-ins' }}</span></div>
+        <p class="muted list-hint" *ngIf="agenda.length > 1">{{ 'CLIENTS.TOCA_UNO_PARA_VER_SUS' | translate }}</p>
         <div class="day-requests" *ngIf="agenda.length > 1 || reviewOnly">
           <button type="button" *ngFor="let item of agenda; trackBy: trackId" [class.selected]="selected?._id === item._id" [attr.data-status]="item.status" (click)="selectEntry(item)">
             <ion-icon [name]="statusIcons[item.status]" class="row-status-icon" aria-hidden="true"></ion-icon><span><strong>{{ item.name }}</strong><small>{{ formatDay(item.date) }} · {{ statusLabels[item.status] }}<ng-container *ngIf="weekLabel(item) as week"> · {{ week }}</ng-container></small></span><ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
@@ -83,24 +83,24 @@
         </div>
         <div class="empty-state" *ngIf="!agenda.length">
           <ion-icon [name]="reviewOnly ? 'checkmark-done-outline' : 'calendar-outline'" aria-hidden="true"></ion-icon>
-          <h3>{{ reviewOnly ? 'Todo revisado' : 'Sin check-ins este día' }}</h3>
-          <p>{{ reviewOnly ? 'Cuando tu cliente conteste un check-in, aparecerá aquí esperando tu comentario.' : 'Los días con check-in salen marcados con un punto en el calendario. Toca uno para abrirlo.' }}</p>
-          <button type="button" class="primary" *ngIf="!reviewOnly" (click)="openEditor()"><ion-icon name="add-outline" aria-hidden="true"></ion-icon>Programar un check-in para este día</button>
+          <h3>{{ reviewOnly ? ('CLIENTS.TODO_REVISADO' | translate) : ('CLIENTS.SIN_CHECK_INS_ESTE_DIA' | translate) }}</h3>
+          <p>{{ reviewOnly ? ('CLIENTS.CUANDO_TU_CLIENTE_CONTESTE_UN' | translate) : ('CLIENTS.LOS_DIAS_CON_CHECK_IN' | translate) }}</p>
+          <button type="button" class="primary" *ngIf="!reviewOnly" (click)="openEditor()"><ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'CLIENTS.PROGRAMAR_UN_CHECK_IN_PARA' | translate }}</button>
         </div>
 
         <article class="request-detail" *ngIf="selected as entry">
           <div class="request-heading"><h3>{{ entry.name }}</h3><span class="status" [attr.data-status]="entry.status"><ion-icon [name]="statusIcons[entry.status]" aria-hidden="true"></ion-icon>{{ statusLabels[entry.status] }}</span></div>
           <p class="request-timing">
-            Previsto {{ formatDay(entry.date) }} · {{ formatTime(entry) }}
-            <span *ngIf="entry.respondedAt"> · Respondido {{ formatDate(entry.respondedAt) }}</span>
-            <span *ngIf="entry.updatedAt && entry.updatedAt !== entry.respondedAt"> · Actualizado {{ formatDate(entry.updatedAt) }}</span>
+            {{ 'CLIENTS.PREVISTO' | translate }} {{ formatDay(entry.date) }} · {{ formatTime(entry) }}
+            <span *ngIf="entry.respondedAt"> · {{ 'MY_CHECKINS.ANSWERED' | translate }} {{ formatDate(entry.respondedAt) }}</span>
+            <span *ngIf="entry.updatedAt && entry.updatedAt !== entry.respondedAt"> · {{ 'CLIENTS.ACTUALIZADO' | translate }} {{ formatDate(entry.updatedAt) }}</span>
             <span *ngIf="weekLabel(entry) as week"> · {{ week }}</span>
           </p>
           <ng-container *ngIf="entry.respondedAt; else waitingRequest">
-            <label class="reference-picker">Comparar con la respuesta del<ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" aria-label="Respuesta de referencia" [ngModel]="referenceId" (ngModelChange)="referenceId = $event; updateComparison()"><ion-select-option value="">Sin referencia</ion-select-option><ion-select-option *ngFor="let reference of references; trackBy: trackId" [value]="reference._id">{{ formatDate(reference.respondedAt) }}</ion-select-option></ion-select></label>
+            <label class="reference-picker">{{ 'CLIENTS.COMPARAR_CON_LA_RESPUESTA_DEL' | translate }}<ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" [attr.aria-label]="'CLIENTS.RESPUESTA_DE_REFERENCIA' | translate" [ngModel]="referenceId" (ngModelChange)="referenceId = $event; updateComparison()"><ion-select-option value="">{{ 'CLIENTS.SIN_REFERENCIA' | translate }}</ion-select-option><ion-select-option *ngFor="let reference of references; trackBy: trackId" [value]="reference._id">{{ formatDate(reference.respondedAt) }}</ion-select-option></ion-select></label>
             <!-- Pestañas por dato: solo las que este check-in responde, y se
                  recuerda la abierta al cambiar de referencia. -->
-            <div class="comparison-tabs" role="tablist" aria-label="Qué parte de la respuesta ver" *ngIf="comparisonTabs.length > 1">
+            <div class="comparison-tabs" role="tablist" [attr.aria-label]="'CLIENTS.QUE_PARTE_DE_LA_RESPUESTA' | translate" *ngIf="comparisonTabs.length > 1">
               <button type="button" role="tab" *ngFor="let tab of comparisonTabs; trackBy: trackTab" [class.active]="selectedComparisonTab === tab.key" [attr.aria-selected]="selectedComparisonTab === tab.key" (click)="chooseComparisonTab(tab.key)">
                 {{ tab.label }}<span class="count-chip">{{ tab.count }}</span>
               </button>
@@ -114,17 +114,17 @@
               [currentLabel]="formatDate(entry.respondedAt)"
               [referenceLabel]="referenceEntry ? formatDate(referenceEntry.respondedAt) : ''"
             ></app-checkin-photos-compare>
-            <div class="comparison-table-wrap" *ngIf="selectedComparisonTab !== 'fotos'"><table class="comparison-table"><caption>Respuesta actual frente a la referencia del mismo formulario</caption><thead><tr><th scope="col">Dato</th><th scope="col">Referencia</th><th scope="col">Actual</th><th scope="col">Cambio</th></tr></thead><tbody><tr *ngFor="let row of visibleRows; trackBy: trackRow"><th scope="row">{{ row.label }}</th><td>{{ row.previous }}</td><td class="current-value">{{ row.current }}<small *ngIf="row.anchor">{{ row.anchor }}</small></td><td [attr.data-direction]="row.direction"><ion-icon *ngIf="row.direction === 'up' || row.direction === 'down'" [name]="row.direction === 'up' ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>{{ row.change }}</td></tr></tbody></table></div>
-            <p class="comparison-note"><ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>La flecha indica hacia dónde se ha movido el dato, no si es bueno o malo.</p>
-            <button type="button" class="evolution-toggle" [attr.aria-expanded]="showEvolution" (click)="showEvolution = !showEvolution"><ion-icon name="analytics-outline" aria-hidden="true"></ion-icon>{{ showEvolution ? 'Ocultar evolución' : 'Ver evolución de todas sus respuestas' }}<ion-icon [name]="showEvolution ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon></button>
+            <div class="comparison-table-wrap" *ngIf="selectedComparisonTab !== 'fotos'"><table class="comparison-table"><caption>{{ 'CLIENTS.RESPUESTA_ACTUAL_FRENTE_LA_REFERENCIA' | translate }}</caption><thead><tr><th scope="col">{{ 'CLIENTS.DATO' | translate }}</th><th scope="col">{{ 'CLIENTS.REFERENCIA' | translate }}</th><th scope="col">{{ 'CLIENTS.ACTUAL' | translate }}</th><th scope="col">{{ 'CLIENTS.CAMBIO_2' | translate }}</th></tr></thead><tbody><tr *ngFor="let row of visibleRows; trackBy: trackRow"><th scope="row">{{ row.label }}</th><td>{{ row.previous }}</td><td class="current-value">{{ row.current }}<small *ngIf="row.anchor">{{ row.anchor }}</small></td><td [attr.data-direction]="row.direction"><ion-icon *ngIf="row.direction === 'up' || row.direction === 'down'" [name]="row.direction === 'up' ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>{{ row.change }}</td></tr></tbody></table></div>
+            <p class="comparison-note"><ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>{{ 'CLIENTS.LA_FLECHA_INDICA_HACIA_DONDE' | translate }}</p>
+            <button type="button" class="evolution-toggle" [attr.aria-expanded]="showEvolution" (click)="showEvolution = !showEvolution"><ion-icon name="analytics-outline" aria-hidden="true"></ion-icon>{{ showEvolution ? ('CLIENTS.OCULTAR_EVOLUCION' | translate) : ('CLIENTS.VER_EVOLUCION_DE_TODAS_SUS' | translate) }}<ion-icon [name]="showEvolution ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon></button>
             <app-checkin-history-chart *ngIf="showEvolution" [responses]="trendResponses" [customQuestions]="entry.customQuestions || emptyQuestions"></app-checkin-history-chart>
-            <div class="review-form" *ngIf="entry.status === 'responded'"><h4 class="review-form-title">Cerrar esta revisión</h4><label>Comentario para el cliente <span class="muted">opcional</span><textarea rows="3" maxlength="2000" [(ngModel)]="comment" placeholder="Escribe qué has observado y el siguiente paso…"></textarea></label><div class="form-actions"><span class="muted">Al enviarla sale de esta lista y el cliente puede leer tu comentario en su check-in.</span><button type="button" class="primary" (click)="review()" [disabled]="busy">{{ busy ? 'Enviando…' : 'Enviar revisión' }}</button></div></div>
-            <div class="review-result" *ngIf="entry.status === 'reviewed'"><strong><ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>Ya revisado el {{ formatDate(entry.reviewedAt) }}</strong><p *ngIf="entry.reviewComment">{{ entry.reviewComment }}</p></div>
+            <div class="review-form" *ngIf="entry.status === 'responded'"><h4 class="review-form-title">{{ 'CLIENTS.CERRAR_ESTA_REVISION' | translate }}</h4><label>{{ 'CLIENTS.COMENTARIO_PARA_EL_CLIENTE' | translate }} <span class="muted">{{ 'CLIENTS.OPCIONAL' | translate }}</span><textarea rows="3" maxlength="2000" [(ngModel)]="comment" [placeholder]="'CLIENTS.ESCRIBE_QUE_HAS_OBSERVADO_EL' | translate"></textarea></label><div class="form-actions"><span class="muted">{{ 'CLIENTS.AL_ENVIARLA_SALE_DE_ESTA' | translate }}</span><button type="button" class="primary" (click)="review()" [disabled]="busy">{{ busy ? ('CLIENTS.ENVIANDO' | translate) : ('CLIENTS.ENVIAR_REVISION' | translate) }}</button></div></div>
+            <div class="review-result" *ngIf="entry.status === 'reviewed'"><strong><ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>{{ 'CLIENTS.YA_REVISADO_EL' | translate }} {{ formatDate(entry.reviewedAt) }}</strong><p *ngIf="entry.reviewComment">{{ entry.reviewComment }}</p></div>
           </ng-container>
           <ng-template #waitingRequest>
-            <div class="request-waiting"><ion-icon [name]="statusIcons[entry.status]" aria-hidden="true"></ion-icon><p>{{ entry.status === 'scheduled' ? 'El formulario se le ofrecerá al cliente cuando llegue su fecha: lo verá al abrir la app, sin notificación push.' : entry.status === 'unanswered' ? 'El cliente no respondió antes de la siguiente solicitud. Ese periodo ya no se puede rellenar.' : 'El formulario está disponible para el cliente. Su respuesta aparecerá aquí.' }}</p></div>
-            <p class="muted" *ngIf="entry.status === 'open' && entry.closesDate">Cierra el {{ formatDay(entry.closesDate) }}, cuando llegue la siguiente solicitud.</p>
-            <button type="button" *ngIf="entry.status === 'scheduled'" (click)="editSelected()">Editar programación</button>
+            <div class="request-waiting"><ion-icon [name]="statusIcons[entry.status]" aria-hidden="true"></ion-icon><p>{{ entry.status === 'scheduled' ? ('CLIENTS.EL_FORMULARIO_SE_LE_OFRECERA' | translate) : entry.status === 'unanswered' ? ('CLIENTS.EL_CLIENTE_NO_RESPONDIO_ANTES' | translate) : ('CLIENTS.EL_FORMULARIO_ESTA_DISPONIBLE_PARA' | translate) }}</p></div>
+            <p class="muted" *ngIf="entry.status === 'open' && entry.closesDate">{{ 'CLIENTS.CIERRA_EL' | translate }} {{ formatDay(entry.closesDate) }}, {{ 'CLIENTS.CUANDO_LLEGUE_LA_SIGUIENTE_SOLICITUD' | translate }}</p>
+            <button type="button" *ngIf="entry.status === 'scheduled'" (click)="editSelected()">{{ 'CLIENTS.EDITAR_PROGRAMACION' | translate }}</button>
           </ng-template>
         </article>
       </ng-template>
@@ -132,49 +132,49 @@
 
     <aside class="calendar-panel" aria-labelledby="seguimiento-calendario">
       <header class="block-head block-head--aside">
-        <h2 class="block-title" id="seguimiento-calendario">Calendario</h2>
-        <p class="block-sub">Cada punto es un check-in. Toca un día para abrir el suyo.</p>
+        <h2 class="block-title" id="seguimiento-calendario">{{ 'CLIENTS.CALENDARIO' | translate }}</h2>
+        <p class="block-sub">{{ 'CLIENTS.CADA_PUNTO_ES_UN_CHECK' | translate }}</p>
       </header>
-      <div class="calendar-toolbar"><button type="button" class="icon-button" aria-label="Mes anterior" (click)="changeMonth(-1)"><ion-icon name="chevron-back-outline"></ion-icon></button><h3>{{ monthLabel }}</h3><button type="button" class="icon-button" aria-label="Mes siguiente" (click)="changeMonth(1)"><ion-icon name="chevron-forward-outline"></ion-icon></button><button type="button" class="today-button" (click)="goToday()">Hoy</button></div>
-      <label class="calendar-filter">Ver solo<ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" aria-label="Ver solo" [(ngModel)]="scheduleFilter" (ngModelChange)="rebuild()"><ion-select-option value="">Todos los check-ins</ion-select-option><ion-select-option *ngFor="let schedule of data.schedules; trackBy: trackId" [value]="schedule._id">{{ schedule.name }}</ion-select-option></ion-select></label>
+      <div class="calendar-toolbar"><button type="button" class="icon-button" [attr.aria-label]="'CLIENTS.MES_ANTERIOR' | translate" (click)="changeMonth(-1)"><ion-icon name="chevron-back-outline"></ion-icon></button><h3>{{ monthLabel }}</h3><button type="button" class="icon-button" [attr.aria-label]="'CLIENTS.MES_SIGUIENTE' | translate" (click)="changeMonth(1)"><ion-icon name="chevron-forward-outline"></ion-icon></button><button type="button" class="today-button" (click)="goToday()">{{ 'TRAINER_COMMON.TODAY' | translate }}</button></div>
+      <label class="calendar-filter">{{ 'CLIENTS.VER_SOLO' | translate }}<ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" [attr.aria-label]="'CLIENTS.VER_SOLO' | translate" [(ngModel)]="scheduleFilter" (ngModelChange)="rebuild()"><ion-select-option value="">{{ 'CLIENTS.TODOS_LOS_CHECK_INS' | translate }}</ion-select-option><ion-select-option *ngFor="let schedule of data.schedules; trackBy: trackId" [value]="schedule._id">{{ schedule.name }}</ion-select-option></ion-select></label>
       <div class="calendar-weekdays" aria-hidden="true"><span *ngFor="let day of weekdays">{{ day }}</span></div>
       <div class="calendar-days"><button type="button" *ngFor="let day of days; trackBy: trackDay" class="calendar-day" [class.outside]="!day.currentMonth" [class.today]="day.date === today" [class.selected]="day.date === (editor ? editor.startDate : selectedDate)" [attr.aria-label]="day.label" [attr.aria-pressed]="day.date === selectedDate" (click)="chooseDay(day)"><span>{{ day.number }}</span><span class="day-signals" aria-hidden="true"><i *ngFor="let status of day.statuses" [attr.data-status]="status"></i></span><small *ngIf="day.count > 1" class="day-count">{{ day.count }}</small></button></div>
-      <div class="calendar-legend"><span><i data-status="scheduled"></i>Programado</span><span><i data-status="open"></i>Abierto</span><span><i data-status="responded"></i>Por revisar</span><span><i data-status="reviewed"></i>Revisado</span><span><i data-status="unanswered"></i>Sin responder</span></div>
-      <button type="button" class="history-button" (click)="openHistory.emit()"><ion-icon name="time-outline" aria-hidden="true"></ion-icon>Ver historial</button>
+      <div class="calendar-legend"><span><i data-status="scheduled"></i>{{ 'CLIENTS.PROGRAMADO' | translate }}</span><span><i data-status="open"></i>{{ 'CLIENTS.ABIERTO' | translate }}</span><span><i data-status="responded"></i>{{ 'CLIENTS.POR_REVISAR' | translate }}</span><span><i data-status="reviewed"></i>{{ 'MY_CHECKINS.REVIEWED' | translate }}</span><span><i data-status="unanswered"></i>{{ 'CLIENTS.SIN_RESPONDER' | translate }}</span></div>
+      <button type="button" class="history-button" (click)="openHistory.emit()"><ion-icon name="time-outline" aria-hidden="true"></ion-icon>{{ 'CLIENTS.VER_HISTORIAL' | translate }}</button>
     </aside>
   </div>
 
   <section class="setup-strip" *ngIf="state === 'loaded' && data && !editor" aria-labelledby="seguimiento-config">
     <header class="block-head">
-      <h2 class="block-title" id="seguimiento-config">Qué le pides a este cliente</h2>
-      <p class="block-sub">Cada cuánto le llegan los check-ins. Se configura una vez.</p>
+      <h2 class="block-title" id="seguimiento-config">{{ 'CLIENTS.QUE_LE_PIDES_ESTE_CLIENTE' | translate }}</h2>
+      <p class="block-sub">{{ 'CLIENTS.CADA_CUANTO_LE_LLEGAN_LOS' | translate }}</p>
     </header>
     <div class="setup-heading">
-      <h3>Check-ins programados <span class="count-chip">{{ visibleSchedules.length }}</span></h3>
+      <h3>{{ 'CLIENTS.CHECK_INS_PROGRAMADOS' | translate }} <span class="count-chip">{{ visibleSchedules.length }}</span></h3>
       <button type="button" class="primary" (click)="openEditor()" [disabled]="busy">
-        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>Programar un check-in
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'CLIENTS.PROGRAMAR_UN_CHECK_IN' | translate }}
       </button>
     </div>
     <div class="schedule-list">
       <div class="empty-inline" *ngIf="!visibleSchedules.length">
         <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
-        <p><strong>Todavía no le pides ningún check-in.</strong><br>Programa uno, o pídele algo puntual aquí abajo.</p>
+        <p><strong>{{ 'CLIENTS.TODAVIA_NO_LE_PIDES_NINGUN' | translate }}</strong><br>{{ 'CLIENTS.PROGRAMA_UNO_PIDELE_ALGO_PUNTUAL' | translate }}</p>
       </div>
       <div class="schedule-row" [class.schedule-row--paused]="!schedule.active" *ngFor="let schedule of visibleSchedules; trackBy: trackId">
         <div class="schedule-row-main">
           <strong>{{ schedule.name }}</strong>
-          <span class="schedule-cadence">{{ schedule.active ? cadence(schedule) + ' · ' + schedule.time : 'Pausado' }}</span>
-          <small>{{ schedule.active && schedule.nextDate ? 'Próximo: ' + formatDay(schedule.nextDate) : schedule.active ? 'Sin próximas fechas' : 'No se pedirán más check-ins' }}</small>
+          <span class="schedule-cadence">{{ schedule.active ? cadence(schedule) + ' · ' + schedule.time : ('CLIENTS.PAUSADO' | translate) }}</span>
+          <small>{{ schedule.active && schedule.nextDate ? ('CLIENTS.PROXIMO' | translate) + formatDay(schedule.nextDate) : schedule.active ? ('CLIENTS.SIN_PROXIMAS_FECHAS' | translate) : ('CLIENTS.NO_SE_PEDIRAN_MAS_CHECK' | translate) }}</small>
         </div>
         <!-- Las acciones a la vista: antes iban detrás de un desplegable
              "Gestionar" que no decía qué había dentro. -->
         <div class="schedule-actions">
-          <button type="button" (click)="openEditor(schedule)" [disabled]="busy"><ion-icon name="create-outline" aria-hidden="true"></ion-icon>Editar</button>
-          <button type="button" (click)="requestNow(schedule)" [disabled]="busy || !schedule.active"><ion-icon name="send-outline" aria-hidden="true"></ion-icon>Enviarlo ahora</button>
+          <button type="button" (click)="openEditor(schedule)" [disabled]="busy"><ion-icon name="create-outline" aria-hidden="true"></ion-icon>{{ 'TRAINER_COMMON.EDIT' | translate }}</button>
+          <button type="button" (click)="requestNow(schedule)" [disabled]="busy || !schedule.active"><ion-icon name="send-outline" aria-hidden="true"></ion-icon>{{ 'CLIENTS.ENVIARLO_AHORA' | translate }}</button>
           <button type="button" (click)="setActive(schedule)" [disabled]="busy">
-            <ion-icon [name]="schedule.active ? 'pause-outline' : 'play-outline'" aria-hidden="true"></ion-icon>{{ schedule.active ? 'Pausar envíos' : 'Reanudar envíos' }}
+            <ion-icon [name]="schedule.active ? 'pause-outline' : 'play-outline'" aria-hidden="true"></ion-icon>{{ schedule.active ? ('CLIENTS.PAUSAR_ENVIOS' | translate) : ('CLIENTS.REANUDAR_ENVIOS' | translate) }}
           </button>
-          <button type="button" class="danger" (click)="remove(schedule)" [disabled]="busy"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon>Eliminar</button>
+          <button type="button" class="danger" (click)="remove(schedule)" [disabled]="busy"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon>{{ 'COMMON.DELETE' | translate }}</button>
         </div>
       </div>
     </div>
@@ -182,19 +182,19 @@
     <!-- Pedir algo puntual: "necesito tu peso de esta semana". Se envía hoy
          mismo, sin dejar nada programado. -->
     <section class="setup-card" aria-labelledby="pedir-puntual">
-      <h3 class="card-title" id="pedir-puntual">Pedir algo puntual</h3>
-      <p class="card-sub">"Necesito tu peso de esta semana": elige qué le pides y se envía hoy mismo, sin dejar nada programado.</p>
+      <h3 class="card-title" id="pedir-puntual">{{ 'CLIENTS.PEDIR_ALGO_PUNTUAL' | translate }}</h3>
+      <p class="card-sub">{{ 'CLIENTS.NECESITO_TU_PESO_DE_ESTA' | translate }}</p>
       <!-- Abrir el selector no envía nada: es un paso previo, va en
            secundario. El envío de después es el primario de la tarjeta. -->
       <button type="button" class="card-action" *ngIf="!showPuntual" (click)="openPuntual()">
-        <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>Elegir qué pedir
+        <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>{{ 'CLIENTS.ELEGIR_QUE_PEDIR' | translate }}
       </button>
       <ng-container *ngIf="showPuntual">
         <app-checkin-field-selector [selected]="puntualFields" (selectedChange)="setPuntualFields($event)"></app-checkin-field-selector>
         <div class="puntual-actions">
-          <button type="button" class="plain-link" (click)="closePuntual()" [disabled]="busy">Cancelar</button>
+          <button type="button" class="plain-link" (click)="closePuntual()" [disabled]="busy">{{ 'COMMON.CANCEL' | translate }}</button>
           <button type="button" class="primary" (click)="sendPuntual()" [disabled]="busy || !puntualFields.length">
-            <ion-icon name="send-outline" aria-hidden="true"></ion-icon>{{ busy ? 'Enviando…' : 'Enviar hoy mismo' }}
+            <ion-icon name="send-outline" aria-hidden="true"></ion-icon>{{ busy ? ('CLIENTS.ENVIANDO' | translate) : ('CLIENTS.ENVIAR_HOY_MISMO' | translate) }}
           </button>
         </div>
       </ng-container>

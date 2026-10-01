@@ -168,7 +168,8 @@
     cursor: pointer;
   }
 
-  &:focus-within {
+  &:focus-within,
+  &:focus-visible {
     outline: 2px solid $media-accent;
     outline-offset: 1px;
   }
@@ -227,9 +228,11 @@
   justify-content: center;
   gap: 6px;
   min-height: 44px;
+  border: none;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.07);
   color: #fff;
+  font-family: inherit;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
@@ -250,7 +253,12 @@
     cursor: pointer;
   }
 
-  &:focus-within {
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:focus-within,
+  &:focus-visible {
     outline: 2px solid $media-accent;
     outline-offset: 2px;
   }

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { TrainerClientSummary } from '../../../clients/models/trainer-client-summary.model';
@@ -20,11 +21,13 @@ import { CheckinTemplateDefinition } from '../../models/checkin-template.model';
 @Component({
   selector: 'app-apply-checkin-template-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, IonicModule, TranslateModule],
   templateUrl: './apply-checkin-template-modal.component.html',
   styleUrls: ['./apply-checkin-template-modal.component.scss'],
 })
 export class ApplyCheckinTemplateModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() template!: CheckinTemplateDefinition;
 
   public loadingClients = true;
@@ -76,7 +79,7 @@ export class ApplyCheckinTemplateModalComponent implements OnInit {
   }
 
   public getFullName(client: TrainerClientSummary): string {
-    if (!client.user) return 'Cliente';
+    if (!client.user) return this.translate.instant('TRAINER_COMMON.CLIENT');
     return `${client.user.name} ${client.user.lastname}`.trim();
   }
 

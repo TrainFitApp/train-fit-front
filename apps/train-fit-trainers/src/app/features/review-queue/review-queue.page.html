@@ -1,0 +1,115 @@
+<ion-header class="ion-no-border">
+  <app-page-header [title]="'REVIEW_QUEUE.TITLE' | translate"></app-page-header>
+</ion-header>
+
+<ion-content class="queue-content">
+  <div class="queue">
+    <p class="queue-intro">{{ 'REVIEW_QUEUE.INTRO' | translate }}</p>
+
+    <div class="filters" role="tablist" [attr.aria-label]="'REVIEW_QUEUE.FILTER_LABEL' | translate">
+      <button type="button" role="tab" [class.active]="filter === 'all'" [attr.aria-selected]="filter === 'all'" (click)="setFilter('all')">
+        {{ 'REVIEW_QUEUE.FILTER_ALL' | translate }}<span class="count" *ngIf="counts.total">{{ counts.total }}</span>
+      </button>
+      <button type="button" role="tab" [class.active]="filter === 'checkin'" [attr.aria-selected]="filter === 'checkin'" (click)="setFilter('checkin')">
+        <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+        {{ 'REVIEW_QUEUE.FILTER_CHECKINS' | translate }}<span class="count" *ngIf="counts.checkin">{{ counts.checkin }}</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        *ngIf="technique"
+        [class.active]="filter === 'form_check'"
+        [attr.aria-selected]="filter === 'form_check'"
+        (click)="setFilter('form_check')"
+      >
+        <ion-icon name="videocam-outline" aria-hidden="true"></ion-icon>
+        {{ 'REVIEW_QUEUE.FILTER_TECHNIQUE' | translate }}<span class="count" *ngIf="counts.form_check">{{ counts.form_check }}</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        *ngIf="counts.intake || filter === 'intake'"
+        [class.active]="filter === 'intake'"
+        [attr.aria-selected]="filter === 'intake'"
+        (click)="setFilter('intake')"
+      >
+        <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+        {{ 'REVIEW_QUEUE.FILTER_INTAKES' | translate }}<span class="count" *ngIf="counts.intake">{{ counts.intake }}</span>
+      </button>
+    </div>
+
+    <div class="client-filter" *ngIf="clientFilter?.name">
+      <span>{{ 'REVIEW_QUEUE.ONLY_CLIENT' | translate: { name: clientFilter?.name } }}</span>
+      <button type="button" (click)="clearClient()" [attr.aria-label]="'REVIEW_QUEUE.CLEAR_CLIENT' | translate">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+
+    <div class="queue-skeleton" *ngIf="state === 'loading'">
+      <div class="skeleton-row" *ngFor="let i of [1, 2, 3, 4]"></div>
+    </div>
+
+    <div class="queue-state" *ngIf="state === 'error'">
+      <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+      <p>{{ 'REVIEW_QUEUE.LOAD_ERROR' | translate }}</p>
+      <button type="button" class="retry-button" (click)="load()">{{ 'REVIEW_QUEUE.RETRY' | translate }}</button>
+    </div>
+
+    <ng-container *ngIf="state === 'loaded'">
+      <div class="queue-state" *ngIf="!visible.length">
+        <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+        <h2>{{ 'REVIEW_QUEUE.EMPTY_TITLE' | translate }}</h2>
+        <p>{{ 'REVIEW_QUEUE.EMPTY_TEXT' | translate }}</p>
+      </div>
+
+      <div class="rows">
+        <button type="button" class="row" *ngFor="let item of visible; trackBy: trackItem" (click)="open(item)">
+          <span class="row-thumb" [attr.data-type]="item.type">
+            <img *ngIf="item.thumbUrl as thumb" [src]="thumb" alt="" />
+            <ion-icon *ngIf="!item.thumbUrl" [name]="icon(item.type)" aria-hidden="true"></ion-icon>
+            <span class="row-duration" *ngIf="item.durationSec as seconds">{{ seconds | number: '1.0-0' }} s</span>
+          </span>
+          <span class="row-main">
+            <strong class="row-client">{{ item.clientName }}</strong>
+            <span class="row-detail">{{ item.type === 'form_check' ? (item.title | translateDb) : detail(item) }}</span>
+          </span>
+          <span class="row-side">
+            <span class="waiting" [class.waiting--old]="isOld(item)">{{ waiting(item) }}</span>
+            <span class="expiry" *ngIf="item.type === 'form_check' && !item.keep && item.daysLeft != null" [class.expiry--soon]="item.expiringSoon">
+              <ion-icon name="time-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.EXPIRES_IN' | translate: { days: item.daysLeft } }}
+            </span>
+          </span>
+          <ion-icon class="row-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Vídeos ya respondidos que se borran esta semana: no esperan nada,
+           pero nadie debería descubrir que un vídeo ha desaparecido. -->
+      <section class="expiring" *ngIf="expiring.length && (filter === 'all' || filter === 'form_check') && !clientFilter">
+        <h2 class="expiring-title">
+          <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+          {{ 'REVIEW_QUEUE.EXPIRING_TITLE' | translate }}
+        </h2>
+        <p class="expiring-text">{{ 'REVIEW_QUEUE.EXPIRING_TEXT' | translate }}</p>
+        <div class="rows">
+          <button type="button" class="row row--quiet" *ngFor="let item of expiring; trackBy: trackItem" (click)="open(item)">
+            <span class="row-thumb">
+              <img *ngIf="item.thumbUrl as thumb" [src]="thumb" alt="" />
+              <ion-icon *ngIf="!item.thumbUrl" name="videocam-outline" aria-hidden="true"></ion-icon>
+            </span>
+            <span class="row-main">
+              <strong class="row-client">{{ item.clientName }}</strong>
+              <span class="row-detail">{{ item.title | translateDb }}</span>
+            </span>
+            <span class="row-side">
+              <span class="expiry expiry--soon">
+                <ion-icon name="time-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.EXPIRES_IN' | translate: { days: item.daysLeft } }}
+              </span>
+            </span>
+            <ion-icon class="row-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+      </section>
+    </ng-container>
+  </div>
+</ion-content>

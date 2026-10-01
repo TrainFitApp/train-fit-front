@@ -1,10 +1,10 @@
 <div class="training-calendar">
   <div class="training-calendar__header">
-    <button type="button" class="training-calendar__nav-btn" aria-label="Mes anterior" (click)="previousMonth()">
+    <button type="button" class="training-calendar__nav-btn" [attr.aria-label]="'CLIENTS.MES_ANTERIOR' | translate" (click)="previousMonth()">
       <ion-icon name="chevron-back-outline"></ion-icon>
     </button>
     <span class="training-calendar__month-label">{{ monthLabel }}</span>
-    <button type="button" class="training-calendar__nav-btn" aria-label="Mes siguiente" (click)="nextMonth()">
+    <button type="button" class="training-calendar__nav-btn" [attr.aria-label]="'CLIENTS.MES_SIGUIENTE' | translate" (click)="nextMonth()">
       <ion-icon name="chevron-forward-outline"></ion-icon>
     </button>
   </div>
@@ -17,7 +17,7 @@
       (click)="toggleRangeMode()"
     >
       <ion-icon name="calendar-outline"></ion-icon>
-      {{ isRangeMode ? 'Toca inicio y fin' : 'Rango' }}
+      {{ isRangeMode ? ('CLIENTS.TOCA_INICIO_FIN' | translate) : ('CLIENTS.RANGO' | translate) }}
     </button>
     <!-- Con el rango por defecto (fase vigente → hoy) la × no tendría a
          dónde volver: se queda en etiqueta. -->
@@ -26,7 +26,7 @@
       type="button"
       class="preset-btn range-clear-btn"
       *ngIf="rangeLabel && !isDefaultRange && !isRangeMode"
-      aria-label="Volver al rango de la fase actual"
+      [attr.aria-label]="'CLIENTS.VOLVER_AL_RANGO_DE_LA' | translate"
       (click)="rangeReset.emit()"
     >
       <ion-icon name="close-circle-outline"></ion-icon>
@@ -67,7 +67,7 @@
       <span
         class="training-calendar__microcycle-badge"
         *ngIf="microcycleLabel(cell) as microcycle"
-        [attr.aria-label]="'Microciclo ' + cell.projected?.microcycleNumber"
+        [attr.aria-label]="('CLIENTS.MICROCICLO' | translate) + cell.projected?.microcycleNumber"
       >{{ microcycle }}</span>
       <span class="training-calendar__monogram" *ngIf="cell.completed || cell.projected" [class.is-done]="cell.completed">{{
         monogram(cell)
@@ -81,11 +81,11 @@
       {{ phase.label }}
     </span>
     <span class="legend-item" *ngIf="!visiblePhaseLegend.length">
-      <span class="legend-swatch legend-swatch--projected-training"></span>Entreno previsto
+      <span class="legend-swatch legend-swatch--projected-training"></span>{{ 'CLIENTS.ENTRENO_PREVISTO' | translate }}
     </span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--projected-rest"></span>Descanso previsto</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--session"></span>Completado (más oscuro = más cumplimiento)</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--range"></span>Dentro del rango</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--endpoint"></span>Inicio y fin</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--projected-rest"></span>{{ 'CLIENTS.DESCANSO_PREVISTO' | translate }}</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--session"></span>{{ 'CLIENTS.COMPLETADO_MAS_OSCURO_MAS_CUMPLIMIENTO' | translate }}</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--range"></span>{{ 'CLIENTS.DENTRO_DEL_RANGO' | translate }}</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--endpoint"></span>{{ 'CLIENTS.INICIO_FIN' | translate }}</span>
   </div>
 </div>

@@ -1,3 +1,5 @@
+import { localizeProp } from '../i18n/localized-catalog';
+
 // Movimiento 3 Coach Pro — registro de dolor.
 //
 // Espejo EXACTO de train-fit-back/components/painLog/pain-catalog.js
@@ -68,6 +70,10 @@ export const PAIN_BANDS: PainBand[] = [
   { from: 7, to: 8, label: 'Dolor fuerte: no puedo entrenar esa zona' },
   { from: 9, to: 10, label: 'Dolor insoportable: tengo que parar del todo' },
 ];
+
+// Las zonas son datos guardados (se traducen al pintar con translateDb);
+// las frases de los tramos solo se muestran.
+PAIN_BANDS.forEach((band, index) => localizeProp(band, 'label', `PAIN.BANDS.${index}`));
 
 export const PAIN_MIN = 0;
 export const PAIN_MAX = 10;

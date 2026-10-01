@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
   COOKS_AT_HOME_OPTIONS,
@@ -49,7 +50,8 @@ export class NutritionPreferencesPage implements OnInit {
   constructor(
     private nutritionPreferencesApi: NutritionPreferencesApiService,
     private ionicUtilService: IonicUtilService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -125,7 +127,7 @@ export class NutritionPreferencesPage implements OnInit {
           this.isSaving = false;
           this.preferences = preferences;
           this.ionicUtilService.showToast({
-            message: 'Preferencias nutricionales guardadas',
+            message: this.translate.instant('NUTRITION_PREFERENCES.SAVED'),
             duration: 2500,
           });
           this.close();
@@ -133,8 +135,8 @@ export class NutritionPreferencesPage implements OnInit {
         error: (err) => {
           this.isSaving = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudieron guardar tus preferencias',
-            'Error',
+            err?.error?.message || this.translate.instant('NUTRITION_PREFERENCES.SAVE_ERROR'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
         },

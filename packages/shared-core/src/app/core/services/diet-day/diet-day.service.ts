@@ -1,6 +1,6 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Observable, take, tap, map, of } from 'rxjs';
+import { Observable, take, tap, map, of, defer, finalize, shareReplay, switchMap } from 'rxjs';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { IProduct } from 'src/app/core/models/product';
 import { User } from 'src/app/core/models/user';
@@ -14,7 +14,6 @@ import { CustomRecipe } from '../../models/customRecipe';
 import { RecipeService } from '../recipe/recipe.service';
 import { DietDayAPIService } from './diet-day-api.service';
 import { Recipe } from '../../models/recipe';
-import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 
 @Injectable()
 export class DietDayService {
@@ -22,6 +21,16 @@ export class DietDayService {
   private readonly _currentDietDay: WritableSignal<DietDay | null> =
     signal<DietDay | null>(null);
   private readonly _currentDietDay$ = toObservable(this._currentDietDay);
+  // Un día que todavía no está en base de datos se "estrena" con la primera
+  // escritura, y es esa misma petición la que lo crea (una sola llamada: el
+  // backend asegura el día y añade el alimento). Mientras está en vuelo,
+  // cualquier otra escritura sobre la MISMA fecha espera a que termine y
+  // escribe sobre el día ya creado, en vez de lanzar su propia creación: era
+  // eso lo que dejaba dos DietDay solapados en la misma fecha (dos checkbox
+  // seguidos del buscador de alimentos).
+  private readonly _creatingDietDayDate: WritableSignal<string | null> =
+    signal<string | null>(null);
+  private dietDayCreation$: Observable<DietDay> | null = null;
   public MEALS = MEAL_TYPES;
   public MACROS_VALUES = MACROS_VALUES;
 
@@ -43,6 +52,15 @@ export class DietDayService {
 
   public set setCurrentDietDay(dietDay: DietDay) {
     this._currentDietDay.set(dietDay);
+  }
+
+  // ¿Se está creando ahora mismo el día de esta fecha? Las tarjetas de
+  // alimento lo usan para deshabilitar sus checkbox mientras el día no existe
+  // (ver ProductComponent#isBusy / RecipeCardComponent#isBusy). Sin `date`,
+  // responde por cualquier fecha.
+  public isCreatingDietDay(date?: string): boolean {
+    const creating = this._creatingDietDayDate();
+    return !!creating && (!date || creating === date);
   }
 
   constructor(
@@ -85,26 +103,18 @@ export class DietDayService {
     return this.dietDayAPIService.getDietDaysBetweenDatesByIdDiet(id, dateRage);
   }
 
+  // "Asegúrame el día de esta fecha". El backend es idempotente (nunca crea un
+  // segundo día para la misma fecha), y aquí se registra además como la
+  // creación en vuelo de esa fecha para que el resto de escrituras la esperen
+  // en lugar de pedir otra.
   public createDietDay(dietDay: DietDay): Observable<DietDay> {
-    return this.dietDayAPIService.createDietDay(dietDay);
-  }
-
-  public createDayWeightOnNewDietDay(
-    dayWeight: number,
-    dietInUseId: string,
-    currentDate: string
-  ) {
-    return this.dietDayAPIService
-      .createDayWeightOnNewDietDay(dayWeight, dietInUseId, currentDate)
-      .pipe(
-        take(1),
-        map((response: { dietDay: DietDay; anthropometry: Anthropometry | null }) => {
-          if (response?.anthropometry?.weight !== undefined) {
-            response.dietDay.weight = response.anthropometry.weight;
-          }
-          return response.dietDay;
-        })
-      );
+    return (
+      this.pendingDietDayCreation(dietDay.date) ||
+      this.trackDietDayCreation(
+        dietDay.date,
+        this.dietDayAPIService.createDietDay(dietDay)
+      )
+    );
   }
 
   public createCustomProduct(
@@ -131,7 +141,13 @@ export class DietDayService {
       take(1),
       tap((response) => {
         this.applyCustomProductResponseToLocalState(response, dietDay, meal);
+      }),
+      // También si falla: el loading global deshabilita los checkbox de todas
+      // las tarjetas, así que dejarlo encendido tras un error congelaría el
+      // buscador entero.
+      finalize(() => {
         loading.value = false;
+        this.utilService.setLoading = false;
       })
     );
   }
@@ -152,7 +168,6 @@ export class DietDayService {
     }
 
     this.setCurrentDietDay = response;
-    this.utilService.setLoading = false;
   }
 
   private isCustomProductResponse(
@@ -220,8 +235,16 @@ export class DietDayService {
     );
   }
 
+  // La nota del día. Va por fecha, no por _id: así funciona igual sobre un día
+  // que todavía no existe (el backend lo asegura en la misma llamada) y no hay
+  // ninguna vía en la que la app pueda pedir "crear un día" por su cuenta.
   public updateDietDay(dietDay: DietDay): Observable<DietDay> {
-    return this.dietDayAPIService.updateDietDay(dietDay);
+    // `defer` porque hay llamadores (NotesComponent) que construyen el
+    // observable primero y escriben la nota en el objeto justo antes de
+    // suscribirse: la nota se lee al suscribir, no al construir.
+    return defer(() =>
+      this.dietDayAPIService.setDietDayNotes(dietDay.date, dietDay.notes || '')
+    ).pipe(tap((updated) => (this.setCurrentDietDay = updated)));
   }
 
   public pasteDietDay(
@@ -257,25 +280,102 @@ export class DietDayService {
     idDietInUse?: string,
     idUser?: string
   ): Observable<CustomProduct | DietDay> {
-    let createCustomProductOnDietDayMeal$: Observable<CustomProduct | DietDay>;
-
     if (dietDay._id) {
-      createCustomProductOnDietDayMeal$ =
-        this.customProductService.createCustomProductAndAddToMeal(
-          meal._id,
-          customProduct,
-          idUser
-        );
-    } else {
-      createCustomProductOnDietDayMeal$ = this.createCustomProductOnNewDietDay(
+      return this.customProductService.createCustomProductAndAddToMeal(
+        meal._id,
         customProduct,
-        dietDay.meals.findIndex((mealTemp) => mealTemp.name === meal.name),
-        idDietInUse,
-        dietDay.date,
         idUser
       );
     }
-    return createCustomProductOnDietDayMeal$;
+
+    const indexMeal = dietDay.meals.findIndex(
+      (mealTemp) => mealTemp.name === meal.name
+    );
+
+    // Ya se está creando el día de esta fecha: esperamos a esa creación y
+    // añadimos el producto a la comida REAL del día que devuelva, en vez de
+    // pedir otra creación para la misma fecha.
+    const pendingCreation$ = this.pendingDietDayCreation(dietDay.date);
+    if (pendingCreation$) {
+      return pendingCreation$.pipe(
+        switchMap((createdDietDay) => {
+          const createdMeal = createdDietDay?.meals?.[indexMeal];
+          if (!createdMeal?._id) {
+            // El día no llegó: se reintenta por la vía de una sola llamada,
+            // que es idempotente en el backend y no puede duplicar la fecha.
+            return this.createCustomProductOnNewDietDay(
+              customProduct,
+              indexMeal,
+              idDietInUse,
+              dietDay.date,
+              idUser
+            );
+          }
+
+          return this.customProductService
+            .createCustomProductAndAddToMeal(
+              createdMeal._id,
+              customProduct,
+              idUser
+            )
+            // Se devuelve el DÍA ya creado con el producto dentro, no el
+            // producto suelto: el `dietDay` con el que entró esta llamada es
+            // el de antes de la creación (sin _id) y publicarlo como día
+            // actual desharía el día recién creado.
+            .pipe(
+              map((created) =>
+                this.addCreatedCustomProductToMeal(
+                  createdDietDay,
+                  createdMeal,
+                  created
+                )
+              )
+            );
+        })
+      );
+    }
+
+    return this.trackDietDayCreation(
+      dietDay.date,
+      this.createCustomProductOnNewDietDay(
+        customProduct,
+        indexMeal,
+        idDietInUse,
+        dietDay.date,
+        idUser
+      )
+    );
+  }
+
+  // La creación del día de `date` que haya en vuelo, o null si no hay ninguna.
+  public pendingDietDayCreation(date: string): Observable<DietDay> | null {
+    return this.isCreatingDietDay(date) ? this.dietDayCreation$ : null;
+  }
+
+  // Marca la petición que está estrenando el día de `date` para que el resto de
+  // escrituras de esa fecha la esperen en vez de duplicarla. `shareReplay` para
+  // que quien llegue tarde reciba el día ya creado sin relanzar nada, y
+  // suscripción propia para que la puerta se abra (y el día quede publicado)
+  // aunque quien la pidió se desuscriba antes — si no, un checkbox cancelado a
+  // media petición dejaría todas las tarjetas deshabilitadas.
+  public trackDietDayCreation(
+    date: string,
+    creation$: Observable<DietDay>
+  ): Observable<DietDay> {
+    const tracked$ = creation$.pipe(
+      take(1),
+      finalize(() => {
+        this.dietDayCreation$ = null;
+        this._creatingDietDayDate.set(null);
+      }),
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+
+    this.dietDayCreation$ = tracked$;
+    this._creatingDietDayDate.set(date);
+    tracked$.subscribe({ error: () => undefined });
+
+    return tracked$;
   }
 
   public syncUpdatedProductInCurrentDietDay(updatedProduct: IProduct): boolean {

@@ -7,15 +7,13 @@ import {
 } from '@angular/animations';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import {
-  buildRirValue,
+import { buildRirValue,
   formatRirValue,
   getRirNumberOptions,
   isRirFail,
   parseRirSelection,
   RIR_FAIL_VALUE,
-  RirValue,
-} from 'src/app/core/models/rir';
+  RirValue, rirFailLabel } from 'src/app/core/models/rir';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 
 @Component({
@@ -158,7 +156,7 @@ export class RirPickerComponent implements OnInit {
   public getFirstRirOptions(): Array<{ text: string; value: number | null }> {
     return [
       { text: '-', value: null },
-      { text: 'FALLO', value: RIR_FAIL_VALUE },
+      { text: rirFailLabel(), value: RIR_FAIL_VALUE },
       ...getRirNumberOptions().map((value) => ({
         text: value.toString(),
         value,
@@ -169,7 +167,7 @@ export class RirPickerComponent implements OnInit {
   public getSecondRirOptions(): Array<{ text: string; value: number | null }> {
     return [
       { text: '-', value: null },
-      { text: 'FALLO', value: RIR_FAIL_VALUE },
+      { text: rirFailLabel(), value: RIR_FAIL_VALUE },
       ...getRirNumberOptions().map((value) => ({
         text: value.toString(),
         value,

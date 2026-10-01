@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -16,13 +17,15 @@ import { ClientTable } from '../../pages/client-detail/models/client-detail.mode
 @Component({
   selector: 'app-apply-routine-template-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, IonicModule, TranslateModule],
   templateUrl: './apply-routine-template-modal.component.html',
   styleUrls: ['./apply-routine-template-modal.component.scss'],
 })
 export class ApplyRoutineTemplateModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() clientId!: string;
-  @Input() clientName = 'este cliente';
+  @Input() clientName = this.translate.instant('CLIENTS.ESTE_CLIENTE');
 
   public loading = true;
   public templates: ClientTable[] = [];
@@ -43,7 +46,7 @@ export class ApplyRoutineTemplateModalComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.ionicUtilService.showErrorToast('No se pudieron cargar las plantillas', 'Error', 2500);
+        this.ionicUtilService.showErrorToast(this.translate.instant('TABLES.TEMPLATES_LOAD_ERROR'), this.translate.instant('COMMON.ERROR'), 2500);
       },
     });
   }
@@ -76,8 +79,8 @@ export class ApplyRoutineTemplateModalComponent implements OnInit {
       error: (err) => {
         this.isApplying = false;
         this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo asignar la plantilla',
-          'Error',
+          err?.error?.message || this.translate.instant('CLIENTS.NO_SE_PUDO_ASIGNAR_LA'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },

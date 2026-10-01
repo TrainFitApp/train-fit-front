@@ -1,9 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Platform } from '@ionic/angular';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { MediaApiService } from 'src/app/core/services/media/media-api.service';
+import { ReviewQueueApiService } from '../review-queue/review-queue-api.service';
 import { TrainerNavigationService } from '../../core/services/trainer-navigation.service';
 import { LegacyPaymentRemindersService } from '../payments/services/legacy-payment-reminders.service';
 
@@ -15,7 +16,7 @@ export interface ShellMenuItem {
   // (p. ej. clients/:id) — se compara con startsWith, no con igualdad exacta.
   matchPrefix?: boolean;
   // Contador junto al destino (revisiones de técnica pendientes).
-  badgeKey?: 'formChecks';
+  badgeKey?: 'review';
   // Precalculado una vez (no en la plantilla) para que routerLinkActiveOptions
   // reciba siempre la misma referencia de objeto entre ciclos de detección de
   // cambios, en vez de una nueva en cada uno.
@@ -56,6 +57,8 @@ function buildMenuItems(items: ShellMenuItemInput[]): ShellMenuItem[] {
   styleUrls: ['shell.page.scss'],
 })
 export class ShellPage implements OnInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   // Sidebar contraíble en escritorio (no forma parte del mockup original,
   // pedido aparte por el usuario) — persistido para que no vuelva a
   // expandirse solo por navegar o recargar.
@@ -73,10 +76,12 @@ export class ShellPage implements OnInit, OnDestroy {
       items: buildMenuItems([
         // "Hoy" y no "Dashboard": el nombre dice qué responde la pantalla, no
         // a qué categoría de software pertenece.
-        { label: 'Hoy', path: '/tabs/dashboard', icon: 'today-outline' },
-        { label: 'Clientes', path: '/tabs/clients', icon: 'people-outline', matchPrefix: true },
-        // Vídeos de técnica que mandan los clientes (docs/plan-medidas-multimedia.md).
-        { label: 'Revisiones', path: '/tabs/form-checks', icon: 'videocam-outline', matchPrefix: true, badgeKey: 'formChecks' },
+        { label: this.translate.instant('TRAINER_COMMON.TODAY'), path: '/tabs/dashboard', icon: 'today-outline' },
+        { label: this.translate.instant('TRAINER_COMMON.CLIENTS'), path: '/tabs/clients', icon: 'people-outline', matchPrefix: true },
+        // Todo lo que los clientes mandan y espera respuesta: check-ins,
+        // vídeos de técnica y cuestionarios de alta. Antes «Revisiones» y
+        // solo vídeos; los check-ins solo se veían dentro de cada ficha.
+        { label: this.translate.instant('SHELL.POR_REVISAR'), path: '/tabs/review', icon: 'file-tray-full-outline', matchPrefix: true, badgeKey: 'review' },
       ]),
     },
     {
@@ -85,33 +90,33 @@ export class ShellPage implements OnInit, OnDestroy {
       // agregados de todos los clientes) vive en el dashboard Hoy, servido por
       // GET /trainer/payments/summary. Etiquetar esto como negocio mandaba a
       // buscar dinero donde solo hay plantillas.
-      label: 'Metodología',
+      label: this.translate.instant('SHELL.METODOLOGIA'),
       items: buildMenuItems([
         // "Plantillas" guardaba ocho cosas heterogéneas. Se parte en dos por
         // una distinción que un entrenador reconoce sin explicación: lo que
         // le DOY al cliente frente a CÓMO trabajo yo.
-        { label: 'Biblioteca', path: '/tabs/templates', icon: 'albums-outline', matchPrefix: true },
-        { label: 'Mi método', path: '/tabs/method', icon: 'construct-outline', matchPrefix: true },
+        { label: this.translate.instant('SHELL.BIBLIOTECA'), path: '/tabs/templates', icon: 'albums-outline', matchPrefix: true },
+        { label: this.translate.instant('SHELL.MI_METODO'), path: '/tabs/method', icon: 'construct-outline', matchPrefix: true },
       ]),
     },
   ];
 
   private backButtonSubscription: Subscription | null = null;
   private routerSubscription: Subscription | null = null;
-  // Revisiones de técnica pendientes: se refresca al navegar (sin sondeo).
-  public badges: { formChecks: number } = { formChecks: 0 };
+  // Pendientes de la bandeja «Por revisar»: se refresca al navegar (sin sondeo).
+  public badges: { review: number } = { review: 0 };
 
   constructor(
     private navigation: TrainerNavigationService,
     private platform: Platform,
     private legacyPaymentReminders: LegacyPaymentRemindersService,
     private router: Router,
-    private mediaApi: MediaApiService
+    private reviewQueueApi: ReviewQueueApiService
   ) {}
 
   private refreshBadges(): void {
-    this.mediaApi.trainerFormChecksPendingCount().subscribe({
-      next: ({ pendingCount }) => (this.badges = { formChecks: pendingCount || 0 }),
+    this.reviewQueueApi.count().subscribe({
+      next: ({ total }) => (this.badges = { review: total || 0 }),
       error: () => undefined,
     });
   }

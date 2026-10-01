@@ -4,24 +4,28 @@ const path = require('node:path');
 const Module = require('node:module');
 const { buildSync } = require('esbuild');
 const { of, throwError, Subject } = require('rxjs');
+const { esTable, esTranslator } = require('../../../../../../tests/i18n-es.cjs');
 
 // Mismo runner esbuild + node:test que planner-compare.test.cjs. Se ejecuta
 // la lógica real de la página; solo se sustituyen el decorador y la plataforma.
 const bundled = buildSync({
-  stdin: { contents: "export * from './trainer-billing-view.util'; export * from './subscription.page'; export * from '../../app.component';", resolveDir: __dirname, loader: 'ts' },
+  stdin: { contents: "export * from './trainer-billing-view.util'; export * from './subscription.page'; export * from '../../app.component'; export { applyCatalogTranslations } from 'src/app/core/i18n/localized-catalog';", resolveDir: __dirname, loader: 'ts' },
   tsconfig: path.resolve(__dirname, '../../../../tsconfig.json'),
   bundle: true, platform: 'node', format: 'cjs', write: false,
-  external: ['@angular/core', '@capacitor/core', '@capacitor/app', 'swiper/element/bundle', 'rxjs', 'rxjs/*'],
+  external: ['@angular/core', '@ngx-translate/core', '@capacitor/core', '@capacitor/app', 'swiper/element/bundle', 'rxjs', 'rxjs/*'],
 });
 const compiled = new Module(__filename);
 compiled.require = (name) => {
-  if (name === '@angular/core') return { Component: () => (target) => target };
+  // La página pide TranslateService con inject(): se le da el español.
+  if (name === '@angular/core') return { Component: () => (target) => target, inject: () => esTranslator('train-fit-trainers') };
+  if (name === '@ngx-translate/core') return { TranslateService: class {} };
   if (name === '@capacitor/core') return { Capacitor: { isNativePlatform: () => false } };
   if (name === '@capacitor/app') return { App: {} };
   if (name === 'swiper/element/bundle') return { register: () => {} };
   return require(name);
 };
 compiled._compile(bundled.outputFiles[0].text, __filename);
+compiled.exports.applyCatalogTranslations(esTable('train-fit-trainers'), 'es');
 const { SubscriptionPage, safeStripeRedirectUrl, trainerPlanName, trainerBillingSummary, canStartTrainerCheckout } = compiled.exports;
 const { AppComponent, getTrainerStartupReturnUrl } = compiled.exports;
 

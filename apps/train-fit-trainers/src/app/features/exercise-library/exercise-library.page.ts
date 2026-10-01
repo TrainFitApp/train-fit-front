@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Exercise } from 'src/app/core/models/exercise';
 import { ExerciseService } from 'src/app/core/services/exercise/exercise.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -22,6 +23,8 @@ import { ExerciseFormModalComponent } from './components/exercise-form-modal/exe
   styleUrls: ['exercise-library.page.scss'],
 })
 export class ExerciseLibraryPage {
+  private readonly translate = inject(TranslateService);
+
   // app-search-exercises no expone forma de recargar su lista desde fuera, y
   // es un componente compartido con la app de consumidor. Alternar este flag
   // lo vuelve a montar, que es lo que relanza la búsqueda tras crear, editar
@@ -65,18 +68,18 @@ export class ExerciseLibraryPage {
 
   private async confirmDelete(exercise: Exercise): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Eliminar ejercicio',
-      message: `"${exercise.name}" desaparecerá de tu biblioteca y de los entrenamientos donde lo hayas puesto. Si está en una plantilla de rutina, quítalo de ella antes.`,
+      header: this.translate.instant('EXERCISE_LIBRARY.ELIMINAR_EJERCICIO'),
+      message: this.translate.instant('EXERCISE_LIBRARY.DESAPARECERA_DE_TU_BIBLIOTECA_DE', { name: exercise.name }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Eliminar',
+          text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           handler: () => {
             this.exerciseService.deleteExercise(exercise._id).subscribe({
               next: () => {
                 void this.ionicUtilService.showSuccessToast(
-                  'Ejercicio eliminado'
+                  this.translate.instant('EXERCISE_LIBRARY.EJERCICIO_ELIMINADO')
                 );
                 this.reloadList();
               },
@@ -85,7 +88,7 @@ export class ExerciseLibraryPage {
               error: (error) =>
                 void this.ionicUtilService.showErrorToast(
                   error,
-                  'No se pudo eliminar el ejercicio'
+                  this.translate.instant('EXERCISE_LIBRARY.NO_SE_PUDO_ELIMINAR_EL')
                 ),
             });
           },

@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { ProgressDayView, ProgressPose, REQUIRED_POSES } from 'src/app/core/models/media';
 import { MediaApiService } from 'src/app/core/services/media/media-api.service';
 import { CompareSide } from 'src/app/shared/components/media/photo-compare.component';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 /**
  * Pestaña «Fotos» de la revisión de un check-in: las fotos de esta respuesta
@@ -73,7 +74,7 @@ export class CheckinPhotosCompareComponent implements OnChanges {
     return {
       url: photo.asset.url || photo.asset.thumbUrl,
       label,
-      sub: weight ? `${Number(weight).toLocaleString('es-ES', { maximumFractionDigits: 1 })} kg` : undefined,
+      sub: weight ? `${Number(weight).toLocaleString(uiLocale(), { maximumFractionDigits: 1 })} kg` : undefined,
     };
   }
 }

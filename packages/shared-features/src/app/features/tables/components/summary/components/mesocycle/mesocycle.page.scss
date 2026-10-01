@@ -1235,6 +1235,12 @@ ion-accordion-group.highlight-workout {
 }
 
 // ─── Floating Clipboard Bar ────────────────────────────────────────────────────
+// La barra flota sobre el contenido (absolute encima del footer), así que se
+// reserva su alto (~64px con margen) más aire para que el último workout se
+// pueda desplazar por encima y pegar en él. Mismo criterio que diets.page.
+ion-content.has-clipboard-bar {
+  --padding-bottom: 80px;
+}
 
 .clipboard-floating-bar {
   position: absolute;

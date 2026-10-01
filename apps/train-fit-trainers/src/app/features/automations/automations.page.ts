@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { CoachRulesApiService } from './services/coach-rules-api.service';
@@ -32,6 +33,8 @@ const TRIGGER_LABELS: Record<RuleTrigger, string> = RULE_TRIGGERS.reduce(
   styleUrls: ['automations.page.scss'],
 })
 export class AutomationsPage {
+  private readonly translate = inject(TranslateService);
+
   public state: ViewState = 'loading';
   public rules: CoachRule[] = [];
   private togglingIds = new Set<string>();
@@ -60,15 +63,15 @@ export class AutomationsPage {
   }
 
   public levelLabel(rule: CoachRule): string {
-    return LEVEL_LABELS[rule.level] || 'Solo informar';
+    return LEVEL_LABELS[rule.level] || this.translate.instant('AUTOMATIONS.SOLO_INFORMAR');
   }
 
   public triggerLabel(rule: CoachRule): string {
-    return TRIGGER_LABELS[rule.trigger] || 'Cada día';
+    return TRIGGER_LABELS[rule.trigger] || this.translate.instant('AUTOMATIONS.CADA_DIA');
   }
 
   public scopeLabel(rule: CoachRule): string {
-    if (rule.appliesTo === 'all_clients') return 'Todos tus clientes';
+    if (rule.appliesTo === 'all_clients') return this.translate.instant('AUTOMATIONS.TODOS_TUS_CLIENTES');
     const count = rule.clientIds?.length || 0;
     return `${count} cliente${count === 1 ? '' : 's'}`;
   }
@@ -76,7 +79,7 @@ export class AutomationsPage {
   public conditionsLabel(rule: CoachRule): string {
     const count = rule.conditions?.length || 0;
     const joiner = rule.conditionLogic === 'any' ? 'o' : 'y';
-    return `${count} condición${count === 1 ? '' : 'es'} (${joiner})`;
+    return count === 1 ? this.translate.instant('AUTOMATIONS.CONDICION', { count, joiner }) : `${count} condiciones (${joiner})`;
   }
 
   public isToggling(rule: CoachRule): boolean {
@@ -99,7 +102,7 @@ export class AutomationsPage {
       error: (error) => {
         this.togglingIds.delete(rule._id);
         rule.enabled = !next;
-        void this.ionicUtilService.showErrorToast(error, 'No se pudo cambiar el estado de la regla');
+        void this.ionicUtilService.showErrorToast(error, this.translate.instant('AUTOMATIONS.NO_SE_PUDO_CAMBIAR_EL'));
       },
     });
   }
@@ -115,12 +118,12 @@ export class AutomationsPage {
   public async confirmDelete(rule: CoachRule, event: Event): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: 'Eliminar aviso automatizado',
-      message: `"${rule.name}" dejará de evaluarse. Las alertas que ya generó se conservan.`,
+      header: this.translate.instant('AUTOMATIONS.ELIMINAR_AVISO_AUTOMATIZADO'),
+      message: this.translate.instant('AUTOMATIONS.DEJARA_DE_EVALUARSE_LAS_ALERTAS', { name: rule.name }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Eliminar',
+          text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           handler: () => {
             this.coachRulesApi.remove(rule._id).subscribe({
@@ -128,7 +131,7 @@ export class AutomationsPage {
                 this.rules = this.rules.filter((r) => r._id !== rule._id);
               },
               error: (error) =>
-                void this.ionicUtilService.showErrorToast(error, 'No se pudo eliminar la regla'),
+                void this.ionicUtilService.showErrorToast(error, this.translate.instant('AUTOMATIONS.NO_SE_PUDO_ELIMINAR_LA')),
             });
           },
         },

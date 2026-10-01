@@ -4,7 +4,7 @@
   </div>
   <p class="readonly-note" *ngIf="readonly">
     <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
-    Tu profesional ya lo ha revisado: solo puedes verlo.
+    {{ 'INTAKE.READONLY_NOTE' | translate }}
   </p>
 </div>
 
@@ -13,19 +13,19 @@
     <!-- Perfil: lo que el cliente ya metió al registrarse, prerellenado -->
     <swiper-slide *ngIf="enabledFields.has('profileBiometrics')">
       <div class="form-section">
-        <h2 class="section-title">Confirma tus datos</h2>
-        <p class="section-subtitle">Los usamos para calcular tus calorías y macros. Ajusta lo que haya cambiado.</p>
+        <h2 class="section-title">{{ 'INTAKE.PROFILE_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.PROFILE_SUBTITLE' | translate }}</p>
         <div class="field">
           <input type="number" class="field-input" inputmode="decimal" appNumericKeypad placeholder=" " [(ngModel)]="weight" />
-          <label class="field-label">Peso (kg)</label>
+          <label class="field-label">{{ 'INTAKE.WEIGHT_KG' | translate }}</label>
         </div>
         <div class="field">
           <input type="number" class="field-input" inputmode="numeric" appNumericKeypad placeholder=" " [(ngModel)]="height" />
-          <label class="field-label">Altura (cm)</label>
+          <label class="field-label">{{ 'INTAKE.HEIGHT_CM' | translate }}</label>
         </div>
         <div class="field">
           <input type="date" class="field-input" [(ngModel)]="birth" />
-          <label class="field-label">Fecha de nacimiento</label>
+          <label class="field-label">{{ 'INTAKE.BIRTH_DATE' | translate }}</label>
         </div>
         <div class="options-list options-list--inline">
           <div
@@ -34,7 +34,7 @@
             [class.is-selected]="sex === option.value"
             (click)="selectSex(option.value)"
           >
-            <div class="option-text"><div class="option-title">{{ option.label }}</div></div>
+            <div class="option-text"><div class="option-title">{{ option.label | translate }}</div></div>
             <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
           </div>
         </div>
@@ -43,8 +43,8 @@
 
     <swiper-slide *ngIf="enabledFields.has('activityProfile')">
       <div class="form-section">
-        <h2 class="section-title">¿Cuántos pasos das al día?</h2>
-        <p class="section-subtitle">Una estimación aproximada está bien.</p>
+        <h2 class="section-title">{{ 'INTAKE.STEPS_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.STEPS_SUBTITLE' | translate }}</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -64,8 +64,8 @@
          actividad ya está medida y preguntarla sobra). -->
     <swiper-slide *ngIf="enabledFields.has('activityProfile') && steps === stepsNotCounted">
       <div class="form-section">
-        <h2 class="section-title">¿Tu nivel de actividad diaria?</h2>
-        <p class="section-subtitle">Al margen del entrenamiento con pesas.</p>
+        <h2 class="section-title">{{ 'INTAKE.ACTIVITY_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.ACTIVITY_SUBTITLE' | translate }}</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -86,8 +86,8 @@
 
     <swiper-slide *ngIf="enabledFields.has('activityProfile')">
       <div class="form-section">
-        <h2 class="section-title">¿Cuántos días entrenas a la semana?</h2>
-        <p class="section-subtitle">Entrenamiento con pesas.</p>
+        <h2 class="section-title">{{ 'INTAKE.TRAINING_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.TRAINING_SUBTITLE' | translate }}</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -105,8 +105,8 @@
 
     <swiper-slide *ngIf="enabledFields.has('objective')">
       <div class="form-section">
-        <h2 class="section-title">¿Cuál es tu objetivo?</h2>
-        <p class="section-subtitle">Tu entrenador lo afinará, pero nos da el punto de partida.</p>
+        <h2 class="section-title">{{ 'INTAKE.OBJECTIVE_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.OBJECTIVE_SUBTITLE' | translate }}</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -124,8 +124,8 @@
 
     <swiper-slide *ngIf="enabledFields.has('goals')">
       <div class="form-section">
-        <h2 class="section-title">Tus objetivos</h2>
-        <p class="section-subtitle">¿Qué quieres conseguir con {{ trainerName }}?</p>
+        <h2 class="section-title">{{ 'INTAKE.GOALS_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.GOALS_SUBTITLE' | translate: { name: trainerName } }}</p>
         <div class="field">
           <textarea
             class="field-input field-textarea"
@@ -133,15 +133,15 @@
             placeholder=" "
             [(ngModel)]="goals"
           ></textarea>
-          <label class="field-label">Cuéntaselo con tus palabras</label>
+          <label class="field-label">{{ 'INTAKE.GOALS_LABEL' | translate }}</label>
         </div>
       </div>
     </swiper-slide>
 
     <swiper-slide *ngIf="enabledFields.has('healthConditions')">
       <div class="form-section">
-        <h2 class="section-title">Salud y lesiones</h2>
-        <p class="section-subtitle">Cualquier cosa que tu profesional deba tener en cuenta.</p>
+        <h2 class="section-title">{{ 'INTAKE.HEALTH_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.HEALTH_SUBTITLE' | translate }}</p>
         <div class="field">
           <textarea
             class="field-input field-textarea"
@@ -149,15 +149,15 @@
             placeholder=" "
             [(ngModel)]="healthConditions"
           ></textarea>
-          <label class="field-label">Lesiones, condiciones médicas...</label>
+          <label class="field-label">{{ 'INTAKE.HEALTH_LABEL' | translate }}</label>
         </div>
       </div>
     </swiper-slide>
 
     <swiper-slide *ngIf="enabledFields.has('experienceLevel')">
       <div class="form-section">
-        <h2 class="section-title">Tu experiencia</h2>
-        <p class="section-subtitle">¿Cuánto llevas entrenando?</p>
+        <h2 class="section-title">{{ 'INTAKE.EXPERIENCE_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.EXPERIENCE_SUBTITLE' | translate }}</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -167,7 +167,7 @@
           >
             <div class="option-icon"><ion-icon name="trending-up-outline"></ion-icon></div>
             <div class="option-text">
-              <div class="option-title">{{ option.label }}</div>
+              <div class="option-title">{{ option.label | translate }}</div>
             </div>
             <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
           </div>
@@ -177,8 +177,8 @@
 
     <swiper-slide *ngIf="enabledFields.has('availability')">
       <div class="form-section">
-        <h2 class="section-title">Tu disponibilidad</h2>
-        <p class="section-subtitle">¿Qué días y horarios te vienen mejor?</p>
+        <h2 class="section-title">{{ 'INTAKE.AVAILABILITY_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.AVAILABILITY_SUBTITLE' | translate }}</p>
         <div class="field">
           <input
             type="text"
@@ -186,15 +186,15 @@
             placeholder=" "
             [(ngModel)]="availability"
           />
-          <label class="field-label">Ej. 3 días/semana, tardes</label>
+          <label class="field-label">{{ 'INTAKE.AVAILABILITY_LABEL' | translate }}</label>
         </div>
       </div>
     </swiper-slide>
 
     <swiper-slide *ngIf="enabledFields.has('equipment')">
       <div class="form-section">
-        <h2 class="section-title">Lugar de entrenamiento</h2>
-        <p class="section-subtitle">¿Dónde vas a entrenar principalmente?</p>
+        <h2 class="section-title">{{ 'INTAKE.LOCATION_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.LOCATION_SUBTITLE' | translate }}</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -204,7 +204,7 @@
           >
             <div class="option-icon"><ion-icon name="location-outline"></ion-icon></div>
             <div class="option-text">
-              <div class="option-title">{{ option.label }}</div>
+              <div class="option-title">{{ option.label | translate }}</div>
             </div>
             <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
           </div>
@@ -214,8 +214,8 @@
 
     <swiper-slide *ngIf="enabledFields.has('equipment')">
       <div class="form-section">
-        <h2 class="section-title">Equipamiento disponible</h2>
-        <p class="section-subtitle">Puedes marcar varios.</p>
+        <h2 class="section-title">{{ 'INTAKE.EQUIPMENT_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.EQUIPMENT_SUBTITLE' | translate }}</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -225,7 +225,7 @@
           >
             <div class="option-icon"><ion-icon name="barbell-outline"></ion-icon></div>
             <div class="option-text">
-              <div class="option-title">{{ option.label }}</div>
+              <div class="option-title">{{ option.label | translate }}</div>
             </div>
             <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
           </div>
@@ -235,8 +235,8 @@
 
     <swiper-slide *ngIf="enabledFields.has('allergies')">
       <div class="form-section">
-        <h2 class="section-title">Alergias</h2>
-        <p class="section-subtitle">Alimentos que debas evitar por alergia o intolerancia.</p>
+        <h2 class="section-title">{{ 'INTAKE.ALLERGIES_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.ALLERGIES_SUBTITLE' | translate }}</p>
         <div class="field">
           <textarea
             class="field-input field-textarea"
@@ -244,15 +244,15 @@
             placeholder=" "
             [(ngModel)]="allergies"
           ></textarea>
-          <label class="field-label">Ej. frutos secos, lactosa...</label>
+          <label class="field-label">{{ 'INTAKE.ALLERGIES_LABEL' | translate }}</label>
         </div>
       </div>
     </swiper-slide>
 
     <swiper-slide *ngIf="enabledFields.has('favoriteFoods')">
       <div class="form-section">
-        <h2 class="section-title">Alimentos favoritos</h2>
-        <p class="section-subtitle">Lo que más te gusta comer.</p>
+        <h2 class="section-title">{{ 'INTAKE.FAVORITES_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.FAVORITES_SUBTITLE' | translate }}</p>
         <div class="field">
           <textarea
             class="field-input field-textarea"
@@ -260,15 +260,15 @@
             placeholder=" "
             [(ngModel)]="favoriteFoods"
           ></textarea>
-          <label class="field-label">Tus favoritos</label>
+          <label class="field-label">{{ 'INTAKE.FAVORITES_LABEL' | translate }}</label>
         </div>
       </div>
     </swiper-slide>
 
     <swiper-slide *ngIf="enabledFields.has('dislikedFoods')">
       <div class="form-section">
-        <h2 class="section-title">Alimentos que no te gustan</h2>
-        <p class="section-subtitle">Así tu profesional evita metértelos en el plan.</p>
+        <h2 class="section-title">{{ 'INTAKE.DISLIKED_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.DISLIKED_SUBTITLE' | translate }}</p>
         <div class="field">
           <textarea
             class="field-input field-textarea"
@@ -276,15 +276,15 @@
             placeholder=" "
             [(ngModel)]="dislikedFoods"
           ></textarea>
-          <label class="field-label">Lo que prefieres evitar</label>
+          <label class="field-label">{{ 'INTAKE.DISLIKED_LABEL' | translate }}</label>
         </div>
       </div>
     </swiper-slide>
 
     <swiper-slide *ngIf="enabledFields.has('cooksAtHome')">
       <div class="form-section">
-        <h2 class="section-title">¿Cocinas en casa?</h2>
-        <p class="section-subtitle">Ayuda a ajustar el nivel de detalle de las recetas.</p>
+        <h2 class="section-title">{{ 'INTAKE.COOKS_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.COOKS_SUBTITLE' | translate }}</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -294,7 +294,7 @@
           >
             <div class="option-icon"><ion-icon name="restaurant-outline"></ion-icon></div>
             <div class="option-text">
-              <div class="option-title">{{ option.label }}</div>
+              <div class="option-title">{{ option.label | translate }}</div>
             </div>
             <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
           </div>
@@ -304,8 +304,8 @@
 
     <swiper-slide *ngIf="enabledFields.has('dietaryFlags')">
       <div class="form-section">
-        <h2 class="section-title">¿Sigues alguna dieta especial?</h2>
-        <p class="section-subtitle">Marca las que apliquen. Deja todo sin marcar si comes de todo.</p>
+        <h2 class="section-title">{{ 'INTAKE.DIET_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.DIET_SUBTITLE' | translate }}</p>
         <div class="options-list">
           <div
             class="option-card"
@@ -315,7 +315,7 @@
           >
             <div class="option-icon"><ion-icon name="leaf-outline"></ion-icon></div>
             <div class="option-text">
-              <div class="option-title">{{ option.label }}</div>
+              <div class="option-title">{{ option.label | translate }}</div>
             </div>
             <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
           </div>
@@ -326,7 +326,7 @@
     <swiper-slide *ngFor="let question of customQuestions; trackBy: trackByQuestionId">
       <div class="form-section">
         <h2 class="section-title">{{ question.label }}</h2>
-        <p class="section-subtitle">Pregunta de {{ trainerName }}.</p>
+        <p class="section-subtitle">{{ 'INTAKE.CUSTOM_QUESTION_FROM' | translate: { name: trainerName } }}</p>
         <div class="field">
           <textarea
             class="field-input field-textarea"
@@ -335,7 +335,7 @@
             [ngModel]="customAnswerFor(question.id)"
             (ngModelChange)="setCustomAnswer(question.id, $event)"
           ></textarea>
-          <label class="field-label">Tu respuesta</label>
+          <label class="field-label">{{ 'INTAKE.YOUR_ANSWER' | translate }}</label>
         </div>
       </div>
     </swiper-slide>
@@ -354,7 +354,7 @@
     *ngIf="!isLastStep"
     [disabled]="isActivityMissing"
   >
-    <strong>Siguiente</strong>
+    <strong>{{ 'INTAKE.NEXT' | translate }}</strong>
     <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
   </ion-button>
 
@@ -364,7 +364,7 @@
     (click)="cancelled.emit()"
     *ngIf="isLastStep && readonly"
   >
-    <strong>Cerrar</strong>
+    <strong>{{ 'INTAKE.CLOSE' | translate }}</strong>
   </ion-button>
 
   <ion-button
@@ -374,7 +374,7 @@
     *ngIf="isLastStep && !readonly"
     [disabled]="isSubmitting"
   >
-    <span *ngIf="!isSubmitting"><strong>Enviar cuestionario</strong></span>
+    <span *ngIf="!isSubmitting"><strong>{{ 'INTAKE.SUBMIT' | translate }}</strong></span>
     <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>
     <ion-icon name="checkmark-circle-outline" slot="end" *ngIf="!isSubmitting"></ion-icon>
   </ion-button>

@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CheckinSummary } from '../checkin-workspace/checkin-workspace.model';
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 // Rangos del resumen, hoy incluido.
 const RANGES = [
@@ -8,8 +9,9 @@ const RANGES = [
   { days: 90, label: '3 meses' },
   { days: 180, label: '6 meses' },
   { days: 365, label: '1 año' },
-  { days: 3 * 365, label: '3 años' },
+  { days: 1095, label: '3 años' }, // 3 × 365
 ];
+RANGES.forEach((item) => localizeProp(item, 'label', `CLIENTS.TRACKING_RANGES.${item.days}`));
 
 /**
  * "Cómo va el seguimiento": qué debe este cliente ahora mismo. Solo pinta:

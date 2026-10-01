@@ -21,12 +21,12 @@
       <span class="tracking-chart__summary-dot" [style.background]="option.color"></span>
       {{ option.label }}
       <strong *ngIf="averagePercentageFor(option.key) !== null">{{ averagePercentageFor(option.key) }}%</strong>
-      <span class="tracking-chart__summary-muted" *ngIf="averagePercentageFor(option.key) === null">sin datos</span>
+      <span class="tracking-chart__summary-muted" *ngIf="averagePercentageFor(option.key) === null">{{ 'CLIENTS.SIN_DATOS' | translate }}</span>
     </span>
   </div>
 
   <p class="empty-hint" *ngIf="!isLoading && !daysWithPlan.length">
-    Sin nada pautado de lo seleccionado en este rango.
+    {{ 'CLIENTS.SIN_NADA_PAUTADO_DE_LO' | translate }}
   </p>
 
   <div class="tracking-chart__canvas-wrap" [class.is-loading]="isLoading">
@@ -34,7 +34,7 @@
   </div>
 
   <div class="tracking-chart__legend">
-    <span class="legend-item"><span class="legend-swatch legend-swatch--reference"></span>Pautado (100%)</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--reference"></span>{{ 'CLIENTS.PAUTADO_100' | translate }}</span>
     <span class="legend-item" *ngFor="let option of activeMetricOptions; trackBy: trackByMetricKey">
       <span class="legend-swatch" [style.background]="option.color"></span>
       {{ option.label }}

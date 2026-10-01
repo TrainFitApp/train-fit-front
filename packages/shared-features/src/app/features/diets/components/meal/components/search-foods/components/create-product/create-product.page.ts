@@ -431,7 +431,7 @@ export class CreateProductPage implements OnInit {
         Validators.compose([Validators.nullValidator, Validators.maxLength(100)])
       ),
       brand: new FormControl(null, Validators.maxLength(200)),
-      name: new FormControl(null, Validators.compose([Validators.required, Validators.maxLength(200)])),
+      name: new FormControl(null, Validators.compose([Validators.required, Validators.maxLength(300)])),
 
       // Basic macronutrients (required)
       carbohydrates100g: new FormControl(null, Validators.compose([Validators.required, Validators.min(0), Validators.max(100000)])),
@@ -491,7 +491,7 @@ export class CreateProductPage implements OnInit {
       productQuantity: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
       servingQuantity: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
       servingUnit: new FormControl(null),
-      ingredients: new FormControl(null, Validators.maxLength(2000)), // Will be split into array
+      ingredients: new FormControl(null, Validators.maxLength(5000)), // Will be split into array
 
       // Allergens and dietary
       allergens: new FormControl(null, Validators.maxLength(1000)), // Will be split into array

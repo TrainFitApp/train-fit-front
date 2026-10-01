@@ -31,6 +31,7 @@ import { PlannerExerciseCopyService } from '../../services/planner-exercise-copy
 // desincronizarían dejando dos cifras distintas para lo mismo en la misma
 // pantalla.
 import { averageRir, formatSignedDelta, sumSets } from '../../utils/planner-metrics';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 // Planificador visual (Fase C) — una columna del tablero (una semana/Split).
 // Cabecera seleccionable (activa los botones de la toolbar superior del
@@ -170,7 +171,7 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   public get avgRirLabel(): string {
     return this.avgRir === null
       ? '—'
-      : new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 }).format(this.avgRir);
+      : new Intl.NumberFormat(uiLocale(), { maximumFractionDigits: 1 }).format(this.avgRir);
   }
 
   public get setsDeltaText(): string | null {
@@ -186,7 +187,7 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
     const previous = averageRir(this.previousSplit);
     if (current === null || previous === null) return null;
     return formatSignedDelta(current - previous, (n) =>
-      new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n)
+      new Intl.NumberFormat(uiLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n)
     );
   }
 
@@ -326,7 +327,7 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   // cliente nunca la ve. El tooltip lo deja explícito al pasar el cursor,
   // sin esperar a abrir el diálogo de edición para descubrirlo.
   public get purposeTooltip(): string {
-    return 'Nota solo para ti: no la ve el cliente ni aparece en su app. Sirve para leer bien los números del bloque (p. ej. en una descarga, que el volumen baje es lo previsto).';
+    return this.translate.instant('PLANNER.NOTA_SOLO_PARA_TI_NO');
   }
 
   private persistTable(): void {

@@ -103,24 +103,24 @@
     <!-- Lo que el cliente puso en "Salud / lesiones" del intake, entero. -->
     <span class="planner-injuries" *ngIf="intakeInjuries as injuries">
       <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
-      <span class="pain-label">Lesiones</span>
+      <span class="pain-label">{{ 'PLANNER.LESIONES' | translate }}</span>
       <span class="planner-injuries__text">{{ injuries }}</span>
     </span>
     <ion-icon name="bandage-outline" aria-hidden="true"></ion-icon>
-    <span class="pain-label">Dolor</span>
-    <span *ngIf="painState === 'loading'">Actualizando registros…</span>
-    <span *ngIf="painState === 'loaded' && !clientPain.length">Sin registros recientes.</span>
-    <span *ngIf="painState === 'loaded' && clientPain.length && !activeClientPain.length">Últimos registros: 0/10 · {{ clientPain[0].date | date: 'd MMM' }}</span>
+    <span class="pain-label">{{ 'TRAINER_COMMON.PAIN' | translate }}</span>
+    <span *ngIf="painState === 'loading'">{{ 'PLANNER.ACTUALIZANDO_REGISTROS' | translate }}</span>
+    <span *ngIf="painState === 'loaded' && !clientPain.length">{{ 'PLANNER.SIN_REGISTROS_RECIENTES' | translate }}</span>
+    <span *ngIf="painState === 'loaded' && clientPain.length && !activeClientPain.length">{{ 'PLANNER.ULTIMOS_REGISTROS_0_10' | translate }} · {{ clientPain[0].date | localDate: 'd MMM' }}</span>
     <span *ngFor="let pain of activeClientPain" class="pain-entry" [class.pain-entry--over]="pain.overThreshold"
       [title]="pain.note || ''">
       <strong>{{ pain.zone }} {{ pain.level }}/10</strong>
-      <span>{{ pain.date | date: 'd MMM' }}</span>
-      <span *ngIf="pain.threshold">Umbral pautado {{ pain.threshold.painLevel }}/10</span>
-      <span *ngIf="pain.overThreshold">Umbral alcanzado</span>
+      <span>{{ pain.date | localDate: 'd MMM' }}</span>
+      <span *ngIf="pain.threshold">{{ 'PLANNER.UMBRAL_PAUTADO' | translate }} {{ pain.threshold.painLevel }}/10</span>
+      <span *ngIf="pain.overThreshold">{{ 'PLANNER.UMBRAL_ALCANZADO' | translate }}</span>
       <span *ngIf="pain.note">{{ pain.note }}</span>
     </span>
-    <span *ngIf="painState === 'error'">No se pudo actualizar el dolor.</span>
-    <button type="button" *ngIf="painState === 'error'" (click)="loadClientPain()">Reintentar</button>
+    <span *ngIf="painState === 'error'">{{ 'PLANNER.NO_SE_PUDO_ACTUALIZAR_EL' | translate }}</span>
+    <button type="button" *ngIf="painState === 'error'" (click)="loadClientPain()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 </ion-header>
 

@@ -6,7 +6,7 @@ import Foundation
 // las acciones pendientes anotadas para que la app las sincronice cuando
 // vuelva a primer plano.
 
-public struct WorkoutSetItem: Codable, Hashable {
+public struct WorkoutSetItem: Codable, Hashable, Sendable {
     public var setId: String
     public var exerciseName: String
     public var exerciseIndex: Int
@@ -15,9 +15,16 @@ public struct WorkoutSetItem: Codable, Hashable {
     public var totalSets: Int
     public var reps: Int
     public var weight: Double
-    public var rir: Int
+    /// RIR registrado (serie hecha) o pautado (pendiente). `nil` es «sin
+    /// dato» y se pinta «—»; `-1` es fallo. Antes se rellenaba con 0 y al
+    /// marcar la serie se guardaba un «RIR 0» que el usuario nunca indicó.
+    public var rir: Int?
     public var doned: Bool
     public var imageKey: String?
+    /// Valores tocados con los steppers en una serie aún sin marcar. Es un
+    /// borrador que solo existe aquí: la app no lo conoce y cada vez que
+    /// republicaba el entrenamiento lo pisaba con lo pautado.
+    public var edited: Bool
 
     public init(
         setId: String,
@@ -28,9 +35,10 @@ public struct WorkoutSetItem: Codable, Hashable {
         totalSets: Int,
         reps: Int,
         weight: Double,
-        rir: Int,
+        rir: Int?,
         doned: Bool,
-        imageKey: String?
+        imageKey: String?,
+        edited: Bool = false
     ) {
         self.setId = setId
         self.exerciseName = exerciseName
@@ -43,6 +51,7 @@ public struct WorkoutSetItem: Codable, Hashable {
         self.rir = rir
         self.doned = doned
         self.imageKey = imageKey
+        self.edited = edited
     }
 
     // Decodificación tolerante: una sesión guardada por una versión anterior
@@ -57,25 +66,34 @@ public struct WorkoutSetItem: Codable, Hashable {
         totalSets = try container.decode(Int.self, forKey: .totalSets)
         reps = try container.decode(Int.self, forKey: .reps)
         weight = try container.decode(Double.self, forKey: .weight)
-        rir = try container.decode(Int.self, forKey: .rir)
+        rir = try container.decodeIfPresent(Int.self, forKey: .rir)
         doned = try container.decodeIfPresent(Bool.self, forKey: .doned) ?? false
         imageKey = try container.decodeIfPresent(String.self, forKey: .imageKey)
+        edited = try container.decodeIfPresent(Bool.self, forKey: .edited) ?? false
     }
 }
 
-public struct WorkoutSession: Codable, Equatable {
+public struct WorkoutSession: Codable, Equatable, Sendable {
     public var workoutId: String
     public var workoutName: String
     public var startedAt: Date
-    public var currentIndex: Int
     public var items: [WorkoutSetItem]
 
-    public init(workoutId: String, workoutName: String, startedAt: Date, currentIndex: Int, items: [WorkoutSetItem]) {
+    public init(workoutId: String, workoutName: String, startedAt: Date, items: [WorkoutSetItem]) {
         self.workoutId = workoutId
         self.workoutName = workoutName
         self.startedAt = startedAt
-        self.currentIndex = currentIndex
         self.items = items
+    }
+
+    /// Serie que enseña la tarjeta: **siempre la primera sin hacer**.
+    ///
+    /// Derivado, no guardado. Sin flechas no hay forma de estar mirando otra
+    /// cosa, así que guardarlo solo servía para que se desincronizase: cuando
+    /// iOS no conseguía repintar, la tarjeta enseñaba una serie y el índice
+    /// guardado apuntaba a otra, y el check marcaba la equivocada.
+    public var currentIndex: Int {
+        items.firstIndex { !$0.doned } ?? 0
     }
 
     public var currentItem: WorkoutSetItem? {
@@ -83,63 +101,86 @@ public struct WorkoutSession: Codable, Equatable {
         return items[currentIndex]
     }
 
-    /// Primera serie sin hacer: donde se posiciona la notificación al abrirse.
-    public var firstPendingIndex: Int? {
-        items.firstIndex { !$0.doned }
+    public var doneCount: Int {
+        items.filter { $0.doned }.count
     }
 
     public var allDone: Bool {
         !items.isEmpty && items.allSatisfy { $0.doned }
     }
 
-    /// Siguiente serie **sin hacer** a partir de la actual; si no queda
-    /// ninguna por delante, la primera pendiente de todo el entrenamiento.
-    /// Tras marcar una serie se salta aquí: caer en una ya hecha (con el check
-    /// encendido) parece que la notificación se ha ido por su cuenta.
-    public func nextPendingIndex() -> Int? {
-        if let forward = items.indices.first(where: { $0 > currentIndex && !items[$0].doned }) {
-            return forward
-        }
-        return firstPendingIndex
+    /// Misma sesión de entrenamiento: mismo workout y mismo arranque. Un
+    /// workout se repite cada microciclo con el mismo id; sin mirar
+    /// `startedAt`, la sesión de la semana pasada heredaba su posición.
+    public func isSameRun(as other: WorkoutSession) -> Bool {
+        workoutId == other.workoutId
+            && abs(startedAt.timeIntervalSince(other.startedAt)) < 1
     }
 
-    /// Serie anterior/siguiente **dentro del mismo ejercicio** (`step` ±1).
-    public func indexForSetStep(_ step: Int) -> Int? {
-        guard let current = currentItem else { return nil }
-        let target = currentIndex + step
-        guard items.indices.contains(target),
-              items[target].exerciseIndex == current.exerciseIndex else { return nil }
-        return target
-    }
+    /// Funde lo que manda la app (el backend, fuente de verdad) con lo que
+    /// solo sabe la notificación: series marcadas aún sin sincronizar y los
+    /// borradores de los steppers.
+    ///
+    /// Sin posición que conservar: `currentIndex` es derivado, así que la
+    /// tarjeta se recoloca sola en la primera serie pendiente del resultado.
+    ///
+    /// Se ejecuta dentro de `WorkoutSessionMutator`, sobre la sesión guardada
+    /// más reciente: calcularlo fuera de la cola pisaba lo que un botón
+    /// hubiera cambiado mientras tanto (la tarjeta «volvía atrás» sola).
+    public static func merging(
+        incoming: WorkoutSession,
+        previous: WorkoutSession?,
+        pending: [PendingSetAction]
+    ) -> WorkoutSession {
+        var merged = incoming
+        let previous = previous.flatMap { $0.isSameRun(as: incoming) ? $0 : nil }
 
-    /// Primera serie del ejercicio anterior/siguiente (`step` ±1). Se busca el
-    /// ejercicio adyacente **que tenga series** en la lista, no `exerciseIndex
-    /// ± 1`: un ejercicio sin series dejaría la flecha muerta.
-    public func indexForExerciseStep(_ step: Int) -> Int? {
-        guard let current = currentItem else { return nil }
-        let target: Int?
-        if step > 0 {
-            target = items.first { $0.exerciseIndex > current.exerciseIndex }?.exerciseIndex
-        } else {
-            target = items.last { $0.exerciseIndex < current.exerciseIndex }?.exerciseIndex
+        var previousBySet: [String: WorkoutSetItem] = [:]
+        for item in previous?.items ?? [] { previousBySet[item.setId] = item }
+
+        // Solo cuenta el último estado de cada serie.
+        var lastPending: [String: PendingSetAction] = [:]
+        for action in pending where !action.skipped { lastPending[action.setId] = action }
+
+        for index in merged.items.indices {
+            let setId = merged.items[index].setId
+            if let action = lastPending[setId] {
+                merged.items[index].doned = action.doned
+                merged.items[index].reps = action.reps
+                merged.items[index].weight = action.weight
+                merged.items[index].rir = action.rir
+                merged.items[index].edited = false
+            } else if let local = previousBySet[setId],
+                      local.edited, !local.doned, !merged.items[index].doned {
+                // Borrador de los steppers en una serie aún sin marcar: la app
+                // no lo conoce y lo pisaría con lo pautado.
+                merged.items[index].reps = local.reps
+                merged.items[index].weight = local.weight
+                merged.items[index].rir = local.rir
+                merged.items[index].edited = true
+            }
         }
-        guard let target = target else { return nil }
-        return items.firstIndex { $0.exerciseIndex == target }
+
+        return merged
     }
 }
 
 /// Acción hecha desde la notificación que la app todavía no ha persistido.
-public struct PendingSetAction: Codable {
+public struct PendingSetAction: Codable, Sendable {
+    /// Identifica la acción para que la app borre solo las que ha volcado:
+    /// vaciar la lista entera perdía las que llegaban durante el volcado.
+    public var id: String
     public var setId: String
     public var reps: Int
     public var weight: Double
-    public var rir: Int
+    public var rir: Int?
     /// Estado al que se lleva la serie: `true` marcarla, `false` desmarcarla.
     public var doned: Bool
     public var skipped: Bool
     public var at: Date
 
-    public init(setId: String, reps: Int, weight: Double, rir: Int, doned: Bool, skipped: Bool, at: Date) {
+    public init(setId: String, reps: Int, weight: Double, rir: Int?, doned: Bool, skipped: Bool, at: Date) {
+        self.id = UUID().uuidString
         self.setId = setId
         self.reps = reps
         self.weight = weight
@@ -147,6 +188,18 @@ public struct PendingSetAction: Codable {
         self.doned = doned
         self.skipped = skipped
         self.at = at
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        setId = try container.decode(String.self, forKey: .setId)
+        reps = try container.decode(Int.self, forKey: .reps)
+        weight = try container.decode(Double.self, forKey: .weight)
+        rir = try container.decodeIfPresent(Int.self, forKey: .rir)
+        doned = try container.decode(Bool.self, forKey: .doned)
+        skipped = try container.decodeIfPresent(Bool.self, forKey: .skipped) ?? false
+        at = try container.decode(Date.self, forKey: .at)
     }
 }
 
@@ -215,6 +268,19 @@ public enum WorkoutActivityStore {
 
     public static func clearPending() {
         defaults?.removeObject(forKey: pendingKey)
+    }
+
+    /// Borra solo las acciones indicadas (las que la app ya ha volcado).
+    public static func removePending(ids: Set<String>) {
+        guard let defaults = defaults else { return }
+        let remaining = loadPending().filter { !ids.contains($0.id) }
+        guard !remaining.isEmpty else {
+            defaults.removeObject(forKey: pendingKey)
+            return
+        }
+        if let data = try? JSONEncoder().encode(remaining) {
+            defaults.set(data, forKey: pendingKey)
+        }
     }
 
     // Miniaturas en FICHEROS dentro del contenedor del App Group, no en las
@@ -295,8 +361,14 @@ public enum WorkoutActivityStore {
         return formatter
     }()
 
+    /// Las escrituras son leer-añadir-guardar: dos hilos a la vez (un botón y
+    /// el observador de estado de la tarjeta) se pisaban y se perdían líneas.
+    private static let traceLock = NSLock()
+
     public static func trace(_ line: String) {
         guard let defaults = defaults else { return }
+        traceLock.lock()
+        defer { traceLock.unlock() }
         let stamp = traceFormatter.string(from: Date())
         var lines = defaults.stringArray(forKey: logKey) ?? []
         lines.append("\(stamp) [\(ProcessInfo.processInfo.processName)] \(line)")

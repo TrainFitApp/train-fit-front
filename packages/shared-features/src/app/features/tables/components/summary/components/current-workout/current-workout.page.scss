@@ -275,14 +275,17 @@ img {
     // Pegado al hueco de la miniatura para que se lea como parte de "la foto
     // del ejercicio", no como un botón suelto del entrenamiento. Sin fondo en
     // reposo para no sumar peso visual a la cabecera; solo reacciona al tacto.
+    // Alto de 48px como la miniatura para que el toque sea cómodo, pero glifo
+    // discreto: es una acción secundaria. El margen negativo de la derecha
+    // recorta el hueco muerto del glifo y deja los puntos junto a la imagen.
     .exercise-options-trigger {
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 26px;
+      width: 20px;
       height: 48px;
-      margin: 0;
+      margin: 0 -0.5rem 0 0;
       padding: 0;
       background: transparent;
       border: none;
@@ -291,7 +294,7 @@ img {
       transition: background-color 160ms ease-out, color 160ms ease-out, transform 160ms ease-out;
 
       ion-icon {
-        font-size: 1.1rem;
+        font-size: 1.25rem;
         pointer-events: none;
       }
 
@@ -793,47 +796,60 @@ ion-content.has-rest-timer {
   }
 }
 
+// Mismo tamaño y tipografía que los botones NOTA / SERIES de cada ejercicio
+// (custom-exercise › .exercise-actions), a todo el ancho.
 .form-check-row {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  padding: 10px 12px 14px;
+  padding: 0 16px 12px;
 }
 
 .form-check-send,
 .form-check-answers {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  min-height: 44px;
-  padding: 0 14px;
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
   border-radius: 10px;
   font-family: inherit;
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
   cursor: pointer;
 
   ion-icon {
-    font-size: 18px;
+    font-size: 1.1rem;
   }
 
   &:focus-visible {
-    outline: 2px solid #fe9000;
+    outline: 2px solid var(--ion-color-secondary);
     outline-offset: 2px;
   }
 }
 
 .form-check-send {
-  border: 1px solid rgba(254, 144, 0, 0.4);
-  background: rgba(254, 144, 0, 0.08);
-  color: #fe9000;
+  border: 0;
+  background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  color: var(--ion-color-secondary);
+
+  &:active {
+    background: rgba(var(--ion-color-secondary-rgb), 0.25);
+  }
 }
 
 .form-check-answers {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: #e6e6e6;
+  border: 0;
+  background: rgba(var(--ion-color-medium-rgb), 0.15);
+  color: #ffffff;
+
+  &:active {
+    background: rgba(var(--ion-color-medium-rgb), 0.25);
+  }
 
   .unseen-dot {
     width: 8px;
@@ -841,4 +857,25 @@ ion-content.has-rest-timer {
     border-radius: 50%;
     background: #fe9000;
   }
+}
+
+@media (max-width: 480px) {
+  // NOTA / SERIES insetan 4px (cabecera) + 12px (contenido) = 16px: se
+  // mantiene el mismo margen lateral para que los bordes coincidan.
+  .form-check-row {
+    padding: 0 16px 8px;
+  }
+
+  .form-check-send,
+  .form-check-answers {
+    height: 44px;
+  }
+}
+
+// Modo "Mover series": el accordion del ejercicio no debe plegarse, pero su
+// contenido (arrastre, Cancelar/Confirmar) tiene que seguir respondiendo.
+// [readonly] de Ionic pone pointer-events: none también en el contenido, así
+// que aquí solo se bloquea la cabecera.
+ion-accordion.series-reorder-locked::part(header) {
+  pointer-events: none;
 }

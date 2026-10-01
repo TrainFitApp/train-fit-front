@@ -42,7 +42,7 @@
     <div class="section-group" *ngIf="user?.roles?.includes('trainer')">
       <div class="section-header">
         <ion-icon name="diamond-outline"></ion-icon>
-        <span>Suscripción</span>
+        <span>{{ 'CONFIGURATION.SUBSCRIPTION_SECTION' | translate }}</span>
       </div>
 
       <ion-card class="config-card config-card--premium">
@@ -51,7 +51,7 @@
             <ion-icon name="diamond-outline" color="warning"></ion-icon>
           </div>
           <ion-label>
-            <h3>Gestionar suscripción</h3>
+            <h3>{{ 'PREMIUM.MANAGE_SUBSCRIPTION' | translate }}</h3>
           </ion-label>
         </ion-item>
       </ion-card>

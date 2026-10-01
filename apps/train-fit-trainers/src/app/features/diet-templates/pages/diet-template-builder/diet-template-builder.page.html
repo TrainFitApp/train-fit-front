@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <app-page-header
-    [title]="isPreparingNextWeek ? ('Preparar S' + nextWeekNumber) : (isCreatingForClient ? 'Crear dieta' : (isEditingAssignedCopy ? 'Editar dieta' : 'Editar plantilla'))"
+    [title]="isPreparingNextWeek ? (('DIET_TEMPLATES.PREPARAR' | translate) + nextWeekNumber) : (isCreatingForClient ? ('DIET_TEMPLATES.CREAR_DIETA' | translate) : (isEditingAssignedCopy ? ('DIET_TEMPLATES.EDITAR_DIETA' | translate) : ('DIET_TEMPLATES.EDITAR_PLANTILLA' | translate)))"
   ></app-page-header>
 </ion-header>
 
@@ -12,16 +12,16 @@
 
   <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy && !isPreparingNextWeek">
     <ion-icon name="cloud-offline-outline"></ion-icon>
-    <h2>No se pudo cargar la plantilla</h2>
-    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
-    <button class="retry-button" (click)="load()">Reintentar</button>
+    <h2>{{ 'DIET_TEMPLATES.NO_SE_PUDO_CARGAR_LA' | translate }}</h2>
+    <p>{{ 'DIET_TEMPLATES.COMPRUEBA_TU_CONEXION_INTENTALO_DE' | translate }}</p>
+    <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <div class="state-message" *ngIf="state === 'error' && (isEditingAssignedCopy || isPreparingNextWeek)">
     <ion-icon name="cloud-offline-outline"></ion-icon>
-    <h2>No se pudo cargar la dieta</h2>
-    <p>Comprueba tu conexión e inténtalo de nuevo desde la ficha del cliente.</p>
-    <button class="retry-button" (click)="goBack()">Volver</button>
+    <h2>{{ 'DIET_TEMPLATES.NO_SE_PUDO_CARGAR_LA_2' | translate }}</h2>
+    <p>{{ 'DIET_TEMPLATES.COMPRUEBA_TU_CONEXION_INTENTALO_DE_2' | translate }}</p>
+    <button class="retry-button" (click)="goBack()">{{ 'COMMON.GO_BACK' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
@@ -40,11 +40,11 @@
         <span class="client-context__avatar" aria-hidden="true">{{ clientInitials }}</span>
         <p class="client-context__heading">
           <span class="client-context__eyebrow" [ngSwitch]="kind">
-            <ng-container *ngSwitchCase="'new'">Nueva dieta para</ng-container>
-            <ng-container *ngSwitchCase="'own'">Dieta de</ng-container>
-            <ng-container *ngSwitchCase="'assigned'">Editando la dieta ya asignada a</ng-container>
-            <ng-container *ngSwitchCase="'next-week'">S{{ nextWeekNumber }} · {{ nextWeekRange }} · de</ng-container>
-            <ng-container *ngSwitchDefault>Plantilla general, abierta desde la ficha de</ng-container>
+            <ng-container *ngSwitchCase="'new'">{{ 'DIET_TEMPLATES.NUEVA_DIETA_PARA' | translate }}</ng-container>
+            <ng-container *ngSwitchCase="'own'">{{ 'DIET_TEMPLATES.DIETA_DE' | translate }}</ng-container>
+            <ng-container *ngSwitchCase="'assigned'">{{ 'DIET_TEMPLATES.EDITANDO_LA_DIETA_YA_ASIGNADA' | translate }}</ng-container>
+            <ng-container *ngSwitchCase="'next-week'">S{{ nextWeekNumber }} · {{ nextWeekRange }} · {{ 'DIET_TEMPLATES.DE' | translate }}</ng-container>
+            <ng-container *ngSwitchDefault>{{ 'DIET_TEMPLATES.PLANTILLA_GENERAL_ABIERTA_DESDE_LA' | translate }}</ng-container>
           </span>
           <span class="client-context__name">{{ clientContextName }}</span>
         </p>
@@ -53,20 +53,16 @@
       <p class="client-context__scope" *ngIf="kind !== 'new'">
         <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
         <span *ngIf="kind === 'own'">
-          Esto es la plantilla: los cambios no tocan la fase que ya tiene aplicada.
+          {{ 'DIET_TEMPLATES.ESTO_ES_LA_PLANTILLA_LOS' | translate }}
         </span>
         <span *ngIf="kind === 'shared'">
-          Esto es la plantilla, y la comparten otros clientes: los cambios no tocan
-          la fase que {{ clientContextName }} ya tiene aplicada, pero sí lo que se
-          aplique a partir de ahora.
+          {{ 'DIET_TEMPLATES.ESTO_ES_LA_PLANTILLA_LA' | translate }} {{ clientContextName }} {{ 'DIET_TEMPLATES.YA_TIENE_APLICADA_PERO_SI' | translate }}
         </span>
         <span *ngIf="kind === 'assigned'">
-          Esto es lo que {{ clientContextName }} tiene aplicado ahora mismo — los
-          cambios no tocan ninguna plantilla de biblioteca, solo esta fase.
+          {{ 'DIET_TEMPLATES.ESTO_ES_LO_QUE' | translate }} {{ clientContextName }} {{ 'DIET_TEMPLATES.TIENE_APLICADO_AHORA_MISMO_LOS' | translate }}
         </span>
         <span *ngIf="kind === 'next-week'">
-          Contenido vigente con las cantidades escaladas. Retoca lo que quieras y guarda: si no
-          cambias nada, la semana repetirá lo actual.
+          {{ 'DIET_TEMPLATES.CONTENIDO_VIGENTE_CON_LAS_CANTIDADES' | translate }}
         </span>
       </p>
 
@@ -74,7 +70,7 @@
            desde aquí (mismo % a todos los alimentos, pisa los retoques a
            mano). -->
       <div class="next-week-kcal" *ngIf="kind === 'next-week'" appSubmitOnEnter="rescaleNextWeek">
-        <label class="next-week-kcal__label" for="next-week-kcal">kcal de la semana</label>
+        <label class="next-week-kcal__label" for="next-week-kcal">{{ 'DIET_TEMPLATES.KCAL_DE_LA_SEMANA' | translate }}</label>
         <div class="next-week-kcal__row">
           <input id="next-week-kcal" type="number" step="50" min="1" class="input-field" [(ngModel)]="nextWeekKcal" />
           <button
@@ -84,11 +80,11 @@
             (click)="rescaleNextWeek()"
             data-enter-submit-action="rescaleNextWeek"
           >
-            {{ rescaling ? 'Escalando…' : 'Reescalar' }}
+            {{ rescaling ? ('DIET_TEMPLATES.ESCALANDO' | translate) : ('DIET_TEMPLATES.REESCALAR' | translate) }}
           </button>
         </div>
         <p class="next-week-kcal__hint">
-          Pautado ahora: {{ nextWeekBaseKcal | number: '1.0-0' }} kcal de media diaria.
+          {{ 'DIET_TEMPLATES.PAUTADO_AHORA' | translate }}: {{ nextWeekBaseKcal | number: '1.0-0' }} {{ 'DIET_TEMPLATES.KCAL_DE_MEDIA_DIARIA' | translate }}
         </p>
       </div>
 
@@ -141,24 +137,24 @@
       <div class="client-context__prefs" *ngIf="kind === 'new' && (clientPreferences || clientSupplements.length)">
         <p class="ctx-chip ctx-chip--danger" *ngIf="clientPreferences?.allergies">
           <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
-          <span><b>Alergias</b> {{ clientPreferences?.allergies }}</span>
+          <span><b>{{ 'INTAKE.ALLERGIES_TITLE' | translate }}</b> {{ clientPreferences?.allergies }}</span>
         </p>
         <p class="ctx-chip ctx-chip--warning" *ngIf="clientPreferences?.dislikedFoods">
           <ion-icon name="thumbs-down-outline" aria-hidden="true"></ion-icon>
-          <span><b>No le gustan</b> {{ clientPreferences?.dislikedFoods }}</span>
+          <span><b>{{ 'DIET_TEMPLATES.NO_LE_GUSTAN' | translate }}</b> {{ clientPreferences?.dislikedFoods }}</span>
         </p>
         <p class="ctx-chip ctx-chip--success" *ngIf="clientPreferences?.favoriteFoods">
           <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
-          <span><b>Favoritos</b> {{ clientPreferences?.favoriteFoods }}</span>
+          <span><b>{{ 'DIET_TEMPLATES.FAVORITOS' | translate }}</b> {{ clientPreferences?.favoriteFoods }}</span>
         </p>
         <p class="ctx-chip ctx-chip--accent" *ngIf="clientPreferences?.dietaryFlags?.length">
           <ion-icon name="leaf-outline" aria-hidden="true"></ion-icon>
-          <span><b>Restricciones</b> {{ clientPreferences?.dietaryFlags?.join(', ') }}</span>
+          <span><b>{{ 'DIET_TEMPLATES.RESTRICCIONES' | translate }}</b> {{ clientPreferences?.dietaryFlags?.join(', ') }}</span>
         </p>
         <p class="ctx-chip ctx-chip--accent" *ngIf="clientSupplements.length">
           <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>
           <span>
-            <b>Suplementos</b>
+            <b>{{ 'COACH.SUPPLEMENTS' | translate }}</b>
             <span *ngFor="let supplement of clientSupplements; let last = last">
               {{ supplement.name }} ({{ supplement.dose }}){{ last ? '' : ', ' }}
             </span>
@@ -173,7 +169,7 @@
       <input
         type="text"
         class="input-field"
-        [placeholder]="isCreatingForClient ? 'Nombre de la dieta' : 'Nombre de la plantilla'"
+        [placeholder]="isCreatingForClient ? ('DIET_TEMPLATES.NOMBRE_DE_LA_DIETA' | translate) : ('DIET_TEMPLATES.NOMBRE_DE_LA_PLANTILLA' | translate)"
         [(ngModel)]="name"
       />
     </div>
@@ -183,7 +179,7 @@
          (productos sin el flag rellenado). Solo al editar una plantilla ya
          guardada. -->
     <div class="suitable-for" *ngIf="!isCreatingForClient && !isPreparingNextWeek">
-      <p class="section-hint">Apta para</p>
+      <p class="section-hint">{{ 'DIET_TEMPLATES.APTA_PARA' | translate }}</p>
       <div class="suitable-chips">
         <button
           type="button"
@@ -192,17 +188,16 @@
           [class.is-on]="isSuitable(opt.key)"
           [class.is-forced]="isForced(opt.key)"
           [class.is-locked]="suitableForDerived.includes(opt.key)"
-          [title]="suitableForDerived.includes(opt.key) ? 'Todos los alimentos lo cumplen' : 'Forzar a mano'"
+          [title]="suitableForDerived.includes(opt.key) ? ('DIET_TEMPLATES.TODOS_LOS_ALIMENTOS_LO_CUMPLEN_2' | translate) : ('DIET_TEMPLATES.FORZAR_MANO' | translate)"
           (click)="toggleSuitableOverride(opt.key)"
         >
           {{ opt.label }}
           <span *ngIf="suitableForDerived.includes(opt.key)">✓</span>
-          <span *ngIf="isForced(opt.key)">(forzada)</span>
+          <span *ngIf="isForced(opt.key)">{{ 'DIET_TEMPLATES.FORZADA' | translate }}</span>
         </button>
       </div>
       <p class="section-hint suitable-hint">
-        ✓ = todos los alimentos lo cumplen. "Forzada" = tú lo marcas pese a
-        alimentos sin ese dato. Se usa en el filtro del cajón de sugerencias.
+        {{ 'DIET_TEMPLATES.TODOS_LOS_ALIMENTOS_LO_CUMPLEN' | translate }}
       </p>
     </div>
 
@@ -210,7 +205,7 @@
          cliente marca cada día cuál le toca. No hay secuencia Día 1..N ni
          patrones atados al día de la semana. -->
     <p class="section-hint mode-hint">
-      El cliente marcará cada día cuál de estos menús le toca (p. ej. "Entrenamiento" / "Descanso").
+      {{ 'DIET_TEMPLATES.EL_CLIENTE_MARCARA_CADA_DIA' | translate }}
     </p>
     <p class="empty-hint" *ngIf="!activeRows.length">
       {{ emptyRowsHint }}
@@ -220,7 +215,7 @@
          dos menús indistinguibles en su app. Bloquea guardar. -->
     <p class="empty-hint duplicate-hint" *ngIf="duplicateMenuNamesWarning">
       <ion-icon name="alert-circle-outline"></ion-icon>
-      Hay menús con el mismo nombre: {{ duplicateMenuNamesWarning }}. El cliente los elige por su nombre.
+      {{ 'DIET_TEMPLATES.HAY_MENUS_CON_EL_MISMO' | translate }}: {{ duplicateMenuNamesWarning }}{{ 'DIET_TEMPLATES.EL_CLIENTE_LOS_ELIGE_POR' | translate }}
     </p>
 
     <!-- TAREA5 (auditoría UX, Fase C) — tablero: menús en columnas, comidas
@@ -257,8 +252,8 @@
                 <button
                   type="button"
                   class="board-day-action board-day-action--danger"
-                  [attr.aria-label]="'Eliminar menú'"
-                  [title]="'Eliminar menú'"
+                  [attr.aria-label]="('DIET_TEMPLATES.ELIMINAR_MENU' | translate)"
+                  [title]="('DIET_TEMPLATES.ELIMINAR_MENU' | translate)"
                   (click)="removeRow(d)"
                 >
                   <ion-icon name="trash-outline"></ion-icon>
@@ -267,8 +262,8 @@
                   type="button"
                   class="board-day-action"
                   *ngIf="rowHasFood(row)"
-                  [attr.aria-label]="'Copiar menú'"
-                  [title]="'Copiar menú'"
+                  [attr.aria-label]="('DIET_TEMPLATES.COPIAR_MENU' | translate)"
+                  [title]="('DIET_TEMPLATES.COPIAR_MENU' | translate)"
                   (click)="copyDay(d, $event)"
                 >
                   <ion-icon name="copy-outline"></ion-icon>
@@ -278,8 +273,8 @@
                 type="button"
                 class="board-day-action board-day-action--paste"
                 *ngIf="copyingDay && !isDayClipboardSource(d)"
-                title="Pegar aquí"
-                aria-label="Pegar aquí"
+                [title]="'DIET_TEMPLATES.PEGAR_AQUI' | translate"
+                [attr.aria-label]="'DIET_TEMPLATES.PEGAR_AQUI' | translate"
                 (click)="pasteDay(d, $event)"
               >
                 <ion-icon name="clipboard-outline"></ion-icon>
@@ -289,7 +284,7 @@
         </div>
 
         <ng-container *ngFor="let slot of mealSlots; let s = index; trackBy: trackByIndex">
-          <div class="board-slot-header">{{ slot }}</div>
+          <div class="board-slot-header">{{ slot | translateDb }}</div>
           <button
             type="button"
             class="board-cell"
@@ -307,7 +302,7 @@
             (drop)="onCellDrop(d, s, $event)"
             (click)="openMealEditor(d, s)"
           >
-            <span class="board-cell-summary" *ngIf="!mealHasFood(row.meals[s])">Vacía</span>
+            <span class="board-cell-summary" *ngIf="!mealHasFood(row.meals[s])">{{ 'DIET_TEMPLATES.VACIA' | translate }}</span>
 
             <!-- Contenido real de la celda: cada alternativa con sus
                  alimentos (nombre + gramos) y sus macros. Con 2+ alternativas
@@ -341,8 +336,8 @@
                 <button
                   type="button"
                   class="board-cell-action board-cell-action--danger"
-                  title="Vaciar comida"
-                  aria-label="Vaciar comida"
+                  [title]="'DIET_TEMPLATES.VACIAR_COMIDA' | translate"
+                  [attr.aria-label]="'DIET_TEMPLATES.VACIAR_COMIDA' | translate"
                   (click)="clearCell(d, s, $event)"
                 >
                   <ion-icon name="trash-outline"></ion-icon>
@@ -350,8 +345,8 @@
                 <button
                   type="button"
                   class="board-cell-action"
-                  title="Copiar a otro hueco"
-                  aria-label="Copiar a otro hueco"
+                  [title]="'DIET_TEMPLATES.COPIAR_OTRO_HUECO' | translate"
+                  [attr.aria-label]="'DIET_TEMPLATES.COPIAR_OTRO_HUECO' | translate"
                   (click)="copyCell(d, s, $event)"
                 >
                   <ion-icon name="copy-outline"></ion-icon>
@@ -361,8 +356,8 @@
                 type="button"
                 class="board-cell-action board-cell-action--paste"
                 *ngIf="copyingMeal && !isClipboardSource(d, s)"
-                title="Pegar aquí"
-                aria-label="Pegar aquí"
+                [title]="'DIET_TEMPLATES.PEGAR_AQUI' | translate"
+                [attr.aria-label]="'DIET_TEMPLATES.PEGAR_AQUI' | translate"
                 (click)="pasteCell(d, s, $event)"
               >
                 <ion-icon name="clipboard-outline"></ion-icon>
@@ -375,7 +370,7 @@
              primera alternativa de cada comida (la que rige cuando no hay
              elección) — misma fila del tablero, así queda justo debajo de
              lo que se está diseñando en esa columna. -->
-        <div class="board-totals-header">Totales</div>
+        <div class="board-totals-header">{{ 'DIET_TEMPLATES.TOTALES' | translate }}</div>
         <div
           class="board-day-totals"
           *ngFor="let row of activeRows; trackBy: trackByIndex"
@@ -431,7 +426,7 @@
             </div>
           </ng-container>
           <ng-template #emptyTotals>
-            <span class="totals-empty">Sin alimentos</span>
+            <span class="totals-empty">{{ 'DIET_TEMPLATES.SIN_ALIMENTOS' | translate }}</span>
           </ng-template>
         </div>
       </div>
@@ -439,11 +434,11 @@
 
     <button type="button" class="add-alternative-btn" (click)="addRow()" [disabled]="copyMode || activeRows.length >= activeRowsLimit">
       <ion-icon name="add-outline"></ion-icon>
-      Añadir menú
+      {{ 'DIET_TEMPLATES.ANADIR_MENU' | translate }}
     </button>
 
     <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()" data-enter-submit-action="saveDiet">
-      <span *ngIf="!isSaving">{{ isPreparingNextWeek ? ('Preparar S' + nextWeekNumber) : (isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla')) }}</span>
+      <span *ngIf="!isSaving">{{ isPreparingNextWeek ? (('DIET_TEMPLATES.PREPARAR' | translate) + nextWeekNumber) : (isCreatingForClient ? ('DIET_TEMPLATES.CREAR_ASIGNAR' | translate) : (isEditingAssignedCopy ? ('DIET_TEMPLATES.GUARDAR_CAMBIOS' | translate) : ('DIET_TEMPLATES.GUARDAR_PLANTILLA' | translate))) }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </ng-container>
@@ -454,20 +449,20 @@
      tablero con el panel abierto. El contenedor se traslada al body al
      montar (ngAfterViewInit) para que el fixed no lo capture ion-content. -->
 <div class="clipboard-portal" #clipboardHost>
-  <aside class="clipboard-panel" *ngIf="clipboard as clip" role="complementary" aria-label="Portapapeles">
+  <aside class="clipboard-panel" *ngIf="clipboard as clip" role="complementary" [attr.aria-label]="'DIET_TEMPLATES.PORTAPAPELES' | translate">
     <header class="clipboard-panel__header">
       <div class="clipboard-panel__head">
         <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
-        <span>{{ clip.kind === 'day' ? 'Menú copiado' : 'Comida copiada' }}</span>
+        <span>{{ clip.kind === 'day' ? ('DIET_TEMPLATES.MENU_COPIADO' | translate) : ('DIET_TEMPLATES.COMIDA_COPIADA' | translate) }}</span>
       </div>
-      <button type="button" class="clipboard-panel__close" (click)="clearClipboard()" aria-label="Cancelar copia">
+      <button type="button" class="clipboard-panel__close" (click)="clearClipboard()" [attr.aria-label]="'DIET_TEMPLATES.CANCELAR_COPIA' | translate">
         <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
       </button>
     </header>
     <p class="clipboard-panel__label">{{ clip.label }}</p>
     <p class="clipboard-panel__hint">
-      Pulsa <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
-      en {{ clip.kind === 'day' ? 'otro menú' : 'otra comida' }} para pegar.
+      {{ 'DIET_TEMPLATES.PULSA' | translate }} <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+      {{ 'TRAINER_MISC.EN' | translate }} {{ clip.kind === 'day' ? ('DIET_TEMPLATES.OTRO_MENU' | translate) : ('TRAINER_MISC.ANOTHER_MEAL' | translate) }} {{ 'TRAINER_MISC.PARA_PEGAR' | translate }}
     </p>
 
     <div class="clipboard-panel__body">
@@ -497,7 +492,7 @@
       <!-- Día: una línea por comida con contenido. -->
       <ng-container *ngIf="clip.kind === 'day'">
         <div class="clipboard-meal" *ngFor="let meal of clipboardMeals; trackBy: trackByIndex">
-          <span class="clipboard-meal__slot">{{ meal.slot }}</span>
+          <span class="clipboard-meal__slot">{{ meal.slot | translateDb }}</span>
           <span class="clipboard-meal__summary">{{ mealSummary(meal) }}</span>
           <span class="clipboard-meal__kcal" *ngIf="alternativeTotals(meal.alternatives[0]) as t">
             {{ t.kcal | number: '1.0-0' }} kcal
@@ -508,7 +503,7 @@
 
     <button type="button" class="clipboard-panel__cancel" (click)="clearClipboard()">
       <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
-      Cancelar
+      {{ 'COMMON.CANCEL' | translate }}
     </button>
   </aside>
 </div>

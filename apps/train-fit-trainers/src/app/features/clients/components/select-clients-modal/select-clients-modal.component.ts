@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -20,6 +21,8 @@ type ViewState = 'loading' | 'error' | 'loaded';
   styleUrls: ['select-clients-modal.component.scss'],
 })
 export class SelectClientsModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public excludeClientId?: string;
   // Fase 3 Coach Pro — pasa a ser OPCIONAL. Los tres consumidores originales
   // (rutinas, comidas, objetivos) siguen pasándolo y filtrando igual; el
@@ -27,7 +30,7 @@ export class SelectClientsModalComponent implements OnInit {
   // porque una regla sobre el peso vale tanto para un cliente de nutrición
   // como para uno de entrenamiento.
   @Input() public requiredScope?: TrainerClientScope;
-  @Input() public title = 'Aplicar a otros clientes';
+  @Input() public title = this.translate.instant('CLIENTS.APLICAR_OTROS_CLIENTES');
   // Fase 3 Coach Pro — permite reabrir el selector con lo ya elegido en vez
   // de empezar de cero cada vez que se edita una regla.
   @Input() public preselectedIds: string[] = [];
@@ -99,7 +102,7 @@ export class SelectClientsModalComponent implements OnInit {
   }
 
   public fullName(client: TrainerClientSummary): string {
-    if (!client.user) return 'Cliente';
+    if (!client.user) return this.translate.instant('TRAINER_COMMON.CLIENT');
     return `${client.user.name} ${client.user.lastname}`.trim();
   }
 

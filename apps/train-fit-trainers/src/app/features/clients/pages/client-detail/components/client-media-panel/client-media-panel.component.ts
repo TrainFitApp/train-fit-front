@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { FormCheckView } from 'src/app/core/models/media';
 import { MediaApiService } from 'src/app/core/services/media/media-api.service';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 /**
  * Ficha de cliente › Progreso › Fotos y vídeos (docs/plan-medidas-multimedia.md):
@@ -52,7 +53,7 @@ export class ClientMediaPanelComponent implements OnChanges {
   }
 
   public dateLabel(date: string): string {
-    return new Date(`${date}T12:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    return new Date(`${date}T12:00:00`).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short' });
   }
 
   public trackCheck(_index: number, check: FormCheckView): string {

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications, LocalNotificationSchema, Schedule, Channel } from '@capacitor/local-notifications';
 import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
@@ -24,7 +25,7 @@ export class NotificationService {
   private readonly REST_TIMER_NOTIFICATION_ID = 999999;
   private cachedSettings: NotificationSettings | null = null;
 
-  constructor() {}
+  constructor(private translate: TranslateService) {}
 
   public async initialize(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
@@ -42,8 +43,8 @@ export class NotificationService {
     try {
       const channel: Channel = {
         id: this.CHANNEL_ID,
-        name: 'Recordatorio de peso',
-        description: 'Notificaciones para recordar registrar tu peso',
+        name: this.translate.instant('LOCAL_NOTIFICATIONS.WEIGHT_CHANNEL'),
+        description: this.translate.instant('LOCAL_NOTIFICATIONS.WEIGHT_CHANNEL_DESC'),
         importance: 4,
         vibration: true,
         lights: true,
@@ -59,8 +60,8 @@ export class NotificationService {
     try {
       const channel: Channel = {
         id: this.REST_TIMER_CHANNEL_ID,
-        name: 'Descanso entre series',
-        description: 'Avisa cuando termina el descanso pautado de una serie',
+        name: this.translate.instant('LOCAL_NOTIFICATIONS.REST_CHANNEL'),
+        description: this.translate.instant('LOCAL_NOTIFICATIONS.REST_CHANNEL_DESC'),
         importance: 4,
         vibration: true,
         lights: true,
@@ -80,7 +81,7 @@ export class NotificationService {
           {
             id: this.REST_TIMER_NOTIFICATION_ID,
             title: 'TrainFit',
-            body: '¡Descanso terminado! Hora de la siguiente serie.',
+            body: this.translate.instant('LOCAL_NOTIFICATIONS.REST_DONE'),
             schedule: { at: new Date(Date.now() + seconds * 1000), allowWhileIdle: true },
             channelId: this.REST_TIMER_CHANNEL_ID,
           },
@@ -168,7 +169,7 @@ export class NotificationService {
 
     const { hour, minute, frequency, weekday, intervalDays } = settings;
     const title = 'TrainFit';
-    const body = '¡No olvides registrar tu peso hoy!';
+    const body = this.translate.instant('LOCAL_NOTIFICATIONS.WEIGHT_REMINDER');
 
     if (frequency === 'daily') {
       const schedule: Schedule = {

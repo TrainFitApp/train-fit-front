@@ -1,3 +1,5 @@
+import { localizeProp } from '../i18n/localized-catalog';
+
 // MVP-trainers F17 — catálogo cerrado de campos de check-in.
 // Espejo EXACTO de train-fit-back/components/trainerCheckins/checkin-field-catalog.js
 // (backend) — mantenidos sincronizados a mano, ver modelos-de-datos/04-catalogo-campos-checkin.md, sección 10.
@@ -299,6 +301,14 @@ export const CHECKIN_FIELDS: CheckinField[] = [
     hint: "Mismo sitio, misma luz y a la misma hora. En ayunas y con la misma ropa. Móvil a la altura del ombligo, a unos 2 metros.",
   },
 ];
+
+// Etiquetas, pistas y anclas se muestran en el idioma del usuario
+// (CHECKIN_FIELDS.<key>.* en i18n); el español de arriba es el respaldo.
+for (const field of CHECKIN_FIELDS) {
+  localizeProp(field, 'label', `CHECKIN_FIELDS.${field.key}.LABEL`);
+  localizeProp(field, 'hint', `CHECKIN_FIELDS.${field.key}.HINT`);
+  localizeProp(field, 'anchors', `CHECKIN_FIELDS.${field.key}.ANCHORS`);
+}
 
 export const CHECKIN_FIELD_KEYS = CHECKIN_FIELDS.map((f) => f.key);
 export const CHECKIN_FIELDS_BY_KEY = new Map(CHECKIN_FIELDS.map((f) => [f.key, f]));

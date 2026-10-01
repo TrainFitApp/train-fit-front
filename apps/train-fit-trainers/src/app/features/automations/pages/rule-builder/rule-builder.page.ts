@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -43,6 +44,8 @@ const MAX_ACTIONS = 3;
   styleUrls: ['rule-builder.page.scss'],
 })
 export class RuleBuilderPage implements OnInit, PendingChangesComponent {
+  private readonly translate = inject(TranslateService);
+
   public readonly levels = RULE_LEVELS;
   public readonly triggers = RULE_TRIGGERS;
   public readonly groupLabels = RULE_GROUP_LABELS;
@@ -262,25 +265,25 @@ export class RuleBuilderPage implements OnInit, PendingChangesComponent {
   // --- Guardar ---
 
   public get validationError(): string | null {
-    if (!this.name.trim()) return 'Ponle un nombre al aviso automatizado.';
-    if (!this.conditions.length) return 'Añade al menos una condición.';
+    if (!this.name.trim()) return this.translate.instant('AUTOMATIONS.PONLE_UN_NOMBRE_AL_AVISO');
+    if (!this.conditions.length) return this.translate.instant('AUTOMATIONS.ANADE_AL_MENOS_UNA_CONDICION');
     if (this.conditions.some((c) => !c.metric || !c.operator)) {
-      return 'Completa todas las condiciones.';
+      return this.translate.instant('AUTOMATIONS.COMPLETA_TODAS_LAS_CONDICIONES');
     }
     if (this.conditions.some((c) => !Number.isFinite(Number(c.value)))) {
-      return 'Cada condición necesita un valor numérico.';
+      return this.translate.instant('AUTOMATIONS.CADA_CONDICION_NECESITA_UN_VALOR');
     }
     if (!this.alertAction?.message.trim()) {
-      return 'Escribe el aviso que quieres recibir.';
+      return this.translate.instant('AUTOMATIONS.ESCRIBE_EL_AVISO_QUE_QUIERES');
     }
     if (this.hasTaskAction && !this.actions.find((a) => a.type === 'create_task')?.message.trim()) {
-      return 'Escribe el título de la tarea.';
+      return this.translate.instant('AUTOMATIONS.ESCRIBE_EL_TITULO_DE_LA');
     }
     if (this.levelNeedsTask) {
-      return 'Ese nivel necesita una tarea. Añádela o cambia a "Solo informar".';
+      return this.translate.instant('AUTOMATIONS.ESE_NIVEL_NECESITA_UNA_TAREA');
     }
     if (this.appliesTo === 'selected' && !this.clientIds.length) {
-      return 'Elige a qué clientes se aplica.';
+      return this.translate.instant('AUTOMATIONS.ELIGE_QUE_CLIENTES_SE_APLICA');
     }
     return null;
   }
@@ -333,7 +336,7 @@ export class RuleBuilderPage implements OnInit, PendingChangesComponent {
       },
       error: (error) => {
         this.isSaving = false;
-        void this.ionicUtilService.showErrorToast(error, 'No se pudo guardar el aviso automatizado');
+        void this.ionicUtilService.showErrorToast(error, this.translate.instant('AUTOMATIONS.NO_SE_PUDO_GUARDAR_EL'));
       },
     });
   }

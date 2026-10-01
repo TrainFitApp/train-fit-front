@@ -1,4 +1,4 @@
-<ol class="feed" aria-label="Historial de nutrición">
+<ol class="feed" [attr.aria-label]="'CLIENTS.HISTORIAL_DE_NUTRICION' | translate">
   <li
     class="feed-item"
     *ngFor="let event of events; trackBy: trackByEvent"
@@ -8,19 +8,19 @@
     <!-- Fase: empieza / termina -->
     <ng-container *ngIf="event.type === 'phase_started'">
       <div class="feed-item__head">
-        <span class="feed-item__title">Empieza la fase «{{ phaseLabel(event) }}»</span>
-        <span class="feed-item__date">{{ event.date | date: 'd MMM y' }}</span>
+        <span class="feed-item__title">{{ 'CLIENTS.EMPIEZA_LA_FASE' | translate }}{{ phaseLabel(event) }}»</span>
+        <span class="feed-item__date">{{ event.date | localDate: 'd MMM y' }}</span>
       </div>
     </ng-container>
 
     <ng-container *ngIf="event.type === 'phase_ended'">
       <div class="feed-item__head">
-        <span class="feed-item__title">Termina la fase «{{ phaseLabel(event) }}»</span>
-        <span class="feed-item__date">{{ event.date | date: 'd MMM y' }}</span>
+        <span class="feed-item__title">{{ 'CLIENTS.TERMINA_LA_FASE' | translate }}{{ phaseLabel(event) }}»</span>
+        <span class="feed-item__date">{{ event.date | localDate: 'd MMM y' }}</span>
       </div>
       <p class="feed-item__subtitle">
-        {{ event.status === 'superseded' ? 'Sustituida por otra fase' : 'Finalizada' }}
-        · {{ event.weeksCount }} semana{{ event.weeksCount === 1 ? '' : 's' }}
+        {{ event.status === 'superseded' ? ('CLIENT_DETAIL.PHASE_SUPERSEDED' | translate) : ('CLIENT_DETAIL.PHASE_ENDED' | translate) }}
+        · {{ event.weeksCount }} {{ (event.weeksCount === 1 ? 'TRAINER_COMMON.PL_WEEK_ONE' : 'TRAINER_COMMON.PL_WEEK_MANY') | translate }}
       </p>
     </ng-container>
 
@@ -30,7 +30,7 @@
       class="week"
       *ngIf="event.type === 'week'"
       (click)="requestOpen(event)"
-      [attr.aria-label]="'Ver resumen de S' + event.number"
+      [attr.aria-label]="('CLIENTS.VER_RESUMEN_DE' | translate) + event.number"
     >
       <div class="feed-item__head">
         <span class="feed-item__title">
@@ -39,14 +39,14 @@
           <span [class]="'week__status week__status--' + event.status">{{ statusLabel(event.status) }}</span>
         </span>
         <span class="feed-item__date">
-          {{ event.start | date: 'd MMM' }} → {{ event.end | date: 'd MMM y' }}
-          <ng-container *ngIf="event.truncated"> · cortado</ng-container>
+          {{ event.start | localDate: 'd MMM' }} → {{ event.end | localDate: 'd MMM y' }}
+          <ng-container *ngIf="event.truncated"> {{ 'CLIENTS.CORTADO' | translate }}</ng-container>
         </span>
       </div>
 
       <dl class="week__facts">
         <div class="week__fact">
-          <dt>Pautado</dt>
+          <dt>{{ 'CLIENTS.PAUTADO' | translate }}</dt>
           <dd>
             {{ event.profile.kcal | number: '1.0-0' }} kcal
             <span class="week__delta" *ngIf="kcalDeltaLabel(event) as delta">{{ delta }}</span>
@@ -64,18 +64,18 @@
           </dd>
         </div>
         <div class="week__fact">
-          <dt>Adherencia</dt>
+          <dt>{{ 'CLIENTS.ADHERENCIA' | translate }}</dt>
           <dd *ngIf="event.adherencePct !== null; else noAdherence">
             {{ event.adherencePct }} %
-            <span class="week__muted">· {{ event.adherenceDays }}/{{ event.periodDays }} días</span>
+            <span class="week__muted">· {{ event.adherenceDays }}/{{ event.periodDays }} {{ 'CLIENTS.DIAS_2' | translate }}</span>
           </dd>
-          <ng-template #noAdherence><dd class="week__muted">Sin registros</dd></ng-template>
+          <ng-template #noAdherence><dd class="week__muted">{{ 'CLIENTS.SIN_REGISTROS' | translate }}</dd></ng-template>
         </div>
         <div class="week__fact week__fact--wide" *ngIf="event.skippedDays.length">
-          <dt>Días saltados</dt>
+          <dt>{{ 'CLIENTS.DIAS_SALTADOS' | translate }}</dt>
           <dd>
             <span class="week__value" *ngFor="let date of event.skippedDays">
-              {{ date | date: 'd MMM' }}
+              {{ date | localDate: 'd MMM' }}
             </span>
           </dd>
         </div>

@@ -56,8 +56,10 @@
   @include media-ghost-button;
 }
 
-.add-button {
-  width: 100%;
+.add-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .videos-note {

@@ -1,7 +1,7 @@
 <div class="pain-panel">
   <div class="pain-header">
-    <h3 class="pain-title">Dolor</h3>
-    <span class="pain-period">Últimos {{ days }} días</span>
+    <h3 class="pain-title">{{ 'TRAINER_COMMON.PAIN' | translate }}</h3>
+    <span class="pain-period">{{ 'CLIENTS.ULTIMOS' | translate }} {{ days }} {{ 'CLIENTS.DIAS_2' | translate }}</span>
   </div>
 
   <div class="panel-skeleton" *ngIf="state === 'loading'">
@@ -9,14 +9,13 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo cargar el registro de dolor.</p>
-    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'CLIENTS.NO_SE_PUDO_CARGAR_EL_8' | translate }}</p>
+    <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <p class="panel-empty" *ngIf="!summaries.length">
-      Este cliente no ha apuntado ninguna molestia en este periodo. Puedes fijar umbrales por
-      adelantado en una zona que quieras vigilar.
+      {{ 'CLIENTS.ESTE_CLIENTE_NO_HA_APUNTADO' | translate }}
     </p>
 
     <div class="pain-list" *ngIf="summaries.length">
@@ -32,7 +31,7 @@
               {{ summary.worst }}<span class="pain-worst-max">/10</span>
             </span>
             <span class="pain-trend" *ngIf="trendFor(summary) as trend" [attr.data-trend]="trend">
-              {{ trend === 'mejor' ? 'Va a mejor' : trend === 'peor' ? 'Va a peor' : 'Igual' }}
+              {{ trend === 'mejor' ? ('CLIENTS.VA_MEJOR' | translate) : trend === 'peor' ? ('CLIENTS.VA_PEOR' | translate) : ('CLIENTS.IGUAL' | translate) }}
             </span>
           </div>
 
@@ -42,14 +41,14 @@
               class="row-action"
               (click)="openThreshold(summary.zone, summary.threshold)"
             >
-              {{ summary.threshold ? 'Editar' : 'Fijar umbrales' }}
+              {{ summary.threshold ? ('TRAINER_COMMON.EDIT' | translate) : ('CLIENTS.FIJAR_UMBRALES' | translate) }}
             </button>
             <button
               type="button"
               class="row-action row-action--danger"
               *ngIf="summary.threshold"
               (click)="confirmRemoveThreshold(summary)"
-              [attr.aria-label]="'Quitar los umbrales de ' + summary.zone"
+              [attr.aria-label]="('CLIENTS.QUITAR_LOS_UMBRALES_DE' | translate) + summary.zone"
             >
               <ion-icon name="trash-outline"></ion-icon>
             </button>
@@ -59,11 +58,11 @@
         <!-- La frase del nivel máximo: "6" no dice lo mismo que "dolor
              moderado: me limita algunos movimientos". -->
         <p class="pain-detail" *ngIf="summary.lastDate">
-          Máximo: {{ labelFor(summary.worst) }} · último registro el
-          {{ summary.lastDate | date: 'd MMM' }}
+          {{ 'CLIENTS.MAXIMO' | translate }}: {{ labelFor(summary.worst) }} · {{ 'CLIENTS.ULTIMO_REGISTRO_EL' | translate }}
+          {{ summary.lastDate | localDate: 'd MMM' }}
         </p>
         <p class="pain-detail" *ngIf="!summary.lastDate">
-          Sin registros en este periodo.
+          {{ 'CLIENTS.SIN_REGISTROS_EN_ESTE_PERIODO' | translate }}
         </p>
         <p class="pain-note" *ngIf="summary.threshold?.note">{{ summary.threshold.note }}</p>
       </div>
@@ -76,7 +75,7 @@
       (click)="openThreshold(zonesWithoutRow[0], null)"
     >
       <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-      Fijar umbrales en otra zona
+      {{ 'CLIENTS.FIJAR_UMBRALES_EN_OTRA_ZONA' | translate }}
     </button>
   </ng-container>
 
@@ -84,17 +83,17 @@
   <div class="panel-backdrop" *ngIf="editingZone" (click)="closeThreshold()"></div>
   <div class="panel-sheet" *ngIf="editingZone">
     <div class="panel-handle"></div>
-    <h3 class="panel-title">Umbrales</h3>
+    <h3 class="panel-title">{{ 'CLIENTS.UMBRALES' | translate }}</h3>
 
     <div class="zone-select">
-      <label class="field-label" for="pain-zone">Zona</label>
+      <label class="field-label" for="pain-zone">{{ 'CLIENTS.ZONA' | translate }}</label>
       <ion-select
         id="pain-zone"
         class="tf-select"
         interface="popover"
         toggleIcon="chevron-down-outline"
         labelPlacement="stacked"
-        aria-label="Zona"
+        [attr.aria-label]="'CLIENTS.ZONA' | translate"
         [(ngModel)]="editingZone"
       >
         <ion-select-option *ngFor="let zone of zones" [value]="zone">{{ zone }}</ion-select-option>
@@ -102,13 +101,11 @@
     </div>
 
     <p class="panel-hint">
-      El cliente apunta su dolor de 0 a 10. Con dos números partes esa escala en tramos: hasta el
-      primero entrena con normalidad y desde el segundo para el ejercicio. Si queda hueco entre los
-      dos, en ese tramo sigue con cuidado (menos carga o menos rango).
+      {{ 'CLIENTS.EL_CLIENTE_APUNTA_SU_DOLOR' | translate }}
     </p>
 
     <div class="threshold-field">
-      <span class="field-label">Entrena con normalidad hasta</span>
+      <span class="field-label">{{ 'CLIENTS.ENTRENA_CON_NORMALIDAD_HASTA' | translate }}</span>
       <div class="level-picker">
         <button
           type="button"
@@ -126,7 +123,7 @@
     </div>
 
     <div class="threshold-field">
-      <span class="field-label">Parar el ejercicio a partir de</span>
+      <span class="field-label">{{ 'CLIENTS.PARAR_EL_EJERCICIO_PARTIR_DE' | translate }}</span>
       <div class="level-picker">
         <button
           type="button"
@@ -158,30 +155,28 @@
         <li *ngFor="let band of formBands; trackBy: trackByBand" [attr.data-kind]="band.kind">
           <span class="scale-dot" aria-hidden="true"></span>
           <strong>{{ bandRange(band) }}</strong>
-          {{ band.kind === 'normal' ? 'Entrena normal' : band.kind === 'caution' ? 'Sigue con cuidado' : 'Para el ejercicio' }}
+          {{ band.kind === 'normal' ? ('CLIENTS.ENTRENA_NORMAL' | translate) : band.kind === 'caution' ? ('CLIENTS.SIGUE_CON_CUIDADO' | translate) : ('CLIENTS.PARA_EL_EJERCICIO' | translate) }}
         </li>
       </ul>
       <p class="scale-note">
-        Por eso el nivel de parar siempre es mayor: si fuera igual o menor, un mismo dolor diría a la
-        vez «sigue» y «para». Los niveles que no encajan salen bloqueados; para subir el primero,
-        sube antes el de parar.
+        {{ 'CLIENTS.POR_ESO_EL_NIVEL_DE' | translate }}
       </p>
     </div>
 
     <div class="threshold-field">
-      <label class="field-label" for="pain-note">Nota para ti (opcional)</label>
+      <label class="field-label" for="pain-note">{{ 'CLIENTS.NOTA_PARA_TI_OPCIONAL' | translate }}</label>
       <textarea
         id="pain-note"
         class="note-field"
         rows="2"
         maxlength="300"
-        placeholder="Ej. sin press militar hasta que baje de 3"
+        [placeholder]="'CLIENTS.EJ_SIN_PRESS_MILITAR_HASTA' | translate"
         [(ngModel)]="formNote"
       ></textarea>
     </div>
 
     <button class="submit-button" (click)="saveThreshold()" [disabled]="isSaving">
-      <span *ngIf="!isSaving">Guardar</span>
+      <span *ngIf="!isSaving">{{ 'COMMON.SAVE' | translate }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </div>

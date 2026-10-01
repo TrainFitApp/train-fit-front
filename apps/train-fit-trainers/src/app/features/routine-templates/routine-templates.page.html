@@ -1,5 +1,5 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Plantillas de rutina"></app-page-header>
+  <app-page-header [title]="'ROUTINE_TEMPLATES.PLANTILLAS_DE_RUTINA' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="routine-templates-content" appScrollMemory="routine-templates">
@@ -7,7 +7,7 @@
     <p class="templates-hint">
       Crea una plantilla de rutina completa (microciclos, entrenamientos y ejercicios) con el
       mismo Planificador que usas con tus clientes, y aplícala luego a cualquiera de ellos desde
-      su ficha ("Asignar rutina" > "Usar plantilla").
+      su ficha ("Asignar rutina" > {{ 'ROUTINE_TEMPLATES.USAR_PLANTILLA' | translate }}
     </p>
 
     <div class="create-bar" appSubmitOnEnter="createTemplate">
@@ -16,7 +16,7 @@
         <input
           type="text"
           class="input-field"
-          placeholder="Rutina Hipertrofia 4 días"
+          [placeholder]="'ROUTINE_TEMPLATES.RUTINA_HIPERTROFIA_4_DIAS' | translate"
           [(ngModel)]="newName"
         />
       </div>
@@ -27,7 +27,7 @@
         (click)="createAndEdit()"
         data-enter-submit-action="createTemplate"
       >
-        <span *ngIf="!isCreating">Crear plantilla</span>
+        <span *ngIf="!isCreating">{{ 'ROUTINE_TEMPLATES.CREAR_PLANTILLA' | translate }}</span>
         <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
       </button>
     </div>
@@ -43,8 +43,8 @@
          está justo encima. -->
     <div class="state-message" *ngIf="!loading && templates.length === 0">
       <ion-icon name="calendar-outline"></ion-icon>
-      <h2>Todavía no tienes plantillas de rutina</h2>
-      <p>Crea la primera con el formulario de arriba para reutilizarla con cualquier cliente.</p>
+      <h2>{{ 'ROUTINE_TEMPLATES.TODAVIA_NO_TIENES_PLANTILLAS_DE' | translate }}</h2>
+      <p>{{ 'ROUTINE_TEMPLATES.CREA_LA_PRIMERA_CON_EL' | translate }}</p>
     </div>
 
     <div class="templates-grid" *ngIf="!loading && templates.length > 0">
@@ -58,13 +58,13 @@
         </div>
 
         <div class="template-meta">
-          <span>{{ microcyclesCount(template) }} microciclos</span>
-          <span>{{ workoutsCount(template) }} entrenamientos</span>
+          <span>{{ microcyclesCount(template) }} {{ 'ROUTINE_TEMPLATES.MICROCICLOS' | translate }}</span>
+          <span>{{ workoutsCount(template) }} {{ 'ROUTINE_TEMPLATES.ENTRENAMIENTOS' | translate }}</span>
         </div>
 
         <div class="template-card-actions">
           <button type="button" class="danger-button" (click)="confirmDelete(template, $event)">
-            Borrar
+            {{ 'TRAINER_COMMON.ERASE' | translate }}
           </button>
         </div>
       </div>

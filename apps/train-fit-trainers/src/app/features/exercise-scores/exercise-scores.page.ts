@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Exercise } from 'src/app/core/models/exercise';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ExerciseScore, scoreFor } from 'src/app/core/constants/exercise-score';
@@ -36,6 +37,8 @@ interface ScoredExerciseRow {
   styleUrls: ['exercise-scores.page.scss'],
 })
 export class ExerciseScoresPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   public state: ViewState = 'loading';
   public rows: ScoredExerciseRow[] = [];
   public catalog: ScoreCatalog | null = null;
@@ -103,7 +106,7 @@ export class ExerciseScoresPage implements OnInit {
       score,
       // El nombre viene poblado por Mongoose cuando el ejercicio existe. Si
       // se borró del catálogo, la puntuación se queda huérfana y se dice.
-      name: (score as unknown as { exerciseId?: { name?: string } }).exerciseId?.name || 'Ejercicio borrado',
+      name: (score as unknown as { exerciseId?: { name?: string } }).exerciseId?.name || this.translate.instant('EXERCISE_SCORES.EJERCICIO_BORRADO'),
       topMuscles,
       hardestJoint,
     };
@@ -174,12 +177,12 @@ export class ExerciseScoresPage implements OnInit {
 
   public async confirmRemove(row: ScoredExerciseRow): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Quitar puntuación',
-      message: `¿Seguro que quieres borrar tu puntuación de "${row.name}"? El ejercicio sigue en la biblioteca.`,
+      header: this.translate.instant('EXERCISE_SCORES.QUITAR_PUNTUACION'),
+      message: this.translate.instant('EXERCISE_SCORES.SEGURO_QUE_QUIERES_BORRAR_TU', { name: row.name }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Borrar',
+          text: this.translate.instant('TRAINER_COMMON.ERASE'),
           cssClass: 'alert-button-danger',
           handler: () => this.remove(row),
         },
@@ -194,7 +197,7 @@ export class ExerciseScoresPage implements OnInit {
     this.exerciseScoresApi.remove(exerciseId).subscribe({
       next: () => this.loadScores(),
       error: () =>
-        this.ionicUtilService.showErrorToast('No se pudo borrar la puntuación', 'Error', 2500),
+        this.ionicUtilService.showErrorToast(this.translate.instant('EXERCISE_SCORES.NO_SE_PUDO_BORRAR_LA'), this.translate.instant('COMMON.ERROR'), 2500),
     });
   }
 

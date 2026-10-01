@@ -5,6 +5,7 @@ import { Set as ExerciseSet } from 'src/app/core/models/set';
 import { formatRirValue } from 'src/app/core/models/rir';
 import { MUSCLE_GROUPS } from 'src/app/core/constants/muscle-catalog';
 import { countMuscleTree, countSplitMuscleTree } from './planner-metrics';
+import { uiText } from 'src/app/core/i18n/localized-catalog';
 
 /**
  * Motor de comparación de dos microciclos (2026-09). Puro y sin
@@ -276,22 +277,22 @@ function buildChips(a: CustomExercise, b: CustomExercise): string[] {
 
   const setsA = a.sets?.length || 0;
   const setsB = b.sets?.length || 0;
-  if (setsA !== setsB) chips.push(`Series ${setsA} → ${setsB}`);
+  if (setsA !== setsB) chips.push(uiText('PLANNER.SERIES_3', { setsA, setsB }));
 
   const weightA = topWeight(a);
   const weightB = topWeight(b);
   if (weightA !== weightB) {
-    if (weightA === null) chips.push(`Peso → ${weightB} kg`);
-    else if (weightB === null) chips.push(`Peso ${weightA} kg → sin peso`);
+    if (weightA === null) chips.push(uiText('PLANNER.PESO_KG', { weightB }));
+    else if (weightB === null) chips.push(uiText('PLANNER.PESO_KG_SIN_PESO', { weightA }));
     else {
       const diff = weightB - weightA;
-      chips.push(`Peso ${diff > 0 ? '+' : '−'}${Math.abs(diff)} kg (${weightA} → ${weightB})`);
+      chips.push(uiText('PLANNER.PESO_KG_2', { p0: diff > 0 ? '+' : '−', p1: Math.abs(diff), weightA, weightB }));
     }
   }
 
-  pushIfChanged(chips, 'Reps', repsLabel(a), repsLabel(b));
+  pushIfChanged(chips, uiText('PLANNER.REPS'), repsLabel(a), repsLabel(b));
   pushIfChanged(chips, 'RIR', rirLabel(a), rirLabel(b));
-  pushIfChanged(chips, 'Descanso', restLabel(a), restLabel(b));
+  pushIfChanged(chips, uiText('PLANNER.DESCANSO'), restLabel(a), restLabel(b));
 
   // Las envolventes y el peso máximo pueden ocultar cambios en series intermedias.
   const signature = (exercise: CustomExercise) => JSON.stringify((exercise.sets || []).map((set) => [
@@ -299,9 +300,9 @@ function buildChips(a: CustomExercise, b: CustomExercise): string[] {
     set.restSeconds ?? null, set.expectedTime ?? null, set.expectedDistance ?? null,
     set.drop ?? false, set.restPause ?? null, set.dropSetSeries ?? [], set.restPauseSeries ?? [],
   ]));
-  if (!chips.length && signature(a) !== signature(b)) chips.push('Distribución de series modificada');
+  if (!chips.length && signature(a) !== signature(b)) chips.push(uiText('PLANNER.DISTRIBUCION_DE_SERIES_MODIFICADA'));
 
-  if ((a.notes || '').trim() !== (b.notes || '').trim()) chips.push('Nota del entrenador editada');
+  if ((a.notes || '').trim() !== (b.notes || '').trim()) chips.push(uiText('PLANNER.NOTA_DEL_ENTRENADOR_EDITADA'));
 
   return chips;
 }
@@ -331,7 +332,7 @@ function summarize(exercise: CustomExercise | null): PrescriptionSummary | null 
 
   const homogeneous = isHomogeneous(exercise);
   return {
-    label: sets.length ? `${homogeneous ? '' : '~'}${parts.join(' · ')}` : 'sin series',
+    label: sets.length ? `${homogeneous ? '' : '~'}${parts.join(' · ')}` : uiText('PLANNER.SIN_SERIES'),
     sets: sets.length,
     weight: weight || '—',
     reps: reps || '—',

@@ -167,8 +167,18 @@ export class ProductComponent implements OnInit, OnChanges {
     }
   }
 
+  // Mientras el día de esta fecha se está creando (lo estrena la primera
+  // escritura del buscador), ningún checkbox puede dispararse: la segunda
+  // escritura tiene que esperar a que el día exista, no pedir otro día para la
+  // misma fecha (ver DietDayService#trackDietDayCreation). En modo entrenador
+  // no aplica: ahí la dieta es la del cliente y esta pantalla no crea días.
   public get isBusy(): boolean {
-    return this.loading.value || this.actionLoading;
+    return (
+      this.loading.value ||
+      this.actionLoading ||
+      (!this.trainerMultiSelect &&
+        this.dietDayService.isCreatingDietDay(this.dietDay?.date))
+    );
   }
 
   // Pautado por el profesional en esta comida. Es de solo lectura: el

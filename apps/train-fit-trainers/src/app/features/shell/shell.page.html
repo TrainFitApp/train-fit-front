@@ -10,14 +10,14 @@
           type="button"
           class="collapse-toggle"
           (click)="toggleCollapsed()"
-          [attr.aria-label]="collapsed ? 'Expandir menú' : 'Contraer menú'"
+          [attr.aria-label]="collapsed ? ('SHELL.EXPANDIR_MENU' | translate) : ('SHELL.CONTRAER_MENU' | translate)"
           [attr.aria-expanded]="!collapsed"
         >
           <ion-icon [name]="collapsed ? 'chevron-forward-outline' : 'chevron-back-outline'" aria-hidden="true"></ion-icon>
         </button>
       </div>
 
-      <nav aria-label="Navegación principal" class="app-menu-nav">
+      <nav [attr.aria-label]="'SHELL.NAVEGACION_PRINCIPAL' | translate" class="app-menu-nav">
         <div class="menu-group" *ngFor="let group of menuGroups">
           <!-- Contraído el encabezado se sustituye por un separador: el texto
                no cabe, pero la separación entre grupos sí debe seguir viéndose. -->
@@ -47,9 +47,9 @@
       </nav>
 
       <div class="app-menu-footer">
-        <a class="footer-user" routerLink="/tabs/account" aria-label="Configuración" [attr.title]="collapsed ? 'Configuración' : null">
+        <a class="footer-user" routerLink="/tabs/account" [attr.aria-label]="'SHELL.CONFIGURACION' | translate" [attr.title]="collapsed ? ('SHELL.CONFIGURACION' | translate) : null">
           <span class="footer-user-avatar"><ion-icon name="person" aria-hidden="true"></ion-icon></span>
-          <span class="footer-user-label" *ngIf="!collapsed">Configuración</span>
+          <span class="footer-user-label" *ngIf="!collapsed">{{ 'SHELL.CONFIGURACION' | translate }}</span>
         </a>
       </div>
     </ion-content>

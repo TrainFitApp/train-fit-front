@@ -1,11 +1,11 @@
 <ion-header class="delete-header" mode="ios">
   <div class="delete-toolbar">
     <div class="toolbar-title-group">
-      <ion-title>Eliminar microciclos</ion-title>
+      <ion-title>{{ 'TABLES.DELETE_MICROCYCLES' | translate }}</ion-title>
     </div>
     <button
       class="close-action-button ripple-effect"
-      aria-label="Cerrar"
+      [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
       (click)="dismiss()"
     >
       <ion-icon name="close" color="primary"></ion-icon>
@@ -15,7 +15,7 @@
 
 <ion-content class="delete-content">
   <div class="selection-summary">
-    <strong>Selecciona los microciclos</strong>
+    <strong>{{ 'TABLES.SELECT_MICROCYCLES' | translate }}</strong>
     <span class="selection-chip" [class.has-selection]="selectedCount > 0">
       {{ selectedCount }}
       {{ selectedCount === 1 ? 'seleccionado' : 'seleccionados' }}
@@ -36,13 +36,13 @@
         mode="ios"
         class="split-checkbox"
         [checked]="isSelected(split._id)"
-        [attr.aria-label]="'Seleccionar microciclo ' + (index + 1)"
+        [attr.aria-label]="'TABLES.SELECT_MICROCYCLE_N' | translate: { n: index + 1 }"
         (click)="$event.stopPropagation()"
         (ionChange)="setSplitSelected(split._id, $event.detail.checked)"
       ></ion-checkbox>
 
       <div class="split-info">
-        <h2>Micro-ciclo {{ index + 1 }}</h2>
+        <h2>{{ 'TABLES.MICROCYCLE_N' | translate: { n: index + 1 } }}</h2>
         <span
           class="status-pill"
           [class.status-active]="containsActiveWorkout(split)"
@@ -73,6 +73,6 @@
     (click)="confirmSelection()"
   >
     <ion-icon name="trash-outline" slot="start"></ion-icon>
-    Eliminar ({{ selectedCount }})
+    {{ 'TABLES.DELETE_COUNT' | translate: { count: selectedCount } }}
   </ion-button>
 </ion-footer>

@@ -1,13 +1,24 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Hoy"></app-page-header>
+  <app-page-header [title]="'TRAINER_COMMON.TODAY' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="dashboard-content" appScrollMemory="dashboard">
+  <!-- Por revisar: lo que te han mandado tus clientes. Va antes que las
+       alertas porque es trabajo que ya está esperando, no un riesgo. -->
+  <button type="button" class="review-strip" *ngIf="reviewCounts?.total" (click)="openReviewQueue()">
+    <ion-icon name="file-tray-full-outline" class="review-strip__icon" aria-hidden="true"></ion-icon>
+    <span class="review-strip__text">
+      <strong>{{ reviewCounts?.total }} {{ 'DASHBOARD.POR_REVISAR' | translate }}</strong>
+      <span>{{ reviewSummary }}</span>
+    </span>
+    <span class="review-strip__cta">{{ 'DASHBOARD.ABRIR_BANDEJA' | translate }}<ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon></span>
+  </button>
+
   <!-- Barra de triaje: cuenta Y filtra. Sustituye a las 3 stat cards, que
        contaban sin llevar a ninguna parte. "Clientes activos" pasa aquí
        como contexto de la derecha, no como tarjeta propia. -->
   <div class="triage-bar" *ngIf="alertsState === 'loaded' && alerts.length">
-    <div class="triage-filters" role="group" aria-label="Filtrar alertas por prioridad">
+    <div class="triage-filters" role="group" [attr.aria-label]="'DASHBOARD.FILTRAR_ALERTAS_POR_PRIORIDAD' | translate">
       <button
         type="button"
         class="triage-chip"
@@ -16,7 +27,7 @@
         (click)="setAlertFilter('all')"
       >
         <ion-icon name="layers-outline" class="triage-chip__icon" aria-hidden="true"></ion-icon>
-        Todas
+        {{ 'TRAINER_COMMON.ALL_F' | translate }}
         <span class="triage-count">{{ alerts.length }}</span>
       </button>
       <button
@@ -28,27 +39,27 @@
         (click)="setAlertFilter('high')"
       >
         <ion-icon name="alert-circle-outline" class="triage-chip__icon" aria-hidden="true"></ion-icon>
-        Urgentes
+        {{ 'DASHBOARD.URGENTES' | translate }}
         <span class="triage-count">{{ highPriorityCount }}</span>
       </button>
     </div>
 
     <span class="triage-context" *ngIf="activeClientsCount !== null">
-      {{ activeClientsCount }} cliente{{ activeClientsCount === 1 ? '' : 's' }} activo{{ activeClientsCount === 1 ? '' : 's' }}
+      {{ activeClientsCount }} {{ (activeClientsCount === 1 ? 'TRAINER_COMMON.PL_CLIENT_ONE' : 'TRAINER_COMMON.PL_CLIENT_MANY') | translate }} {{ (activeClientsCount === 1 ? 'TRAINER_COMMON.PL_ACTIVE_ONE' : 'TRAINER_COMMON.PL_ACTIVE_MANY') | translate }}
     </span>
   </div>
 
   <!-- ---------- Requiere acción ---------- -->
   <section class="panel-card alerts-panel" id="alerts-section">
     <div class="panel-card-header">
-      <h2 class="panel-card-title">Requiere acción</h2>
+      <h2 class="panel-card-title">{{ 'DASHBOARD.REQUIERE_ACCION' | translate }}</h2>
       <button
         type="button"
         class="link-button"
         (click)="evaluateNow()"
         [disabled]="isEvaluating"
       >
-        {{ isEvaluating ? 'Revisando…' : 'Revisar ahora' }}
+        {{ isEvaluating ? ('DASHBOARD.REVISANDO' | translate) : ('DASHBOARD.REVISAR_AHORA' | translate) }}
       </button>
     </div>
 
@@ -60,21 +71,20 @@
 
     <div class="section-state" *ngIf="alertsState === 'error'">
       <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-      <p>No se pudieron cargar las alertas de tus clientes.</p>
-      <button type="button" class="retry-button" (click)="loadAlerts()">Reintentar</button>
+      <p>{{ 'DASHBOARD.NO_SE_PUDIERON_CARGAR_LAS' | translate }}</p>
+      <button type="button" class="retry-button" (click)="loadAlerts()">{{ 'COMMON.RETRY' | translate }}</button>
     </div>
 
     <!-- Estado vacío que EXPLICA el sistema: sin esto, un panel en blanco
          se lee como "está roto" en vez de "no hay nada que hacer". -->
     <div class="section-state section-state--calm" *ngIf="alertsState === 'loaded' && !alerts.length">
       <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
-      <p class="section-state__title">Ningún cliente necesita atención</p>
+      <p class="section-state__title">{{ 'DASHBOARD.NINGUN_CLIENTE_NECESITA_ATENCION' | translate }}</p>
       <p>
-        Cada madrugada se revisan el peso, las medidas, la adherencia y los check-ins de tus
-        clientes. Lo que necesite una decisión tuya aparecerá aquí.
+        {{ 'DASHBOARD.CADA_MADRUGADA_SE_REVISAN_EL' | translate }}
       </p>
       <button type="button" class="retry-button" (click)="evaluateNow()" [disabled]="isEvaluating">
-        {{ isEvaluating ? 'Revisando…' : 'Revisar ahora' }}
+        {{ isEvaluating ? ('DASHBOARD.REVISANDO' | translate) : ('DASHBOARD.REVISAR_AHORA' | translate) }}
       </button>
     </div>
 
@@ -84,9 +94,9 @@
       *ngIf="alertsState === 'loaded' && alerts.length && !filteredAlerts.length"
     >
       <ion-icon name="funnel-outline" aria-hidden="true"></ion-icon>
-      <p class="section-state__title">Nada urgente ahora mismo</p>
+      <p class="section-state__title">{{ 'DASHBOARD.NADA_URGENTE_AHORA_MISMO' | translate }}</p>
       <button type="button" class="retry-button" (click)="setAlertFilter('all')">
-        Ver las {{ alerts.length }} alertas
+        {{ 'DASHBOARD.VER_LAS' | translate }} {{ alerts.length }} {{ 'DASHBOARD.ALERTAS' | translate }}
       </button>
     </div>
 
@@ -96,7 +106,7 @@
           type="button"
           class="alert-main"
           (click)="openAlertClient(alert)"
-          [attr.aria-label]="'Abrir la ficha de ' + alert.clientName"
+          [attr.aria-label]="('DASHBOARD.ABRIR_LA_FICHA_DE' | translate) + alert.clientName"
         >
           <ion-icon
             [name]="alertIcon(alert)"
@@ -121,8 +131,8 @@
             type="button"
             class="alert-action"
             (click)="openTaskPanelFromAlert(alert, $event)"
-            [attr.aria-label]="'Crear una tarea a partir de la alerta de ' + alert.clientName"
-            title="Crear tarea"
+            [attr.aria-label]="('DASHBOARD.CREAR_UNA_TAREA_PARTIR_DE' | translate) + alert.clientName"
+            [title]="'DASHBOARD.CREAR_TAREA' | translate"
           >
             <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
           </button>
@@ -131,8 +141,8 @@
             class="alert-action alert-action--resolve"
             (click)="resolveAlert(alert, $event)"
             [disabled]="isResolving(alert)"
-            [attr.aria-label]="'Marcar como resuelta la alerta de ' + alert.clientName"
-            title="Marcar resuelta"
+            [attr.aria-label]="('DASHBOARD.MARCAR_COMO_RESUELTA_LA_ALERTA' | translate) + alert.clientName"
+            [title]="'DASHBOARD.MARCAR_RESUELTA' | translate"
           >
             <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
           </button>
@@ -146,15 +156,15 @@
       *ngIf="!showAllAlerts && hiddenAlertsCount > 0"
       (click)="showAllAlerts = true"
     >
-      Ver {{ hiddenAlertsCount }} alerta{{ hiddenAlertsCount === 1 ? '' : 's' }} más
+      {{ 'ONBOARDING.VIEW' | translate }} {{ hiddenAlertsCount }} {{ (hiddenAlertsCount === 1 ? 'TRAINER_COMMON.PL_ALERT_ONE' : 'TRAINER_COMMON.PL_ALERT_MANY') | translate }} {{ 'DASHBOARD.MAS' | translate }}
     </button>
   </section>
 
   <!-- ---------- Mis pendientes ---------- -->
   <section class="panel-card tasks-panel">
     <div class="panel-card-header">
-      <h2 class="panel-card-title">Mis pendientes</h2>
-      <button type="button" class="link-button" (click)="openTaskPanel()">Añadir</button>
+      <h2 class="panel-card-title">{{ 'DASHBOARD.MIS_PENDIENTES' | translate }}</h2>
+      <button type="button" class="link-button" (click)="openTaskPanel()">{{ 'TRAINER_COMMON.ADD' | translate }}</button>
     </div>
 
     <div class="alerts-skeleton" *ngIf="tasksState === 'loading'">
@@ -164,14 +174,14 @@
 
     <div class="section-state" *ngIf="tasksState === 'error'">
       <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-      <p>No se pudieron cargar tus pendientes.</p>
-      <button type="button" class="retry-button" (click)="loadTasks()">Reintentar</button>
+      <p>{{ 'DASHBOARD.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</p>
+      <button type="button" class="retry-button" (click)="loadTasks()">{{ 'COMMON.RETRY' | translate }}</button>
     </div>
 
     <div class="section-state section-state--calm" *ngIf="tasksState === 'loaded' && !tasks.length">
       <ion-icon name="checkbox-outline" aria-hidden="true"></ion-icon>
-      <p class="section-state__title">Sin pendientes</p>
-      <p>Anota aquí lo que tengas que hacer, o créalo directamente desde una alerta con el botón&nbsp;+.</p>
+      <p class="section-state__title">{{ 'DASHBOARD.SIN_PENDIENTES' | translate }}</p>
+      <p>{{ 'DASHBOARD.TODO_HINT' | translate }}&nbsp;+.</p>
     </div>
 
     <ul class="task-list" *ngIf="tasksState === 'loaded' && tasks.length">
@@ -180,7 +190,7 @@
           type="button"
           class="task-check"
           (click)="completeTask(task, $event)"
-          [attr.aria-label]="'Marcar como hecha: ' + task.title"
+          [attr.aria-label]="('DASHBOARD.MARCAR_COMO_HECHA' | translate) + task.title"
         >
           <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
         </button>
@@ -210,14 +220,14 @@
   <div class="dashboard-grid">
     <section class="panel-card activity-panel">
       <div class="panel-card-header">
-        <h2 class="panel-card-title">Actividad reciente</h2>
+        <h2 class="panel-card-title">{{ 'DASHBOARD.ACTIVIDAD_RECIENTE' | translate }}</h2>
         <button
           type="button"
           class="link-button"
           *ngIf="hasUnreadNotifications"
           (click)="markAllNotificationsRead()"
         >
-          Marcar leídas
+          {{ 'DASHBOARD.MARCAR_LEIDAS' | translate }}
         </button>
       </div>
 
@@ -228,8 +238,8 @@
 
       <div class="section-state" *ngIf="notificationsState === 'error'">
         <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-        <p>No se pudo cargar tu actividad reciente.</p>
-        <button type="button" class="retry-button" (click)="loadNotifications()">Reintentar</button>
+        <p>{{ 'DASHBOARD.NO_SE_PUDO_CARGAR_TU' | translate }}</p>
+        <button type="button" class="retry-button" (click)="loadNotifications()">{{ 'COMMON.RETRY' | translate }}</button>
       </div>
 
       <div
@@ -237,7 +247,7 @@
         *ngIf="notificationsState === 'loaded' && !notifications.length"
       >
         <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
-        <p>Aquí aparecerá lo que hagan tus clientes: aceptar invitaciones, responder check-ins o actualizar sus preferencias.</p>
+        <p>{{ 'DASHBOARD.AQUI_APARECERA_LO_QUE_HAGAN' | translate }}</p>
       </div>
 
       <button
@@ -251,25 +261,25 @@
         <div class="notification-info">
           <span class="notification-title">
             {{ notificationTitle(notification) }}
-            <span class="sr-only" *ngIf="!notification.read">(no leída)</span>
+            <span class="sr-only" *ngIf="!notification.read">{{ 'DASHBOARD.NO_LEIDA' | translate }}</span>
           </span>
-          <span class="notification-subtitle">{{ notification.createdAt | date: 'd MMM, HH:mm' }}</span>
+          <span class="notification-subtitle">{{ notification.createdAt | localDate: 'd MMM, HH:mm' }}</span>
         </div>
       </button>
     </section>
 
     <section class="panel-card payments-chart-card" *ngIf="paymentsSummary as payments; else paymentsChartFallback">
       <div class="panel-card-header payments-header">
-        <h2 class="panel-card-title">Cobros</h2>
+        <h2 class="panel-card-title">{{ 'TRAINER_COMMON.CHARGES' | translate }}</h2>
         <span class="payments-pending" [class.payments-pending--overdue]="payments.overdueCount > 0">
-          {{ euros(payments.pendingAmount) }} pendiente<ng-container *ngIf="payments.overdueCount > 0">, {{ payments.overdueCount }} vencido{{ payments.overdueCount === 1 ? '' : 's' }}</ng-container>
+          {{ euros(payments.pendingAmount) }} {{ 'DASHBOARD.PENDIENTE' | translate }}<ng-container *ngIf="payments.overdueCount > 0">, {{ payments.overdueCount }} {{ (payments.overdueCount === 1 ? 'DASHBOARD.OVERDUE_ONE' : 'DASHBOARD.OVERDUE_MANY') | translate }}</ng-container>
         </span>
       </div>
       <!-- Cobros 2026-09 — las barras suman lo que VENCE cada mes (previsto), no
            lo cobrado; lo recibido va en su propia línea, por fecha real. -->
       <p class="payments-basis">
-        Importe por vencimiento de cada mes<ng-container *ngIf="receivedThisMonth(payments) as received"> · recibido este mes {{ received }}</ng-container>
-        · <button type="button" class="link-button" (click)="goToPayments()">Ver cobros</button>
+        {{ 'DASHBOARD.IMPORTE_POR_VENCIMIENTO_DE_CADA' | translate }}<ng-container *ngIf="receivedThisMonth(payments) as received"> · {{ 'DASHBOARD.RECIBIDO_ESTE_MES' | translate }} {{ received }}</ng-container>
+        · <button type="button" class="link-button" (click)="goToPayments()">{{ 'DASHBOARD.VER_COBROS' | translate }}</button>
       </p>
       <div class="payments-chart">
         <div class="payments-bar-col" *ngFor="let point of payments.monthlySeries; last as isLast">
@@ -289,9 +299,9 @@
     </section>
     <ng-template #paymentsChartFallback>
       <section class="panel-card payments-chart-card">
-        <h2 class="panel-card-title">Cobros</h2>
-        <p class="empty-hint">No se pudo cargar la gráfica de cobros.</p>
-        <button type="button" class="link-button" (click)="goToPayments()">Ver cobros</button>
+        <h2 class="panel-card-title">{{ 'TRAINER_COMMON.CHARGES' | translate }}</h2>
+        <p class="empty-hint">{{ 'DASHBOARD.NO_SE_PUDO_CARGAR_LA' | translate }}</p>
+        <button type="button" class="link-button" (click)="goToPayments()">{{ 'DASHBOARD.VER_COBROS' | translate }}</button>
       </section>
     </ng-template>
   </div>
@@ -306,29 +316,29 @@
 <div class="panel-sheet" *ngIf="showTaskPanel" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title" appSubmitOnEnter="submitTask">
   <div class="panel-handle" aria-hidden="true"></div>
 
-  <h2 class="panel-title" id="task-sheet-title">Nueva tarea</h2>
-  <p class="panel-subtitle" *ngIf="taskClientName">Sobre {{ taskClientName }}</p>
+  <h2 class="panel-title" id="task-sheet-title">{{ 'DASHBOARD.NUEVA_TAREA' | translate }}</h2>
+  <p class="panel-subtitle" *ngIf="taskClientName">{{ 'DASHBOARD.SOBRE' | translate }} {{ taskClientName }}</p>
 
-  <label class="field-label" for="task-title">Qué hay que hacer</label>
+  <label class="field-label" for="task-title">{{ 'DASHBOARD.QUE_HAY_QUE_HACER' | translate }}</label>
   <div class="input-wrapper">
     <input
       id="task-title"
       class="input-field"
       type="text"
       maxlength="200"
-      placeholder="Revisar estrategia nutricional"
+      [placeholder]="'DASHBOARD.REVISAR_ESTRATEGIA_NUTRICIONAL' | translate"
       [(ngModel)]="taskTitle"
     />
   </div>
 
   <label class="field-label" for="task-due">
-    Para cuándo <span class="field-optional">(opcional)</span>
+    {{ 'DASHBOARD.PARA_CUANDO' | translate }} <span class="field-optional">{{ 'DASHBOARD.OPCIONAL' | translate }}</span>
   </label>
   <div class="input-wrapper">
     <app-date-field
       class="input-field"
       inputId="task-due"
-      placeholder="Sin fecha"
+      [placeholder]="'DASHBOARD.SIN_FECHA' | translate"
       pickerTitle="Para cuándo"
       [clearable]="true"
       [showIcon]="true"
@@ -337,9 +347,9 @@
   </div>
 
   <div class="panel-actions">
-    <button type="button" class="cancel-button" (click)="closeTaskPanel()">Cancelar</button>
+    <button type="button" class="cancel-button" (click)="closeTaskPanel()">{{ 'COMMON.CANCEL' | translate }}</button>
     <button type="button" class="submit-button" [disabled]="!canSubmitTask" (click)="submitTask()" data-enter-submit-action="submitTask">
-      <span *ngIf="!isSavingTask">Crear tarea</span>
+      <span *ngIf="!isSavingTask">{{ 'DASHBOARD.CREAR_TAREA' | translate }}</span>
       <ion-spinner name="dots" *ngIf="isSavingTask"></ion-spinner>
     </button>
   </div>

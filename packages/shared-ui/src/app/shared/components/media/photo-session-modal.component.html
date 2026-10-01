@@ -41,11 +41,10 @@
         <img class="pose-photo" [src]="photo.asset.thumbUrl || photo.asset.url" [alt]="('MEDIA.POSE_' + slot.pose.toUpperCase()) | translate" />
         <span class="pose-tag">{{ ('MEDIA.POSE_' + slot.pose.toUpperCase()) | translate }}</span>
         <div class="pose-actions">
-          <label class="pose-action">
-            <input type="file" accept="image/*" capture="environment" (change)="onFile(slot, $event)" [disabled]="slot.uploading" />
+          <button type="button" class="pose-action" (click)="takePhoto(slot)" [disabled]="slot.uploading">
             <ion-icon name="camera-reverse-outline"></ion-icon>
             <span>{{ 'MEDIA.RETAKE' | translate }}</span>
-          </label>
+          </button>
           <button type="button" class="pose-action pose-action--danger" (click)="remove(slot)" [disabled]="slot.uploading" [attr.aria-label]="'MEDIA.REMOVE_PHOTO' | translate">
             <ion-icon name="trash-outline"></ion-icon>
           </button>
@@ -67,11 +66,10 @@
             </span>
           </div>
           <div class="pose-pickers">
-            <label class="pose-picker pose-picker--primary">
-              <input type="file" accept="image/*" capture="environment" (change)="onFile(slot, $event)" [disabled]="slot.uploading" />
+            <button type="button" class="pose-picker pose-picker--primary" (click)="takePhoto(slot)" [disabled]="slot.uploading">
               <ion-icon name="camera-outline"></ion-icon>
               <span>{{ 'MEDIA.TAKE_PHOTO' | translate }}</span>
-            </label>
+            </button>
             <label class="pose-picker">
               <input type="file" accept="image/*" (change)="onFile(slot, $event)" [disabled]="slot.uploading" />
               <ion-icon name="images-outline"></ion-icon>

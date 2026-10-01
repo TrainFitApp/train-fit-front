@@ -1,13 +1,13 @@
 <!-- El canvas permanece disponible cuando llegan respuestas tras un estado vacío. -->
 <section class="history-chart" [hidden]="!series.length">
   <div class="history-chart__head">
-    <h3 class="history-chart__title">Evolución</h3>
-    <span class="history-chart__hint">{{ selected?.puntos?.length }} registros</span>
+    <h3 class="history-chart__title">{{ 'CLIENTS.EVOLUCION' | translate }}</h3>
+    <span class="history-chart__hint">{{ selected?.puntos?.length }} {{ 'CLIENTS.REGISTROS' | translate }}</span>
   </div>
 
   <!-- Un chip por campo con histórico. Solo salen los numéricos con dos o
        más registros: con uno no hay línea que trazar. -->
-  <div class="metric-picker" role="tablist" aria-label="Dato a representar">
+  <div class="metric-picker" role="tablist" [attr.aria-label]="'CLIENTS.DATO_REPRESENTAR' | translate">
     <button
       type="button"
       class="metric-chip"
@@ -27,6 +27,5 @@
 </section>
 
 <p class="empty-hint" *ngIf="!series.length">
-  Todavía no hay suficientes respuestas para dibujar una evolución. Hacen falta
-  al menos dos check-ins con el mismo dato.
+  {{ 'CLIENTS.TODAVIA_NO_HAY_SUFICIENTES_RESPUESTAS' | translate }}
 </p>

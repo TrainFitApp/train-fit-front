@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ isEdit ? 'Editar ejercicio' : 'Nuevo ejercicio' }}</h1>
+        <h1 class="tf-page-header__title">{{ isEdit ? ('EXERCISE_LIBRARY.EDITAR_EJERCICIO' | translate) : ('EXERCISE_LIBRARY.NUEVO_EJERCICIO' | translate) }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -16,13 +16,13 @@
 
 <ion-content class="exercise-form-content" [appSubmitOnEnter]="saveExerciseButton">
   <div class="field">
-    <label class="field-label" for="exercise-name">Nombre</label>
+    <label class="field-label" for="exercise-name">{{ 'TRAINER_COMMON.NAME' | translate }}</label>
     <div class="input-wrapper">
       <input
         id="exercise-name"
         type="text"
         class="input-field"
-        placeholder="Press banca con mancuernas"
+        [placeholder]="'EXERCISE_LIBRARY.PRESS_BANCA_CON_MANCUERNAS' | translate"
         maxlength="100"
         autocomplete="off"
         [(ngModel)]="name"
@@ -31,26 +31,26 @@
   </div>
 
   <div class="field">
-    <label class="field-label">Tipo</label>
+    <label class="field-label">{{ 'TRAINER_COMMON.TYPE' | translate }}</label>
     <ion-segment mode="ios" [(ngModel)]="mode">
       <ion-segment-button value="fuerza">
-        <ion-label>Fuerza</ion-label>
+        <ion-label>{{ 'EXERCISE_LIBRARY.FUERZA' | translate }}</ion-label>
       </ion-segment-button>
       <ion-segment-button value="cardio">
-        <ion-label>Cardio</ion-label>
+        <ion-label>{{ 'EXERCISE_LIBRARY.CARDIO' | translate }}</ion-label>
       </ion-segment-button>
       <ion-segment-button value="isometrico">
-        <ion-label>Isométrico</ion-label>
+        <ion-label>{{ 'EXERCISE_LIBRARY.ISOMETRICO' | translate }}</ion-label>
       </ion-segment-button>
     </ion-segment>
   </div>
 
   <div class="field">
-    <label class="field-label" for="exercise-description">Descripción</label>
+    <label class="field-label" for="exercise-description">{{ 'EXERCISE_LIBRARY.DESCRIPCION' | translate }}</label>
     <textarea
       id="exercise-description"
       class="note-field"
-      placeholder="Cómo ejecutarlo: una indicación por línea"
+      [placeholder]="'EXERCISE_LIBRARY.COMO_EJECUTARLO_UNA_INDICACION_POR' | translate"
       rows="3"
       [(ngModel)]="description"
     ></textarea>
@@ -61,8 +61,8 @@
   <section class="field video-field" [class.is-invalid]="videoUrlInvalid">
     <label class="video-field-head" for="exercise-video">
       <ion-icon name="logo-youtube" aria-hidden="true"></ion-icon>
-      <span class="video-field-title">Vídeo del ejercicio</span>
-      <span class="video-field-optional">Opcional</span>
+      <span class="video-field-title">{{ 'EXERCISE_LIBRARY.VIDEO_DEL_EJERCICIO' | translate }}</span>
+      <span class="video-field-optional">{{ 'TRAINER_COMMON.OPTIONAL' | translate }}</span>
     </label>
     <div class="input-wrapper video-input">
       <input
@@ -70,25 +70,23 @@
         type="url"
         inputmode="url"
         class="input-field"
-        placeholder="Pega el enlace de YouTube"
+        [placeholder]="'EXERCISE_LIBRARY.PEGA_EL_ENLACE_DE_YOUTUBE' | translate"
         autocomplete="off"
         [(ngModel)]="videoUrl"
         (ngModelChange)="onVideoUrlChange()"
         aria-describedby="exercise-video-help"
       />
-      <button type="button" class="input-clear" *ngIf="videoUrl" (click)="clearVideoUrl()" aria-label="Quitar enlace">
+      <button type="button" class="input-clear" *ngIf="videoUrl" (click)="clearVideoUrl()" [attr.aria-label]="'EXERCISE_LIBRARY.QUITAR_ENLACE' | translate">
         <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
       </button>
     </div>
     <p id="exercise-video-help" class="video-field-help" [class.is-error]="videoUrlInvalid">
-      {{ videoUrlInvalid
-        ? 'No es un enlace de YouTube válido. Usa youtube.com/watch?v=…, youtu.be/… o youtube.com/embed/…'
-        : 'youtube.com/watch?v=…, youtu.be/… o youtube.com/embed/…' }}
+      {{ (videoUrlInvalid ? 'TRAINER_MISC.YOUTUBE_INVALID' : 'TRAINER_MISC.YOUTUBE_HELP') | translate }}
     </p>
     <div class="video-preview" *ngIf="videoEmbedSrc">
       <iframe
         [src]="videoEmbedSrc"
-        title="Vista previa del vídeo"
+        [title]="'EXERCISE_LIBRARY.VISTA_PREVIA_DEL_VIDEO' | translate"
         frameborder="0"
         allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen
@@ -97,7 +95,7 @@
   </section>
 
   <div class="field">
-    <label class="field-label">Categorías</label>
+    <label class="field-label">{{ 'EXERCISE_LIBRARY.CATEGORIAS' | translate }}</label>
     <div class="chip-row">
       <button
         type="button"
@@ -106,7 +104,7 @@
         [class.is-active]="selectedCategories.includes(category)"
         (click)="toggle(selectedCategories, category)"
       >
-        {{ category }}
+        {{ category | translateDb }}
       </button>
     </div>
   </div>
@@ -117,17 +115,15 @@
        de hipertrofia. -->
   <section class="field muscle-field" *ngIf="mode !== 'cardio'" aria-labelledby="muscle-field-title">
     <div class="muscle-field-head">
-      <span id="muscle-field-title" class="field-label">Músculos y énfasis</span>
-      <ul class="role-legend" aria-label="Qué significa cada marca">
-        <li><span class="role-swatch role-swatch--primary" aria-hidden="true"></span>Principal ×1</li>
-        <li><span class="role-swatch role-swatch--secondary" aria-hidden="true"></span>Secundario ×0,5</li>
-        <li><span class="role-swatch role-swatch--stabilizer" aria-hidden="true"></span>Estabilizador</li>
+      <span id="muscle-field-title" class="field-label">{{ 'EXERCISE_LIBRARY.MUSCULOS_ENFASIS' | translate }}</span>
+      <ul class="role-legend" [attr.aria-label]="'EXERCISE_LIBRARY.QUE_SIGNIFICA_CADA_MARCA' | translate">
+        <li><span class="role-swatch role-swatch--primary" aria-hidden="true"></span>{{ 'EXERCISE_LIBRARY.PRINCIPAL_1' | translate }}</li>
+        <li><span class="role-swatch role-swatch--secondary" aria-hidden="true"></span>{{ 'EXERCISE_LIBRARY.SECUNDARIO_0_5' | translate }}</li>
+        <li><span class="role-swatch role-swatch--stabilizer" aria-hidden="true"></span>{{ 'EXERCISE_LIBRARY.ESTABILIZADOR' | translate }}</li>
       </ul>
     </div>
     <p class="field-help">
-      Toca un músculo para marcarlo; cada toque pasa al siguiente rol hasta quitarlo. Marca la
-      porción cuando el ejercicio la enfatiza (press inclinado → pectoral superior) y
-      «Todo el grupo» cuando no.
+      {{ 'EXERCISE_LIBRARY.TOCA_UN_MUSCULO_PARA_MARCARLO' | translate }}
     </p>
 
     <div class="muscle-groups">
@@ -140,10 +136,10 @@
             [class.is-primary]="roleOf(group.id) === 'primary'"
             [class.is-secondary]="roleOf(group.id) === 'secondary'"
             [class.is-stabilizer]="roleOf(group.id) === 'stabilizer'"
-            [attr.aria-label]="muscleAriaLabel(group.label + ', todo el grupo', group.id)"
+            [attr.aria-label]="muscleAriaLabel(group.label + ('EXERCISE_LIBRARY.TODO_EL_GRUPO_2' | translate), group.id)"
             (click)="cycleMuscle(group.id)"
           >
-            Todo el grupo
+            {{ 'EXERCISE_LIBRARY.TODO_EL_GRUPO' | translate }}
             <span class="chip-role" *ngIf="roleOf(group.id) as role">{{ roleLabel[role] }}</span>
           </button>
           <button
@@ -174,16 +170,16 @@
       </ng-container>
     </div>
     <ng-template #noMuscles>
-      <p class="muscle-summary muscle-summary--empty">Sin músculos marcados.</p>
+      <p class="muscle-summary muscle-summary--empty">{{ 'EXERCISE_LIBRARY.SIN_MUSCULOS_MARCADOS' | translate }}</p>
     </ng-template>
     <p class="field-help is-warning" *ngIf="missingPrimary && selectedMuscles.length">
-      Sin músculo principal, este ejercicio no sumará series completas en el Análisis del Planner.
+      {{ 'EXERCISE_LIBRARY.SIN_MUSCULO_PRINCIPAL_ESTE_EJERCICIO' | translate }}
     </p>
 
   </section>
 
   <div class="field">
-    <label class="field-label">Equipamiento</label>
+    <label class="field-label">{{ 'EXERCISE_LIBRARY.EQUIPAMIENTO' | translate }}</label>
     <div class="chip-row">
       <button
         type="button"
@@ -192,7 +188,7 @@
         [class.is-active]="selectedEquipment.includes(item)"
         (click)="toggle(selectedEquipment, item)"
       >
-        {{ item }}
+        {{ item | translateDb }}
       </button>
     </div>
   </div>
@@ -201,6 +197,6 @@
 <ion-footer class="exercise-form-footer">
   <button #saveExerciseButton type="button" class="save-button" [disabled]="!canSave" (click)="save()">
     <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
-    <span *ngIf="!saving">{{ isEdit ? 'Guardar cambios' : 'Crear ejercicio' }}</span>
+    <span *ngIf="!saving">{{ isEdit ? ('EXERCISE_LIBRARY.GUARDAR_CAMBIOS' | translate) : ('EXERCISE_LIBRARY.CREAR_EJERCICIO' | translate) }}</span>
   </button>
 </ion-footer>

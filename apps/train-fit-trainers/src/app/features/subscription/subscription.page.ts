@@ -1,4 +1,5 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { Subscription, forkJoin, of } from 'rxjs';
@@ -14,6 +15,7 @@ import {
   formatTrainerAmount, formatTrainerDate, isBillingMode, isCheckoutSessionId, isLegacyTrainerPlan, safeStripeRedirectUrl,
   trainerBillingState, trainerBillingSummary, trainerPlanLabel, trainerPlanName,
 } from './trainer-billing-view.util';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded' | 'forbidden';
 type ReturnState = 'none' | 'pending' | 'delayed' | 'confirmed' | 'cancelled' | 'payment_required' | 'error';
@@ -52,9 +54,11 @@ const CAPABILITY: Record<ManagementAction, keyof TrainerBillingActions> = {
 const DIALOG_TITLES: Record<ManagementDialog, string> = {
   change: 'Revisar cambio de plan', cancel: 'Cancelar renovación', resume: 'Mantener suscripción', discard: 'Descartar cambio programado',
 };
+localizeRecord(DIALOG_TITLES, 'SUBSCRIPTION.DIALOG_TITLES');
 const INVOICE_REASONS: Record<TrainerInvoice['reason'], string> = {
   subscription_create: 'Alta', subscription_cycle: 'Renovación', subscription_update: 'Cambio de plan', other: 'Factura',
 };
+localizeRecord(INVOICE_REASONS, 'SUBSCRIPTION.INVOICE_REASONS');
 const CARD_BRANDS: Record<string, string> = { visa: 'Visa', mastercard: 'Mastercard', amex: 'American Express' };
 const ERROR_MESSAGES: Record<string, string> = {
   ACTIVE_SUBSCRIPTION: 'Ya tienes una suscripción. Gestiona la existente desde esta página.',
@@ -77,6 +81,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   SEAT_CHANGE_LOCKED: 'Ya cambiaste tus clientes activos hace menos de 30 días.',
   CLIENT_READ_ONLY: 'Ese cliente está en solo lectura por el cupo de tu plan.',
 };
+localizeRecord(ERROR_MESSAGES, 'SUBSCRIPTION.ERRORS');
 
 @Component({
   selector: 'app-subscription',
@@ -84,6 +89,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   styleUrls: ['subscription.page.scss'],
 })
 export class SubscriptionPage implements OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   public state: ViewState = 'loading';
   public entitlements: TrainerEntitlements | null = null;
   public catalog: TrainerPlanCatalog | null = null;
@@ -199,8 +206,8 @@ export class SubscriptionPage implements OnDestroy {
   public get confirmLabel(): string {
     const quote = this.quote;
     if (this.managementBusy) return 'Confirmando…';
-    if (!quote || quote.kind === 'scheduled') return 'Programar cambio';
-    return quote.amountDueNow > 0 ? `Confirmar y pagar ${this.formatAmount(quote.amountDueNow, quote.currency)}` : 'Confirmar cambio';
+    if (!quote || quote.kind === 'scheduled') return this.translate.instant('SUBSCRIPTION.PROGRAMAR_CAMBIO');
+    return quote.amountDueNow > 0 ? this.translate.instant('SUBSCRIPTION.CONFIRMAR_PAGAR', { p0: this.formatAmount(quote.amountDueNow, quote.currency) }) : this.translate.instant('SEARCH_EXERCISES.SWAP_CONFIRM_HEADER');
   }
   public get usagePercent(): number {
     const limit = this.entitlements?.limits.clients;
@@ -235,7 +242,7 @@ export class SubscriptionPage implements OnDestroy {
   // Mayor ahorro anual del catálogo real (12 mensualidades frente al pago anual).
   public get annualSavingLabel(): string | null {
     const best = Math.max(0, ...this.plans.map((plan) => plan.prices.monthly.amount * 12 - plan.prices.annual.amount));
-    return best > 0 ? `Ahorra hasta ${this.formatAmount(best)}` : null;
+    return best > 0 ? this.translate.instant('SUBSCRIPTION.AHORRA_HASTA', { p0: this.formatAmount(best) }) : null;
   }
 
   public get planCards(): PlanCard[] {
@@ -258,8 +265,8 @@ export class SubscriptionPage implements OnDestroy {
         price: this.formatAmount(plan.prices[this.interval].amount),
         perMonth: this.interval === 'annual' ? this.formatAmount(annual / 12) : null,
         annualSaving: this.interval === 'annual' && monthly * 12 > annual ? this.formatAmount(monthly * 12 - annual) : null,
-        actionLabel: action === 'keep' ? `Mantener ${this.planNames[plan.tier]}`
-          : action === 'checkout' ? `Elegir ${this.planNames[plan.tier]}` : `Cambiar a ${this.planNames[plan.tier]}`,
+        actionLabel: action === 'keep' ? this.translate.instant('SUBSCRIPTION.MANTENER', { p0: this.planNames[plan.tier] })
+          : action === 'checkout' ? this.translate.instant('SUBSCRIPTION.ELEGIR', { p0: this.planNames[plan.tier] }) : this.translate.instant('SUBSCRIPTION.CAMBIAR', { p0: this.planNames[plan.tier] }),
       };
     });
     this.planCardsCache = { key, cards };
@@ -290,7 +297,7 @@ export class SubscriptionPage implements OnDestroy {
     this.returningFromPortal = params.get('from') === 'portal';
     if (this.invalidSession) {
       this.returnState = 'error';
-      this.actionError = 'El enlace de confirmación no es válido. Consulta el estado de tu suscripción.';
+      this.actionError = this.translate.instant('SUBSCRIPTION.EL_ENLACE_DE_CONFIRMACION_NO');
     } else if (params.get('checkout') === 'cancelled') {
       this.returnState = 'cancelled';
     }
@@ -326,7 +333,7 @@ export class SubscriptionPage implements OnDestroy {
           this.sessionId = null;
           this.invalidSession = true;
           this.returnState = 'error';
-          this.actionError = 'El enlace de confirmación no es válido. Consulta el estado de tu suscripción.';
+          this.actionError = this.translate.instant('SUBSCRIPTION.EL_ENLACE_DE_CONFIRMACION_NO');
         }
         if (this.sessionId) {
           if (this.billingEnabled) this.syncSubscription(0);
@@ -342,7 +349,7 @@ export class SubscriptionPage implements OnDestroy {
       },
       error: (error: unknown) => {
         this.state = 'error';
-        this.actionError = this.errorMessage(error, 'No se pudo cargar tu suscripción. Inténtalo de nuevo.');
+        this.actionError = this.errorMessage(error, this.translate.instant('SUBSCRIPTION.NO_SE_PUDO_CARGAR_TU_2'));
       },
     }));
   }
@@ -373,7 +380,7 @@ export class SubscriptionPage implements OnDestroy {
     return formatTrainerAmount(amount, currency);
   }
 
-  public intervalLabel(interval: TrainerBillingInterval): string { return interval === 'annual' ? 'año' : 'mes'; }
+  public intervalLabel(interval: TrainerBillingInterval): string { return interval === 'annual' ? this.translate.instant('SUBSCRIPTION.ANO') : 'mes'; }
 
   public planLabel(tier: PurchasableTrainerTier, interval: TrainerBillingInterval): string { return trainerPlanLabel(tier, interval); }
 
@@ -399,7 +406,7 @@ export class SubscriptionPage implements OnDestroy {
   public planBlockReason(plan: TrainerPlan): string | null {
     if (this.isCurrentPlan(plan)) return null;
     const clients = this.entitlements?.usage.clients || 0;
-    return clients > plan.clientLimit ? `Tienes ${clients} clientes. Este plan admite hasta ${plan.clientLimit}.` : null;
+    return clients > plan.clientLimit ? this.translate.instant('SUBSCRIPTION.TIENES_CLIENTES_ESTE_PLAN_ADMITE', { clients, clientLimit: plan.clientLimit }) : null;
   }
 
   public selectPlan(plan: TrainerPlan): void {
@@ -425,7 +432,7 @@ export class SubscriptionPage implements OnDestroy {
       timeout(15000), finalize(() => { this.previewBusy = false; })
     ).subscribe({
       next: (quote) => { this.quote = quote; },
-      error: (error: unknown) => { this.dialogError = this.errorMessage(error, 'No se pudo calcular el cambio. Reintenta para ver el importe antes de confirmarlo.'); },
+      error: (error: unknown) => { this.dialogError = this.errorMessage(error, this.translate.instant('SUBSCRIPTION.NO_SE_PUDO_CALCULAR_EL')); },
     }));
   }
 
@@ -458,9 +465,9 @@ export class SubscriptionPage implements OnDestroy {
     ).subscribe({
       next: (seats) => {
         this.applySeats(seats);
-        this.seatsFeedback = 'Clientes activos actualizados.';
+        this.seatsFeedback = this.translate.instant('SUBSCRIPTION.CLIENTES_ACTIVOS_ACTUALIZADOS');
       },
-      error: (error: unknown) => { this.seatsError = this.errorMessage(error, 'No se pudieron guardar tus clientes activos.'); },
+      error: (error: unknown) => { this.seatsError = this.errorMessage(error, this.translate.instant('SUBSCRIPTION.NO_SE_PUDIERON_GUARDAR_TUS')); },
     }));
   }
 
@@ -480,16 +487,16 @@ export class SubscriptionPage implements OnDestroy {
   public invoiceReason(invoice: TrainerInvoice): string { return INVOICE_REASONS[invoice.reason]; }
 
   public invoiceStatus(invoice: TrainerInvoice): { label: string; tone: TrainerStateTone } {
-    if (invoice.status === 'paid') return { label: 'Pagada', tone: 'ok' };
-    if (invoice.status === 'open') return { label: 'Pendiente', tone: 'danger' };
-    if (invoice.status === 'void') return { label: 'Anulada', tone: 'neutral' };
-    if (invoice.status === 'uncollectible') return { label: 'Impagada', tone: 'danger' };
+    if (invoice.status === 'paid') return { label: this.translate.instant('SUBSCRIPTION.PAGADA'), tone: 'ok' };
+    if (invoice.status === 'open') return { label: this.translate.instant('MY_CHECKINS.PENDING'), tone: 'danger' };
+    if (invoice.status === 'void') return { label: this.translate.instant('SUBSCRIPTION.ANULADA'), tone: 'neutral' };
+    if (invoice.status === 'uncollectible') return { label: this.translate.instant('SUBSCRIPTION.IMPAGADA'), tone: 'danger' };
     return { label: invoice.status, tone: 'neutral' };
   }
 
   public lineLabel(line: TrainerQuoteLine): string {
     const plan = trainerPlanLabel(line.tier, line.interval);
-    return line.kind === 'credit' ? `Crédito por el tiempo no usado de ${plan}` : plan;
+    return line.kind === 'credit' ? this.translate.instant('SUBSCRIPTION.CREDITO_POR_EL_TIEMPO_NO', { plan }) : plan;
   }
 
   public trackByTier(_: number, card: PlanCard): string { return card.plan.tier; }
@@ -505,7 +512,7 @@ export class SubscriptionPage implements OnDestroy {
     if (this.busy || !this.quote || !this.changesAvailable) return;
     if (this.needsNewQuote) {
       this.quoteExpired = true;
-      this.dialogError = 'El cálculo ha caducado. Actualízalo antes de confirmar.';
+      this.dialogError = this.translate.instant('SUBSCRIPTION.EL_CALCULO_HA_CADUCADO_ACTUALIZALO_2');
       return;
     }
     this.managementBusy = true;
@@ -521,16 +528,16 @@ export class SubscriptionPage implements OnDestroy {
           this.loadBillingDetails();
         }
         this.actionPaymentUrl = result.status === 'payment_pending' ? result.paymentActionUrl || null : null;
-        this.feedback = result.status === 'scheduled' ? 'Cambio programado. Tu plan actual se mantiene hasta la próxima renovación.'
-          : result.status === 'payment_pending' ? 'Falta confirmar el pago para completar el cambio. Tu acceso actual se mantiene.'
-          : 'Tu cambio de plan se ha confirmado.';
+        this.feedback = result.status === 'scheduled' ? this.translate.instant('SUBSCRIPTION.CAMBIO_PROGRAMADO_TU_PLAN_ACTUAL')
+          : result.status === 'payment_pending' ? this.translate.instant('SUBSCRIPTION.FALTA_CONFIRMAR_EL_PAGO_PARA')
+          : this.translate.instant('SUBSCRIPTION.TU_CAMBIO_DE_PLAN_SE');
         this.returnState = 'none';
         this.dialog = null;
         this.quote = null;
       },
       error: (error: unknown) => {
         this.quoteExpired = true;
-        this.dialogError = this.errorMessage(error, 'No hemos podido confirmar el cambio. Cierra esta ventana y actualiza el estado antes de volver a intentarlo.');
+        this.dialogError = this.errorMessage(error, this.translate.instant('SUBSCRIPTION.NO_HEMOS_PODIDO_CONFIRMAR_EL'));
       },
     }));
   }
@@ -552,13 +559,13 @@ export class SubscriptionPage implements OnDestroy {
     this.requests.add(operation.pipe(timeout(20000), finalize(() => { this.managementBusy = false; })).subscribe({
       next: (entitlements) => {
         this.entitlements = entitlements;
-        this.feedback = action === 'cancel' ? 'La renovación está cancelada. Conservas tu plan hasta que termine el periodo pagado.'
-          : action === 'resume' ? 'Tu suscripción volverá a renovarse.' : 'Cambio descartado. Tu plan actual se mantiene.';
+        this.feedback = action === 'cancel' ? this.translate.instant('SUBSCRIPTION.LA_RENOVACION_ESTA_CANCELADA_CONSERVAS')
+          : action === 'resume' ? this.translate.instant('SUBSCRIPTION.TU_SUSCRIPCION_VOLVERA_RENOVARSE') : this.translate.instant('SUBSCRIPTION.CAMBIO_DESCARTADO_TU_PLAN_ACTUAL');
         if (!entitlements.billing?.pendingPayment) this.actionPaymentUrl = null;
         this.returnState = 'none';
         this.dialog = null;
       },
-      error: (error: unknown) => { this.dialogError = this.errorMessage(error, 'No hemos podido confirmar la operación. Actualiza el estado antes de volver a intentarlo.'); },
+      error: (error: unknown) => { this.dialogError = this.errorMessage(error, this.translate.instant('SUBSCRIPTION.NO_HEMOS_PODIDO_CONFIRMAR_LA')); },
     }));
   }
 
@@ -583,7 +590,7 @@ export class SubscriptionPage implements OnDestroy {
     ).subscribe({
       next: (session) => this.redirect(session.url, 'checkout'),
       error: (error: unknown) => {
-        this.actionError = this.errorMessage(error, 'No se pudo abrir el pago. Vuelve a intentarlo.');
+        this.actionError = this.errorMessage(error, this.translate.instant('SUBSCRIPTION.NO_SE_PUDO_ABRIR_EL'));
       },
     }));
   }
@@ -597,7 +604,7 @@ export class SubscriptionPage implements OnDestroy {
     ).subscribe({
       next: (session) => this.redirect(session.url, 'portal'),
       error: (error: unknown) => {
-        this.actionError = this.errorMessage(error, 'No se pudo abrir la gestión de tu suscripción.');
+        this.actionError = this.errorMessage(error, this.translate.instant('SUBSCRIPTION.NO_SE_PUDO_ABRIR_LA'));
       },
     }));
   }
@@ -617,9 +624,9 @@ export class SubscriptionPage implements OnDestroy {
     if (!state || !price) return [];
     // "Hoy" dice qué conservas; plan, cupo y precio ya están en la cabecera.
     const keepDetail: Partial<Record<typeof state.kind, string>> = {
-      change_scheduled: 'Sin cobros hasta el cambio', canceling: 'Sin más cobros', change_unpaid: 'Hasta que se confirme el pago',
+      change_scheduled: this.translate.instant('SUBSCRIPTION.SIN_COBROS_HASTA_EL_CAMBIO'), canceling: this.translate.instant('SUBSCRIPTION.SIN_MAS_COBROS'), change_unpaid: this.translate.instant('SUBSCRIPTION.HASTA_QUE_SE_CONFIRME_EL'),
     };
-    const today: TimelineStep = { when: 'Hoy', title: `Tienes ${trainerPlanLabel(price.tier, price.interval)}`,
+    const today: TimelineStep = { when: this.translate.instant('TRAINER_COMMON.TODAY'), title: this.translate.instant('SUBSCRIPTION.TIENES_2', { p0: trainerPlanLabel(price.tier, price.interval) }),
       detail: keepDetail[state.kind] || null, tone: 'ok' };
     const renewal = this.renewal;
     const change = this.pendingChange;
@@ -628,24 +635,24 @@ export class SubscriptionPage implements OnDestroy {
         const due = this.renewalPayment;
         const grace = due?.graceUntil;
         return [
-          { when: 'Ahora', title: 'Cobro de la renovación fallido', detail: due ? `${this.formatAmount(due.amount)} pendientes` : null, tone: 'danger' },
-          { when: grace ? formatTrainerDate(grace) : 'Pronto', title: 'Fin del margen de pago',
-            detail: 'Si no se ha cobrado, tu cuenta pasa a Free. No se borra nada.', tone: 'danger' },
+          { when: this.translate.instant('SUBSCRIPTION.AHORA'), title: this.translate.instant('SUBSCRIPTION.COBRO_DE_LA_RENOVACION_FALLIDO'), detail: due ? `${this.formatAmount(due.amount)} pendientes` : null, tone: 'danger' },
+          { when: grace ? formatTrainerDate(grace) : this.translate.instant('SUBSCRIPTION.PRONTO'), title: this.translate.instant('SUBSCRIPTION.FIN_DEL_MARGEN_DE_PAGO'),
+            detail: this.translate.instant('SUBSCRIPTION.SI_NO_SE_HA_COBRADO'), tone: 'danger' },
         ];
       }
       case 'change_unpaid':
-        return [today, { when: 'Al pagar', title: 'Se aplica el cambio de plan', detail: 'Hasta entonces conservas tu plan y tu cupo.', tone: 'warning' }];
+        return [today, { when: this.translate.instant('SUBSCRIPTION.AL_PAGAR'), title: this.translate.instant('SUBSCRIPTION.SE_APLICA_EL_CAMBIO_DE'), detail: this.translate.instant('SUBSCRIPTION.HASTA_ENTONCES_CONSERVAS_TU_PLAN'), tone: 'warning' }];
       case 'canceling':
-        return [today, { when: formatTrainerDate(this.accessUntil), title: 'Fin del acceso de pago',
-          detail: 'Pasas a Free: 3 clientes activos y el resto en solo lectura. Sin más cobros.', tone: 'warning' }];
+        return [today, { when: formatTrainerDate(this.accessUntil), title: this.translate.instant('SUBSCRIPTION.FIN_DEL_ACCESO_DE_PAGO'),
+          detail: this.translate.instant('SUBSCRIPTION.PASAS_FREE_3_CLIENTES_ACTIVOS'), tone: 'warning' }];
       case 'change_scheduled':
         return change ? [today, { when: formatTrainerDate(change.effectiveAt),
-          title: `Pasa a ${trainerPlanLabel(change.tier, change.interval)}`,
-          detail: renewal ? `Primer cobro ${this.stripeAmount(renewal.amount)}${renewal.discounted ? ', con descuento o saldo a favor' : ''}` : null,
+          title: this.translate.instant('SUBSCRIPTION.PASA_2', { p0: trainerPlanLabel(change.tier, change.interval) }),
+          detail: renewal ? this.translate.instant('SUBSCRIPTION.PRIMER_COBRO', { p0: this.stripeAmount(renewal.amount), p1: renewal.discounted ? ', con descuento o saldo a favor' : '' }) : null,
           tone: 'neutral' }] : [today];
       case 'active':
-        return renewal ? [today, { when: formatTrainerDate(renewal.at), title: 'Renovación automática',
-          detail: `${this.stripeAmount(renewal.amount)}${renewal.discounted ? ', con descuento o saldo a favor' : ''}`, tone: 'ok' }] : [today];
+        return renewal ? [today, { when: formatTrainerDate(renewal.at), title: this.translate.instant('SUBSCRIPTION.RENOVACION_AUTOMATICA'),
+          detail: `${this.stripeAmount(renewal.amount)}${renewal.discounted ? this.translate.instant('SUBSCRIPTION.CON_DESCUENTO_SALDO_FAVOR') : ''}`, tone: 'ok' }] : [today];
       default:
         return [];
     }
@@ -656,7 +663,7 @@ export class SubscriptionPage implements OnDestroy {
       ? ` · ${formatTrainerDate(invoice.periodStart, false)} – ${formatTrainerDate(invoice.periodEnd)}` : '';
     return { invoice, date: formatTrainerDate(invoice.createdAt), concept: `${this.invoiceReason(invoice)}${period}`,
       amount: this.formatAmount(invoice.total, invoice.currency), status: this.invoiceStatus(invoice),
-      linkLabel: invoice.status === 'open' ? 'Pagar' : 'Ver' };
+      linkLabel: invoice.status === 'open' ? this.translate.instant('SUBSCRIPTION.PAGAR') : this.translate.instant('ONBOARDING.VIEW') };
   }
 
   private catalogRequest() {
@@ -706,7 +713,7 @@ export class SubscriptionPage implements OnDestroy {
       },
       error: (error: unknown) => {
         if (confirmingCheckout) this.returnState = 'error';
-        this.actionError = this.errorMessage(error, 'No hemos podido actualizar tu suscripción. Puedes volver a comprobarla.');
+        this.actionError = this.errorMessage(error, this.translate.instant('SUBSCRIPTION.NO_HEMOS_PODIDO_ACTUALIZAR_TU'));
       },
     });
   }
@@ -714,7 +721,7 @@ export class SubscriptionPage implements OnDestroy {
   private redirect(value: unknown, destination: 'checkout' | 'portal' | 'invoice'): void {
     const url = safeStripeRedirectUrl(value, destination);
     if (!url) {
-      this.actionError = 'No se pudo validar el enlace de pago. Vuelve a intentarlo o contacta con TrainFit.';
+      this.actionError = this.translate.instant('SUBSCRIPTION.NO_SE_PUDO_VALIDAR_EL');
       return;
     }
     window.location.assign(url);
@@ -728,7 +735,7 @@ export class SubscriptionPage implements OnDestroy {
     if (!error || typeof error !== 'object') return fallback;
     const response = error as { code?: unknown; status?: unknown; error?: { code?: unknown } };
     if (response.status === 401 || response.status === 403) {
-      return 'Esta acción requiere una sesión de entrenador. Vuelve a iniciar sesión si ha caducado.';
+      return this.translate.instant('SUBSCRIPTION.ESTA_ACCION_REQUIERE_UNA_SESION');
     }
     const code = response.code || response.error?.code;
     return typeof code === 'string' ? ERROR_MESSAGES[code] || fallback : fallback;

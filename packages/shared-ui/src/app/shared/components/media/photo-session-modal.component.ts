@@ -13,6 +13,8 @@ import { MediaApiService } from 'src/app/core/services/media/media-api.service';
 import { mediaErrorKey } from 'src/app/core/services/media/media-errors';
 import { MediaUploadService } from 'src/app/core/services/media/media-upload.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { openMediaCamera } from './media-camera-modal.component';
+import { confirmMediaDelete } from './media-confirm';
 
 interface SlotState {
   pose: ProgressPose;
@@ -94,11 +96,28 @@ export class PhotoSessionModalComponent implements OnInit {
     return slot.pose;
   }
 
+  // Cámara de la app con temporizador y la foto anterior de esta pose
+  // superpuesta para repetir el encuadre.
+  public async takePhoto(slot: SlotState): Promise<void> {
+    if (slot.uploading) return;
+    const reference = this.referenceOf(slot.pose) || this.photoOf(slot.pose);
+    const file = await openMediaCamera(this.modalController, {
+      mode: 'photo',
+      title: this.translate.instant('MEDIA.POSE_' + slot.pose.toUpperCase()),
+      referenceUrl: reference ? reference.asset.url || reference.asset.thumbUrl : null,
+    });
+    if (file) await this.upload(slot, file);
+  }
+
   public async onFile(slot: SlotState, event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (!file || slot.uploading) return;
+    if (file) await this.upload(slot, file);
+  }
+
+  private async upload(slot: SlotState, file: Blob): Promise<void> {
+    if (slot.uploading) return;
     slot.uploading = true;
     slot.progress = 0;
     try {
@@ -116,6 +135,8 @@ export class PhotoSessionModalComponent implements OnInit {
 
   public async remove(slot: SlotState): Promise<void> {
     if (slot.uploading) return;
+    const pose = this.translate.instant('MEDIA.POSE_' + slot.pose.toUpperCase()).toLowerCase();
+    if (!(await confirmMediaDelete(this.ionicUtilService, this.translate, 'photo', { pose }))) return;
     slot.uploading = true;
     slot.progress = 0;
     try {

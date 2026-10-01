@@ -1,5 +1,6 @@
 import { CHECKIN_FIELDS, CHECKIN_FIELDS_BY_KEY, checkinAnchorFor, scaleLevelsFor } from 'src/app/core/constants/checkin-fields';
 import { CheckinEntry, CheckinComparisonRow, ComparisonTab } from './checkin-workspace.model';
+import { uiLocale, uiText, localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 // Pestañas de la revisión: peso aparte de la composición corporal, y el
 // seguimiento del entrenamiento y el comentario con la suya propia. El resto
@@ -15,6 +16,7 @@ const TAB_LABELS: Record<ComparisonTab, string> = {
   comentario: 'Comentario',
   custom: 'Tus preguntas',
 };
+localizeRecord(TAB_LABELS, 'CLIENTS.COMPARISON_TABS');
 
 // Filas en el orden del catálogo (y las preguntas propias al final): antes
 // salían en el orden de las claves de la respuesta, distinto entre dos
@@ -35,17 +37,17 @@ function orderOf(key: string): number {
   return key.startsWith('custom:') ? 10000 : (CATALOG_ORDER.get(key) ?? 9999);
 }
 
-const number = (value: number): string => value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+const number = (value: number): string => value.toLocaleString(uiLocale(), { maximumFractionDigits: 2 });
 function description(entry: CheckinEntry | null, key: string): { label: string; type: string; unit: string; max?: number } {
   const field = key.startsWith('custom:') ? entry?.customQuestions?.find(q => String(q._id) === key.slice(7)) : CHECKIN_FIELDS_BY_KEY.get(key);
-  return { label: field?.label || 'Pregunta del histórico', type: field?.type || 'unknown', unit: field?.unit || '',
+  return { label: field?.label || uiText('CLIENTS.PREGUNTA_DEL_HISTORICO'), type: field?.type || 'unknown', unit: field?.unit || '',
     max: field?.type === 'scale_1_5' ? (key.startsWith('custom:') ? 5 : scaleLevelsFor(CHECKIN_FIELDS_BY_KEY.get(key))) : undefined };
 }
 function display(value: unknown, info: ReturnType<typeof description>): string {
   if (value == null) return '—';
   // Fotos: el valor es el id del día; las fotos se ven en su pestaña.
-  if (info.type === 'photos') return 'Enviadas';
-  if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+  if (info.type === 'photos') return uiText('CLIENTS.ENVIADAS');
+  if (typeof value === 'boolean') return value ? uiText('COMMON.YES') : uiText('COMMON.NO');
   if (typeof value === 'number') return `${number(value)}${info.max ? '/' + info.max : info.unit ? ' ' + info.unit : ''}`;
   return String(value);
 }
@@ -60,8 +62,8 @@ export function compareCheckins(current: CheckinEntry, previous: CheckinEntry | 
     const delta = comparable && typeof a === 'number' && typeof b === 'number' ? Math.round((b - a) * 100) / 100 : null;
     return { key, label: info.label, previous: display(a, old), current: display(b, info),
       direction: delta == null ? 'missing' : delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat',
-      change: delta == null ? (a == null || b == null ? '—' : !comparable ? 'No comparable' : a === b ? 'Igual' : 'Cambió')
-        : delta === 0 ? 'Igual' : `${delta > 0 ? '+' : '−'}${number(Math.abs(delta))}${info.max ? Math.abs(delta) === 1 ? ' punto' : ' puntos' : info.unit ? ' ' + info.unit : ''}`,
+      change: delta == null ? (a == null || b == null ? '—' : !comparable ? uiText('CLIENTS.NO_COMPARABLE') : a === b ? uiText('CLIENTS.IGUAL') : uiText('CLIENTS.CAMBIO_3'))
+        : delta === 0 ? uiText('CLIENTS.IGUAL') : `${delta > 0 ? '+' : '−'}${number(Math.abs(delta))}${info.max ? Math.abs(delta) === 1 ? ' punto' : ' puntos' : info.unit ? ' ' + info.unit : ''}`,
       anchor: checkinAnchorFor(key, b),
       tab: tabOf(key),
     };

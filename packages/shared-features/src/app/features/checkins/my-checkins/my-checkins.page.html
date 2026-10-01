@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="close()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Mis check-ins</h1>
+        <h1 class="tf-page-header__title">{{ 'COACH.MY_CHECKINS' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -21,14 +21,13 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar tus check-ins.</p>
-    <button class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'MY_CHECKINS.LOAD_ERROR' | translate }}</p>
+    <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <p class="empty-hint" *ngIf="!checkins.length">
-      No tienes ningún check-in abierto ahora mismo. Aparecerá cuando llegue la fecha que haya marcado tu
-      profesional.
+      {{ 'MY_CHECKINS.EMPTY' | translate }}
     </p>
 
     <div
@@ -45,11 +44,11 @@
         <div class="checkin-card-title-group">
           <span class="checkin-card-title-row">
             <span class="list-card-title">{{ checkin.name || trainerName(checkin) }}</span>
-            <span class="checkin-card-pill">{{ isDone(checkin) ? 'Respondido' : 'Pendiente' }}</span>
+            <span class="checkin-card-pill">{{ (isDone(checkin) ? 'MY_CHECKINS.ANSWERED' : 'MY_CHECKINS.PENDING') | translate }}</span>
           </span>
           <span class="checkin-card-subtitle" *ngIf="checkin.name">{{ trainerName(checkin) }}</span>
           <span class="checkin-card-subtitle">
-            {{ periodLabel(checkin) }} · {{ fieldsFor(checkin).length }} campos
+            {{ periodLabel(checkin) }} · {{ 'MY_CHECKINS.FIELDS_COUNT' | translate: { count: fieldsFor(checkin).length } }}
           </span>
         </div>
         <ion-icon
@@ -67,7 +66,7 @@
           <span class="checkin-field-label">
             {{ field.label }}<span *ngIf="field.unit"> ({{ field.unit }})</span
             ><span class="required-mark" *ngIf="field.required" aria-hidden="true">*</span>
-            <span class="sr-only" *ngIf="field.required">(obligatoria)</span>
+            <span class="sr-only" *ngIf="field.required">{{ 'MY_CHECKINS.REQUIRED_SR' | translate }}</span>
           </span>
 
           <!-- Movimiento 2 Coach Pro — cómo tomar la medida. Va ANTES del
@@ -84,7 +83,7 @@
             [(ngModel)]="formValues[field.key]"
           />
           <p class="checkin-field-prefill" *ngIf="field.type === 'number' && prefillDateFor(checkin, field.key) as day">
-            Relleno con tu medida del {{ day }}
+            {{ 'MY_CHECKINS.PREFILLED_FROM' | translate: { day: day } }}
           </p>
 
           <!-- Movimiento 2 Coach Pro — la escala deja de ser cinco números
@@ -137,14 +136,14 @@
               [class.selected]="formValues[field.key] === true"
               (click)="setScaleValue(field.key, true)"
             >
-              Sí
+              {{ 'COMMON.YES' | translate }}
             </button>
             <button
               class="scale-option scale-option--wide"
               [class.selected]="formValues[field.key] === false"
               (click)="setScaleValue(field.key, false)"
             >
-              No
+              {{ 'COMMON.NO' | translate }}
             </button>
           </div>
 
@@ -164,13 +163,13 @@
               [class.selected]="formValues[field.key] === option"
               (click)="setTextValue(field.key, option)"
             >
-              {{ option }}
+              {{ option | translateDb }}
             </button>
           </div>
         </div>
 
         <p class="required-hint" *ngIf="missingRequiredLabel(checkin) as missing">
-          Falta responder: <strong>{{ missing }}</strong>
+          {{ 'MY_CHECKINS.MISSING_ANSWER' | translate }} <strong>{{ missing }}</strong>
         </p>
 
         <button
@@ -178,7 +177,7 @@
           (click)="submitResponse(checkin)"
           [disabled]="!hasAnyValue() || isSubmitting"
         >
-          <span *ngIf="!isSubmitting">Enviar check-in</span>
+          <span *ngIf="!isSubmitting">{{ 'MY_CHECKINS.SUBMIT' | translate }}</span>
           <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>
         </button>
       </div>
@@ -191,8 +190,8 @@
           <ion-icon name="document-text"></ion-icon>
         </span>
         <span class="history-toggle__text">
-          <span class="list-card-title">Formularios completados</span>
-          <span class="checkin-card-subtitle">{{ history.length }} {{ history.length === 1 ? 'respuesta enviada' : 'respuestas enviadas' }}</span>
+          <span class="list-card-title">{{ 'MY_CHECKINS.COMPLETED_FORMS' | translate }}</span>
+          <span class="checkin-card-subtitle">{{ (history.length === 1 ? 'MY_CHECKINS.SENT_ONE' : 'MY_CHECKINS.SENT_MANY') | translate: { count: history.length } }}</span>
         </span>
         <ion-icon class="checkin-card-chevron" [name]="showHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
       </button>
@@ -207,18 +206,18 @@
           <button class="history-card-header" (click)="toggleHistoryEntry(entry)" [attr.aria-expanded]="expandedHistoryId === entry._id">
             <span class="history-card-date" aria-hidden="true">
               <span class="history-card-date__day">{{ entry.respondedAt | date: 'd' }}</span>
-              <span class="history-card-date__month">{{ entry.respondedAt | date: 'MMM' }}</span>
+              <span class="history-card-date__month">{{ entry.respondedAt | localDate: 'MMM' }}</span>
             </span>
             <span class="history-card-text">
               <span class="checkin-card-title-row">
                 <span class="list-card-title">{{ entry.name || historyTrainerName(entry) }}</span>
                 <span class="checkin-card-pill history-pill" *ngIf="entry.status === 'reviewed'">
-                  <ion-icon name="checkmark-done"></ion-icon> Revisado
+                  <ion-icon name="checkmark-done"></ion-icon> {{ 'MY_CHECKINS.REVIEWED' | translate }}
                 </span>
               </span>
               <span class="checkin-card-subtitle" *ngIf="entry.name">{{ historyTrainerName(entry) }}</span>
               <span class="checkin-card-subtitle">
-                {{ entry.respondedAt | date: 'd MMM y' }} · {{ historyEntries(entry).length }} respuestas
+                {{ entry.respondedAt | localDate: 'd MMM y' }} · {{ 'MY_CHECKINS.ANSWERS_COUNT' | translate: { count: historyEntries(entry).length } }}
               </span>
             </span>
             <ion-icon class="checkin-card-chevron" [name]="expandedHistoryId === entry._id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
@@ -228,13 +227,13 @@
             <div class="history-values">
               <div class="history-value" [class.history-value--wide]="item.wide" *ngFor="let item of historyEntries(entry)">
                 <span class="history-value__label">{{ item.label }}</span>
-                <span class="history-value__value">{{ item.value }}</span>
+                <span class="history-value__value">{{ item.value | translateDb }}</span>
               </div>
             </div>
             <div class="checkin-review" *ngIf="entry.status === 'reviewed'">
               <span class="checkin-review__title">
                 <ion-icon name="checkmark-done-circle"></ion-icon>
-                Revisado por tu profesional · {{ entry.reviewedAt | date: 'd MMM y' }}
+                {{ 'ONBOARDING.REVIEWED' | translate }} · {{ entry.reviewedAt | localDate: 'd MMM y' }}
               </span>
               <p *ngIf="entry.reviewComment">{{ entry.reviewComment }}</p>
             </div>

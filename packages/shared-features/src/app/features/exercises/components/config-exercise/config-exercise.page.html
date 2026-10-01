@@ -18,17 +18,17 @@
           class="action-button ripple-effect"
           (click)="deleteOwnExercise()"
         >
-          <ion-icon name="trash-bin-outline" color="danger"></ion-icon>
+          <ion-icon name="trash-bin-outline"></ion-icon>
         </button>
         <button class="action-button ripple-effect" (click)="manageNote()">
-          <ion-icon name="create-outline" color="primary"></ion-icon>
+          <ion-icon name="create-outline"></ion-icon>
         </button>
         <button
           *ngIf="canEditScore"
           class="action-button ripple-effect"
           (click)="editScore()"
         >
-          <ion-icon name="speedometer-outline" color="primary"></ion-icon>
+          <ion-icon name="speedometer-outline"></ion-icon>
         </button>
         <button
           class="action-button ripple-effect"
@@ -36,9 +36,10 @@
           [disabled]="isFavoritingExercise"
           (click)="addExerciseToFavorites()"
         >
+          <!-- Solo el guardado lleva color: es estado, no decoración. -->
           <ion-icon
             [name]="isExerciseFavorited ? 'bookmark' : 'bookmark-outline'"
-            color="tertiary"
+            [color]="isExerciseFavorited ? 'primary' : undefined"
           ></ion-icon>
         </button>
       </div>
@@ -56,26 +57,42 @@
     <!-- Exercise Name Card with Add Sets Button -->
     <div class="elegant-card exercise-name-card">
       <div class="card-content">
-        <div class="exercise-info">
-          <div class="exercise-icon" *ngIf="!isEditingOwnExercise">
+        <div class="exercise-info" [class.is-editable]="isCreateMode || isEditingOwnExercise">
+          <div class="exercise-icon" *ngIf="!isCreateMode && !isEditingOwnExercise">
             <ion-icon name="barbell-outline"></ion-icon>
           </div>
-          <div class="exercise-details" [class.create-mode]="isCreateMode">
-            <ion-label *ngIf="!isCreateMode" class="exercise-label">
+          <div class="exercise-details">
+            <ion-label *ngIf="!isCreateMode && !isEditingOwnExercise" class="exercise-label">
               {{ 'EXERCISE_CONFIG.EXERCISE_LABEL' | translate }}
             </ion-label>
             <ng-container
               *ngIf="isCreateMode || isEditingOwnExercise; else exerciseNameLabel"
             >
-              <ion-input
-                formControlName="name"
-                [placeholder]="'EXERCISE_CONFIG.NEW_EXERCISE_NAME' | translate"
-                fill="solid"
-                mode="ios"
-                class="exercise-name-input"
-                [maxlength]="100"
-                [counter]="true"
-              ></ion-input>
+              <!-- Campos editables con la misma forma que create-product:
+                   etiqueta visible arriba y el contador solo cerca del
+                   límite (un «0/100» fijo era ruido). -->
+              <div class="cfg-field">
+                <span class="cfg-field__label" id="config-exercise-name-label">
+                  {{ 'EXERCISE_CONFIG.NAME_LABEL' | translate }}
+                </span>
+                <div class="cfg-field__control">
+                  <ion-input
+                    formControlName="name"
+                    [placeholder]="'EXERCISE_CONFIG.NAME_PLACEHOLDER' | translate"
+                    mode="ios"
+                    class="cfg-field__input"
+                    autocapitalize="sentences"
+                    [maxlength]="maxNameLength"
+                    aria-labelledby="config-exercise-name-label"
+                  ></ion-input>
+                </div>
+                <span
+                  class="cfg-field__counter"
+                  *ngIf="(form.get('name')?.value?.length || 0) >= maxNameLength - 20"
+                >
+                  {{ form.get('name')?.value?.length || 0 }}/{{ maxNameLength }}
+                </span>
+              </div>
             </ng-container>
             <ng-template #exerciseNameLabel>
               <ion-label class="exercise-name ion-text-wrap"
@@ -107,117 +124,20 @@
         </div>
         <div
           *ngIf="isCreateMode || isEditingOwnExercise"
-          class="exercise-description-section"
+          class="exercise-edit-fields"
         >
-          <div class="description-editor-wrapper">
-            <button
-              type="button"
-              class="description-trigger"
-              (click)="showDescriptionDetails = !showDescriptionDetails"
-            >
-              <span class="trigger-title">{{ 'EXERCISE_CONFIG.DESCRIPTION' | translate }}</span>
-              <div class="trigger-right">
-                <span class="step-counter" *ngIf="descriptionSteps.length > 0">
-                  {{ descriptionSteps.length }}/{{ maxDescriptionSteps }}
-                </span>
-                <ion-icon
-                  [name]="showDescriptionDetails ? 'chevron-up' : 'chevron-down'"
-                  class="trigger-chevron"
-                ></ion-icon>
-              </div>
-            </button>
-
-            <div class="description-card" *ngIf="showDescriptionDetails">
-              <div class="description-steps-editor">
-                <div
-                  class="description-step editable"
-                  *ngFor="let step of descriptionSteps; let i = index; trackBy: trackByIndex"
-                >
-                  <span class="description-step-index">{{ i + 1 }}</span>
-                  <div class="step-input-wrapper">
-                    <ion-textarea
-                      #stepTextarea
-                      [autoGrow]="true"
-                      rows="1"
-                      [value]="step"
-                      (ionInput)="onDescriptionStepChange(i, $event.detail.value)"
-                      [placeholder]="'EXERCISE_CONFIG.STEP_PLACEHOLDER' | translate: { n: i + 1 }"
-                      [maxlength]="maxStepLength"
-                      [counter]="true"
-                      fill="solid"
-                      mode="ios"
-                      class="description-step-input"
-                    ></ion-textarea>
-                    <button
-                      type="button"
-                      class="remove-step-btn-inline"
-                      (click)="removeDescriptionStep(i)"
-                    >
-                      <ion-icon name="close"></ion-icon>
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  class="add-step-btn-full"
-                  [disabled]="descriptionSteps.length >= maxDescriptionSteps"
-                  (click)="addDescriptionStep()"
-                >
-                  <ion-icon name="add-outline"></ion-icon>
-                  <span>{{ 'EXERCISE_CONFIG.ADD_STEP' | translate }}</span>
-                </button>
-                <span
-                  class="steps-limit-hint"
-                  *ngIf="descriptionSteps.length >= maxDescriptionSteps"
-                >
-                  {{ 'EXERCISE_CONFIG.STEPS_LIMIT_REACHED' | translate: { max: maxDescriptionSteps } }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- TASK-041 (MASTER_BACKLOG.md) — videoUrl ya viajaba en el payload
-               de creación/edición (this.videoUrl), pero no existía ningún
-               input para que el usuario lo escribiera: solo se leía de
-               ejercicios preexistentes. 2026-09: bloque propio con vista
-               previa, como campo suelto no se veía. -->
-          <section class="exercise-video-section" [class.is-invalid]="videoUrlInvalid">
-            <div class="video-url-head" id="config-exercise-video-label">
-              <ion-icon name="logo-youtube" aria-hidden="true"></ion-icon>
-              <span>{{ 'EXERCISE_CONFIG.VIDEO_URL_LABEL' | translate }}</span>
-            </div>
-            <ion-input
-              [(ngModel)]="videoUrl"
-              [ngModelOptions]="{ standalone: true }"
-              (ngModelChange)="onVideoUrlChange()"
-              [placeholder]="'EXERCISE_CONFIG.VIDEO_URL_PLACEHOLDER' | translate"
-              [clearInput]="true"
-              mode="ios"
-              type="url"
-              inputmode="url"
-              class="video-url-input"
-              aria-labelledby="config-exercise-video-label"
-            ></ion-input>
-            <p class="video-url-help" [class.is-error]="videoUrlInvalid">
-              {{ (videoUrlInvalid ? 'EXERCISE_CONFIG.VIDEO_URL_INVALID' : 'EXERCISE_CONFIG.VIDEO_URL_HELP') | translate }}
-            </p>
-            <div class="video-url-preview" *ngIf="videoEmbedSrcSafe">
-              <iframe
-                [src]="videoEmbedSrcSafe"
-                [title]="'EXERCISE_CONFIG.DEMO_VIDEO' | translate"
-                frameborder="0"
-                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-              ></iframe>
-            </div>
-          </section>
-
-          <div class="exercise-mode-section">
+          <!-- El tipo va justo debajo del nombre: decide qué piden las
+               series, así que se elige antes de configurarlas. -->
+          <div class="cfg-field">
+            <span class="cfg-field__label" id="config-exercise-type-label">
+              {{ 'EXERCISE_CONFIG.TYPE_LABEL' | translate }}
+            </span>
             <ion-segment
               mode="ios"
+              class="cfg-segment"
               [value]="exerciseMode"
-              (ionChange)="setExerciseMode($event.detail.value)"
+              (ionChange)="setExerciseMode($event.detail.value, $any($event.target))"
+              aria-labelledby="config-exercise-type-label"
             >
               <ion-segment-button value="fuerza">
                 <ion-label>{{ 'EXERCISE_CONFIG.STRENGTH' | translate }}</ion-label>
@@ -230,6 +150,120 @@
               </ion-segment-button>
             </ion-segment>
           </div>
+
+          <!-- Instrucciones: siempre a la vista. Antes iban tras un
+               desplegable que no decía si había pasos dentro. -->
+          <div class="cfg-field">
+            <div class="cfg-field__head">
+              <span class="cfg-field__label">
+                {{ 'EXERCISE_CONFIG.DESCRIPTION' | translate }}
+                <span class="cfg-field__optional">{{ 'EXERCISE_CONFIG.OPTIONAL' | translate }}</span>
+              </span>
+              <span class="cfg-field__aside" *ngIf="descriptionSteps.length > 0">
+                {{ descriptionSteps.length }}/{{ maxDescriptionSteps }}
+              </span>
+            </div>
+
+            <ol class="cfg-steps" *ngIf="descriptionSteps.length > 0">
+              <li
+                class="cfg-step"
+                *ngFor="let step of descriptionSteps; let i = index; trackBy: trackByIndex"
+              >
+                <span class="cfg-step__index" aria-hidden="true">{{ i + 1 }}</span>
+                <div class="cfg-field__control cfg-step__control">
+                  <ion-textarea
+                    #stepTextarea
+                    [autoGrow]="true"
+                    rows="1"
+                    [value]="step"
+                    (ionInput)="onDescriptionStepChange(i, $event.detail.value)"
+                    [placeholder]="'EXERCISE_CONFIG.STEP_PLACEHOLDER' | translate: { n: i + 1 }"
+                    [attr.aria-label]="'EXERCISE_CONFIG.STEP_PLACEHOLDER' | translate: { n: i + 1 }"
+                    [maxlength]="maxStepLength"
+                    mode="ios"
+                    class="cfg-field__input"
+                  ></ion-textarea>
+                </div>
+                <button
+                  type="button"
+                  class="cfg-step__remove"
+                  (click)="removeDescriptionStep(i)"
+                  [attr.aria-label]="'EXERCISE_CONFIG.REMOVE_STEP' | translate: { n: i + 1 }"
+                >
+                  <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+                </button>
+                <span
+                  class="cfg-field__counter cfg-step__counter"
+                  *ngIf="step.length >= maxStepLength - 50"
+                >
+                  {{ step.length }}/{{ maxStepLength }}
+                </span>
+              </li>
+            </ol>
+
+            <button
+              type="button"
+              class="cfg-add-step"
+              *ngIf="descriptionSteps.length < maxDescriptionSteps; else stepsLimit"
+              (click)="addDescriptionStep()"
+            >
+              <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+              <span>{{ 'EXERCISE_CONFIG.ADD_STEP' | translate }}</span>
+            </button>
+            <ng-template #stepsLimit>
+              <span class="cfg-field__hint">
+                {{ 'EXERCISE_CONFIG.STEPS_LIMIT_REACHED' | translate: { max: maxDescriptionSteps } }}
+              </span>
+            </ng-template>
+          </div>
+
+          <!-- TASK-041 (MASTER_BACKLOG.md) — videoUrl ya viajaba en el payload
+               de creación/edición (this.videoUrl), pero no existía ningún
+               input para que el usuario lo escribiera: solo se leía de
+               ejercicios preexistentes. Campo con el mismo aspecto que el
+               resto y vista previa debajo, que confirma al momento que el
+               enlace sirve. -->
+          <div class="cfg-field" [class.is-invalid]="videoUrlInvalid">
+            <span class="cfg-field__label" id="config-exercise-video-label">
+              {{ 'EXERCISE_CONFIG.VIDEO_URL_LABEL' | translate }}
+              <span class="cfg-field__optional">{{ 'EXERCISE_CONFIG.OPTIONAL' | translate }}</span>
+            </span>
+            <div class="cfg-field__control">
+              <ion-icon name="logo-youtube" class="cfg-field__leading" aria-hidden="true"></ion-icon>
+              <ion-input
+                [(ngModel)]="videoUrl"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onVideoUrlChange()"
+                [placeholder]="'EXERCISE_CONFIG.VIDEO_URL_PLACEHOLDER' | translate"
+                [clearInput]="true"
+                mode="ios"
+                type="url"
+                inputmode="url"
+                autocapitalize="off"
+                class="cfg-field__input"
+                aria-labelledby="config-exercise-video-label"
+                aria-describedby="config-exercise-video-help"
+                [attr.aria-invalid]="videoUrlInvalid"
+              ></ion-input>
+            </div>
+            <p
+              class="cfg-field__hint"
+              id="config-exercise-video-help"
+              [class.is-error]="videoUrlInvalid"
+              *ngIf="!videoEmbedSrcSafe"
+            >
+              {{ (videoUrlInvalid ? 'EXERCISE_CONFIG.VIDEO_URL_INVALID' : 'EXERCISE_CONFIG.VIDEO_URL_HELP') | translate }}
+            </p>
+            <div class="cfg-video-preview" *ngIf="videoEmbedSrcSafe">
+              <iframe
+                [src]="videoEmbedSrcSafe"
+                [title]="'EXERCISE_CONFIG.DEMO_VIDEO' | translate"
+                frameborder="0"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+          </div>
         </div>
         <div class="add-sets-section" *ngIf="!isEditingOwnExercise">
           <ion-button
@@ -238,7 +272,7 @@
             class="add-sets-btn t-add-exercise-add-set"
             (click)="configSets()"
           >
-            <ion-icon name="barbell-outline" slot="start"></ion-icon>
+            <ion-icon name="add-outline" slot="start"></ion-icon>
             <span class="add-sets-text">{{ 'EXERCISE_CONFIG.ADD_SETS' | translate }}</span>
           </ion-button>
         </div>
@@ -326,7 +360,7 @@
               <div class="sets-title">
                 <h3>{{ 'EXERCISE_CONFIG.SETS_CONFIGURED' | translate }}</h3>
                 <span class="sets-count"
-                  >{{ setList.length }} serie{{ setList.length !== 1 ? 's' : ''
+                  >{{ (setList.length === 1 ? 'EXERCISE_CONFIG.SETS_COUNT_ONE' : 'EXERCISE_CONFIG.SETS_COUNT_MANY') | translate: { count: setList.length }
                   }}</span
                 >
               </div>
@@ -356,7 +390,7 @@
                   &nbsp;
                   <span *ngIf="set.drop" class="intensity-drop">DS</span>
                   <span *ngIf="set.restPause" class="intensity-rp"
-                    >RP {{ set.restPause }} Seg</span
+                    >{{ 'EXERCISE_CONFIG.REST_PAUSE_SECONDS' | translate: { seconds: set.restPause } }}</span
                   >
                   <span *ngIf="set.restSeconds" class="intensity-rest"
                     >{{ set.restSeconds }}s</span
@@ -476,7 +510,7 @@
         <iframe
           class="video-frame"
           [src]="videoEmbedSrcSafe"
-          title="YouTube video player"
+          [title]="'EXERCISE_CONFIG.VIDEO_PLAYER' | translate"
           frameborder="0"
           referrerpolicy="origin"
           loading="lazy"
@@ -553,33 +587,31 @@
       *ngIf="isCreateMode || isEditingOwnExercise || details.category?.length || details.muscleGroups1?.length || details.muscleGroups2?.length || details.equipment?.length"
     >
       <div class="card-content">
-        <!-- Header with Title -->
-        <div class="exercise-details ion-text-center">
-          <ion-label class="exercise-name ion-text-wrap">
-            {{ 'EXERCISE_CONFIG.CATEGORIES_MUSCLES_EQUIPMENT' | translate }}
-          </ion-label>
-        </div>
-
-        <!-- Add Details Button (only in Create Mode) -->
+        <!-- Header with Title. Al crear o editar, la propia cabecera
+             despliega los chips: antes era un pie gris más un botón
+             «OCULTAR DETALLES» tan grande como el de SERIES. -->
         <div
-          class="add-sets-section"
-          *ngIf="isCreateMode || isEditingOwnExercise"
+          class="exercise-details"
+          [class.ion-text-center]="!isCreateMode && !isEditingOwnExercise"
         >
-          <ion-button
-            fill="clear"
-            color="secondary"
-            class="add-sets-btn"
+          <button
+            *ngIf="isCreateMode || isEditingOwnExercise; else detailsTitle"
+            type="button"
+            class="details-toggle"
+            [attr.aria-expanded]="showFilters"
             (click)="toggleFilters()"
           >
+            <span>{{ 'EXERCISE_CONFIG.CATEGORIES_MUSCLES_EQUIPMENT' | translate }}</span>
             <ion-icon
               [name]="showFilters ? 'chevron-up-outline' : 'chevron-down-outline'"
-              slot="start"
-            >
-            </ion-icon>
-            <span class="add-sets-text"
-              >{{ showFilters ? ('EXERCISE_CONFIG.HIDE_DETAILS' | translate) : ('EXERCISE_CONFIG.ADD_DETAILS' | translate) }}</span
-            >
-          </ion-button>
+              aria-hidden="true"
+            ></ion-icon>
+          </button>
+          <ng-template #detailsTitle>
+            <ion-label class="exercise-name ion-text-wrap">
+              {{ 'EXERCISE_CONFIG.CATEGORIES_MUSCLES_EQUIPMENT' | translate }}
+            </ion-label>
+          </ng-template>
         </div>
 
         <!-- Filters Container (Create Mode - Interactive) -->

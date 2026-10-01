@@ -13,6 +13,10 @@
         </provider>
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Cámara dentro de la app (fotos y vídeos de progreso con temporizador).
+         required="false": los móviles sin cámara pueden seguir instalándola. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />

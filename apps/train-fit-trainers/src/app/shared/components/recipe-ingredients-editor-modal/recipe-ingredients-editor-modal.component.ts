@@ -1,4 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { IProduct } from 'src/app/core/models/product';
 import { Recipe } from 'src/app/core/models/recipe';
@@ -34,6 +35,8 @@ export interface RecipeIngredientsEditResult {
   styleUrls: ['./recipe-ingredients-editor-modal.component.scss'],
 })
 export class RecipeIngredientsEditorModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() recipe!: Recipe;
   @Input() addedCustomProducts: CustomProduct[] = [];
   @Input() modifiedBaseCustomProducts: ModifiedBaseCustomProduct[] = [];
@@ -120,7 +123,7 @@ export class RecipeIngredientsEditorModalComponent implements OnInit {
       meal: {} as any,
       // Un ingrediente de receta solo puede ser un producto real — igual
       // que RecipeBuilderModalComponent, las recetas marcadas se descartan.
-      targetLabel: this.recipe.name || 'la receta',
+      targetLabel: this.recipe.name || this.translate.instant('SHARED_COMPONENTS.LA_RECETA'),
       confirmSelection: (items: TrainerFoodSelection[]) => this.addIngredients(items),
       closeSelf: closeOuter,
       registerSelectionApi: (api) => (this.selectionApi = api),
@@ -161,7 +164,7 @@ export class RecipeIngredientsEditorModalComponent implements OnInit {
           ingredientIndex === null && item.kind === 'product' && item.product
             ? (quantity: number) => this.selectionApi?.setSelected(item, quantity)
             : undefined,
-        addLabel: `Añadir a ${this.recipe.name || 'la receta'}`,
+        addLabel: this.translate.instant('SHARED_COMPONENTS.ANADIR', { p0: this.recipe.name || 'la receta' }),
       },
       cssClass: (this.pickerModal ? 'tf-panel-modal-detail-2' : 'tf-panel-modal-detail-1') + ' ion-disable-focus-trap',
       showBackdrop: false,

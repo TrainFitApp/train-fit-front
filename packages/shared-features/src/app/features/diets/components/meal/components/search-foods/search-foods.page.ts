@@ -14,7 +14,6 @@ import { ActivatedRoute } from "@angular/router";
 import { PluginListenerHandle } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
 import {
-  ActionSheetOptions,
   AlertOptions,
   InfiniteScrollCustomEvent,
   IonRouterOutlet,
@@ -23,7 +22,7 @@ import {
   PopoverOptions,
   ToastOptions,
 } from "@ionic/angular";
-import { forkJoin, Subscription, take } from "rxjs";
+import { forkJoin, map, Observable, shareReplay, Subscription, switchMap, take } from "rxjs";
 import {
   CustomProduct,
   CUSTOM_PRODUCT_VALUES,
@@ -57,6 +56,16 @@ import {
   ACTION_TYPES,
   ACTIONS,
 } from "src/app/shared/constants/actions";
+import {
+  CREATE_FOOD_SHEET_OPTIONS,
+  CreateFoodSheetComponent,
+} from "./components/create-food-sheet/create-food-sheet.component";
+import {
+  RECENT_FOODS_SHEET_OPTIONS,
+  RecentFoodItem,
+  RecentFoodsSheetComponent,
+} from "./components/recent-foods-sheet/recent-foods-sheet.component";
+import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
 
 // TAREA5 (train-fit-trainers) — permite presentar esta pantalla como panel
 // lateral para que un entrenador pauте productos/recetas a un CLIENTE, sin
@@ -254,6 +263,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private readonly recentProductsLimit = 15;
   private readonly recentRecipesLimit = 15;
   private productByCodeSub?: Subscription;
+  private isCreateSheetOpen = false;
+  private currentDietDay$?: Subscription;
   private recentProductsSub?: Subscription;
   private recentRecipesSub?: Subscription;
   private searchProductsSub?: Subscription;
@@ -768,6 +779,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
+    this.currentDietDay$?.unsubscribe();
     this.recentProductsSub?.unsubscribe();
     this.recentRecipesSub?.unsubscribe();
     this.searchProductsSub?.unsubscribe();
@@ -1195,58 +1207,34 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         return;
       }
 
-      const t = this.translate.instant.bind(this.translate);
-      const result = await this.ionicUtilService.showActionSheet({
-        cssClass: "create-action-sheet",
-        mode: "ios",
-        buttons: [
-          {
-            text: t('ACTIONS_FAB.NEW_PRODUCT'),
-            icon: "nutrition-outline",
-            data: ACTIONS_FAB_TYPES.createProduct,
-            cssClass: "action-sheet-product",
-          },
-          {
-            text: t('ACTIONS_FAB.NEW_RECIPE'),
-            icon: "restaurant-outline",
-            data: ACTIONS_FAB_TYPES.createRecipe,
-            cssClass: "action-sheet-recipe",
-          },
-        ],
-      });
-      if (result.data === ACTIONS_FAB_TYPES.createRecipe) {
+      const choice = await this.pickCreateType();
+      if (choice === ACTIONS_FAB_TYPES.createRecipe) {
         this.trainerContext.pickCreateRecipe();
-      } else if (result.data === ACTIONS_FAB_TYPES.createProduct) {
+      } else if (choice === ACTIONS_FAB_TYPES.createProduct) {
         this.trainerContext.pickCreateProduct();
       }
       return;
     }
 
-    const t = this.translate.instant.bind(this.translate);
-    const actionSheetOptions: ActionSheetOptions = {
-      cssClass: "create-action-sheet",
-      mode: "ios",
-      buttons: [
-        {
-          text: t('ACTIONS_FAB.NEW_PRODUCT'),
-          icon: "nutrition-outline",
-          data: ACTIONS_FAB_TYPES.createProduct,
-          cssClass: "action-sheet-product",
-        },
-        {
-          text: t('ACTIONS_FAB.NEW_RECIPE'),
-          icon: "restaurant-outline",
-          data: ACTIONS_FAB_TYPES.createRecipe,
-          cssClass: "action-sheet-recipe",
-        },
-      ],
-    };
+    const choice = await this.pickCreateType();
+    if (choice !== undefined) {
+      this.onCloseFab(choice);
+    }
+  }
 
-    const result = await this.ionicUtilService.showActionSheet(
-      actionSheetOptions,
-    );
-    if (result.data !== undefined) {
-      this.onCloseFab(result.data);
+  // Modal-hoja "nuevo producto / nueva receta" (CreateFoodSheetComponent).
+  // El flag evita abrir dos hojas con un doble toque en el +.
+  private async pickCreateType(): Promise<ACTIONS_FAB_TYPES | undefined> {
+    if (this.isCreateSheetOpen) return undefined;
+    this.isCreateSheetOpen = true;
+    try {
+      const { data } = await this.ionicUtilService.showModal({
+        component: CreateFoodSheetComponent,
+        ...CREATE_FOOD_SHEET_OPTIONS,
+      });
+      return data;
+    } finally {
+      this.isCreateSheetOpen = false;
     }
   }
 
@@ -1807,10 +1795,15 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public deselectedAll(): void {
+    const actionsPopover: ACTION_TYPE[] = [ACTIONS[this.ACTION_TYPES.deselect]];
+    if (this.canManageRecents) {
+      actionsPopover.unshift(ACTIONS[this.ACTION_TYPES.manageRecents]);
+    }
+
     const popover: PopoverOptions = {
       component: PopoverActionsComponent,
       componentProps: {
-        actionsPopover: [ACTIONS[this.ACTION_TYPES.deselect]],
+        actionsPopover,
       },
       event: event,
       mode: "ios",
@@ -1826,6 +1819,126 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       case ACTIONS[this.ACTION_TYPES.deselect]:
         this.handleDeselectAll();
         break;
+      case ACTIONS[this.ACTION_TYPES.manageRecents]:
+        this.openRecentsSheet();
+        break;
+    }
+  }
+
+  // Hoja «Recientes de <comida>»: solo en la app cliente, con una comida
+  // abierta y si la pestaña actual tiene recientes cargados (sin ellos sería
+  // una hoja vacía).
+  private get canManageRecents(): boolean {
+    if (this.trainerContext || this.ingredientMode || !this.meal) return false;
+    return this.currentMode === "recipes"
+      ? this.recentCustomRecipes.length > 0
+      : this.recentCustomProducts.length > 0;
+  }
+
+  private async openRecentsSheet(): Promise<void> {
+    const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
+    if (mealIndex === -1) return;
+
+    const isRecipeMode = this.currentMode === "recipes";
+    // La hoja se puede cerrar deslizándola (sin datos de vuelta), así que
+    // avisa de cada cambio guardado por callback.
+    let changed = false;
+    await this.ionicUtilService.showModal({
+      component: RecentFoodsSheetComponent,
+      componentProps: {
+        kind: isRecipeMode ? "recipe" : "product",
+        mealIndex,
+        mealName: this.getMealDisplayName(),
+        items: isRecipeMode
+          ? this.getRecentRecipeItems()
+          : this.getRecentProductItems(),
+        onChanged: () => (changed = true),
+      },
+      ...RECENT_FOODS_SHEET_OPTIONS,
+    });
+
+    if (changed) {
+      this.refreshRecentsAfterManage(mealIndex);
+    }
+  }
+
+  private getMealDisplayName(): string {
+    const name = this.meal?.name || "";
+    return this.translate.currentLang === "en" ? DB_ES_EN_MAP[name] || name : name;
+  }
+
+  private getRecentProductItems(): RecentFoodItem[] {
+    const items: RecentFoodItem[] = [];
+    for (const customProduct of this.recentCustomProducts) {
+      const id = this.getCustomProductProductId(customProduct);
+      const product: any =
+        typeof customProduct?.product === "object" ? customProduct.product : null;
+      if (!id) continue;
+      items.push({
+        id,
+        name: product?.name || "",
+        brand: product?.brand || undefined,
+        quantity: customProduct?.quantity ?? null,
+        lastUsedAt: (customProduct as any)?.lastUsedAt ?? null,
+      });
+    }
+    return items;
+  }
+
+  private getRecentRecipeItems(): RecentFoodItem[] {
+    const items: RecentFoodItem[] = [];
+    for (const customRecipe of this.recentCustomRecipes) {
+      const recipe =
+        typeof customRecipe?.recipe === "object" ? customRecipe.recipe : null;
+      if (!recipe?._id) continue;
+      items.push({
+        id: String(recipe._id),
+        name: recipe.name || "",
+        quantity: customRecipe?.quantity ?? null,
+        lastUsedAt: customRecipe?.lastUsedAt ?? null,
+      });
+    }
+    return items;
+  }
+
+  // Con el buscador vacío la lista ES la de recientes: se recarga entera (los
+  // huecos los ocupa lo siguiente del historial). Con búsqueda o filtros solo
+  // se refrescan los datos de recientes (reloj y cantidad precargada), sin
+  // tocar los resultados.
+  private refreshRecentsAfterManage(mealIndex: number): void {
+    const search = (this.searchFilterGroup?.search || "").trim();
+    const listingRecents = search.length <= 1 && !this.hasActiveFilters();
+    const isRecipeMode = this.currentMode === "recipes";
+
+    if (listingRecents) {
+      if (isRecipeMode) {
+        this.loadRecentRecipesForMeal(true);
+      } else {
+        this.loadRecentProductsForMeal(true);
+      }
+      return;
+    }
+
+    const dietId =
+      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
+    if (!dietId) return;
+
+    if (isRecipeMode) {
+      this.recentRecipesSub?.unsubscribe();
+      this.recentRecipesSub = this.dietService
+        .getRecentMealRecipes(dietId, mealIndex, { limit: this.recentRecipesLimit })
+        .subscribe({
+          next: (customRecipes) => (this.recentCustomRecipes = customRecipes || []),
+          error: () => undefined,
+        });
+    } else {
+      this.recentProductsSub?.unsubscribe();
+      this.recentProductsSub = this.dietService
+        .getRecentMealProducts(dietId, mealIndex, { limit: this.recentProductsLimit })
+        .subscribe({
+          next: (customProducts) => (this.recentCustomProducts = customProducts || []),
+          error: () => undefined,
+        });
     }
   }
 
@@ -1914,15 +2027,24 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this.searchFilterGroup.ownFilter = !!!this.meal;
     this.products = [];
 
-    if (this.meal) {
-      this.dietDayService.getCurrentDietDay
-        .pipe(take(1))
-        .subscribe((res: DietDay) => {
+    // En modo entrenador la dieta de la pantalla es la del CLIENTE
+    // (trainerContext), nunca la del consumidor logueado: ahí no se escucha
+    // nada del DietDayService.
+    if (this.meal && !this.trainerContext) {
+      // Sin `take(1)`: el día cambia de identidad en cuanto se estrena (pasa de
+      // no existir a tener _id y comidas con _id). Quedarse con la foto inicial
+      // hacía que el siguiente alimento se añadiera otra vez "sobre un día
+      // nuevo", creando un segundo DietDay en la misma fecha.
+      this.currentDietDay$?.unsubscribe();
+      this.currentDietDay$ = this.dietDayService.getCurrentDietDay.subscribe(
+        (res: DietDay) => {
+          if (!res) return;
+
           this.dietDay = res;
-          this.meal = res.meals.find(
-            (mealTemp) => mealTemp.name === this.meal.name,
-          );
-        });
+          const updatedMeal = this.findMealInDietDay(res, this.meal);
+          if (updatedMeal) this.meal = updatedMeal;
+        },
+      );
     }
   }
 
@@ -2567,7 +2689,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       context: this.buildRecipeComposeContext(),
     };
 
-    this.recipeApiService.compose(composePayload).subscribe({
+    this.composeOnDietDay(composePayload).subscribe({
       next: (result) => {
         if (result?.dietDay) {
           this.dietDay = result.dietDay;
@@ -2711,6 +2833,47 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this.navigationService.goToConfigRecipe({
       state: navState,
     });
+  }
+
+  // Mismo trato que un producto (ver DietDayService#createCustomProductOnDietDayMeal):
+  // si la fecha todavía no tiene día, la primera receta lo estrena en UNA
+  // llamada (el backend asegura el día y le mete la receta) y esa petición
+  // queda registrada como "el día se está creando", así que cualquier otra
+  // escritura de esa fecha la espera en vez de pedir un segundo día.
+  private composeOnDietDay(composePayload: any): Observable<any> {
+    const date = this.dietDay?.date;
+    const indexMeal = this.findMealIndexInDietDay(this.dietDay, this.meal);
+
+    if (this.dietDay?._id || !date || indexMeal === -1) {
+      return this.recipeApiService.compose(composePayload);
+    }
+
+    const pendingCreation$ = this.dietDayService.pendingDietDayCreation(date);
+    if (pendingCreation$) {
+      return pendingCreation$.pipe(
+        switchMap((createdDietDay) => {
+          const mealId = createdDietDay?.meals?.[indexMeal]?._id;
+          // Sin el día (la creación falló), se reintenta con el contexto de
+          // día nuevo: el backend lo asegura sin poder duplicar la fecha.
+          return this.recipeApiService.compose(
+            mealId
+              ? { ...composePayload, context: { mealId } }
+              : composePayload,
+          );
+        }),
+      );
+    }
+
+    const compose$ = this.recipeApiService
+      .compose(composePayload)
+      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
+
+    this.dietDayService.trackDietDayCreation(
+      date,
+      compose$.pipe(map((result) => result?.dietDay)),
+    );
+
+    return compose$;
   }
 
   private buildRecipeComposeContext(): any | null {

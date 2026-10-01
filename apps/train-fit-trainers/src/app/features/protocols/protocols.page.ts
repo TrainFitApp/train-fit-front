@@ -1,4 +1,5 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -30,6 +31,7 @@ import {
   protocolCadenceLabel,
   protocolCheckins,
 } from './models/coach-protocol.model';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -66,17 +68,19 @@ const DEFAULT_TARGET_MACROS: MacroSet = { protein: 150, carbs: 200, fat: 66.7 };
   styleUrls: ['protocols.page.scss'],
 })
 export class ProtocolsPage {
+  private readonly translate = inject(TranslateService);
+
   public readonly taskPresets = PROTOCOL_TASK_PRESETS;
   public readonly cadencePresets = CHECKIN_CADENCE_PRESETS;
   public readonly customFrequencies: { key: ProtocolCheckinFrequency; label: string }[] = [
-    { key: 'daily', label: 'días' },
-    { key: 'weekly', label: 'semanas' },
-    { key: 'monthly', label: 'meses' },
+    { key: 'daily', label: this.translate.instant('PROTOCOLS.DIAS') },
+    { key: 'weekly', label: this.translate.instant('PROTOCOLS.SEMANAS') },
+    { key: 'monthly', label: this.translate.instant('PROTOCOLS.MESES') },
   ];
   public readonly macroKeys: { key: keyof MacroSet; label: string; short: string }[] = [
-    { key: 'protein', label: 'Proteína', short: 'P' },
-    { key: 'carbs', label: 'Carbohidratos', short: 'C' },
-    { key: 'fat', label: 'Grasa', short: 'G' },
+    { key: 'protein', label: this.translate.instant('TRAINER_COMMON.PROTEIN'), short: 'P' },
+    { key: 'carbs', label: this.translate.instant('TRAINER_COMMON.CARBOHYDRATES'), short: 'C' },
+    { key: 'fat', label: this.translate.instant('TRAINER_COMMON.FAT_SINGULAR'), short: 'G' },
   ];
 
   public state: ViewState = 'loading';
@@ -193,7 +197,7 @@ export class ProtocolsPage {
   // Mientras cargan las plantillas no se sabe si existe: no se acusa de
   // "eliminada" antes de tiempo.
   public missingName(): string {
-    return this.optionsLoaded ? 'Plantilla eliminada' : '…';
+    return this.optionsLoaded ? this.translate.instant('PROTOCOLS.PLANTILLA_ELIMINADA') : '…';
   }
 
   public checkinsOf(protocol: CoachProtocol): ProtocolCheckin[] {
@@ -394,17 +398,17 @@ export class ProtocolsPage {
   // --- Guardar ---
 
   public get validationError(): string | null {
-    if (!this.name.trim()) return 'Ponle un nombre al protocolo.';
-    if (this.checkins.some((c) => !c.templateId)) return 'Elige la plantilla de cada check-in.';
+    if (!this.name.trim()) return this.translate.instant('PROTOCOLS.PONLE_UN_NOMBRE_AL_PROTOCOLO');
+    if (this.checkins.some((c) => !c.templateId)) return this.translate.instant('PROTOCOLS.ELIGE_LA_PLANTILLA_DE_CADA');
     if (this.checkins.some((c) => !(Number.isInteger(Number(c.interval)) && c.interval >= 1 && c.interval <= 52))) {
-      return 'El intervalo de cada check-in va de 1 a 52.';
+      return this.translate.instant('PROTOCOLS.EL_INTERVALO_DE_CADA_CHECK');
     }
     if (this.checkins.some((c) => !/^([01]\d|2[0-3]):[0-5]\d$/.test(c.time || ''))) {
-      return 'Pon la hora de cada check-in.';
+      return this.translate.instant('PROTOCOLS.PON_LA_HORA_DE_CADA');
     }
-    if (this.setsNutritionTarget && !(this.targetKcal > 0)) return 'Pon las kcal del objetivo.';
+    if (this.setsNutritionTarget && !(this.targetKcal > 0)) return this.translate.instant('PROTOCOLS.PON_LAS_KCAL_DEL_OBJETIVO');
     if (this.dailyTasks.some((t) => !(Number(t.target) > 0))) {
-      return 'Cada hábito necesita un objetivo mayor que 0.';
+      return this.translate.instant('PROTOCOLS.CADA_HABITO_NECESITA_UN_OBJETIVO');
     }
     // Un protocolo que no hace nada es casi seguro un olvido.
     const hasContent =
@@ -414,7 +418,7 @@ export class ProtocolsPage {
       this.routineTemplateId ||
       this.ruleIds.length ||
       this.dailyTasks.length;
-    if (!hasContent) return 'Añade al menos una cosa: un check-in, una plantilla, un objetivo, una regla o un hábito.';
+    if (!hasContent) return this.translate.instant('PROTOCOLS.ANADE_AL_MENOS_UNA_COSA');
     return null;
   }
 
@@ -465,19 +469,19 @@ export class ProtocolsPage {
       },
       error: (error) => {
         this.isSaving = false;
-        void this.ionicUtilService.showErrorToast(error, 'No se pudo guardar el protocolo');
+        void this.ionicUtilService.showErrorToast(error, this.translate.instant('PROTOCOLS.NO_SE_PUDO_GUARDAR_EL'));
       },
     });
   }
 
   public async confirmDelete(protocol: CoachProtocol): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Eliminar protocolo',
-      message: `"${protocol.name}" desaparecerá de tu biblioteca. Los clientes a los que ya se lo aplicaste conservan todo lo que se les asignó.`,
+      header: this.translate.instant('PROTOCOLS.ELIMINAR_PROTOCOLO'),
+      message: this.translate.instant('PROTOCOLS.DESAPARECERA_DE_TU_BIBLIOTECA_LOS', { name: protocol.name }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Eliminar',
+          text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           cssClass: 'alert-button-danger',
           handler: () => {
@@ -487,7 +491,7 @@ export class ProtocolsPage {
                 if (this.detail?._id === protocol._id) this.closeDetail();
               },
               error: (error) =>
-                void this.ionicUtilService.showErrorToast(error, 'No se pudo eliminar el protocolo'),
+                void this.ionicUtilService.showErrorToast(error, this.translate.instant('PROTOCOLS.NO_SE_PUDO_ELIMINAR_EL')),
             });
           },
         },
@@ -541,7 +545,7 @@ export class ProtocolsPage {
   public async applyProtocol(protocol: CoachProtocol): Promise<void> {
     const modal = await this.modalController.create({
       component: SelectClientsModalComponent,
-      componentProps: { title: `Aplicar "${protocol.name}"` },
+      componentProps: { title: this.translate.instant('PROTOCOLS.APLICAR_3', { name: protocol.name }) },
     });
     await modal.present();
     const { data, role } = await modal.onWillDismiss();
@@ -555,7 +559,7 @@ export class ProtocolsPage {
     this.preview = null;
     this.applyDraft = {
       protocol,
-      clients: (data.targetClientIds as string[]).map((id) => ({ id, name: names.get(id) || 'Cliente' })),
+      clients: (data.targetClientIds as string[]).map((id) => ({ id, name: names.get(id) || this.translate.instant('TRAINER_COMMON.CLIENT') })),
       startDate: this.todayIso(),
       reason: '',
     };
@@ -571,7 +575,7 @@ export class ProtocolsPage {
     const draft = this.applyDraft;
     if (!draft || this.applyingId) return;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.startDate || '')) {
-      void this.ionicUtilService.showWarningToast('Elige la fecha de inicio.');
+      void this.ionicUtilService.showWarningToast(this.translate.instant('PROTOCOLS.ELIGE_LA_FECHA_DE_INICIO'));
       return;
     }
     this.applyingId = draft.protocol._id;
@@ -592,23 +596,23 @@ export class ProtocolsPage {
           const failed = results.filter((r) => !r.success || r.steps?.some((s) => s.status === 'failed')).length;
           if (!failed) {
             void this.ionicUtilService.showSuccessToast(
-              `Protocolo aplicado a ${results.length} cliente${results.length === 1 ? '' : 's'}`
+              this.translate.instant('PROTOCOLS.PROTOCOLO_APLICADO_CLIENTE', { length: results.length, p1: results.length === 1 ? '' : 's' })
             );
           } else {
             void this.ionicUtilService.showWarningToast(
-              `${results.length - failed} de ${results.length} sin incidencias. Revisa el detalle.`
+              this.translate.instant('PROTOCOLS.DE_SIN_INCIDENCIAS_REVISA_EL', { p0: results.length - failed, length: results.length })
             );
           }
         },
         error: (error) => {
           this.applyingId = null;
-          void this.ionicUtilService.showErrorToast(error, 'No se pudo aplicar el protocolo');
+          void this.ionicUtilService.showErrorToast(error, this.translate.instant('PROTOCOLS.NO_SE_PUDO_APLICAR_EL'));
         },
       });
   }
 
   public clientName(clientId: string): string {
-    return this.clientNames.get(clientId) || 'Cliente';
+    return this.clientNames.get(clientId) || this.translate.instant('TRAINER_COMMON.CLIENT');
   }
 
   public dismissResults(): void {
@@ -632,13 +636,13 @@ export class ProtocolsPage {
       parts.push({ icon: 'clipboard-outline', text: `${checkins.length} check-ins` });
     }
     if (protocol.dietTemplateId) {
-      parts.push({ icon: 'restaurant-outline', text: this.dietTemplate(protocol.dietTemplateId)?.name || 'Plan de dieta' });
+      parts.push({ icon: 'restaurant-outline', text: this.dietTemplate(protocol.dietTemplateId)?.name || this.translate.instant('PROTOCOLS.PLAN_DE_DIETA') });
     }
     if (protocol.nutritionTarget) {
-      parts.push({ icon: 'flame-outline', text: `${protocol.nutritionTarget.kcal.toLocaleString('es-ES')} kcal` });
+      parts.push({ icon: 'flame-outline', text: `${protocol.nutritionTarget.kcal.toLocaleString(uiLocale())} kcal` });
     }
     if (protocol.routineTemplateId) {
-      parts.push({ icon: 'barbell-outline', text: this.routineTemplate(protocol.routineTemplateId)?.name || 'Rutina' });
+      parts.push({ icon: 'barbell-outline', text: this.routineTemplate(protocol.routineTemplateId)?.name || this.translate.instant('PROTOCOLS.RUTINA') });
     }
     if (protocol.ruleIds?.length) {
       parts.push({
@@ -649,14 +653,14 @@ export class ProtocolsPage {
     if (protocol.dailyTasks?.length) {
       parts.push({
         icon: 'checkmark-done-outline',
-        text: `${protocol.dailyTasks.length} hábito${protocol.dailyTasks.length === 1 ? '' : 's'}`,
+        text: this.translate.instant('PROTOCOLS.HABITO_3', { length: protocol.dailyTasks.length, p1: protocol.dailyTasks.length === 1 ? '' : 's' }),
       });
     }
     return parts;
   }
 
   public stepStatusLabel(status: string): string {
-    return status === 'applied' ? 'Aplicado' : status === 'skipped' ? 'No incluido' : 'Falló';
+    return status === 'applied' ? this.translate.instant('PROTOCOLS.APLICADO_2') : status === 'skipped' ? this.translate.instant('PROTOCOLS.NO_INCLUIDO') : this.translate.instant('PROTOCOLS.FALLO');
   }
 
   public trackByProtocolId(_index: number, protocol: CoachProtocol): string {

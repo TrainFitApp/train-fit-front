@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
   PAIN_BANDS,
@@ -52,7 +53,8 @@ export class MyPainPage implements OnInit {
   constructor(
     private myPainApi: MyPainApiService,
     private ionicUtilService: IonicUtilService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -130,8 +132,8 @@ export class MyPainPage implements OnInit {
         row.level = previous;
         this.isSaving = false;
         this.ionicUtilService.showErrorToast(
-          'No se pudo guardar. Inténtalo de nuevo.',
-          'Error',
+          this.translate.instant('PAIN.SAVE_ERROR'),
+          this.translate.instant('COMMON.ERROR'),
           2500
         );
       },
@@ -150,7 +152,7 @@ export class MyPainPage implements OnInit {
       error: () => {
         row.level = previous;
         this.isSaving = false;
-        this.ionicUtilService.showErrorToast('No se pudo borrar.', 'Error', 2500);
+        this.ionicUtilService.showErrorToast(this.translate.instant('PAIN.DELETE_ERROR'), this.translate.instant('COMMON.ERROR'), 2500);
       },
     });
   }
@@ -161,7 +163,7 @@ export class MyPainPage implements OnInit {
     if (row.level === null) return;
     this.myPainApi.save({ zone: row.zone, level: row.level, note: row.note }).subscribe({
       error: () =>
-        this.ionicUtilService.showErrorToast('No se pudo guardar la nota.', 'Error', 2500),
+        this.ionicUtilService.showErrorToast(this.translate.instant('PAIN.NOTE_ERROR'), this.translate.instant('COMMON.ERROR'), 2500),
     });
   }
 

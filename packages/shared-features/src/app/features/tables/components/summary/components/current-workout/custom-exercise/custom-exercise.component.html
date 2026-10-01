@@ -186,7 +186,7 @@
   <div class="premium-exercise-notes trainer-note" *ngIf="customExercise?.notes && !hasTrainer">
     <span class="note-author">
       <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
-      De tu entrenador
+      {{ 'TABLES.FROM_YOUR_TRAINER' | translate }}
     </span>
     <p class="note-body">{{ customExercise.notes }}</p>
   </div>
@@ -195,7 +195,7 @@
     (click)="manageNote()">
     <span class="note-author">
       <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
-      Tu nota
+      {{ 'TABLES.YOUR_NOTE' | translate }}
     </span>
     <p class="note-body">{{ customExercise.clientNotes }}</p>
   </button>

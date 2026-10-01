@@ -1,6 +1,6 @@
 <p class="selector-total" [class.selector-total--empty]="!selected.length">
   <ion-icon [name]="selected.length ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
-  <span><strong>{{ selected.length }}</strong> de {{ totalFields }} campos activos</span>
+  <span><strong>{{ selected.length }}</strong> {{ 'SHARED_COMPONENTS.DE' | translate }} {{ totalFields }} {{ 'SHARED_COMPONENTS.CAMPOS_ACTIVOS' | translate }}</span>
 </p>
 
 <div class="field-group" *ngFor="let group of groups; trackBy: trackByGroupKey">
@@ -64,9 +64,9 @@
         (click)="toggleRequired(field.key)"
         role="switch"
         [attr.aria-checked]="isRequired(field.key)"
-        [attr.aria-label]="'Obligatorio: ' + field.label"
+        [attr.aria-label]="('SHARED_COMPONENTS.OBLIGATORIO_2' | translate) + field.label"
       >
-        Obligatorio
+        {{ 'SHARED_COMPONENTS.OBLIGATORIO' | translate }}
       </button>
     </div>
   </div>

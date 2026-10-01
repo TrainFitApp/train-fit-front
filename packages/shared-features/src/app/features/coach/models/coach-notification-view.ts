@@ -1,5 +1,6 @@
 import type { NavigationExtras } from '@angular/router';
 import { CoachNotification, CoachNotificationType } from './coach-dashboard.model';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 // PURO — cómo se pinta y adónde lleva una notificación del Coach. Lo
 // comparten el tab Coach y la tarjeta "Tu coach" del perfil, para que un
@@ -25,35 +26,37 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   form_check_reviewed: 'videocam-outline',
 };
 
-const MONEY = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+const MONEY = () => new Intl.NumberFormat(uiLocale(), { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
 
 export function money(value: unknown, currency: unknown): string {
   const amount = typeof value === 'number' ? value : Number(value);
   if (!Number.isFinite(amount)) return '';
   if (currency && currency !== 'EUR') return `${amount.toFixed(2)} ${currency}`;
-  return MONEY.format(amount);
+  return MONEY().format(amount);
 }
 
 // Día civil "YYYY-MM-DD" → "5 nov", sin que la zona del dispositivo lo mueva.
 export function shortDay(value: unknown): string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
-  return new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+  return new Intl.DateTimeFormat(uiLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' })
     .format(new Date(`${value}T12:00:00Z`))
     .replace('.', '');
 }
 
 // Recordatorio de pago: el saldo de AHORA (payload.current) y, si el cobro ya
 // se cerró, se dice en vez de seguir reclamando un importe antiguo.
-function paymentReminderTitle(p: Record<string, unknown>): string {
+type Translate = (key: string, params?: object) => string;
+
+function paymentReminderTitle(p: Record<string, unknown>, t: Translate): string {
   const current = (p['current'] || null) as { status?: string; balanceCents?: number; dueDay?: string; currency?: string } | null;
   if ((current && current.status !== 'open') || (!current && p['resolution'])) {
-    return 'Recordatorio de pago: ya no está pendiente';
+    return t('COACH_NOTIFICATIONS.TITLES.PAYMENT_REMINDER_SETTLED');
   }
   const cents = current?.balanceCents ?? (p['balanceCents'] as number | undefined);
   const due = shortDay(current?.dueDay ?? p['dueDay']);
   const amount = typeof cents === 'number' ? money(cents / 100, current?.currency ?? p['currency']) : '';
-  if (!amount) return 'Tu profesional te recuerda un pago pendiente';
-  return `Tu profesional te recuerda un pago pendiente de ${amount}${due ? `, con vencimiento el ${due}` : ''}`;
+  if (!amount) return t('COACH_NOTIFICATIONS.TITLES.PAYMENT_REMINDER');
+  return due ? t('COACH_NOTIFICATIONS.TITLES.PAYMENT_REMINDER_AMOUNT_DUE', { amount, due }) : t('COACH_NOTIFICATIONS.TITLES.PAYMENT_REMINDER_AMOUNT', { amount });
 }
 
 export interface CoachRoute {
@@ -65,40 +68,40 @@ export function notificationIcon(notification: CoachNotification): string {
   return NOTIFICATION_ICONS[notification.type] || 'notifications-outline';
 }
 
-export function notificationTrainerName(notification: CoachNotification): string {
-  if (!notification.trainer) return 'Tu profesional';
+export function notificationTrainerName(notification: CoachNotification, t: Translate): string {
+  if (!notification.trainer) return t('ONBOARDING.YOUR_PROFESSIONAL');
   return `${notification.trainer.name} ${notification.trainer.lastname}`.trim();
 }
 
-export function notificationTitle(notification: CoachNotification): string {
+export function notificationTitle(notification: CoachNotification, t: Translate): string {
   const p = notification.payload || {};
   switch (notification.type) {
     case 'meal_proposal':
-      return `Nueva propuesta para ${p['mealSlot'] || 'una comida'}`;
+      return t('COACH_NOTIFICATIONS.TITLES.MEAL_PROPOSAL', { meal: p['mealSlot'] || t('COACH_NOTIFICATIONS.TITLES.A_MEAL') });
     case 'payment_created':
-      return `Nuevo cobro: ${money(p['amount'], p['currency'])}`;
+      return t('COACH_NOTIFICATIONS.TITLES.PAYMENT_CREATED', { amount: money(p['amount'], p['currency']) });
     case 'payment_reminder':
-      return paymentReminderTitle(p);
+      return paymentReminderTitle(p, t);
     case 'nutrition_preferences_requested':
-      return 'Te ha pedido tus preferencias nutricionales';
+      return t('COACH_NOTIFICATIONS.TITLES.PREFERENCES_REQUESTED');
     case 'checkin_reviewed':
-      return `Check-in revisado${p['name'] ? ': ' + p['name'] : ''}`;
+      return p['name'] ? t('COACH_NOTIFICATIONS.TITLES.CHECKIN_REVIEWED_NAMED', { name: p['name'] }) : t('COACH_NOTIFICATIONS.TITLES.CHECKIN_REVIEWED');
     case 'routine_assigned':
-      return `Nueva rutina asignada: ${p['routineName'] || ''}`;
+      return t('COACH_NOTIFICATIONS.TITLES.ROUTINE_ASSIGNED', { name: p['routineName'] || '' });
     case 'task_assigned':
-      return `Nuevo hábito: ${p['taskLabel'] || ''}`;
+      return t('COACH_NOTIFICATIONS.TITLES.TASK_ASSIGNED', { name: p['taskLabel'] || '' });
     case 'intake_submitted':
-      return 'Cuestionario inicial enviado';
+      return t('COACH_NOTIFICATIONS.TITLES.INTAKE_SUBMITTED');
     case 'client_confirmed':
-      return 'Tu profesional te ha confirmado';
+      return t('COACH_NOTIFICATIONS.TITLES.CLIENT_CONFIRMED');
     case 'meal_prescribed':
-      return `Nueva comida pautada: ${p['mealName'] || ''}`;
+      return t('COACH_NOTIFICATIONS.TITLES.MEAL_PRESCRIBED', { name: p['mealName'] || '' });
     case 'anthropometry_requested':
-      return 'Te ha pedido nuevas medidas corporales';
+      return t('COACH_NOTIFICATIONS.TITLES.ANTHROPOMETRY_REQUESTED');
     case 'form_check_reviewed':
-      return `Ha revisado tu vídeo${p['exerciseName'] ? ' de ' + p['exerciseName'] : ''}`;
+      return p['exerciseName'] ? t('COACH_NOTIFICATIONS.TITLES.FORM_CHECK_REVIEWED_NAMED', { name: p['exerciseName'] }) : t('COACH_NOTIFICATIONS.TITLES.FORM_CHECK_REVIEWED');
     default:
-      return 'Nueva actividad';
+      return t('COACH_NOTIFICATIONS.TITLES.DEFAULT');
   }
 }
 

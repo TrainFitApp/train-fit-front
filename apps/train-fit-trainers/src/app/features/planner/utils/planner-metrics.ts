@@ -8,6 +8,7 @@ import {
   muscleGroupOf,
   normalizeMuscles,
 } from 'src/app/core/constants/muscle-catalog';
+import { uiText } from 'src/app/core/i18n/localized-catalog';
 
 /**
  * Métricas de microciclo del Planificador, en funciones puras.
@@ -323,7 +324,7 @@ export function buildMuscleTreeRows(
         // Mismo nombre que la chip del formulario de ejercicio.
         portions.push({
           id: `${group.id}__whole`,
-          label: 'Todo el grupo',
+          label: uiText('PLANNER.TODO_EL_GRUPO'),
           isWholeGroup: true,
           sets: general,
           share: share(general),

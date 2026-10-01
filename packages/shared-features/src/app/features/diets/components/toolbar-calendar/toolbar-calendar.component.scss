@@ -4,7 +4,9 @@
   flex-direction: column;
   width: 100%;
   background: #141414;
-  border-bottom: 1px solid rgba(37, 37, 37, 0.3);
+  // Sin borde inferior: la línea de separación la pinta
+  // `.fused-header-section` en `diets.page.scss`. Si se pone aquí también,
+  // se ven dos líneas de 1px pegadas debajo de las barras de macros.
   position: relative;
   overflow: hidden;
 
@@ -150,7 +152,9 @@
   }
 }
 
-// Contenedor de las barras de macros
+// Contenedor de las barras de macros. El hueco con los días es el `padding`
+// inferior de `ion-grid` en el slider (`--diets-gap`), igual que el de la
+// línea de fase: el borde de esta caja queda a esa distancia de los días.
 .macros-container {
   position: relative;
   z-index: 1;

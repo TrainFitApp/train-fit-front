@@ -1,5 +1,6 @@
 import { Component, Injectable, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import {
@@ -31,9 +32,9 @@ export class MyShoppingListApiService {
 // un selector de fechas libre convertiría una pantalla de dos toques en un
 // formulario.
 const RANGES = [
-  { days: 7, label: 'Esta semana' },
-  { days: 14, label: '2 semanas' },
-  { days: 30, label: 'Un mes' },
+  { days: 7, label: 'SHOPPING_LIST.RANGE_WEEK' },
+  { days: 14, label: 'SHOPPING_LIST.RANGE_2_WEEKS' },
+  { days: 30, label: 'SHOPPING_LIST.RANGE_MONTH' },
 ];
 
 /**
@@ -69,7 +70,8 @@ export class MyShoppingListPage implements OnInit {
 
   constructor(
     private myShoppingListApi: MyShoppingListApiService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -173,13 +175,13 @@ export class MyShoppingListPage implements OnInit {
   }
 
   public alternativeLabel(label: string, index: number): string {
-    return label || `Opción ${index + 1}`;
+    return label || this.translate.instant('SHOPPING_LIST.OPTION_N', { n: index + 1 });
   }
 
   // Tramo con fechas solo si hay más de uno: con uno solo es el rango pedido.
   public segmentLabel(segment: ShoppingSegment): string {
     const fmt = (iso: string) => `${Number(iso.slice(8, 10))}/${Number(iso.slice(5, 7))}`;
-    return `Del ${fmt(segment.from)} al ${fmt(segment.to)}`;
+    return this.translate.instant('MY_CHECKINS.PERIOD_RANGE', { from: fmt(segment.from), to: fmt(segment.to) });
   }
 
   // Lo marcado en el carro se conserva: el producto es el mismo, solo cambia
@@ -206,7 +208,7 @@ export class MyShoppingListPage implements OnInit {
   }
 
   public daysLabel(item: ShoppingListItem): string {
-    return item.dayCount === 1 ? '1 día' : `${item.dayCount} días`;
+    return this.translate.instant(item.dayCount === 1 ? 'SHOPPING_LIST.DAYS_ONE' : 'SHOPPING_LIST.DAYS_MANY', { count: item.dayCount });
   }
 
   public trackByName(_index: number, item: ShoppingListItem): string {

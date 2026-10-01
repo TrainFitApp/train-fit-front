@@ -6,7 +6,7 @@
         type="button"
         class="group-toggle"
         [attr.aria-expanded]="isExpanded(row)"
-        [attr.aria-label]="(isExpanded(row) ? 'Ocultar porciones de ' : 'Ver porciones de ') + (row.label | translateDb)"
+        [attr.aria-label]="(isExpanded(row) ? ('PLANNER.OCULTAR_PORCIONES_DE' | translate) : ('PLANNER.VER_PORCIONES_DE' | translate)) + (row.label | translateDb)"
         (click)="toggle(row)"
       >
         <ion-icon
@@ -34,13 +34,13 @@
         *ngIf="delta(row) !== null"
         [class.group-delta--up]="delta(row)! > 0"
         [class.group-delta--down]="delta(row)! < 0"
-        title="Diferencia de series frente al microciclo anterior"
+        [title]="'PLANNER.DIFERENCIA_DE_SERIES_FRENTE_AL' | translate"
       >{{ delta(row) === 0 ? '·' : (delta(row)! > 0 ? '▲ +' : '▼ ') }}{{ delta(row) === 0 ? '' : (delta(row) | number: '1.0-1') }}</span>
     </div>
 
     <span
       class="group-track"
-      [title]="showRange ? 'Barra: series del grupo frente al rango de referencia (zona sombreada, ' + targetMin + '–' + targetMax + ').' : ''"
+      [title]="showRange ? ('PLANNER.BARRA_SERIES_DEL_GRUPO_FRENTE' | translate) + targetMin + '–' + targetMax + ').' : ''"
     >
       <span
         *ngIf="showRange"
@@ -65,10 +65,10 @@
         <span
           class="portion-name"
           [title]="portion.isWholeGroup
-            ? 'Series de ejercicios que trabajan ' + (row.label | translateDb) + ' entero, sin énfasis en una porción'
+            ? ('PLANNER.SERIES_DE_EJERCICIOS_QUE_TRABAJAN' | translate) + (row.label | translateDb) + ('PLANNER.ENTERO_SIN_ENFASIS_EN_UNA' | translate)
             : (portion.label | translateDb)"
         >{{ portion.label | translateDb }}</span>
-        <span class="portion-track" [title]="portion.share + '% de las series de ' + (row.label | translateDb)">
+        <span class="portion-track" [title]="portion.share + ('PLANNER.DE_LAS_SERIES_DE' | translate) + (row.label | translateDb)">
           <span class="portion-fill" [style.width.%]="portion.share"></span>
         </span>
         <span class="portion-count">{{ portion.sets | number: '1.0-1' }}</span>

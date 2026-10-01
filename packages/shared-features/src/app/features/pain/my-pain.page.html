@@ -1,11 +1,11 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="page-toolbar">
     <ion-buttons slot="start">
-      <button type="button" class="back-btn" (click)="close()" aria-label="Volver">
+      <button type="button" class="back-btn" (click)="close()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
         <ion-icon name="chevron-back-outline"></ion-icon>
       </button>
     </ion-buttons>
-    <ion-title>Dolor</ion-title>
+    <ion-title>{{ 'COACH.PAIN' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -17,21 +17,20 @@
 
   <div class="page-state" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <p>No se pudo cargar tu registro de dolor.</p>
-    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'PAIN.LOAD_ERROR' | translate }}</p>
+    <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <p class="page-hint">
-      Marca solo lo que te duela HOY. Lo que apuntes lo ve tu entrenador, y le sirve para
-      decidir si toca cambiar algo del entrenamiento.
+      {{ 'PAIN.HINT' | translate }}
     </p>
 
     <!-- Aviso cuando alguna zona ya condiciona el entrenamiento. Va arriba y
          no al lado de la zona: es lo que hay que leer antes de entrenar. -->
     <p class="pain-warning" *ngIf="hasAnyPain">
       <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-      Has marcado dolor que te limita. No fuerces esa zona hoy y díselo a tu entrenador.
+      {{ 'PAIN.LIMITING_WARNING' | translate }}
     </p>
 
     <div class="zone-list">
@@ -43,7 +42,7 @@
           [attr.aria-expanded]="expandedZone === row.zone"
           (click)="toggleZone(row.zone)"
         >
-          <span class="zone-name">{{ row.zone }}</span>
+          <span class="zone-name">{{ row.zone | translateDb }}</span>
 
           <!-- El nivel marcado, si lo hay. Un hueco es "no he apuntado nada",
                que no es lo mismo que un 0 ("hoy no me duele"). -->
@@ -84,14 +83,14 @@
               class="note-input"
               rows="2"
               maxlength="300"
-              placeholder="¿En qué movimiento lo notas? (opcional)"
+              [placeholder]="'PAIN.NOTE_PLACEHOLDER' | translate"
               [(ngModel)]="row.note"
               (blur)="saveNote(row)"
             ></textarea>
           </div>
 
           <button type="button" class="clear-button" *ngIf="row.level !== null" (click)="clear(row)">
-            Quitar el registro de hoy
+            {{ 'PAIN.CLEAR_TODAY' | translate }}
           </button>
         </div>
       </div>

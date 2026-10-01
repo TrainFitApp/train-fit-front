@@ -1,6 +1,7 @@
 import { animate, group, query, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { IonItemSliding } from '@ionic/angular';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
@@ -34,6 +35,7 @@ import { CoachDashboardApiService } from './services/coach-dashboard-api.service
 import { NotificationsApiService } from './services/notifications-api.service';
 import { ProfessionalsApiService } from './services/professionals-api.service';
 import { TasksApiService } from './services/tasks-api.service';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -141,7 +143,8 @@ export class CoachPage implements OnInit {
     private coachService: CoachService,
     private notificationsService: NotificationsService,
     public onboardingService: OnboardingService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -247,13 +250,14 @@ export class CoachPage implements OnInit {
   // "2 planes", "1 plan" o "Sin asignar".
   public get currentPlansStat(): string {
     const count = [this.dashboard?.currentPlans?.training, this.dashboard?.currentPlans?.nutrition].filter(Boolean).length;
-    return count ? `${count} plan${count === 1 ? '' : 'es'}` : 'Sin asignar';
+    if (!count) return this.translate.instant('COACH.PLANS_NONE');
+    return this.translate.instant(count === 1 ? 'COACH.PLANS_ONE' : 'COACH.PLANS_MANY', { count });
   }
 
   public planDatePrefix(plan: CoachCurrentPlan): string {
-    if (plan.status === 'scheduled') return 'empieza el';
-    if (plan.status === 'assigned') return 'asignada el';
-    return 'desde el';
+    if (plan.status === 'scheduled') return this.translate.instant('COACH.PLAN_STARTS');
+    if (plan.status === 'assigned') return this.translate.instant('COACH.PLAN_ASSIGNED');
+    return this.translate.instant('COACH.PLAN_SINCE');
   }
 
   // Rediseño "menú de cards" — cada tarjeta de arriba lleva a su sección
@@ -324,7 +328,7 @@ export class CoachPage implements OnInit {
       },
       error: () => {
         this.markingAllRead = false;
-        this.ionicUtilService.showErrorToast('No se pudieron marcar como leídas', 'Error', 2500);
+        this.ionicUtilService.showErrorToast(this.translate.instant('COACH.MARK_READ_ERROR'), this.translate.instant('COMMON.ERROR'), 2500);
       },
     });
   }
@@ -337,12 +341,14 @@ export class CoachPage implements OnInit {
     return notificationRoute(notification) !== null;
   }
 
+  private readonly t = (key: string, params?: object): string => this.translate.instant(key, params);
+
   public notificationTrainerName(notification: CoachNotification): string {
-    return notificationTrainerName(notification);
+    return notificationTrainerName(notification, this.t);
   }
 
   public notificationTitle(notification: CoachNotification): string {
-    return notificationTitle(notification);
+    return notificationTitle(notification, this.t);
   }
 
   public startNotificationPointer(): void {
@@ -437,7 +443,7 @@ export class CoachPage implements OnInit {
         this.notifications.splice(followingIndex === -1 ? this.notifications.length : followingIndex, 0, notification);
         this.updateVisibleNotifications();
         this.notificationsService.setUnreadCount(this.unreadNotificationsCount);
-        this.ionicUtilService.showErrorToast('No se pudo eliminar la notificación', 'Error', 2500);
+        this.ionicUtilService.showErrorToast(this.translate.instant('COACH.DELETE_NOTIFICATION_ERROR'), this.translate.instant('COMMON.ERROR'), 2500);
       },
     });
   }
@@ -473,7 +479,7 @@ export class CoachPage implements OnInit {
       },
       error: () => {
         this.togglingTaskId = null;
-        this.ionicUtilService.showErrorToast('No se pudo actualizar la tarea', 'Error', 2500);
+        this.ionicUtilService.showErrorToast(this.translate.instant('COACH.TASK_ERROR'), this.translate.instant('COMMON.ERROR'), 2500);
       },
     });
   }
@@ -522,29 +528,29 @@ export class CoachPage implements OnInit {
   }
 
   public getHistoryTrainerName(entry: HistoryEntry): string {
-    if (!entry.trainer) return 'Un profesional';
+    if (!entry.trainer) return this.translate.instant('ONBOARDING.A_PROFESSIONAL');
     return `${entry.trainer.name} ${entry.trainer.lastname}`.trim();
   }
 
   public historyEndedByLabel(entry: HistoryEntry): string {
-    if (entry.status === 'declined') return 'Rechazada';
-    if (entry.revokedBy === 'client') return 'Finalizada por ti';
-    if (entry.revokedBy === 'trainer') return 'Finalizada por el profesional';
-    return 'Finalizada';
+    if (entry.status === 'declined') return this.translate.instant('COACH.HISTORY_DECLINED');
+    if (entry.revokedBy === 'client') return this.translate.instant('COACH.HISTORY_ENDED_BY_YOU');
+    if (entry.revokedBy === 'trainer') return this.translate.instant('COACH.HISTORY_ENDED_BY_COACH');
+    return this.translate.instant('COACH.HISTORY_ENDED');
   }
 
   public getTrainerName(invite: PendingInvite): string {
-    if (!invite.trainer) return 'Un profesional';
+    if (!invite.trainer) return this.translate.instant('ONBOARDING.A_PROFESSIONAL');
     return `${invite.trainer.name} ${invite.trainer.lastname}`.trim();
   }
 
   public getProfessionalName(professional: ProfessionalSummary): string {
-    if (!professional.user) return 'Profesional';
+    if (!professional.user) return this.translate.instant('COACH.PROFESSIONAL');
     return `${professional.user.name} ${professional.user.lastname}`.trim();
   }
 
   public scopeLabel(scope: ProfessionalScope): string {
-    return scope === 'training' ? 'Entrenamiento' : 'Nutrición';
+    return this.translate.instant(scope === 'training' ? 'ONBOARDING.SCOPE_TRAINING' : 'ONBOARDING.SCOPE_NUTRITION');
   }
 
   // Mismo par de iconos que ya usa el resto de la app para estos 2 ámbitos
@@ -577,7 +583,7 @@ export class CoachPage implements OnInit {
       this.professionalsApi.acceptInvite(invite._id).pipe(
         map(() => ({ invite, success: true, error: null as string | null })),
         catchError((err) =>
-          of({ invite, success: false, error: err?.error?.message || 'No se pudo aceptar' })
+          of({ invite, success: false, error: err?.error?.message || this.translate.instant('COACH.ACCEPT_ERROR') })
         )
       )
     );
@@ -587,9 +593,9 @@ export class CoachPage implements OnInit {
 
       const succeeded = results.filter((r) => r.success);
       if (succeeded.length) {
-        const scopes = succeeded.map((r) => this.scopeLabel(r.invite.scope).toLowerCase()).join(' y ');
+        const scopes = succeeded.map((r) => this.scopeLabel(r.invite.scope).toLowerCase()).join(this.translate.instant('COACH.AND'));
         this.ionicUtilService.showToast({
-          message: `Ahora ${this.getTrainerName(group.invites[0])} lleva tu ${scopes}`,
+          message: this.translate.instant('COACH.ACCEPTED', { name: this.getTrainerName(group.invites[0]), scopes }),
           duration: 3500,
         });
       }
@@ -598,7 +604,7 @@ export class CoachPage implements OnInit {
         .forEach((r) => {
           this.ionicUtilService.showErrorToast(
             `${this.scopeLabel(r.invite.scope)}: ${r.error}`,
-            'No se pudo aceptar',
+            this.translate.instant('COACH.ACCEPT_ERROR'),
             4000
           );
         });
@@ -620,14 +626,14 @@ export class CoachPage implements OnInit {
   }
 
   public async confirmDeclineGroup(group: GroupedPendingInvite): Promise<void> {
-    const scopes = group.invites.map((i) => this.scopeLabel(i.scope)).join(' y ');
+    const scopes = group.invites.map((i) => this.scopeLabel(i.scope)).join(this.translate.instant('COACH.AND'));
     await this.ionicUtilService.showAlert({
-      header: 'Rechazar invitación',
-      message: `¿Seguro que quieres rechazar la invitación de ${this.getTrainerName(group.invites[0])} (${scopes})?`,
+      header: this.translate.instant('COACH.DECLINE_HEADER'),
+      message: this.translate.instant('COACH.DECLINE_MSG', { name: this.getTrainerName(group.invites[0]), scopes }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Rechazar',
+          text: this.translate.instant('ONBOARDING.DECLINE'),
           cssClass: 'alert-button-danger',
           handler: () => this.declineGroup(group),
         },
@@ -647,7 +653,7 @@ export class CoachPage implements OnInit {
     forkJoin(requests).subscribe((results) => {
       this.respondingTrainerId = null;
       if (results.some((success) => !success)) {
-        this.ionicUtilService.showErrorToast('No se pudo rechazar alguna invitación', 'Error', 3000);
+        this.ionicUtilService.showErrorToast(this.translate.instant('COACH.DECLINE_ERROR'), this.translate.instant('COMMON.ERROR'), 3000);
       }
       this.load();
     });
@@ -655,12 +661,15 @@ export class CoachPage implements OnInit {
 
   public async confirmUnlink(professional: ProfessionalSummary, scope: ProfessionalScope): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Desvincular',
-      message: `¿Seguro que quieres desvincularte de ${this.getProfessionalName(professional)} en ${this.scopeLabel(scope).toLowerCase()}?`,
+      header: this.translate.instant('COACH.UNLINK'),
+      message: this.translate.instant('COACH.UNLINK_MSG', {
+        name: this.getProfessionalName(professional),
+        scope: this.scopeLabel(scope).toLowerCase(),
+      }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Desvincular',
+          text: this.translate.instant('COACH.UNLINK'),
           cssClass: 'alert-button-danger',
           handler: () => this.unlink(scope),
         },
@@ -679,7 +688,7 @@ export class CoachPage implements OnInit {
       },
       error: () => {
         this.unlinkingScope = null;
-        this.ionicUtilService.showErrorToast('No se pudo desvincular', 'Error', 3000);
+        this.ionicUtilService.showErrorToast(this.translate.instant('COACH.UNLINK_ERROR'), this.translate.instant('COMMON.ERROR'), 3000);
       },
     });
   }
@@ -706,7 +715,7 @@ export class CoachPage implements OnInit {
   // "10.000 a 15.000 pasos" cuando el hábito lleva rango (los pasos se
   // pautan así, ver docs/plan-semanas.md §12).
   public taskTargetLabel(task: CoachTask): string {
-    const rango = task.targetMax ? ` a ${task.targetMax}` : '';
+    const rango = task.targetMax ? ` ${this.translate.instant('COACH.RANGE_TO')} ${task.targetMax}` : '';
     return `${task.target}${rango} ${task.unit}`;
   }
 
@@ -714,9 +723,11 @@ export class CoachPage implements OnInit {
   // están pidiendo.
   public checkinPeriodLabel(item: CoachPendingCheckin): string {
     const fmt = (iso: string): string =>
-      new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-    const week = item.weekNumber ? `Semana ${item.weekNumber}` : 'Pedido por ' + item.trainerName;
-    const hasta = item.closesDate ? ` · hasta el ${fmt(item.closesDate)}` : '';
+      new Date(`${iso}T00:00:00Z`).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    const week = item.weekNumber
+      ? this.translate.instant('COACH.WEEK_N', { n: item.weekNumber })
+      : this.translate.instant('COACH.REQUESTED_BY', { name: item.trainerName });
+    const hasta = item.closesDate ? ` · ${this.translate.instant('COACH.UNTIL', { date: fmt(item.closesDate) })}` : '';
     return `${week}${hasta}`;
   }
 
@@ -724,7 +735,7 @@ export class CoachPage implements OnInit {
   // en inglés ("24 Aug 2026").
   public planDateLabel(iso: string): string {
     if (!iso) return '';
-    return new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString('es-ES', {
+    return new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString(uiLocale(), {
       day: 'numeric',
       month: 'short',
       year: 'numeric',

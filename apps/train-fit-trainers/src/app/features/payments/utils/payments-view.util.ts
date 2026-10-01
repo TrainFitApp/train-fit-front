@@ -6,6 +6,7 @@ import {
   PaymentsApiError,
   RecurrenceUnit,
 } from '../models/payments.model';
+import { uiLocale, uiText, localizeRecord, localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 // PURO — cómo se leen importes, fechas y estados de cobro en la app del
 // entrenador. Sin Angular ni HTTP: lo prueba payments-view.test.cjs.
@@ -13,10 +14,11 @@ import {
 const MONEY_FORMATTERS = new Map<string, Intl.NumberFormat>();
 
 export function formatCents(cents: number, currency = 'EUR'): string {
-  let formatter = MONEY_FORMATTERS.get(currency);
+  const cacheKey = `${uiLocale()}|${currency}`;
+  let formatter = MONEY_FORMATTERS.get(cacheKey);
   if (!formatter) {
-    formatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    MONEY_FORMATTERS.set(currency, formatter);
+    formatter = new Intl.NumberFormat(uiLocale(), { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    MONEY_FORMATTERS.set(cacheKey, formatter);
   }
   return formatter.format(Math.round(cents) / 100);
 }
@@ -51,10 +53,11 @@ function dayToUtc(day: string): Date | null {
 const DATE_FORMATTERS = new Map<string, Intl.DateTimeFormat>();
 
 function dateFormatter(key: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
-  let formatter = DATE_FORMATTERS.get(key);
+  const cacheKey = `${uiLocale()}|${key}`;
+  let formatter = DATE_FORMATTERS.get(cacheKey);
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat('es-ES', options);
-    DATE_FORMATTERS.set(key, formatter);
+    formatter = new Intl.DateTimeFormat(uiLocale(), options);
+    DATE_FORMATTERS.set(cacheKey, formatter);
   }
   return formatter;
 }
@@ -111,11 +114,11 @@ export function daysBetween(from: string, to: string): number {
 // (zona del entrenador), nunca al reloj del dispositivo.
 export function dueRelative(dueDay: string, today: string): string {
   const diff = daysBetween(today, dueDay);
-  if (diff === 0) return 'Hoy';
-  if (diff === 1) return 'Mañana';
-  if (diff === -1) return 'Ayer';
-  if (diff > 1) return `En ${diff} días`;
-  return `Hace ${-diff} días`;
+  if (diff === 0) return uiText('TRAINER_COMMON.TODAY');
+  if (diff === 1) return uiText('PAYMENTS.MANANA');
+  if (diff === -1) return uiText('TRAINER_COMMON.YESTERDAY');
+  if (diff > 1) return uiText('PAYMENTS.EN_DIAS', { diff });
+  return uiText('PAYMENTS.HACE_DIAS', { p0: -diff });
 }
 
 // Mismo cálculo que el backend (calendar.ts): siempre desde el ancla, así que
@@ -163,6 +166,8 @@ export const FREQUENCY_PRESETS: FrequencyPreset[] = [
   { key: 'semiannual', unit: 'month', interval: 6, label: 'Semestral', hint: 'Cada 6 meses' },
   { key: 'annual', unit: 'month', interval: 12, label: 'Anual', hint: 'Una vez al año' },
 ];
+FREQUENCY_PRESETS.forEach((item) => localizeProp(item, 'hint', `PAYMENTS.FREQUENCY.HINT.${item.key}`));
+FREQUENCY_PRESETS.forEach((item) => localizeProp(item, 'label', `PAYMENTS.FREQUENCY.LABEL.${item.key}`));
 
 export const INTERVAL_LIMITS: Record<RecurrenceUnit, { min: number; max: number }> = {
   week: { min: 1, max: 52 },
@@ -172,7 +177,7 @@ export const INTERVAL_LIMITS: Record<RecurrenceUnit, { min: number; max: number 
 export function frequencyLabel(unit: RecurrenceUnit, interval: number): string {
   const preset = FREQUENCY_PRESETS.find((item) => item.unit === unit && item.interval === interval);
   if (preset) return preset.label;
-  return unit === 'week' ? `Cada ${interval} semanas` : `Cada ${interval} meses`;
+  return unit === 'week' ? uiText('PAYMENTS.CADA_SEMANAS', { interval }) : uiText('PAYMENTS.CADA_MESES', { interval });
 }
 
 // --- Métodos y estados ---------------------------------------------------------
@@ -184,17 +189,18 @@ export const PAYMENT_METHODS: Array<{ value: Exclude<PaymentMethod, 'unknown'>; 
   { value: 'card_external', label: 'Tarjeta (externa)', icon: 'card-outline' },
   { value: 'other', label: 'Otro', icon: 'ellipsis-horizontal-outline' },
 ];
+PAYMENT_METHODS.forEach((item) => localizeProp(item, 'label', `PAYMENTS.METHODS.${item.value}`));
 
 export function methodLabel(method: PaymentMethod): string {
-  if (method === 'unknown') return 'Método desconocido';
-  return PAYMENT_METHODS.find((item) => item.value === method)?.label ?? 'Otro';
+  if (method === 'unknown') return uiText('PAYMENTS.METODO_DESCONOCIDO');
+  return PAYMENT_METHODS.find((item) => item.value === method)?.label ?? uiText('PAYMENTS.OTRO');
 }
 
 export function chargeTitle(charge: { concept: string | null; origin: ChargeOrigin }): string {
   if (charge.concept) return charge.concept;
-  if (charge.origin === 'recurring') return 'Cuota';
-  if (charge.origin === 'legacy') return 'Cobro';
-  return 'Cobro puntual';
+  if (charge.origin === 'recurring') return uiText('PAYMENTS.CUOTA');
+  if (charge.origin === 'legacy') return uiText('PAYMENTS.COBRO');
+  return uiText('PAYMENTS.COBRO_PUNTUAL');
 }
 
 export type ChipTone = 'danger' | 'warning' | 'accent' | 'success' | 'muted';
@@ -208,19 +214,19 @@ export interface StatusChip {
 // "Vencido" a la vez, así que salen dos chips, no uno.
 export function statusChips(charge: Pick<PaymentCharge, 'status' | 'temporal' | 'receivedCents' | 'cancelledCents' | 'forecast' | 'anomalies' | 'historical'>): StatusChip[] {
   const chips: StatusChip[] = [];
-  if (charge.status === 'void') return [{ label: 'Anulada (previsión)', tone: 'muted' }];
-  if (charge.status === 'settled') chips.push({ label: 'Liquidado', tone: 'success' });
+  if (charge.status === 'void') return [{ label: uiText('PAYMENTS.ANULADA_PREVISION'), tone: 'muted' }];
+  if (charge.status === 'settled') chips.push({ label: uiText('PAYMENTS.LIQUIDADO'), tone: 'success' });
   if (charge.status === 'cancelled') {
-    chips.push({ label: charge.receivedCents > 0 ? 'Resto anulado' : 'Anulado', tone: 'muted' });
+    chips.push({ label: charge.receivedCents > 0 ? uiText('PAYMENTS.RESTO_ANULADO') : uiText('PAYMENTS.ANULADO'), tone: 'muted' });
   }
   if (charge.status === 'open') {
-    if (charge.temporal === 'overdue') chips.push({ label: 'Vencido', tone: 'danger' });
-    if (charge.temporal === 'due_today') chips.push({ label: 'Vence hoy', tone: 'warning' });
-    if (charge.receivedCents > 0) chips.push({ label: 'Parcial', tone: 'accent' });
-    if (charge.forecast) chips.push({ label: 'Previsto', tone: 'muted' });
+    if (charge.temporal === 'overdue') chips.push({ label: uiText('PAYMENTS.VENCIDO'), tone: 'danger' });
+    if (charge.temporal === 'due_today') chips.push({ label: uiText('PAYMENTS.VENCE_HOY'), tone: 'warning' });
+    if (charge.receivedCents > 0) chips.push({ label: uiText('PAYMENTS.PARCIAL'), tone: 'accent' });
+    if (charge.forecast) chips.push({ label: uiText('PAYMENTS.PREVISTO'), tone: 'muted' });
   }
-  if (charge.historical) chips.push({ label: 'Deuda anterior', tone: 'muted' });
-  if (charge.anomalies.length) chips.push({ label: 'Revisar datos', tone: 'warning' });
+  if (charge.historical) chips.push({ label: uiText('PAYMENTS.DEUDA_ANTERIOR_2'), tone: 'muted' });
+  if (charge.anomalies.length) chips.push({ label: uiText('PAYMENTS.REVISAR_DATOS'), tone: 'warning' });
   return chips;
 }
 
@@ -245,6 +251,7 @@ export const ANOMALY_LABELS: Record<string, string> = {
   ambiguous_due_date: 'Fecha antigua ambigua: comprueba que el día es correcto.',
   invalid_paid_at: 'Fecha de pago antigua no válida.',
 };
+localizeRecord(ANOMALY_LABELS, 'PAYMENTS.ANOMALIES');
 
 // --- Tarjeta del Resumen ---------------------------------------------------------
 
@@ -269,22 +276,22 @@ function count(value: number, singular: string, plural: string): string {
 // La deuda manda: pausar una cuota no esconde lo que se debe.
 export function paymentsCardView(summary: ClientPaymentsSummary): PaymentsCardView {
   const plan = summary.plan;
-  const planLabel = plan ? `Cuota ${frequencyLabel(plan.unit, plan.interval).toLowerCase()}` : null;
+  const planLabel = plan ? uiText('PAYMENTS.CUOTA_2', { p0: frequencyLabel(plan.unit, plan.interval).toLowerCase() }) : null;
   const notes: string[] = [];
-  if (plan?.status === 'paused' && summary.state !== 'paused') notes.push('Cuota pausada');
-  for (const other of summary.otherCurrencies) notes.push(`${formatCents(other.balanceCents, other.currency)} pendientes en ${other.currency} (divisa antigua)`);
-  if (summary.needsReview) notes.push(`${count(summary.needsReview, 'cobro antiguo', 'cobros antiguos')} por revisar`);
+  if (plan?.status === 'paused' && summary.state !== 'paused') notes.push(uiText('PAYMENTS.CUOTA_PAUSADA'));
+  for (const other of summary.otherCurrencies) notes.push(uiText('PAYMENTS.PENDIENTES_EN_DIVISA_ANTIGUA', { p0: formatCents(other.balanceCents, other.currency), currency: other.currency }));
+  if (summary.needsReview) notes.push(uiText('PAYMENTS.POR_REVISAR', { p0: count(summary.needsReview, 'cobro antiguo', 'cobros antiguos') }));
 
   switch (summary.state) {
     case 'overdue': {
       const overdue = summary.overdue!;
       return {
         tone: 'danger',
-        headline: 'Vencido',
+        headline: uiText('PAYMENTS.VENCIDO'),
         amount: formatCents(overdue.balanceCents),
-        detail: `${count(overdue.count, 'cobro', 'cobros')} · el más antiguo del ${formatDay(overdue.oldestDueDay)}`,
+        detail: uiText('PAYMENTS.EL_MAS_ANTIGUO_DEL', { p0: count(overdue.count, 'cobro', 'cobros'), p1: formatDay(overdue.oldestDueDay) }),
         context: planLabel,
-        primary: { label: 'Gestionar cobros', action: 'manage' },
+        primary: { label: uiText('PAYMENTS.GESTIONAR_COBROS'), action: 'manage' },
         secondary: null,
         notes,
       };
@@ -293,23 +300,23 @@ export function paymentsCardView(summary: ClientPaymentsSummary): PaymentsCardVi
       const due = summary.dueToday!;
       return {
         tone: 'warning',
-        headline: 'Vence hoy',
+        headline: uiText('PAYMENTS.VENCE_HOY'),
         amount: formatCents(due.balanceCents),
-        detail: due.count > 1 ? `${count(due.count, 'cobro', 'cobros')} pendientes hoy` : 'pendiente hoy',
+        detail: due.count > 1 ? uiText('PAYMENTS.PENDIENTES_HOY', { p0: count(due.count, 'cobro', 'cobros') }) : uiText('PAYMENTS.PENDIENTE_HOY'),
         context: planLabel,
-        primary: due.chargeId ? { label: 'Registrar pago', action: 'register' } : { label: 'Gestionar cobros', action: 'manage' },
-        secondary: due.chargeId ? { label: 'Gestionar cobros', action: 'manage' } : null,
+        primary: due.chargeId ? { label: uiText('PAYMENTS.REGISTRAR_PAGO'), action: 'register' } : { label: uiText('PAYMENTS.GESTIONAR_COBROS'), action: 'manage' },
+        secondary: due.chargeId ? { label: uiText('PAYMENTS.GESTIONAR_COBROS'), action: 'manage' } : null,
         notes,
       };
     }
     case 'paused':
       return {
         tone: 'muted',
-        headline: 'Cuota pausada',
+        headline: uiText('PAYMENTS.CUOTA_PAUSADA'),
         amount: summary.pendingCents > 0 ? formatCents(summary.pendingCents) : null,
-        detail: summary.pendingCents > 0 ? 'pendientes de antes de la pausa' : 'Sin deuda pendiente',
+        detail: summary.pendingCents > 0 ? uiText('PAYMENTS.PENDIENTES_DE_ANTES_DE_LA') : uiText('PAYMENTS.SIN_DEUDA_PENDIENTE'),
         context: planLabel,
-        primary: { label: 'Gestionar cobros', action: 'manage' },
+        primary: { label: uiText('PAYMENTS.GESTIONAR_COBROS'), action: 'manage' },
         secondary: null,
         notes,
       };
@@ -317,11 +324,11 @@ export function paymentsCardView(summary: ClientPaymentsSummary): PaymentsCardVi
       const next = summary.next!;
       return {
         tone: 'calm',
-        headline: 'Próximo cobro',
+        headline: uiText('PAYMENTS.PROXIMO_COBRO'),
         amount: formatCents(next.amountCents),
         detail: formatDayLong(next.dueDay),
-        context: next.origin === 'plan' || next.origin === 'recurring' ? planLabel : 'Cobro puntual',
-        primary: { label: 'Gestionar cobros', action: 'manage' },
+        context: next.origin === 'plan' || next.origin === 'recurring' ? planLabel : uiText('PAYMENTS.COBRO_PUNTUAL'),
+        primary: { label: uiText('PAYMENTS.GESTIONAR_COBROS'), action: 'manage' },
         secondary: null,
         notes,
       };
@@ -329,23 +336,23 @@ export function paymentsCardView(summary: ClientPaymentsSummary): PaymentsCardVi
     case 'no_fee':
       return {
         tone: 'accent',
-        headline: 'Sin cuota configurada',
+        headline: uiText('PAYMENTS.SIN_CUOTA_CONFIGURADA'),
         amount: null,
-        detail: 'Configura importe y frecuencia para llevar sus vencimientos y avisos.',
+        detail: uiText('PAYMENTS.CONFIGURA_IMPORTE_FRECUENCIA_PARA_LLEVAR'),
         context: null,
-        primary: { label: 'Configurar cuota', action: 'configure-fee' },
+        primary: { label: uiText('PAYMENTS.CONFIGURAR_CUOTA'), action: 'configure-fee' },
         secondary: null,
         notes,
       };
     default:
       return {
         tone: 'calm',
-        headline: 'Sin cobros pendientes',
+        headline: uiText('PAYMENTS.SIN_COBROS_PENDIENTES'),
         amount: null,
-        detail: plan?.status === 'ended' ? 'La cuota está finalizada.' : 'Todo lo registrado está liquidado o cerrado.',
+        detail: plan?.status === 'ended' ? uiText('PAYMENTS.LA_CUOTA_ESTA_FINALIZADA') : uiText('PAYMENTS.TODO_LO_REGISTRADO_ESTA_LIQUIDADO'),
         context: null,
-        primary: { label: 'Ver cobros', action: 'history' },
-        secondary: !plan || plan.status === 'ended' ? { label: 'Configurar cuota', action: 'configure-fee' } : null,
+        primary: { label: uiText('PAYMENTS.VER_COBROS'), action: 'history' },
+        secondary: !plan || plan.status === 'ended' ? { label: uiText('PAYMENTS.CONFIGURAR_CUOTA'), action: 'configure-fee' } : null,
         notes,
       };
   }
@@ -366,7 +373,7 @@ export function newOperationId(prefix: string): string {
 
 export function paymentsErrorMessage(error: unknown, fallback: string): string {
   const body = (error || {}) as PaymentsApiError;
-  if (body.status === 0) return 'Sin conexión. Revisa la red y vuelve a intentarlo: no se ha guardado nada dos veces.';
+  if (body.status === 0) return uiText('PAYMENTS.SIN_CONEXION_REVISA_LA_RED');
   if (typeof body.message === 'string' && body.message && !/^Http failure/i.test(body.message)) return body.message;
   return fallback;
 }
@@ -408,6 +415,7 @@ const CLOSED_LABEL: Record<string, string> = {
   void: 'anulado',
   rescheduled: 'con el vencimiento cambiado',
 };
+localizeRecord(CLOSED_LABEL, 'PAYMENTS.CLOSED');
 
 // Un aviso antiguo nunca afirma una deuda que ya no existe: se lee con el
 // saldo de AHORA (payload.current) o se dice que el cobro ya se cerró.
@@ -418,9 +426,9 @@ export function trainerPaymentNoticeTitle(payload: PaymentNoticePayload, clientN
   if (closed) return `${clientName} · cobro${due ? ` del ${formatDay(due)}` : ''} ${CLOSED_LABEL[closed] ?? 'cerrado'}`;
   const balance = current?.balanceCents ?? payload.balanceCents;
   if (typeof balance === 'number' && due) {
-    return `${clientName} · quedan ${formatCents(balance, current?.currency ?? payload.currency ?? 'EUR')} del cobro del ${formatDay(due)}`;
+    return uiText('PAYMENTS.QUEDAN_DEL_COBRO_DEL', { clientName, p1: formatCents(balance, current?.currency ?? payload.currency ?? 'EUR'), p2: formatDay(due) });
   }
-  return `${clientName} · recordatorio de cobro`;
+  return uiText('PAYMENTS.RECORDATORIO_DE_COBRO', { clientName });
 }
 
 export interface NoticeRoute {

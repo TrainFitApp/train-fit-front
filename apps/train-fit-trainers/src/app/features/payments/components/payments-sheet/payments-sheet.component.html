@@ -14,7 +14,7 @@
   <div class="tf-page-header sheet-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
         </button>
       </div>

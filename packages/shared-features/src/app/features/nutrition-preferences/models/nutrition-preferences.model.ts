@@ -1,3 +1,5 @@
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
+
 // F29 — preferencias nutricionales del cliente (alergias, favoritos, no le
 // gusta, si cocina en casa). Un único documento por cliente, no por relación
 // trainer-cliente.
@@ -15,12 +17,14 @@ export const DIETARY_FLAG_OPTIONS: { key: DietaryFlag; label: string; icon: stri
   { key: 'lactoseFree', label: 'Sin lactosa', icon: 'water-outline', colorClass: 'flag-lactose-free' },
   { key: 'glutenFree', label: 'Sin gluten', icon: 'ban-outline', colorClass: 'flag-gluten-free' },
 ];
+DIETARY_FLAG_OPTIONS.forEach((option) => localizeProp(option, 'label', `INTAKE.DIETARY.${option.key}`));
 
 export const COOKS_AT_HOME_OPTIONS: { value: CooksAtHome; label: string; icon: string }[] = [
   { value: 'yes', label: 'Sí', icon: 'home-outline' },
   { value: 'sometimes', label: 'A veces', icon: 'swap-horizontal-outline' },
   { value: 'no', label: 'No', icon: 'fast-food-outline' },
 ];
+COOKS_AT_HOME_OPTIONS.forEach((option) => localizeProp(option, 'label', `INTAKE.COOKS.${option.value}`));
 
 // TASK-004 (MASTER_BACKLOG.md) — fix mínimo: los 6 slots siguen siendo un
 // enum fijo en el resto del sistema; esto es solo una preferencia por

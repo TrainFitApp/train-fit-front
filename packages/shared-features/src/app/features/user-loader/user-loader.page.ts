@@ -1,60 +1,61 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { TranslateService } from "@ngx-translate/core";
 import {
   Observable,
   catchError,
   forkJoin,
-  from,
   of,
   switchMap,
   throwError,
-} from 'rxjs';
-import { Diet } from 'src/app/core/models/diet';
-import { Table } from 'src/app/core/models/table';
-import { User } from 'src/app/core/models/user';
-import { Workout } from 'src/app/core/models/workout';
-import { I18nService } from 'src/app/core/i18n/i18n.service';
-import { AuthService } from 'src/app/core/services/auth/auth.service';
-import { BillingService } from 'src/app/core/services/billing/billing.service';
-import { CoachService } from 'src/app/core/services/coach/coach.service';
-import { DietService } from 'src/app/core/services/diet/diet.service';
-import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
-import { OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
-import { TableService } from 'src/app/core/services/table/table.service';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
-import { ThemeService } from 'src/app/core/services/util/theme.service';
-import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+} from "rxjs";
+import { Diet } from "src/app/core/models/diet";
+import { Table } from "src/app/core/models/table";
+import { User } from "src/app/core/models/user";
+import { Workout } from "src/app/core/models/workout";
+import { I18nService } from "src/app/core/i18n/i18n.service";
+import { AuthService } from "src/app/core/services/auth/auth.service";
+import { BillingService } from "src/app/core/services/billing/billing.service";
+import { CoachService } from "src/app/core/services/coach/coach.service";
+import { DietService } from "src/app/core/services/diet/diet.service";
+import { NotificationsService } from "src/app/core/services/notifications/notifications.service";
+import { OnboardingService } from "src/app/core/services/onboarding/onboarding.service";
+import { TableService } from "src/app/core/services/table/table.service";
+import { UserService } from "src/app/core/services/user/user.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { ThemeService } from "src/app/core/services/util/theme.service";
+import { WorkoutService } from "src/app/core/services/workout/workout.service";
 
 @Component({
-  selector: 'app-user-loader',
-  templateUrl: './user-loader.page.html',
-  styleUrls: ['./user-loader.page.scss'],
+  selector: "app-user-loader",
+  templateUrl: "./user-loader.page.html",
+  styleUrls: ["./user-loader.page.scss"],
 })
-export class UserLoaderPage implements OnInit, OnDestroy {
-  private readonly LOADING_CONFIG = {
-    STEP_DELAY: 300,
-    COMPLETION_DELAY: 800,
-    EXIT_ANIMATION_DELAY: 500,
-  };
+export class UserLoaderPage implements OnInit {
+  // Lo que dura el fundido de salida del logo en el SCSS
+  // (.is-leaving .logo-stage).
+  private readonly EXIT_ANIMATION_MS = 240;
+  // Tiempo mínimo del splash en pantalla, a petición expresa: con conexión
+  // buena los datos llegaban antes de que diera tiempo a ver el barrido. Es
+  // un suelo, no una espera encadenada — si la carga tarda más de 1 s no
+  // suma nada, y la navegación sale en cuanto se cumple el que llegue más
+  // tarde de los dos.
+  private readonly MIN_SPLASH_MS = 1000;
   private readonly MAX_INITIAL_LOAD_RETRIES = 2;
 
+  // El barrido del logo es animación CSS (user-loader.page.scss#sweep): no lo
+  // mueven las peticiones ni un temporizador de aquí. Antes lo pintaba este
+  // componente frame a frame y avanzaba un tramo por respuesta recibida, de
+  // ahí que se coloreara a trozos; y con `prefers-reduced-motion` activo se
+  // quedaba directamente sin animación. Lo único que sigue decidiendo el TS
+  // es cuándo se sale.
+
   public email: string;
-  public loadingStep = 0;
-  public animationState = 'in';
-  public progress = 0;
+  public animationState = "in";
   public loadingText: string;
   public loadFailed = false;
   private initialLoadRetryCount = 0;
-
-  private readonly loadingMessages = [
-    'USER_LOADER.LOGGING_IN',
-    'USER_LOADER.LOADING_PROFILE',
-    'USER_LOADER.PREPARING_ROUTINES',
-    'USER_LOADER.LOADING_DIET',
-    'USER_LOADER.FINALIZING',
-  ];
+  private splashStartedAt = Date.now();
 
   constructor(
     private readonly userService: UserService,
@@ -71,7 +72,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     private readonly onboardingService: OnboardingService,
     private readonly translate: TranslateService,
     private readonly route: ActivatedRoute,
-    private readonly router: Router
+    private readonly router: Router,
   ) {
     this.email = this.authService.user?.email;
   }
@@ -81,8 +82,12 @@ export class UserLoaderPage implements OnInit, OnDestroy {
   // Validación mínima: debe ser una ruta interna real ('/algo'), nunca una
   // URL absoluta ni protocol-relative ('//host') colada en el query param.
   private getSafeReturnUrl(): string | null {
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-    if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) {
+    const returnUrl = this.route.snapshot.queryParamMap.get("returnUrl");
+    if (
+      !returnUrl ||
+      !returnUrl.startsWith("/") ||
+      returnUrl.startsWith("//")
+    ) {
       return null;
     }
     return returnUrl;
@@ -92,94 +97,79 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     this.startLoadingSequence();
   }
 
-  ngOnDestroy(): void {
-    // Cleanup no longer needed since we removed fake intervals
-  }
-
   private startLoadingSequence(): void {
     if (!this.email) {
       this.authService.logout();
       return;
     }
 
-    this.loadingText = this.translate.instant(this.loadingMessages[0]);
-    this.updateLoadingStep(1);
-    this.updateProgress(10);
-
     this.userService
       .getUserByEmail(this.email)
       .pipe(
         switchMap((resUser) => {
-          this.updateLoadingStep(2);
-          this.updateProgress(30);
           this.userService.setLocalUser = resUser;
           if (resUser.lang) this.i18nService.switchLang(resUser.lang);
 
-          return from(this.billingService.logIn(resUser?._id)).pipe(
-            catchError((error) => {
-              console.warn(
-                'Billing logIn no disponible durante carga inicial',
-                error
-              );
-              return of(false);
-            }),
-            switchMap(() => {
-              if (!this.isUserRegistrationComplete(resUser)) {
-                throw new Error('INCOMPLETE_USER');
-              }
+          if (!this.isUserRegistrationComplete(resUser)) {
+            throw new Error("INCOMPLETE_USER");
+          }
 
-              this.themeService.toggleColorMode(resUser.theme || 'dark');
-              this.updateLoadingStep(3);
-              this.updateProgress(40);
+          this.themeService.toggleColorMode(resUser.theme || "dark");
 
-              const tableObservable: Observable<Table> = resUser.tableInUse
-                ? this.recoverFromStalePointer(
-                    this.tableService.getTableById(resUser.tableInUse),
-                    'tableInUse'
-                  )
-                : of(null);
+          // Tab Coach (Fases 1/3) y TAREA 3 (onboarding) — endpoints del
+          // lado CLIENTE (auth(["user", ...]) en el backend). Una cuenta
+          // profesional pura (roles:["trainer"], sin "user" — ver
+          // POST /users/professional) nunca tiene acceso, así que ni se
+          // llaman: antes se llamaban igual y el 403 se tragaba en
+          // silencio (ruido de consola en cada login de trainer, cero
+          // impacto funcional, pero sin motivo para seguir así).
+          const isClientAccount = !!resUser.roles?.includes("user");
 
-              const dietObservable: Observable<Diet> = resUser.dietInUse
-                ? this.recoverFromStalePointer(
-                    this.dietService.getDietById(resUser.dietInUse),
-                    'dietInUse'
-                  )
-                : of(null);
+          this.startBackgroundLoad(resUser, isClientAccount);
 
-              const workoutInUseObservable: Observable<Workout> =
-                resUser.workoutInUse
-                  ? this.recoverFromStalePointer(
-                      this.workoutService.getWorkoutById(resUser.workoutInUse),
-                      'workoutInUse'
-                    )
-                  : of(null);
+          const tableObservable: Observable<Table> = resUser.tableInUse
+            ? this.recoverFromStalePointer(
+                this.tableService.getTableById(resUser.tableInUse),
+                "tableInUse",
+              )
+            : of(null);
 
-              // Tab Coach (Fases 1/3) y TAREA 3 (onboarding) — endpoints del
-              // lado CLIENTE (auth(["user", ...]) en el backend). Una cuenta
-              // profesional pura (roles:["trainer"], sin "user" — ver
-              // POST /users/professional) nunca tiene acceso, así que ni se
-              // llaman: antes se llamaban igual y el 403 se tragaba en
-              // silencio (ruido de consola en cada login de trainer, cero
-              // impacto funcional, pero sin motivo para seguir así).
-              const isClientAccount = !!resUser.roles?.includes('user');
+          const dietObservable: Observable<Diet> = resUser.dietInUse
+            ? this.recoverFromStalePointer(
+                this.dietService.getDietById(resUser.dietInUse),
+                "dietInUse",
+              )
+            : of(null);
 
-              return forkJoin([
-                tableObservable,
-                dietObservable,
-                workoutInUseObservable,
-                isClientAccount ? this.coachService.refresh() : of(false),
-                isClientAccount ? this.notificationsService.refresh() : of(0),
-                isClientAccount ? this.onboardingService.refresh() : of(null),
-              ]);
-            })
-          );
-        })
+          const workoutInUseObservable: Observable<Workout> =
+            resUser.workoutInUse
+              ? this.recoverFromStalePointer(
+                  this.workoutService.getWorkoutById(resUser.workoutInUse),
+                  "workoutInUse",
+                )
+              : of(null);
+
+          // Lo que el splash espera: lo que ya debe estar en memoria cuando
+          // se pinta la primera pantalla (rutina/dieta/entreno en uso) más
+          // CoachService, que decide si existe el tab Coach — resolverlo
+          // después haría aparecer un tab sobre los tabs ya pintados. Las
+          // cuatro vuelan en paralelo, no en cadena.
+          return forkJoin([
+            tableObservable,
+            dietObservable,
+            workoutInUseObservable,
+            isClientAccount ? this.coachService.refresh() : of(false),
+          ]);
+        }),
       )
       .subscribe(
-        ([resTable, resDiet, resWorkoutInUse]: [Table, Diet, Workout, boolean, number, unknown]) => {
+        ([resTable, resDiet, resWorkoutInUse]: [
+          Table,
+          Diet,
+          Workout,
+          boolean,
+        ]) => {
           this.initialLoadRetryCount = 0;
-          this.updateLoadingStep(4);
-          this.updateProgress(80);
 
           // Always sync (not just when truthy) so a leftover signal from a
           // previous session/account never survives into one with no table,
@@ -188,31 +178,24 @@ export class UserLoaderPage implements OnInit, OnDestroy {
           this.dietService.setCurrentDiet = resDiet ?? null;
           this.workoutService.setCurrentWorkout = resWorkoutInUse ?? null;
 
+          // Los datos ya están en los servicios; lo único que espera es el
+          // mínimo en pantalla, y solo lo que le falte.
+          const pending = Math.max(
+            0,
+            this.MIN_SPLASH_MS - (Date.now() - this.splashStartedAt),
+          );
           setTimeout(() => {
-            this.updateLoadingStep(5);
-            this.updateProgress(100);
-            this.loadingText = this.translate.instant('USER_LOADER.READY');
-
-            setTimeout(() => {
-              this.startExitAnimation();
-              setTimeout(() => {
-                const returnUrl = this.getSafeReturnUrl();
-                if (returnUrl) {
-                  void this.router.navigateByUrl(returnUrl, { replaceUrl: true });
-                } else {
-                  this.navigationService.goToTabsPage();
-                }
-              }, this.LOADING_CONFIG.EXIT_ANIMATION_DELAY);
-            }, this.LOADING_CONFIG.COMPLETION_DELAY);
-          }, this.LOADING_CONFIG.STEP_DELAY);
+            this.startExitAnimation();
+            setTimeout(() => this.goToApp(), this.EXIT_ANIMATION_MS);
+          }, pending);
         },
         (err) => {
-          if (err.message === 'INCOMPLETE_USER') {
+          if (err.message === "INCOMPLETE_USER") {
             this.navigationService.goToSignUp();
             return;
           }
 
-          console.error('Error cargando usuario inicial:', err);
+          console.error("Error cargando usuario inicial:", err);
           if (this.requiresRelogin(err)) {
             this.userService.setLocalUser = null;
             this.workoutService.setCurrentWorkout = null;
@@ -224,20 +207,49 @@ export class UserLoaderPage implements OnInit, OnDestroy {
 
           if (this.initialLoadRetryCount < this.MAX_INITIAL_LOAD_RETRIES) {
             this.initialLoadRetryCount += 1;
-            this.loadingText = this.translate.instant('USER_LOADER.RETRYING');
-            this.updateProgress(20);
             setTimeout(
               () => this.startLoadingSequence(),
-              1200 * this.initialLoadRetryCount
+              1200 * this.initialLoadRetryCount,
             );
             return;
           }
 
-          this.loadingText = this.translate.instant('USER_LOADER.FAILED');
+          this.loadingText = this.translate.instant("USER_LOADER.FAILED");
           this.loadFailed = true;
-          this.updateProgress(0);
-        }
+        },
       );
+  }
+
+  // Peticiones que no pintan nada de la primera pantalla: RevenueCat (los
+  // consumidores de premium lo piden cuando entran, o leen user.premium), el
+  // badge de notificaciones y el estado del cuestionario inicial (ambos
+  // signals, se refrescan solos en cuanto responden). Salen ya, en paralelo
+  // con las esenciales, pero el splash no se queda esperándolas; se dejan
+  // vivas a propósito tras destruir la pantalla y todas se tragan sus
+  // propios errores.
+  private startBackgroundLoad(user: User, isClientAccount: boolean): void {
+    void this.billingService
+      .logIn(user?._id)
+      .catch((error) =>
+        console.warn(
+          "Billing logIn no disponible durante carga inicial",
+          error,
+        ),
+      );
+
+    if (!isClientAccount) return;
+
+    this.notificationsService.refresh().subscribe();
+    this.onboardingService.refresh().subscribe();
+  }
+
+  private goToApp(): void {
+    const returnUrl = this.getSafeReturnUrl();
+    if (returnUrl) {
+      void this.router.navigateByUrl(returnUrl, { replaceUrl: true });
+      return;
+    }
+    this.navigationService.goToTabsPage();
   }
 
   // `tableInUse` / `dietInUse` / `workoutInUse` son punteros: guardan un id,
@@ -251,7 +263,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
   // acabar en re-login ni un backend caído que sí merece el reintento.
   private recoverFromStalePointer<T>(
     source$: Observable<T>,
-    pointer: string
+    pointer: string,
   ): Observable<T> {
     return source$.pipe(
       catchError((error) => {
@@ -261,10 +273,10 @@ export class UserLoaderPage implements OnInit, OnDestroy {
         }
         console.warn(
           `[user-loader] ${pointer} apunta a un documento inaccesible (${status}); se arranca sin él`,
-          error
+          error,
         );
         return of(null as T);
-      })
+      }),
     );
   }
 
@@ -276,24 +288,13 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     // MVP-trainers F01: las cuentas profesionales (roles: ["trainer"]) nunca
     // tienen datos biométricos por diseño — exigirlos aquí las mandaría en
     // bucle a un sign-up de consumidor que no les corresponde.
-    if (user?.roles?.includes('trainer')) {
+    if (user?.roles?.includes("trainer")) {
       return !!(user?.name && user?.lastname);
     }
     return !!(user?.name && user?.lastname && user?.weight && user?.height);
   }
 
-  private updateProgress(value: number): void {
-    this.progress = Math.min(value, 100);
-  }
-
   public startExitAnimation(): void {
-    this.animationState = 'out';
-  }
-
-  private updateLoadingStep(step: number): void {
-    this.loadingStep = step;
-    if (step <= this.loadingMessages.length) {
-      this.loadingText = this.translate.instant(this.loadingMessages[step - 1]);
-    }
+    this.animationState = "out";
   }
 }

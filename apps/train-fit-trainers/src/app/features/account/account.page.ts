@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { User } from 'src/app/core/models/user';
@@ -59,6 +60,8 @@ const SUGGESTION_CATEGORY_TAG: Record<SuggestionCategoryKey, string> = {
   styleUrls: ['account.page.scss'],
 })
 export class AccountPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   private readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
   private readonly ionicUtilService = inject(IonicUtilService);
@@ -83,9 +86,9 @@ export class AccountPage implements OnInit {
   public suggestionMessage = '';
   public readonly suggestionMinLength = 20;
   public readonly suggestionCategories: SuggestionCategory[] = [
-    { key: 'suggestion', label: 'Sugerencia', icon: 'bulb-outline' },
-    { key: 'bug', label: 'Error', icon: 'bug-outline' },
-    { key: 'other', label: 'Otro', icon: 'chatbubble-ellipses-outline' },
+    { key: 'suggestion', label: this.translate.instant('ACCOUNT.SUGERENCIA'), icon: 'bulb-outline' },
+    { key: 'bug', label: this.translate.instant('COMMON.ERROR'), icon: 'bug-outline' },
+    { key: 'other', label: this.translate.instant('ACCOUNT.OTRO'), icon: 'chatbubble-ellipses-outline' },
   ];
 
   public clientsCount: number | null = null;
@@ -94,14 +97,14 @@ export class AccountPage implements OnInit {
 
   public readonly securityItems: SecurityItem[] = [
     {
-      label: 'Cambiar contraseña',
-      sub: 'Recibirás un código por email para confirmarlo',
+      label: this.translate.instant('ACCOUNT.CAMBIAR_CONTRASENA'),
+      sub: this.translate.instant('ACCOUNT.RECIBIRAS_UN_CODIGO_POR_EMAIL'),
       icon: 'key-outline',
       action: () => this.navigationService.goToRestorePasswordPage(),
     },
     {
-      label: 'Eliminar cuenta',
-      sub: 'Acción irreversible',
+      label: this.translate.instant('ACCOUNT.ELIMINAR_CUENTA'),
+      sub: this.translate.instant('ACCOUNT.ACCION_IRREVERSIBLE'),
       icon: 'trash-outline',
       danger: true,
       action: () => this.deleteAccount(),
@@ -110,7 +113,7 @@ export class AccountPage implements OnInit {
 
   public readonly supportLinks: SupportLink[] = [
     {
-      label: 'Enviar sugerencia o incidencia',
+      label: this.translate.instant('ACCOUNT.ENVIAR_SUGERENCIA_INCIDENCIA'),
       icon: 'chatbubbles-outline',
       action: () => this.openSuggestionPanel(),
     },
@@ -126,7 +129,7 @@ export class AccountPage implements OnInit {
 
   public get fullName(): string {
     const user = this.user();
-    if (!user?.name) return 'Tu cuenta';
+    if (!user?.name) return this.translate.instant('ACCOUNT.TU_CUENTA');
     return `${user.name} ${user.lastname || ''}`.trim();
   }
 
@@ -209,7 +212,7 @@ export class AccountPage implements OnInit {
         this.isSavingProfile = false;
         this.showEditPanel = false;
         void this.ionicUtilService.showToast({
-          message: 'Perfil actualizado',
+          message: this.translate.instant('ACCOUNT.PERFIL_ACTUALIZADO'),
           color: 'success',
           duration: 2000,
         });
@@ -217,7 +220,7 @@ export class AccountPage implements OnInit {
       error: () => {
         this.isSavingProfile = false;
         void this.ionicUtilService.showToast({
-          message: 'No se pudo actualizar el perfil',
+          message: this.translate.instant('ACCOUNT.NO_SE_PUDO_ACTUALIZAR_EL'),
           color: 'danger',
           duration: 2000,
         });
@@ -227,12 +230,12 @@ export class AccountPage implements OnInit {
 
   public async confirmLogout(): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Cerrar sesión',
-      message: '¿Seguro que quieres cerrar sesión?',
+      header: this.translate.instant('ACCOUNT.CERRAR_SESION'),
+      message: this.translate.instant('ACCOUNT.SEGURO_QUE_QUIERES_CERRAR_SESION'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Cerrar sesión',
+          text: this.translate.instant('ACCOUNT.CERRAR_SESION'),
           cssClass: 'alert-button-danger',
           handler: () => this.authService.logout(),
         },
@@ -268,7 +271,7 @@ export class AccountPage implements OnInit {
         this.isSendingSuggestion = false;
         this.showSuggestionPanel = false;
         void this.ionicUtilService.showToast({
-          message: '¡Gracias por tu mensaje!',
+          message: this.translate.instant('ACCOUNT.GRACIAS_POR_TU_MENSAJE'),
           color: 'success',
           duration: 2000,
         });
@@ -276,7 +279,7 @@ export class AccountPage implements OnInit {
       error: () => {
         this.isSendingSuggestion = false;
         void this.ionicUtilService.showToast({
-          message: 'No se pudo enviar, inténtalo de nuevo',
+          message: this.translate.instant('ACCOUNT.NO_SE_PUDO_ENVIAR_INTENTALO'),
           color: 'danger',
           duration: 2500,
         });
@@ -298,19 +301,19 @@ export class AccountPage implements OnInit {
     }
 
     void this.ionicUtilService.showAlert({
-      header: 'Eliminar cuenta',
-      message: 'Esta acción es irreversible. Introduce tu contraseña para confirmar.',
-      inputs: [{ name: 'password', type: 'password', placeholder: 'Contraseña' }],
+      header: this.translate.instant('ACCOUNT.ELIMINAR_CUENTA'),
+      message: this.translate.instant('ACCOUNT.ESTA_ACCION_ES_IRREVERSIBLE_INTRODUCE'),
+      inputs: [{ name: 'password', type: 'password', placeholder: this.translate.instant('ACCOUNT.CONTRASENA') }],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Eliminar',
+          text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           cssClass: 'alert-button-danger',
           handler: (data) => {
             if (!data?.password) {
               void this.ionicUtilService.showToast({
-                message: 'Introduce tu contraseña',
+                message: this.translate.instant('ACCOUNT.INTRODUCE_TU_CONTRASENA'),
                 color: 'warning',
                 duration: 2000,
               });
@@ -321,7 +324,7 @@ export class AccountPage implements OnInit {
               next: () => this.performAccountDeletion(user._id),
               error: () => {
                 void this.ionicUtilService.showToast({
-                  message: 'Contraseña incorrecta',
+                  message: this.translate.instant('ACCOUNT.CONTRASENA_INCORRECTA'),
                   color: 'danger',
                   duration: 2500,
                 });
@@ -341,20 +344,20 @@ export class AccountPage implements OnInit {
     const confirmWord = 'ELIMINAR';
 
     void this.ionicUtilService.showAlert({
-      header: 'Eliminar cuenta',
-      message: `Esta acción es irreversible. Escribe "${confirmWord}" para confirmar.`,
+      header: this.translate.instant('ACCOUNT.ELIMINAR_CUENTA'),
+      message: this.translate.instant('ACCOUNT.ESTA_ACCION_ES_IRREVERSIBLE_ESCRIBE', { confirmWord }),
       inputs: [{ name: 'confirmWord', type: 'text', placeholder: confirmWord }],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Eliminar',
+          text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           cssClass: 'alert-button-danger',
           handler: (data) => {
             const typed = (data?.confirmWord || '').trim().toUpperCase();
             if (typed !== confirmWord) {
               void this.ionicUtilService.showToast({
-                message: `Escribe "${confirmWord}" para confirmar`,
+                message: this.translate.instant('ACCOUNT.ESCRIBE_PARA_CONFIRMAR', { confirmWord }),
                 color: 'warning',
                 duration: 2200,
               });
@@ -374,7 +377,7 @@ export class AccountPage implements OnInit {
       next: () => this.authService.logout(),
       error: () => {
         void this.ionicUtilService.showToast({
-          message: 'No se pudo eliminar la cuenta',
+          message: this.translate.instant('ACCOUNT.NO_SE_PUDO_ELIMINAR_LA'),
           color: 'danger',
           duration: 2500,
         });

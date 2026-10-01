@@ -6,13 +6,13 @@
           type="button"
           class="tf-page-header__back-button"
           (click)="dismiss()"
-          aria-label="Cerrar"
+          [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
         >
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Usar plantilla</h1>
+        <h1 class="tf-page-header__title">{{ 'CLIENTS.USAR_PLANTILLA' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -21,8 +21,7 @@
 
 <ion-content class="apply-modal-content">
   <p class="panel-subtitle">
-    Elige una plantilla de rutina completa para asignarla a {{ clientName }}. Se copia entera
-    (microciclos, entrenamientos y ejercicios) — editar la copia no afecta a la plantilla original.
+    {{ 'CLIENTS.ELIGE_UNA_PLANTILLA_DE_RUTINA' | translate }} {{ clientName }}{{ 'CLIENTS.SE_COPIA_ENTERA_MICROCICLOS_ENTRENAMIENT' | translate }}
   </p>
 
   <div class="templates-skeleton" *ngIf="loading">
@@ -30,7 +29,7 @@
   </div>
 
   <p class="empty-hint" *ngIf="!loading && !templates.length">
-    Todavía no tienes ninguna plantilla de rutina. Créalas desde "Plantillas" > "Rutinas".
+    Todavía no tienes ninguna plantilla de rutina. Créalas desde "Plantillas" > {{ 'CLIENTS.RUTINAS' | translate }}
   </p>
 
   <div class="apply-template-list" *ngIf="!loading && templates.length">
@@ -42,7 +41,7 @@
     >
       <div class="apply-template-info">
         <span class="apply-template-name">{{ template.name }}</span>
-        <span class="apply-template-meta">{{ microcyclesCount(template) }} microciclos</span>
+        <span class="apply-template-meta">{{ microcyclesCount(template) }} {{ 'CLIENTS.MICROCICLOS' | translate }}</span>
       </div>
       <ion-icon
         class="apply-template-check"
@@ -54,7 +53,7 @@
 
 <ion-footer class="apply-modal-footer">
   <button class="submit-button" (click)="confirmApply()" [disabled]="!selectedTemplateId || isApplying">
-    <span *ngIf="!isApplying">Asignar plantilla</span>
+    <span *ngIf="!isApplying">{{ 'CLIENTS.ASIGNAR_PLANTILLA' | translate }}</span>
     <ion-spinner name="dots" *ngIf="isApplying"></ion-spinner>
   </button>
 </ion-footer>

@@ -1,4 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
+import { rirFailLabel } from 'src/app/core/models/rir';
 
 @Pipe({
   name: 'expected',
@@ -10,8 +11,8 @@ export class ExpectedPipe implements PipeTransform {
     const firstExpected = expected[0] !== null && expected[0] !== undefined;
     const secondExpected = expected[1] !== null && expected[1] !== undefined;
 
-    const first = expected[0] === -1 ? 'FALLO' : expected[0];
-    const second = expected[1] === -1 ? 'FALLO' : expected[1];
+    const first = expected[0] === -1 ? rirFailLabel() : expected[0];
+    const second = expected[1] === -1 ? rirFailLabel() : expected[1];
 
     if (firstExpected && secondExpected) {
       const hasFail = expected[0] === -1 || expected[1] === -1;

@@ -2,7 +2,7 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" [attr.aria-label]="'COMMON.GO_BACK' | translate">
           <ion-icon name="arrow-back-outline"></ion-icon>
         </button>
       </div>
@@ -17,7 +17,7 @@
 <ion-content class="history-panel">
   <p class="panel-note">
     {{ cadence }} · {{ schedule.time }}
-    <span *ngIf="!schedule.active"> · en pausa</span>
+    <span *ngIf="!schedule.active"> {{ 'CLIENTS.EN_PAUSA' | translate }}</span>
   </p>
 
   <div class="panel-skeleton" *ngIf="state === 'loading'">
@@ -27,15 +27,15 @@
   </div>
 
   <p class="panel-note panel-note--error" *ngIf="state === 'error'">
-    No se pudo cargar el histórico de este check-in.
+    {{ 'CLIENTS.NO_SE_PUDO_CARGAR_EL' | translate }}
   </p>
 
   <ng-container *ngIf="state === 'ready'">
     <p class="panel-note" *ngIf="total">
-      {{ answered }} respondido{{ answered === 1 ? '' : 's' }} de {{ entries.length }} mostrado{{ entries.length === 1 ? '' : 's' }}
-      <span *ngIf="total > entries.length"> · {{ total }} en total</span>
+      {{ answered }} {{ (answered === 1 ? 'TRAINER_COMMON.PL_ANSWERED_ONE' : 'TRAINER_COMMON.PL_ANSWERED_MANY') | translate }} {{ 'CLIENTS.DE' | translate }} {{ entries.length }} {{ (entries.length === 1 ? 'TRAINER_COMMON.PL_SHOWN_ONE' : 'TRAINER_COMMON.PL_SHOWN_MANY') | translate }}
+      <span *ngIf="total > entries.length"> · {{ total }} {{ 'CLIENTS.EN_TOTAL' | translate }}</span>
     </p>
-    <p class="panel-note" *ngIf="!total">Todavía no se ha pedido ninguna vez.</p>
+    <p class="panel-note" *ngIf="!total">{{ 'CLIENTS.TODAVIA_NO_SE_HA_PEDIDO' | translate }}</p>
 
     <div
       class="history-item"
@@ -71,7 +71,7 @@
           <dt>{{ row.label }}</dt>
           <dd>{{ row.value }}</dd>
         </div>
-        <p class="history-item__empty" *ngIf="!expandedValues.length">Se envió sin ningún dato.</p>
+        <p class="history-item__empty" *ngIf="!expandedValues.length">{{ 'CLIENTS.SE_ENVIO_SIN_NINGUN_DATO' | translate }}</p>
         <p class="history-item__comment" *ngIf="entry.reviewComment">“{{ entry.reviewComment }}”</p>
       </dl>
     </div>
@@ -85,13 +85,13 @@
       [disabled]="loadingMore"
       (click)="loadMore()"
     >
-      {{ loadingMore ? 'Cargando…' : 'Ver más atrás' }}
+      {{ loadingMore ? ('CLIENTS.CARGANDO' | translate) : ('CLIENTS.VER_MAS_ATRAS' | translate) }}
     </ion-button>
   </ng-container>
 </ion-content>
 
 <ion-footer class="ion-no-border" *ngIf="state !== 'loading' && onGoToCheckins">
   <div class="history-panel__footer">
-    <button type="button" class="goto-button" (click)="goToCheckins()">Ir a check-ins</button>
+    <button type="button" class="goto-button" (click)="goToCheckins()">{{ 'CLIENTS.IR_CHECK_INS' | translate }}</button>
   </div>
 </ion-footer>

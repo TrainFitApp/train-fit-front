@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { Split, SPLIT_PURPOSES } from 'src/app/core/models/split';
 import {
@@ -32,6 +33,8 @@ type WorkoutView = Omit<CompareWorkoutRow, 'exercises'> & {
   styleUrls: ['compare-splits-modal.component.scss'],
 })
 export class CompareSplitsModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public splits: Split[] = [];
   @Input() public indexA = 0;
   @Input() public indexB = 1;
@@ -167,26 +170,26 @@ export class CompareSplitsModalComponent implements OnInit {
   }
 
   public labelFor(index: number): string {
-    return `Microciclo ${index + 1}`;
+    return this.translate.instant('TABLES.MICROCYCLE_N', { p0: index + 1 });
   }
   public purposeLabel(split: Split | null): string {
     return (
       SPLIT_PURPOSES.find((purpose) => purpose.key === split?.purpose)?.label ||
-      'Normal'
+      this.translate.instant('PLANNER.NORMAL')
     );
   }
   public statusLabel(exercise: CompareExerciseRow): string {
     switch (exercise.status) {
       case 'added':
-        return 'Solo en B';
+        return this.translate.instant('PLANNER.SOLO_EN_2');
       case 'removed':
-        return 'Solo en A';
+        return this.translate.instant('PLANNER.SOLO_EN_3');
       case 'moved':
-        return `Movido desde posición ${(exercise.movedFrom ?? 0) + 1}`;
+        return this.translate.instant('PLANNER.MOVIDO_DESDE_POSICION', { p0: (exercise.movedFrom ?? 0) + 1 });
       case 'changed':
-        return 'Modificado';
+        return this.translate.instant('PLANNER.MODIFICADO');
       default:
-        return 'Sin cambios';
+        return this.translate.instant('PLANNER.SIN_CAMBIOS_2');
     }
   }
   public trendIcon(metric: MetricComparison): string {

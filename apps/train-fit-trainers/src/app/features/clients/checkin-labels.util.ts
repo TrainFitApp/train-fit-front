@@ -1,4 +1,5 @@
 import { CHECKIN_FIELDS_BY_KEY } from 'src/app/core/constants/checkin-fields';
+import { uiLocale, uiText } from 'src/app/core/i18n/localized-catalog';
 
 // Cómo se lee una respuesta de check-in. Vivía suelto en client-detail.page.ts
 // hasta que el panel de resumen de semana necesitó lo mismo: se extrae aquí en
@@ -21,15 +22,15 @@ export function checkinFieldLabel(
   if (key.startsWith('custom:')) {
     const questionId = key.slice('custom:'.length);
     const question = (customQuestions || []).find((q) => String(q?._id) === questionId);
-    return question?.label || 'Pregunta eliminada';
+    return question?.label || uiText('MY_CHECKINS.QUESTION_DELETED');
   }
   return CHECKIN_FIELDS_BY_KEY.get(key)?.label || key;
 }
 
 // Un booleano crudo se leería como "true"/"false".
 export function checkinValueLabel(value: number | string | boolean): string {
-  if (value === true) return 'Sí';
-  if (value === false) return 'No';
+  if (value === true) return uiText('COMMON.YES');
+  if (value === false) return uiText('COMMON.NO');
   return String(value);
 }
 
@@ -41,16 +42,16 @@ export interface CheckinCadenceLike {
 
 // "Cada martes", "Cada 3 semanas", "Día 15 de cada mes".
 export function checkinCadenceLabel(schedule: CheckinCadenceLike): string {
-  if (schedule.frequency === 'once') return 'Una vez';
+  if (schedule.frequency === 'once') return uiText('CLIENTS.UNA_VEZ');
   if (schedule.frequency === 'weekly' && schedule.interval === 1) {
-    return `Cada ${new Date(`${schedule.startDate}T12:00:00`).toLocaleDateString('es-ES', { weekday: 'long' })}`;
+    return uiText('CLIENTS.CADA', { p0: new Date(`${schedule.startDate}T12:00:00`).toLocaleDateString(uiLocale(), { weekday: 'long' }) });
   }
   if (schedule.frequency === 'monthly' && schedule.interval === 1) {
-    return `Día ${Number(schedule.startDate.slice(-2))} de cada mes`;
+    return uiText('CLIENTS.DIA_DE_CADA_MES', { p0: Number(schedule.startDate.slice(-2)) });
   }
-  if (schedule.interval === 1) return 'Cada día';
-  const unit = schedule.frequency === 'daily' ? 'días' : schedule.frequency === 'weekly' ? 'semanas' : 'meses';
-  return `Cada ${schedule.interval} ${unit}`;
+  if (schedule.interval === 1) return uiText('CLIENTS.CADA_DIA');
+  const unit = schedule.frequency === 'daily' ? uiText('CLIENTS.DIAS_2') : schedule.frequency === 'weekly' ? uiText('CLIENTS.SEMANAS') : uiText('CLIENTS.MESES');
+  return uiText('CLIENTS.CADA_2', { interval: schedule.interval, unit });
 }
 
 // "S3 · 7 sept – 13 sept": a qué semana de la fase de dieta pertenece.
@@ -60,7 +61,7 @@ export function checkinWeekLabel(week: { number: number; start: string; end: str
 }
 
 export function shortDayLabel(iso: string): string {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString(uiLocale(), {
     day: 'numeric',
     month: 'short',
     timeZone: 'UTC',

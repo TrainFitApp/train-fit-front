@@ -17,10 +17,18 @@
     <ng-container *ngIf="isClient && canUpload">
       <input #videoInput class="hidden-input" type="file" accept="video/*" (change)="onFile($event)" />
 
-      <button type="button" class="primary-button add-button" *ngIf="!draft" (click)="pick(videoInput)">
-        <ion-icon name="videocam-outline"></ion-icon>
-        <span>{{ 'MEDIA.ADD_VIDEO' | translate }}</span>
-      </button>
+      <!-- Grabar con la cámara de la app (temporizador) o elegir uno ya
+           grabado. -->
+      <div class="add-actions" *ngIf="!draft">
+        <button type="button" class="primary-button" (click)="record()">
+          <ion-icon name="videocam-outline"></ion-icon>
+          <span>{{ 'MEDIA.RECORD_VIDEO' | translate }}</span>
+        </button>
+        <button type="button" class="ghost-button" (click)="pick(videoInput)">
+          <ion-icon name="images-outline"></ion-icon>
+          <span>{{ 'MEDIA.FROM_GALLERY' | translate }}</span>
+        </button>
+      </div>
       <p class="videos-note" *ngIf="!draft">{{ 'MEDIA.VIDEO_LIMIT_NOTE' | translate }}</p>
 
       <!-- Borrador: nota opcional antes de subir -->

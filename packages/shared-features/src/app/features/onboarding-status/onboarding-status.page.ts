@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import {
   IntakeCustomQuestion,
@@ -82,7 +83,8 @@ export class OnboardingStatusPage {
     private nutritionPreferencesApi: NutritionPreferencesApiService,
     private professionalsApi: ProfessionalsApiService,
     private ionicUtilService: IonicUtilService,
-    private userService: UserService
+    private userService: UserService,
+    private translate: TranslateService
   ) {}
 
   public ionViewWillEnter(): void {
@@ -137,8 +139,8 @@ export class OnboardingStatusPage {
       error: (err) => {
         this.respondingInviteId = null;
         this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo procesar la invitación',
-          'Error',
+          err?.error?.message || this.translate.instant('ONBOARDING.INVITE_ERROR'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
@@ -157,7 +159,7 @@ export class OnboardingStatusPage {
           trainerId: relation.trainerId,
           trainerName: relation.trainer
             ? `${relation.trainer.name} ${relation.trainer.lastname}`.trim()
-            : 'Tu profesional',
+            : this.translate.instant('ONBOARDING.YOUR_PROFESSIONAL'),
           scopes: [],
           intakeStatus: relation.intakeStatus,
           enabledFields: new Set(),
@@ -169,7 +171,9 @@ export class OnboardingStatusPage {
       // trainer, PERO el backend fuerza `dietaryFlags` solo en la relación
       // de scope nutrición, así que hay que juntar todas.
       relation.intakeEnabledFields.forEach((f) => group.enabledFields.add(f));
-      group.scopes.push(relation.scope === 'training' ? 'Entrenamiento' : 'Nutrición');
+      group.scopes.push(
+        this.translate.instant(relation.scope === 'training' ? 'ONBOARDING.SCOPE_TRAINING' : 'ONBOARDING.SCOPE_NUTRITION')
+      );
     }
     return [...byTrainer.values()];
   }
@@ -286,8 +290,8 @@ export class OnboardingStatusPage {
           this.fillingTrainerId = null;
           this.ionicUtilService.showToast({
             message: isEdit
-              ? 'Cuestionario actualizado.'
-              : 'Cuestionario enviado. Tu profesional ya puede verlo.',
+              ? this.translate.instant('ONBOARDING.UPDATED')
+              : this.translate.instant('ONBOARDING.SUBMITTED'),
             duration: 3500,
           });
           this.refreshLocalUser();
@@ -296,8 +300,8 @@ export class OnboardingStatusPage {
         error: (err) => {
           this.isSubmitting = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo enviar el cuestionario',
-            'Error',
+            err?.error?.message || this.translate.instant('ONBOARDING.SUBMIT_ERROR'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
         },

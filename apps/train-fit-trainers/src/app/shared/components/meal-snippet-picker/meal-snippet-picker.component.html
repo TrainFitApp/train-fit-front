@@ -1,8 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Insertar snippet</ion-title>
+    <ion-title>{{ 'SHARED_COMPONENTS.INSERTAR_SNIPPET' | translate }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">Cerrar</ion-button>
+      <ion-button (click)="dismiss()">{{ 'COMMON.CLOSE_ARIA' | translate }}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -14,14 +14,13 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar tus snippets.</p>
-    <button class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'SHARED_COMPONENTS.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</p>
+    <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <p class="empty-hint" *ngIf="!snippets.length">
-      Todavía no has guardado ningún snippet. Compón una comida y usa "Guardar como snippet" para
-      reutilizarla en cualquier plantilla o cliente.
+      {{ 'SHARED_COMPONENTS.TODAVIA_NO_HAS_GUARDADO_NINGUN' | translate }}
     </p>
 
     <div class="input-wrapper" *ngIf="snippets.length">
@@ -29,14 +28,14 @@
       <input
         type="text"
         class="input-field"
-        placeholder="Buscar snippet"
+        [placeholder]="'SHARED_COMPONENTS.BUSCAR_SNIPPET' | translate"
         [(ngModel)]="search"
         (ngModelChange)="onSearchChange()"
       />
     </div>
 
     <p class="empty-hint" *ngIf="snippets.length && !filteredSnippets.length">
-      Ningún snippet coincide con "{{ search }}".
+      {{ 'SHARED_COMPONENTS.NINGUN_SNIPPET_COINCIDE_CON' | translate }}{{ search }}".
     </p>
 
     <ion-accordion-group class="snippet-group">
@@ -49,7 +48,7 @@
           <ion-icon name="bookmark" slot="start" class="snippet-icon"></ion-icon>
           <ion-label>
             <span class="snippet-name">{{ snippet.name }}</span>
-            <span class="snippet-count">{{ itemCount(snippet) }} alimento{{ itemCount(snippet) === 1 ? '' : 's' }}</span>
+            <span class="snippet-count">{{ itemCount(snippet) }} {{ (itemCount(snippet) === 1 ? 'TRAINER_COMMON.PL_FOOD_ONE' : 'TRAINER_COMMON.PL_FOOD_MANY') | translate }}</span>
           </ion-label>
         </ion-item>
 
@@ -116,12 +115,12 @@
           <div class="snippet-detail-actions">
             <button type="button" class="snippet-pick-btn" (click)="pick(snippet)">
               <ion-icon name="add-circle-outline"></ion-icon>
-              Usar este snippet
+              {{ 'SHARED_COMPONENTS.USAR_ESTE_SNIPPET' | translate }}
             </button>
-            <button type="button" class="snippet-icon-btn" aria-label="Renombrar" (click)="renameSnippet($event, snippet)">
+            <button type="button" class="snippet-icon-btn" [attr.aria-label]="'TRAINER_COMMON.RENAME' | translate" (click)="renameSnippet($event, snippet)">
               <ion-icon name="pencil-outline"></ion-icon>
             </button>
-            <button type="button" class="snippet-icon-btn danger" aria-label="Borrar" (click)="confirmDelete($event, snippet)">
+            <button type="button" class="snippet-icon-btn danger" [attr.aria-label]="'TRAINER_COMMON.ERASE' | translate" (click)="confirmDelete($event, snippet)">
               <ion-icon name="trash-outline"></ion-icon>
             </button>
           </div>

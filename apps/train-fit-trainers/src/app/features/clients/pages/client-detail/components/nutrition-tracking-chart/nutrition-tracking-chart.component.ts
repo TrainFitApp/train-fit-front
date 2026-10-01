@@ -7,10 +7,13 @@ import {
   OnInit,
   SimpleChanges,
   ViewChild,
+  inject,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import { NutritionTrackingDay } from '../../models/client-detail.model';
+import { uiLocale, localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 type MetricKey = 'kcal' | 'protein' | 'carbs' | 'fat';
 
@@ -35,6 +38,7 @@ const METRIC_OPTIONS: MetricOption[] = [
   { key: 'carbs', label: 'Carbohidratos', unit: 'g', color: '#2dd36f' },
   { key: 'fat', label: 'Grasas', unit: 'g', color: '#ffc409' },
 ];
+METRIC_OPTIONS.forEach((item) => localizeProp(item, 'label', `CLIENTS.MACRO_METRICS.${item.key}`));
 
 const REFERENCE_COLOR = '#8b8b8b'; // --tf-text-muted — línea de referencia "100% de lo pautado"
 
@@ -61,6 +65,8 @@ const REFERENCE_COLOR = '#8b8b8b'; // --tf-text-muted — línea de referencia "
   styleUrls: ['./nutrition-tracking-chart.component.scss'],
 })
 export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() clientId = '';
   // F20-quinquies/F20-unvicies — rango exacto elegido en el padre (días
   // sueltos o semanas completas — ver client-detail.page.ts). El padre ya
@@ -208,7 +214,7 @@ export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDes
 
     const datasets: ChartConfiguration<'line'>['data']['datasets'] = [
       {
-        label: 'Pautado (100%)',
+        label: this.translate.instant('CLIENTS.PAUTADO_100'),
         data: labels.map(() => 100),
         borderColor: REFERENCE_COLOR,
         backgroundColor: 'transparent',
@@ -254,7 +260,7 @@ export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDes
               label: (context) => {
                 const value = context.parsed.y;
                 return value === null || value === undefined
-                  ? `${context.dataset.label}: sin dato`
+                  ? this.translate.instant('CLIENTS.SIN_DATO', { label: context.dataset.label })
                   : `${context.dataset.label}: ${Math.round(Number(value))}%`;
               },
             },
@@ -293,7 +299,7 @@ export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDes
   }
 
   private formatDate(date: string): string {
-    return new Date(`${date}T00:00:00.000Z`).toLocaleDateString('es-ES', {
+    return new Date(`${date}T00:00:00.000Z`).toLocaleDateString(uiLocale(), {
       day: 'numeric',
       month: 'short',
       timeZone: 'UTC',

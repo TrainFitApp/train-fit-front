@@ -2,18 +2,18 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Empezar fase</h1>
+        <h1 class="tf-page-header__title">{{ 'DIET_TEMPLATES.EMPEZAR_FASE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
   </div>
   <div class="loading-bar" *ngIf="loading">
-    <ion-progress-bar type="indeterminate" aria-label="Cargando sugerencias"></ion-progress-bar>
+    <ion-progress-bar type="indeterminate" [attr.aria-label]="'DIET_TEMPLATES.CARGANDO_SUGERENCIAS' | translate"></ion-progress-bar>
   </div>
 </ion-header>
 
@@ -21,15 +21,15 @@
   <!-- Guard: sin biométricos no hay objetivo -->
   <div class="guard-box" *ngIf="state === 'missing-biometrics'">
     <ion-icon name="body-outline"></ion-icon>
-    <h2>Faltan datos de {{ clientName }}</h2>
-    <p>Para calcular su objetivo hace falta: <strong>{{ missing.join(', ') }}</strong>.</p>
-    <p class="muted">Pídele una antropometría (o que responda un check-in con peso) y vuelve aquí.</p>
-    <button type="button" class="secondary-button" (click)="dismiss()">Entendido</button>
+    <h2>{{ 'DIET_TEMPLATES.FALTAN_DATOS_DE' | translate }} {{ clientName }}</h2>
+    <p>{{ 'DIET_TEMPLATES.PARA_CALCULAR_SU_OBJETIVO_HACE' | translate }} <strong>{{ missing.join(', ') }}</strong>.</p>
+    <p class="muted">{{ 'DIET_TEMPLATES.PIDELE_UNA_ANTROPOMETRIA_QUE_RESPONDA' | translate }}</p>
+    <button type="button" class="secondary-button" (click)="dismiss()">{{ 'DIET_TEMPLATES.ENTENDIDO' | translate }}</button>
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar las sugerencias.</p>
-    <button type="button" class="secondary-button" (click)="queueRefetch()">Reintentar</button>
+    <p>{{ 'DIET_TEMPLATES.NO_SE_PUDIERON_CARGAR_LAS' | translate }}</p>
+    <button type="button" class="secondary-button" (click)="queueRefetch()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'ready' || state === 'loading'">
@@ -42,7 +42,7 @@
          origen marcado) y el ranking se rehace contra esos números. -->
     <section class="target-card" *ngIf="targetDraft as t">
       <div class="target-head">
-        <div class="target-toggle" role="group" aria-label="Origen del objetivo de la fase">
+        <div class="target-toggle" role="group" [attr.aria-label]="'DIET_TEMPLATES.ORIGEN_DEL_OBJETIVO_DE_LA' | translate">
           <button
             type="button"
             class="target-toggle__option"
@@ -50,7 +50,7 @@
             [attr.aria-pressed]="targetMode === 'calculated'"
             (click)="selectTargetMode('calculated')"
           >
-            <span class="target-toggle__label">Referencia calculada</span>
+            <span class="target-toggle__label">{{ 'DIET_TEMPLATES.REFERENCIA_CALCULADA' | translate }}</span>
             <span class="target-toggle__kcal">{{ calculated?.kcal | number: '1.0-0' }} kcal</span>
           </button>
           <button
@@ -61,9 +61,9 @@
             [disabled]="!currentGoal"
             (click)="selectTargetMode('goal')"
           >
-            <span class="target-toggle__label">Objetivo actual</span>
+            <span class="target-toggle__label">{{ 'DIET_TEMPLATES.OBJETIVO_ACTUAL' | translate }}</span>
             <span class="target-toggle__kcal" *ngIf="currentGoal as g; else noGoal">{{ g.kcal | number: '1.0-0' }} kcal</span>
-            <ng-template #noGoal><span class="target-toggle__empty">Sin definir</span></ng-template>
+            <ng-template #noGoal><span class="target-toggle__empty">{{ 'DIET_TEMPLATES.SIN_DEFINIR' | translate }}</span></ng-template>
           </button>
         </div>
       </div>
@@ -86,15 +86,15 @@
         </label>
       </div>
       <p class="target-source" *ngIf="targetMode === 'calculated' && weightSource as w">
-        Peso {{ w.weightKg | number: '1.0-1' }} kg —
-        {{ w.from === 'anthropometry' ? 'de la antropometría del ' + w.date : 'del registro del cliente' }}
+        {{ 'TRAINER_COMMON.WEIGHT' | translate }} {{ w.weightKg | number: '1.0-1' }} kg —
+        {{ w.from === 'anthropometry' ? ('DIET_TEMPLATES.DE_LA_ANTROPOMETRIA_DEL' | translate) + w.date : ('DIET_TEMPLATES.DEL_REGISTRO_DEL_CLIENTE' | translate) }}
       </p>
       <p class="target-source" *ngIf="targetMode === 'goal' && currentGoal as g">
-        Objetivo que {{ clientName }} tiene ahora, {{ g.source === 'manual' ? 'fijado a mano' : 'calculado'
-        }}{{ g.updatedAt ? ' el ' + (g.updatedAt | date: 'dd/MM/yyyy') : '' }}.
+        {{ 'TRAINER_MISC.OBJETIVO_QUE' | translate }} {{ clientName }} {{ 'TRAINER_MISC.TIENE_AHORA' | translate }}, {{ (g.source === 'manual' ? 'TRAINER_MISC.SET_MANUALLY' : 'TRAINER_MISC.CALCULATED') | translate
+        }}{{ g.updatedAt ? ('DIET_TEMPLATES.EL' | translate) + (g.updatedAt | date: 'dd/MM/yyyy') : '' }}.
       </p>
       <p class="target-source" *ngIf="targetMode === 'manual'">
-        Lo has fijado tú: el ranking usa estos números. Elige un origen arriba para volver a él.
+        {{ 'DIET_TEMPLATES.LO_HAS_FIJADO_TU_EL' | translate }}
       </p>
     </section>
 
@@ -125,7 +125,7 @@
     <!-- ===== Parámetros ===== -->
     <section class="filters">
       <div class="field">
-        <label class="field-label">Nombre de la fase</label>
+        <label class="field-label">{{ 'DIET_TEMPLATES.NOMBRE_DE_LA_FASE' | translate }}</label>
         <input type="text" [(ngModel)]="phaseName" />
       </div>
 
@@ -143,7 +143,7 @@
         (macrosChange)="onMacrosChange($event)"
       ></app-macro-adjust>
 
-      <label class="field-label">Restricciones</label>
+      <label class="field-label">{{ 'DIET_TEMPLATES.RESTRICCIONES' | translate }}</label>
       <div class="flag-chips">
         <button
           type="button"
@@ -157,11 +157,11 @@
         </button>
       </div>
 
-      <label class="field-label">Origen</label>
+      <label class="field-label">{{ 'DIET_TEMPLATES.ORIGEN' | translate }}</label>
       <div class="flag-chips">
         <button type="button" [class.is-active]="allSourcesSelected" (click)="selectAllSources()">
           <ion-icon name="apps-outline"></ion-icon>
-          Todas
+          {{ 'TRAINER_COMMON.ALL_F' | translate }}
         </button>
         <button
           type="button"
@@ -179,7 +179,7 @@
          y sus fechas se corrigen después desde Plan > Nutrición. -->
     <section class="confirm-box">
       <p class="muted small">
-        La fase empieza <strong>hoy</strong> y queda abierta. Si el cliente ya tiene una fase en curso, se
+        {{ 'DIET_TEMPLATES.LA_FASE_EMPIEZA' | translate }} <strong>{{ 'DIET_TEMPLATES.HOY' | translate }}</strong> y queda abierta. Si el cliente ya tiene una fase en curso, se
         cerrará ayer al aplicar esta. Las fechas se pueden corregir luego desde Plan &gt; Nutrición.
       </p>
     </section>
@@ -189,13 +189,13 @@
 <ion-footer class="ion-no-border" *ngIf="state === 'ready'">
   <div class="footer-actions">
     <button #enterSubmitTarget type="button" class="confirm-button" [disabled]="!canConfirm" (click)="confirm()">
-      {{ applying ? 'Aplicando…' : 'Empezar fase con esta dieta' }}
+      {{ applying ? ('DIET_TEMPLATES.APLICANDO' | translate) : ('DIET_TEMPLATES.EMPEZAR_FASE_CON_ESTA_DIETA' | translate) }}
     </button>
     <button type="button" class="secondary-button" [disabled]="!canConfirm" (click)="editBeforeApplying()">
-      Editar antes de aplicar
+      {{ 'DIET_TEMPLATES.EDITAR_ANTES_DE_APLICAR' | translate }}
     </button>
     <button type="button" class="scratch-link" (click)="createFromScratch()">
-      …o empezar de cero y construir la dieta
+      {{ 'DIET_TEMPLATES.EMPEZAR_DE_CERO_CONSTRUIR_LA' | translate }}
     </button>
   </div>
 </ion-footer>

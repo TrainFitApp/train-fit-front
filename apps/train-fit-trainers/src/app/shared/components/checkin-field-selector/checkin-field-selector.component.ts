@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CHECKIN_FIELDS, CheckinField, CheckinFieldGroup } from 'src/app/core/constants/checkin-fields';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
+import { TranslateModule } from '@ngx-translate/core';
 
 const GROUP_LABELS: Record<CheckinFieldGroup, string> = {
   composicion_corporal: 'Composición corporal',
@@ -9,6 +11,7 @@ const GROUP_LABELS: Record<CheckinFieldGroup, string> = {
   bienestar: 'Bienestar',
   fotos: 'Fotos de progreso',
 };
+localizeRecord(GROUP_LABELS, 'CHECKIN_FIELD_GROUPS');
 
 const GROUP_ICONS: Record<CheckinFieldGroup, string> = {
   composicion_corporal: 'body-outline',
@@ -40,7 +43,7 @@ const GROUP_ORDER: CheckinFieldGroup[] = ['composicion_corporal', 'perimetros', 
 @Component({
   selector: 'app-checkin-field-selector',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './checkin-field-selector.component.html',
   styleUrls: ['./checkin-field-selector.component.scss'],
 })

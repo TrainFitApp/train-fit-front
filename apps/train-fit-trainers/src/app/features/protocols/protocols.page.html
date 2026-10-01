@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Protocolos">
+  <app-page-header [title]="'PROTOCOLS.PROTOCOLOS' | translate">
     <ng-container pageActions>
-      <button type="button" class="tf-page-header__back-button" (click)="openEditor()" aria-label="Nuevo protocolo">
+      <button type="button" class="tf-page-header__back-button" (click)="openEditor()" [attr.aria-label]="'PROTOCOLS.NUEVO_PROTOCOLO' | translate">
         <ion-icon name="add-outline"></ion-icon>
       </button>
     </ng-container>
@@ -16,28 +16,25 @@
 
   <div class="page-state" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <h2>No se pudieron cargar tus protocolos</h2>
-    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    <h2>{{ 'PROTOCOLS.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</h2>
+    <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <div class="page-state page-state--intro" *ngIf="state === 'loaded' && !protocols.length">
     <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
-    <h2>Tu metodología, en un solo paso</h2>
+    <h2>{{ 'PROTOCOLS.TU_METODOLOGIA_EN_UN_SOLO' | translate }}</h2>
     <p>
-      Un protocolo agrupa lo que le pones a un cliente cuando entra en una fase: check-ins con su
-      frecuencia, plan de dieta, objetivo de kcal y macros, rutina, avisos automatizados y hábitos.
-      Créalo una vez —<em>Definición</em>, <em>Volumen</em>, <em>Recomposición</em>— y aplícalo
-      entero cada vez que lo necesites.
+      {{ 'PROTOCOLS.UN_PROTOCOLO_AGRUPA_LO_QUE' | translate }}<em>{{ 'PROTOCOLS.DEFINICION' | translate }}</em>, <em>{{ 'PROTOCOLS.VOLUMEN' | translate }}</em>, <em>{{ 'PROTOCOLS.RECOMPOSICION' | translate }}</em>{{ 'PROTOCOLS.APLICALO_ENTERO_CADA_VEZ_QUE' | translate }}
     </p>
-    <button type="button" class="primary-button" (click)="openEditor()">Crear mi primer protocolo</button>
+    <button type="button" class="primary-button" (click)="openEditor()">{{ 'PROTOCOLS.CREAR_MI_PRIMER_PROTOCOLO' | translate }}</button>
   </div>
 
   <!-- Resultado de aplicar: paso a paso y por cliente, porque aplicar un
        protocolo son varias operaciones y cualquiera puede fallar sola. -->
   <section class="results-card" *ngIf="applyResults.length" aria-live="polite">
     <div class="results-head">
-      <h2 class="results-title">«{{ applyResultsName }}» aplicado</h2>
-      <button type="button" class="link-button" (click)="dismissResults()">Cerrar</button>
+      <h2 class="results-title">«{{ applyResultsName }}{{ 'PROTOCOLS.APLICADO' | translate }}</h2>
+      <button type="button" class="link-button" (click)="dismissResults()">{{ 'COMMON.CLOSE_ARIA' | translate }}</button>
     </div>
     <div class="result-row" *ngFor="let result of applyResults; trackBy: trackByIndex">
       <div class="result-head">
@@ -75,7 +72,7 @@
         type="button"
         class="protocol-main"
         (click)="openDetail(protocol)"
-        [attr.aria-label]="'Ver ' + protocol.name"
+        [attr.aria-label]="('PROTOCOLS.VER' | translate) + protocol.name"
       >
         <span class="protocol-name">{{ protocol.name }}</span>
         <span class="protocol-description" *ngIf="protocol.description">{{ protocol.description }}</span>
@@ -85,7 +82,7 @@
             <ion-icon [name]="part.icon" aria-hidden="true"></ion-icon
             ><span class="content-chip__text">{{ part.text }}</span>
           </span>
-          <span class="content-chip content-chip--empty" *ngIf="!contentSummary(protocol).length">Vacío</span>
+          <span class="content-chip content-chip--empty" *ngIf="!contentSummary(protocol).length">{{ 'PROTOCOLS.VACIO' | translate }}</span>
         </span>
       </button>
 
@@ -96,10 +93,10 @@
           [disabled]="applyingId === protocol._id"
           (click)="applyProtocol(protocol)"
         >
-          <span *ngIf="applyingId !== protocol._id">Aplicar</span>
+          <span *ngIf="applyingId !== protocol._id">{{ 'TRAINER_COMMON.APPLY' | translate }}</span>
           <ion-spinner name="dots" *ngIf="applyingId === protocol._id"></ion-spinner>
         </button>
-        <button type="button" class="icon-button" (click)="openEditor(protocol)" [attr.aria-label]="'Editar ' + protocol.name">
+        <button type="button" class="icon-button" (click)="openEditor(protocol)" [attr.aria-label]="('PROTOCOLS.EDITAR' | translate) + protocol.name">
           <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
         </button>
       </div>
@@ -117,7 +114,7 @@
         <h2 class="side-title" id="protocol-detail-title">{{ protocol.name }}</h2>
         <p class="side-subtitle" *ngIf="protocol.description">{{ protocol.description }}</p>
       </div>
-      <button type="button" class="icon-button" (click)="closeDetail()" aria-label="Cerrar">
+      <button type="button" class="icon-button" (click)="closeDetail()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
         <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
       </button>
     </header>
@@ -127,11 +124,11 @@
     </div>
 
     <footer class="side-footer">
-      <button type="button" class="icon-button icon-button--danger" (click)="confirmDelete(protocol)" [attr.aria-label]="'Eliminar ' + protocol.name">
+      <button type="button" class="icon-button icon-button--danger" (click)="confirmDelete(protocol)" [attr.aria-label]="('PROTOCOLS.ELIMINAR' | translate) + protocol.name">
         <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
       </button>
-      <button type="button" class="cancel-button" (click)="openEditor(protocol)">Editar</button>
-      <button type="button" class="submit-button" (click)="applyProtocol(protocol)">Aplicar</button>
+      <button type="button" class="cancel-button" (click)="openEditor(protocol)">{{ 'TRAINER_COMMON.EDIT' | translate }}</button>
+      <button type="button" class="submit-button" (click)="applyProtocol(protocol)">{{ 'TRAINER_COMMON.APPLY' | translate }}</button>
     </footer>
   </aside>
 </ng-container>
@@ -140,7 +137,7 @@
      confirmación de aplicar. Cada plantilla se puede previsualizar. -->
 <ng-template #protocolContent let-protocol>
   <section class="content-section" *ngIf="checkinsOf(protocol).length">
-    <h3 class="section-title"><ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>Check-ins</h3>
+    <h3 class="section-title"><ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>{{ 'TRAINER_COMMON.CHECKINS' | translate }}</h3>
     <button
       type="button"
       class="content-row"
@@ -157,7 +154,7 @@
   </section>
 
   <section class="content-section" *ngIf="protocol.dietTemplateId || protocol.nutritionTarget">
-    <h3 class="section-title"><ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon>Nutrición</h3>
+    <h3 class="section-title"><ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon>{{ 'TRAINER_COMMON.NUTRITION' | translate }}</h3>
     <button
       type="button"
       class="content-row"
@@ -168,7 +165,7 @@
       <span class="content-row__main">
         <span class="content-row__name">{{ dietTemplate(protocol.dietTemplateId)?.name || missingName() }}</span>
         <span class="content-row__meta" *ngIf="dietTemplate(protocol.dietTemplateId)?.macroProfile as profile">
-          Día tipo ≈ {{ profile.kcal | number: '1.0-0' }} kcal
+          {{ 'PROTOCOLS.DIA_TIPO' | translate }} {{ profile.kcal | number: '1.0-0' }} kcal
         </span>
       </span>
       <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
@@ -176,7 +173,7 @@
     <div class="target-summary" *ngIf="protocol.nutritionTarget as target">
       <div class="target-summary__kcal">
         <ion-icon name="flame" aria-hidden="true"></ion-icon>
-        <strong>{{ target.kcal | number: '1.0-0' }}</strong><span>kcal / día</span>
+        <strong>{{ target.kcal | number: '1.0-0' }}</strong><span>{{ 'PROTOCOLS.KCAL_DIA' | translate }}</span>
       </div>
       <div class="macro-bar" aria-hidden="true">
         <span
@@ -196,7 +193,7 @@
   </section>
 
   <section class="content-section" *ngIf="protocol.routineTemplateId">
-    <h3 class="section-title"><ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>Rutina</h3>
+    <h3 class="section-title"><ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>{{ 'PROTOCOLS.RUTINA' | translate }}</h3>
     <button
       type="button"
       class="content-row"
@@ -206,8 +203,8 @@
       <span class="content-row__main">
         <span class="content-row__name">{{ routineTemplate(protocol.routineTemplateId)?.name || missingName() }}</span>
         <span class="content-row__meta" *ngIf="routineTemplate(protocol.routineTemplateId) as routine">
-          {{ routine.microcyclesCount || 0 }} microciclo{{ routine.microcyclesCount === 1 ? '' : 's' }} ·
-          {{ routine.workoutsCount || 0 }} sesiones por microciclo
+          {{ routine.microcyclesCount || 0 }} {{ (routine.microcyclesCount === 1 ? 'TRAINER_COMMON.PL_MICROCYCLE_ONE' : 'TRAINER_COMMON.PL_MICROCYCLE_MANY') | translate }} ·
+          {{ routine.workoutsCount || 0 }} {{ 'PROTOCOLS.SESIONES_POR_MICROCICLO_2' | translate }}
         </span>
       </span>
       <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
@@ -215,7 +212,7 @@
   </section>
 
   <section class="content-section" *ngIf="protocol.ruleIds?.length">
-    <h3 class="section-title"><ion-icon name="flash-outline" aria-hidden="true"></ion-icon>Avisos automatizados</h3>
+    <h3 class="section-title"><ion-icon name="flash-outline" aria-hidden="true"></ion-icon>{{ 'PROTOCOLS.AVISOS_AUTOMATIZADOS' | translate }}</h3>
     <button
       type="button"
       class="content-row"
@@ -225,21 +222,21 @@
     >
       <span class="content-row__main">
         <span class="content-row__name">{{ rule(ruleId)?.name || missingName() }}</span>
-        <span class="content-row__meta" *ngIf="rule(ruleId)?.appliesTo === 'all_clients'">Ya aplica a todos tus clientes</span>
+        <span class="content-row__meta" *ngIf="rule(ruleId)?.appliesTo === 'all_clients'">{{ 'PROTOCOLS.YA_APLICA_TODOS_TUS_CLIENTES' | translate }}</span>
       </span>
       <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
     </button>
   </section>
 
   <section class="content-section" *ngIf="protocol.dailyTasks?.length">
-    <h3 class="section-title"><ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>Hábitos diarios</h3>
+    <h3 class="section-title"><ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>{{ 'PROTOCOLS.HABITOS_DIARIOS' | translate }}</h3>
     <div class="content-row content-row--static" *ngFor="let task of protocol.dailyTasks; trackBy: trackByIndex">
-      <span class="content-row__name">{{ task.label || 'Hábito' }}</span>
+      <span class="content-row__name">{{ task.label || ('PROTOCOLS.HABITO' | translate) }}</span>
       <span class="content-row__value">{{ task.target | number: '1.0-2' }} {{ task.unit }}</span>
     </div>
   </section>
 
-  <p class="section-hint" *ngIf="!contentSummary(protocol).length">Este protocolo está vacío. Edítalo para añadirle contenido.</p>
+  <p class="section-hint" *ngIf="!contentSummary(protocol).length">{{ 'PROTOCOLS.ESTE_PROTOCOLO_ESTA_VACIO_EDITALO' | translate }}</p>
 </ng-template>
 
 <!-- ============ Editor ============ -->
@@ -254,32 +251,31 @@
   >
     <div class="side-handle" aria-hidden="true"></div>
     <header class="side-head">
-      <h2 class="side-title" id="protocol-editor-title">{{ editingId ? 'Editar protocolo' : 'Nuevo protocolo' }}</h2>
-      <button type="button" class="icon-button" (click)="closeEditor()" aria-label="Cerrar">
+      <h2 class="side-title" id="protocol-editor-title">{{ editingId ? ('PROTOCOLS.EDITAR_PROTOCOLO' | translate) : ('PROTOCOLS.NUEVO_PROTOCOLO' | translate) }}</h2>
+      <button type="button" class="icon-button" (click)="closeEditor()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
         <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
       </button>
     </header>
 
     <div class="side-body">
-      <label class="field-label" for="protocol-name">Nombre</label>
+      <label class="field-label" for="protocol-name">{{ 'TRAINER_COMMON.NAME' | translate }}</label>
       <div class="input-wrapper">
-        <input id="protocol-name" class="input-field" type="text" maxlength="100" placeholder="Definición" [(ngModel)]="name" />
+        <input id="protocol-name" class="input-field" type="text" maxlength="100" [placeholder]="'PROTOCOLS.DEFINICION' | translate" [(ngModel)]="name" />
       </div>
 
-      <label class="field-label" for="protocol-description">Descripción <span class="field-optional">(opcional)</span></label>
+      <label class="field-label" for="protocol-description">{{ 'PROTOCOLS.DESCRIPCION' | translate }} <span class="field-optional">{{ 'PROTOCOLS.OPCIONAL' | translate }}</span></label>
       <div class="input-wrapper">
-        <input id="protocol-description" class="input-field" type="text" maxlength="500" placeholder="Fase de déficit moderado" [(ngModel)]="description" />
+        <input id="protocol-description" class="input-field" type="text" maxlength="500" [placeholder]="'PROTOCOLS.FASE_DE_DEFICIT_MODERADO' | translate" [(ngModel)]="description" />
       </div>
 
       <!-- Check-ins: varios, cada uno con su frecuencia y hora. -->
       <section class="editor-section">
-        <h3 class="section-title"><ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>Check-ins</h3>
+        <h3 class="section-title"><ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>{{ 'TRAINER_COMMON.CHECKINS' | translate }}</h3>
         <p class="section-hint">
-          Se programan el día que apliques el protocolo, con la frecuencia que elijas aquí. Luego puedes
-          afinarlos en la ficha de cada cliente.
+          {{ 'PROTOCOLS.SE_PROGRAMAN_EL_DIA_QUE' | translate }}
         </p>
         <p class="section-hint" *ngIf="optionsLoaded && !checkinTemplates.length">
-          Todavía no tienes plantillas de check-in. Créalas en Plantillas y añádelas aquí luego.
+          {{ 'PROTOCOLS.TODAVIA_NO_TIENES_PLANTILLAS_DE' | translate }}
         </p>
 
         <div class="checkin-row" *ngFor="let checkin of checkins; let i = index; trackBy: trackByIndex">
@@ -289,7 +285,7 @@
               interface="popover"
               toggleIcon="chevron-down-outline"
               [(ngModel)]="checkin.templateId"
-              [attr.aria-label]="'Plantilla del check-in ' + (i + 1)"
+              [attr.aria-label]="('PROTOCOLS.PLANTILLA_DEL_CHECK_IN' | translate) + (i + 1)"
             >
               <ion-select-option
                 *ngFor="let option of checkinTemplates"
@@ -304,20 +300,20 @@
               class="icon-button"
               [class.icon-button--active]="isPreviewing('checkin', checkin.templateId)"
               (click)="openPreview({ kind: 'checkin', id: checkin.templateId })"
-              aria-label="Previsualizar preguntas"
+              [attr.aria-label]="'PROTOCOLS.PREVISUALIZAR_PREGUNTAS' | translate"
             >
               <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
             </button>
-            <button type="button" class="icon-button icon-button--danger" (click)="removeCheckin(i)" aria-label="Quitar check-in">
+            <button type="button" class="icon-button icon-button--danger" (click)="removeCheckin(i)" [attr.aria-label]="'PROTOCOLS.QUITAR_CHECK_IN' | translate">
               <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
             </button>
           </div>
 
           <p class="checkin-row__meta" *ngIf="checkinTemplate(checkin.templateId)">
-            {{ checkinQuestionCount(checkin.templateId) }} pregunta{{ checkinQuestionCount(checkin.templateId) === 1 ? '' : 's' }}
+            {{ checkinQuestionCount(checkin.templateId) }} {{ (checkinQuestionCount(checkin.templateId) === 1 ? 'TRAINER_COMMON.PL_QUESTION_ONE' : 'TRAINER_COMMON.PL_QUESTION_MANY') | translate }}
           </p>
 
-          <div class="cadence-chips" role="radiogroup" [attr.aria-label]="'Frecuencia del check-in ' + (i + 1)">
+          <div class="cadence-chips" role="radiogroup" [attr.aria-label]="('PROTOCOLS.FRECUENCIA_DEL_CHECK_IN' | translate) + (i + 1)">
             <button
               type="button"
               class="rule-chip rule-chip--compact"
@@ -337,13 +333,13 @@
               [class.rule-chip--active]="cadenceKey(i) === 'custom'"
               (click)="setCadence(i, 'custom')"
             >
-              Otra
+              {{ 'PROTOCOLS.OTRA' | translate }}
             </button>
           </div>
 
           <div class="cadence-fields">
             <ng-container *ngIf="cadenceKey(i) === 'custom'">
-              <span class="cadence-fields__label">Cada</span>
+              <span class="cadence-fields__label">{{ 'CLIENTS.EVERY' | translate }}</span>
               <input
                 class="builder-input builder-input--tiny"
                 type="number"
@@ -351,21 +347,21 @@
                 min="1"
                 max="52"
                 [(ngModel)]="checkin.interval"
-                aria-label="Intervalo"
+                [attr.aria-label]="'PROTOCOLS.INTERVALO' | translate"
               />
               <ion-select
                 class="tf-select builder-select builder-select--unit"
                 interface="popover"
                 toggleIcon="chevron-down-outline"
                 [(ngModel)]="checkin.frequency"
-                aria-label="Unidad"
+                [attr.aria-label]="'PROTOCOLS.UNIDAD' | translate"
               >
                 <ion-select-option *ngFor="let unit of customFrequencies" [value]="unit.key">{{ unit.label }}</ion-select-option>
               </ion-select>
             </ng-container>
             <label class="cadence-fields__time">
               <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
-              <span class="sr-only">Hora de envío</span>
+              <span class="sr-only">{{ 'PROTOCOLS.HORA_DE_ENVIO' | translate }}</span>
               <input class="builder-input builder-input--time" type="time" [(ngModel)]="checkin.time" />
             </label>
           </div>
@@ -373,14 +369,14 @@
 
         <button type="button" class="add-chip add-chip--block" *ngIf="checkinTemplates.length" [disabled]="!canAddCheckin" (click)="addCheckin()">
           <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-          {{ checkins.length ? 'Añadir otro check-in' : 'Añadir check-in' }}
+          {{ checkins.length ? ('PROTOCOLS.ANADIR_OTRO_CHECK_IN' | translate) : ('PROTOCOLS.ANADIR_CHECK_IN' | translate) }}
         </button>
       </section>
 
       <!-- Nutrición: plan de dieta y, aparte, el objetivo de kcal y macros. -->
       <section class="editor-section">
-        <h3 class="section-title"><ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon>Nutrición</h3>
-        <label class="field-label" for="protocol-diet">Plan de dieta</label>
+        <h3 class="section-title"><ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon>{{ 'TRAINER_COMMON.NUTRITION' | translate }}</h3>
+        <label class="field-label" for="protocol-diet">{{ 'PROTOCOLS.PLAN_DE_DIETA' | translate }}</label>
         <div class="select-row">
           <ion-select
             id="protocol-diet"
@@ -388,9 +384,9 @@
             interface="popover"
             toggleIcon="chevron-down-outline"
             [(ngModel)]="dietTemplateId"
-            aria-label="Plan de dieta"
+            [attr.aria-label]="'PROTOCOLS.PLAN_DE_DIETA' | translate"
           >
-            <ion-select-option [value]="null">Ninguno</ion-select-option>
+            <ion-select-option [value]="null">{{ 'PROTOCOLS.NINGUNO' | translate }}</ion-select-option>
             <ion-select-option *ngFor="let option of dietTemplates" [value]="option._id">{{ option.name }}</ion-select-option>
           </ion-select>
           <button
@@ -399,18 +395,18 @@
             *ngIf="dietTemplateId"
             [class.icon-button--active]="isPreviewing('diet', dietTemplateId)"
             (click)="openPreview({ kind: 'diet', id: dietTemplateId })"
-            aria-label="Previsualizar dieta"
+            [attr.aria-label]="'PROTOCOLS.PREVISUALIZAR_DIETA' | translate"
           >
             <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
           </button>
         </div>
         <p class="checkin-row__meta" *ngIf="selectedDietProfile as profile">
-          Día tipo ≈ {{ profile.kcal | number: '1.0-0' }} kcal · P {{ profile.protein | number: '1.0-0' }} g ·
+          {{ 'TRAINER_MISC.DIA_TIPO' | translate }} {{ profile.kcal | number: '1.0-0' }} kcal · P {{ profile.protein | number: '1.0-0' }} g ·
           C {{ profile.carbs | number: '1.0-0' }} g · G {{ profile.fat | number: '1.0-0' }} g
         </p>
 
-        <span class="field-label">Objetivo de kcal y macros</span>
-        <div class="cadence-chips" role="radiogroup" aria-label="Objetivo de kcal y macros">
+        <span class="field-label">{{ 'PROTOCOLS.OBJETIVO_DE_KCAL_MACROS' | translate }}</span>
+        <div class="cadence-chips" role="radiogroup" [attr.aria-label]="'PROTOCOLS.OBJETIVO_DE_KCAL_MACROS' | translate">
           <button
             type="button"
             class="rule-chip rule-chip--compact"
@@ -419,7 +415,7 @@
             [class.rule-chip--active]="!setsNutritionTarget"
             (click)="setNutritionTargetMode(false)"
           >
-            No tocar el del cliente
+            {{ 'PROTOCOLS.NO_TOCAR_EL_DEL_CLIENTE' | translate }}
           </button>
           <button
             type="button"
@@ -429,7 +425,7 @@
             [class.rule-chip--active]="setsNutritionTarget"
             (click)="setNutritionTargetMode(true)"
           >
-            Fijar objetivo
+            {{ 'PROTOCOLS.FIJAR_OBJETIVO' | translate }}
           </button>
         </div>
 
@@ -442,14 +438,14 @@
               inputmode="numeric"
               min="0"
               step="10"
-              aria-label="Kcal al día"
+              [attr.aria-label]="'PROTOCOLS.KCAL_AL_DIA' | translate"
               [ngModel]="targetKcal"
               (ngModelChange)="onTargetKcalChange($event)"
             />
-            <span class="goal-kcal__unit">kcal / día</span>
+            <span class="goal-kcal__unit">{{ 'PROTOCOLS.KCAL_DIA' | translate }}</span>
           </label>
           <button type="button" class="link-button link-button--inline" *ngIf="selectedDietProfile" (click)="useDietMacros()">
-            Usar las de la dieta elegida
+            {{ 'PROTOCOLS.USAR_LAS_DE_LA_DIETA' | translate }}
           </button>
           <app-macro-adjust
             [targetKcal]="targetKcal"
@@ -460,14 +456,13 @@
             (macrosChange)="targetAdjustedMacros = $event"
           ></app-macro-adjust>
           <p class="section-hint">
-            Al aplicar, sustituye el objetivo nutricional de cada cliente (solo si llevas su nutrición) y
-            queda como manual.
+            {{ 'PROTOCOLS.AL_APLICAR_SUSTITUYE_EL_OBJETIVO' | translate }}
           </p>
         </div>
       </section>
 
       <section class="editor-section">
-        <h3 class="section-title"><ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>Rutina</h3>
+        <h3 class="section-title"><ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>{{ 'PROTOCOLS.RUTINA' | translate }}</h3>
         <div class="select-row">
           <ion-select
             id="protocol-routine"
@@ -475,10 +470,10 @@
             interface="popover"
             toggleIcon="chevron-down-outline"
             [(ngModel)]="routineTemplateId"
-            aria-label="Rutina"
+            [attr.aria-label]="'PROTOCOLS.RUTINA' | translate"
           >
-            <ion-select-option [value]="null">Ninguna</ion-select-option>
-            <ion-select-option *ngFor="let option of routineTemplates" [value]="option._id">{{ option.name || 'Rutina' }}</ion-select-option>
+            <ion-select-option [value]="null">{{ 'PROTOCOLS.NINGUNA' | translate }}</ion-select-option>
+            <ion-select-option *ngFor="let option of routineTemplates" [value]="option._id">{{ option.name || ('PROTOCOLS.RUTINA' | translate) }}</ion-select-option>
           </ion-select>
           <button
             type="button"
@@ -486,7 +481,7 @@
             *ngIf="routineTemplateId"
             [class.icon-button--active]="isPreviewing('routine', routineTemplateId)"
             (click)="openPreview({ kind: 'routine', id: routineTemplateId })"
-            aria-label="Previsualizar rutina"
+            [attr.aria-label]="'PROTOCOLS.PREVISUALIZAR_RUTINA' | translate"
           >
             <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
           </button>
@@ -494,9 +489,9 @@
       </section>
 
       <section class="editor-section">
-        <h3 class="section-title"><ion-icon name="flash-outline" aria-hidden="true"></ion-icon>Avisos automatizados</h3>
+        <h3 class="section-title"><ion-icon name="flash-outline" aria-hidden="true"></ion-icon>{{ 'PROTOCOLS.AVISOS_AUTOMATIZADOS' | translate }}</h3>
         <p class="section-hint" *ngIf="optionsLoaded && !rules.length">
-          Todavía no tienes avisos automatizados. Puedes crearlos en Mi método y añadirlos aquí luego.
+          {{ 'PROTOCOLS.TODAVIA_NO_TIENES_AVISOS_AUTOMATIZADOS' | translate }}
         </p>
         <div class="rule-chips" *ngIf="rules.length">
           <span class="rule-chip-group" *ngFor="let rule of rules; trackBy: trackByIndex">
@@ -515,7 +510,7 @@
               class="icon-button icon-button--small"
               [class.icon-button--active]="isPreviewing('rule', rule._id)"
               (click)="openPreview({ kind: 'rule', id: rule._id })"
-              [attr.aria-label]="'Ver ' + rule.name"
+              [attr.aria-label]="('PROTOCOLS.VER' | translate) + rule.name"
             >
               <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
             </button>
@@ -524,7 +519,7 @@
       </section>
 
       <section class="editor-section">
-        <h3 class="section-title"><ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>Hábitos diarios</h3>
+        <h3 class="section-title"><ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>{{ 'PROTOCOLS.HABITOS_DIARIOS' | translate }}</h3>
         <div class="task-add-row">
           <button
             type="button"
@@ -538,10 +533,10 @@
         </div>
 
         <div class="task-row" *ngFor="let task of dailyTasks; let i = index; trackBy: trackByIndex">
-          <span class="task-name">{{ task.label || 'Hábito' }}</span>
-          <input class="builder-input builder-input--narrow" type="number" min="0" [(ngModel)]="task.target" [attr.aria-label]="'Objetivo de ' + (task.label || 'hábito')" />
+          <span class="task-name">{{ task.label || ('PROTOCOLS.HABITO' | translate) }}</span>
+          <input class="builder-input builder-input--narrow" type="number" min="0" [(ngModel)]="task.target" [attr.aria-label]="('PROTOCOLS.OBJETIVO_DE' | translate) + (task.label || ('PROTOCOLS.HABITO_2' | translate))" />
           <span class="task-unit">{{ task.unit }}</span>
-          <button type="button" class="icon-button" (click)="removeTask(i)" [attr.aria-label]="'Quitar ' + (task.label || 'hábito')">
+          <button type="button" class="icon-button" (click)="removeTask(i)" [attr.aria-label]="('PROTOCOLS.QUITAR' | translate) + (task.label || ('PROTOCOLS.HABITO_2' | translate))">
             <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
           </button>
         </div>
@@ -551,9 +546,9 @@
     <footer class="side-footer side-footer--stacked">
       <p class="save-error" *ngIf="validationError">{{ validationError }}</p>
       <div class="panel-buttons">
-        <button type="button" class="cancel-button" (click)="closeEditor()">Cancelar</button>
+        <button type="button" class="cancel-button" (click)="closeEditor()">{{ 'COMMON.CANCEL' | translate }}</button>
         <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()" data-enter-submit-action="saveProtocol">
-          <span *ngIf="!isSaving">{{ editingId ? 'Guardar' : 'Crear protocolo' }}</span>
+          <span *ngIf="!isSaving">{{ editingId ? ('COMMON.SAVE' | translate) : ('PROTOCOLS.CREAR_PROTOCOLO' | translate) }}</span>
           <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
         </button>
       </div>
@@ -568,12 +563,12 @@
     <div class="side-handle" aria-hidden="true"></div>
     <header class="side-head">
       <div class="side-head__text">
-        <h2 class="side-title" id="protocol-apply-title">Aplicar «{{ draft.protocol.name }}»</h2>
+        <h2 class="side-title" id="protocol-apply-title">{{ 'PROTOCOLS.APLICAR' | translate }}{{ draft.protocol.name }}»</h2>
         <p class="side-subtitle">
-          A {{ draft.clients.length }} cliente{{ draft.clients.length === 1 ? '' : 's' }}
+          A {{ draft.clients.length }} {{ (draft.clients.length === 1 ? 'TRAINER_COMMON.PL_CLIENT_ONE' : 'TRAINER_COMMON.PL_CLIENT_MANY') | translate }}
         </p>
       </div>
-      <button type="button" class="icon-button" (click)="closeApply()" [disabled]="!!applyingId" aria-label="Cerrar">
+      <button type="button" class="icon-button" (click)="closeApply()" [disabled]="!!applyingId" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
         <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
       </button>
     </header>
@@ -585,30 +580,30 @@
         </span>
       </div>
 
-      <label class="field-label" for="protocol-apply-start">Empieza el</label>
+      <label class="field-label" for="protocol-apply-start">{{ 'PROTOCOLS.EMPIEZA_EL' | translate }}</label>
       <input id="protocol-apply-start" class="builder-input" type="date" [(ngModel)]="draft.startDate" />
-      <p class="section-hint">Primer check-in y fase de dieta arrancan ese día.</p>
+      <p class="section-hint">{{ 'PROTOCOLS.PRIMER_CHECK_IN_FASE_DE' | translate }}</p>
 
-      <label class="field-label" for="protocol-apply-reason">Motivo <span class="field-optional">(opcional, queda en el historial)</span></label>
+      <label class="field-label" for="protocol-apply-reason">{{ 'TRAINER_COMMON.REASON' | translate }} <span class="field-optional">{{ 'PROTOCOLS.OPCIONAL_QUEDA_EN_EL_HISTORIAL' | translate }}</span></label>
       <div class="input-wrapper">
         <input
           id="protocol-apply-reason"
           class="input-field"
           type="text"
           maxlength="200"
-          [placeholder]="'Aplicado el protocolo «' + draft.protocol.name + '»'"
+          [placeholder]="('PROTOCOLS.APLICADO_EL_PROTOCOLO' | translate) + draft.protocol.name + '»'"
           [(ngModel)]="draft.reason"
         />
       </div>
 
-      <h3 class="section-title apply-summary-title">Qué se aplica</h3>
+      <h3 class="section-title apply-summary-title">{{ 'PROTOCOLS.QUE_SE_APLICA' | translate }}</h3>
       <ng-container *ngTemplateOutlet="protocolContent; context: { $implicit: draft.protocol }"></ng-container>
     </div>
 
     <footer class="side-footer">
-      <button type="button" class="cancel-button" (click)="closeApply()" [disabled]="!!applyingId">Cancelar</button>
+      <button type="button" class="cancel-button" (click)="closeApply()" [disabled]="!!applyingId">{{ 'COMMON.CANCEL' | translate }}</button>
       <button type="button" class="submit-button" [disabled]="!!applyingId" (click)="confirmApply()">
-        <span *ngIf="!applyingId">Aplicar a {{ draft.clients.length }}</span>
+        <span *ngIf="!applyingId">{{ 'PROTOCOLS.APLICAR_2' | translate }} {{ draft.clients.length }}</span>
         <ion-spinner name="dots" *ngIf="applyingId"></ion-spinner>
       </button>
     </footer>
@@ -629,20 +624,20 @@
   <header class="side-head">
     <div class="side-head__text">
       <span class="preview-kind">
-        {{ preview.kind === 'checkin' ? 'Check-in' : preview.kind === 'diet' ? 'Plan de dieta' : preview.kind === 'routine' ? 'Rutina' : 'Aviso automatizado' }}
+        {{ preview.kind === 'checkin' ? ('PROTOCOLS.CHECK_IN' | translate) : preview.kind === 'diet' ? ('PROTOCOLS.PLAN_DE_DIETA' | translate) : preview.kind === 'routine' ? ('PROTOCOLS.RUTINA' | translate) : ('PROTOCOLS.AVISO_AUTOMATIZADO' | translate) }}
       </span>
       <h2 class="side-title" id="protocol-preview-title">
         {{ previewCheckin?.name || previewDiet?.name || previewRoutine?.name || previewRule?.name || missingName() }}
       </h2>
     </div>
-    <button type="button" class="icon-button" (click)="closePreview()" aria-label="Cerrar previsualización">
+    <button type="button" class="icon-button" (click)="closePreview()" [attr.aria-label]="'PROTOCOLS.CERRAR_PREVISUALIZACION' | translate">
       <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
     </button>
   </header>
 
   <div class="side-body">
     <p class="section-hint" *ngIf="!previewCheckin && !previewDiet && !previewRoutine && !previewRule">
-      {{ optionsLoaded ? 'Esta plantilla ya no existe. Quítala del protocolo o elige otra.' : 'Cargando…' }}
+      {{ optionsLoaded ? ('PROTOCOLS.ESTA_PLANTILLA_YA_NO_EXISTE' | translate) : ('PROTOCOLS.CARGANDO' | translate) }}
     </p>
 
     <!-- Check-in: las preguntas tal cual las verá el cliente. -->
@@ -650,12 +645,12 @@
       <ol class="preview-list">
         <li class="preview-list__item" *ngFor="let key of template.enabledFields; trackBy: trackByIndex">
           <span>{{ fieldLabel(key) }}</span>
-          <span class="preview-tag" *ngIf="isRequiredField(template, key)">Obligatoria</span>
+          <span class="preview-tag" *ngIf="isRequiredField(template, key)">{{ 'PROTOCOLS.OBLIGATORIA' | translate }}</span>
         </li>
         <ng-container *ngFor="let question of template.customQuestions || []; trackBy: trackByIndex">
           <li class="preview-list__item" *ngIf="question.enabled !== false">
             <span>{{ question.label }}</span>
-            <span class="preview-tag preview-tag--muted">Propia</span>
+            <span class="preview-tag preview-tag--muted">{{ 'PROTOCOLS.PROPIA' | translate }}</span>
           </li>
         </ng-container>
       </ol>
@@ -665,18 +660,18 @@
     <ng-container *ngIf="previewDiet as diet">
       <div class="preview-macros" *ngIf="diet.macroProfile as profile">
         <div class="preview-macros__kcal">
-          <strong>{{ profile.kcal | number: '1.0-0' }}</strong><span>kcal día tipo</span>
+          <strong>{{ profile.kcal | number: '1.0-0' }}</strong><span>{{ 'PROTOCOLS.KCAL_DIA_TIPO' | translate }}</span>
         </div>
-        <div class="preview-macros__item preview-macros__item--protein"><strong>{{ profile.protein | number: '1.0-0' }} g</strong><span>Proteína</span></div>
-        <div class="preview-macros__item preview-macros__item--carbs"><strong>{{ profile.carbs | number: '1.0-0' }} g</strong><span>Carbohidratos</span></div>
-        <div class="preview-macros__item preview-macros__item--fat"><strong>{{ profile.fat | number: '1.0-0' }} g</strong><span>Grasa</span></div>
+        <div class="preview-macros__item preview-macros__item--protein"><strong>{{ profile.protein | number: '1.0-0' }} g</strong><span>{{ 'TRAINER_COMMON.PROTEIN' | translate }}</span></div>
+        <div class="preview-macros__item preview-macros__item--carbs"><strong>{{ profile.carbs | number: '1.0-0' }} g</strong><span>{{ 'TRAINER_COMMON.CARBOHYDRATES' | translate }}</span></div>
+        <div class="preview-macros__item preview-macros__item--fat"><strong>{{ profile.fat | number: '1.0-0' }} g</strong><span>{{ 'TRAINER_COMMON.FAT_SINGULAR' | translate }}</span></div>
       </div>
       <section class="preview-menu" *ngFor="let menu of diet.menus; trackBy: trackByIndex">
-        <h3 class="section-title">{{ menu.name || 'Menú' }}</h3>
+        <h3 class="section-title">{{ menu.name || ('SHOPPING_LIST.MENU_ARIA' | translate) }}</h3>
         <div class="content-row content-row--static" *ngFor="let meal of menu.meals; trackBy: trackByIndex">
-          <span class="content-row__name">{{ meal.slot }}</span>
+          <span class="content-row__name">{{ meal.slot | translateDb }}</span>
           <span class="content-row__value">
-            {{ meal.alternatives.length }} opci{{ meal.alternatives.length === 1 ? 'ón' : 'ones' }}
+            {{ meal.alternatives.length }} {{ (meal.alternatives.length === 1 ? 'TRAINER_COMMON.PL_OPTION_ONE' : 'TRAINER_COMMON.PL_OPTION_MANY') | translate }}
           </span>
         </div>
       </section>
@@ -685,28 +680,28 @@
     <ng-container *ngIf="previewRoutine as routine">
       <p class="preview-text" *ngIf="routine.description">{{ routine.description }}</p>
       <div class="content-row content-row--static">
-        <span class="content-row__name">Microciclos</span>
+        <span class="content-row__name">{{ 'PROTOCOLS.MICROCICLOS' | translate }}</span>
         <span class="content-row__value">{{ routine.microcyclesCount || 0 }}</span>
       </div>
       <div class="content-row content-row--static">
-        <span class="content-row__name">Sesiones por microciclo</span>
+        <span class="content-row__name">{{ 'PROTOCOLS.SESIONES_POR_MICROCICLO' | translate }}</span>
         <span class="content-row__value">{{ routine.workoutsCount || 0 }}</span>
       </div>
-      <p class="section-hint">Al aplicar se copia al cliente como rutina nueva; la plantilla no cambia.</p>
+      <p class="section-hint">{{ 'PROTOCOLS.AL_APLICAR_SE_COPIA_AL' | translate }}</p>
     </ng-container>
 
     <ng-container *ngIf="previewRule as rule">
-      <p class="preview-text">{{ rule.description || 'Sin descripción.' }}</p>
+      <p class="preview-text">{{ rule.description || ('PROTOCOLS.SIN_DESCRIPCION' | translate) }}</p>
       <div class="content-row content-row--static">
-        <span class="content-row__name">Estado</span>
-        <span class="content-row__value">{{ rule.enabled ? 'Activa' : 'Pausada' }}</span>
+        <span class="content-row__name">{{ 'PROTOCOLS.ESTADO' | translate }}</span>
+        <span class="content-row__value">{{ rule.enabled ? ('CLIENT_DETAIL.PHASE_ACTIVE' | translate) : ('PROTOCOLS.PAUSADA' | translate) }}</span>
       </div>
       <div class="content-row content-row--static">
-        <span class="content-row__name">Clientes</span>
-        <span class="content-row__value">{{ rule.appliesTo === 'all_clients' ? 'Todos' : (rule.clientIds || []).length + ' elegidos' }}</span>
+        <span class="content-row__name">{{ 'TRAINER_COMMON.CLIENTS' | translate }}</span>
+        <span class="content-row__value">{{ rule.appliesTo === 'all_clients' ? ('TRAINER_COMMON.ALL_M' | translate) : (rule.clientIds || []).length + ' elegidos' }}</span>
       </div>
-      <p class="section-hint" *ngIf="rule.appliesTo === 'all_clients'">Ya vigila a todos tus clientes: aplicarla no cambia nada.</p>
-      <p class="section-hint" *ngIf="rule.appliesTo !== 'all_clients'">Al aplicar, el cliente se añade a los que vigila.</p>
+      <p class="section-hint" *ngIf="rule.appliesTo === 'all_clients'">{{ 'PROTOCOLS.YA_VIGILA_TODOS_TUS_CLIENTES' | translate }}</p>
+      <p class="section-hint" *ngIf="rule.appliesTo !== 'all_clients'">{{ 'PROTOCOLS.AL_APLICAR_EL_CLIENTE_SE' | translate }}</p>
     </ng-container>
   </div>
 </aside>

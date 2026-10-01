@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { Set as WorkoutSet } from '../../models/set';
 import { Workout } from '../../models/workout';
 import { resolveExerciseImageUrl } from '../../utils/exercise-image-url.util';
 import { SetService } from '../set/set.service';
+import { TableService } from '../table/table.service';
 import { WorkoutService } from '../workout/workout.service';
 import {
   LiveActivity,
+  LiveActivityLabels,
   LiveActivityPendingAction,
+  LiveActivitySessionOptions,
   LiveActivitySetItem,
 } from './live-activity.definitions';
 
@@ -26,13 +30,21 @@ import {
 export class LiveActivityService {
   private supported: boolean | null = null;
   private initialized = false;
-  private startedAt: number | null = null;
   private syncing = false;
   private activeWorkoutId: string | null = null;
+  // Primer plano de verdad (no solo "proceso vivo"). Ver initialize().
+  private appActive = false;
+
+  // Los refrescos van en fila. Cada emisión del workout lanzaba el suyo en
+  // paralelo y, al arrancar la app, dos `start` se cruzaban.
+  private refreshChain: Promise<unknown> = Promise.resolve();
+  private refreshTicket = 0;
 
   constructor(
     private workoutService: WorkoutService,
     private setService: SetService,
+    private tableService: TableService,
+    private translate: TranslateService,
   ) {}
 
   public async initialize(): Promise<void> {
@@ -40,16 +52,31 @@ export class LiveActivityService {
     this.initialized = true;
     if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'ios') return;
 
-    // El listener se registra siempre, aunque ahora mismo no haya soporte: el
-    // usuario puede encender las actividades en directo con la app abierta.
-    // Al volver a primer plano se vuelcan al backend las series confirmadas
-    // desde la notificación (todavía no hay botones: no habrá ninguna hasta el
-    // paso 2, pero el volcado ya queda montado).
+    // Cada botón de la tarjeta despierta la app en segundo plano (iOS solo
+    // deja actualizar la tarjeta desde su proceso). Ese trabajo lo hace entero
+    // el nativo sobre el App Group; esta capa se queda quieta hasta que el
+    // usuario abre la app: entonces vuelca al backend lo marcado en la
+    // tarjeta, actualiza el workout y refresca la tarjeta. Tocarla desde aquí
+    // en segundo plano (abrirla, sincronizar, llamar al backend) era lo que se
+    // cruzaba con los botones y la dejaba bloqueada.
     void CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) void this.syncPendingActions();
+      this.appActive = isActive;
+      if (isActive) void this.onForeground();
     });
 
-    await this.syncPendingActions();
+    if (await this.isForeground()) await this.syncPendingActions();
+  }
+
+  private async isForeground(): Promise<boolean> {
+    // Un "no" se vuelve a preguntar: durante el arranque la app puede estar
+    // aún inactiva y el aviso de primer plano llegar antes que el listener.
+    if (this.appActive) return true;
+    try {
+      this.appActive = (await CapacitorApp.getState()).isActive;
+    } catch {
+      this.appActive = true;
+    }
+    return this.appActive;
   }
 
   public async isSupported(): Promise<boolean> {
@@ -75,8 +102,21 @@ export class LiveActivityService {
    * plataforma no la soporta, para que el llamante caiga en la notificación
    * simple.
    */
-  public async refreshForWorkout(workout: Workout | null): Promise<boolean> {
+  public refreshForWorkout(workout: Workout | null): Promise<boolean> {
+    const ticket = ++this.refreshTicket;
+    const run = this.refreshChain.then(() =>
+      // Ya hay otro refresco detrás con un workout más nuevo: este sobra.
+      ticket === this.refreshTicket ? this.doRefresh(workout) : this.supported === true,
+    );
+    this.refreshChain = run.catch(() => undefined);
+    return run;
+  }
+
+  private async doRefresh(workout: Workout | null): Promise<boolean> {
     if (!(await this.isSupported())) return false;
+    // En segundo plano no se toca nada (ver initialize): al volver a primer
+    // plano, onForeground repite este refresco con el workout del momento.
+    if (!(await this.isForeground())) return true;
 
     if (!workout) {
       // El signal del workout arranca en null y emite ese null en cuanto la
@@ -96,39 +136,39 @@ export class LiveActivityService {
 
     const items = this.buildItems(workout);
     // Sin series pendientes no hay nada que pilotar desde la notificación
-    // (entrenamiento terminado o completado desde la propia notificación).
-    const pendingIndex = items.findIndex((item) => !item.doned);
-    if (!items.length || pendingIndex === -1) {
+    // (entrenamiento terminado o completado desde la propia notificación). El
+    // nativo decide solo qué serie enseña: la primera sin hacer.
+    if (!items.length || items.every((item) => item.doned)) {
       await this.end();
       return true;
     }
 
-    const isNewWorkout = this.activeWorkoutId !== workout._id;
-    if (isNewWorkout || this.startedAt === null) {
-      // startedAt real del workout para que el cronómetro de la pantalla de
-      // bloqueo no se reinicie al reabrir la app a mitad de sesión.
-      this.startedAt = workout.startedAt
-        ? new Date(workout.startedAt).getTime()
-        : Date.now();
-      this.activeWorkoutId = workout._id;
+    const options: LiveActivitySessionOptions = {
+      workoutId: workout._id,
+      workoutName: workout.name || (await this.text('WORKOUT_NOTIFICATION.WORKOUT')),
+      items,
+      labels: await this.labels(),
+    };
+    // startedAt real del workout para que el cronómetro de la pantalla de
+    // bloqueo no se reinicie al reabrir la app a mitad de sesión. Sin él, el
+    // nativo conserva el de la tarjeta viva: uno inventado aquí la hacía
+    // parecer de otra sesión.
+    if (workout.startedAt) {
+      options.startedAt = new Date(workout.startedAt).getTime();
     }
 
-    const options = {
-      workoutId: workout._id,
-      workoutName: workout.name || 'Entrenamiento',
-      startedAt: this.startedAt,
-      // Primera serie sin hacer; el nativo respeta la serie a la que haya
-      // navegado el usuario con las flechas si sigue pendiente.
-      currentIndex: pendingIndex,
-      items,
-    };
-
-    // El descarte de publicaciones repetidas lo hace el nativo, que además
-    // sabe si la notificación sigue viva: filtrarlo aquí impedía recuperarla
-    // cuando el sistema la había cerrado.
+    // `start` reutiliza la tarjeta si ya hay una de esta sesión (la app puede
+    // estar recién relanzada por un botón de la propia tarjeta), así que
+    // pedirlo en cada arranque es seguro. El descarte de publicaciones
+    // repetidas lo hace el nativo.
     try {
-      if (isNewWorkout) {
-        await LiveActivity.start(options);
+      if (this.activeWorkoutId !== workout._id) {
+        const result = await LiveActivity.start(options);
+        // Pospuesta: app en segundo plano y sin tarjeta que reutilizar. Se
+        // reintenta al volver a primer plano; mientras, nada de notificación
+        // simple, que duplicaría la tarjeta en cuanto se abra.
+        if (result.deferred) return true;
+        this.activeWorkoutId = workout._id;
       } else {
         await LiveActivity.update(options);
       }
@@ -140,7 +180,6 @@ export class LiveActivityService {
 
   public async end(): Promise<void> {
     this.activeWorkoutId = null;
-    this.startedAt = null;
     if (!(await this.isSupported())) return;
     try {
       await LiveActivity.end();
@@ -149,14 +188,21 @@ export class LiveActivityService {
     }
   }
 
+  private async onForeground(): Promise<void> {
+    // Lo marcado en la tarjeta se vuelca dentro del refresco
+    // (syncPendingActions), que además reemite el workout ya actualizado.
+    await this.refreshForWorkout(this.workoutService.currentWorkout);
+  }
+
   /**
-   * Todas las series del workout en orden. Se mandan también las ya hechas:
-   * el widget navega entre ellas con las flechas y necesita `doned` para
-   * pintar el check encendido y poder desmarcarlas.
+   * Todas las series del workout en orden. Se mandan también las ya hechas: el
+   * nativo las necesita para saber cuál es la primera pendiente (la que enseña
+   * la tarjeta) y para la barra de progreso.
    */
   private buildItems(workout: Workout): LiveActivitySetItem[] {
     const exercises = workout.exercises || [];
     const items: LiveActivitySetItem[] = [];
+    const fallbackName = this.translate.instant('WORKOUT_NOTIFICATION.EXERCISE');
 
     exercises.forEach((exercise, exerciseIndex) => {
       const sets = [...(exercise.sets || [])].sort(
@@ -167,7 +213,7 @@ export class LiveActivityService {
         const doned = !!set.doned;
         items.push({
           setId: set._id,
-          exerciseName: exercise.exercise?.name || 'Ejercicio',
+          exerciseName: exercise.exercise?.name || fallbackName,
           exerciseIndex: exerciseIndex + 1,
           totalExercises: exercises.length,
           setIndex: setIndex + 1,
@@ -178,11 +224,9 @@ export class LiveActivityService {
             ? set.reps ?? 0
             : this.firstExpectedValue(set.expectedReps) ?? set.reps ?? 0,
           weight: set.weight ?? 0,
-          rir: doned
-            ? this.currentRir(set)
-            : this.firstExpectedValue(
-                Array.isArray(set.expectedRir) ? set.expectedRir : undefined,
-              ) ?? 0,
+          // null = sin dato («—»). Rellenarlo con 0 hacía que marcar la serie
+          // desde la tarjeta guardase un «RIR 0» que nadie había indicado.
+          rir: doned ? this.firstRir(set.rir) : this.firstRir(set.expectedRir),
           doned,
           // gifUrl en BD es una ruta relativa ("/assets/img/exercises/...")
           // resuelta contra un CDN aparte del backend — misma lógica que ya
@@ -195,10 +239,12 @@ export class LiveActivityService {
     return items;
   }
 
-  private currentRir(set: WorkoutSet): number {
-    if (typeof set.rir === 'number') return set.rir;
-    if (Array.isArray(set.rir)) return this.firstExpectedValue(set.rir) ?? 0;
-    return 0;
+  /** Primer valor de RIR, fallo (-1) incluido; `null` si no hay. */
+  private firstRir(value?: number | number[] | null): number | null {
+    if (typeof value === 'number') return value;
+    if (!Array.isArray(value)) return null;
+    const found = value.find((v) => typeof v === 'number');
+    return found === undefined ? null : found;
   }
 
   private firstExpectedValue(values?: number[]): number | null {
@@ -207,9 +253,39 @@ export class LiveActivityService {
     return value === undefined ? null : value;
   }
 
+  // translate.get espera a que carguen las traducciones; instant devolvía
+  // la clave si la app acababa de arrancar (p. ej. relanzada por un botón).
+  private async labels(): Promise<LiveActivityLabels> {
+    const keys = {
+      exercise: 'WORKOUT_NOTIFICATION.EXERCISE',
+      set: 'WORKOUT_NOTIFICATION.SET_LABEL',
+      done: 'WORKOUT_NOTIFICATION.SET_DONE',
+      fail: 'RIR.FAIL',
+      weight: 'WORKOUT_NOTIFICATION.UNIT_WEIGHT',
+      reps: 'WORKOUT_NOTIFICATION.UNIT_REPS',
+      rir: 'WORKOUT_NOTIFICATION.UNIT_RIR',
+    };
+    const texts: Record<string, string> = await firstValueFrom(
+      this.translate.get(Object.values(keys)),
+    );
+    return {
+      exercise: texts[keys.exercise],
+      set: texts[keys.set],
+      done: texts[keys.done],
+      fail: texts[keys.fail],
+      weight: texts[keys.weight],
+      reps: texts[keys.reps],
+      rir: texts[keys.rir],
+    };
+  }
+
+  private text(key: string): Promise<string> {
+    return firstValueFrom(this.translate.get(key));
+  }
+
   /** @returns `true` si aplicó alguna acción (y por tanto reemitió el workout). */
   private async syncPendingActions(): Promise<boolean> {
-    if (this.syncing) return false;
+    if (this.syncing || !(await this.isForeground())) return false;
     if (!(await this.isSupported())) return false;
 
     let actions: LiveActivityPendingAction[] = [];
@@ -250,41 +326,66 @@ export class LiveActivityService {
 
     let updatedWorkout = workout;
     let applied = false;
+    const failed = new Set<string>();
     for (const action of lastBySet.values()) {
-      const persisted = await this.persistAction(updatedWorkout, action);
-      if (persisted) {
-        updatedWorkout = persisted;
+      const result = await this.persistAction(updatedWorkout, action);
+      if (result === 'failed') {
+        failed.add(action.setId);
+      } else if (result) {
+        updatedWorkout = result;
         applied = true;
       }
     }
 
-    await LiveActivity.clearPendingActions();
+    // Solo se borran las acciones volcadas (o que ya no aplican): las que han
+    // llegado mientras tanto y las que han fallado por red se quedan para el
+    // siguiente intento.
+    await LiveActivity.clearPendingActions({
+      ids: actions.filter((action) => !failed.has(action.setId)).map((action) => action.id),
+    });
     if (!applied) return false;
 
     this.workoutService.setCurrentWorkout = updatedWorkout;
+    this.syncTable(updatedWorkout);
     return true;
   }
 
+  /**
+   * @returns el workout actualizado, `null` si no había nada que guardar o
+   * `'failed'` si el backend no lo aceptó.
+   */
   private async persistAction(
     workout: Workout,
     action: LiveActivityPendingAction,
-  ): Promise<Workout | null> {
+  ): Promise<Workout | null | 'failed'> {
     let target: WorkoutSet | undefined;
     for (const exercise of workout.exercises || []) {
       target = (exercise.sets || []).find((set) => set._id === action.setId);
       if (target) break;
     }
-    if (!target || !!target.doned === action.doned) return null;
+    if (!target) return null;
+
+    const rir = action.rir === null || action.rir === undefined ? null : [action.rir];
+    const sameDone = !!target.doned === action.doned;
+    // Los steppers mandan los valores de la serie en curso, así que marcarla
+    // también guarda kg/reps/rir aunque el `doned` no cambie.
+    const sameValues =
+      !action.doned ||
+      ((target.reps ?? 0) === action.reps &&
+        (target.weight ?? 0) === action.weight &&
+        this.firstRir(target.rir) === action.rir);
+    if (sameDone && sameValues) return null;
 
     // Al desmarcar solo se quita el `doned` (el backend limpia `donedAt`);
-    // los valores registrados se conservan.
+    // los valores registrados se conservan. El RIR va como en la app: array,
+    // o null explícito para «sin dato».
     const updated: WorkoutSet = action.doned
       ? {
           ...target,
           doned: true,
           reps: action.reps,
           weight: action.weight,
-          rir: action.rir,
+          rir,
         }
       : { ...target, doned: false };
 
@@ -298,7 +399,24 @@ export class LiveActivityService {
         })),
       };
     } catch {
-      return null;
+      return 'failed';
     }
+  }
+
+  // La pantalla del entrenamiento toma el workout de la tabla al abrirse
+  // (current-workout.page#initVariables). Sin esto, abrirla después de
+  // marcar series desde la tarjeta las devolvía a «sin hacer».
+  private syncTable(workout: Workout): void {
+    const table = this.tableService.tableInUse;
+    if (!table?.splits) return;
+    let found = false;
+    for (const split of table.splits) {
+      const index = (split.workouts || []).findIndex((w) => w._id === workout._id);
+      if (index !== -1) {
+        split.workouts[index] = { ...workout };
+        found = true;
+      }
+    }
+    if (found) this.tableService.setCurrentTable = table;
   }
 }

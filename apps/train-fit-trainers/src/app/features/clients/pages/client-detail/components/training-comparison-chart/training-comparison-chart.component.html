@@ -1,35 +1,35 @@
 <div class="comparison" [attr.aria-busy]="isLoading">
-  <p class="state-hint" *ngIf="isLoading" role="status">Cargando series realizadas…</p>
+  <p class="state-hint" *ngIf="isLoading" role="status">{{ 'CLIENTS.CARGANDO_SERIES_REALIZADAS' | translate }}</p>
   <div class="state-hint" *ngIf="hasError && !isLoading" role="alert">
-    No se pudo cargar el progreso. <button type="button" (click)="retry.emit()">Reintentar</button>
+    {{ 'CLIENTS.NO_SE_PUDO_CARGAR_EL_9' | translate }} <button type="button" (click)="retry.emit()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
   <p class="state-hint" *ngIf="!isLoading && !hasError && !hasData">
     {{ emptyMessage }}
   </p>
   <div [hidden]="isLoading || hasError || !hasData || !showComparison">
     <div class="block-selectors">
-      <label><span class="side-a">A · Referencia</span>
-        <ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" placeholder="Sin otro microciclo" aria-label="Microciclo A de referencia" [ngModel]="referenceId" (ngModelChange)="selectSide('a', $event)">
+      <label><span class="side-a">{{ 'CLIENTS.REFERENCIA_2' | translate }}</span>
+        <ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" [placeholder]="'CLIENTS.SIN_OTRO_MICROCICLO' | translate" [attr.aria-label]="'CLIENTS.MICROCICLO_DE_REFERENCIA' | translate" [ngModel]="referenceId" (ngModelChange)="selectSide('a', $event)">
           <ion-select-option *ngFor="let block of blocks" [value]="block.splitId">{{ label(block) }}</ion-select-option>
         </ion-select>
       </label>
-      <label><span class="side-b">B · Comparar</span>
-        <ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" aria-label="Microciclo B a comparar" [ngModel]="comparisonId" (ngModelChange)="selectSide('b', $event)">
+      <label><span class="side-b">{{ 'CLIENTS.COMPARAR' | translate }}</span>
+        <ion-select class="tf-select" interface="popover" toggleIcon="chevron-down-outline" labelPlacement="stacked" [attr.aria-label]="'CLIENTS.MICROCICLO_COMPARAR' | translate" [ngModel]="comparisonId" (ngModelChange)="selectSide('b', $event)">
           <ion-select-option *ngFor="let block of blocks" [value]="block.splitId">{{ label(block) }}</ion-select-option>
         </ion-select>
       </label>
     </div>
     <div class="comparison-headline" aria-live="polite" *ngIf="primary as main">
       <strong [attr.data-direction]="main.direction">{{ main.percentage || main.delta }}</strong>
-      <span>{{ metricLabel }} · B frente a A</span>
+      <span>{{ metricLabel }} · {{ 'CLIENTS.FRENTE' | translate }}</span>
     </div>
     <p class="comparison-context">
-      {{ metric === 'muscleGroups' ? 'Series por sesión y grupo, contadas igual que en el Análisis del Planner: músculo principal ×1, secundario ×0,5.' : metric === 'exercise' ? 'Carga, reps y RIR de la misma serie. Más kg con menos reps o menor RIR implica otro esfuerzo.' : 'Trabajo realizado por sesión; las sesiones pueden estar parcialmente registradas.' }}
+      {{ metric === 'muscleGroups' ? ('CLIENTS.SERIES_POR_SESION_GRUPO_CONTADAS' | translate) : metric === 'exercise' ? ('CLIENTS.CARGA_REPS_RIR_DE_LA' | translate) : ('CLIENTS.TRABAJO_REALIZADO_POR_SESION_LAS' | translate) }}
     </p>
-    <p class="comparison-context" *ngIf="blocks.length < 2">Hace falta otro microciclo registrado para calcular cambios.</p>
+    <p class="comparison-context" *ngIf="blocks.length < 2">{{ 'CLIENTS.HACE_FALTA_OTRO_MICROCICLO_REGISTRADO' | translate }}</p>
     <table>
-      <caption>{{ metricLabel }}. Datos realizados dentro del rango del calendario. Cambio B menos A.</caption>
-      <thead><tr><th scope="col">{{ metric === 'muscleGroups' ? 'Grupo · series / sesión' : 'Métrica' }}</th><th scope="col" class="side-a">A</th><th scope="col" class="side-b">B</th><th scope="col">Δ B − A</th></tr></thead>
+      <caption>{{ metricLabel }}{{ 'CLIENTS.DATOS_REALIZADOS_DENTRO_DEL_RANGO' | translate }}</caption>
+      <thead><tr><th scope="col">{{ metric === 'muscleGroups' ? ('CLIENTS.GRUPO_SERIES_SESION' | translate) : ('CLIENTS.METRICA' | translate) }}</th><th scope="col" class="side-a">A</th><th scope="col" class="side-b">B</th><th scope="col">Δ B − A</th></tr></thead>
       <tbody>
         <tr *ngFor="let row of rows">
           <th scope="row">{{ row.label }}<small *ngIf="row.unit">{{ row.unit }}</small></th>
@@ -39,11 +39,11 @@
         </tr>
       </tbody>
     </table>
-    <p class="comparison-context" *ngIf="metric === 'muscleGroups' && !rows.length">Sin grupos musculares registrados en A y B.</p>
-    <p class="comparison-footnote">↑ Aumenta · ↓ Disminuye · — Sin registro. El color indica dirección, no una mejora.</p>
+    <p class="comparison-context" *ngIf="metric === 'muscleGroups' && !rows.length">{{ 'CLIENTS.SIN_GRUPOS_MUSCULARES_REGISTRADOS_EN' | translate }}</p>
+    <p class="comparison-footnote">{{ 'CLIENTS.AUMENTA_DISMINUYE_SIN_REGISTRO_EL' | translate }}</p>
   </div>
   <div class="chart-container" [style.height.px]="showComparison ? 175 : 260" [hidden]="isLoading || hasError || !hasData || (showComparison && metric === 'muscleGroups')">
-    <canvas #chartCanvas role="img" [attr.aria-label]="metricLabel + (showComparison ? ': evolución por microciclo. Valores de A y B en la tabla anterior.' : ': evolución del rango seleccionado.')"></canvas>
+    <canvas #chartCanvas role="img" [attr.aria-label]="metricLabel + (showComparison ? ('CLIENTS.EVOLUCION_POR_MICROCICLO_VALORES_DE' | translate) : ('CLIENTS.EVOLUCION_DEL_RANGO_SELECCIONADO' | translate))"></canvas>
   </div>
-  <p class="comparison-footnote" *ngIf="hasData && !hasError && !isLoading">{{ granularity === 'session' && metric !== 'sessions' ? 'Datos por sesión · rango del calendario.' : 'Rango del calendario · puede incluir microciclos parciales.' }}</p>
+  <p class="comparison-footnote" *ngIf="hasData && !hasError && !isLoading">{{ granularity === 'session' && metric !== 'sessions' ? ('CLIENTS.DATOS_POR_SESION_RANGO_DEL' | translate) : ('CLIENTS.RANGO_DEL_CALENDARIO_PUEDE_INCLUIR' | translate) }}</p>
 </div>

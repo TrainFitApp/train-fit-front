@@ -1,5 +1,7 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { PhaseWeeksResponse } from '../../../../../diet-templates/models/diet-suggestion.model';
+import { uiLocale, localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 type MetricKey = 'kcal' | 'protein' | 'carbs' | 'fat';
 
@@ -16,6 +18,7 @@ const METRICS: MetricRow[] = [
   { key: 'carbs', label: 'Carbohidratos', unit: 'g', decimals: 1 },
   { key: 'fat', label: 'Grasas', unit: 'g', decimals: 1 },
 ];
+METRICS.forEach((item) => localizeProp(item, 'label', `CLIENTS.MACRO_METRICS.${item.key}`));
 
 export interface ComparableWeek {
   number: number;
@@ -48,6 +51,8 @@ export interface MetricDelta {
   styleUrls: ['./week-comparison-cards.component.scss'],
 })
 export class WeekComparisonCardsComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   @Input() phaseWeeks: PhaseWeeksResponse | null = null;
 
   public readonly metrics = METRICS;
@@ -114,7 +119,7 @@ export class WeekComparisonCardsComponent implements OnChanges {
   }
 
   public formatDelta(delta: MetricDelta, metric: MetricRow): string {
-    if (delta.direction === 'same') return 'igual';
+    if (delta.direction === 'same') return this.translate.instant('CLIENTS.IGUAL_2');
     const sign = delta.abs > 0 ? '+' : '−';
     const abs = this.formatNumber(Math.abs(delta.abs), metric.decimals);
     const pct = delta.pct === null ? '' : ` · ${sign}${this.formatNumber(Math.abs(delta.pct), 1)} %`;
@@ -122,19 +127,19 @@ export class WeekComparisonCardsComponent implements OnChanges {
   }
 
   public weekOptionLabel(week: ComparableWeek): string {
-    const suffix = week.status === 'current' ? ' · en curso' : week.status === 'next' ? ' · siguiente' : '';
+    const suffix = week.status === 'current' ? this.translate.instant('CLIENTS.EN_CURSO_2') : week.status === 'next' ? ' · siguiente' : '';
     return `S${week.number} · ${this.formatRange(week)}${suffix}`;
   }
 
   public statusLabel(week: ComparableWeek): string {
-    if (week.status === 'current') return 'En curso';
-    if (week.status === 'next') return 'Próxima';
-    return 'Anterior';
+    if (week.status === 'current') return this.translate.instant('CLIENTS.EN_CURSO_3');
+    if (week.status === 'next') return this.translate.instant('CLIENTS.PROXIMA');
+    return this.translate.instant('CLIENTS.ANTERIOR');
   }
 
   public formatRange(week: ComparableWeek): string {
     const fmt = (iso: string): string =>
-      new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
+      new Date(iso + 'T00:00:00Z').toLocaleDateString(uiLocale(), {
         day: 'numeric',
         month: 'short',
         timeZone: 'UTC',
@@ -205,6 +210,6 @@ export class WeekComparisonCardsComponent implements OnChanges {
   }
 
   private formatNumber(value: number, decimals: number): string {
-    return value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: decimals });
+    return value.toLocaleString(uiLocale(), { minimumFractionDigits: 0, maximumFractionDigits: decimals });
   }
 }

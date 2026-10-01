@@ -2,7 +2,7 @@
   <ion-toolbar>
     <ion-title>{{ title }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">Cerrar</ion-button>
+      <ion-button (click)="dismiss()">{{ 'COMMON.CLOSE_ARIA' | translate }}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -14,12 +14,12 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo cargar la lista de clientes.</p>
+    <p>{{ 'CLIENTS.NO_SE_PUDO_CARGAR_LA' | translate }}</p>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <p class="empty-hint" *ngIf="!clients.length">
-      No tienes más clientes activos con este tipo de relación.
+      {{ 'CLIENTS.NO_TIENES_MAS_CLIENTES_ACTIVOS' | translate }}
     </p>
 
     <div
@@ -38,7 +38,7 @@
       ></ion-checkbox>
       <div class="client-info">
         <span class="client-name">{{ fullName(client) }}</span>
-        <span class="client-read-only" *ngIf="client.readOnly">Solo lectura · fuera del cupo de tu plan</span>
+        <span class="client-read-only" *ngIf="client.readOnly">{{ 'CLIENTS.SOLO_LECTURA_FUERA_DEL_CUPO' | translate }}</span>
         <span class="client-allergy-warning" *ngIf="allergiesFor(client.user!._id) as allergies">
           <ion-icon name="warning-outline"></ion-icon>
           {{ allergies }}
@@ -51,7 +51,7 @@
 <ion-footer class="ion-no-border" *ngIf="state === 'loaded' && clients.length">
   <ion-toolbar>
     <button class="confirm-button" [disabled]="!selectedIds.size" (click)="confirm()">
-      Aplicar a {{ selectedIds.size }} cliente{{ selectedIds.size === 1 ? '' : 's' }}
+      {{ 'CLIENTS.APLICAR' | translate }} {{ selectedIds.size }} {{ (selectedIds.size === 1 ? 'TRAINER_COMMON.PL_CLIENT_ONE' : 'TRAINER_COMMON.PL_CLIENT_MANY') | translate }}
     </button>
   </ion-toolbar>
 </ion-footer>

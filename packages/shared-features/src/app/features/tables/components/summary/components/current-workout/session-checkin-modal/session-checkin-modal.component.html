@@ -1,7 +1,7 @@
 <div class="session-checkin">
   <header class="session-checkin__header">
-    <h2 class="session-checkin__title">¿Cómo llegas hoy?</h2>
-    <p class="session-checkin__subtitle">Todo es opcional. Puedes saltarlo y empezar directamente.</p>
+    <h2 class="session-checkin__title">{{ 'TABLES.READINESS_QUESTION' | translate }}</h2>
+    <p class="session-checkin__subtitle">{{ 'TABLES.READINESS_OPTIONAL' | translate }}</p>
   </header>
 
   <div class="session-checkin__body">
@@ -29,13 +29,13 @@
       (click)="toggleSoreness()"
     >
       <ion-icon [name]="showSoreness ? 'chevron-down-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
-      <span class="soreness-toggle__label">¿Tienes agujetas?</span>
+      <span class="soreness-toggle__label">{{ 'TABLES.SORENESS_QUESTION' | translate }}</span>
       <span class="soreness-toggle__count" *ngIf="soreMuscleCount">{{ soreMuscleCount }}</span>
     </button>
 
     <div class="soreness-panel" *ngIf="showSoreness">
       <p class="soreness-hint">
-        Marca solo los grupos que notes. El 1 es "no lo noto" y no hace falta tocarlo.
+        {{ 'TABLES.SORENESS_HINT' | translate }}
       </p>
 
       <div class="soreness-row" *ngFor="let muscle of muscles; trackBy: trackByMuscle">
@@ -67,7 +67,7 @@
   </div>
 
   <footer class="session-checkin__footer">
-    <button type="button" class="session-checkin__skip" (click)="skip()">Saltar</button>
-    <button type="button" class="session-checkin__confirm" (click)="confirm()">Empezar</button>
+    <button type="button" class="session-checkin__skip" (click)="skip()">{{ 'TABLES.SKIP' | translate }}</button>
+    <button type="button" class="session-checkin__confirm" (click)="confirm()">{{ 'TABLES.START_SESSION' | translate }}</button>
   </footer>
 </div>

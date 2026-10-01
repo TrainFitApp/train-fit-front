@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+        <button type="button" class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
           <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Cuestionario inicial</h1>
+        <h1 class="tf-page-header__title">{{ 'ONBOARDING.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -21,28 +21,28 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo comprobar el estado de tu cuenta.</p>
-    <button class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'ONBOARDING.LOAD_ERROR' | translate }}</p>
+    <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <p class="intro-text" *ngIf="pendingCount > 0 || pendingInvites.length">
-      Tu profesional necesita conocerte un poco mejor para preparar tu dieta y tu rutina.
+      {{ 'ONBOARDING.INTRO_PENDING' | translate }}
     </p>
     <p class="intro-text" *ngIf="!pendingCount && !pendingInvites.length && hasEditableIntake">
-      Puedes cambiar tus respuestas hasta que tu profesional las revise.
+      {{ 'ONBOARDING.INTRO_EDITABLE' | translate }}
     </p>
 
     <p class="progress-text" *ngIf="pendingCount > 0">
-      Te queda{{ pendingCount === 1 ? '' : 'n' }} {{ pendingCount }} cuestionario{{ pendingCount === 1 ? '' : 's' }} por completar.
+      {{ (pendingCount === 1 ? 'ONBOARDING.PENDING_ONE' : 'ONBOARDING.PENDING_MANY') | translate: { count: pendingCount } }}
     </p>
 
     <!-- Invitaciones sin aceptar todavia -->
     <div class="trainer-row trainer-row--invite" *ngFor="let invite of pendingInvites; trackBy: trackByInviteId">
       <div class="trainer-row-icon"><ion-icon name="person-add-outline"></ion-icon></div>
       <div class="trainer-row-text">
-        <div class="trainer-row-name">{{ invite.trainer ? (invite.trainer.name + ' ' + invite.trainer.lastname) : 'Un profesional' }}</div>
-        <div class="trainer-row-scope">{{ invite.scope === 'training' ? 'Entrenamiento' : 'Nutrición' }} · te ha invitado</div>
+        <div class="trainer-row-name">{{ invite.trainer ? (invite.trainer.name + ' ' + invite.trainer.lastname) : ('ONBOARDING.A_PROFESSIONAL' | translate) }}</div>
+        <div class="trainer-row-scope">{{ (invite.scope === 'training' ? 'ONBOARDING.SCOPE_TRAINING' : 'ONBOARDING.SCOPE_NUTRITION') | translate }} · {{ 'ONBOARDING.INVITED_YOU' | translate }}</div>
       </div>
       <div class="trainer-row-actions">
         <button
@@ -50,14 +50,14 @@
           [disabled]="respondingInviteId === invite._id"
           (click)="respondToInvite(invite, 'decline')"
         >
-          Rechazar
+          {{ 'ONBOARDING.DECLINE' | translate }}
         </button>
         <button
           class="row-btn row-btn--accent"
           [disabled]="respondingInviteId === invite._id"
           (click)="respondToInvite(invite, 'accept')"
         >
-          <span *ngIf="respondingInviteId !== invite._id">Aceptar</span>
+          <span *ngIf="respondingInviteId !== invite._id">{{ 'ONBOARDING.ACCEPT' | translate }}</span>
           <ion-spinner name="dots" *ngIf="respondingInviteId === invite._id"></ion-spinner>
         </button>
       </div>
@@ -70,8 +70,8 @@
       <div class="trainer-row-text">
         <div class="trainer-row-name">{{ group.trainerName }}</div>
         <div class="trainer-row-scope">{{ group.scopes.join(' · ') }}</div>
-        <div class="trainer-row-scope" *ngIf="group.intakeStatus === 'submitted'">Enviado · puedes editarlo hasta que lo revise</div>
-        <div class="trainer-row-scope" *ngIf="group.intakeStatus === 'reviewed'">Revisado por tu profesional</div>
+        <div class="trainer-row-scope" *ngIf="group.intakeStatus === 'submitted'">{{ 'ONBOARDING.SUBMITTED_EDITABLE' | translate }}</div>
+        <div class="trainer-row-scope" *ngIf="group.intakeStatus === 'reviewed'">{{ 'ONBOARDING.REVIEWED' | translate }}</div>
       </div>
       <button
         class="row-btn"
@@ -79,7 +79,7 @@
         [class.row-btn--ghost]="group.intakeStatus !== 'pending'"
         (click)="openIntakeForm(group)"
       >
-        {{ group.intakeStatus === 'pending' ? 'Completar' : group.intakeStatus === 'submitted' ? 'Editar' : 'Ver' }}
+        {{ (group.intakeStatus === 'pending' ? 'ONBOARDING.COMPLETE' : group.intakeStatus === 'submitted' ? 'ONBOARDING.EDIT' : 'ONBOARDING.VIEW') | translate }}
         <ion-icon name="arrow-forward-outline"></ion-icon>
       </button>
     </div>

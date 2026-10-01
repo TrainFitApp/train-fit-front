@@ -1,4 +1,5 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { MediaStatusView, ProgressDayView, ProgressVideoView } from 'src/app/core/models/media';
@@ -8,6 +9,8 @@ import { MediaUploadService } from 'src/app/core/services/media/media-upload.ser
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { MediaGateService } from './media-gate.service';
+import { openMediaCamera } from './media-camera-modal.component';
+import { confirmMediaDelete } from './media-confirm';
 
 interface VideoEntry {
   day: ProgressDayView;
@@ -48,7 +51,8 @@ export class ProgressVideosComponent implements OnInit, OnChanges {
     private mediaGate: MediaGateService,
     private ionicUtilService: IonicUtilService,
     private utilService: UtilService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private modalController: ModalController
   ) {}
 
   public ngOnInit(): void {
@@ -105,11 +109,31 @@ export class ProgressVideosComponent implements OnInit, OnChanges {
     }
   }
 
+  // Cámara de la app, con temporizador. Aquí sí se puede esperar al permiso
+  // y al consentimiento antes: abre un modal, no un <input type="file">.
+  public async record(): Promise<void> {
+    if (!(this.status?.canUpload && this.status?.consentAt)) {
+      const gate = await this.mediaGate.ensureCanUpload();
+      if (gate === 'premium') this.status = await this.mediaGate.status(true);
+      if (gate !== 'ok') return;
+      this.status = await this.mediaGate.status();
+    }
+    const file = await openMediaCamera(this.modalController, {
+      mode: 'video',
+      title: this.translate.instant('MEDIA.SECTION_VIDEOS'),
+      maxDurationSec: 180,
+    });
+    if (file) await this.useFile(file);
+  }
+
   public async onFile(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (!file) return;
+    if (file) await this.useFile(file);
+  }
+
+  private async useFile(file: File): Promise<void> {
     try {
       const info = await this.mediaUpload.inspectVideo(file);
       this.draft = { file, durationSec: info.durationSec, note: '', uploading: false, progress: 0 };
@@ -143,6 +167,7 @@ export class ProgressVideosComponent implements OnInit, OnChanges {
   }
 
   public async remove(entry: VideoEntry): Promise<void> {
+    if (!(await confirmMediaDelete(this.ionicUtilService, this.translate, 'video'))) return;
     try {
       await firstValueFrom(this.mediaApi.removeVideo(entry.day.date, entry.video.asset.id));
       this.entries = this.entries.filter((item) => item.video.asset.id !== entry.video.asset.id);

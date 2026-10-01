@@ -1,0 +1,297 @@
+@use './media-shared' as *;
+
+.camera-content {
+  --background: #000;
+}
+
+.camera {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+
+.camera-preview,
+.camera-ghost {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-preview--mirror {
+  transform: scaleX(-1);
+}
+
+// La foto anterior, lo justo para encajar el cuerpo sin tapar la imagen.
+.camera-ghost {
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.camera-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  animation: camera-flash 260ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes camera-flash {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.camera-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(env(safe-area-inset-top) + 10px) 12px 24px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.camera-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.camera-top-actions {
+  display: flex;
+  gap: 8px;
+  min-width: 44px;
+  justify-content: flex-end;
+}
+
+.camera-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+
+  &--on {
+    background: $media-accent;
+    color: #111;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
+
+  @include media-focus;
+}
+
+.camera-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #ddd;
+  font-size: 0.9rem;
+}
+
+.camera-error {
+  ion-icon {
+    font-size: 44px;
+    color: $media-faint;
+  }
+
+  p {
+    margin: 0;
+    max-width: 30ch;
+    line-height: 1.45;
+  }
+}
+
+.camera-system {
+  @include media-primary-button;
+  position: relative;
+  overflow: hidden;
+
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+.camera-retry {
+  @include media-ghost-button;
+}
+
+.camera-countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 9rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.camera-rec {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 66px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.camera-rec-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: $media-danger;
+  animation: camera-blink 1s steps(2, start) infinite;
+}
+
+@keyframes camera-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.camera-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 16px calc(env(safe-area-inset-bottom) + 20px);
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.camera-hint {
+  margin: 0;
+  max-width: 32ch;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  text-align: center;
+  color: #eee;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.camera-timers {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+
+  > ion-icon {
+    margin: 0 4px;
+    font-size: 18px;
+    color: #ccc;
+  }
+
+  button {
+    min-width: 44px;
+    min-height: 36px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: #ddd;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    &.active {
+      background: $media-accent;
+      color: #111;
+    }
+
+    @include media-focus;
+  }
+
+  &--hidden {
+    visibility: hidden;
+  }
+}
+
+// Disparador: aro blanco; foto = relleno blanco, vídeo = relleno rojo que
+// pasa a cuadrado mientras graba.
+.camera-shutter {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  padding: 0;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+  }
+
+  @include media-focus;
+}
+
+.camera-shutter-inner {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #fff;
+  transition: width 160ms $media-ease, height 160ms $media-ease, border-radius 160ms $media-ease;
+}
+
+.camera-shutter--video .camera-shutter-inner {
+  background: $media-danger;
+}
+
+.camera-shutter--recording .camera-shutter-inner,
+.camera-shutter--counting .camera-shutter-inner {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.camera-shutter--counting .camera-shutter-inner {
+  background: #fff;
+}

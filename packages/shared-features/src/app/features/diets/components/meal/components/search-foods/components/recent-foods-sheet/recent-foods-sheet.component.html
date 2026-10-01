@@ -1,0 +1,76 @@
+<header class="recents-head">
+  <h2 class="recents-title" id="recent-foods-sheet-title">
+    {{ 'SEARCH_FOODS.RECENTS_SHEET_TITLE' | translate : { mealName: mealName } }}
+  </h2>
+  <p class="recents-hint">
+    {{
+      (kind === 'recipe' ? 'SEARCH_FOODS.RECENTS_SHEET_HINT_RECIPES' : 'SEARCH_FOODS.RECENTS_SHEET_HINT_PRODUCTS')
+        | translate
+    }}
+  </p>
+</header>
+
+<ul
+  class="recents-list"
+  *ngIf="items.length; else emptyState"
+  aria-labelledby="recent-foods-sheet-title"
+>
+  <li
+    class="recent-row"
+    *ngFor="let item of items; trackBy: trackById"
+    [class.is-hidden]="hiddenIds.has(item.id)"
+  >
+    <span class="recent-row__text">
+      <span class="recent-row__name">{{ item.name }}</span>
+      <span class="recent-row__meta" *ngIf="!hiddenIds.has(item.id); else hiddenMeta">
+        <span *ngIf="item.brand">{{ item.brand }}</span>
+        <span *ngIf="item.quantity" class="recent-row__qty">{{ item.quantity | number : '1.0-1' }} g</span>
+        <span *ngIf="item.lastUsedAt">{{ item.lastUsedAt | localDate : 'd MMM' }}</span>
+      </span>
+      <ng-template #hiddenMeta>
+        <span class="recent-row__meta">{{ 'SEARCH_FOODS.RECENTS_HIDDEN' | translate }}</span>
+      </ng-template>
+    </span>
+
+    <button
+      *ngIf="!hiddenIds.has(item.id); else undoButton"
+      type="button"
+      class="recent-row__remove"
+      [disabled]="pendingIds.has(item.id) || clearingAll"
+      [attr.aria-label]="'SEARCH_FOODS.RECENTS_REMOVE_ARIA' | translate : { name: item.name }"
+      (click)="toggle(item)"
+    >
+      <ion-icon name="close" aria-hidden="true"></ion-icon>
+    </button>
+    <ng-template #undoButton>
+      <button
+        type="button"
+        class="recent-row__undo"
+        [disabled]="pendingIds.has(item.id) || clearingAll"
+        (click)="toggle(item)"
+      >
+        {{ 'SEARCH_FOODS.RECENTS_UNDO' | translate | uppercase }}
+      </button>
+    </ng-template>
+  </li>
+</ul>
+
+<ng-template #emptyState>
+  <p class="recents-empty">{{ 'SEARCH_FOODS.RECENTS_EMPTY' | translate }}</p>
+</ng-template>
+
+<footer class="recents-actions">
+  <ion-button expand="block" fill="outline" color="medium" (click)="close()">
+    {{ 'COMMON.CERRAR' | translate | uppercase }}
+  </ion-button>
+  <ion-button
+    *ngIf="visibleCount > 0"
+    expand="block"
+    fill="outline"
+    color="danger"
+    [disabled]="clearingAll"
+    (click)="clearAll()"
+  >
+    {{ 'SEARCH_FOODS.RECENTS_CLEAR_ALL' | translate | uppercase }}
+  </ion-button>
+</footer>

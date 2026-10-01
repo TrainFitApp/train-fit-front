@@ -37,7 +37,7 @@
               <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
 
               <!-- DROP SET label (always show if drop is true) -->
-              <span *ngIf="set.drop" class="drop-label">DP</span>
+              <span *ngIf="set.drop" class="drop-label">DS</span>
 
               <!-- REST PAUSE label (always show if restPause is set) -->
               <span *ngIf="set.restPause" class="rest-pause-label">RP ({{
@@ -168,7 +168,7 @@
                 (valueChange)="onFormValueChange('weight', $event)"></app-numeric-input>
             </ion-col>
             <ion-col size="3.33" class="reps-col">
-              <app-numeric-input [inputControl]="getFormControl('reps')" label="Reps" placeholder="0" [maxLength]="3"
+              <app-numeric-input [inputControl]="getFormControl('reps')" [label]="'TABLES.STATS_REPS' | translate" placeholder="0" [maxLength]="3"
                 [isDone]="set.doned" (valueChange)="onFormValueChange('reps', $event)"></app-numeric-input>
             </ion-col>
             <ion-col size="3.33" class="intensity-col">

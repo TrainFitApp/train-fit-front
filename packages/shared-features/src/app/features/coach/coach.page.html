@@ -6,7 +6,7 @@
            .tf-page-header__actions) solo para que el título siga centrado. -->
       <div class="tf-page-header__back-section"></div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Coach</h1>
+        <h1 class="tf-page-header__title">{{ 'COACH.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -31,13 +31,13 @@
   >
     <span class="onboarding-reminder-icon"><ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon></span>
     <span class="onboarding-reminder-text">
-      <span class="onboarding-reminder-name">Cuestionario inicial</span>
+      <span class="onboarding-reminder-name">{{ 'ONBOARDING.TITLE' | translate }}</span>
       <span class="onboarding-reminder-stat">{{
-        intakeStatus === 'pending'
-          ? 'Pendiente · tu profesional lo necesita para preparar tu plan'
+        (intakeStatus === 'pending'
+          ? 'COACH.INTAKE_PENDING'
           : intakeStatus === 'submitted'
-          ? 'Enviado · puedes editarlo hasta que tu profesional lo revise'
-          : 'Revisado por tu profesional'
+          ? 'COACH.INTAKE_SUBMITTED'
+          : 'ONBOARDING.REVIEWED') | translate
       }}</span>
     </span>
     <ion-icon class="onboarding-reminder-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
@@ -64,25 +64,25 @@
         (click)="scrollToSection('section-pending')"
       >
         <div class="coach-menu-icon coach-menu-icon--alert"><ion-icon name="alert-circle-outline"></ion-icon></div>
-        <span class="coach-menu-name">Pendiente de ti</span>
+        <span class="coach-menu-name">{{ 'COACH.PENDING_TITLE' | translate }}</span>
         <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">
-          {{ pendingCount }} pendiente{{ pendingCount === 1 ? '' : 's' }}
+          {{ (pendingCount === 1 ? 'COACH.PENDING_ONE' : 'COACH.PENDING_MANY') | translate: { count: pendingCount } }}
         </span>
       </button>
 
       <button type="button" class="coach-menu-card" (click)="scrollToSection('section-plan')">
         <div class="coach-menu-icon"><ion-icon name="barbell-outline"></ion-icon></div>
-        <span class="coach-menu-name">Tu plan actual</span>
+        <span class="coach-menu-name">{{ 'COACH.CURRENT_PLAN' | translate }}</span>
         <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">{{ currentPlansStat }}</span>
       </button>
 
       <button type="button" class="coach-menu-card" (click)="scrollToSection('section-professionals')">
         <div class="coach-menu-icon"><ion-icon name="people-outline"></ion-icon></div>
-        <span class="coach-menu-name">Tus profesionales</span>
+        <span class="coach-menu-name">{{ 'COACH.YOUR_PROFESSIONALS' | translate }}</span>
         <span class="coach-menu-stat" *ngIf="state === 'loaded'">
-          {{ activeProfessionals.length }} activo{{ activeProfessionals.length === 1 ? '' : 's' }}<ng-container
+          {{ (activeProfessionals.length === 1 ? 'COACH.ACTIVE_ONE' : 'COACH.ACTIVE_MANY') | translate: { count: activeProfessionals.length } }}<ng-container
             *ngIf="pendingInvites.length"
-          > · {{ groupedPendingInvites.length }} invitación{{ groupedPendingInvites.length === 1 ? '' : 'es' }}</ng-container>
+          > · {{ (groupedPendingInvites.length === 1 ? 'COACH.INVITES_ONE' : 'COACH.INVITES_MANY') | translate: { count: groupedPendingInvites.length } }}</ng-container>
         </span>
       </button>
     </div>
@@ -102,7 +102,7 @@
     [class.tasks-card--done]="completedTasksCount === tasks.length"
   >
     <div class="section-header-row">
-      <h2 class="section-heading">Hábitos de hoy</h2>
+      <h2 class="section-heading">{{ 'COACH.TODAY_HABITS' | translate }}</h2>
       <span class="tasks-progress" [class.tasks-progress--done]="completedTasksCount === tasks.length">
         {{ completedTasksCount }}/{{ tasks.length }}
       </span>
@@ -131,37 +131,37 @@
        arriba, que dependen de que haya algo): si "Dolor" solo apareciera
        cuando ya hay dolor apuntado, nadie sabría que se puede apuntar. -->
   <div class="coach-menu-group">
-    <p class="coach-menu-group-label">Lo que aportas tú</p>
+    <p class="coach-menu-group-label">{{ 'COACH.YOU_PROVIDE' | translate }}</p>
     <div class="coach-menu-grid">
       <button type="button" class="coach-menu-card" (click)="goToCheckins()">
         <div class="coach-menu-icon"><ion-icon name="clipboard-outline"></ion-icon></div>
-        <span class="coach-menu-name">Mis check-ins</span>
+        <span class="coach-menu-name">{{ 'COACH.MY_CHECKINS' | translate }}</span>
       </button>
 
       <button type="button" class="coach-menu-card" (click)="goToPain()">
         <div class="coach-menu-icon"><ion-icon name="bandage-outline"></ion-icon></div>
-        <span class="coach-menu-name">Dolor</span>
+        <span class="coach-menu-name">{{ 'COACH.PAIN' | translate }}</span>
       </button>
 
       <button type="button" class="coach-menu-card" (click)="goToNutritionPreferences()">
         <div class="coach-menu-icon"><ion-icon name="nutrition-outline"></ion-icon></div>
-        <span class="coach-menu-name">Preferencias</span>
+        <span class="coach-menu-name">{{ 'COACH.PREFERENCES' | translate }}</span>
       </button>
     </div>
   </div>
 
   <!-- Lo que el cliente CONSULTA: prescripciones, todas de solo lectura. -->
   <div class="coach-menu-group">
-    <p class="coach-menu-group-label">Lo que te ha pautado</p>
+    <p class="coach-menu-group-label">{{ 'COACH.PRESCRIBED' | translate }}</p>
     <div class="coach-menu-grid">
       <button type="button" class="coach-menu-card" (click)="goToSupplements()">
         <div class="coach-menu-icon"><ion-icon name="medkit-outline"></ion-icon></div>
-        <span class="coach-menu-name">Suplementos</span>
+        <span class="coach-menu-name">{{ 'COACH.SUPPLEMENTS' | translate }}</span>
       </button>
 
       <button type="button" class="coach-menu-card" (click)="goToShoppingList()">
         <div class="coach-menu-icon"><ion-icon name="cart-outline"></ion-icon></div>
-        <span class="coach-menu-name">Lista de la compra</span>
+        <span class="coach-menu-name">{{ 'COACH.SHOPPING_LIST' | translate }}</span>
       </button>
     </div>
   </div>
@@ -177,8 +177,8 @@
   </div>
 
   <div class="section-error" *ngIf="dashboardState === 'error'">
-    <p>No se pudo cargar tu resumen.</p>
-    <button class="retry-button" (click)="loadDashboard()">Reintentar</button>
+    <p>{{ 'COACH.SUMMARY_ERROR' | translate }}</p>
+    <button class="retry-button" (click)="loadDashboard()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="dashboardState === 'loaded' && dashboard as d">
@@ -187,7 +187,7 @@
       id="section-pending"
       *ngIf="d.pendingCheckins.length || d.pendingMealProposals.length || d.nutritionPreferences?.pending || d.pendingPayments.length"
     >
-      <h2 class="section-heading">Pendiente de ti</h2>
+      <h2 class="section-heading">{{ 'COACH.PENDING_TITLE' | translate }}</h2>
 
       <button
         class="action-card"
@@ -196,7 +196,7 @@
       >
         <ion-icon name="clipboard-outline" class="action-icon"></ion-icon>
         <div class="action-info">
-          <span class="action-title">{{ item.name || 'Check-in pendiente' }}</span>
+          <span class="action-title">{{ item.name || ('COACH.PENDING_CHECKIN' | translate) }}</span>
           <span class="action-subtitle">{{ checkinPeriodLabel(item) }}</span>
         </div>
         <ion-icon name="chevron-forward-outline" class="action-chevron"></ion-icon>
@@ -209,8 +209,8 @@
       >
         <ion-icon name="restaurant-outline" class="action-icon"></ion-icon>
         <div class="action-info">
-          <span class="action-title">Elige tu {{ item.mealSlot | lowercase }}</span>
-          <span class="action-subtitle">{{ item.alternativesCount }} opciones de {{ item.trainerName }} · {{ item.date | date: 'd MMM' }}</span>
+          <span class="action-title">{{ 'COACH.CHOOSE_MEAL' | translate: { meal: (item.mealSlot | lowercase) } }}</span>
+          <span class="action-subtitle">{{ 'COACH.MEAL_OPTIONS' | translate: { count: item.alternativesCount, name: item.trainerName } }} · {{ item.date | localDate: 'd MMM' }}</span>
         </div>
         <ion-icon name="chevron-forward-outline" class="action-chevron"></ion-icon>
       </button>
@@ -218,8 +218,8 @@
       <button class="action-card" *ngIf="d.nutritionPreferences?.pending" (click)="goToNutritionPreferences()">
         <ion-icon name="nutrition-outline" class="action-icon"></ion-icon>
         <div class="action-info">
-          <span class="action-title">Preferencias nutricionales solicitadas</span>
-          <span class="action-subtitle">Pedido por {{ d.nutritionPreferences?.requestedByName }}</span>
+          <span class="action-title">{{ 'COACH.PREFERENCES_REQUESTED' | translate }}</span>
+          <span class="action-subtitle">{{ 'COACH.REQUESTED_BY' | translate: { name: d.nutritionPreferences?.requestedByName } }}</span>
         </div>
         <ion-icon name="chevron-forward-outline" class="action-chevron"></ion-icon>
       </button>
@@ -227,8 +227,8 @@
       <div class="action-card action-card--static" *ngFor="let item of d.pendingPayments; trackBy: trackByPaymentId">
         <ion-icon name="cash-outline" class="action-icon"></ion-icon>
         <div class="action-info">
-          <span class="action-title">{{ paymentAmount(item) }} pendiente<ng-container *ngIf="item.concept"> · {{ item.concept }}</ng-container></span>
-          <span class="action-subtitle">{{ item.trainerName }} · vence {{ paymentDue(item) }}</span>
+          <span class="action-title">{{ 'COACH.AMOUNT_PENDING' | translate: { amount: paymentAmount(item) } }}<ng-container *ngIf="item.concept"> · {{ item.concept }}</ng-container></span>
+          <span class="action-subtitle">{{ item.trainerName }} · {{ 'COACH.DUE' | translate: { date: paymentDue(item) } }}</span>
         </div>
       </div>
     </div>
@@ -236,13 +236,13 @@
     <!-- Siempre las dos tarjetas: si falta una, el cliente ve que no tiene
          ese plan en vez de no ver nada. -->
     <div class="section-card" id="section-plan">
-      <h2 class="section-heading">Tu plan actual</h2>
+      <h2 class="section-heading">{{ 'COACH.CURRENT_PLAN' | translate }}</h2>
 
       <ng-container
-        *ngTemplateOutlet="planCard; context: { plan: d.currentPlans?.training, kicker: 'Entrenamiento', icon: 'barbell-outline', empty: 'Sin rutina asignada todavía' }"
+        *ngTemplateOutlet="planCard; context: { plan: d.currentPlans?.training, kicker: 'ONBOARDING.SCOPE_TRAINING', icon: 'barbell-outline', empty: 'COACH.NO_ROUTINE' }"
       ></ng-container>
       <ng-container
-        *ngTemplateOutlet="planCard; context: { plan: d.currentPlans?.nutrition, kicker: 'Nutrición', icon: 'nutrition-outline', empty: 'Sin fase de dieta asignada todavía' }"
+        *ngTemplateOutlet="planCard; context: { plan: d.currentPlans?.nutrition, kicker: 'ONBOARDING.SCOPE_NUTRITION', icon: 'nutrition-outline', empty: 'COACH.NO_DIET' }"
       ></ng-container>
     </div>
 
@@ -250,7 +250,7 @@
       <div class="plan-card" [class.plan-card--empty]="!plan">
         <ion-icon [name]="icon" class="plan-icon"></ion-icon>
         <div class="action-info">
-          <span class="plan-kicker">{{ kicker }}</span>
+          <span class="plan-kicker">{{ kicker | translate }}</span>
           <ng-container *ngIf="plan; else noPlan">
             <span class="action-title">{{ plan.name }}</span>
             <span class="action-subtitle">
@@ -259,7 +259,7 @@
             </span>
           </ng-container>
           <ng-template #noPlan>
-            <span class="action-subtitle">{{ empty }}</span>
+            <span class="action-subtitle">{{ empty | translate }}</span>
           </ng-template>
         </div>
       </div>
@@ -338,7 +338,7 @@
           <ion-icon [name]="notificationIcon(notification)" class="action-icon"></ion-icon>
           <div class="action-info">
             <span class="action-title">{{ notificationTitle(notification) }}</span>
-            <span class="action-subtitle">{{ notificationTrainerName(notification) }} · {{ notification.createdAt | date: 'd MMM' }}</span>
+            <span class="action-subtitle">{{ notificationTrainerName(notification) }} · {{ notification.createdAt | localDate: 'd MMM' }}</span>
           </div>
           <ion-icon
             *ngIf="isNotificationInteractive(notification)"
@@ -384,13 +384,13 @@
 
   <div class="mp-state-message" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline"></ion-icon>
-    <h2>No se pudo cargar tu información</h2>
-    <button class="retry-button" (click)="load()">Reintentar</button>
+    <h2>{{ 'COACH.INFO_ERROR' | translate }}</h2>
+    <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <div class="section-card" *ngIf="pendingInvites.length">
-      <h2 class="section-heading">Invitaciones pendientes</h2>
+      <h2 class="section-heading">{{ 'COACH.PENDING_INVITES' | translate }}</h2>
 
       <article class="pro-card pro-card--invite" *ngFor="let group of groupedPendingInvites; trackBy: trackByPendingGroup">
         <header class="pro-card-header">
@@ -407,21 +407,21 @@
 
         <div class="pro-invite-actions">
           <button class="pro-link-button" (click)="confirmDeclineGroup(group)" [disabled]="respondingTrainerId === group.trainerId">
-            Rechazar
+            {{ 'ONBOARDING.DECLINE' | translate }}
           </button>
           <button class="pro-accept-button" (click)="acceptGroup(group)" [disabled]="respondingTrainerId === group.trainerId">
             <ion-spinner name="dots" *ngIf="respondingTrainerId === group.trainerId"></ion-spinner>
-            <span *ngIf="respondingTrainerId !== group.trainerId">Aceptar</span>
+            <span *ngIf="respondingTrainerId !== group.trainerId">{{ 'ONBOARDING.ACCEPT' | translate }}</span>
           </button>
         </div>
       </article>
     </div>
 
     <div class="section-card" id="section-professionals" *ngIf="!inviteOnly">
-      <h2 class="section-heading">Tus profesionales</h2>
+      <h2 class="section-heading">{{ 'COACH.YOUR_PROFESSIONALS' | translate }}</h2>
 
       <p class="empty-hint" *ngIf="!activeProfessionals.length">
-        Todavía no tienes ningún profesional vinculado.
+        {{ 'COACH.NO_PROFESSIONALS' | translate }}
       </p>
 
       <article class="pro-card pro-card--active" *ngFor="let professional of activeProfessionals; trackBy: trackByProfessionalId">
@@ -434,7 +434,7 @@
             *ngFor="let scope of professional.scopes"
             (click)="confirmUnlink(professional, scope)"
             [disabled]="unlinkingScope === scope"
-            [attr.aria-label]="'Desvincular ' + scopeLabel(scope).toLowerCase()"
+            [attr.aria-label]="'COACH.UNLINK_SCOPE_ARIA' | translate: { scope: scopeLabel(scope).toLowerCase() }"
           >
             <ion-icon [name]="scopeIcon(scope)" [ngClass]="'pro-scope-icon--' + scope"></ion-icon>
             <span>{{ scopeLabel(scope) }}</span>
@@ -447,7 +447,7 @@
 
     <div class="section-card" *ngIf="history.length && !inviteOnly">
       <button class="history-toggle" (click)="toggleHistory()">
-        <h2 class="section-heading">Historial</h2>
+        <h2 class="section-heading">{{ 'COACH.HISTORY' | translate }}</h2>
         <ion-icon [name]="showHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
       </button>
 

@@ -1,10 +1,8 @@
 .daily-weight-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
   width: 100%;
-  margin-top: 6px;
-  margin-bottom: -12px;
+  margin: var(--diets-gap, 8px) 0 0;
 }
 
 .weight-card {
@@ -218,7 +216,9 @@
   border: 1px solid #252525;
   border-radius: 12px;
   padding: 14px;
-  margin: 0 7px;
+  // El hueco con la tarjeta del peso lo pone ella (no un `gap` del contenedor):
+  // oculta no ocupa nada, ni siquiera el hueco.
+  margin: var(--diets-gap, 8px) 7px 0;
   transition: opacity 0.2s, transform 0.2s;
 
   &.hidden {

@@ -1,3 +1,4 @@
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 // Resumen de una serie para las revisiones de técnica. Prescrito y ejecutado
 // siempre por separado (docs/domain.md). RIR: -1 = fallo, 0 = cero real,
 // ausente = «—».
@@ -15,7 +16,7 @@ function rirLabel(values: number[], failLabel: string): string | null {
 
 function number(value: unknown): string | null {
   const parsed = Number(value);
-  return value != null && value !== '' && Number.isFinite(parsed) ? parsed.toLocaleString('es', { maximumFractionDigits: 2 }) : null;
+  return value != null && value !== '' && Number.isFinite(parsed) ? parsed.toLocaleString(uiLocale(), { maximumFractionDigits: 2 }) : null;
 }
 
 /** «80 kg × 8 · RIR 2» con lo ejecutado, o null si aún no hay nada. */

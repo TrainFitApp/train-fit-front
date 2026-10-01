@@ -1,3 +1,5 @@
+import { localizeProp } from '../i18n/localized-catalog';
+
 // Catálogo muscular de los ejercicios — dos niveles y énfasis (2026-09).
 //
 // Espejo EXACTO de train-fit-back/components/exercises/muscle-catalog.js
@@ -147,6 +149,15 @@ for (const group of MUSCLE_GROUPS) {
     NODES.set(muscle.id, { ...muscle, groupId: group.id, isGroup: false });
   }
 }
+
+// Nombres en el idioma del usuario (MUSCLES.<id> en i18n); el español de
+// arriba es el respaldo.
+for (const role of MUSCLE_ROLES) localizeProp(MUSCLE_ROLE_LABEL, role, `MUSCLE_ROLES.${role}`);
+for (const group of MUSCLE_GROUPS) {
+  localizeProp(group, 'label', `MUSCLES.${group.id}`);
+  group.muscles.forEach((muscle) => localizeProp(muscle, 'label', `MUSCLES.${muscle.id}`));
+}
+NODES.forEach((node) => localizeProp(node, 'label', `MUSCLES.${node.id}`));
 
 const GROUP_BY_ID = new Map(MUSCLE_GROUPS.map((group) => [group.id, group]));
 const CATALOG_ORDER = new Map([...NODES.keys()].map((id, index) => [id, index]));

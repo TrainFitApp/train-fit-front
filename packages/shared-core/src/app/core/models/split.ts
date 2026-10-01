@@ -1,3 +1,4 @@
+import { localizeProp } from "../i18n/localized-catalog";
 import { Workout } from "./workout";
 
 // Movimiento 6 Coach Pro — qué es este microciclo dentro del plan.
@@ -21,6 +22,7 @@ export const SPLIT_PURPOSES: { key: SplitPurpose; label: string }[] = [
   { key: 'deload', label: 'Descarga' },
   { key: 'vacation', label: 'Vacaciones' },
 ];
+SPLIT_PURPOSES.forEach((purpose) => localizeProp(purpose, 'label', `SPLIT_PURPOSES.${purpose.key}`));
 
 export class Split {
     _id: string;

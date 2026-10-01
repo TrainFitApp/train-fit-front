@@ -1,0 +1,131 @@
+<ion-content class="camera-content" [fullscreen]="true" [scrollY]="false">
+  <div class="camera">
+    <video
+      #preview
+      class="camera-preview"
+      [class.camera-preview--mirror]="facing === 'user'"
+      [hidden]="state === 'error'"
+      playsinline
+      muted
+      autoplay
+    ></video>
+
+    <img
+      *ngIf="mode === 'photo' && referenceUrl && showGhost && state !== 'error'"
+      class="camera-ghost"
+      [class.camera-preview--mirror]="facing === 'user'"
+      [src]="referenceUrl"
+      alt=""
+    />
+
+    <div class="camera-flash" *ngIf="flash"></div>
+
+    <!-- Arriba: cerrar, título, foto anterior y cambio de cámara -->
+    <div class="camera-top">
+      <button type="button" class="camera-icon" (click)="close()" [attr.aria-label]="'MEDIA.CLOSE' | translate">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+      <span class="camera-title">{{ title }}</span>
+      <div class="camera-top-actions">
+        <button
+          type="button"
+          class="camera-icon"
+          *ngIf="mode === 'photo' && referenceUrl && state !== 'error'"
+          [class.camera-icon--on]="showGhost"
+          [attr.aria-pressed]="showGhost"
+          (click)="showGhost = !showGhost"
+          [attr.aria-label]="'MEDIA.CAMERA_GHOST' | translate"
+        >
+          <ion-icon name="layers-outline"></ion-icon>
+        </button>
+        <button
+          type="button"
+          class="camera-icon"
+          *ngIf="canFlip"
+          [disabled]="state !== 'ready'"
+          (click)="flip()"
+          [attr.aria-label]="'MEDIA.CAMERA_FLIP' | translate"
+        >
+          <ion-icon name="camera-reverse-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="camera-center" *ngIf="state === 'starting'" role="status">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>{{ 'MEDIA.CAMERA_STARTING' | translate }}</span>
+    </div>
+
+    <div class="camera-countdown" *ngIf="state === 'countdown'" role="timer" aria-live="assertive">{{ countdown }}</div>
+
+    <div class="camera-rec" *ngIf="state === 'recording'" role="timer">
+      <span class="camera-rec-dot" aria-hidden="true"></span>
+      {{ time(elapsed) }} / {{ time(maxDurationSec) }}
+    </div>
+
+    <!-- Sin cámara en la app: la del sistema, como antes -->
+    <div class="camera-center camera-error" *ngIf="state === 'error'">
+      <ion-icon name="camera-outline" aria-hidden="true"></ion-icon>
+      <p>{{ errorKey | translate }}</p>
+      <label class="camera-system">
+        <input
+          type="file"
+          [attr.accept]="mode === 'photo' ? 'image/*' : 'video/*'"
+          capture="environment"
+          (change)="onSystemFile($event)"
+        />
+        <ion-icon [name]="mode === 'photo' ? 'camera-outline' : 'videocam-outline'" aria-hidden="true"></ion-icon>
+        <span>{{ 'MEDIA.CAMERA_SYSTEM' | translate }}</span>
+      </label>
+      <button type="button" class="camera-retry" (click)="start()">{{ 'MEDIA.RETRY' | translate }}</button>
+    </div>
+
+    <!-- Abajo: temporizador y disparador -->
+    <div class="camera-bottom" *ngIf="state !== 'error'">
+      <p class="camera-hint" *ngIf="timer && state === 'ready'">
+        {{ (mode === 'photo' ? 'MEDIA.CAMERA_TIMER_HINT_PHOTO' : 'MEDIA.CAMERA_TIMER_HINT_VIDEO') | translate }}
+      </p>
+
+      <div
+        class="camera-timers"
+        role="radiogroup"
+        [attr.aria-label]="'MEDIA.CAMERA_TIMER' | translate"
+        [class.camera-timers--hidden]="state === 'recording' || state === 'countdown'"
+      >
+        <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
+        <button
+          type="button"
+          role="radio"
+          *ngFor="let option of timers"
+          [class.active]="timer === option"
+          [attr.aria-checked]="timer === option"
+          (click)="setTimer(option)"
+        >
+          {{ option ? option + ' s' : ('MEDIA.CAMERA_TIMER_OFF' | translate) }}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="camera-shutter"
+        [class.camera-shutter--video]="mode === 'video'"
+        [class.camera-shutter--recording]="state === 'recording'"
+        [class.camera-shutter--counting]="state === 'countdown'"
+        [disabled]="state === 'starting'"
+        (click)="shutter()"
+        [attr.aria-label]="
+          (state === 'recording'
+            ? 'MEDIA.CAMERA_STOP'
+            : state === 'countdown'
+            ? 'MEDIA.CAMERA_CANCEL_COUNTDOWN'
+            : mode === 'photo'
+            ? 'MEDIA.TAKE_PHOTO'
+            : 'MEDIA.RECORD_VIDEO'
+          ) | translate
+        "
+      >
+        <span class="camera-shutter-inner"></span>
+      </button>
+    </div>
+  </div>
+</ion-content>

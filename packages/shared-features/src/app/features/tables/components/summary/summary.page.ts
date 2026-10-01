@@ -508,7 +508,7 @@ export class SummaryPage {
 
   public async showExerciseNoteAlert(exercise: CustomExercise): Promise<void> {
     const alertOptions: AlertOptions = {
-      header: exercise.exercise?.name || 'Ejercicio eliminado del catálogo',
+      header: exercise.exercise?.name || this.translate.instant('TABLES.EXERCISE_DELETED'),
       message: exercise.notes,
       buttons: [this.translate.instant('COMMON.CONFIRM')],
     };

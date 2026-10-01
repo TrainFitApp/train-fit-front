@@ -1,5 +1,5 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Plantillas de check-in"></app-page-header>
+  <app-page-header [title]="'CHECKIN_TEMPLATES.PLANTILLAS_DE_CHECK_IN' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="checkin-content" appScrollMemory="checkin-templates">
@@ -20,17 +20,17 @@
 
   <div class="state-message" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline"></ion-icon>
-    <h2>No se pudieron cargar tus plantillas</h2>
-    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
-    <button class="retry-button" (click)="load()">Reintentar</button>
+    <h2>{{ 'CHECKIN_TEMPLATES.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</h2>
+    <p>{{ 'CHECKIN_TEMPLATES.COMPRUEBA_TU_CONEXION_INTENTALO_DE' | translate }}</p>
+    <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <div class="state-message" *ngIf="!templates.length">
       <ion-icon name="clipboard-outline"></ion-icon>
-      <h2>Todavía no tienes plantillas</h2>
-      <p>Crea una plantilla de check-in para pedir seguimiento periódico a tus clientes.</p>
-      <button class="create-cta" (click)="openCreatePanel()">Crear plantilla</button>
+      <h2>{{ 'CHECKIN_TEMPLATES.TODAVIA_NO_TIENES_PLANTILLAS' | translate }}</h2>
+      <p>{{ 'CHECKIN_TEMPLATES.CREA_UNA_PLANTILLA_DE_CHECK' | translate }}</p>
+      <button class="create-cta" (click)="openCreatePanel()">{{ 'CHECKIN_TEMPLATES.CREAR_PLANTILLA' | translate }}</button>
     </div>
 
     <div class="templates-grid" *ngIf="templates.length">
@@ -39,7 +39,7 @@
            entrada (sin "+" en la cabecera). -->
       <button type="button" class="template-card template-card--add" (click)="openCreatePanel()">
         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-        <span>Crear check-in</span>
+        <span>{{ 'CHECKIN_TEMPLATES.CREAR_CHECK_IN' | translate }}</span>
       </button>
 
       <div class="template-card" *ngFor="let template of templates; trackBy: trackByTemplateId">
@@ -55,20 +55,20 @@
             </span>
           </div>
           <ng-template #noFields>
-            <p class="field-summary-empty">Sin campos activados</p>
+            <p class="field-summary-empty">{{ 'CHECKIN_TEMPLATES.SIN_CAMPOS_ACTIVADOS' | translate }}</p>
           </ng-template>
 
           <span class="template-total-count">
-            {{ template.enabledFields.length }} campos en total<ng-container *ngIf="requiredCount(template) as required"> · {{ required }} {{ required === 1 ? 'obligatorio' : 'obligatorios' }}</ng-container>
+            {{ template.enabledFields.length }} {{ 'CHECKIN_TEMPLATES.CAMPOS_EN_TOTAL' | translate }}<ng-container *ngIf="requiredCount(template) as required"> · {{ required }} {{ required === 1 ? 'obligatorio' : 'obligatorios' }}</ng-container>
           </span>
         </div>
 
         <div class="template-actions">
-          <button class="template-action-btn" (click)="openApplyPanel(template)">Aplicar</button>
+          <button class="template-action-btn" (click)="openApplyPanel(template)">{{ 'TRAINER_COMMON.APPLY' | translate }}</button>
           <button
             class="template-action-btn template-action-btn--danger"
             (click)="confirmDelete(template)"
-            [attr.aria-label]="'Borrar plantilla ' + template.name"
+            [attr.aria-label]="('CHECKIN_TEMPLATES.BORRAR_PLANTILLA' | translate) + template.name"
           >
             <ion-icon name="trash-outline"></ion-icon>
           </button>
@@ -85,8 +85,8 @@
          lateraliza: ahí desaparece el asa de arrastre (ver
          tf-side-panel-handle). -->
     <header class="panel-header">
-      <h3 class="panel-title">{{ editingId ? 'Editar plantilla' : 'Nueva plantilla' }}</h3>
-      <button type="button" class="panel-close" (click)="closeEditPanel()" aria-label="Cerrar">
+      <h3 class="panel-title">{{ editingId ? ('CHECKIN_TEMPLATES.EDITAR_PLANTILLA' | translate) : ('CHECKIN_TEMPLATES.NUEVA_PLANTILLA' | translate) }}</h3>
+      <button type="button" class="panel-close" (click)="closeEditPanel()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
         <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
       </button>
     </header>
@@ -96,7 +96,7 @@
       <input
         type="text"
         class="input-field"
-        placeholder="Nombre (ej. Básico, Pro)"
+        [placeholder]="'CHECKIN_TEMPLATES.NOMBRE_EJ_BASICO_PRO' | translate"
         [(ngModel)]="formName"
       />
     </div>
@@ -126,7 +126,7 @@
         aria-controls="preguntas-propias"
       >
         <ion-icon class="group-icon" name="help-circle-outline" aria-hidden="true"></ion-icon>
-        <span class="group-label">Tus propias preguntas</span>
+        <span class="group-label">{{ 'CHECKIN_TEMPLATES.TUS_PROPIAS_PREGUNTAS' | translate }}</span>
         <span class="group-count"><strong>{{ formCustomQuestions.length }}</strong></span>
         <ion-icon
           class="group-chevron"
@@ -137,8 +137,7 @@
 
       <div class="field-group-body" id="preguntas-propias" *ngIf="showCustomQuestions">
       <p class="field-group-hint">
-        Lo que el catálogo de arriba no cubra. Estas respuestas se guardan y se te muestran, pero
-        no alimentan gráficas ni avisos automatizados — para eso están los campos del catálogo.
+        {{ 'CHECKIN_TEMPLATES.LO_QUE_EL_CATALOGO_DE' | translate }}
       </p>
 
       <div class="custom-question" *ngFor="let question of formCustomQuestions; let i = index; trackBy: trackByIndex">
@@ -147,15 +146,15 @@
             class="custom-question-input"
             type="text"
             maxlength="200"
-            placeholder="¿Cómo has dormido esta semana?"
+            [placeholder]="'CHECKIN_TEMPLATES.COMO_HAS_DORMIDO_ESTA_SEMANA' | translate"
             [(ngModel)]="question.label"
-            [attr.aria-label]="'Enunciado de la pregunta ' + (i + 1)"
+            [attr.aria-label]="('CHECKIN_TEMPLATES.ENUNCIADO_DE_LA_PREGUNTA' | translate) + (i + 1)"
           />
           <button
             type="button"
             class="custom-question-remove"
             (click)="removeCustomQuestion(i)"
-            [attr.aria-label]="'Quitar la pregunta ' + (i + 1)"
+            [attr.aria-label]="('CHECKIN_TEMPLATES.QUITAR_LA_PREGUNTA' | translate) + (i + 1)"
           >
             <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
           </button>
@@ -169,7 +168,7 @@
             labelPlacement="stacked"
             [(ngModel)]="question.type"
             (ngModelChange)="onQuestionTypeChange(question)"
-            [attr.aria-label]="'Tipo de la pregunta ' + (i + 1)"
+            [attr.aria-label]="('CHECKIN_TEMPLATES.TIPO_DE_LA_PREGUNTA' | translate) + (i + 1)"
           >
             <ion-select-option *ngFor="let type of questionTypes" [value]="type.key">{{ type.label }}</ion-select-option>
           </ion-select>
@@ -179,9 +178,9 @@
             class="custom-question-input custom-question-input--narrow"
             type="text"
             maxlength="20"
-            placeholder="unidad"
+            [placeholder]="'CHECKIN_TEMPLATES.UNIDAD' | translate"
             [(ngModel)]="question.unit"
-            [attr.aria-label]="'Unidad de la pregunta ' + (i + 1)"
+            [attr.aria-label]="('CHECKIN_TEMPLATES.UNIDAD_DE_LA_PREGUNTA' | translate) + (i + 1)"
           />
 
           <button
@@ -192,7 +191,7 @@
             role="switch"
             [attr.aria-checked]="!!question.required"
           >
-            Obligatoria
+            {{ 'CHECKIN_TEMPLATES.OBLIGATORIA' | translate }}
           </button>
         </div>
 
@@ -205,15 +204,15 @@
               class="custom-question-input"
               type="text"
               maxlength="60"
-              placeholder="Opción"
+              [placeholder]="'CHECKIN_TEMPLATES.OPCION' | translate"
               [(ngModel)]="question.options[o]"
-              [attr.aria-label]="'Opción ' + (o + 1)"
+              [attr.aria-label]="('CHECKIN_TEMPLATES.OPCION_2' | translate) + (o + 1)"
             />
             <button
               type="button"
               class="custom-question-remove"
               (click)="removeOption(question, o)"
-              [attr.aria-label]="'Quitar la opción ' + (o + 1)"
+              [attr.aria-label]="('CHECKIN_TEMPLATES.QUITAR_LA_OPCION' | translate) + (o + 1)"
             >
               <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
             </button>
@@ -224,7 +223,7 @@
             *ngIf="(question.options?.length || 0) < maxQuestionOptions"
             (click)="addOption(question)"
           >
-            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>Añadir opción
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'CHECKIN_TEMPLATES.ANADIR_OPCION' | translate }}
           </button>
         </div>
       </div>
@@ -235,7 +234,7 @@
         *ngIf="formCustomQuestions.length < maxCustomQuestions"
         (click)="addCustomQuestion()"
       >
-        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>Añadir pregunta
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'CHECKIN_TEMPLATES.ANADIR_PREGUNTA' | translate }}
       </button>
       </div>
     </div>
@@ -252,7 +251,7 @@
         data-enter-submit-action="saveTemplate"
         [disabled]="!formName.trim() || isSaving"
       >
-        <span *ngIf="!isSaving">{{ editingId ? 'Guardar cambios' : 'Crear plantilla' }}</span>
+        <span *ngIf="!isSaving">{{ editingId ? ('CHECKIN_TEMPLATES.GUARDAR_CAMBIOS' | translate) : ('CHECKIN_TEMPLATES.CREAR_PLANTILLA' | translate) }}</span>
         <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
       </button>
 
@@ -267,7 +266,7 @@
         (click)="confirmDelete(editingTemplate)"
       >
         <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
-        Eliminar plantilla
+        {{ 'CHECKIN_TEMPLATES.ELIMINAR_PLANTILLA' | translate }}
       </button>
     </div>
   </div>

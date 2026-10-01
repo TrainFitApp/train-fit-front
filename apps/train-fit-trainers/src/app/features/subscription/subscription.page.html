@@ -1,9 +1,9 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Suscripción"></app-page-header>
+  <app-page-header [title]="'CONFIGURATION.SUBSCRIPTION_SECTION' | translate"></app-page-header>
 </ion-header>
 <ion-content class="subscription-content">
   <div class="subscription-layout">
-    <div class="detail-skeleton" *ngIf="state === 'loading'" aria-label="Cargando suscripción" aria-busy="true">
+    <div class="detail-skeleton" *ngIf="state === 'loading'" [attr.aria-label]="'SUBSCRIPTION.CARGANDO_SUSCRIPCION' | translate" aria-busy="true">
       <div class="skeleton-block skeleton-hero"></div>
       <div class="skeleton-block skeleton-section"></div>
       <div class="skeleton-block skeleton-section"></div>
@@ -11,37 +11,37 @@
 
     <div class="state-message" *ngIf="state === 'error'" role="alert">
       <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-      <h2>No se pudo cargar tu suscripción</h2>
+      <h2>{{ 'SUBSCRIPTION.NO_SE_PUDO_CARGAR_TU' | translate }}</h2>
       <p>{{ actionError }}</p>
-      <button type="button" class="secondary-button" (click)="load()">Reintentar</button>
+      <button type="button" class="secondary-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
     </div>
 
     <div class="state-message" *ngIf="state === 'forbidden'">
       <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
-      <h2>Acceso para entrenadores</h2>
-      <p>Inicia sesión con una cuenta de entrenador para gestionar su suscripción.</p>
+      <h2>{{ 'SUBSCRIPTION.ACCESO_PARA_ENTRENADORES' | translate }}</h2>
+      <p>{{ 'SUBSCRIPTION.INICIA_SESION_CON_UNA_CUENTA' | translate }}</p>
     </div>
 
     <ng-container *ngIf="state === 'loaded' && entitlements">
       <p class="environment-note" *ngIf="entitlements.billing?.mode === 'test'">
-        <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>Entorno de pruebas · Sin cargos reales ni cálculo de impuestos.
+        <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>{{ 'SUBSCRIPTION.ENTORNO_DE_PRUEBAS_SIN_CARGOS' | translate }}
       </p>
 
       <div class="notice" *ngIf="!billingEnabled || (!catalog?.enabled && !managementAvailable && !catalogError)" role="status">
-        <strong>{{ isWeb ? 'La contratación todavía no está disponible' : 'Gestiona tu suscripción desde la versión web' }}</strong>
-        <p>Tu plan actual y su límite de clientes se mantienen.</p>
+        <strong>{{ isWeb ? ('SUBSCRIPTION.LA_CONTRATACION_TODAVIA_NO_ESTA' | translate) : ('SUBSCRIPTION.GESTIONA_TU_SUSCRIPCION_DESDE_LA' | translate) }}</strong>
+        <p>{{ 'SUBSCRIPTION.TU_PLAN_ACTUAL_SU_LIMITE' | translate }}</p>
       </div>
 
       <div class="notice" *ngIf="returnState !== 'none'" aria-live="polite" [attr.aria-busy]="returnState === 'pending'">
         <ng-container [ngSwitch]="returnState">
-          <ng-container *ngSwitchCase="'pending'"><strong><ion-spinner name="dots" aria-hidden="true"></ion-spinner> Estamos confirmando tu suscripción</strong><p>El plan se actualizará cuando recibamos la confirmación del pago.</p></ng-container>
-          <ng-container *ngSwitchCase="'delayed'"><strong>La confirmación aún está pendiente</strong><p>Puedes comprobarla de nuevo en unos instantes. No necesitas realizar otro pago.</p></ng-container>
-          <ng-container *ngSwitchCase="'confirmed'"><strong>Tu suscripción está confirmada</strong><p>Ya puedes utilizar tu plan {{ currentPlanName }}.</p></ng-container>
-          <ng-container *ngSwitchCase="'cancelled'"><strong>Has vuelto de la pantalla de pago</strong><p>No se ha cobrado nada. Debajo puedes consultar tu plan actual.</p></ng-container>
-          <ng-container *ngSwitchCase="'payment_required'"><strong>La contratación necesita atención</strong><p>Revisa el estado de tu suscripción y el método de pago.</p></ng-container>
-          <ng-container *ngSwitchCase="'error'"><strong>No se pudo confirmar la contratación</strong><p>El acceso mostrado sigue siendo el último confirmado por TrainFit.</p></ng-container>
+          <ng-container *ngSwitchCase="'pending'"><strong><ion-spinner name="dots" aria-hidden="true"></ion-spinner> {{ 'SUBSCRIPTION.ESTAMOS_CONFIRMANDO_TU_SUSCRIPCION' | translate }}</strong><p>{{ 'SUBSCRIPTION.EL_PLAN_SE_ACTUALIZARA_CUANDO' | translate }}</p></ng-container>
+          <ng-container *ngSwitchCase="'delayed'"><strong>{{ 'SUBSCRIPTION.LA_CONFIRMACION_AUN_ESTA_PENDIENTE' | translate }}</strong><p>{{ 'SUBSCRIPTION.PUEDES_COMPROBARLA_DE_NUEVO_EN' | translate }}</p></ng-container>
+          <ng-container *ngSwitchCase="'confirmed'"><strong>{{ 'SUBSCRIPTION.TU_SUSCRIPCION_ESTA_CONFIRMADA' | translate }}</strong><p>{{ 'SUBSCRIPTION.YA_PUEDES_UTILIZAR_TU_PLAN' | translate }} {{ currentPlanName }}.</p></ng-container>
+          <ng-container *ngSwitchCase="'cancelled'"><strong>{{ 'SUBSCRIPTION.HAS_VUELTO_DE_LA_PANTALLA' | translate }}</strong><p>{{ 'SUBSCRIPTION.NO_SE_HA_COBRADO_NADA' | translate }}</p></ng-container>
+          <ng-container *ngSwitchCase="'payment_required'"><strong>{{ 'SUBSCRIPTION.LA_CONTRATACION_NECESITA_ATENCION' | translate }}</strong><p>{{ 'SUBSCRIPTION.REVISA_EL_ESTADO_DE_TU' | translate }}</p></ng-container>
+          <ng-container *ngSwitchCase="'error'"><strong>{{ 'SUBSCRIPTION.NO_SE_PUDO_CONFIRMAR_LA' | translate }}</strong><p>{{ 'SUBSCRIPTION.EL_ACCESO_MOSTRADO_SIGUE_SIENDO' | translate }}</p></ng-container>
         </ng-container>
-        <button type="button" class="secondary-button" *ngIf="showSyncRetry" [disabled]="busy" (click)="retrySync()">Comprobar de nuevo</button>
+        <button type="button" class="secondary-button" *ngIf="showSyncRetry" [disabled]="busy" (click)="retrySync()">{{ 'SUBSCRIPTION.COMPROBAR_DE_NUEVO' | translate }}</button>
       </div>
 
       <p class="feedback" *ngIf="feedback" role="status"><ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>{{ feedback }}</p>
@@ -52,14 +52,14 @@
         <header class="plan-hero-head">
           <div class="plan-hero-title">
             <h2 id="current-plan-title">{{ currentPlanName }}</h2>
-            <p class="plan-hero-meta" *ngIf="currentPrice as price">{{ price.clientLimit }} clientes · {{ tariff(price.amount, price.interval) }}</p>
-            <p class="plan-hero-meta" *ngIf="entitlements.tier === 'free'">Hasta 3 clientes · 0 €</p>
+            <p class="plan-hero-meta" *ngIf="currentPrice as price">{{ price.clientLimit }} {{ 'SUBSCRIPTION.CLIENTES' | translate }} · {{ tariff(price.amount, price.interval) }}</p>
+            <p class="plan-hero-meta" *ngIf="entitlements.tier === 'free'">{{ 'SUBSCRIPTION.HASTA_3_CLIENTES_0' | translate }}</p>
           </div>
-          <span class="sync-label" *ngIf="syncing" role="status">Actualizando…</span>
+          <span class="sync-label" *ngIf="syncing" role="status">{{ 'SUBSCRIPTION.ACTUALIZANDO' | translate }}</span>
           <span class="status-pill" *ngIf="!syncing && statusBadge as status" [attr.data-tone]="status.tone">{{ status.label }}</span>
         </header>
 
-        <ol class="timeline" *ngIf="timeline.length" aria-label="Qué pasará con tu suscripción">
+        <ol class="timeline" *ngIf="timeline.length" [attr.aria-label]="'SUBSCRIPTION.QUE_PASARA_CON_TU_SUSCRIPCION' | translate">
           <li class="timeline-step" *ngFor="let step of timeline; trackBy: trackByIndex" [attr.data-tone]="step.tone">
             <span class="timeline-when">{{ step.when }}</span>
             <span class="timeline-dot" aria-hidden="true"></span>
@@ -70,19 +70,19 @@
         <!-- Una sola acción principal por estado, justo debajo de lo que explica. -->
         <ng-container [ngSwitch]="statusBadge?.kind">
           <div class="state-actions" *ngSwitchCase="'renewal_failed'">
-            <button type="button" class="primary-button" *ngIf="renewalPayment && renewalPaymentUrl" [disabled]="busy" (click)="payRenewal()">Pagar {{ formatAmount(renewalPayment.amount) }} ahora</button>
-            <button type="button" class="secondary-button" *ngIf="portalAvailable" [disabled]="busy" (click)="openPortal()">Cambiar método de pago</button>
+            <button type="button" class="primary-button" *ngIf="renewalPayment && renewalPaymentUrl" [disabled]="busy" (click)="payRenewal()">{{ 'SUBSCRIPTION.PAGAR' | translate }} {{ formatAmount(renewalPayment.amount) }} {{ 'SUBSCRIPTION.AHORA_2' | translate }}</button>
+            <button type="button" class="secondary-button" *ngIf="portalAvailable" [disabled]="busy" (click)="openPortal()">{{ 'SUBSCRIPTION.CAMBIAR_METODO_DE_PAGO' | translate }}</button>
           </div>
           <div class="state-actions" *ngSwitchCase="'change_unpaid'">
-            <button type="button" class="primary-button" *ngIf="paymentUrl" [disabled]="busy" (click)="completePayment()">Completar pago en Stripe</button>
-            <button type="button" class="text-button" *ngIf="canManage('canDiscardChange')" [disabled]="busy" (click)="openManagementDialog('discard')">Descartar cambio</button>
+            <button type="button" class="primary-button" *ngIf="paymentUrl" [disabled]="busy" (click)="completePayment()">{{ 'SUBSCRIPTION.COMPLETAR_PAGO_EN_STRIPE' | translate }}</button>
+            <button type="button" class="text-button" *ngIf="canManage('canDiscardChange')" [disabled]="busy" (click)="openManagementDialog('discard')">{{ 'SUBSCRIPTION.DESCARTAR_CAMBIO' | translate }}</button>
           </div>
           <div class="state-actions" *ngSwitchCase="'canceling'">
-            <button type="button" class="secondary-button" *ngIf="canManage('canResume')" [disabled]="busy" (click)="openManagementDialog('resume')">Mantener suscripción</button>
+            <button type="button" class="secondary-button" *ngIf="canManage('canResume')" [disabled]="busy" (click)="openManagementDialog('resume')">{{ 'SUBSCRIPTION.MANTENER_SUSCRIPCION' | translate }}</button>
           </div>
           <div class="state-actions" *ngSwitchCase="'change_scheduled'">
-            <p class="state-note" *ngIf="pendingClientLimit !== null">Nuevas altas hasta {{ pendingClientLimit }} clientes desde hoy. Si eliges otro plan, sustituirá a este cambio.</p>
-            <button type="button" class="text-button" *ngIf="canManage('canDiscardChange')" [disabled]="busy" (click)="openManagementDialog('discard')">Descartar cambio</button>
+            <p class="state-note" *ngIf="pendingClientLimit !== null">{{ 'SUBSCRIPTION.NUEVAS_ALTAS_HASTA' | translate }} {{ pendingClientLimit }} {{ 'SUBSCRIPTION.CLIENTES_DESDE_HOY_SI_ELIGES' | translate }}</p>
+            <button type="button" class="text-button" *ngIf="canManage('canDiscardChange')" [disabled]="busy" (click)="openManagementDialog('discard')">{{ 'SUBSCRIPTION.DESCARTAR_CAMBIO' | translate }}</button>
           </div>
         </ng-container>
 
@@ -90,67 +90,67 @@
           <ion-icon [name]="summary.attention ? 'alert-circle-outline' : 'calendar-outline'" aria-hidden="true"></ion-icon>
           <p>{{ summary.label }}<strong *ngIf="summary.date">{{ formatDate(summary.date) }}</strong></p>
         </div>
-        <p class="secondary-copy" *ngIf="legacyPlan">Conservas las condiciones y el cupo de tu plan anterior. Contacta con TrainFit si necesitas cambiarlo.</p>
+        <p class="secondary-copy" *ngIf="legacyPlan">{{ 'SUBSCRIPTION.CONSERVAS_LAS_CONDICIONES_EL_CUPO' | translate }}</p>
 
         <div class="facts">
           <div class="fact">
-            <span class="fact-label">Clientes que ocupan plaza</span>
-            <span class="fact-value">{{ entitlements.usage.clients }}<span class="fact-unit" *ngIf="entitlements.limits.clients !== null"> de {{ entitlements.limits.clients }}</span></span>
-            <div class="usage-bar" *ngIf="entitlements.limits.clients !== null" role="progressbar" aria-label="Uso del cupo de clientes"
+            <span class="fact-label">{{ 'SUBSCRIPTION.CLIENTES_QUE_OCUPAN_PLAZA' | translate }}</span>
+            <span class="fact-value">{{ entitlements.usage.clients }}<span class="fact-unit" *ngIf="entitlements.limits.clients !== null"> {{ 'SUBSCRIPTION.DE_2' | translate }} {{ entitlements.limits.clients }}</span></span>
+            <div class="usage-bar" *ngIf="entitlements.limits.clients !== null" role="progressbar" [attr.aria-label]="'SUBSCRIPTION.USO_DEL_CUPO_DE_CLIENTES' | translate"
                  [attr.aria-valuenow]="usagePercent" aria-valuemin="0" aria-valuemax="100"
-                 [attr.aria-valuetext]="entitlements.usage.clients + ' de ' + entitlements.limits.clients + ' clientes'"
+                 [attr.aria-valuetext]="entitlements.usage.clients + ('SUBSCRIPTION.DE' | translate) + entitlements.limits.clients + ' clientes'"
                  [class.full]="usagePercent >= 100">
               <div class="usage-bar-fill" [style.transform]="'scaleX(' + usagePercent / 100 + ')'"></div>
             </div>
-            <span class="fact-note" *ngIf="entitlements.limits.clients === null">Clientes ilimitados · plan anterior</span>
-            <span class="fact-note warning" *ngIf="entitlements.limits.clients !== null && entitlements.usage.clients > entitlements.limits.clients">Superas el cupo: no puedes añadir clientes.</span>
+            <span class="fact-note" *ngIf="entitlements.limits.clients === null">{{ 'SUBSCRIPTION.CLIENTES_ILIMITADOS_PLAN_ANTERIOR' | translate }}</span>
+            <span class="fact-note warning" *ngIf="entitlements.limits.clients !== null && entitlements.usage.clients > entitlements.limits.clients">{{ 'SUBSCRIPTION.SUPERAS_EL_CUPO_NO_PUEDES' | translate }}</span>
           </div>
           <div class="fact" *ngIf="billingDetailsState !== 'idle'">
-            <span class="fact-label">Método de pago</span>
+            <span class="fact-label">{{ 'SUBSCRIPTION.METODO_DE_PAGO' | translate }}</span>
             <ng-container [ngSwitch]="billingDetailsState">
-              <span class="inline-skeleton" *ngSwitchCase="'loading'" aria-label="Cargando método de pago"></span>
+              <span class="inline-skeleton" *ngSwitchCase="'loading'" [attr.aria-label]="'SUBSCRIPTION.CARGANDO_METODO_DE_PAGO' | translate"></span>
               <ng-container *ngSwitchCase="'loaded'">
                 <span class="fact-value card-value" *ngIf="cardLabel; else noCard"><ion-icon name="card-outline" aria-hidden="true"></ion-icon>{{ cardLabel }}</span>
-                <span class="fact-note" *ngIf="cardExpiry">Caduca {{ cardExpiry }}</span>
-                <ng-template #noCard><span class="fact-note">Consúltalo en la gestión de pagos</span></ng-template>
+                <span class="fact-note" *ngIf="cardExpiry">{{ 'SUBSCRIPTION.CADUCA' | translate }} {{ cardExpiry }}</span>
+                <ng-template #noCard><span class="fact-note">{{ 'SUBSCRIPTION.CONSULTALO_EN_LA_GESTION_DE' | translate }}</span></ng-template>
               </ng-container>
-              <span class="fact-note" *ngSwitchDefault>No disponible ahora</span>
+              <span class="fact-note" *ngSwitchDefault>{{ 'SUBSCRIPTION.NO_DISPONIBLE_AHORA' | translate }}</span>
             </ng-container>
-            <button type="button" class="text-button fact-action" *ngIf="portalAvailable" [disabled]="busy" (click)="openPortal()">Cambiar tarjeta</button>
+            <button type="button" class="text-button fact-action" *ngIf="portalAvailable" [disabled]="busy" (click)="openPortal()">{{ 'SUBSCRIPTION.CAMBIAR_TARJETA' | translate }}</button>
           </div>
         </div>
 
         <div class="plan-actions" *ngIf="portalAvailable || managementAvailable || legacyPlan">
           <div class="action-row">
-            <button type="button" class="secondary-button" *ngIf="changesAvailable" (click)="scrollToCatalog()" [disabled]="busy">Cambiar de plan</button>
+            <button type="button" class="secondary-button" *ngIf="changesAvailable" (click)="scrollToCatalog()" [disabled]="busy">{{ 'SUBSCRIPTION.CAMBIAR_DE_PLAN' | translate }}</button>
             <button type="button" class="secondary-button" *ngIf="portalAvailable" (click)="openPortal()" [disabled]="busy" [attr.aria-busy]="portalBusy">
-              <ion-icon name="open-outline" aria-hidden="true"></ion-icon>{{ portalBusy ? 'Abriendo…' : 'Facturación en Stripe' }}
+              <ion-icon name="open-outline" aria-hidden="true"></ion-icon>{{ portalBusy ? ('SUBSCRIPTION.ABRIENDO' | translate) : ('SUBSCRIPTION.FACTURACION_EN_STRIPE' | translate) }}
             </button>
-            <button type="button" class="text-button" *ngIf="managementAvailable" (click)="retrySync()" [disabled]="busy">Actualizar estado</button>
-            <button type="button" class="text-button" *ngIf="legacyPlan" (click)="goToAccount()">Contactar desde Configuración</button>
+            <button type="button" class="text-button" *ngIf="managementAvailable" (click)="retrySync()" [disabled]="busy">{{ 'SUBSCRIPTION.ACTUALIZAR_ESTADO' | translate }}</button>
+            <button type="button" class="text-button" *ngIf="legacyPlan" (click)="goToAccount()">{{ 'SUBSCRIPTION.CONTACTAR_DESDE_CONFIGURACION' | translate }}</button>
           </div>
-          <button type="button" class="text-button cancel-button" *ngIf="canManage('canCancel')" (click)="openManagementDialog('cancel')" [disabled]="busy">Cancelar renovación</button>
+          <button type="button" class="text-button cancel-button" *ngIf="canManage('canCancel')" (click)="openManagementDialog('cancel')" [disabled]="busy">{{ 'SUBSCRIPTION.CANCELAR_RENOVACION' | translate }}</button>
         </div>
       </section>
 
       <section class="seats" *ngIf="seats?.overLimit && seats as seatInfo" aria-labelledby="seats-title">
-        <h2 id="seats-title">Elige tus {{ seatInfo.limit }} clientes activos</h2>
-        <p class="secondary-copy">Tienes {{ seatInfo.clients.length }} clientes y tu plan admite {{ seatInfo.limit }} activos. Los demás quedan en <strong>solo lectura</strong>: puedes consultar su historial, pero no asignarles rutinas, dietas ni check-ins. No se borra nada; al mejorar tu plan vuelven a estar activos.</p>
-        <p class="secondary-copy" *ngIf="seatInfo.autoSelected && !seatInfo.lockedUntil">Hasta que elijas, siguen activos tus clientes más antiguos. Después podrás cambiar tu elección una vez cada 30 días.</p>
-        <p class="secondary-copy" *ngIf="seatInfo.lockedUntil">Podrás cambiar tus clientes activos a partir del <strong>{{ formatDate(seatInfo.lockedUntil) }}</strong>. Si necesitas más ahora, mejora tu plan.</p>
+        <h2 id="seats-title">{{ 'SUBSCRIPTION.ELIGE_TUS' | translate }} {{ seatInfo.limit }} {{ 'SUBSCRIPTION.CLIENTES_ACTIVOS' | translate }}</h2>
+        <p class="secondary-copy">{{ 'SUBSCRIPTION.TIENES' | translate }} {{ seatInfo.clients.length }} {{ 'SUBSCRIPTION.CLIENTES_TU_PLAN_ADMITE' | translate }} {{ seatInfo.limit }} {{ 'SUBSCRIPTION.ACTIVOS_LOS_DEMAS_QUEDAN_EN' | translate }} <strong>{{ 'SUBSCRIPTION.SOLO_LECTURA' | translate }}</strong>{{ 'SUBSCRIPTION.PUEDES_CONSULTAR_SU_HISTORIAL_PERO' | translate }}</p>
+        <p class="secondary-copy" *ngIf="seatInfo.autoSelected && !seatInfo.lockedUntil">{{ 'SUBSCRIPTION.HASTA_QUE_ELIJAS_SIGUEN_ACTIVOS' | translate }}</p>
+        <p class="secondary-copy" *ngIf="seatInfo.lockedUntil">{{ 'SUBSCRIPTION.PODRAS_CAMBIAR_TUS_CLIENTES_ACTIVOS' | translate }} <strong>{{ formatDate(seatInfo.lockedUntil) }}</strong>{{ 'SUBSCRIPTION.SI_NECESITAS_MAS_AHORA_MEJORA' | translate }}</p>
         <fieldset class="seat-list" [disabled]="seatsBusy || !!seatInfo.lockedUntil">
-          <legend class="visually-hidden">Clientes activos ({{ seatSelection.size }} de {{ seatInfo.limit }})</legend>
+          <legend class="visually-hidden">{{ 'SUBSCRIPTION.CLIENTES_ACTIVOS_2' | translate }}{{ seatSelection.size }} {{ 'SUBSCRIPTION.DE_2' | translate }} {{ seatInfo.limit }})</legend>
           <label class="seat-row" *ngFor="let client of seatInfo.clients; trackBy: trackBySeat" [class.selected]="seatSelection.has(client.clientId)">
             <input type="checkbox" [checked]="seatSelection.has(client.clientId)"
                    [disabled]="!seatSelection.has(client.clientId) && seatSelection.size >= (seatInfo.limit || 0)"
                    (change)="toggleSeat(client.clientId)" />
-            <span class="seat-name">{{ client.name || client.email || 'Cliente' }}<span *ngIf="client.name && client.email">{{ client.email }}</span></span>
-            <span class="seat-state">{{ seatSelection.has(client.clientId) ? 'Activo' : 'Solo lectura' }}</span>
+            <span class="seat-name">{{ client.name || client.email || ('TRAINER_COMMON.CLIENT' | translate) }}<span *ngIf="client.name && client.email">{{ client.email }}</span></span>
+            <span class="seat-state">{{ seatSelection.has(client.clientId) ? ('SUBSCRIPTION.ACTIVO' | translate) : ('SUBSCRIPTION.SOLO_LECTURA_2' | translate) }}</span>
           </label>
         </fieldset>
         <div class="seat-footer">
-          <span class="seat-count" aria-live="polite">{{ seatSelection.size }} de {{ seatInfo.limit }} elegidos</span>
-          <button type="button" class="primary-button" *ngIf="!seatInfo.lockedUntil" [disabled]="seatsBusy || !seatsChanged || !seatSelection.size" (click)="saveSeats()">{{ seatsBusy ? 'Guardando…' : 'Guardar clientes activos' }}</button>
+          <span class="seat-count" aria-live="polite">{{ seatSelection.size }} {{ 'SUBSCRIPTION.DE_2' | translate }} {{ seatInfo.limit }} {{ 'SUBSCRIPTION.ELEGIDOS' | translate }}</span>
+          <button type="button" class="primary-button" *ngIf="!seatInfo.lockedUntil" [disabled]="seatsBusy || !seatsChanged || !seatSelection.size" (click)="saveSeats()">{{ seatsBusy ? ('COMMON.SAVING' | translate) : ('SUBSCRIPTION.GUARDAR_CLIENTES_ACTIVOS' | translate) }}</button>
         </div>
         <p class="feedback" *ngIf="seatsFeedback" role="status"><ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>{{ seatsFeedback }}</p>
         <p class="error-message" *ngIf="seatsError" role="alert">{{ seatsError }}</p>
@@ -159,58 +159,58 @@
       <section class="catalog" aria-labelledby="catalog-title">
         <div class="catalog-heading">
           <div>
-            <h2 id="catalog-title">{{ entitlements.isPremium ? 'Cambiar de plan' : 'Elige tu plan' }}</h2>
-            <p class="catalog-description">Todos incluyen entrenamiento, nutrición, seguimiento y la app para tus clientes. Cambia el número de clientes.</p>
+            <h2 id="catalog-title">{{ entitlements.isPremium ? ('SUBSCRIPTION.CAMBIAR_DE_PLAN' | translate) : ('SUBSCRIPTION.ELIGE_TU_PLAN' | translate) }}</h2>
+            <p class="catalog-description">{{ 'SUBSCRIPTION.TODOS_INCLUYEN_ENTRENAMIENTO_NUTRICION_S' | translate }}</p>
           </div>
-          <div class="billing-interval" role="group" aria-label="Periodicidad del pago" *ngIf="plans.length">
-            <button type="button" [class.selected]="interval === 'monthly'" [attr.aria-pressed]="interval === 'monthly'" [disabled]="busy" (click)="selectInterval('monthly')">Mensual</button>
-            <button type="button" [class.selected]="interval === 'annual'" [attr.aria-pressed]="interval === 'annual'" [disabled]="busy" (click)="selectInterval('annual')">Anual<span class="interval-saving" *ngIf="annualSavingLabel as saving">{{ saving }}</span></button>
+          <div class="billing-interval" role="group" [attr.aria-label]="'SUBSCRIPTION.PERIODICIDAD_DEL_PAGO' | translate" *ngIf="plans.length">
+            <button type="button" [class.selected]="interval === 'monthly'" [attr.aria-pressed]="interval === 'monthly'" [disabled]="busy" (click)="selectInterval('monthly')">{{ 'SUBSCRIPTION.MENSUAL' | translate }}</button>
+            <button type="button" [class.selected]="interval === 'annual'" [attr.aria-pressed]="interval === 'annual'" [disabled]="busy" (click)="selectInterval('annual')">{{ 'SUBSCRIPTION.ANUAL' | translate }}<span class="interval-saving" *ngIf="annualSavingLabel as saving">{{ saving }}</span></button>
           </div>
         </div>
 
         <div class="notice" *ngIf="catalogError" role="alert">
-          <strong>No se pudieron cargar los planes</strong><p>Puedes seguir gestionando tu suscripción actual.</p>
-          <button type="button" class="secondary-button" [disabled]="busy" (click)="reloadCatalog()">Volver a cargar los planes</button>
+          <strong>{{ 'SUBSCRIPTION.NO_SE_PUDIERON_CARGAR_LOS' | translate }}</strong><p>{{ 'SUBSCRIPTION.PUEDES_SEGUIR_GESTIONANDO_TU_SUSCRIPCION' | translate }}</p>
+          <button type="button" class="secondary-button" [disabled]="busy" (click)="reloadCatalog()">{{ 'SUBSCRIPTION.VOLVER_CARGAR_LOS_PLANES' | translate }}</button>
         </div>
-        <p class="secondary-copy" *ngIf="managementAvailable && !canManage('canChange') && !pendingChange && !pendingPayment && !entitlements.cancelAtPeriodEnd">Los cambios de plan no están disponibles con el estado actual de tu suscripción. Revisa los pagos o actualiza el estado.</p>
+        <p class="secondary-copy" *ngIf="managementAvailable && !canManage('canChange') && !pendingChange && !pendingPayment && !entitlements.cancelAtPeriodEnd">{{ 'SUBSCRIPTION.LOS_CAMBIOS_DE_PLAN_NO' | translate }}</p>
 
         <div class="plans-list">
           <article class="plan-option" [class.current]="entitlements.tier === 'free'">
-            <div class="plan-heading"><h3>Free</h3><span class="plan-chip" *ngIf="entitlements.tier === 'free'">Plan actual</span></div>
-            <p class="plan-capacity">3 <span>clientes</span></p>
-            <p class="plan-price">0 €<span> /mes</span></p>
-            <p class="plan-note" *ngIf="entitlements.isPremium">Disponible al finalizar tu suscripción.</p>
+            <div class="plan-heading"><h3>{{ 'SUBSCRIPTION.FREE' | translate }}</h3><span class="plan-chip" *ngIf="entitlements.tier === 'free'">{{ 'SUBSCRIPTION.PLAN_ACTUAL' | translate }}</span></div>
+            <p class="plan-capacity">3 <span>{{ 'SUBSCRIPTION.CLIENTES' | translate }}</span></p>
+            <p class="plan-price">0 €<span> {{ 'SUBSCRIPTION.MES' | translate }}</span></p>
+            <p class="plan-note" *ngIf="entitlements.isPremium">{{ 'SUBSCRIPTION.DISPONIBLE_AL_FINALIZAR_TU_SUSCRIPCION' | translate }}</p>
           </article>
           <article class="plan-option" *ngFor="let card of planCards; trackBy: trackByTier" [class.current]="card.current" [class.scheduled]="card.scheduled">
             <div class="plan-heading">
               <h3>{{ card.name }}</h3>
-              <span class="plan-chip" *ngIf="card.current">Plan actual</span>
-              <span class="plan-chip neutral" *ngIf="card.scheduled">Programado</span>
+              <span class="plan-chip" *ngIf="card.current">{{ 'SUBSCRIPTION.PLAN_ACTUAL' | translate }}</span>
+              <span class="plan-chip neutral" *ngIf="card.scheduled">{{ 'SUBSCRIPTION.PROGRAMADO' | translate }}</span>
             </div>
-            <p class="plan-capacity">{{ card.plan.clientLimit }} <span>clientes</span></p>
-            <p class="plan-price">{{ card.price }}<span> /{{ intervalLabel(interval) }}<ng-container *ngIf="pricesExcludeTax"> + IVA</ng-container></span></p>
-            <p class="plan-note" *ngIf="card.perMonth">Equivale a {{ card.perMonth }} /mes<span class="plan-saving" *ngIf="card.annualSaving"> · ahorras {{ card.annualSaving }}</span></p>
+            <p class="plan-capacity">{{ card.plan.clientLimit }} <span>{{ 'SUBSCRIPTION.CLIENTES' | translate }}</span></p>
+            <p class="plan-price">{{ card.price }}<span> /{{ intervalLabel(interval) }}<ng-container *ngIf="pricesExcludeTax"> {{ 'SUBSCRIPTION.IVA' | translate }}</ng-container></span></p>
+            <p class="plan-note" *ngIf="card.perMonth">{{ 'SUBSCRIPTION.EQUIVALE' | translate }} {{ card.perMonth }} {{ 'SUBSCRIPTION.MES' | translate }}<span class="plan-saving" *ngIf="card.annualSaving"> · {{ 'SUBSCRIPTION.AHORRAS' | translate }} {{ card.annualSaving }}</span></p>
             <p class="plan-restriction" *ngIf="card.blockReason">{{ card.blockReason }}</p>
             <button type="button" class="plan-button" *ngIf="card.action" [class.secondary]="card.action === 'keep'"
                     [disabled]="busy || !!card.blockReason" [attr.aria-busy]="checkoutTier === card.plan.tier" (click)="selectPlan(card.plan)">
-              {{ checkoutTier === card.plan.tier ? 'Abriendo el pago…' : card.actionLabel }}
+              {{ checkoutTier === card.plan.tier ? ('SUBSCRIPTION.ABRIENDO_EL_PAGO' | translate) : card.actionLabel }}
             </button>
           </article>
         </div>
-        <p class="secondary-copy catalog-footnote" *ngIf="changesAvailable">Antes de confirmar verás cuánto se cobra, cuándo se aplica y cómo cambia tu cupo.</p>
+        <p class="secondary-copy catalog-footnote" *ngIf="changesAvailable">{{ 'SUBSCRIPTION.ANTES_DE_CONFIRMAR_VERAS_CUANTO' | translate }}</p>
       </section>
 
       <section class="invoices" *ngIf="billingDetailsState !== 'idle'" aria-labelledby="invoices-title">
         <div class="invoices-heading">
-          <h2 id="invoices-title">Historial de facturas</h2>
-          <button type="button" class="text-button" *ngIf="portalAvailable && invoiceRows.length" [disabled]="busy" (click)="openPortal()">Ver todas en Stripe</button>
+          <h2 id="invoices-title">{{ 'SUBSCRIPTION.HISTORIAL_DE_FACTURAS' | translate }}</h2>
+          <button type="button" class="text-button" *ngIf="portalAvailable && invoiceRows.length" [disabled]="busy" (click)="openPortal()">{{ 'SUBSCRIPTION.VER_TODAS_EN_STRIPE' | translate }}</button>
         </div>
-        <div class="detail-skeleton" *ngIf="billingDetailsState === 'loading'" aria-label="Cargando facturas" aria-busy="true"><div class="skeleton-block invoice-skeleton"></div></div>
+        <div class="detail-skeleton" *ngIf="billingDetailsState === 'loading'" [attr.aria-label]="'SUBSCRIPTION.CARGANDO_FACTURAS' | translate" aria-busy="true"><div class="skeleton-block invoice-skeleton"></div></div>
         <div class="notice" *ngIf="billingDetailsState === 'error'" role="status">
-          <strong>No se pudieron cargar tus facturas</strong><p>Tu suscripción no se ve afectada.</p>
-          <button type="button" class="secondary-button" [disabled]="busy" (click)="loadBillingDetails()">Reintentar</button>
+          <strong>{{ 'SUBSCRIPTION.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</strong><p>{{ 'SUBSCRIPTION.TU_SUSCRIPCION_NO_SE_VE' | translate }}</p>
+          <button type="button" class="secondary-button" [disabled]="busy" (click)="loadBillingDetails()">{{ 'COMMON.RETRY' | translate }}</button>
         </div>
-        <p class="secondary-copy" *ngIf="billingDetailsState === 'loaded' && !invoiceRows.length">Aún no hay facturas. Aparecerán aquí después de cada cobro.</p>
+        <p class="secondary-copy" *ngIf="billingDetailsState === 'loaded' && !invoiceRows.length">{{ 'SUBSCRIPTION.AUN_NO_HAY_FACTURAS_APARECERAN' | translate }}</p>
         <ul class="invoice-list" *ngIf="billingDetailsState === 'loaded' && invoiceRows.length">
           <li class="invoice-row" *ngFor="let row of invoiceRows; trackBy: trackByInvoice">
             <div class="invoice-main">
@@ -220,8 +220,8 @@
             <span class="invoice-amount">{{ row.amount }}</span>
             <span class="status-pill" [attr.data-tone]="row.status.tone">{{ row.status.label }}</span>
             <span class="invoice-links">
-              <a *ngIf="row.invoice.hostedUrl" [href]="row.invoice.hostedUrl" target="_blank" rel="noopener noreferrer">{{ row.linkLabel }}<span class="visually-hidden"> factura del {{ row.date }}</span></a>
-              <a *ngIf="row.invoice.pdfUrl" [href]="row.invoice.pdfUrl" target="_blank" rel="noopener noreferrer">PDF<span class="visually-hidden"> de la factura del {{ row.date }}</span></a>
+              <a *ngIf="row.invoice.hostedUrl" [href]="row.invoice.hostedUrl" target="_blank" rel="noopener noreferrer">{{ row.linkLabel }}<span class="visually-hidden"> {{ 'SUBSCRIPTION.FACTURA_DEL' | translate }} {{ row.date }}</span></a>
+              <a *ngIf="row.invoice.pdfUrl" [href]="row.invoice.pdfUrl" target="_blank" rel="noopener noreferrer">{{ 'SUBSCRIPTION.PDF' | translate }}<span class="visually-hidden"> {{ 'SUBSCRIPTION.DE_LA_FACTURA_DEL' | translate }} {{ row.date }}</span></a>
             </span>
           </li>
         </ul>
@@ -234,94 +234,94 @@
       <ion-header class="ion-no-border">
         <div class="dialog-header">
           <h2 id="billing-dialog-title">{{ dialogTitle }}</h2>
-          <button type="button" class="close-button" aria-label="Cerrar confirmación" [disabled]="managementBusy || previewBusy" (click)="closeDialog()"><ion-icon name="close-outline" aria-hidden="true"></ion-icon></button>
+          <button type="button" class="close-button" [attr.aria-label]="'SUBSCRIPTION.CERRAR_CONFIRMACION' | translate" [disabled]="managementBusy || previewBusy" (click)="closeDialog()"><ion-icon name="close-outline" aria-hidden="true"></ion-icon></button>
         </div>
       </ion-header>
       <ion-content class="dialog-content">
         <div class="dialog-body" [attr.aria-busy]="managementBusy || previewBusy">
-          <div class="detail-skeleton" *ngIf="previewBusy" aria-label="Calculando cambio de plan"><div class="skeleton-block skeleton-route"></div><div class="skeleton-block skeleton-section"></div></div>
+          <div class="detail-skeleton" *ngIf="previewBusy" [attr.aria-label]="'SUBSCRIPTION.CALCULANDO_CAMBIO_DE_PLAN' | translate"><div class="skeleton-block skeleton-route"></div><div class="skeleton-block skeleton-section"></div></div>
 
           <ng-container *ngIf="dialog === 'change' && quote as change">
             <!-- Origen → destino, con la fecha en la que se produce. -->
             <div class="change-route">
               <div class="route-plan">
-                <span class="route-when">Ahora</span>
+                <span class="route-when">{{ 'SUBSCRIPTION.AHORA' | translate }}</span>
                 <strong>{{ planLabel(change.from.tier, change.from.interval) }}</strong>
-                <span>{{ change.from.clientLimit }} clientes · {{ tariff(change.from.amount, change.from.interval, change.currency) }}</span>
+                <span>{{ change.from.clientLimit }} {{ 'SUBSCRIPTION.CLIENTES' | translate }} · {{ tariff(change.from.amount, change.from.interval, change.currency) }}</span>
               </div>
-              <ion-icon class="route-arrow" name="arrow-forward-outline" aria-label="pasa a"></ion-icon>
+              <ion-icon class="route-arrow" name="arrow-forward-outline" [attr.aria-label]="'SUBSCRIPTION.PASA' | translate"></ion-icon>
               <div class="route-plan to">
-                <span class="route-when">{{ change.kind === 'immediate' ? 'Hoy, al pagar' : formatDate(change.effectiveAt) }}</span>
+                <span class="route-when">{{ change.kind === 'immediate' ? ('SUBSCRIPTION.HOY_AL_PAGAR' | translate) : formatDate(change.effectiveAt) }}</span>
                 <strong>{{ planLabel(change.to.tier, change.to.interval) }}</strong>
-                <span>{{ change.to.clientLimit }} clientes · {{ tariff(change.to.amount, change.to.interval, change.currency) }}</span>
+                <span>{{ change.to.clientLimit }} {{ 'SUBSCRIPTION.CLIENTES' | translate }} · {{ tariff(change.to.amount, change.to.interval, change.currency) }}</span>
               </div>
             </div>
-            <p class="replace-note" *ngIf="pendingChange as scheduled">Sustituye al cambio ya programado a {{ planLabel(scheduled.tier, scheduled.interval) }}.</p>
+            <p class="replace-note" *ngIf="pendingChange as scheduled">{{ 'SUBSCRIPTION.SUSTITUYE_AL_CAMBIO_YA_PROGRAMADO' | translate }} {{ planLabel(scheduled.tier, scheduled.interval) }}.</p>
 
             <dl class="change-details">
               <div class="quote-line" *ngFor="let line of change.lines || []; trackBy: trackByIndex">
                 <dt>{{ lineLabel(line) }}<span>{{ formatDate(line.periodStart, false) }} – {{ formatDate(line.periodEnd) }}</span></dt>
                 <dd>{{ formatAmount(line.amount, change.currency) }}</dd>
               </div>
-              <div class="quote-line" *ngIf="change.taxAmount"><dt>IVA</dt><dd>{{ formatAmount(change.taxAmount, change.currency) }}</dd></div>
+              <div class="quote-line" *ngIf="change.taxAmount"><dt>{{ 'SUBSCRIPTION.IVA_2' | translate }}</dt><dd>{{ formatAmount(change.taxAmount, change.currency) }}</dd></div>
               <div class="amount-due">
-                <dt>A pagar ahora<span>{{ change.kind === 'immediate' ? 'Importe exacto de Stripe, válido 5 minutos' : 'Sin cobro hasta la fecha del cambio' }}</span></dt>
+                <dt>{{ 'SUBSCRIPTION.PAGAR_AHORA' | translate }}<span>{{ change.kind === 'immediate' ? ('SUBSCRIPTION.IMPORTE_EXACTO_DE_STRIPE_VALIDO' | translate) : ('SUBSCRIPTION.SIN_COBRO_HASTA_LA_FECHA' | translate) }}</span></dt>
                 <dd>{{ stripeAmount(change.amountDueNow, change.currency) }}</dd>
               </div>
-              <div *ngIf="change.creditBalance"><dt>Saldo a favor</dt><dd>{{ formatAmount(change.creditBalance, change.currency) }}</dd></div>
+              <div *ngIf="change.creditBalance"><dt>{{ 'SUBSCRIPTION.SALDO_FAVOR' | translate }}</dt><dd>{{ formatAmount(change.creditBalance, change.currency) }}</dd></div>
               <div>
-                <dt>Siguiente cargo{{ change.nextRenewal.estimated ? ' (estimado)' : '' }}<span>{{ formatDate(change.nextRenewal.at) }}</span></dt>
+                <dt>{{ 'TRAINER_MISC.SIGUIENTE_CARGO' | translate }}{{ change.nextRenewal.estimated ? ' (' + ('TRAINER_MISC.ESTIMATED' | translate) + ')' : '' }}<span>{{ formatDate(change.nextRenewal.at) }}</span></dt>
                 <dd>{{ recurring(change.nextRenewal.amount, change.to.interval, change.currency) }}{{ change.nextRenewal.excludesTax ? ' + IVA' : (pricesExcludeTax ? ' (IVA incluido)' : '') }}</dd>
               </div>
             </dl>
 
             <div class="delayed-upgrade" *ngIf="delayedUpgrade">
-              <p>Al pasar de anual a mensual, el cambio espera al final de tu año pagado: hasta el {{ formatDate(change.effectiveAt) }} sigues con {{ change.from.clientLimit }} clientes.</p>
-              <button type="button" class="text-button" [disabled]="busy" (click)="previewAnnualInstead()">¿Necesitas el cupo ya? Ver {{ planNames[change.to.tier] }} anual, que se aplica hoy</button>
+              <p>{{ 'SUBSCRIPTION.AL_PASAR_DE_ANUAL_MENSUAL' | translate }} {{ formatDate(change.effectiveAt) }} {{ 'SUBSCRIPTION.SIGUES_CON' | translate }} {{ change.from.clientLimit }} {{ 'SUBSCRIPTION.CLIENTES_2' | translate }}</p>
+              <button type="button" class="text-button" [disabled]="busy" (click)="previewAnnualInstead()">{{ 'SUBSCRIPTION.NECESITAS_EL_CUPO_YA_VER' | translate }} {{ planNames[change.to.tier] }} {{ 'SUBSCRIPTION.ANUAL_QUE_SE_APLICA_HOY' | translate }}</button>
             </div>
             <ul class="consequences">
-              <li *ngIf="change.kind === 'immediate'">El nuevo cupo estará disponible en cuanto se confirme el pago. El importe descuenta el tiempo no usado de tu plan actual.</li>
-              <li *ngIf="change.kind === 'scheduled'">Hasta esa fecha conservas tu plan y tu cupo actuales. Puedes descartar el cambio antes de que se aplique.</li>
-              <li *ngIf="change.kind === 'scheduled' && change.to.clientLimit < change.from.clientLimit">Desde hoy las nuevas altas se limitan a {{ change.to.clientLimit }} clientes. Tus clientes actuales no se tocan.</li>
-              <li *ngIf="change.creditBalance">El saldo a favor se descontará de próximas facturas; no se devuelve a tu tarjeta.</li>
-              <li *ngIf="entitlements?.billing?.mode === 'test'">Entorno de pruebas: importes sin impuestos.</li>
+              <li *ngIf="change.kind === 'immediate'">{{ 'SUBSCRIPTION.EL_NUEVO_CUPO_ESTARA_DISPONIBLE' | translate }}</li>
+              <li *ngIf="change.kind === 'scheduled'">{{ 'SUBSCRIPTION.HASTA_ESA_FECHA_CONSERVAS_TU' | translate }}</li>
+              <li *ngIf="change.kind === 'scheduled' && change.to.clientLimit < change.from.clientLimit">{{ 'SUBSCRIPTION.DESDE_HOY_LAS_NUEVAS_ALTAS' | translate }} {{ change.to.clientLimit }} {{ 'SUBSCRIPTION.CLIENTES_TUS_CLIENTES_ACTUALES_NO' | translate }}</li>
+              <li *ngIf="change.creditBalance">{{ 'SUBSCRIPTION.EL_SALDO_FAVOR_SE_DESCONTARA' | translate }}</li>
+              <li *ngIf="entitlements?.billing?.mode === 'test'">{{ 'SUBSCRIPTION.ENTORNO_DE_PRUEBAS_IMPORTES_SIN' | translate }}</li>
             </ul>
           </ng-container>
 
           <ng-container *ngIf="dialog === 'cancel' && entitlements">
-            <p>Tu suscripción no volverá a renovarse. Conservas {{ currentPlanName }} hasta el <strong>{{ formatDate(accessUntil) }}</strong> y no se te cobrará nada más.</p>
+            <p>{{ 'SUBSCRIPTION.TU_SUSCRIPCION_NO_VOLVERA_RENOVARSE' | translate }} {{ currentPlanName }} {{ 'SUBSCRIPTION.HASTA_EL' | translate }} <strong>{{ formatDate(accessUntil) }}</strong> {{ 'SUBSCRIPTION.NO_SE_TE_COBRARA_NADA' | translate }}</p>
             <ul class="consequences">
-              <li>Después pasarás a Free: 3 clientes activos y el resto en solo lectura. No se borra nada.</li>
-              <li *ngIf="entitlements.usage.clients > 3">Tienes {{ entitlements.usage.clients }} clientes: podrás elegir cuáles 3 siguen activos.</li>
-              <li *ngIf="pendingChange || pendingPayment">El cambio de plan pendiente se descartará.</li>
-              <li>Puedes mantener tu suscripción hasta que termine el periodo pagado.</li>
+              <li>{{ 'SUBSCRIPTION.DESPUES_PASARAS_FREE_3_CLIENTES' | translate }}</li>
+              <li *ngIf="entitlements.usage.clients > 3">{{ 'SUBSCRIPTION.TIENES' | translate }} {{ entitlements.usage.clients }} {{ 'SUBSCRIPTION.CLIENTES_PODRAS_ELEGIR_CUALES_3' | translate }}</li>
+              <li *ngIf="pendingChange || pendingPayment">{{ 'SUBSCRIPTION.EL_CAMBIO_DE_PLAN_PENDIENTE' | translate }}</li>
+              <li>{{ 'SUBSCRIPTION.PUEDES_MANTENER_TU_SUSCRIPCION_HASTA' | translate }}</li>
             </ul>
           </ng-container>
 
           <ng-container *ngIf="dialog === 'resume'">
-            <p>Tu plan {{ currentPlanName }} volverá a renovarse el <strong>{{ formatDate(accessUntil) }}</strong><ng-container *ngIf="currentPrice as price"> por {{ tariff(price.amount, price.interval) }}</ng-container>.</p>
-            <p class="secondary-copy">No se recuperan los cambios de plan descartados al cancelar.</p>
+            <p>{{ 'SUBSCRIPTION.TU_PLAN' | translate }} {{ currentPlanName }} {{ 'SUBSCRIPTION.VOLVERA_RENOVARSE_EL' | translate }} <strong>{{ formatDate(accessUntil) }}</strong><ng-container *ngIf="currentPrice as price"> {{ 'SUBSCRIPTION.POR' | translate }} {{ tariff(price.amount, price.interval) }}</ng-container>.</p>
+            <p class="secondary-copy">{{ 'SUBSCRIPTION.NO_SE_RECUPERAN_LOS_CAMBIOS' | translate }}</p>
           </ng-container>
 
           <ng-container *ngIf="dialog === 'discard'">
-            <p>Conservarás tu plan {{ currentPlanName }}<ng-container *ngIf="currentPrice as price"> {{ intervalNames[price.interval] }}. El {{ formatDate(accessUntil) }} se renovará por {{ tariff(price.amount, price.interval) }}</ng-container>.</p>
-            <p *ngIf="pendingPayment">No se te cobrará el cambio pendiente: su factura se anula.</p>
-            <p class="secondary-copy">Podrás solicitar otro cambio cuando lo necesites.</p>
+            <p>{{ 'SUBSCRIPTION.CONSERVARAS_TU_PLAN' | translate }} {{ currentPlanName }}<ng-container *ngIf="currentPrice as price"> {{ intervalNames[price.interval] }}{{ 'SUBSCRIPTION.EL' | translate }} {{ formatDate(accessUntil) }} {{ 'SUBSCRIPTION.SE_RENOVARA_POR' | translate }} {{ tariff(price.amount, price.interval) }}</ng-container>.</p>
+            <p *ngIf="pendingPayment">{{ 'SUBSCRIPTION.NO_SE_TE_COBRARA_EL' | translate }}</p>
+            <p class="secondary-copy">{{ 'SUBSCRIPTION.PODRAS_SOLICITAR_OTRO_CAMBIO_CUANDO' | translate }}</p>
           </ng-container>
 
           <p class="error-message" *ngIf="dialogError" role="alert">{{ dialogError }}</p>
-          <p class="secondary-copy" *ngIf="dialog === 'change' && quote && needsNewQuote && !dialogError" role="status">El cálculo ha caducado. Actualízalo para continuar.</p>
+          <p class="secondary-copy" *ngIf="dialog === 'change' && quote && needsNewQuote && !dialogError" role="status">{{ 'SUBSCRIPTION.EL_CALCULO_HA_CADUCADO_ACTUALIZALO' | translate }}</p>
         </div>
       </ion-content>
       <!-- Acciones fijas al pie: el importe y el botón de confirmar siempre a la vista. -->
       <ion-footer class="dialog-footer">
         <div class="dialog-actions">
-          <button type="button" class="secondary-button" [disabled]="managementBusy || previewBusy" (click)="closeDialog()">Volver</button>
+          <button type="button" class="secondary-button" [disabled]="managementBusy || previewBusy" (click)="closeDialog()">{{ 'COMMON.GO_BACK' | translate }}</button>
           <ng-container *ngIf="dialog === 'change'">
-            <button type="button" class="primary-button" *ngIf="!previewBusy && (!quote || needsNewQuote)" [disabled]="busy" (click)="requestPreview()">Actualizar cálculo</button>
+            <button type="button" class="primary-button" *ngIf="!previewBusy && (!quote || needsNewQuote)" [disabled]="busy" (click)="requestPreview()">{{ 'SUBSCRIPTION.ACTUALIZAR_CALCULO' | translate }}</button>
             <button type="button" class="primary-button" *ngIf="quote && !needsNewQuote" [disabled]="!canConfirmQuote" (click)="confirmPlanChange()">{{ confirmLabel }}</button>
           </ng-container>
-          <button type="button" class="primary-button" [class.destructive-button]="dialog === 'cancel'" *ngIf="dialog && dialog !== 'change'" [disabled]="busy" (click)="confirmManagementAction()">{{ managementBusy ? 'Confirmando…' : dialogTitle }}</button>
+          <button type="button" class="primary-button" [class.destructive-button]="dialog === 'cancel'" *ngIf="dialog && dialog !== 'change'" [disabled]="busy" (click)="confirmManagementAction()">{{ managementBusy ? ('SUBSCRIPTION.CONFIRMANDO' | translate) : dialogTitle }}</button>
         </div>
       </ion-footer>
     </ng-template>

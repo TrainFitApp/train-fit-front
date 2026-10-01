@@ -1,9 +1,9 @@
 <div class="day-detail">
   <div class="day-detail__header">
-    <span class="day-detail__date">{{ date | date: 'EEEE d MMM y' }}</span>
-    <button type="button" class="day-detail__close" (click)="close.emit()" aria-label="Volver a la comparativa">
+    <span class="day-detail__date">{{ date | localDate: 'EEEE d MMM y' }}</span>
+    <button type="button" class="day-detail__close" (click)="close.emit()" [attr.aria-label]="'CLIENTS.VOLVER_LA_COMPARATIVA' | translate">
       <ion-icon name="close-outline"></ion-icon>
-      Volver
+      {{ 'COMMON.GO_BACK' | translate }}
     </button>
   </div>
 
@@ -29,9 +29,9 @@
       </div>
 
       <div class="history-meta" *ngIf="s.workout.readinessPre || s.workout.perceivedEffortPost || s.sorenessText">
-        <span class="pulse-badge" *ngIf="s.workout.readinessPre">Readiness {{ s.workout.readinessPre }}/5</span>
-        <span class="pulse-badge" *ngIf="s.workout.perceivedEffortPost">Esfuerzo {{ s.workout.perceivedEffortPost }}/5</span>
-        <span class="pulse-badge" *ngIf="s.sorenessText">Agujetas al llegar: {{ s.sorenessText }}</span>
+        <span class="pulse-badge" *ngIf="s.workout.readinessPre">{{ 'CLIENT_DETAIL.READINESS' | translate }} {{ s.workout.readinessPre }}/5</span>
+        <span class="pulse-badge" *ngIf="s.workout.perceivedEffortPost">{{ 'CLIENT_DETAIL.EFFORT' | translate }} {{ s.workout.perceivedEffortPost }}/5</span>
+        <span class="pulse-badge" *ngIf="s.sorenessText">{{ 'CLIENTS.AGUJETAS_AL_LLEGAR' | translate }}: {{ s.sorenessText }}</span>
       </div>
     </div>
   </ng-container>
@@ -39,15 +39,15 @@
   <ng-template #emptyState>
     <div class="day-detail__empty" *ngIf="projectedDay as p; else noPlan">
       <ion-icon [name]="p.isPlannedRestDay ? 'moon-outline' : 'time-outline'"></ion-icon>
-      <p *ngIf="p.isPlannedRestDay">Descanso previsto — sin sesión este día.</p>
+      <p *ngIf="p.isPlannedRestDay">{{ 'CLIENTS.DESCANSO_PREVISTO_SIN_SESION_ESTE' | translate }}</p>
       <p *ngIf="!p.isPlannedRestDay">
-        Previsto: {{ p.name }}<ng-container *ngIf="p.phaseName"> · {{ p.phaseName }}</ng-container> — todavía sin registrar.
+        {{ 'CLIENTS.PREVISTO' | translate }}: {{ p.name }}<ng-container *ngIf="p.phaseName"> · {{ p.phaseName }}</ng-container> {{ 'CLIENTS.TODAVIA_SIN_REGISTRAR' | translate }}
       </p>
     </div>
     <ng-template #noPlan>
       <div class="day-detail__empty">
         <ion-icon name="calendar-clear-outline"></ion-icon>
-        <p>Sin actividad registrada este día.</p>
+        <p>{{ 'CLIENTS.SIN_ACTIVIDAD_REGISTRADA_ESTE_DIA' | translate }}</p>
       </div>
     </ng-template>
   </ng-template>

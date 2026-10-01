@@ -351,7 +351,7 @@
                 >{{ objetiveSelected.name | translate }}</ion-label
               >
               <p class="info-description">
-                {{ 'EDITOR.OBJECTIVE_DESC' | translate:{ key: objetiveSelected.key } }}
+                {{ 'EDITOR.OBJECTIVE_DESC' | translate:{ key: ('OBJETIVES.KEYWORD_' + objetiveSelected.id | translate) } }}
                 <ng-container
                   *ngIf="objetiveSelected.key !== OBJETIVES[OBJETIVE_TYPES.maintenance].key"
                 >

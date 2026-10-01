@@ -6,6 +6,7 @@ import { MediaApiService } from 'src/app/core/services/media/media-api.service';
 import { mediaErrorKey } from 'src/app/core/services/media/media-errors';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TechniqueVideoEditorComponent } from './technique-video-editor.component';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 /**
  * Biblioteca de vídeos de técnica: vídeos subidos o enlaces de YouTube y
@@ -59,8 +60,8 @@ export class TechniqueVideosPage {
 
   public formatBytes(bytes: number | null | undefined): string {
     const value = Number(bytes || 0);
-    if (value >= 1024 ** 3) return `${(value / 1024 ** 3).toLocaleString('es-ES', { maximumFractionDigits: 1 })} GB`;
-    return `${Math.round(value / 1024 ** 2).toLocaleString('es-ES')} MB`;
+    if (value >= 1024 ** 3) return `${(value / 1024 ** 3).toLocaleString(uiLocale(), { maximumFractionDigits: 1 })} GB`;
+    return `${Math.round(value / 1024 ** 2).toLocaleString(uiLocale())} MB`;
   }
 
   public onSearch(event: Event): void {

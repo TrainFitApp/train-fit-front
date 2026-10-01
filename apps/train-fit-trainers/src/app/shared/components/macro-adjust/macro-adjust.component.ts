@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { IonicModule } from '@ionic/angular';
 import { MacroSet } from '../../../features/diet-templates/models/diet-suggestion.model';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 export type MacroKey = keyof MacroSet;
 
@@ -31,11 +33,13 @@ export const MACRO_KCAL_TOLERANCE = 25;
 @Component({
   selector: 'app-macro-adjust',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './macro-adjust.component.html',
   styleUrls: ['./macro-adjust.component.scss'],
 })
 export class MacroAdjustComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   // kcal de la dieta. Solo se leen: los macros tienen que cuadrar con ellas.
   @Input() public targetKcal = 0;
 
@@ -46,7 +50,7 @@ export class MacroAdjustComponent implements OnChanges {
   // Parte de las kcal que son macro (ver next-week-modal#macroRatio).
   @Input() public macroRatio = 1;
   @Input() public weightKg: number | null = null;
-  @Input() public resetLabel = 'Volver al reparto proporcional';
+  @Input() public resetLabel = this.translate.instant('SHARED_COMPONENTS.VOLVER_AL_REPARTO_PROPORCIONAL');
   // "Volver" como botón con icono en vez de enlace de texto ("Recalcular" en
   // el objetivo nutricional del cliente y en la semana siguiente).
   @Input() public resetAsButton = false;
@@ -68,9 +72,9 @@ export class MacroAdjustComponent implements OnChanges {
   // Se intentó guardar con el reparto descuadrado: el aviso pasa a error.
   public saveBlocked = false;
   public readonly macroRows: { key: MacroKey; label: string }[] = [
-    { key: 'protein', label: 'Proteína' },
-    { key: 'carbs', label: 'Carbohidratos' },
-    { key: 'fat', label: 'Grasa' },
+    { key: 'protein', label: this.translate.instant('TRAINER_COMMON.PROTEIN') },
+    { key: 'carbs', label: this.translate.instant('TRAINER_COMMON.CARBOHYDRATES') },
+    { key: 'fat', label: this.translate.instant('TRAINER_COMMON.FAT_SINGULAR') },
   ];
 
   constructor(private host: ElementRef<HTMLElement>) {}
@@ -107,8 +111,8 @@ export class MacroAdjustComponent implements OnChanges {
     const diff = this.kcalDiff;
     const amount = Math.abs(diff);
     return diff > 0
-      ? `Los macros suman ${this.macrosKcal} kcal y solo caben ${this.macroBudget}: sobran ${amount} kcal. Baja algún macro o desbloquea otro para que absorba.`
-      : `Los macros suman ${this.macrosKcal} kcal de ${this.macroBudget}: faltan ${amount} kcal. Sube algún macro o desbloquea otro para que absorba.`;
+      ? this.translate.instant('SHARED_COMPONENTS.LOS_MACROS_SUMAN_KCAL_SOLO', { macrosKcal: this.macrosKcal, macroBudget: this.macroBudget, amount })
+      : this.translate.instant('SHARED_COMPONENTS.LOS_MACROS_SUMAN_KCAL_DE', { macrosKcal: this.macrosKcal, macroBudget: this.macroBudget, amount });
   }
 
   // Para el padre antes de guardar: con el reparto descuadrado abre el
@@ -157,7 +161,7 @@ export class MacroAdjustComponent implements OnChanges {
   public pctLabel(value: number | null): string {
     if (value === null) return '';
     const rounded = Math.round(value * 10) / 10;
-    return `${rounded > 0 ? '+' : ''}${rounded.toLocaleString('es-ES', { maximumFractionDigits: 1 })} %`;
+    return `${rounded > 0 ? '+' : ''}${rounded.toLocaleString(uiLocale(), { maximumFractionDigits: 1 })} %`;
   }
 
   public toggleLock(key: MacroKey): void {

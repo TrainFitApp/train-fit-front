@@ -538,13 +538,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     // ion-alert (a diferencia del de readiness, que pasó a modal): es una
     // sola pregunta de cinco opciones, y las radios del alert la resuelven
     // sin construir una pantalla entera. Lo que faltaba eran las etiquetas.
-    const EFFORT_ANCHORS = [
-      'Muy suave, casi no me ha costado',
-      'Cómodo, podría haber hecho más',
-      'Exigente pero llevadero',
-      'Duro, he acabado justo',
-      'Al límite, no podía más',
-    ];
+    const EFFORT_ANCHORS: string[] = this.translate.instant('TABLES.EFFORT_ANCHORS');
     const inputs: AlertOptions['inputs'] = EFFORT_ANCHORS.map((anchor, index) => ({
       type: 'radio',
       label: `${index + 1} · ${anchor}`,

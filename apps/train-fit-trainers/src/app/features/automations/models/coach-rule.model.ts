@@ -1,3 +1,4 @@
+import { localizeRecord, localizeProp } from 'src/app/core/i18n/localized-catalog';
 // Fase 3 Coach Pro — espejo de components/coachRules/ (backend).
 
 export type RuleLevel = 'informative' | 'suggestion' | 'automatic';
@@ -88,6 +89,8 @@ export const RULE_LEVELS: { key: RuleLevel; label: string; description: string }
     description: 'Crea la alerta y la tarea sin preguntarte.',
   },
 ];
+RULE_LEVELS.forEach((item) => localizeProp(item, 'description', `AUTOMATIONS.LEVELS.DESC.${item.key}`));
+RULE_LEVELS.forEach((item) => localizeProp(item, 'label', `AUTOMATIONS.LEVELS.LABEL.${item.key}`));
 
 export const RULE_TRIGGERS: { key: RuleTrigger; label: string; description: string }[] = [
   { key: 'daily', label: 'Cada día', description: 'Revisa a todos tus clientes cada madrugada.' },
@@ -102,6 +105,8 @@ export const RULE_TRIGGERS: { key: RuleTrigger; label: string; description: stri
     description: 'Solo revisa a quien haya registrado medidas desde la última vez.',
   },
 ];
+RULE_TRIGGERS.forEach((item) => localizeProp(item, 'description', `AUTOMATIONS.TRIGGERS.DESC.${item.key}`));
+RULE_TRIGGERS.forEach((item) => localizeProp(item, 'label', `AUTOMATIONS.TRIGGERS.LABEL.${item.key}`));
 
 export const RULE_GROUP_LABELS: Record<string, string> = {
   composicion: 'Composición corporal',
@@ -110,3 +115,4 @@ export const RULE_GROUP_LABELS: Record<string, string> = {
   bienestar: 'Bienestar',
   seguimiento: 'Seguimiento',
 };
+localizeRecord(RULE_GROUP_LABELS, 'AUTOMATIONS.GROUPS');

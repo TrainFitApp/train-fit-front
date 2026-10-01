@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ChargeMutationResult, PaymentCharge } from '../../models/payments.model';
 import { TrainerPaymentsService } from '../../services/trainer-payments.service';
@@ -25,6 +26,8 @@ let formSeq = 0;
   styleUrls: ['./charge-form-panel.component.scss'],
 })
 export class ChargeFormPanelComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
   @Input() public clientName: string | null = null;
   @Input() public today = '';
@@ -62,11 +65,11 @@ export class ChargeFormPanelComponent implements OnInit {
   }
 
   public get title(): string {
-    return this.editing ? 'Editar cobro' : 'Cobro puntual';
+    return this.editing ? this.translate.instant('PAYMENTS.EDITAR_COBRO') : this.translate.instant('PAYMENTS.COBRO_PUNTUAL');
   }
 
   public get subtitle(): string | null {
-    if (!this.charge) return this.clientName ? `Para ${this.clientName}. Se suma a su cuota, no la sustituye.` : null;
+    if (!this.charge) return this.clientName ? this.translate.instant('PAYMENTS.PARA_SE_SUMA_SU_CUOTA', { clientName: this.clientName }) : null;
     return `${chargeTitle(this.charge)} del ${formatDay(this.charge.dueDay, true)}`;
   }
 
@@ -80,11 +83,11 @@ export class ChargeFormPanelComponent implements OnInit {
   }
 
   public get amountError(): string | null {
-    if (!this.amountText.trim()) return 'Indica el importe.';
+    if (!this.amountText.trim()) return this.translate.instant('PAYMENTS.INDICA_EL_IMPORTE');
     const cents = this.amountCents;
-    if (cents === null) return 'Importe no válido: usa como mucho dos decimales (p. ej. 45,50).';
+    if (cents === null) return this.translate.instant('PAYMENTS.IMPORTE_NO_VALIDO_USA_COMO');
     if (this.charge && cents < this.floorCents) {
-      return `No puede quedar por debajo de ${this.money(this.floorCents)} (lo ya recibido y anulado). Corrige antes esos registros.`;
+      return this.translate.instant('PAYMENTS.NO_PUEDE_QUEDAR_POR_DEBAJO', { p0: this.money(this.floorCents) });
     }
     return null;
   }
@@ -142,7 +145,7 @@ export class ChargeFormPanelComponent implements OnInit {
     request.subscribe({
       next: (result) => {
         this.saving = false;
-        void this.ionicUtil.showSuccessToast(this.editing ? 'Cobro actualizado' : 'Cobro añadido');
+        void this.ionicUtil.showSuccessToast(this.editing ? this.translate.instant('PAYMENTS.COBRO_ACTUALIZADO') : this.translate.instant('PAYMENTS.COBRO_ANADIDO'));
         this.saved.emit(result);
         this.closed.emit();
       },
@@ -152,7 +155,7 @@ export class ChargeFormPanelComponent implements OnInit {
           this.reopenBalanceCents = errorDetail(error, 'balanceCents');
           return;
         }
-        this.errorMessage = paymentsErrorMessage(error, 'No se pudo guardar el cobro. Vuelve a intentarlo.');
+        this.errorMessage = paymentsErrorMessage(error, this.translate.instant('PAYMENTS.NO_SE_PUDO_GUARDAR_EL'));
       },
     });
   }

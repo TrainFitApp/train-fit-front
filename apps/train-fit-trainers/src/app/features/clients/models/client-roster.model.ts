@@ -50,6 +50,10 @@ export interface RosterClient {
   sessions: number;
   openAlerts: number;
   urgentAlerts: number;
+  // Lo que el cliente ha mandado y espera respuesta (bandeja «Por revisar»):
+  // check-ins sin revisar y revisiones de técnica pendientes.
+  pendingCheckins: number;
+  pendingFormChecks: number;
 }
 
 export interface RosterResponse {

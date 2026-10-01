@@ -1,0 +1,35 @@
+<h2 class="create-title" id="create-food-sheet-title">
+  {{ 'SEARCH_FOODS.CREATE_SHEET_TITLE' | translate }}
+</h2>
+
+<div class="create-options" role="group" aria-labelledby="create-food-sheet-title">
+  <button
+    type="button"
+    class="create-option create-option--product"
+    (click)="pick(types.createProduct)"
+  >
+    <span class="create-option__icon" aria-hidden="true">
+      <ion-icon name="nutrition-outline"></ion-icon>
+    </span>
+    <span class="create-option__text">
+      <span class="create-option__label">{{ 'SEARCH_FOODS.CREATE_SHEET_PRODUCT' | translate }}</span>
+      <span class="create-option__hint">{{ 'SEARCH_FOODS.CREATE_SHEET_PRODUCT_HINT' | translate }}</span>
+    </span>
+    <ion-icon class="create-option__chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+  </button>
+
+  <button
+    type="button"
+    class="create-option create-option--recipe"
+    (click)="pick(types.createRecipe)"
+  >
+    <span class="create-option__icon" aria-hidden="true">
+      <ion-icon name="restaurant-outline"></ion-icon>
+    </span>
+    <span class="create-option__text">
+      <span class="create-option__label">{{ 'SEARCH_FOODS.CREATE_SHEET_RECIPE' | translate }}</span>
+      <span class="create-option__hint">{{ 'SEARCH_FOODS.CREATE_SHEET_RECIPE_HINT' | translate }}</span>
+    </span>
+    <ion-icon class="create-option__chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+  </button>
+</div>

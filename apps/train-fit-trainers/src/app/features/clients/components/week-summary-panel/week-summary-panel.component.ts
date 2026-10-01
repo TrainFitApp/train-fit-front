@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -15,6 +16,7 @@ import { buildCheckinDisplay, CheckinDisplay } from '../../checkin-display.util'
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
 import { WeekNeedResponse } from '../../../diet-templates/models/diet-suggestion.model';
 import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'ready' | 'error';
 
@@ -29,15 +31,17 @@ type ViewState = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-week-summary-panel',
   standalone: true,
-  imports: [CommonModule, IonicModule, NeedBreakdownComponent],
+  imports: [CommonModule, IonicModule, NeedBreakdownComponent, TranslateModule],
   templateUrl: './week-summary-panel.component.html',
   styleUrls: ['./week-summary-panel.component.scss'],
 })
 export class WeekSummaryPanelComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId!: string;
   @Input() public assignment!: PlanAssignment;
   @Input() public weekNumber = 1;
-  @Input() public clientName = 'este cliente';
+  @Input() public clientName = this.translate.instant('CLIENTS.ESTE_CLIENTE');
   // La ventana de la semana (la marcan los check-ins, ver
   // week-window.js), que no coincide con el rango del doc persistido —
   // un contenido puede cubrir varias semanas. `end` null = sigue abierta.
@@ -199,11 +203,11 @@ export class WeekSummaryPanelComponent implements OnInit {
   // La app no registra LOCALE_ID: el DatePipe/DecimalPipe salen en inglés
   // ("1,911", "Sep"). Mismo formato es-ES que need-breakdown.
   public n(value: number): string {
-    return value.toLocaleString('es-ES', { maximumFractionDigits: 0 });
+    return value.toLocaleString(uiLocale(), { maximumFractionDigits: 0 });
   }
 
   public fmtDay(iso: string, withYear = false): string {
-    return new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString('es-ES', {
+    return new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString(uiLocale(), {
       day: 'numeric',
       month: 'short',
       ...(withYear ? { year: 'numeric' as const } : {}),
@@ -221,7 +225,7 @@ export class WeekSummaryPanelComponent implements OnInit {
 
   // "martes, 22 sept" en el idioma de la app: el DatePipe saldría en inglés.
   public fmtResponded(iso: string): string {
-    return new Date(iso).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+    return new Date(iso).toLocaleDateString(uiLocale(), { weekday: 'long', day: 'numeric', month: 'short' });
   }
 
   public dismiss(): void {

@@ -1,6 +1,8 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { buildPhaseColorMap } from '../../pages/client-detail/phase-color.util';
 import { RoutineAssignment } from '../../../../shared/models/routine-assignment.model';
+import { uiLocale, localizeList } from 'src/app/core/i18n/localized-catalog';
 
 interface PhaseScheduleCell {
   date: string | null;
@@ -24,10 +26,12 @@ export interface PhaseLegendItem {
 }
 
 const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+localizeList(WEEKDAY_LABELS, 'WEIGHT_INFO.DAYS_INITIALS');
 const MONTH_LABELS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
+localizeList(MONTH_LABELS, 'WEIGHT_INFO.MONTHS');
 
 function isoDate(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -78,6 +82,8 @@ function buildMonthGrid(year: number, month: number): PhaseScheduleCell[] {
   styleUrls: ['./phase-schedule-calendar.component.scss'],
 })
 export class PhaseScheduleCalendarComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   // Cronológicas (mismo orden que routinePhases en client-detail.page.ts) —
   // "qué fase rige un día" se resuelve por posición, ver buildRanges: hasta
   // el startDate de la siguiente fase, o hasta su propio estimatedEndDate
@@ -171,7 +177,7 @@ export class PhaseScheduleCalendarComponent implements OnChanges {
       legend.push({
         id: phase._id,
         color: this.phaseColorMap.get(phase._id) ?? 'var(--tf-accent)',
-        label: phase.tableName || 'Rutina',
+        label: phase.tableName || this.translate.instant('CLIENTS.RUTINA'),
       });
     }
     return legend;
@@ -189,8 +195,8 @@ export class PhaseScheduleCalendarComponent implements OnChanges {
   public cellTitle(cell: PhaseScheduleCell): string | null {
     if (!cell.phase) return null;
     const range = this.ranges.find((r) => r.phase._id === cell.phase!._id);
-    const name = cell.phase.tableName || 'Rutina';
-    if (!range?.end) return `${name} · desde el ${this.formatShortDate(cell.phase.startDate)}`;
+    const name = cell.phase.tableName || this.translate.instant('CLIENTS.RUTINA');
+    if (!range?.end) return this.translate.instant('CLIENTS.DESDE_EL_3', { name, p1: this.formatShortDate(cell.phase.startDate) });
     return `${name} · ${this.formatShortDate(cell.phase.startDate)} – ${this.formatShortDate(addIsoDays(range.end, -1))}`;
   }
 
@@ -204,7 +210,7 @@ export class PhaseScheduleCalendarComponent implements OnChanges {
   }
 
   private formatShortDate(iso: string): string {
-    return new Date(`${iso}T00:00:00.000Z`).toLocaleDateString('es-ES', {
+    return new Date(`${iso}T00:00:00.000Z`).toLocaleDateString(uiLocale(), {
       day: 'numeric',
       month: 'short',
       timeZone: 'UTC',

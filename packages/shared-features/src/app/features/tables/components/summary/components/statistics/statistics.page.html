@@ -273,7 +273,7 @@
                   >{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexA} }}<small
                     *ngIf="compareDateA"
                     class="trigger-date"
-                    > · {{ compareDateA | date:'d MMM' }}</small
+                    > · {{ compareDateA | localDate:'d MMM' }}</small
                   ></span
                 >
                 <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
@@ -287,7 +287,7 @@
                 (ionChange)="onCompareChange()"
               >
                 <ion-select-option *ngFor="let o of optionsForA" [value]="o.idx">
-                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }} · {{ o.date | date:'d MMM y' }}
+                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }} · {{ o.date | localDate:'d MMM y' }}
                 </ion-select-option>
               </ion-select>
             </div>
@@ -301,7 +301,7 @@
                   >{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexB} }}<small
                     *ngIf="compareDateB"
                     class="trigger-date"
-                    > · {{ compareDateB | date:'d MMM' }}</small
+                    > · {{ compareDateB | localDate:'d MMM' }}</small
                   ></span
                 >
                 <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
@@ -315,7 +315,7 @@
                 (ionChange)="onCompareChange()"
               >
                 <ion-select-option *ngFor="let o of optionsForB" [value]="o.idx">
-                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }} · {{ o.date | date:'d MMM y' }}
+                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }} · {{ o.date | localDate:'d MMM y' }}
                 </ion-select-option>
               </ion-select>
             </div>

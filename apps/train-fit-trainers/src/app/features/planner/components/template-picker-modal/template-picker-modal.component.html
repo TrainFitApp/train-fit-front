@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Elegir plantilla</ion-title>
+    <ion-title>{{ 'PLANNER.ELEGIR_PLANTILLA' | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="close()">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -15,7 +15,7 @@
     <input
       type="text"
       class="input-field"
-      placeholder="Buscar por nombre o etiqueta"
+      [placeholder]="'PLANNER.BUSCAR_POR_NOMBRE_ETIQUETA' | translate"
       [(ngModel)]="search"
       (ngModelChange)="onSearchChange()"
       autofocus
@@ -24,7 +24,7 @@
 
   <div class="templates-empty" *ngIf="filteredTemplates.length === 0">
     <ion-icon name="albums-outline"></ion-icon>
-    <p>Ninguna plantilla coincide con "{{ search }}".</p>
+    <p>{{ 'PLANNER.NINGUNA_PLANTILLA_COINCIDE_CON' | translate }}{{ search }}".</p>
   </div>
 
   <button
@@ -34,7 +34,7 @@
     (click)="toggleSelectAllFiltered()"
   >
     <ion-icon [name]="allFilteredSelected ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
-    <span>Seleccionar todas</span>
+    <span>{{ 'PLANNER.SELECCIONAR_TODAS' | translate }}</span>
   </button>
 
   <div class="templates-list">
@@ -57,8 +57,8 @@
         <span class="template-tag" *ngFor="let tag of template.tags">{{ tag }}</span>
       </div>
       <div class="template-meta">
-        <span>{{ blockCount(template) }} bloques</span>
-        <span>{{ exerciseCount(template) }} ejercicios</span>
+        <span>{{ blockCount(template) }} {{ 'PLANNER.BLOQUES' | translate }}</span>
+        <span>{{ exerciseCount(template) }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
       </div>
     </button>
   </div>
@@ -66,6 +66,6 @@
 
 <ion-footer class="template-picker-footer" *ngIf="selectedIds.size">
   <button type="button" class="confirm-button" (click)="confirmSelection()">
-    Añadir {{ selectedIds.size }} entrenamiento{{ selectedIds.size === 1 ? '' : 's' }}
+    {{ 'TRAINER_COMMON.ADD' | translate }} {{ selectedIds.size }} {{ (selectedIds.size === 1 ? 'TRAINER_COMMON.PL_WORKOUT_ONE' : 'TRAINER_COMMON.PL_WORKOUT_MANY') | translate }}
   </button>
 </ion-footer>

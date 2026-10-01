@@ -9,6 +9,7 @@ import { MediaUploadService } from 'src/app/core/services/media/media-upload.ser
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { executedSummary, prescribedSummary, setSnapshotOf } from './set-summary.util';
+import { openMediaCamera } from './media-camera-modal.component';
 
 /**
  * Enviar un vídeo de una serie al entrenador (revisión de técnica). El vídeo
@@ -72,11 +73,26 @@ export class FormCheckSubmitModalComponent implements OnInit, OnDestroy {
     return prescribedSummary(set, this.translate.instant('MEDIA.RIR_FAIL'));
   }
 
+  // Cámara de la app: con temporizador se puede apoyar el móvil, ponerse en
+  // posición y grabar la serie entera sin que nadie sujete el móvil.
+  public async record(): Promise<void> {
+    if (this.inspecting) return;
+    const file = await openMediaCamera(this.modalController, {
+      mode: 'video',
+      title: this.translate.instant('MEDIA.FORM_CHECK_TITLE'),
+      maxDurationSec: 180,
+    });
+    if (file) await this.useFile(file);
+  }
+
   public async onFile(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (!file) return;
+    if (file) await this.useFile(file);
+  }
+
+  private async useFile(file: File): Promise<void> {
     this.inspecting = true;
     try {
       const info = await this.mediaUpload.inspectVideo(file);

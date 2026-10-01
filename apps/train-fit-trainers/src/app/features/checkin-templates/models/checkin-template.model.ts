@@ -1,4 +1,5 @@
 import { CheckinFieldType } from 'src/app/core/constants/checkin-fields';
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 // Fase 5 Coach Pro — pregunta propia del coach (§7). Espejo de
 // components/trainerCheckins/checkin-custom-question.js.
@@ -41,6 +42,8 @@ export const CUSTOM_QUESTION_TYPES: {
   { key: 'select', label: 'Selector', hint: 'Tú defines las opciones' },
   { key: 'frequency', label: 'Frecuencia', hint: 'Nunca · Rara vez · A veces · A menudo · Siempre' },
 ];
+CUSTOM_QUESTION_TYPES.forEach((item) => localizeProp(item, 'hint', `CHECKIN_TEMPLATES.QUESTION_TYPES.HINT.${item.key}`));
+CUSTOM_QUESTION_TYPES.forEach((item) => localizeProp(item, 'label', `CHECKIN_TEMPLATES.QUESTION_TYPES.LABEL.${item.key}`));
 
 export interface ApplyResult {
   applied: string[];

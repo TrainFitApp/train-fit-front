@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -29,6 +30,7 @@ import {
   paymentsErrorMessage,
   statusChips,
 } from '../../utils/payments-view.util';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 type DetailAction = 'cancel' | 'restore' | 'correct' | null;
 
@@ -38,6 +40,7 @@ const VOID_REASONS: Record<string, string> = {
   plan_rescheduled: 'el calendario de la cuota cambió',
   relation_ended: 'terminó la relación con el cliente',
 };
+localizeRecord(VOID_REASONS, 'PAYMENTS.VOID_REASONS');
 
 // Detalle de UN cobro: importes, pagos registrados (con su rastro de
 // correcciones) e historial. Toda acción destructiva explica su alcance y pide
@@ -48,6 +51,8 @@ const VOID_REASONS: Record<string, string> = {
   styleUrls: ['./charge-detail-panel.component.scss'],
 })
 export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
   @Input() public clientName: string | null = null;
   @Input() public chargeId = '';
@@ -110,7 +115,7 @@ export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
   // --- Lectura ---
 
   public get title(): string {
-    return this.charge ? chargeTitle(this.charge) : 'Cobro';
+    return this.charge ? chargeTitle(this.charge) : this.translate.instant('PAYMENTS.COBRO');
   }
 
   public get subtitle(): string | null {
@@ -122,11 +127,11 @@ export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
   public get originLabel(): string {
     switch (this.charge?.origin) {
       case 'recurring':
-        return 'Vencimiento de la cuota';
+        return this.translate.instant('PAYMENTS.VENCIMIENTO_DE_LA_CUOTA');
       case 'legacy':
-        return 'Cobro anotado antes de la gestión de cobros';
+        return this.translate.instant('PAYMENTS.COBRO_ANOTADO_ANTES_DE_LA');
       default:
-        return 'Cobro puntual';
+        return this.translate.instant('PAYMENTS.COBRO_PUNTUAL');
     }
   }
 
@@ -158,7 +163,7 @@ export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
   public get voidNote(): string | null {
     const charge = this.charge;
     if (!charge || charge.status !== 'void') return null;
-    return 'Era una previsión de la cuota sin pagos y se anuló porque ' + (VOID_REASONS[charge.voidReason ?? ''] ?? 'la cuota cambió') + '.';
+    return this.translate.instant('PAYMENTS.ERA_UNA_PREVISION_DE_LA') + ' ' + (VOID_REASONS[charge.voidReason ?? ''] ?? this.translate.instant('PAYMENTS.LA_CUOTA_CAMBIO')) + '.';
   }
 
   public money(cents: number): string {
@@ -190,25 +195,25 @@ export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
     const dayText = (value: string | number | null) => (typeof value === 'string' ? this.day(value) : '—');
     switch (item.type) {
       case 'amount_changed':
-        return `Importe: ${amount(item.from)} → ${amount(item.to)}`;
+        return this.translate.instant('PAYMENTS.IMPORTE_2', { p0: amount(item.from), p1: amount(item.to) });
       case 'due_changed':
-        return `Vencimiento: ${dayText(item.from)} → ${dayText(item.to)}`;
+        return this.translate.instant('PAYMENTS.VENCIMIENTO_2', { p0: dayText(item.from), p1: dayText(item.to) });
       case 'concept_changed':
-        return `Concepto: «${item.from || 'sin concepto'}» → «${item.to || 'sin concepto'}»`;
+        return this.translate.instant('PAYMENTS.CONCEPTO_2', { p0: item.from || 'sin concepto', p1: item.to || 'sin concepto' });
       case 'note_changed':
-        return 'Nota interna editada';
+        return this.translate.instant('PAYMENTS.NOTA_INTERNA_EDITADA');
       case 'price_change':
-        return `Precio de la cuota: ${amount(item.from)} → ${amount(item.to)}`;
+        return this.translate.instant('PAYMENTS.PRECIO_DE_LA_CUOTA', { p0: amount(item.from), p1: amount(item.to) });
       case 'cancel_balance':
-        return `Saldo anulado: ${amount(item.from)}`;
+        return this.translate.instant('PAYMENTS.SALDO_ANULADO', { p0: amount(item.from) });
       case 'restore_balance':
-        return `Anulación rectificada: ${amount(item.from)} → ${amount(item.to)} anulados`;
+        return this.translate.instant('PAYMENTS.ANULACION_RECTIFICADA_ANULADOS', { p0: amount(item.from), p1: amount(item.to) });
       case 'payment_corrected':
-        return item.to === 0 ? `Pago anulado: ${amount(item.from)}` : `Pago corregido: ${amount(item.from)} → ${amount(item.to)}`;
+        return item.to === 0 ? this.translate.instant('PAYMENTS.PAGO_ANULADO', { p0: amount(item.from) }) : this.translate.instant('PAYMENTS.PAGO_CORREGIDO', { p0: amount(item.from), p1: amount(item.to) });
       case 'voided':
-        return 'Previsión anulada';
+        return this.translate.instant('PAYMENTS.PREVISION_ANULADA');
       default:
-        return 'Cambio';
+        return this.translate.instant('PAYMENTS.CAMBIO');
     }
   }
 
@@ -294,7 +299,7 @@ export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
         confirmBalanceCents: charge.balanceCents,
         operationId: this.operationId,
       }),
-      `Saldo anulado: ${this.money(charge.balanceCents)}`
+      this.translate.instant('PAYMENTS.SALDO_ANULADO', { p0: this.money(charge.balanceCents) })
     );
   }
 
@@ -309,7 +314,7 @@ export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
         confirmBalanceCents: result,
         operationId: this.operationId,
       }),
-      `Vuelven a quedar ${this.money(result)} pendientes`
+      this.translate.instant('PAYMENTS.VUELVEN_QUEDAR_PENDIENTES', { p0: this.money(result) })
     );
   }
 
@@ -326,7 +331,7 @@ export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
           : null,
     };
     if (confirmReopen && this.reopenBalanceCents !== null) body['confirmBalanceCents'] = this.reopenBalanceCents;
-    this.run(this.payments.correctPayment(this.clientId, charge.id, target.id, body), 'Pago corregido');
+    this.run(this.payments.correctPayment(this.clientId, charge.id, target.id, body), this.translate.instant('PAYMENTS.PAGO_CORREGIDO_2'));
   }
 
   private run(request: ReturnType<TrainerPaymentsService['cancelBalance']>, successMessage: string): void {
@@ -350,7 +355,7 @@ export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
           return;
         }
         if (code === 'BALANCE_CHANGED' || code === 'CONCURRENT_UPDATE') this.load(true);
-        this.errorMessage = paymentsErrorMessage(error, 'No se pudo guardar. Vuelve a intentarlo: no se aplicará dos veces.');
+        this.errorMessage = paymentsErrorMessage(error, this.translate.instant('PAYMENTS.NO_SE_PUDO_GUARDAR_VUELVE'));
       },
     });
   }

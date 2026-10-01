@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Check-ins</h1>
+        <h1 class="tf-page-header__title">{{ 'TRAINER_COMMON.CHECKINS' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -21,15 +21,15 @@
   </div>
 
   <p class="panel-note panel-note--error" *ngIf="state === 'error'">
-    No se pudieron cargar los check-ins de {{ clientName }}.
+    {{ 'CLIENTS.NO_SE_PUDIERON_CARGAR_LOS_2' | translate }} {{ clientName }}.
   </p>
 
   <ng-container *ngIf="state === 'ready'">
     <p class="panel-note" *ngIf="schedules.length">
-      {{ activeCount }} activo{{ activeCount === 1 ? '' : 's' }} de {{ schedules.length }}
+      {{ activeCount }} {{ (activeCount === 1 ? 'TRAINER_COMMON.PL_ACTIVE_ONE' : 'TRAINER_COMMON.PL_ACTIVE_MANY') | translate }} {{ 'CLIENTS.DE_2' | translate }} {{ schedules.length }}
     </p>
     <p class="panel-note" *ngIf="!schedules.length">
-      {{ clientName }} no tiene ningún check-in programado.
+      {{ clientName }} {{ 'CLIENTS.NO_TIENE_NINGUN_CHECK_IN' | translate }}
     </p>
 
     <button
@@ -38,16 +38,16 @@
       *ngFor="let schedule of schedules; trackBy: trackById"
       [class.is-selected]="schedule._id === selectedId"
       [class.is-paused]="!schedule.active"
-      [attr.aria-label]="'Ver el histórico de ' + schedule.name"
+      [attr.aria-label]="('CLIENTS.VER_EL_HISTORICO_DE' | translate) + schedule.name"
       (click)="select(schedule)"
     >
       <span class="schedule-card__body">
         <span class="schedule-card__title-row">
           <span class="schedule-card__name">{{ schedule.name }}</span>
-          <span class="schedule-card__tag" *ngIf="!schedule.active">EN PAUSA</span>
+          <span class="schedule-card__tag" *ngIf="!schedule.active">{{ 'CLIENTS.EN_PAUSA_2' | translate }}</span>
         </span>
         <span class="schedule-card__meta">
-          {{ cadence(schedule) }} · {{ schedule.time }} · desde el {{ since(schedule) }}
+          {{ cadence(schedule) }} · {{ schedule.time }} · {{ 'CLIENTS.DESDE_EL' | translate }} {{ since(schedule) }}
         </span>
       </span>
       <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
@@ -57,6 +57,6 @@
 
 <ion-footer class="ion-no-border" *ngIf="state !== 'loading' && onGoToCheckins">
   <div class="schedules-panel__footer">
-    <button type="button" class="goto-button" (click)="goToCheckins()">Ir a check-ins</button>
+    <button type="button" class="goto-button" (click)="goToCheckins()">{{ 'CLIENTS.IR_CHECK_INS' | translate }}</button>
   </div>
 </ion-footer>

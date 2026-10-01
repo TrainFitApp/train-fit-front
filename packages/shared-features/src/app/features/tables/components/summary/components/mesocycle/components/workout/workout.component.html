@@ -243,7 +243,7 @@
                 </ion-button>
                 <ion-button *ngIf="!exerciseSelectionMode && !isReadonly" fill="clear" size="small" class="delete-exercise-btn"
                   [disabled]="exercisePasteMode || exerciseCopyActive" (click)="
-                    deleteExercisesAlert(entry.exercise.exercise?.name || 'Ejercicio eliminado del catálogo', workoutIndex, entry.index);
+                    deleteExercisesAlert(entry.exercise.exercise?.name, workoutIndex, entry.index);
                     $event.stopPropagation()
                   ">
                   <ion-icon slot="icon-only" name="close-outline"></ion-icon>
@@ -334,14 +334,14 @@
                       <div *ngIf="isEditingCell(set, 'reps')" class="tf-inline-range"
                         (click)="$event.stopPropagation()">
                         <input type="text" inputmode="numeric" class="tf-inline-input tf-inline-input--range"
-                          [id]="'tf-cell-' + set._id + '-reps-min'" placeholder="Mín"
+                          [id]="'tf-cell-' + set._id + '-reps-min'" [placeholder]="'TABLES.RANGE_MIN' | translate"
                           [(ngModel)]="editingCellMin" (ngModelChange)="sanitizeRangePart('reps', 'min')"
                           (keydown.enter)="commitEditCell(entry.exercise, set, 'reps')"
                           (keydown.escape)="cancelEditCell()"
                           (blur)="onRangeInputBlur(entry.exercise, set, 'reps')" />
                         <span class="tf-inline-range-sep">–</span>
                         <input type="text" inputmode="numeric" class="tf-inline-input tf-inline-input--range"
-                          [id]="'tf-cell-' + set._id + '-reps-max'" placeholder="Máx"
+                          [id]="'tf-cell-' + set._id + '-reps-max'" [placeholder]="'TABLES.RANGE_MAX' | translate"
                           [(ngModel)]="editingCellMax" (ngModelChange)="sanitizeRangePart('reps', 'max')"
                           (keydown.enter)="commitEditCell(entry.exercise, set, 'reps')"
                           (keydown.escape)="cancelEditCell()"
@@ -381,14 +381,14 @@
                       <div *ngIf="isEditingCell(set, 'rir')" class="tf-inline-range"
                         (click)="$event.stopPropagation()">
                         <input type="text" inputmode="numeric" class="tf-inline-input tf-inline-input--range"
-                          [id]="'tf-cell-' + set._id + '-rir-min'" placeholder="Mín"
+                          [id]="'tf-cell-' + set._id + '-rir-min'" [placeholder]="'TABLES.RANGE_MIN' | translate"
                           [(ngModel)]="editingCellMin" (ngModelChange)="sanitizeRangePart('rir', 'min')"
                           (keydown.enter)="commitEditCell(entry.exercise, set, 'rir')"
                           (keydown.escape)="cancelEditCell()"
                           (blur)="onRangeInputBlur(entry.exercise, set, 'rir')" />
                         <span class="tf-inline-range-sep">–</span>
                         <input type="text" inputmode="numeric" class="tf-inline-input tf-inline-input--range"
-                          [id]="'tf-cell-' + set._id + '-rir-max'" placeholder="Máx"
+                          [id]="'tf-cell-' + set._id + '-rir-max'" [placeholder]="'TABLES.RANGE_MAX' | translate"
                           [(ngModel)]="editingCellMax" (ngModelChange)="sanitizeRangePart('rir', 'max')"
                           (keydown.enter)="commitEditCell(entry.exercise, set, 'rir')"
                           (keydown.escape)="cancelEditCell()"
@@ -434,7 +434,7 @@
           <div *ngIf="entry.exercise?.clientNotes" class="client-note-container">
             <span class="client-note-author">
               <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
-              Nota del cliente
+              {{ 'TABLES.CLIENT_NOTE' | translate }}
             </span>
             <p class="client-note-body">{{ entry.exercise.clientNotes }}</p>
           </div>

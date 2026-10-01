@@ -17,6 +17,7 @@ import { User } from 'src/app/core/models/user';
 import { TranslateService } from '@ngx-translate/core';
 import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
+import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { PautadoItemViewComponent } from '../../../../../pautado-item-view/pautado-item-view.component';
 import { MEASURE_FILTER_TYPES } from 'src/app/shared/constants/measureFilter';
@@ -35,8 +36,16 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() recentCustomRecipe?: any | null = null;
 
   public loadingObj = { value: false };
+  // Mismo criterio que ProductComponent#isBusy: mientras el día de esta fecha
+  // se está creando no se puede añadir nada, para no acabar pidiendo dos días
+  // de la misma fecha.
   public get isBusy(): boolean {
-    return this.loadingObj.value || this.loading;
+    return (
+      this.loadingObj.value ||
+      this.loading ||
+      (!this.trainerMultiSelect &&
+        this.dietDayService.isCreatingDietDay(this.dietDay?.date))
+    );
   }
   @Input() showRecentIcon: boolean = false;
   // TAREA5 (train-fit-trainers) — mismo patrón que ProductComponent: marca/
@@ -84,6 +93,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
     private recipeService: RecipeService,
     private translate: TranslateService,
     private utilService: UtilService,
+    private dietDayService: DietDayService,
     private modalController: ModalController
   ) {}
 

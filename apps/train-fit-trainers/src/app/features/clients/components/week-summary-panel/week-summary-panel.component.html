@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Semana {{ weekNumber }}</h1>
+        <h1 class="tf-page-header__title">{{ 'TRAINER_COMMON.WEEK' | translate }} {{ weekNumber }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -22,8 +22,8 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo cargar el resumen de esta semana.</p>
-    <ion-button size="small" fill="outline" (click)="dismiss()">Cerrar</ion-button>
+    <p>{{ 'CLIENTS.NO_SE_PUDO_CARGAR_EL_3' | translate }}</p>
+    <ion-button size="small" fill="outline" (click)="dismiss()">{{ 'COMMON.CLOSE_ARIA' | translate }}</ion-button>
   </div>
 
   <ng-container *ngIf="state === 'ready'">
@@ -31,11 +31,11 @@
     <section class="summary-block">
       <p class="summary-block__title summary-block__title--planned">
         <span class="summary-block__icon"><ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon></span>
-        Dieta pautada
+        {{ 'CLIENTS.DIETA_PAUTADA' | translate }}
       </p>
       <p class="week-dates">
-        {{ fmtDay(from) }} → {{ isRunning ? 'en curso' : fmtDay(to, true) }}
-        <span class="week-days" *ngIf="assignment.menusCount">· {{ assignment.menusCount }} menú{{ assignment.menusCount === 1 ? '' : 's' }}</span>
+        {{ fmtDay(from) }} → {{ isRunning ? ('CLIENTS.EN_CURSO' | translate) : fmtDay(to, true) }}
+        <span class="week-days" *ngIf="assignment.menusCount">· {{ assignment.menusCount }} {{ (assignment.menusCount === 1 ? 'TRAINER_COMMON.PL_MENU_ONE' : 'TRAINER_COMMON.PL_MENU_MANY') | translate }}</span>
       </p>
       <!-- Las kcal son la media diaria de lo pautado — no hay objetivo
            guardado aparte. Sale del mismo cruce de macros de abajo. -->
@@ -46,10 +46,10 @@
         </span>
       </div>
       <p class="summary-hint" *ngIf="plannedAvg.kcal">
-        Media diaria: lo que suman los alimentos de sus menús.
+        {{ 'CLIENTS.MEDIA_DIARIA_LO_QUE_SUMAN' | translate }}
       </p>
       <p class="summary-empty" *ngIf="!plannedAvg.kcal">
-        Esta semana no tuvo días con pauta todavía.
+        {{ 'CLIENTS.ESTA_SEMANA_NO_TUVO_DIAS' | translate }}
       </p>
     </section>
 
@@ -59,16 +59,16 @@
     <section class="summary-block summary-block--need">
       <p class="summary-block__title summary-block__title--need">
         <span class="summary-block__icon"><ion-icon name="calculator-outline" aria-hidden="true"></ion-icon></span>
-        Necesidad calculada
+        {{ 'CLIENTS.NECESIDAD_CALCULADA' | translate }}
       </p>
       <div class="skeleton-block" style="height: 90px" *ngIf="needState === 'loading'"></div>
-      <p class="summary-empty" *ngIf="needState === 'error'">No se pudo cargar el cálculo de esta semana.</p>
+      <p class="summary-empty" *ngIf="needState === 'error'">{{ 'CLIENTS.NO_SE_PUDO_CARGAR_EL_4' | translate }}</p>
       <ng-container *ngIf="needState === 'ready' && weekNeed as cn">
         <p class="summary-hint need-source" *ngIf="cn.source === 'computed'">
-          Lo que pide la fórmula con los datos del cliente a {{ fmtDay(cn.start, true) }} (último peso hasta ese día).
+          {{ 'CLIENTS.LO_QUE_PIDE_LA_FORMULA_2' | translate }} {{ fmtDay(cn.start, true) }} ({{ 'CLIENTS.ULTIMO_PESO_HASTA_ESE_DIA' | translate }}
         </p>
         <p class="summary-hint need-source" *ngIf="cn.source === 'snapshot'">
-          Lo que pide la fórmula con los datos del cliente al empezar la fase.
+          {{ 'CLIENTS.LO_QUE_PIDE_LA_FORMULA' | translate }}
         </p>
         <app-need-breakdown [need]="cn.need" [plannedKcal]="plannedAvg.kcal || cn.plannedKcal" [collapsed]="true"></app-need-breakdown>
       </ng-container>
@@ -78,10 +78,10 @@
     <section class="summary-block">
       <p class="summary-block__title summary-block__title--macros">
         <span class="summary-block__icon"><ion-icon name="pie-chart-outline" aria-hidden="true"></ion-icon></span>
-        Macros · media por día
+        {{ 'CLIENTS.MACROS_MEDIA_POR_DIA' | translate }}
       </p>
       <p class="summary-empty" *ngIf="!daysWithPlan">
-        No hubo ningún día con comidas pautadas en esta semana.
+        {{ 'CLIENTS.NO_HUBO_NINGUN_DIA_CON' | translate }}
       </p>
 
       <ng-container *ngIf="daysWithPlan">
@@ -89,8 +89,8 @@
           <thead>
             <tr>
               <th></th>
-              <th>Pautado</th>
-              <th>Comido</th>
+              <th>{{ 'CLIENTS.PAUTADO' | translate }}</th>
+              <th>{{ 'CLIENTS.COMIDO' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -105,24 +105,24 @@
               </td>
             </tr>
             <tr>
-              <th scope="row">Proteína</th>
+              <th scope="row">{{ 'TRAINER_COMMON.PROTEIN' | translate }}</th>
               <td>{{ plannedAvg.protein }} g</td>
               <td>{{ consumedAvg.protein }} g</td>
             </tr>
             <tr>
-              <th scope="row">Carbos</th>
+              <th scope="row">{{ 'TRAINER_COMMON.CARBS' | translate }}</th>
               <td>{{ plannedAvg.carbs }} g</td>
               <td>{{ consumedAvg.carbs }} g</td>
             </tr>
             <tr>
-              <th scope="row">Grasas</th>
+              <th scope="row">{{ 'TRAINER_COMMON.FAT' | translate }}</th>
               <td>{{ plannedAvg.fat }} g</td>
               <td>{{ consumedAvg.fat }} g</td>
             </tr>
           </tbody>
         </table>
         <p class="summary-hint">
-          Media sobre los {{ daysWithPlan }} día{{ daysWithPlan === 1 ? '' : 's' }} con plan de la semana.
+          {{ 'CLIENTS.MEDIA_SOBRE_LOS' | translate }} {{ daysWithPlan }} {{ (daysWithPlan === 1 ? 'TRAINER_COMMON.PL_DAY_ONE' : 'TRAINER_COMMON.PL_DAY_MANY') | translate }} {{ 'CLIENTS.CON_PLAN_DE_LA_SEMANA' | translate }}
         </p>
       </ng-container>
     </section>
@@ -131,10 +131,10 @@
     <section class="summary-block">
       <p class="summary-block__title summary-block__title--foods">
         <span class="summary-block__icon"><ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon></span>
-        Alimentos · qué cumplió
+        {{ 'CLIENTS.ALIMENTOS_QUE_CUMPLIO' | translate }}
       </p>
       <p class="summary-empty" *ngIf="!foods.length">
-        No hay alimentos pautados en esta semana.
+        {{ 'CLIENTS.NO_HAY_ALIMENTOS_PAUTADOS_EN' | translate }}
       </p>
 
       <ul class="food-list" *ngIf="foods.length">
@@ -149,7 +149,7 @@
         </li>
       </ul>
       <p class="summary-hint" *ngIf="foods.length">
-        Días en que lo marcó como hecho, sobre los días en que se le pautó. Arriba, lo que peor cumple.
+        {{ 'CLIENTS.DIAS_EN_QUE_LO_MARCO' | translate }}
       </p>
     </section>
 
@@ -157,16 +157,16 @@
     <section class="summary-block">
       <p class="summary-block__title summary-block__title--checkins">
         <span class="summary-block__icon"><ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon></span>
-        Check-ins de la semana
+        {{ 'CLIENTS.CHECK_INS_DE_LA_SEMANA' | translate }}
       </p>
       <p class="summary-empty" *ngIf="!checkins.length">
-        {{ isRunning ? 'Todavía no ha respondido ningún check-in esta semana.' : 'El cliente no respondió ningún check-in esta semana.' }}
+        {{ isRunning ? ('CLIENTS.TODAVIA_NO_HA_RESPONDIDO_NINGUN' | translate) : ('CLIENTS.EL_CLIENTE_NO_RESPONDIO_NINGUN' | translate) }}
       </p>
 
       <article class="checkin" *ngFor="let checkin of checkins; trackBy: trackByCheckinId">
         <header class="checkin__head">
           <h3 class="checkin__date">{{ fmtResponded(checkin.entry.respondedAt) }}</h3>
-          <p class="checkin__compare" *ngIf="checkin.display.comparedTo">Cambio desde el {{ checkin.display.comparedTo }}</p>
+          <p class="checkin__compare" *ngIf="checkin.display.comparedTo">{{ 'CLIENTS.CAMBIO_DESDE_EL' | translate }} {{ checkin.display.comparedTo }}</p>
         </header>
 
         <!-- El peso, primero y más grande: es el dato con el que se pauta la

@@ -7,10 +7,13 @@ import {
   OnInit,
   SimpleChanges,
   ViewChild,
+  inject,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import { forkJoin } from 'rxjs';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 interface WeightAdherenceDay {
   date: string;
@@ -39,6 +42,8 @@ const WEIGHT_COLOR = '#d4af37'; // mismo dorado que AnthropometryChartComponent 
   styleUrls: ['./weight-adherence-chart.component.scss'],
 })
 export class WeightAdherenceChartComponent implements OnChanges, OnInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() clientId = '';
   @Input() customRange: { start: string; end: string } | null = null;
 
@@ -204,7 +209,7 @@ export class WeightAdherenceChartComponent implements OnChanges, OnInit, OnDestr
 
     const datasets: ChartConfiguration<'line'>['data']['datasets'] = [
       {
-        label: 'Cumplimiento',
+        label: this.translate.instant('CLIENTS.CUMPLIMIENTO'),
         data: this.days.map((d) => d.completionPercentage),
         borderColor: ADHERENCE_COLOR,
         backgroundColor: this.hexToRgba(ADHERENCE_COLOR, 0.1),
@@ -222,7 +227,7 @@ export class WeightAdherenceChartComponent implements OnChanges, OnInit, OnDestr
     // vacía con su propio eje 0–1 kg es ruido, no información.
     if (this.hasWeightData) {
       datasets.push({
-        label: 'Peso',
+        label: this.translate.instant('TRAINER_COMMON.WEIGHT'),
         data: this.days.map((d) => d.weightKg),
         borderColor: WEIGHT_COLOR,
         backgroundColor: 'transparent',
@@ -258,9 +263,9 @@ export class WeightAdherenceChartComponent implements OnChanges, OnInit, OnDestr
               label: (context) => {
                 const value = context.parsed.y;
                 if (value === null || value === undefined) {
-                  return `${context.dataset.label}: sin dato`;
+                  return this.translate.instant('CLIENTS.SIN_DATO', { label: context.dataset.label });
                 }
-                const unit = context.dataset.label === 'Peso' ? 'kg' : '%';
+                const unit = context.dataset.label === this.translate.instant('TRAINER_COMMON.WEIGHT') ? 'kg' : '%';
                 return `${context.dataset.label}: ${Math.round(Number(value) * 10) / 10}${unit}`;
               },
             },
@@ -313,7 +318,7 @@ export class WeightAdherenceChartComponent implements OnChanges, OnInit, OnDestr
   }
 
   private formatDate(date: string): string {
-    return new Date(`${date}T00:00:00.000Z`).toLocaleDateString('es-ES', {
+    return new Date(`${date}T00:00:00.000Z`).toLocaleDateString(uiLocale(), {
       day: 'numeric',
       month: 'short',
       timeZone: 'UTC',

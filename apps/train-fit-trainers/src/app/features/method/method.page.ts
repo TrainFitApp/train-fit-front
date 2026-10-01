@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 // Ruta relativa, no alias: 'src/app/shared/*' apunta al paquete shared-ui
@@ -29,13 +30,15 @@ import { CoachProtocol } from '../protocols/models/coach-protocol.model';
   styleUrls: ['method.page.scss'],
 })
 export class MethodPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   public readonly categories: CategoryCard[] = [
     {
       // Antes vivía también como acceso duplicado en Configuración
       // ("Plantillas de check-in") — un solo punto de entrada aquí, mismo
       // nombre que usaba ese acceso para no partir la terminología.
       name: 'Check-in',
-      description: 'Qué le preguntas a tus clientes y cada cuánto',
+      description: this.translate.instant('METHOD.QUE_LE_PREGUNTAS_TUS_CLIENTES'),
       icon: 'document-text-outline',
       colorVar: 'var(--tf-success)',
       path: '/tabs/checkin-templates',
@@ -44,16 +47,16 @@ export class MethodPage implements OnInit {
       // Fase 4 Coach Pro — un protocolo NO es contenido nuevo: es una lista
       // de referencias a las plantillas de la Biblioteca (objetivo, check-in,
       // dieta, rutina, reglas, hábitos) que se aplican de una vez.
-      name: 'Protocolos',
-      description: 'Tu metodología completa, lista para aplicar de una vez a un cliente nuevo',
+      name: this.translate.instant('METHOD.PROTOCOLOS'),
+      description: this.translate.instant('METHOD.TU_METODOLOGIA_COMPLETA_LISTA_PARA'),
       icon: 'layers-outline',
       colorVar: 'var(--tf-accent-2, #ff6b35)',
       path: '/tabs/protocols',
     },
     {
       // Fase 3 Coach Pro — reglas CUÁNDO/SI/ENTONCES.
-      name: 'Avisos automatizados',
-      description: 'Reglas que vigilan por ti y te avisan cuando algo se sale de lo previsto',
+      name: this.translate.instant('METHOD.AVISOS_AUTOMATIZADOS'),
+      description: this.translate.instant('METHOD.REGLAS_QUE_VIGILAN_POR_TI'),
       icon: 'git-branch-outline',
       colorVar: 'var(--tf-accent)',
       path: '/tabs/automations',
@@ -62,8 +65,8 @@ export class MethodPage implements OnInit {
       // Movimiento 6 Coach Pro — tu criterio sobre cada ejercicio, en
       // números. Va aquí y no en Biblioteca: la biblioteca es lo que le das
       // al cliente, esto es cómo decides tú qué darle.
-      name: 'Puntuaciones',
-      description: 'Qué músculos trabaja y qué articulaciones castiga cada ejercicio, según tú',
+      name: this.translate.instant('METHOD.PUNTUACIONES'),
+      description: this.translate.instant('METHOD.QUE_MUSCULOS_TRABAJA_QUE_ARTICULACIONES'),
       icon: 'analytics-outline',
       colorVar: 'var(--tf-accent-2, #4fc79a)',
       path: '/tabs/exercise-scores',
@@ -190,12 +193,12 @@ export class MethodPage implements OnInit {
 
   public async confirmDeleteCheckinTemplate(template: CheckinTemplateDefinition): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Borrar plantilla',
-      message: `¿Seguro que quieres borrar "${template.name}"? Los clientes que ya la tengan aplicada conservan su configuración actual.`,
+      header: this.translate.instant('METHOD.BORRAR_PLANTILLA_2'),
+      message: this.translate.instant('METHOD.SEGURO_QUE_QUIERES_BORRAR_LOS', { name: template.name }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Borrar',
+          text: this.translate.instant('TRAINER_COMMON.ERASE'),
           cssClass: 'alert-button-danger',
           handler: () => this.deleteCheckinTemplate(template),
         },
@@ -206,11 +209,11 @@ export class MethodPage implements OnInit {
   private deleteCheckinTemplate(template: CheckinTemplateDefinition): void {
     this.checkinTemplatesApi.delete(template._id).subscribe({
       next: () => {
-        this.ionicUtilService.showToast({ message: 'Plantilla borrada', duration: 2000 });
+        this.ionicUtilService.showToast({ message: this.translate.instant('METHOD.PLANTILLA_BORRADA'), duration: 2000 });
         this.loadCheckinTemplates();
       },
       error: () => {
-        this.ionicUtilService.showErrorToast('No se pudo borrar la plantilla', 'Error', 2500);
+        this.ionicUtilService.showErrorToast(this.translate.instant('METHOD.NO_SE_PUDO_BORRAR_LA'), this.translate.instant('COMMON.ERROR'), 2500);
       },
     });
   }
@@ -239,6 +242,6 @@ export class MethodPage implements OnInit {
   }
 
   public ruleMeta(rule: CoachRule): string {
-    return rule.enabled ? 'Activa' : 'Pausada';
+    return rule.enabled ? this.translate.instant('CLIENT_DETAIL.PHASE_ACTIVE') : this.translate.instant('METHOD.PAUSADA');
   }
 }

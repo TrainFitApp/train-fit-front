@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { RoutineTemplateApiService } from 'src/app/core/services/routine-template/routine-template-api.service';
@@ -21,6 +22,8 @@ import { Table } from 'src/app/core/models/table';
   styleUrls: ['routine-templates.page.scss'],
 })
 export class RoutineTemplatesPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   public templates: Table[] = [];
   public loading = true;
   public newName = '';
@@ -52,7 +55,7 @@ export class RoutineTemplatesPage implements OnInit {
       error: () => {
         this.loading = false;
         this.ionicUtilService.showToast({
-          message: 'No se pudieron cargar las plantillas',
+          message: this.translate.instant('TABLES.TEMPLATES_LOAD_ERROR'),
           duration: 2500,
         });
       },
@@ -88,7 +91,7 @@ export class RoutineTemplatesPage implements OnInit {
       error: () => {
         this.isCreating = false;
         this.ionicUtilService.showToast({
-          message: 'No se pudo crear la plantilla',
+          message: this.translate.instant('ROUTINE_TEMPLATES.NO_SE_PUDO_CREAR_LA'),
           duration: 2500,
         });
       },
@@ -102,22 +105,22 @@ export class RoutineTemplatesPage implements OnInit {
   public async confirmDelete(template: Table, event: Event): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: 'Borrar plantilla',
-      message: `¿Seguro que quieres borrar "${template.name}"? Esta acción no se puede deshacer. Los clientes que ya la tengan aplicada conservan su rutina tal cual.`,
+      header: this.translate.instant('ROUTINE_TEMPLATES.BORRAR_PLANTILLA'),
+      message: this.translate.instant('ROUTINE_TEMPLATES.SEGURO_QUE_QUIERES_BORRAR_ESTA', { name: template.name }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Borrar',
+          text: this.translate.instant('TRAINER_COMMON.ERASE'),
           cssClass: 'alert-button-danger',
           handler: () => {
             this.routineTemplateApi.delete(template._id).subscribe({
               next: () => {
                 this.templates = this.templates.filter((t) => t._id !== template._id);
-                this.ionicUtilService.showToast({ message: 'Plantilla borrada', duration: 1500 });
+                this.ionicUtilService.showToast({ message: this.translate.instant('ROUTINE_TEMPLATES.PLANTILLA_BORRADA'), duration: 1500 });
               },
               error: () => {
                 this.ionicUtilService.showToast({
-                  message: 'No se pudo borrar la plantilla',
+                  message: this.translate.instant('ROUTINE_TEMPLATES.NO_SE_PUDO_BORRAR_LA'),
                   duration: 2500,
                 });
               },

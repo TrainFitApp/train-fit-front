@@ -2,7 +2,7 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
@@ -18,7 +18,7 @@
   <p class="detail-brand" *ngIf="product?.brand">{{ product?.brand }}</p>
 
   <div class="detail-qty-row">
-    <ion-label class="qty-label">Cantidad</ion-label>
+    <ion-label class="qty-label">{{ 'SHARED_COMPONENTS.CANTIDAD' | translate }}</ion-label>
     <div class="qty-input-wrapper">
       <input
         type="number"
@@ -41,17 +41,17 @@
     <div class="macro-item">
       <div class="macro-dot protein"></div>
       <span class="macro-value">{{ macros.protein | number : '1.0-1' }}g</span>
-      <span class="macro-name">Proteína</span>
+      <span class="macro-name">{{ 'TRAINER_COMMON.PROTEIN' | translate }}</span>
     </div>
     <div class="macro-item">
       <div class="macro-dot carbs"></div>
       <span class="macro-value">{{ macros.carbs | number : '1.0-1' }}g</span>
-      <span class="macro-name">Carbos</span>
+      <span class="macro-name">{{ 'TRAINER_COMMON.CARBS' | translate }}</span>
     </div>
     <div class="macro-item">
       <div class="macro-dot fat"></div>
       <span class="macro-value">{{ macros.fat | number : '1.0-1' }}g</span>
-      <span class="macro-name">Grasas</span>
+      <span class="macro-name">{{ 'TRAINER_COMMON.FAT' | translate }}</span>
     </div>
   </div>
 
@@ -65,19 +65,19 @@
     <div class="dietary-grid icons-only">
       <div class="dietary-option active vegan" *ngIf="product?.vegan">
         <ion-icon name="leaf"></ion-icon>
-        <span class="tooltip-text">Vegano</span>
+        <span class="tooltip-text">{{ 'SHARED_COMPONENTS.VEGANO' | translate }}</span>
       </div>
       <div class="dietary-option active vegetarian" *ngIf="product?.vegetarian">
         <ion-icon name="leaf"></ion-icon>
-        <span class="tooltip-text">Vegetariano</span>
+        <span class="tooltip-text">{{ 'SHARED_COMPONENTS.VEGETARIANO' | translate }}</span>
       </div>
       <div class="dietary-option active lactose-free" *ngIf="product?.lactoseFree">
         <ion-icon name="water"></ion-icon>
-        <span class="tooltip-text">Sin lactosa</span>
+        <span class="tooltip-text">{{ 'INTAKE.DIETARY.lactoseFree' | translate }}</span>
       </div>
       <div class="dietary-option active gluten-free" *ngIf="product?.glutenFree">
         <ion-icon name="nutrition"></ion-icon>
-        <span class="tooltip-text">Sin gluten</span>
+        <span class="tooltip-text">{{ 'INTAKE.DIETARY.glutenFree' | translate }}</span>
       </div>
     </div>
   </div>
@@ -95,7 +95,7 @@
       </div>
     </div>
 
-    <h3 class="section-title" *ngIf="microRows.length">Micronutrientes</h3>
+    <h3 class="section-title" *ngIf="microRows.length">{{ 'SHARED_COMPONENTS.MICRONUTRIENTES' | translate }}</h3>
     <div class="nutrient-table" *ngIf="microRows.length">
       <div class="nutrient-row" *ngFor="let row of microRows; trackBy: trackByLabel">
         <span class="nutrient-label">{{ row.label }}</span>
@@ -106,6 +106,6 @@
 
   <button type="button" class="detail-action-btn" *ngIf="canEditProduct()" (click)="editProduct()">
     <ion-icon name="create-outline"></ion-icon>
-    Editar producto
+    {{ 'SHARED_COMPONENTS.EDITAR_PRODUCTO' | translate }}
   </button>
 </ion-content>

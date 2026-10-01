@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { SubmitOnEnterDirective } from 'src/app/shared/directives/submit-on-enter.directive';
 import { IonicModule, ModalController } from '@ionic/angular';
@@ -43,6 +44,7 @@ import {
   macroDeviation,
 } from '../../../../utils/alternative-macros';
 import { computeItemMicros } from '../../../../utils/nutrient-fields';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 // Extraído de diet-template-builder.page.ts a un modal standalone real —
 // mismo motivo y mismo arreglo que ApplyCheckinTemplateModalComponent
@@ -65,11 +67,13 @@ import { computeItemMicros } from '../../../../utils/nutrient-fields';
 @Component({
   selector: 'app-day-meal-editor-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, SubmitOnEnterDirective],
+  imports: [CommonModule, FormsModule, IonicModule, SubmitOnEnterDirective, TranslateModule, SharedModule],
   templateUrl: './day-meal-editor-modal.component.html',
   styleUrls: ['./day-meal-editor-modal.component.scss'],
 })
 export class DayMealEditorModalComponent {
+  private readonly translate = inject(TranslateService);
+
   @Input() meal!: TemplateMeal;
   @Input() menuName = '';
 
@@ -145,7 +149,7 @@ export class DayMealEditorModalComponent {
 
   public alternativeName(altIndex: number): string {
     const alt = this.meal.alternatives[altIndex];
-    return alt?.label?.trim() || `Opción ${this.meal.alternatives.length - altIndex}`;
+    return alt?.label?.trim() || this.translate.instant('DIET_TEMPLATES.OPCION_2', { p0: this.meal.alternatives.length - altIndex });
   }
 
   public deviationOf(altIndex: number): AlternativeDeviation | null {
@@ -332,7 +336,7 @@ export class DayMealEditorModalComponent {
         recipe: item.kind === 'recipe' ? item.recipe : undefined,
         quantity: item.quantity,
         onAdd,
-        addLabel: `Añadir a ${this.meal.slot}`,
+        addLabel: this.translate.instant('DIET_TEMPLATES.ANADIR', { slot: this.meal.slot }),
       },
       // ion-disable-focus-trap: ver comentario largo en
       // RecipeBuilderModalComponent#openIngredientPicker — sin esto, el
@@ -569,7 +573,7 @@ export class DayMealEditorModalComponent {
       const productId = product?._id || (typeof raw === 'string' ? raw : undefined);
       if (!productId) continue;
       const quantity = (cp as any).quantity ?? undefined;
-      const item: TemplateFoodItem = { productId, productName: product?.name || 'Producto guardado', quantity, product: product || undefined };
+      const item: TemplateFoodItem = { productId, productName: product?.name || this.translate.instant('DIET_TEMPLATES.PRODUCTO_GUARDADO'), quantity, product: product || undefined };
       if (product) this.recalculateItemMacros(item);
       alt.items.push(item);
     }
@@ -582,7 +586,7 @@ export class DayMealEditorModalComponent {
       const quantity = (cr as any).quantity ?? undefined;
       const item: TemplateFoodItem = {
         recipeId,
-        recipeName: recipe?.name || 'Receta guardada',
+        recipeName: recipe?.name || this.translate.instant('DIET_TEMPLATES.RECETA_GUARDADA'),
         quantity,
         recipe: recipe || undefined,
         addedCustomProducts: (cr as any).addedCustomProducts,
@@ -601,20 +605,20 @@ export class DayMealEditorModalComponent {
     if (!alt || !alt.items.length || !alt.items.every((i) => i.productId || i.recipeId)) return;
 
     await this.ionicUtilService.showAlert({
-      header: 'Guardar como snippet',
-      message: 'Reutilizable en cualquier plantilla o cliente, con 1 clic.',
+      header: this.translate.instant('DIET_TEMPLATES.GUARDAR_COMO_SNIPPET'),
+      message: this.translate.instant('DIET_TEMPLATES.REUTILIZABLE_EN_CUALQUIER_PLANTILLA_CLIE'),
       inputs: [{ name: 'name', type: 'text', placeholder: `p. ej. ${slot} habitual` }],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Guardar',
+          text: this.translate.instant('COMMON.SAVE'),
           handler: (data: { name?: string }) => {
             const name = (data?.name || '').trim();
             if (!name) return false;
             const { customProducts, customRecipes } = this.snippetEntries(alt.items);
             this.mealSnippetApi.create(name, customProducts, customRecipes).subscribe({
-              next: () => this.ionicUtilService.showToast({ message: `Snippet "${name}" guardado`, duration: 2000 }),
-              error: () => this.ionicUtilService.showErrorToast('No se pudo guardar el snippet', 'Error', 3000),
+              next: () => this.ionicUtilService.showToast({ message: this.translate.instant('DIET_TEMPLATES.SNIPPET_GUARDADO', { name }), duration: 2000 }),
+              error: () => this.ionicUtilService.showErrorToast(this.translate.instant('DIET_TEMPLATES.NO_SE_PUDO_GUARDAR_EL'), this.translate.instant('COMMON.ERROR'), 3000),
             });
             return true;
           },

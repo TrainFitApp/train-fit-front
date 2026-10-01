@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActionPerformed, LocalNotifications } from '@capacitor/local-notifications';
+import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { CustomExercise } from '../../models/customExercise';
 import { Set as WorkoutSet } from '../../models/set';
@@ -18,6 +19,8 @@ interface PendingSetInfo {
   set: WorkoutSet;
   exerciseIndex: number;
   totalExercises: number;
+  /** Posición del set dentro del ejercicio, en el orden real (`order`). */
+  setNumber: number;
 }
 
 /**
@@ -35,6 +38,9 @@ export class WorkoutNotificationService {
   private readonly skippedSetIds = new Set<string>();
   private listenerRegistered = false;
   private permissionRequested = false;
+  // En fila, como en LiveActivityService: dos refrescos cruzados podían
+  // dejar programada la notificación de un set ya superado.
+  private refreshChain: Promise<unknown> = Promise.resolve();
 
   constructor(
     private workoutService: WorkoutService,
@@ -42,6 +48,7 @@ export class WorkoutNotificationService {
     private restTimerService: RestTimerService,
     private navigationService: NavigationService,
     private liveActivityService: LiveActivityService,
+    private translate: TranslateService,
   ) {}
 
   public async initialize(): Promise<void> {
@@ -53,8 +60,8 @@ export class WorkoutNotificationService {
         {
           id: SET_ACTION_TYPE_ID,
           actions: [
-            { id: 'done', title: 'Hecha' },
-            { id: 'skip', title: 'Saltar' },
+            { id: 'done', title: this.translate.instant('WORKOUT_NOTIFICATION.DONE') },
+            { id: 'skip', title: this.translate.instant('WORKOUT_NOTIFICATION.SKIP') },
           ],
         },
       ],
@@ -68,7 +75,13 @@ export class WorkoutNotificationService {
   // Se llama cada vez que cambia el workout activo (arranca uno nuevo, se
   // marca/edita un set desde la propia app, etc.) — mantiene la
   // notificación siempre apuntando al siguiente set pendiente real.
-  public async refreshForWorkout(workout: Workout | null): Promise<void> {
+  public refreshForWorkout(workout: Workout | null): Promise<void> {
+    const run = this.refreshChain.then(() => this.doRefresh(workout));
+    this.refreshChain = run.catch(() => undefined);
+    return run;
+  }
+
+  private async doRefresh(workout: Workout | null): Promise<void> {
     // Donde hay Live Activity (iOS 17+) manda esa: trae steppers de
     // KG/REPS/RIR y check en la propia pantalla de bloqueo. La notificación
     // simple es el plan B del resto de plataformas.
@@ -109,20 +122,25 @@ export class WorkoutNotificationService {
       const sets = [...(exercise.sets || [])].sort(
         (a, b) => (a.order ?? 0) - (b.order ?? 0),
       );
-      const set = sets.find(
+      const setIndex = sets.findIndex(
         (candidate) => !candidate.doned && !this.skippedSetIds.has(candidate._id || ''),
       );
-      if (set) {
-        return { exercise, set, exerciseIndex, totalExercises: exercises.length };
+      if (setIndex !== -1) {
+        return {
+          exercise,
+          set: sets[setIndex],
+          exerciseIndex,
+          totalExercises: exercises.length,
+          setNumber: setIndex + 1,
+        };
       }
     }
     return null;
   }
 
   private async scheduleNotification(workout: Workout, pending: PendingSetInfo): Promise<void> {
-    const { exercise, set, exerciseIndex, totalExercises } = pending;
-    const exerciseName = exercise.exercise?.name || 'Ejercicio';
-    const setNumber = (exercise.sets || []).findIndex((s) => s._id === set._id) + 1;
+    const { exercise, set, exerciseIndex, totalExercises, setNumber } = pending;
+    const exerciseName = exercise.exercise?.name || this.translate.instant('WORKOUT_NOTIFICATION.EXERCISE');
     const totalSets = exercise.sets?.length || 0;
 
     const reps = this.firstExpectedValue(set.expectedReps);
@@ -130,11 +148,16 @@ export class WorkoutNotificationService {
       Array.isArray(set.expectedRir) ? set.expectedRir : undefined,
     );
 
-    let target = `Serie ${setNumber}/${totalSets}`;
+    let target = this.translate.instant('WORKOUT_NOTIFICATION.SET', { current: setNumber, total: totalSets });
     if (reps !== null) target += `: ${reps} reps`;
     if (rir !== null) target += ` · RIR ${rir}`;
 
-    const body = `Ejercicio ${exerciseIndex + 1}/${totalExercises} — ${exerciseName} · ${target}`;
+    const body = this.translate.instant('WORKOUT_NOTIFICATION.BODY', {
+      current: exerciseIndex + 1,
+      total: totalExercises,
+      name: exerciseName,
+      target,
+    });
     const attachments = exercise.exercise?.gifUrl
       ? [{ id: 'exercise-image', url: exercise.exercise.gifUrl }]
       : undefined;
@@ -144,7 +167,7 @@ export class WorkoutNotificationService {
         notifications: [
           {
             id: SET_NOTIFICATION_ID,
-            title: workout.name || 'Entrenamiento',
+            title: workout.name || this.translate.instant('WORKOUT_NOTIFICATION.WORKOUT'),
             body,
             actionTypeId: SET_ACTION_TYPE_ID,
             attachments,
@@ -161,7 +184,7 @@ export class WorkoutNotificationService {
           notifications: [
             {
               id: SET_NOTIFICATION_ID,
-              title: workout.name || 'Entrenamiento',
+              title: workout.name || this.translate.instant('WORKOUT_NOTIFICATION.WORKOUT'),
               body,
               actionTypeId: SET_ACTION_TYPE_ID,
               extra: { setId: set._id },

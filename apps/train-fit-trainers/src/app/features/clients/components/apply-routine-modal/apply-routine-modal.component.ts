@@ -1,9 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
 import { ClientTable } from '../../pages/client-detail/models/client-detail.model';
 import { RoutineAssignmentApiService } from '../../../../shared/services/routine-assignment-api.service';
 import { RoutineAssignment } from '../../../../shared/models/routine-assignment.model';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded' | 'applying';
 
@@ -26,8 +28,10 @@ function todayIsoDate(): string {
   styleUrls: ['apply-routine-modal.component.scss'],
 })
 export class ApplyRoutineModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId!: string;
-  @Input() public clientName = 'este cliente';
+  @Input() public clientName = this.translate.instant('CLIENTS.ESTE_CLIENTE');
   @Input() public mode: 'apply' | 'reschedule' = 'apply';
   @Input() public assignmentId: string | null = null;
   @Input() public fixedTableName = '';
@@ -94,7 +98,7 @@ export class ApplyRoutineModalComponent implements OnInit {
   // aquí: nombres de día/mes en español SIEMPRE en minúscula (no es un
   // inicio de frase), así que no hace falta ni text-transform:capitalize.
   public get selectedDateLabel(): string {
-    return new Date(`${this.startDate}T00:00:00.000Z`).toLocaleDateString('es-ES', {
+    return new Date(`${this.startDate}T00:00:00.000Z`).toLocaleDateString(uiLocale(), {
       weekday: 'long',
       day: 'numeric',
       month: 'short',
@@ -135,9 +139,9 @@ export class ApplyRoutineModalComponent implements OnInit {
         this.state = 'loaded';
         this.overlapError =
           err?.status === 409
-            ? err?.error?.message || 'Esa fecha se solapa con otra fase ya programada.'
+            ? err?.error?.message || this.translate.instant('CLIENTS.ESA_FECHA_SE_SOLAPA_CON')
             : err?.status === 400
-            ? err?.error?.message || 'No se puede aplicar ese cambio.'
+            ? err?.error?.message || this.translate.instant('CLIENTS.NO_SE_PUEDE_APLICAR_ESE')
             : null;
       },
     });

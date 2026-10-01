@@ -1,4 +1,6 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { localizeList } from 'src/app/core/i18n/localized-catalog';
 
 interface ProjectedDay {
   isPlannedRestDay: boolean;
@@ -51,10 +53,12 @@ interface TrainingCalendarCell {
 }
 
 const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+localizeList(WEEKDAY_LABELS, 'WEIGHT_INFO.DAYS_INITIALS');
 const MONTH_LABELS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
+localizeList(MONTH_LABELS, 'WEIGHT_INFO.MONTHS');
 
 function isoDate(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -101,6 +105,8 @@ function buildMonthGrid(year: number, month: number): TrainingCalendarCell[] {
   styleUrls: ['./training-calendar.component.scss'],
 })
 export class TrainingCalendarComponent implements OnChanges, OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() completedDays: Map<string, CompletedDay> = new Map();
 
   // Tarea 4 (2026-09) — capa independiente de `sessionDates` (que es solo
@@ -225,7 +231,7 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
       legend.push({
         id: phaseId,
         color: cell.projected?.phaseColor || 'var(--tf-accent)',
-        label: cell.projected?.phaseName || 'Rutina',
+        label: cell.projected?.phaseName || this.translate.instant('CLIENTS.RUTINA'),
       });
     }
     return legend;

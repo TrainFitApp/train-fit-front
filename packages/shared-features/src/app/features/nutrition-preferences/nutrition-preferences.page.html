@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+        <button type="button" class="tf-page-header__back-button" (click)="close()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
           <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Mis preferencias</h1>
+        <h1 class="tf-page-header__title">{{ 'NUTRITION_PREFERENCES.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -21,19 +21,18 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar tus preferencias.</p>
-    <button class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'NUTRITION_PREFERENCES.LOAD_ERROR' | translate }}</p>
+    <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <div class="requested-banner" *ngIf="wasRequested">
       <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
-      <span>Tu profesional te ha pedido que rellenes este cuestionario.</span>
+      <span>{{ 'NUTRITION_PREFERENCES.REQUESTED' | translate }}</span>
     </div>
 
     <p class="form-hint">
-      Esta información ayuda a tu profesional a pautarte comidas realistas. No se valida
-      automáticamente: es solo referencia para que la tenga en cuenta.
+      {{ 'NUTRITION_PREFERENCES.INTRO' | translate }}
     </p>
 
     <!-- Alergias primero y con superficie propia: es el único campo que
@@ -41,14 +40,14 @@
     <section class="form-group form-group--critical">
       <label class="field-label field-label--critical" for="nutrition-pref-allergies">
         <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
-        Alergias / intolerancias
+        {{ 'NUTRITION_PREFERENCES.ALLERGIES' | translate }}
       </label>
       <textarea
         id="nutrition-pref-allergies"
         class="note-field note-field--critical"
         rows="3"
         maxlength="1000"
-        placeholder="p. ej. Alergia a los frutos secos, intolerancia a la lactosa..."
+        [placeholder]="'NUTRITION_PREFERENCES.ALLERGIES_PLACEHOLDER' | translate"
         [(ngModel)]="allergies"
       ></textarea>
     </section>
@@ -56,9 +55,9 @@
     <section class="form-group">
       <p class="group-label">
         <ion-icon name="leaf-outline" aria-hidden="true"></ion-icon>
-        ¿Sigues alguna dieta especial?
+        {{ 'INTAKE.DIET_TITLE' | translate }}
       </p>
-      <p class="field-hint">Marca las que apliquen. Deja todo sin marcar si comes de todo.</p>
+      <p class="field-hint">{{ 'INTAKE.DIET_SUBTITLE' | translate }}</p>
       <div class="flag-chips">
         <button
           type="button"
@@ -77,20 +76,20 @@
     <section class="form-group">
       <p class="group-label">
         <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
-        Gustos
+        {{ 'NUTRITION_PREFERENCES.TASTES' | translate }}
       </p>
 
       <div class="field">
         <label class="field-label" for="nutrition-pref-favorites">
           <ion-icon name="thumbs-up-outline" aria-hidden="true"></ion-icon>
-          Alimentos favoritos
+          {{ 'INTAKE.FAVORITES_TITLE' | translate }}
         </label>
         <textarea
           id="nutrition-pref-favorites"
           class="note-field"
           rows="2"
           maxlength="1000"
-          placeholder="p. ej. Pollo, arroz, plátano..."
+          [placeholder]="'NUTRITION_PREFERENCES.FAVORITES_PLACEHOLDER' | translate"
           [(ngModel)]="favoriteFoods"
         ></textarea>
       </div>
@@ -98,14 +97,14 @@
       <div class="field">
         <label class="field-label" for="nutrition-pref-disliked">
           <ion-icon name="thumbs-down-outline" aria-hidden="true"></ion-icon>
-          Alimentos que no te gustan
+          {{ 'INTAKE.DISLIKED_TITLE' | translate }}
         </label>
         <textarea
           id="nutrition-pref-disliked"
           class="note-field"
           rows="2"
           maxlength="1000"
-          placeholder="p. ej. Brócoli, pescado azul..."
+          [placeholder]="'NUTRITION_PREFERENCES.DISLIKED_PLACEHOLDER' | translate"
           [(ngModel)]="dislikedFoods"
         ></textarea>
       </div>
@@ -114,7 +113,7 @@
     <section class="form-group">
       <p class="group-label">
         <ion-icon name="home-outline" aria-hidden="true"></ion-icon>
-        ¿Cocinas en casa habitualmente?
+        {{ 'NUTRITION_PREFERENCES.COOKS' | translate }}
       </p>
       <div class="option-row">
         <button
@@ -134,10 +133,10 @@
     <section class="form-group">
       <p class="group-label">
         <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
-        ¿Cuántas comidas haces al día?
-        <span class="group-count">{{ enabledMealSlotsCount }} de {{ mealSlots.length }}</span>
+        {{ 'NUTRITION_PREFERENCES.MEALS_PER_DAY' | translate }}
+        <span class="group-count">{{ 'NUTRITION_PREFERENCES.COUNT_OF' | translate: { count: enabledMealSlotsCount, total: mealSlots.length } }}</span>
       </p>
-      <p class="field-hint">Desmarca las que no hagas (p. ej. ayuno intermitente).</p>
+      <p class="field-hint">{{ 'NUTRITION_PREFERENCES.MEALS_HINT' | translate }}</p>
 
       <div class="meal-slot-row" *ngFor="let slot of mealSlots" [class.is-off]="disabledMealSlots[slot]">
         <button
@@ -152,7 +151,7 @@
             aria-hidden="true"
           ></ion-icon>
           <ion-icon class="meal-slot-icon" [name]="mealSlotIcons[slot]" aria-hidden="true"></ion-icon>
-          <span class="meal-slot-name">{{ slot }}</span>
+          <span class="meal-slot-name">{{ slot | translateDb }}</span>
         </button>
       </div>
     </section>
@@ -161,7 +160,7 @@
 
 <ion-footer class="ion-no-border nutrition-preferences-footer" *ngIf="state === 'loaded'">
   <button type="button" class="submit-button" (click)="submit()" [disabled]="isSaving">
-    <span *ngIf="!isSaving">Guardar preferencias</span>
+    <span *ngIf="!isSaving">{{ 'NUTRITION_PREFERENCES.SAVE' | translate }}</span>
     <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
   </button>
 </ion-footer>

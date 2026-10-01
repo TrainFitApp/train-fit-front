@@ -7,6 +7,7 @@ import {
   HttpRequest,
 } from '@angular/common/http';
 import { Injectable, Injector } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Capacitor } from '@capacitor/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
@@ -148,7 +149,7 @@ export class JWTInterceptor implements HttpInterceptor {
         this.ionicUtilService = this.injector.get(IonicUtilService);
       }
       this.ionicUtilService.showToast({
-        message: error.error?.message || 'No se pudo completar la acción.',
+        message: error.error?.message || this.injector.get(TranslateService).instant('HTTP_ERRORS.ACTION_FAILED'),
         duration: 3500,
       });
       return throwError(() => error);

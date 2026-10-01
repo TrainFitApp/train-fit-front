@@ -8,6 +8,7 @@ import { mediaErrorKey } from 'src/app/core/services/media/media-errors';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { MediaVideoPlayerComponent } from 'src/app/shared/components/media/media-video-player.component';
 import { executedSummary, prescribedSummary } from 'src/app/shared/components/media/set-summary.util';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 /**
  * Responder a un vídeo de técnica: comentarios anclados a un segundo del
@@ -109,7 +110,7 @@ export class FormCheckReviewPage {
   public dateLabel(date: string | null | undefined): string {
     if (!date) return '';
     const value = date.length === 10 ? new Date(`${date}T12:00:00`) : new Date(date);
-    return value.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+    return value.toLocaleDateString(uiLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
   }
 
   public seek(comment: FormCheckComment): void {

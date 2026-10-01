@@ -4,7 +4,7 @@
     <section class="form-group">
       <div class="field-row">
         <div class="field">
-          <label class="field-label" [for]="formId + '-amount'">Importe por vencimiento</label>
+          <label class="field-label" [for]="formId + '-amount'">{{ 'PAYMENTS.IMPORTE_POR_VENCIMIENTO' | translate }}</label>
           <div class="input-wrapper input-wrapper--money" [class.input-wrapper--invalid]="amountError">
             <input
               [id]="formId + '-amount'"
@@ -23,7 +23,7 @@
         </div>
         <div class="field" *ngIf="mode === 'configure'">
           <label class="field-label" [for]="formId + '-concept'">
-            Concepto <span class="field-optional">(visible en avisos)</span>
+            {{ 'PAYMENTS.CONCEPTO' | translate }} <span class="field-optional">{{ 'PAYMENTS.VISIBLE_EN_AVISOS' | translate }}</span>
           </label>
           <div class="input-wrapper">
             <input
@@ -42,7 +42,7 @@
 
     <!-- Frecuencia -->
     <section class="form-group" *ngIf="mode === 'configure'">
-      <p class="group-label" [id]="formId + '-freq'">Frecuencia</p>
+      <p class="group-label" [id]="formId + '-freq'">{{ 'PAYMENTS.FRECUENCIA' | translate }}</p>
       <div class="segmented" role="radiogroup" [attr.aria-labelledby]="formId + '-freq'">
         <button
           type="button"
@@ -63,14 +63,14 @@
           [attr.aria-checked]="presetKey === 'custom'"
           (click)="selectPreset('custom')"
         >
-          Otra
+          {{ 'PAYMENTS.OTRA' | translate }}
         </button>
       </div>
       <p class="field-hint" *ngIf="presetHint">{{ presetHint }}</p>
 
       <div class="field-row custom-frequency" *ngIf="presetKey === 'custom'">
         <div class="field">
-          <label class="field-label" [for]="formId + '-interval'">Cada</label>
+          <label class="field-label" [for]="formId + '-interval'">{{ 'CLIENTS.EVERY' | translate }}</label>
           <div class="input-wrapper" [class.input-wrapper--invalid]="intervalError">
             <input
               [id]="formId + '-interval'"
@@ -85,7 +85,7 @@
           </div>
         </div>
         <div class="field">
-          <label class="field-label" [for]="formId + '-unit'">Unidad</label>
+          <label class="field-label" [for]="formId + '-unit'">{{ 'PAYMENTS.UNIDAD' | translate }}</label>
           <div class="input-wrapper">
             <select
               [id]="formId + '-unit'"
@@ -94,8 +94,8 @@
               [(ngModel)]="customUnit"
               (ngModelChange)="refreshPreview()"
             >
-              <option value="week">semanas</option>
-              <option value="month">meses</option>
+              <option value="week">{{ 'PAYMENTS.SEMANAS' | translate }}</option>
+              <option value="month">{{ 'PAYMENTS.MESES' | translate }}</option>
             </select>
           </div>
         </div>
@@ -107,7 +107,7 @@
     <section class="form-group">
       <div class="field">
         <label class="field-label" [for]="formId + '-start'">
-          {{ mode === 'resume' ? 'Próximo vencimiento' : isNew ? 'Primer vencimiento' : 'Próximo vencimiento' }}
+          {{ mode === 'resume' ? ('PAYMENTS.PROXIMO_VENCIMIENTO' | translate) : isNew ? ('PAYMENTS.PRIMER_VENCIMIENTO' | translate) : ('PAYMENTS.PROXIMO_VENCIMIENTO' | translate) }}
         </label>
         <div class="input-wrapper">
           <ion-icon name="calendar-outline" class="input-icon" aria-hidden="true"></ion-icon>
@@ -124,12 +124,12 @@
         </div>
         <p class="field-error" *ngIf="startError && (nextDueDay || mode === 'resume')">{{ startError }}</p>
         <p class="field-hint" *ngIf="!startError">
-          Los vencimientos no se mueven aunque te paguen tarde<ng-container *ngIf="anchorAtMonthEnd">; en los meses más cortos, el último día del mes</ng-container>.
+          {{ 'PAYMENTS.LOS_VENCIMIENTOS_NO_SE_MUEVEN' | translate }}<ng-container *ngIf="anchorAtMonthEnd">{{ 'PAYMENTS.EN_LOS_MESES_MAS_CORTOS' | translate }}</ng-container>.
         </p>
       </div>
 
       <div class="field" *ngIf="choosesEffectiveDay">
-        <p class="field-label" [id]="formId + '-effective'">El precio nuevo se aplica desde</p>
+        <p class="field-label" [id]="formId + '-effective'">{{ 'PAYMENTS.EL_PRECIO_NUEVO_SE_APLICA' | translate }}</p>
         <div class="segmented" role="radiogroup" [attr.aria-labelledby]="formId + '-effective'">
           <button
             type="button"
@@ -143,13 +143,13 @@
             {{ day(option) }}
           </button>
         </div>
-        <p class="field-hint">Los vencimientos anteriores y los que ya tienen pagos conservan su importe.</p>
+        <p class="field-hint">{{ 'PAYMENTS.LOS_VENCIMIENTOS_ANTERIORES_LOS_QUE' | translate }}</p>
       </div>
     </section>
 
     <!-- Previsualización -->
     <section class="preview" aria-live="polite" *ngIf="nextDates.length || previewState === 'loading'">
-      <p class="group-label">Próximos vencimientos</p>
+      <p class="group-label">{{ 'PAYMENTS.PROXIMOS_VENCIMIENTOS' | translate }}</p>
       <ol class="preview-dates" *ngIf="nextDates.length; else previewLoading">
         <li *ngFor="let item of nextDates">
           <span class="preview-day">{{ dayLong(item.day) }}</span>
@@ -157,23 +157,23 @@
         </li>
       </ol>
       <ng-template #previewLoading>
-        <p class="field-hint">Calculando fechas…</p>
+        <p class="field-hint">{{ 'PAYMENTS.CALCULANDO_FECHAS' | translate }}</p>
       </ng-template>
       <p class="field-hint">{{ frequencyText() }}</p>
 
       <ul class="effects" *ngIf="preview && mode === 'configure'">
         <li *ngFor="let update of preview.effects.updates">
           <ion-icon name="swap-vertical-outline" aria-hidden="true"></ion-icon>
-          Se actualiza el vencimiento del {{ day(update.dueDay) }}: {{ money(update.fromCents) }} → {{ money(update.toCents) }}
+          {{ 'PAYMENTS.SE_ACTUALIZA_EL_VENCIMIENTO_DEL' | translate }} {{ day(update.dueDay) }}: {{ money(update.fromCents) }} → {{ money(update.toCents) }}
         </li>
         <li *ngFor="let item of preview.effects.voids">
           <ion-icon name="remove-circle-outline" aria-hidden="true"></ion-icon>
-          Se anula la previsión del {{ day(item.dueDay) }} ({{ money(item.amountCents) }}): el calendario cambia
+          {{ 'PAYMENTS.SE_ANULA_LA_PREVISION_DEL' | translate }} {{ day(item.dueDay) }} ({{ money(item.amountCents) }}{{ 'PAYMENTS.EL_CALENDARIO_CAMBIA' | translate }}
         </li>
         <li *ngFor="let item of preview.effects.protected">
           <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
-          El vencimiento del {{ day(item.dueDay) }}
-          {{ item.reason === 'has_movements' ? 'ya tiene pagos' : 'se editó a mano' }}: conserva su importe
+          {{ 'TRAINER_MISC.EL_VENCIMIENTO_DEL' | translate }} {{ day(item.dueDay) }}
+          {{ item.reason === 'has_movements' ? ('PAYMENTS.YA_TIENE_PAGOS' | translate) : ('PAYMENTS.SE_EDITO_MANO' | translate) }}: {{ 'TRAINER_MISC.CONSERVA_SU_IMPORTE' | translate }}
         </li>
       </ul>
     </section>
@@ -183,8 +183,8 @@
       <label class="check-row">
         <input type="checkbox" name="remindClient" [(ngModel)]="remindClient" />
         <span>
-          <strong>Avisar también al cliente</strong><br />
-          Recordatorios dentro de su app en los días que tengas configurados. Nunca ve tus notas ni puede tocar sus cobros.
+          <strong>{{ 'PAYMENTS.AVISAR_TAMBIEN_AL_CLIENTE' | translate }}</strong><br />
+          {{ 'PAYMENTS.RECORDATORIOS_DENTRO_DE_SU_APP_2' | translate }}
         </span>
       </label>
     </section>
@@ -195,9 +195,9 @@
     </div>
   </form>
 
-  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">Cancelar</button>
+  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">{{ 'COMMON.CANCEL' | translate }}</button>
   <button sheetFooter type="submit" class="submit-button" [attr.form]="formId" [disabled]="!canSubmit">
     <ion-spinner name="dots" *ngIf="saving"></ion-spinner>
-    <span *ngIf="!saving">{{ mode === 'resume' ? 'Reanudar cuota' : isNew ? 'Guardar cuota' : 'Guardar cambios' }}</span>
+    <span *ngIf="!saving">{{ mode === 'resume' ? ('PAYMENTS.REANUDAR_CUOTA' | translate) : isNew ? ('PAYMENTS.GUARDAR_CUOTA' | translate) : ('PAYMENTS.GUARDAR_CAMBIOS' | translate) }}</span>
   </button>
 </app-payments-sheet>

@@ -1,11 +1,11 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Clientes">
+  <app-page-header [title]="'TRAINER_COMMON.CLIENTS' | translate">
     <ng-container pageActions>
       <!-- Con texto: un icono de persona con un "+" no dice si añade un
            cliente, lo invita o abre su agenda. -->
       <button type="button" class="header-add-btn" (click)="goToInvite()">
         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-        Cliente
+        {{ 'TRAINER_COMMON.CLIENT' | translate }}
       </button>
     </ng-container>
   </app-page-header>

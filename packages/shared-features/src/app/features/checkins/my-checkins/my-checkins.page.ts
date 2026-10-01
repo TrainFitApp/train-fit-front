@@ -17,6 +17,7 @@ import {
   isCustomQuestionKey,
 } from './models/my-checkin.model';
 import { MyCheckinsApiService } from './services/my-checkins-api.service';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -104,10 +105,18 @@ export class MyCheckinsPage implements OnInit {
   public prefillNotice(checkin: MyCheckin): string | null {
     const prefilled = Object.values(checkin.prefill || {});
     if (checkin.respondedAt || !prefilled.length) return null;
-    const days = [...new Set(prefilled.map((p) => p.date))].sort().map((d) => `el ${this.shortDay(d)}`);
-    const when = days.length > 1 ? `${days.slice(0, -1).join(', ')} y ${days[days.length - 1]}` : days[0];
-    const fields = prefilled.length === 1 ? '1 campo' : `${prefilled.length} campos`;
-    return `Autorrellenado ${fields} con las medidas que apuntaste ${when}. Revísalos y cambia lo que haga falta antes de enviar.`;
+    const days = [...new Set(prefilled.map((p) => p.date))]
+      .sort()
+      .map((d) => this.translate.instant('MY_CHECKINS.ON_DAY', { day: this.shortDay(d) }));
+    const when =
+      days.length > 1
+        ? `${days.slice(0, -1).join(', ')}${this.translate.instant('COACH.AND')}${days[days.length - 1]}`
+        : days[0];
+    const fields =
+      prefilled.length === 1
+        ? this.translate.instant('MY_CHECKINS.FIELDS_ONE')
+        : this.translate.instant('MY_CHECKINS.FIELDS_COUNT', { count: prefilled.length });
+    return this.translate.instant('MY_CHECKINS.PREFILL_NOTICE', { fields, when });
   }
 
   public cardIcon(checkin: MyCheckin): string {
@@ -192,7 +201,7 @@ export class MyCheckinsPage implements OnInit {
   }
 
   public historyTrainerName(entry: CheckinHistoryEntry): string {
-    if (!entry.trainer) return 'Un profesional';
+    if (!entry.trainer) return this.translate.instant('ONBOARDING.A_PROFESSIONAL');
     return `${entry.trainer.name} ${entry.trainer.lastname}`.trim();
   }
 
@@ -207,15 +216,15 @@ export class MyCheckinsPage implements OnInit {
         );
         if (question) return question.label;
       }
-      return 'Pregunta eliminada';
+      return this.translate.instant('MY_CHECKINS.QUESTION_DELETED');
     }
     return CHECKIN_FIELDS_BY_KEY.get(key)?.label || key;
   }
 
   // Un booleano crudo se leería como "true"/"false" en el historial.
   public historyValueLabel(value: number | string | boolean): string {
-    if (value === true) return 'Sí';
-    if (value === false) return 'No';
+    if (value === true) return this.translate.instant('COMMON.YES');
+    if (value === false) return this.translate.instant('COMMON.NO');
     return String(value);
   }
 
@@ -228,7 +237,7 @@ export class MyCheckinsPage implements OnInit {
   }
 
   public trainerName(checkin: MyCheckin): string {
-    if (!checkin.trainer) return 'Tu entrenador';
+    if (!checkin.trainer) return this.translate.instant('MY_CHECKINS.YOUR_TRAINER');
     return `${checkin.trainer.name} ${checkin.trainer.lastname}`.trim();
   }
 
@@ -238,15 +247,15 @@ export class MyCheckinsPage implements OnInit {
     if (checkin.week) {
       const r = checkin.week;
       const fin = r.end ? ` – ${this.shortDay(r.end)}` : '';
-      return `Semana ${r.number} · ${this.shortDay(r.start)}${fin}`;
+      return `${this.translate.instant('COACH.WEEK_N', { n: r.number })} · ${this.shortDay(r.start)}${fin}`;
     }
     return checkin.closesDate
-      ? `Del ${this.shortDay(checkin.date)} al ${this.shortDay(checkin.closesDate)}`
-      : `Desde el ${this.shortDay(checkin.date)}`;
+      ? this.translate.instant('MY_CHECKINS.PERIOD_RANGE', { from: this.shortDay(checkin.date), to: this.shortDay(checkin.closesDate) })
+      : this.translate.instant('MY_CHECKINS.PERIOD_FROM', { from: this.shortDay(checkin.date) });
   }
 
   private shortDay(iso: string): string {
-    return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' });
   }
 
   // Los campos del catálogo y las preguntas propias del coach salen por la
@@ -292,7 +301,7 @@ export class MyCheckinsPage implements OnInit {
   // rango inventado.
   public numberPlaceholder(field: CheckinField): string {
     if (field.min === undefined || field.max === undefined) return '';
-    return `Entre ${field.min} y ${field.max}`;
+    return this.translate.instant('MY_CHECKINS.BETWEEN', { min: field.min, max: field.max });
   }
 
   public optionsFor(field: CheckinField): string[] {
@@ -375,7 +384,11 @@ export class MyCheckinsPage implements OnInit {
 
     const missing = this.missingRequiredLabel(checkin);
     if (missing) {
-      this.ionicUtilService.showErrorToast(`"${missing}" es obligatoria`, 'Falta una respuesta', 3000);
+      this.ionicUtilService.showErrorToast(
+        this.translate.instant('MY_CHECKINS.REQUIRED_ANSWER', { label: missing }),
+        this.translate.instant('MY_CHECKINS.MISSING_ONE'),
+        3000
+      );
       return;
     }
 
@@ -411,18 +424,20 @@ export class MyCheckinsPage implements OnInit {
 
   private async confirmOverwrite(checkin: MyCheckin): Promise<boolean> {
     const when = checkin.updatedAt || checkin.respondedAt;
-    const fecha = when ? new Date(when).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : null;
+    const fecha = when ? new Date(when).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'long' }) : null;
     const res = await this.ionicUtilService.showModal({
       component: ConfirmSheetComponent,
       componentProps: {
         icon: 'sync-circle-outline',
         iconColor: 'primary',
-        title: checkin.week ? `Ya respondiste la semana ${checkin.week.number}` : 'Ya respondiste este check-in',
+        title: checkin.week
+          ? this.translate.instant('MY_CHECKINS.ALREADY_ANSWERED_WEEK', { n: checkin.week.number })
+          : this.translate.instant('MY_CHECKINS.ALREADY_ANSWERED'),
         message: fecha
-          ? `Se actualizará lo que enviaste el ${fecha}. ¿Guardar los cambios?`
-          : 'Se actualizará lo que ya habías enviado. ¿Guardar los cambios?',
-        confirmText: 'Actualizar',
-        cancelText: 'Cancelar',
+          ? this.translate.instant('MY_CHECKINS.OVERWRITE_DATED', { date: fecha })
+          : this.translate.instant('MY_CHECKINS.OVERWRITE'),
+        confirmText: this.translate.instant('MY_CHECKINS.UPDATE'),
+        cancelText: this.translate.instant('COMMON.CANCEL'),
       },
       cssClass: 'confirm-sheet-modal',
       breakpoints: [0, 1],
@@ -440,15 +455,15 @@ export class MyCheckinsPage implements OnInit {
         this.submittedTrainerIds.add(this.checkinKey(checkin));
         this.load();
         this.ionicUtilService.showToast({
-          message: `Check-in enviado a ${this.trainerName(checkin)}`,
+          message: this.translate.instant('MY_CHECKINS.SENT_TO', { name: this.trainerName(checkin) }),
           duration: 3000,
         });
       },
       error: (err) => {
         this.isSubmitting = false;
         this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo enviar el check-in',
-          'Error',
+          err?.error?.message || this.translate.instant('MY_CHECKINS.SUBMIT_ERROR'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },

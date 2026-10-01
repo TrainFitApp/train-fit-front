@@ -4,6 +4,8 @@ export * from './premium-media-card.component';
 export * from './media-consent-sheet.component';
 export * from './media-gate.service';
 export * from './photo-session-modal.component';
+export * from './media-camera-modal.component';
+export * from './media-confirm';
 export * from './photo-viewer-modal.component';
 export * from './progress-photos.component';
 export * from './progress-videos.component';

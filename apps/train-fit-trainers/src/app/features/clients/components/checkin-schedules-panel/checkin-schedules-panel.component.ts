@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
 import { CheckinSchedule } from '../../pages/client-detail/components/checkin-workspace/checkin-workspace.model';
@@ -18,13 +19,15 @@ type ViewState = 'loading' | 'ready' | 'error';
 @Component({
   selector: 'app-checkin-schedules-panel',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './checkin-schedules-panel.component.html',
   styleUrls: ['./checkin-schedules-panel.component.scss'],
 })
 export class CheckinSchedulesPanelComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId!: string;
-  @Input() public clientName = 'este cliente';
+  @Input() public clientName = this.translate.instant('CLIENTS.ESTE_CLIENTE');
   // Las pone el padre: abrir el detalle y saltar a la sección de check-ins
   // son cosas suyas, no de este panel (ver recipe-builder-modal para el
   // mismo reparto).

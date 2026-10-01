@@ -54,20 +54,9 @@ export class DietDayAPIService {
     );
   }
 
-  public createDayWeightOnNewDietDay(
-    dayWeight: number,
-    dietInUseId: string,
-    currentDate: string
-  ) {
-    return this.http.post<{ dietDay: DietDay; anthropometry: Anthropometry | null }>(
-      `${DietDayAPIService.DIET_DAYS_ENDPOINT}/create/on/new/${dietInUseId}`,
-      {
-        dayWeight,
-        currentDate,
-      }
-    );
-  }
-
+  // Estrena el día de `currentDate` Y añade el producto, en UNA llamada: el
+  // backend asegura el día (sin crear nunca un segundo en esa fecha) y mete el
+  // producto en el hueco `indexMeal` dentro de la misma petición.
   public createCustomProductOnNewDietDay(
     customProduct: CustomProduct,
     indexMeal: number,
@@ -86,12 +75,16 @@ export class DietDayAPIService {
     );
   }
 
-  public updateDietDay(dietDay: DietDay): Observable<DietDay> {
+  // La nota del día, en una sola llamada y sin necesitar el _id: el backend
+  // resuelve el día por (dueño del token, fecha) y lo crea si esa fecha
+  // todavía no tenía día. Antes había que crear el día aparte y luego
+  // escribir la nota — y si el día ya existía en BD pero la app no lo tenía
+  // con _id, aquello creaba un día duplicado en la misma fecha.
+  public setDietDayNotes(date: string, notes: string): Observable<DietDay> {
     return this.http
-      .put<DietDay>(
-        `${DietDayAPIService.DIET_DAYS_ENDPOINT}/${dietDay._id}`,
-        dietDay
-      )
+      .put<DietDay>(`${DietDayAPIService.DIET_DAYS_ENDPOINT}/date/${date}`, {
+        notes,
+      })
       .pipe(take(1));
   }
 

@@ -1,4 +1,5 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { ModalOptions } from '@ionic/angular';
@@ -22,6 +23,7 @@ import {
   schemeFromExistingSets,
   schemeSummary,
 } from './template-scheme.util';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -50,12 +52,14 @@ const BLOCK_TYPE_LABELS: Record<WorkoutTemplateBlockType, string> = {
   warmup: 'Calentamiento',
   finisher: 'Finisher',
 };
+localizeRecord(BLOCK_TYPE_LABELS, 'ROUTINES.BLOCK_TYPES');
 
 const LEVEL_LABELS: Record<WorkoutTemplateLevel, string> = {
   principiante: 'Principiante',
   intermedio: 'Intermedio',
   avanzado: 'Avanzado',
 };
+localizeRecord(LEVEL_LABELS, 'PLANNER.TEMPLATE_LEVELS');
 
 // Plantillas de entrenamiento — constructor de contenido desde cero (la
 // pieza que faltaba: routines.page.ts solo gestionaba metadata, nunca
@@ -72,6 +76,8 @@ const LEVEL_LABELS: Record<WorkoutTemplateLevel, string> = {
   styleUrls: ['routine-builder.page.scss'],
 })
 export class RoutineBuilderPage implements OnInit, PendingChangesComponent {
+  private readonly translate = inject(TranslateService);
+
   public state: ViewState = 'loading';
   public templateId = '';
 
@@ -175,12 +181,12 @@ export class RoutineBuilderPage implements OnInit, PendingChangesComponent {
 
   public async addBlockAlert(): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Nuevo bloque',
-      inputs: [{ name: 'name', type: 'text', placeholder: 'Nombre (opcional)' }],
+      header: this.translate.instant('ROUTINES.NUEVO_BLOQUE'),
+      inputs: [{ name: 'name', type: 'text', placeholder: this.translate.instant('ROUTINES.NOMBRE_OPCIONAL') }],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Siguiente',
+          text: this.translate.instant('INTAKE.NEXT'),
           handler: (data: any) => {
             this.chooseBlockTypeAlert((data?.name || '').trim());
             return true;
@@ -202,12 +208,12 @@ export class RoutineBuilderPage implements OnInit, PendingChangesComponent {
     }));
 
     await this.ionicUtilService.showAlert({
-      header: 'Tipo de bloque',
+      header: this.translate.instant('ROUTINES.TIPO_DE_BLOQUE'),
       inputs,
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Crear',
+          text: this.translate.instant('TRAINER_COMMON.CREATE'),
           handler: (type: WorkoutTemplateBlockType) => {
             this.blocks.push({
               name,
@@ -230,40 +236,40 @@ export class RoutineBuilderPage implements OnInit, PendingChangesComponent {
       header: block.name || this.blockTypeLabels[block.type],
       buttons: [
         {
-          text: 'Renombrar',
+          text: this.translate.instant('TRAINER_COMMON.RENAME'),
           handler: () => {
             this.renameBlockAlert(block);
             return false;
           },
         },
         {
-          text: 'Rondas / descansos',
+          text: this.translate.instant('ROUTINES.RONDAS_DESCANSOS'),
           handler: () => {
             this.blockTimingAlert(block);
             return false;
           },
         },
         {
-          text: 'Borrar bloque',
+          text: this.translate.instant('ROUTINES.BORRAR_BLOQUE'),
           cssClass: 'alert-button-danger',
           handler: () => {
             this.confirmDeleteBlock(block);
             return false;
           },
         },
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
       ],
     });
   }
 
   private async renameBlockAlert(block: BuilderBlock): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Renombrar bloque',
+      header: this.translate.instant('ROUTINES.RENOMBRAR_BLOQUE'),
       inputs: [{ name: 'name', type: 'text', value: block.name }],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Guardar',
+          text: this.translate.instant('COMMON.SAVE'),
           handler: (data: any) => {
             block.name = (data?.name || '').trim();
             return true;
@@ -275,26 +281,26 @@ export class RoutineBuilderPage implements OnInit, PendingChangesComponent {
 
   private async blockTimingAlert(block: BuilderBlock): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Rondas y descansos',
+      header: this.translate.instant('ROUTINES.RONDAS_DESCANSOS_2'),
       inputs: [
-        { name: 'rounds', type: 'number', placeholder: 'Rondas', value: block.rounds ?? '' },
+        { name: 'rounds', type: 'number', placeholder: this.translate.instant('ROUTINES.RONDAS_2'), value: block.rounds ?? '' },
         {
           name: 'restBetweenExercises',
           type: 'number',
-          placeholder: 'Descanso entre ejercicios (s)',
+          placeholder: this.translate.instant('ROUTINES.DESCANSO_ENTRE_EJERCICIOS'),
           value: block.restBetweenExercises ?? '',
         },
         {
           name: 'restBetweenRounds',
           type: 'number',
-          placeholder: 'Descanso entre rondas (s)',
+          placeholder: this.translate.instant('ROUTINES.DESCANSO_ENTRE_RONDAS'),
           value: block.restBetweenRounds ?? '',
         },
       ],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Guardar',
+          text: this.translate.instant('COMMON.SAVE'),
           handler: (data: any) => {
             block.rounds = data?.rounds !== '' && data?.rounds != null ? Number(data.rounds) : null;
             block.restBetweenExercises =
@@ -314,12 +320,12 @@ export class RoutineBuilderPage implements OnInit, PendingChangesComponent {
 
   private async confirmDeleteBlock(block: BuilderBlock): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Borrar bloque',
-      message: `¿Seguro que quieres borrar "${block.name || this.blockTypeLabels[block.type]}"? Se perderán sus ejercicios.`,
+      header: this.translate.instant('ROUTINES.BORRAR_BLOQUE'),
+      message: this.translate.instant('ROUTINES.SEGURO_QUE_QUIERES_BORRAR_SE', { p0: block.name || this.blockTypeLabels[block.type] }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Borrar',
+          text: this.translate.instant('TRAINER_COMMON.ERASE'),
           cssClass: 'alert-button-danger',
           handler: () => {
             this.blocks = this.blocks.filter((b) => b !== block);
@@ -436,11 +442,11 @@ export class RoutineBuilderPage implements OnInit, PendingChangesComponent {
         next: () => {
           this.isSaving = false;
           this.savedSnapshot = JSON.stringify(payload);
-          this.ionicUtilService.showToast({ message: 'Plantilla guardada', duration: 1500 });
+          this.ionicUtilService.showToast({ message: this.translate.instant('TABLES.TEMPLATE_SAVED'), duration: 1500 });
         },
         error: () => {
           this.isSaving = false;
-          this.ionicUtilService.showToast({ message: 'No se pudo guardar la plantilla', duration: 2500 });
+          this.ionicUtilService.showToast({ message: this.translate.instant('TABLES.TEMPLATE_SAVE_ERROR'), duration: 2500 });
         },
       });
   }

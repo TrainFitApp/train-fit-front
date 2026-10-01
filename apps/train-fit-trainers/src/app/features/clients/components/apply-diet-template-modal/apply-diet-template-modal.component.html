@@ -10,13 +10,13 @@
           type="button"
           class="tf-page-header__back-button"
           (click)="dismiss()"
-          aria-label="Cerrar"
+          [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
         >
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Aplicar plantilla</h1>
+        <h1 class="tf-page-header__title">{{ 'CLIENTS.APLICAR_PLANTILLA' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -30,7 +30,7 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar tus plantillas.</p>
+    <p>{{ 'CLIENTS.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</p>
   </div>
 
   <ng-container *ngIf="state === 'loaded' || state === 'applying'">
@@ -43,15 +43,14 @@
       (click)="toggleOwnedFilter()"
     >
       <ion-icon [name]="onlyOwnedByClient ? 'person' : 'people-outline'"></ion-icon>
-      {{ onlyOwnedByClient ? ('Solo dietas de ' + clientName) : 'Todas: generales + suyas' }}
+      {{ onlyOwnedByClient ? (('CLIENTS.SOLO_DIETAS_DE' | translate) + clientName) : ('CLIENTS.TODAS_GENERALES_SUYAS' | translate) }}
     </button>
 
     <p class="empty-hint" *ngIf="!templates.length && onlyOwnedByClient">
-      {{ clientName }} todavía no tiene dietas propias. Créale una con "Crear dieta",
-      o quita el filtro para aplicarle una plantilla general.
+      {{ clientName }} {{ 'CLIENTS.TODAVIA_NO_TIENE_DIETAS_PROPIAS' | translate }}
     </p>
     <p class="empty-hint" *ngIf="!templates.length && !onlyOwnedByClient">
-      Todavía no tienes plantillas. Créalas desde "Plantillas de dieta".
+      {{ 'CLIENTS.TODAVIA_NO_TIENES_PLANTILLAS_CREALAS' | translate }}
     </p>
 
     <div
@@ -64,8 +63,8 @@
       <div class="template-info">
         <span class="template-name">{{ template.name }}</span>
         <span class="template-meta">
-          {{ menuCount(template) }} menú{{ menuCount(template) === 1 ? '' : 's' }}
-          <ng-container *ngIf="template.ownerClientId"> · suya</ng-container>
+          {{ menuCount(template) }} {{ (menuCount(template) === 1 ? 'TRAINER_COMMON.PL_MENU_ONE' : 'TRAINER_COMMON.PL_MENU_MANY') | translate }}
+          <ng-container *ngIf="template.ownerClientId"> {{ 'CLIENTS.SUYA' | translate }}</ng-container>
         </span>
       </div>
       <ion-icon
@@ -77,15 +76,13 @@
 
     <!-- Cómo se resuelve el contenido: siempre por menús. -->
     <p class="phase-mode-info" *ngIf="selectedTemplate">
-      <strong>El cliente elige cada día</strong> — no hay días fijos: cada día
-      el cliente elige cuál de los menús sigue.
+      <strong>{{ 'CLIENTS.EL_CLIENTE_ELIGE_CADA_DIA' | translate }}</strong> {{ 'CLIENTS.NO_HAY_DIAS_FIJOS_CADA' | translate }}
     </p>
 
     <!-- Sin fecha que elegir: la fase empieza hoy y se corrige luego desde
          Plan > Nutrición (docs/plan-semanas.md). -->
     <p class="date-hint" *ngIf="selectedTemplate">
-      Empieza <strong>hoy</strong> y queda abierta. Si {{ clientName }} ya tiene una fase en curso, se
-      cerrará ayer al aplicar esta.
+      {{ 'CLIENTS.EMPIEZA' | translate }} <strong>{{ 'CLIENTS.HOY' | translate }}</strong> {{ 'CLIENTS.QUEDA_ABIERTA_SI' | translate }} {{ clientName }} {{ 'CLIENTS.YA_TIENE_UNA_FASE_EN' | translate }}
     </p>
 
     <p class="overlap-error" *ngIf="overlapError">
@@ -103,7 +100,7 @@
       [disabled]="!canConfirm || state === 'applying'"
       (click)="confirm()"
     >
-      <span *ngIf="state !== 'applying'">Aplicar a {{ clientName }}</span>
+      <span *ngIf="state !== 'applying'">{{ 'CLIENTS.APLICAR' | translate }} {{ clientName }}</span>
       <ion-spinner name="dots" *ngIf="state === 'applying'"></ion-spinner>
     </button>
   </ion-toolbar>

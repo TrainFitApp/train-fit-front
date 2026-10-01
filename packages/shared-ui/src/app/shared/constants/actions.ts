@@ -20,6 +20,7 @@ export enum ACTION_TYPES {
   manageBlocks = 18,
   copyToWeek = 19,
   stopWorkout = 20,
+  manageRecents = 21,
 }
 
 export type ACTION_TYPE = {
@@ -166,6 +167,13 @@ export const ACTIONS: {
     value: "ACTIONS.STOP_WORKOUT",
     icon: "stop-outline",
     color: "danger",
+  },
+  // Menú ⋮ del buscador de alimentos: abre RecentFoodsSheetComponent.
+  [ACTION_TYPES.manageRecents]: {
+    id: ACTION_TYPES.manageRecents,
+    value: "ACTIONS.MANAGE_RECENTS",
+    icon: "time-outline",
+    color: "medium",
   },
 };
 
