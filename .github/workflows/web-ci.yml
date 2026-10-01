@@ -86,8 +86,13 @@ jobs:
 
       - run: npm ci --no-audit --fund=false
 
-      # El mismo script que se usa en local; llama a `ng build`, no a
-      # `ionic build` (@ionic/cli no está en las dependencias del repo).
+      # Los scripts de build usan `ionic build`, y @ionic/cli no está en las
+      # dependencias del repo: en local va instalado global, aquí también.
+      # Misma major que en local (7.x).
+      - name: Instalar Ionic CLI
+        run: npm install -g @ionic/cli@7 --no-audit --fund=false
+
+      # El mismo script que se usa en local.
       - name: Compilar Angular
         working-directory: apps/${{ matrix.app }}
         run: npm run build:pro

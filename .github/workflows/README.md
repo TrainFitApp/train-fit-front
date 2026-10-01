@@ -30,6 +30,8 @@ test ──┴──> build (3 apps en paralelo, build:pro)
 - `lint` y `test` corren a la vez. `build` es matriz sobre las tres apps porque
   comparten `packages/`: un cambio ahí puede romper el AOT de una app y compilar
   en otra.
+- `build` instala `@ionic/cli@7` global antes de `npm run build:pro`: los
+  scripts usan `ionic build` y el CLI no está en las dependencias del repo.
 - `test` usa **Node 22**: varios tests importan los `.ts` de la app con
   `--experimental-strip-types`, que Node 20 no conoce. Lint y build siguen en
   Node 20.
@@ -108,8 +110,7 @@ bundle IDs (`com.trainfit.trainfit` y `com.trainfit.trainfit.TrainFitWidget`).
 - Todo el código nativo (`ios/App/App/LiveActivity/`, `ios/App/TrainFitWidget/`)
   tiene que estar commiteado: el `project.pbxproj` lo referencia y el archive
   falla si falta.
-- Los scripts de build de cada app llaman a `ng build`, no a `ionic build`:
-  `@ionic/cli` no está en las dependencias del repo y en un clon limpio fallaría
-  con "ionic: command not found". `ionic build` no es más que `ng build`. Los
-  scripts que sí necesitan el CLI de Ionic (`serve*`, `live:*`) son solo de uso
-  local.
+- Los scripts de build (`build:pro`, `build:i`, `build:a`…) usan `ionic build`
+  y `@ionic/cli` no está en las dependencias del repo. `mobile-release.yml` llama
+  a `ng build` directamente; `web-ci.yml` instala `@ionic/cli@7` global en el
+  runner y usa el script.
