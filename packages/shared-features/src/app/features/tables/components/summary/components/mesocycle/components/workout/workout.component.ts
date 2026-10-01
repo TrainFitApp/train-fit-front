@@ -2238,13 +2238,19 @@ export class WorkoutComponent implements OnDestroy {
       return null;
     }
 
-    // RIR: -1 es el centinela de FALLO, pero solo como valor único (igual que
-    // el editor de series: isFail => [-1]); no es extremo de un rango.
-    if (
-      field === "rir" &&
-      (parsedMin === -1 || parsedMax === -1) &&
-      (parsedMin === null || parsedMax === null)
-    ) {
+    // RIR: -1 es el centinela de FALLO y nunca es un extremo de rango — un
+    // -1 en cualquiera de los dos campos colapsa a [-1], que es exactamente
+    // lo que hacen el modelo (rir.ts#buildRirValue/normalizeRirValue), el
+    // editor de series (ManageSetComponent, casilla "fallo" => [-1]) y el
+    // propio pintado de esta tabla (isFail(), que ya da FALLO con un -1 en
+    // cualquier posición).
+    //
+    // 2026-10 — antes solo colapsaba si el OTRO campo estaba vacío: escribir
+    // "-1 a 2" se recortaba a los límites (0..20) y se guardaba [0, 2], o
+    // sea "RIR 0-2" en vez de FALLO, distinto de lo que da la misma entrada
+    // por cualquier otra vía. El caso estaba cubierto por un test que llevaba
+    // meses fuera del runner (ver workout-inline-edit.test.cjs).
+    if (field === "rir" && (parsedMin === -1 || parsedMax === -1)) {
       return [-1];
     }
 

@@ -5,6 +5,7 @@ import { PautadoItemViewModule } from '../../../pautado-item-view/pautado-item-v
 import { CreateFoodSheetComponent } from './components/create-food-sheet/create-food-sheet.component';
 import { ProductComponent } from './components/product/product.component';
 import { RecentFoodsSheetComponent } from './components/recent-foods-sheet/recent-foods-sheet.component';
+import { QuickAddSheetModule } from './components/quick-add-sheet/quick-add-sheet.module';
 import { RecipeCardComponent } from './components/recipe-card/recipe-card.component';
 import { SearchFoodsPageRoutingModule } from './search-foods-routing.module';
 import { SearchFoodsPage } from './search-foods.page';
@@ -25,6 +26,7 @@ import { SearchFoodsPage } from './search-foods.page';
     SharedModule,
     MacrosBarsModule,
     PautadoItemViewModule,
+    QuickAddSheetModule,
     SearchFoodsPageRoutingModule,
   ],
 })

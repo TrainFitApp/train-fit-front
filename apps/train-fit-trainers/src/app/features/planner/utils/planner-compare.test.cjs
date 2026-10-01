@@ -6,13 +6,29 @@ const { buildSync } = require('esbuild');
 
 // Ejecuta las funciones TypeScript reales y resuelve los alias del monorepo.
 const bundled = buildSync({
-  stdin: { contents: "export * from './planner-compare'; export * from './planner-comparison-view';", resolveDir: __dirname, loader: 'ts' },
+  stdin: {
+    contents:
+      "export * from './planner-compare';" +
+      "export * from './planner-comparison-view';" +
+      // El módulo de i18n va en el MISMO bundle que planner-compare para que
+      // compartan instancia: con dos copias, cargar el catálogo aquí no se
+      // vería desde uiText() allí.
+      "export { applyCatalogTranslations, uiText } from 'src/app/core/i18n/localized-catalog';",
+    resolveDir: __dirname,
+    loader: 'ts',
+  },
   tsconfig: path.resolve(__dirname, '../../../../../tsconfig.json'),
   bundle: true, platform: 'node', format: 'cjs', write: false,
 });
 const compiled = new Module(__filename);
 compiled._compile(bundled.outputFiles[0].text, __filename);
-const { compareSplits, comparisonSnapshot, exerciseMetrics, metricComparison, overviewMetrics, completionSummary } = compiled.exports;
+const { compareSplits, comparisonSnapshot, exerciseMetrics, metricComparison, overviewMetrics, completionSummary, applyCatalogTranslations, uiText } = compiled.exports;
+
+// Catálogo real del entrenador: así los textos que salen por uiText() se
+// comprueban traducidos de verdad. Sin esto uiText devuelve la propia clave y
+// un `PLANNER.SIN_SERIES` sin traducir pasaría el test igual que el texto bueno.
+const es = require('../../../../assets/i18n/es.json');
+applyCatalogTranslations(es, 'es');
 
 const series = (weight = 80, overrides = {}) => ({ order: 0, weight, expectedReps: [8], expectedRir: [2], ...overrides });
 const exercise = (id, sets, flags = {}) => ({ _id: `custom-${id}`, exercise: { _id: id, name: id, muscleGroups1: ['Pecho'], ...flags }, sets });
@@ -102,5 +118,19 @@ test('ausencia de microciclos y series devuelve una comparación vacía', () => 
   assert.deepEqual(compareSplits(null, null).workouts, []);
   assert.equal(metricComparison('x', 'x', 0, 0).percent, null);
   assert.equal(row(exercise('press', []), exercise('press', [])).a.label, 'sin series');
+});
+
+test('el rótulo de "sin series" sale del catálogo, no es la clave en crudo', () => {
+  // 2026-10 — el texto se migró a uiText('PLANNER.SIN_SERIES') y este fichero
+  // estaba fuera del runner, así que nadie vio que el caso de arriba había
+  // dejado de pasar. Comprobar la clave aparte evita que se quede sin
+  // traducción en algún idioma sin que falle nada.
+  const label = uiText('PLANNER.SIN_SERIES');
+  assert.notEqual(label, 'PLANNER.SIN_SERIES', 'Falta PLANNER.SIN_SERIES en el es.json del entrenador');
+  assert.equal(row(exercise('press', []), exercise('press', [])).a.label, label);
+
+  const en = require('../../../../assets/i18n/en.json');
+  assert.equal(typeof en.PLANNER?.SIN_SERIES, 'string', 'Falta PLANNER.SIN_SERIES en el en.json del entrenador');
+  assert.ok(en.PLANNER.SIN_SERIES.length > 0);
 });
 

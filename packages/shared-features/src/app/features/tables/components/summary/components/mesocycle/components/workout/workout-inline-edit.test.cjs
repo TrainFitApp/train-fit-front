@@ -64,12 +64,80 @@ for (const field of ['reps', 'rir']) {
   }
 }
 
-test('RIR conserva -1 (fallo), solo o como mínimo de un rango válido', () => {
-  for (const [max, expected] of [['', [-1]], ['2', [-1, 2]]]) {
-    const state = editor('rir', '-1', max);
+// -1 es el centinela de FALLO. El modelo (rir.ts#buildRirValue), el editor de
+// series (casilla "fallo") y el pintado de esta misma tabla (isFail) coinciden
+// en que un -1 en CUALQUIER posición significa fallo, nunca un extremo de
+// rango. Esta tabla era el único sitio que no lo hacía: "-1 a 2" se recortaba
+// a [0, 2] (RIR 0-2) en vez de FALLO.
+for (const [min, max, label] of [
+  ['-1', '', 'solo en el mínimo'],
+  ['', '-1', 'solo en el máximo'],
+  ['-1', '2', 'con un máximo detrás'],
+  ['2', '-1', 'con un mínimo delante'],
+  ['-1', '-1', 'en los dos campos'],
+]) {
+  test(`RIR: -1 ${label} se guarda como FALLO`, () => {
+    const state = editor('rir', min, max);
     state.component.commitEditCell(state.exercise, state.set, 'rir');
-    assert.deepEqual(Array.from(state.saved[0].expectedRir), expected);
+    assert.equal(state.saved.length, 1, 'tenía que guardar');
+    assert.deepEqual(Array.from(state.saved[0].expectedRir), [-1]);
+    assert.equal(state.notices.length, 0, 'FALLO es válido, no debe avisar de rango');
+  });
+}
+
+test('RIR: -1 no se recorta a 0 por los límites de la celda', () => {
+  // Los límites de RIR son 0..20, así que sin el centinela el -1 caería a 0
+  // y "fallo" pasaría a ser "RIR 0", que es otra cosa.
+  const state = editor('rir', '-1', '2');
+  state.component.commitEditCell(state.exercise, state.set, 'rir');
+  assert.ok(!Array.from(state.saved[0].expectedRir).includes(0), 'el -1 se convirtió en 0');
+});
+
+test('reps: -1 no es un centinela, se recorta como cualquier otro número', () => {
+  // El fallo solo existe en RIR. En repeticiones, -1 es un número fuera de
+  // rango y se recorta a 0 (y 0 >= 2 es falso, así que el rango es válido).
+  const state = editor('reps', '-1', '2');
+  state.component.commitEditCell(state.exercise, state.set, 'reps');
+  assert.deepEqual(Array.from(state.saved[0].expectedReps), [0, 2]);
+});
+
+test('RIR por encima del límite se recorta a 20, no se rechaza', () => {
+  const state = editor('rir', '99', '');
+  state.component.commitEditCell(state.exercise, state.set, 'rir');
+  assert.deepEqual(Array.from(state.saved[0].expectedRir), [20]);
+  assert.equal(state.notices.length, 0);
+});
+
+test('reps por encima del límite se recorta a 999, no se rechaza', () => {
+  const state = editor('reps', '5000', '');
+  state.component.commitEditCell(state.exercise, state.set, 'reps');
+  assert.deepEqual(Array.from(state.saved[0].expectedReps), [999]);
+});
+
+test('texto que no es número rechaza el rango y deja la serie intacta', () => {
+  for (const [min, max] of [['abc', ''], ['', 'abc'], ['8', 'abc']]) {
+    const state = editor('reps', min, max);
+    const original = JSON.stringify(state.set);
+    state.component.commitEditCell(state.exercise, state.set, 'reps');
+    assert.equal(JSON.stringify(state.set), original, `${min}/${max} tocó la serie`);
+    assert.equal(state.saved.length, 0);
+    assert.equal(state.notices.length, 1);
   }
+});
+
+test('sanitizeRangePart deja escribir el menos solo en RIR', () => {
+  const state = editor('rir', '', '');
+  state.component.editingCellMin = '-1';
+  state.component.sanitizeRangePart('rir', 'min');
+  assert.equal(state.component.editingCellMin, '-1', 'RIR tiene que aceptar el menos del FALLO');
+
+  state.component.editingCellMin = '-1';
+  state.component.sanitizeRangePart('reps', 'min');
+  assert.equal(state.component.editingCellMin, '1', 'en repeticiones el menos no pinta nada');
+
+  state.component.editingCellMax = '1a2b';
+  state.component.sanitizeRangePart('reps', 'max');
+  assert.equal(state.component.editingCellMax, '12');
 });
 
 test('Escape cancela sin guardar ni mostrar un error de rango', () => {

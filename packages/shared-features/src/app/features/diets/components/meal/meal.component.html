@@ -354,7 +354,7 @@
           <div class="item-content">
             <div class="item-header">
               <h3 class="item-name">
-                {{ product.product?.name }}
+                {{ getProductName(product) }}
                 <!-- Siempre la cantidad PAUTADA (fija) + delta a la derecha
                      — la consumida se ve/edita dentro de la vista de solo
                      lectura (ver viewPautadoProduct). -->
@@ -422,7 +422,7 @@
               mode="ios"
               [ngClass]="{ completed: product.consumed }"
               [checked]="product.consumed"
-              [attr.aria-label]="product.product?.name"
+              [attr.aria-label]="getProductName(product)"
               (ionChange)="toggleProductConsumed(product)"
               (click)="$event.stopPropagation()"
               color="success"
@@ -540,10 +540,17 @@
         <div class="item-content">
           <div class="item-header">
             <h3 class="item-name">
-              {{ product.product?.name }}
-              <span class="item-quantity"
+              {{ getProductName(product) }}
+              <!-- La adición rápida no tiene gramos que enseñar: sus macros se
+                   escribieron a mano y su `quantity` es solo el 100 con el que
+                   se guardan (ver QUICK_ADD_QUANTITY). -->
+              <span class="item-quantity" *ngIf="!isQuickAdd(product)"
                 >{{ product.quantity | number : "1.0-1" }}g</span
               >
+              <span class="item-quick-add" *ngIf="isQuickAdd(product)">
+                <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
+                {{ "SEARCH_FOODS.QUICK_ADD_BADGE" | translate }}
+              </span>
             </h3>
           </div>
 

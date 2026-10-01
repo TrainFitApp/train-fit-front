@@ -79,6 +79,16 @@ export class CustomProductAPIService {
       payload.product = this.serializeProductRef(customProduct.product);
     }
 
+    // Adición rápida: sin `product` que ponga el nombre, éste viaja en el
+    // propio CustomProduct (ver CustomProduct#name/#quickAdd).
+    if (Object.prototype.hasOwnProperty.call(customProduct, 'name')) {
+      payload.name = customProduct.name;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(customProduct, 'quickAdd')) {
+      payload.quickAdd = customProduct.quickAdd;
+    }
+
     CUSTOM_PRODUCT_NUTRITION_FIELDS.forEach((field) => {
       if (!Object.prototype.hasOwnProperty.call(customProduct, field)) {
         return;

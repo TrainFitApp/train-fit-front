@@ -32,4 +32,20 @@
     </span>
     <ion-icon class="create-option__chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
   </button>
+
+  <button
+    *ngIf="allowQuickAdd"
+    type="button"
+    class="create-option create-option--quick"
+    (click)="pick(types.quickAdd)"
+  >
+    <span class="create-option__icon" aria-hidden="true">
+      <ion-icon name="flash-outline"></ion-icon>
+    </span>
+    <span class="create-option__text">
+      <span class="create-option__label">{{ 'SEARCH_FOODS.CREATE_SHEET_QUICK_ADD' | translate }}</span>
+      <span class="create-option__hint">{{ 'SEARCH_FOODS.CREATE_SHEET_QUICK_ADD_HINT' | translate }}</span>
+    </span>
+    <ion-icon class="create-option__chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+  </button>
 </div>
