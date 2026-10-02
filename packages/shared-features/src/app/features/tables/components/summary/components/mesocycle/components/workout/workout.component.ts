@@ -1392,6 +1392,7 @@ export class WorkoutComponent implements OnDestroy {
         workoutIndex: this.workoutIndex,
         splitIndex: this.splitIndex,
         customExercise: customExercise,
+        showMicrocycleContext: this.plannerMode,
       },
       cssClass: "tf-panel-modal",
     };

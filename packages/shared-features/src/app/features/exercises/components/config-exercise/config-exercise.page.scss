@@ -22,6 +22,7 @@
 
 .title-section {
   flex: 1;
+  min-width: 0;
   text-align: center;
 
   .page-title {
@@ -30,6 +31,18 @@
     color: #ffffff;
     margin: 0;
     letter-spacing: 0.3px;
+  }
+
+  // Microciclo · sesión (solo en el Planner). Una línea: un nombre de
+  // sesión largo se corta antes que empujar los botones de la cabecera.
+  .page-subtitle {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ion-color-medium);
+    margin: 2px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

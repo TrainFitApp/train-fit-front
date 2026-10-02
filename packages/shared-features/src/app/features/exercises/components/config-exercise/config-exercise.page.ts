@@ -147,6 +147,24 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     return this.workout.exercises.findIndex((e) => e._id === this.customExercise._id);
   }
 
+  // Planner (train-fit-trainers): se pueden tener varios paneles abiertos a
+  // la vez, así que la cabecera dice de qué microciclo y sesión es cada uno.
+  // Lo activa workout.component solo en plannerMode.
+  public showMicrocycleContext = false;
+
+  // Posición (1-based) del microciclo que contiene este workout, igual que la
+  // cabecera de la columna. Se busca por _id y no con splitIndex porque el
+  // Planner pasa splitIndex=0 en todas las columnas. Getter para que siga
+  // bien si se reordenan los microciclos con el panel abierto (el Planner
+  // reordena table.splits sobre el mismo objeto).
+  public get microcycleNumber(): number | null {
+    if (!this.showMicrocycleContext || !this.workout?._id) return null;
+    const index = this.tableInUse?.splits?.findIndex((split) =>
+      split.workouts?.some((workout) => workout._id === this.workout._id),
+    ) ?? -1;
+    return index >= 0 ? index + 1 : null;
+  }
+
   // Puntuar ejercicios ("Mi método") es exclusivo de train-fit-trainers —
   // ver exercise-score-edit-handler.ts para por qué esto es un servicio
   // inyectado opcionalmente en vez de un flag booleano: la implementación

@@ -10,6 +10,10 @@
 
       <div class="title-section">
         <h1 class="page-title">{{ 'EXERCISE_CONFIG.ADD_EXERCISE' | translate }}</h1>
+        <p class="page-subtitle" *ngIf="microcycleNumber as microcycle">
+          {{ 'PLANNER.WEEK_DEFAULT_PREFIX' | translate }} {{ microcycle }}<ng-container *ngIf="workout?.name">
+            · {{ workout.name | translateDb }}</ng-container>
+        </p>
       </div>
 
       <div class="actions-section">
