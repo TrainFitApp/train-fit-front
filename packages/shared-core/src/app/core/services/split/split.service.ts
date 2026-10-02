@@ -29,10 +29,6 @@ export class SplitService {
     return this.splitAPIService.addSplitToTable(idTable, idSplit, withSets);
   }
 
-  public getSplitByIdAndDate(id: string, date: Date): Observable<Split> {
-    return this.splitAPIService.getSplitByIdAndDate(id, date);
-  }
-
   public addTableSplit(idTable: string, idSplit: string): Observable<any> {
     return this.splitAPIService.addSplitToTable(idTable, idSplit);
   }

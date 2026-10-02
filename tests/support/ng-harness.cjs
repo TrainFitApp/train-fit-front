@@ -117,6 +117,9 @@ function angularFormsStub() {
  * @param exportsMap    { NombreExportado: 'ruta/del/modulo' } con alias src/*.
  * @param options.requires  Dobles extra o reales por nombre de módulo.
  * @param options.external  Paquetes que NO se meten en el bundle.
+ * @param options.app       App cuyo tsconfig resuelve los alias src/* (por
+ *                          defecto train-fit-front; 'train-fit-trainers' para
+ *                          código que solo existe en trainers).
  */
 function loadFromSource(testFilename, resolveDir, exportsMap, options = {}) {
   const { buildSync } = require('esbuild');
@@ -129,7 +132,7 @@ function loadFromSource(testFilename, resolveDir, exportsMap, options = {}) {
 
   const bundled = buildSync({
     stdin: { contents, resolveDir, loader: 'ts' },
-    tsconfig: path.join(root, 'apps/train-fit-front/tsconfig.json'),
+    tsconfig: path.join(root, `apps/${options.app || 'train-fit-front'}/tsconfig.json`),
     bundle: true,
     platform: 'node',
     format: 'cjs',

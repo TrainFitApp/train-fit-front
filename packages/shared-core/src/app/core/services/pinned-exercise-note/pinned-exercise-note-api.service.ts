@@ -13,10 +13,6 @@ export class PinnedExerciseNoteAPIService {
     return this.http.get<PinnedExerciseNote[]>(`${PinnedExerciseNoteAPIService.PINNED_EXERCISE_NOTE_ENDPOINT}/table/${tableId}`);
   }
 
-  public getById(id: string): Observable<PinnedExerciseNote> {
-    return this.http.get<PinnedExerciseNote>(`${PinnedExerciseNoteAPIService.PINNED_EXERCISE_NOTE_ENDPOINT}/${id}`);
-  }
-
   public upsert(dto: PinnedExerciseNoteUpsertDto): Observable<PinnedExerciseNote> {
     const url = `${PinnedExerciseNoteAPIService.PINNED_EXERCISE_NOTE_ENDPOINT}/table/${dto.tableId}/workout/${dto.workoutIndex}/exercise/${dto.exerciseIndex}`;
     return this.http.post<PinnedExerciseNote>(

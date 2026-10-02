@@ -24,7 +24,7 @@ export class MyShoppingListApiService {
   constructor(private http: HttpService) {}
 
   public getMine(from: string, to: string): Observable<ShoppingList> {
-    return this.http.get<ShoppingList>(`diet-days/shopping-list?from=${from}&to=${to}`);
+    return this.http.get<ShoppingList>(`dietdays/shopping-list?from=${from}&to=${to}`);
   }
 }
 

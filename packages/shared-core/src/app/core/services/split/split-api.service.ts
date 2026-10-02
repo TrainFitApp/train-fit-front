@@ -36,13 +36,6 @@ export class SplitAPIService {
       .pipe(take(1));
   }
 
-  public getSplitByIdAndDate(id: string, date: Date): Observable<Split> {
-    return this.http.post<Split>(
-      `${SplitAPIService.SPLIT_ENDPOINT}/date/${id}`,
-      { date }
-    );
-  }
-
   public addTableSplit(idTable: string, idSplit: string): Observable<any> {
     return this.http.put<Table>(
       `${SplitAPIService.SPLIT_ENDPOINT}/split/${idTable}/${idSplit}`,

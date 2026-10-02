@@ -20,13 +20,14 @@ import { IonicUtilService } from '../services/util/ionic-util.service';
 
 // 2026-09 — códigos de error que el backend ya devuelve con un mensaje
 // pensado para enseñárselo tal cual al usuario (ver
-// table-access.js#rejectIfAssignedTableLockedForOwner). Antes cada punto de
+// table-access.js#rejectIfAssignedTableLockedForOwner y, para lo pautado en
+// nutrición, meal-service.js#MealProtectedError). Antes cada punto de
 // mutación tenía que acordarse de capturar el 403 y mostrarlo — bastaba con
 // olvidar uno (pasó de verdad: current-workout dejaba el error sin
 // manejar, "Uncaught (in promise)" en consola) para que el cliente se
 // quedara sin saber qué pasó. Un solo sitio, para cualquier endpoint,
 // presente o futuro.
-const SELF_EXPLANATORY_ERROR_CODES = new Set(['TABLE_ASSIGNED_BY_TRAINER']);
+const SELF_EXPLANATORY_ERROR_CODES = new Set(['TABLE_ASSIGNED_BY_TRAINER', 'MEAL_PROTECTED']);
 
 /**
  * Context token that marks a request as already having been retried after
@@ -186,7 +187,7 @@ export class JWTInterceptor implements HttpInterceptor {
             // Refresh failed — propagate the original 401 to this request.
             return throwError(() => error);
           }
-          return next.handle(this.addAuthorizationHeader(originalRequest, newToken, true));
+          return this.retryWithFreshToken(originalRequest, newToken, next);
         }),
       );
     }
@@ -195,7 +196,21 @@ export class JWTInterceptor implements HttpInterceptor {
     this.isRefreshing = true;
     this.refreshToken$.next(null); // reset subject so queued requests wait
 
+    // catchError va ANTES del switchMap: solo trata fallos del refresco. Un
+    // error del reintento (ya con el token nuevo) lo trata
+    // retryWithFreshToken; antes caía aquí y volvía a "finalizar" un refresco
+    // que ya había terminado.
     return this.authService.refreshToken().pipe(
+      catchError((refreshError) => {
+        // Refresh failed — signal failure to queued requests and logout.
+        this.finalizeRefresh(null);
+
+        if (this.authService.isTerminalAuthError(refreshError)) {
+          this.authService.logout();
+        }
+
+        return throwError(() => refreshError);
+      }),
       switchMap((response: any) => {
         const newToken: string | null =
           response?.access_token ?? this.authService.getAccessToken();
@@ -208,21 +223,31 @@ export class JWTInterceptor implements HttpInterceptor {
         // Unblock all queued requests with the fresh token.
         this.finalizeRefresh(newToken);
 
-        return next.handle(
-          this.addAuthorizationHeader(originalRequest, newToken, true),
-        );
-      }),
-      catchError((refreshError) => {
-        // Refresh failed — signal failure to queued requests and logout.
-        this.finalizeRefresh(null);
-
-        if (this.authService.isTerminalAuthError(refreshError)) {
-          this.authService.logout();
-        }
-
-        return throwError(() => refreshError);
+        return this.retryWithFreshToken(originalRequest, newToken, next);
       }),
     );
+  }
+
+  /**
+   * Reintenta una vez con el token recién refrescado. El reintento va con
+   * next.handle() y no vuelve a pasar por este interceptor (la marca
+   * AUTH_RETRY_ATTEMPTED no se llega a leer), así que el 401 del reintento se
+   * trata aquí: con un token recién emitido, otro 401 significa que la sesión
+   * no se puede recuperar → cerrar sesión.
+   */
+  private retryWithFreshToken(
+    originalRequest: HttpRequest<unknown>,
+    newToken: string,
+    next: HttpHandler,
+  ): Observable<HttpEvent<unknown>> {
+    return next
+      .handle(this.addAuthorizationHeader(originalRequest, newToken, true))
+      .pipe(
+        catchError((retryError: HttpErrorResponse) => {
+          if (retryError?.status === 401) this.authService.logout();
+          return throwError(() => retryError);
+        }),
+      );
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────

@@ -56,10 +56,6 @@ export class TableService {
     return this.tableAPIService.duplicateTable(idUser, idTable).pipe(take(1));
   }
 
-  public copySharedTable(idUser: string, idTable: string): Observable<Table> {
-    return this.tableAPIService.copySharedTable(idUser, idTable).pipe(take(1));
-  }
-
   public getSearchTables(
     searchFilterGroup: SearchFilterGroup,
     idUser?: string

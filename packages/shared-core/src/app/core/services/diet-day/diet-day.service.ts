@@ -3,7 +3,6 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { Observable, take, tap, map, of, defer, finalize, shareReplay, switchMap } from 'rxjs';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { IProduct } from 'src/app/core/models/product';
-import { User } from 'src/app/core/models/user';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
@@ -258,10 +257,6 @@ export class DietDayService {
     return this.dietDayAPIService
       .pasteDietDay(id, dietDayClipboard, dietDayToPaste)
       .pipe(take(1));
-  }
-
-  public archiveDietDay(idUser: string, idDietDay: string): Observable<User> {
-    return this.dietDayAPIService.archiveDietDay(idUser, idDietDay);
   }
 
   public deleteDietDay(idDiet: string, idDietDay: string): Observable<DietDay> {

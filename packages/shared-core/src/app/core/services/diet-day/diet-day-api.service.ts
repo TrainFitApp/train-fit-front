@@ -5,7 +5,6 @@ import { CustomProduct } from '../../models/customProduct';
 import { CustomRecipe } from '../../models/customRecipe';
 import { DietDay, DietTimeline, DietWeek, PlannedTarget } from '../../models/dietDay';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
-import { User } from '../../models/user';
 import { HttpService } from '../http/http.service';
 
 @Injectable()
@@ -99,14 +98,6 @@ export class DietDayAPIService {
         dietDayClipboard,
         dietDayToPaste,
       }
-    );
-  }
-
-  // TODO: Debería devolver user o dietDay?
-  public archiveDietDay(idUser: string, idDietDay: string): Observable<User> {
-    return this.http.put<User>(
-      `${DietDayAPIService.DIET_DAYS_ENDPOINT}/archive/dietday/on/user`,
-      { idUser, idDietDay }
     );
   }
 

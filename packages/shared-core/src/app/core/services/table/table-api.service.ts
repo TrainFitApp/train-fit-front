@@ -31,10 +31,6 @@ export class TableAPIService {
     return this.http.post<Table>(`tables/duplicate/${idTable}`, { idUser });
   }
 
-  public copySharedTable(idUser: string, idTable: string): Observable<Table> {
-    return this.http.get<Table>(`tables/share/${idUser}/${idTable}`);
-  }
-
   public getSearchTables(
     search: string,
     page: number,

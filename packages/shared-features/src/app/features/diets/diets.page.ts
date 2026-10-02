@@ -770,7 +770,8 @@ export class DietsPage implements OnInit {
           role: 'destructive',
           handler: () => {
             delete this.meal.notes;
-            this.mealService.modifyMeal(this.meal).subscribe();
+            // Nota vacía = quitarla: sin la clave, el back no toca la nota.
+            this.mealService.modifyMeal({ ...this.meal, notes: '' }).subscribe();
           },
         },
       ],
@@ -793,15 +794,22 @@ export class DietsPage implements OnInit {
         this.dietDayService.getDietDayClipboard,
         this.dietDay
       )
-      .subscribe((resDietDay) => {
-        this.dietDay = resDietDay;
-        this.dietDayService.setCurrentDietDay = this.dietDay;
-        this.isPasting = false;
-        const toastOptions: ToastOptions = {
-          message: this.translate.instant('DIETS.DAY_PASTED_SUCCESS'),
-          duration: 1000,
-        };
-        this.ionicUtilService.showToast(toastOptions);
+      .subscribe({
+        next: (resDietDay) => {
+          this.dietDay = resDietDay;
+          this.dietDayService.setCurrentDietDay = this.dietDay;
+          this.isPasting = false;
+          const toastOptions: ToastOptions = {
+            message: this.translate.instant('DIETS.DAY_PASTED_SUCCESS'),
+            duration: 1000,
+          };
+          this.ionicUtilService.showToast(toastOptions);
+        },
+        // Un día con comida pautada no se puede pegar encima (MEAL_PROTECTED):
+        // el interceptor ya enseña el motivo; aquí solo se suelta el estado.
+        error: () => {
+          this.isPasting = false;
+        },
       });
   }
 

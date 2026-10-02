@@ -42,6 +42,7 @@ import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from "src/app/core/mo
 import { splitTextIntoSteps } from "src/app/shared/utils";
 import { EXERCISE_DESCRIPTIONS_ES_EN } from "src/app/shared/constants/db-translations/exercise-descriptions-es-en.map";
 import { environment } from "src/environments/environment";
+import { parseYouTubeId } from "src/app/core/utils/youtube-id.util";
 
 @Component({
   selector: "app-config-exercise",
@@ -508,17 +509,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   }
 
   private parseYouTubeIdFromUrl(url: string): string {
-    if (!url) return "";
-    if (url.includes("youtube.com/watch?v=")) {
-      return url.split("v=")[1]?.split("&")[0] || "";
-    }
-    if (url.includes("youtu.be/")) {
-      return url.split("youtu.be/")[1]?.split("?")[0] || "";
-    }
-    if (url.includes("youtube.com/embed/")) {
-      return url.split("embed/")[1]?.split("?")[0] || "";
-    }
-    return "";
+    return parseYouTubeId(url);
   }
 
   // Mientras se escribe la URL: el iframe solo se rehace si cambia el id,

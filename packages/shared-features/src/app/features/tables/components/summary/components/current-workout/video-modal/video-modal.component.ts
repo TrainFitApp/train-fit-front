@@ -13,6 +13,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { MediaGateService } from 'src/app/shared/components/media/media-gate.service';
 import { FormCheckSubmitModalComponent } from 'src/app/shared/components/media/form-check-submit-modal.component';
 import { FormCheckListComponent } from 'src/app/shared/components/media/form-check-list.component';
+import { parseYouTubeId } from 'src/app/core/utils/youtube-id.util';
 
 export interface VideoModalFormCheckContext {
   exerciseId: string | null;
@@ -86,17 +87,7 @@ export class VideoModalComponent implements OnInit {
   }
 
   private parseYouTubeIdFromUrl(url: string): string {
-    if (!url) return '';
-    if (url.includes('youtube.com/watch?v=')) {
-      return url.split('v=')[1]?.split('&')[0] || '';
-    }
-    if (url.includes('youtu.be/')) {
-      return url.split('youtu.be/')[1]?.split('?')[0] || '';
-    }
-    if (url.includes('youtube.com/embed/')) {
-      return url.split('embed/')[1]?.split('?')[0] || '';
-    }
-    return '';
+    return parseYouTubeId(url);
   }
 
   private updateVideoEmbedSrc(): void {
