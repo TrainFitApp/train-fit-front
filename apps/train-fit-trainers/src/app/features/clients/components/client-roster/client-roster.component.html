@@ -131,18 +131,18 @@
     </ul>
   </section>
 
-  <div class="state-message" *ngIf="!activeRows.length">
+  <div class="state-message" *ngIf="!totalActive">
     <ion-icon name="people-outline"></ion-icon>
     <h2>{{ 'CLIENTS.TODAVIA_NO_HAY_NADA_QUE' | translate }}</h2>
     <p>{{ 'CLIENTS.CUANDO_TENGAS_CLIENTES_ACTIVOS_VERAS' | translate }}</p>
   </div>
 </ng-container>
 
-<ng-container *ngIf="state === 'loaded' && activeRows.length">
+<ng-container *ngIf="state === 'loaded' && totalActive">
   <!-- Buscador y filtro sobre la tabla: buscar es lo que se hace de
        continuo, así que ocupa el ancho; filtrar es puntual y cabe en un
        botón que abre el panel. -->
-  <div class="roster-toolbar">
+  <div class="roster-toolbar" #tableTop>
     <div class="roster-search">
       <ion-icon name="search-outline" class="roster-search__icon" aria-hidden="true"></ion-icon>
       <input
@@ -150,7 +150,8 @@
         class="roster-search__input"
         [placeholder]="'CLIENTS.BUSCAR_POR_NOMBRE_CORREO' | translate"
         [attr.aria-label]="'CLIENTS.BUSCAR_POR_NOMBRE_CORREO' | translate"
-        [(ngModel)]="searchQuery"
+        [ngModel]="searchQuery"
+        (ngModelChange)="onSearchChange($event)"
       />
     </div>
 
@@ -173,48 +174,59 @@
   <!-- La tabla desborda en horizontal dentro de su propio contenedor; el
        nombre queda fijo a la izquierda para no perder de vista de quién es
        cada fila al desplazarse. -->
-  <div class="roster-scroll">
+  <!-- Búsqueda o filtros sin resultados: la tabla vacía, con sus cabeceras
+       y ninguna fila, parecía un fallo de carga. -->
+  <div class="state-message roster-no-matches" *ngIf="!rows.length" [class.is-refreshing]="refreshing">
+    <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+    <h2>{{ 'CLIENTS.ROSTER_NO_MATCHES' | translate }}</h2>
+    <p>{{ 'CLIENTS.ROSTER_NO_MATCHES_HINT' | translate }}</p>
+    <button type="button" class="retry-button" *ngIf="activeFilterCount" (click)="clearFilters()">
+      {{ 'CLIENTS.QUITAR_FILTROS' | translate }}
+    </button>
+  </div>
+
+  <div class="roster-scroll" *ngIf="rows.length" [class.is-refreshing]="refreshing" [attr.aria-busy]="refreshing">
     <table class="roster-table">
       <thead>
         <tr>
-          <th scope="col" class="col-name">
+          <th scope="col" class="col-name" [attr.aria-sort]="ariaSort('name')">
             <button type="button" class="sort-button" (click)="toggleSort('name')">
               {{ 'TRAINER_COMMON.CLIENT' | translate }}
               <ion-icon [name]="sortIcon('name')" aria-hidden="true"></ion-icon>
             </button>
           </th>
-          <th scope="col">
+          <th scope="col" [attr.aria-sort]="ariaSort('adherence')">
             <button type="button" class="sort-button" (click)="toggleSort('adherence')">
               {{ 'CLIENTS.ADHERENCIA' | translate }}
               <ion-icon [name]="sortIcon('adherence')" aria-hidden="true"></ion-icon>
             </button>
           </th>
           <th scope="col">{{ 'CLIENTS.PUNTO_DEBIL' | translate }}</th>
-          <th scope="col">
+          <th scope="col" [attr.aria-sort]="ariaSort('weight')">
             <button type="button" class="sort-button" (click)="toggleSort('weight')">
               {{ 'TRAINER_COMMON.WEIGHT' | translate }}
               <ion-icon [name]="sortIcon('weight')" aria-hidden="true"></ion-icon>
             </button>
           </th>
-          <th scope="col">
+          <th scope="col" [attr.aria-sort]="ariaSort('checkin')">
             <button type="button" class="sort-button" (click)="toggleSort('checkin')">
               {{ 'CLIENTS.ULTIMO_CHECK_IN' | translate }}
               <ion-icon [name]="sortIcon('checkin')" aria-hidden="true"></ion-icon>
             </button>
           </th>
-          <th scope="col">
+          <th scope="col" [attr.aria-sort]="ariaSort('sessions')">
             <button type="button" class="sort-button" (click)="toggleSort('sessions')">
               {{ 'CLIENTS.SESIONES' | translate }}
               <ion-icon [name]="sortIcon('sessions')" aria-hidden="true"></ion-icon>
             </button>
           </th>
-          <th scope="col">
+          <th scope="col" [attr.aria-sort]="ariaSort('review')">
             <button type="button" class="sort-button" (click)="toggleSort('review')">
               {{ 'CLIENTS.POR_REVISAR' | translate }}
               <ion-icon [name]="sortIcon('review')" aria-hidden="true"></ion-icon>
             </button>
           </th>
-          <th scope="col">
+          <th scope="col" [attr.aria-sort]="ariaSort('alerts')">
             <button type="button" class="sort-button" (click)="toggleSort('alerts')">
               {{ 'CLIENTS.ALERTAS' | translate }}
               <ion-icon [name]="sortIcon('alerts')" aria-hidden="true"></ion-icon>
@@ -225,7 +237,7 @@
       </thead>
 
       <tbody>
-        <ng-container *ngFor="let row of visibleRows; trackBy: trackByClientId">
+        <ng-container *ngFor="let row of rows; trackBy: trackByClientId">
           <tr
             class="roster-row"
             [class.roster-row--expanded]="expandedClientId === row.clientId"
@@ -347,6 +359,56 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Paginador. En móvil los números no caben a 44px: queda «2 / 5» entre
+       las flechas. -->
+  <nav class="roster-pager" *ngIf="totalPages > 1" [attr.aria-label]="'CLIENTS.ROSTER_PAGINATION' | translate">
+    <p class="pager-range" aria-live="polite">
+      {{ 'CLIENTS.ROSTER_PAGE_RANGE' | translate: { from: rangeStart, to: rangeEnd, total: total } }}
+    </p>
+
+    <div class="pager-controls">
+      <button
+        type="button"
+        class="pager-btn"
+        [disabled]="page === 0 || refreshing"
+        (click)="goToPage(page - 1)"
+        [attr.aria-label]="'CLIENTS.ROSTER_PREV_PAGE' | translate"
+      >
+        <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+      </button>
+
+      <ol class="pager-pages">
+        <li *ngFor="let item of pageItems; trackBy: trackByPageItem">
+          <span class="pager-gap" *ngIf="item === null" aria-hidden="true">…</span>
+          <button
+            type="button"
+            class="pager-btn pager-page"
+            *ngIf="item !== null"
+            [class.is-current]="item === page"
+            [attr.aria-current]="item === page ? 'page' : null"
+            [disabled]="refreshing && item !== page"
+            (click)="goToPage(item)"
+            [attr.aria-label]="'CLIENTS.ROSTER_PAGE_N' | translate: { page: item + 1 }"
+          >
+            {{ item + 1 }}
+          </button>
+        </li>
+      </ol>
+
+      <span class="pager-compact" aria-hidden="true">{{ page + 1 }} / {{ totalPages }}</span>
+
+      <button
+        type="button"
+        class="pager-btn"
+        [disabled]="page >= totalPages - 1 || refreshing"
+        (click)="goToPage(page + 1)"
+        [attr.aria-label]="'CLIENTS.ROSTER_NEXT_PAGE' | translate"
+      >
+        <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+  </nav>
 </ng-container>
 
 <!-- Panel de filtros. Mismo patrón que el de suplementos: contenedor que se
@@ -388,11 +450,11 @@
             name="roster-weakest"
             class="filter-row__input"
             [checked]="!filterWeakest"
-            (change)="filterWeakest = null"
+            (change)="filterWeakest = null; onFiltersChange()"
           />
           <span class="filter-row__mark filter-row__mark--radio" aria-hidden="true"></span>
           <span class="filter-row__label">{{ 'CLIENTS.CUALQUIERA' | translate }}</span>
-          <span class="filter-row__count">{{ countWith({ weakest: null }) }}</span>
+          <span class="filter-row__count">{{ weakestCount(null) }}</span>
         </label>
         <label
           class="filter-row"
@@ -404,11 +466,11 @@
             name="roster-weakest"
             class="filter-row__input"
             [checked]="filterWeakest === key"
-            (change)="filterWeakest = key"
+            (change)="filterWeakest = key; onFiltersChange()"
           />
           <span class="filter-row__mark filter-row__mark--radio" aria-hidden="true"></span>
           <span class="filter-row__label">{{ dimensionLabel(key) }}</span>
-          <span class="filter-row__count">{{ countWith({ weakest: key }) }}</span>
+          <span class="filter-row__count">{{ weakestCount(key) }}</span>
         </label>
       </div>
     </fieldset>
@@ -417,28 +479,28 @@
       <legend class="group-label">{{ 'CLIENTS.SOLO_MOSTRAR' | translate }}</legend>
       <div class="filter-list">
         <label class="filter-row" [class.is-active]="filterOnlyWithAlerts">
-          <input type="checkbox" class="filter-row__input" [(ngModel)]="filterOnlyWithAlerts" />
+          <input type="checkbox" class="filter-row__input" [ngModel]="filterOnlyWithAlerts" (ngModelChange)="filterOnlyWithAlerts = $event; onFiltersChange()" />
           <span class="filter-row__mark filter-row__mark--check" aria-hidden="true">
             <ion-icon name="checkmark"></ion-icon>
           </span>
           <span class="filter-row__label">{{ 'CLIENTS.CON_ALERTAS_ABIERTAS' | translate }}</span>
-          <span class="filter-row__count">{{ countWith({ onlyWithAlerts: true }) }}</span>
+          <span class="filter-row__count">{{ counts.alerts }}</span>
         </label>
         <label class="filter-row" [class.is-active]="filterOnlyOverdueCheckin">
-          <input type="checkbox" class="filter-row__input" [(ngModel)]="filterOnlyOverdueCheckin" />
+          <input type="checkbox" class="filter-row__input" [ngModel]="filterOnlyOverdueCheckin" (ngModelChange)="filterOnlyOverdueCheckin = $event; onFiltersChange()" />
           <span class="filter-row__mark filter-row__mark--check" aria-hidden="true">
             <ion-icon name="checkmark"></ion-icon>
           </span>
           <span class="filter-row__label">{{ 'CLIENTS.CON_EL_CHECK_IN_VENCIDO' | translate }}</span>
-          <span class="filter-row__count">{{ countWith({ onlyOverdueCheckin: true }) }}</span>
+          <span class="filter-row__count">{{ counts.overdue }}</span>
         </label>
         <label class="filter-row" [class.is-active]="filterOnlyWithPending">
-          <input type="checkbox" class="filter-row__input" [(ngModel)]="filterOnlyWithPending" />
+          <input type="checkbox" class="filter-row__input" [ngModel]="filterOnlyWithPending" (ngModelChange)="filterOnlyWithPending = $event; onFiltersChange()" />
           <span class="filter-row__mark filter-row__mark--check" aria-hidden="true">
             <ion-icon name="checkmark"></ion-icon>
           </span>
           <span class="filter-row__label">{{ 'CLIENTS.CON_ALGO_POR_REVISAR' | translate }}</span>
-          <span class="filter-row__count">{{ countWith({ onlyWithPending: true }) }}</span>
+          <span class="filter-row__count">{{ counts.pending }}</span>
         </label>
       </div>
     </fieldset>
@@ -448,7 +510,7 @@
         {{ 'CLIENTS.QUITAR_FILTROS' | translate }}
       </button>
       <button type="button" class="submit-button" (click)="showFilters = false">
-        {{ 'ONBOARDING.VIEW' | translate }} {{ visibleRows.length }} {{ (visibleRows.length === 1 ? 'TRAINER_COMMON.PL_CLIENT_ONE' : 'TRAINER_COMMON.PL_CLIENT_MANY') | translate }}
+        {{ 'ONBOARDING.VIEW' | translate }} {{ total }} {{ (total === 1 ? 'TRAINER_COMMON.PL_CLIENT_ONE' : 'TRAINER_COMMON.PL_CLIENT_MANY') | translate }}
       </button>
     </footer>
   </div>

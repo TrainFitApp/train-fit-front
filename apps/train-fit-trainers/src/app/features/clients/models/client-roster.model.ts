@@ -56,7 +56,57 @@ export interface RosterClient {
   pendingFormChecks: number;
 }
 
+// Por qué se ordena por columnas y no por un "score" único: cualquier
+// fórmula que mezcle adherencia, peso y alertas en un número esconde
+// exactamente lo que el entrenador necesita ver, y además tendría que
+// justificar sus pesos. Ordenar por la columna que le importa hoy no
+// necesita justificación ninguna.
+export type RosterSortKey =
+  | 'name'
+  | 'adherence'
+  | 'weight'
+  | 'checkin'
+  | 'sessions'
+  | 'review'
+  | 'alerts';
+
+// Lo que la tabla pide al servidor: una página con su búsqueda, filtros y
+// orden (ver roster-service.js#parseRosterQuery). `page` es 0-based.
+export interface RosterQuery {
+  page: number;
+  limit: number;
+  search: string;
+  sort: RosterSortKey;
+  // true = de mayor a menor / más reciente primero.
+  descending: boolean;
+  weakest: AdherenceDimensionKey | null;
+  onlyWithAlerts: boolean;
+  onlyOverdueCheckin: boolean;
+  onlyWithPending: boolean;
+}
+
+// Cuántos clientes quedarían al elegir cada opción del panel de filtros, con
+// la búsqueda y el resto de filtros como están.
+export interface RosterFilterCounts {
+  weakest: Record<AdherenceDimensionKey | 'any', number>;
+  alerts: number;
+  overdue: number;
+  pending: number;
+}
+
 export interface RosterResponse {
   periodDays: number;
+  // Bloque "Pendientes" (intake sin enviar o por revisar): entero, fuera de
+  // la paginación, sin búsqueda ni filtros.
+  pending: RosterClient[];
+  // La página pedida, ya filtrada y ordenada.
   clients: RosterClient[];
+  // Filas que cumplen búsqueda + filtros.
+  total: number;
+  // Filas de la tabla sin búsqueda ni filtros: 0 = todavía no hay clientes.
+  totalActive: number;
+  // La página servida: si la pedida ya no existe, la última que hay.
+  page: number;
+  limit: number;
+  counts: RosterFilterCounts;
 }

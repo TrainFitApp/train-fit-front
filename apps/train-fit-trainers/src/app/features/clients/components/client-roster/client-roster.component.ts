@@ -9,13 +9,17 @@ import {
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { NavigationStart, Router } from '@angular/router';
-import { Observable, Subscription, catchError, filter, forkJoin, of } from 'rxjs';
+import { Observable, Subject, Subscription, catchError, debounceTime, filter, forkJoin, of, takeUntil } from 'rxjs';
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { ClientRosterApiService } from '../../services/client-roster-api.service';
 import {
   AdherenceDimensionKey,
   RosterClient,
   RosterDimension,
+  RosterFilterCounts,
+  RosterQuery,
+  RosterResponse,
+  RosterSortKey,
 } from '../../models/client-roster.model';
 import { ClientDetailTab } from '../../pages/client-detail/models/client-detail.model';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -36,13 +40,6 @@ interface PendingInviteGroup {
   invitedAt: string;
 }
 
-interface RosterFilters {
-  weakest: AdherenceDimensionKey | null;
-  onlyWithAlerts: boolean;
-  onlyOverdueCheckin: boolean;
-  onlyWithPending: boolean;
-}
-
 interface RosterViewState {
   searchQuery: string;
   showFilters: boolean;
@@ -51,21 +48,8 @@ interface RosterViewState {
   filterOnlyOverdueCheckin: boolean;
   filterOnlyWithPending?: boolean;
   sort: SortState;
+  page?: number;
 }
-
-// Por qué se ordena por columnas y no por un "score" único: cualquier
-// fórmula que mezcle adherencia, peso y alertas en un número esconde
-// exactamente lo que el entrenador necesita ver, y además tendría que
-// justificar sus pesos. Ordenar por la columna que le importa hoy no
-// necesita justificación ninguna.
-export type RosterSortKey =
-  | 'name'
-  | 'adherence'
-  | 'weight'
-  | 'checkin'
-  | 'sessions'
-  | 'review'
-  | 'alerts';
 
 interface SortState {
   key: RosterSortKey;
@@ -121,6 +105,20 @@ localizeRecord(UNAVAILABLE_LABELS, 'CLIENTS.ROSTER_UNAVAILABLE');
 const ADHERENCE_LOW = 70;
 const ADHERENCE_CRITICAL = 50;
 
+// Filas por página de la tabla. 25 cubre la cartera típica (20-30 clientes,
+// PRODUCT.md) en una o dos páginas sin que cada una se haga eterna.
+const ROSTER_PAGE_SIZE = 25;
+
+// Espera tras la última tecla del buscador antes de pedir la página: sin
+// ella, escribir "María" serían cinco peticiones.
+const SEARCH_DEBOUNCE_MS = 300;
+
+const EMPTY_COUNTS: RosterFilterCounts = {
+  weakest: { any: 0, nutrition: 0, training: 0, habits: 0, checkins: 0 },
+  alerts: 0,
+  overdue: 0,
+  pending: 0,
+};
 
 /**
  * Movimiento 1 Coach Pro — la CARTERA.
@@ -143,7 +141,20 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
 
   public state: ViewState = 'loading';
   public periodDays = 28;
+
+  // La tabla ya no tiene la cartera entera: solo la página que sirvió el
+  // servidor, con la búsqueda, los filtros y el orden aplicados allí.
   public rows: RosterClient[] = [];
+  // Filas que cumplen búsqueda + filtros / filas de la tabla sin ninguno.
+  public total = 0;
+  public totalActive = 0;
+  public page = 0;
+  public readonly pageSize = ROSTER_PAGE_SIZE;
+  // Recuentos del panel de filtros, también del servidor.
+  public counts: RosterFilterCounts = EMPTY_COUNTS;
+  // Pidiendo otra página, orden o filtro sobre la tabla ya pintada: se
+  // atenúa en vez de volver al esqueleto, para no perder el sitio.
+  public refreshing = false;
 
   // Bloque "Pendientes" sobre la tabla: invitaciones sin aceptar y clientes
   // con el intake sin enviar o por revisar. Dentro de la tabla caían al
@@ -152,25 +163,17 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   public pendingInvites: PendingInviteGroup[] = [];
   public cancellingEmail: string | null = null;
 
-  // Por revisar primero (te toca a ti), luego sin enviar (se espera al cliente).
-  public get gatedRows(): RosterClient[] {
-    return this.rows
-      .filter((row) => this.isGated(row))
-      .sort((a, b) => Number(b.intakeStatus === 'submitted') - Number(a.intakeStatus === 'submitted'));
-  }
-
-  public get activeRows(): RosterClient[] {
-    return this.rows.filter((row) => !this.isGated(row));
-  }
+  // Intake sin enviar o por revisar. Llega entero y fuera de la paginación,
+  // ya ordenado: por revisar primero (te toca a ti), luego sin enviar.
+  public gatedRows: RosterClient[] = [];
 
   public get pendingCount(): number {
     return this.pendingInvites.length + this.gatedRows.length;
   }
 
-  // Búsqueda y filtros se aplican EN CLIENTE sobre las filas ya cargadas: la
-  // Cartera trae la cartera entera de una vez (una petición con presupuesto
-  // fijo, ver roster-service), así que pedir al servidor por cada tecla
-  // sería trabajo de red para reordenar algo que ya está en memoria.
+  // Búsqueda, filtros y orden se resuelven en el SERVIDOR: la tabla solo
+  // tiene una página, así que filtrar aquí dejaría fuera a los clientes de
+  // las demás (ver roster-service.js#paginateRoster).
   public searchQuery = '';
   public showFilters = false;
   public filterWeakest: AdherenceDimensionKey | null = null;
@@ -178,39 +181,11 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   public filterOnlyOverdueCheckin = false;
   public filterOnlyWithPending = false;
 
-  public get visibleRows(): RosterClient[] {
-    return this.rowsMatching({});
-  }
-
   // Cuántos clientes quedarían al elegir una opción del panel, con la
   // búsqueda y el resto de filtros como están: el número se lee ANTES de
   // pulsar, así que ninguna opción lleva por sorpresa a una tabla vacía.
-  public countWith(override: Partial<RosterFilters>): number {
-    return this.rowsMatching(override).length;
-  }
-
-  private rowsMatching(override: Partial<RosterFilters>): RosterClient[] {
-    const { weakest, onlyWithAlerts, onlyOverdueCheckin, onlyWithPending }: RosterFilters = {
-      weakest: this.filterWeakest,
-      onlyWithAlerts: this.filterOnlyWithAlerts,
-      onlyOverdueCheckin: this.filterOnlyOverdueCheckin,
-      onlyWithPending: this.filterOnlyWithPending,
-      ...override,
-    };
-    const consulta = this.searchQuery.trim().toLowerCase();
-    return this.activeRows.filter((row) => {
-      if (consulta) {
-        const heno = `${row.clientName} ${row.clientEmail || ''}`.toLowerCase();
-        if (!heno.includes(consulta)) return false;
-      }
-      if (weakest && row.adherence.weakest !== weakest) return false;
-      if (onlyWithAlerts && !row.openAlerts) return false;
-      // "Vencido" = pasó la fecha del siguiente check-in. El dato exacto lo tiene el
-      // motor de alertas; aquí basta con el umbral visible de la columna.
-      if (onlyOverdueCheckin && (row.daysSinceCheckin ?? 0) <= 7) return false;
-      if (onlyWithPending && !pendingOf(row)) return false;
-      return true;
-    });
+  public weakestCount(key: AdherenceDimensionKey | null): number {
+    return this.counts.weakest[key ?? 'any'] ?? 0;
   }
 
   public get activeFilterCount(): number {
@@ -227,6 +202,61 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     this.filterOnlyWithAlerts = false;
     this.filterOnlyOverdueCheckin = false;
     this.filterOnlyWithPending = false;
+    this.onFiltersChange();
+  }
+
+  // Cada cambio del panel pide la primera página con los filtros nuevos.
+  public onFiltersChange(): void {
+    this.page = 0;
+    this.refreshPage();
+  }
+
+  public onSearchChange(value: string): void {
+    this.searchQuery = value;
+    this.searchChanges$.next();
+  }
+
+  // --- Paginación ---
+  public get totalPages(): number {
+    return Math.max(1, Math.ceil(this.total / this.pageSize));
+  }
+
+  public get rangeStart(): number {
+    return this.total ? this.page * this.pageSize + 1 : 0;
+  }
+
+  public get rangeEnd(): number {
+    return Math.min(this.total, (this.page + 1) * this.pageSize);
+  }
+
+  // Números de página con huecos (null) cuando hay muchas: siempre la
+  // primera, la última y las vecinas de la actual.
+  public get pageItems(): Array<number | null> {
+    const last = this.totalPages - 1;
+    if (last <= 6) return Array.from({ length: last + 1 }, (_, index) => index);
+    const pages = [...new Set([0, this.page - 1, this.page, this.page + 1, last])]
+      .filter((page) => page >= 0 && page <= last)
+      .sort((a, b) => a - b);
+    const items: Array<number | null> = [];
+    pages.forEach((page, index) => {
+      if (index && page - pages[index - 1] > 1) items.push(null);
+      items.push(page);
+    });
+    return items;
+  }
+
+  public goToPage(page: number): void {
+    if (page < 0 || page >= this.totalPages || page === this.page || this.refreshing) return;
+    this.page = page;
+    this.refreshPage(() =>
+      // De vuelta al principio de la tabla: el paginador está al final y la
+      // página nueva se lee desde arriba.
+      this.tableTop?.nativeElement.scrollIntoView({ block: 'start' })
+    );
+  }
+
+  public trackByPageItem(index: number, item: number | null): string {
+    return item === null ? `gap-${index}` : String(item);
   }
 
   // Por defecto, la adherencia más baja primero: es el orden que responde
@@ -259,6 +289,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   // body porque dentro del árbol su position:fixed lo captura el contain de
   // ion-content.
   @ViewChild('panelHost') private panelHost!: ElementRef<HTMLElement>;
+  @ViewChild('tableTop') private tableTop?: ElementRef<HTMLElement>;
 
   // Búsqueda, filtros y orden se recuperan al VOLVER a la cartera (desde la
   // ficha de un cliente, por ejemplo): perder el filtro montado para revisar
@@ -267,7 +298,12 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   // (ver TrainerNavigationService#consumeViewState).
   private static readonly VIEW_STATE_KEY = 'clients-roster';
 
-  private navigationSubscription: Subscription | null = null;
+  private readonly destroy$ = new Subject<void>();
+  private readonly searchChanges$ = new Subject<void>();
+  // Petición de la tabla en curso: se cancela si llega otra (cambiar de
+  // página o de filtro antes de que responda la anterior), para que una
+  // respuesta vieja no pise a la nueva.
+  private rosterRequest: Subscription | null = null;
 
   constructor(
     private rosterApi: ClientRosterApiService,
@@ -284,19 +320,27 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
 
   public ngOnDestroy(): void {
     this.panelHost?.nativeElement?.remove();
-    this.navigationSubscription?.unsubscribe();
     this.rememberViewState();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   public ngOnInit(): void {
     this.restoreViewState();
     this.load();
 
+    this.searchChanges$
+      .pipe(debounceTime(SEARCH_DEBOUNCE_MS), takeUntil(this.destroy$))
+      .subscribe(() => this.onFiltersChange());
+
     // ion-router-outlet mantiene viva la página mientras se navega hacia
     // dentro, así que ngOnDestroy puede no llegar: se anota el estado al
     // arrancar cada navegación.
-    this.navigationSubscription = this.router.events
-      .pipe(filter((event) => event instanceof NavigationStart))
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationStart),
+        takeUntil(this.destroy$)
+      )
       .subscribe(() => this.rememberViewState());
   }
 
@@ -309,6 +353,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       filterOnlyOverdueCheckin: this.filterOnlyOverdueCheckin,
       filterOnlyWithPending: this.filterOnlyWithPending,
       sort: this.sort,
+      page: this.page,
     });
   }
 
@@ -323,8 +368,40 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     this.filterOnlyWithAlerts = stored.filterOnlyWithAlerts;
     this.filterOnlyOverdueCheckin = stored.filterOnlyOverdueCheckin;
     this.filterOnlyWithPending = stored.filterOnlyWithPending ?? false;
-    // El orden se aplica sobre las filas en load(), que llega después.
+    // Orden y página van en la primera petición de load(), que llega después.
     this.sort = stored.sort;
+    this.page = stored.page ?? 0;
+  }
+
+  private currentQuery(): RosterQuery {
+    return {
+      page: this.page,
+      limit: this.pageSize,
+      search: this.searchQuery,
+      sort: this.sort.key,
+      descending: this.sort.descending,
+      weakest: this.filterWeakest,
+      onlyWithAlerts: this.filterOnlyWithAlerts,
+      onlyOverdueCheckin: this.filterOnlyOverdueCheckin,
+      onlyWithPending: this.filterOnlyWithPending,
+    };
+  }
+
+  private applyResponse(response: RosterResponse): void {
+    this.periodDays = response.periodDays;
+    this.rows = response.clients || [];
+    this.gatedRows = response.pending || [];
+    this.total = response.total ?? this.rows.length;
+    this.totalActive = response.totalActive ?? this.total;
+    // El servidor devuelve la última página si la pedida ya no existe.
+    this.page = response.page ?? 0;
+    this.counts = response.counts || EMPTY_COUNTS;
+    // La fila desplegada puede no estar en la página nueva.
+    if (this.expandedClientId && !this.findRow(this.expandedClientId)) this.expandedClientId = null;
+  }
+
+  private findRow(clientId: string): RosterClient | undefined {
+    return this.rows.find((row) => row.clientId === clientId) || this.gatedRows.find((row) => row.clientId === clientId);
   }
 
   // silent: recarga sobre lo ya pintado (volver a Clientes, tirar para
@@ -337,21 +414,53 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     const invites$: Observable<TrainerInvite[] | null> = this.invitesApi
       .getMyInvites()
       .pipe(catchError(() => of(null)));
-    forkJoin([this.rosterApi.getRoster(), invites$]).subscribe({
-      next: ([response, invites]) => {
-        this.periodDays = response.periodDays;
-        this.rows = response.clients || [];
-        if (invites) this.pendingInvites = groupPendingInvites(invites);
-        this.state = 'loaded';
-        this.applySort();
-        this.applyPendingFocus();
-      },
-      error: () => {
-        if (keepVisible) return;
-        this.rows = [];
-        this.state = 'error';
-      },
-    });
+    this.rosterRequest?.unsubscribe();
+    this.refreshing = false;
+    this.rosterRequest = forkJoin([this.rosterApi.getRoster(this.currentQuery()), invites$])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([response, invites]) => {
+          this.applyResponse(response);
+          if (invites) this.pendingInvites = groupPendingInvites(invites);
+          this.state = 'loaded';
+          this.applyPendingFocus();
+        },
+        error: () => {
+          if (keepVisible) return;
+          this.rows = [];
+          this.gatedRows = [];
+          this.state = 'error';
+        },
+      });
+  }
+
+  // Solo la tabla (página, orden, búsqueda o filtros), sin volver a pedir
+  // las invitaciones ni pasar por el esqueleto. Si falla, se queda con la
+  // página que había.
+  private refreshPage(onLoaded?: () => void): void {
+    if (this.state !== 'loaded') {
+      this.load();
+      return;
+    }
+    this.rosterRequest?.unsubscribe();
+    this.refreshing = true;
+    this.rosterRequest = this.rosterApi
+      .getRoster(this.currentQuery())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.applyResponse(response);
+          this.refreshing = false;
+          onLoaded?.();
+        },
+        error: () => {
+          this.refreshing = false;
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('CLIENTS.ROSTER_REFRESH_ERROR'),
+            duration: 3000,
+          });
+        },
+      });
   }
 
   // --- Orden ---
@@ -365,7 +474,8 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       // clic en casi todos los casos.
       this.sort = { key, descending: key !== 'name' && key !== 'adherence' };
     }
-    this.applySort();
+    this.page = 0;
+    this.refreshPage();
   }
 
   public sortIcon(key: RosterSortKey): string {
@@ -373,30 +483,9 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     return this.sort.descending ? 'arrow-down-outline' : 'arrow-up-outline';
   }
 
-  private applySort(): void {
-    const direction = this.sort.descending ? -1 : 1;
-    const key = this.sort.key;
-    const byName = (a: RosterClient, b: RosterClient): number =>
-      a.clientName.localeCompare(b.clientName, 'es');
-
-    this.rows = [...this.rows].sort((a, b) => {
-      if (key === 'name') return byName(a, b) * direction;
-
-      const left = valueFor(a, key);
-      const right = valueFor(b, key);
-
-      // Los nulos van SIEMPRE al final, se ordene como se ordene — por eso
-      // se resuelven ANTES de aplicar la dirección. Un cliente sin datos no
-      // es "el mejor" ni "el peor": es el que todavía no se puede comparar,
-      // y colarlo en cabeza dejaría fuera de la vista al que sí importa.
-      if (left === null && right === null) return byName(a, b);
-      if (left === null) return 1;
-      if (right === null) return -1;
-
-      // Empate a número: por nombre, para que el orden sea estable y la
-      // tabla no baile entre renders.
-      return (left - right) * direction || byName(a, b);
-    });
+  public ariaSort(key: RosterSortKey): 'ascending' | 'descending' | null {
+    if (this.sort.key !== key) return null;
+    return this.sort.descending ? 'descending' : 'ascending';
   }
 
   // --- Presentación ---
@@ -456,13 +545,6 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     return row.nextCheckinDate < new Date().toISOString().slice(0, 10);
   }
 
-  // Intake sin enviar o por revisar: no hay seguimiento todavía y no se
-  // entra en la ficha (el guard tampoco deja): va a "Pendientes" y despliega
-  // el intake.
-  private isGated(row: RosterClient): boolean {
-    return row.intakeStatus === 'pending' || row.intakeStatus === 'submitted';
-  }
-
   public toggleRow(row: RosterClient): void {
     this.expandedClientId = this.expandedClientId === row.clientId ? null : row.clientId;
     if (this.expandedClientId && row.intakeStatus === 'submitted') this.loadIntake(row.clientId);
@@ -476,7 +558,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private applyPendingFocus(): void {
-    const row = this.rows.find((r) => r.clientId === this.pendingFocusId);
+    const row = this.gatedRows.find((r) => r.clientId === this.pendingFocusId);
     if (!row) return;
     this.pendingFocusId = null;
     if (this.expandedClientId !== row.clientId) this.toggleRow(row);
@@ -544,7 +626,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       next: () => {
         this.busyClientId = null;
         this.expandedClientId = null;
-        this.rows = this.rows.filter((r) => r.clientId !== row.clientId);
+        this.gatedRows = this.gatedRows.filter((r) => r.clientId !== row.clientId);
         this.ionicUtilService.showToast({ message: this.translate.instant('CLIENTS.HAS_RECHAZADO', { clientName: row.clientName }), duration: 2500 });
       },
       error: () => {
@@ -641,31 +723,6 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
 }
 
 // --- helpers de módulo ---
-
-function pendingOf(row: RosterClient): number {
-  return (row.pendingCheckins || 0) + (row.pendingFormChecks || 0);
-}
-
-function valueFor(row: RosterClient, key: RosterSortKey): number | null {
-  switch (key) {
-    case 'adherence':
-      return row.adherence.overall;
-    case 'weight':
-      return row.weightChange ? row.weightChange.absolute : null;
-    case 'checkin':
-      return row.daysSinceCheckin;
-    case 'sessions':
-      return row.sessions;
-    case 'review':
-      return pendingOf(row);
-    case 'alerts':
-      // Las urgentes desempatan: 1 urgente pesa más que 2 menores, y sin
-      // esto quedarían mezcladas en el mismo escalón.
-      return row.openAlerts + row.urgentAlerts * 0.5;
-    default:
-      return null;
-  }
-}
 
 // Solo las 'pending': cuestionario_pendiente/en_revision son datos antiguos
 // de clientes que ya aceptaron (salen en la Cartera).

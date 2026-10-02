@@ -50,6 +50,20 @@
   background: var(--tf-surface-1);
 }
 
+// Mientras llega otra página, orden o filtro: la tabla actual se atenúa y
+// deja de responder, sin volver al esqueleto (no se pierde el sitio). El
+// retardo evita el parpadeo cuando la respuesta es inmediata.
+.roster-scroll,
+.roster-no-matches {
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.is-refreshing {
+    opacity: 0.5;
+    pointer-events: none;
+    transition-delay: 150ms;
+  }
+}
+
 .roster-table {
   width: 100%;
   border-collapse: collapse;
@@ -767,6 +781,96 @@ thead .col-name {
   font-weight: 800;
   line-height: 18px;
   text-align: center;
+}
+
+// --- Paginador ---
+.roster-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-3);
+}
+
+.pager-range {
+  margin: 0;
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.pager-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+}
+
+.pager-pages {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pager-btn {
+  @include tf-icon-button;
+  background: none;
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+
+  @media (hover: hover) {
+    &:hover:not(:disabled):not(.is-current) {
+      background: var(--tf-surface-3);
+      color: var(--tf-text);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  // La página actual en el acento de marca: es la única cosa del paginador
+  // que hay que localizar de un vistazo.
+  &.is-current {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+    cursor: default;
+    opacity: 1;
+  }
+}
+
+.pager-gap {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 24px;
+  color: var(--tf-text-faint);
+}
+
+.pager-compact {
+  display: none;
+  min-width: 56px;
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+// Móvil: siete botones de 44px no caben junto al rango. Se quedan las
+// flechas con «2 / 5» entre ellas.
+@media (max-width: 560px) {
+  .pager-pages {
+    display: none;
+  }
+
+  .pager-compact {
+    display: inline-block;
+  }
 }
 
 // --- Panel de filtros ---
