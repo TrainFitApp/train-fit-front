@@ -35,12 +35,27 @@ import { SearchExercisesPage } from './components/search-exercises/search-exerci
 import { RirPickerComponent } from './components/rir-picker/rir-picker.component';
 import { TimePickerComponent } from './components/time-picker/time-picker.component';
 import { SkeletonLoaderComponent } from './components/skeleton-loader/skeleton-loader.component';
+import { MediaVideoPlayerComponent } from './components/media/media-video-player.component';
+import { PhotoCompareComponent } from './components/media/photo-compare.component';
+import { PremiumMediaCardComponent } from './components/media/premium-media-card.component';
+import { MediaConsentSheetComponent } from './components/media/media-consent-sheet.component';
+import { PhotoSessionModalComponent } from './components/media/photo-session-modal.component';
+import { MediaCameraModalComponent } from './components/media/media-camera-modal.component';
+import { PhotoViewerModalComponent } from './components/media/photo-viewer-modal.component';
+import { ProgressPhotosComponent } from './components/media/progress-photos.component';
+import { ProgressVideosComponent } from './components/media/progress-videos.component';
+import { FormCheckSubmitModalComponent } from './components/media/form-check-submit-modal.component';
+import { FormCheckListComponent } from './components/media/form-check-list.component';
+import { TechniqueVideoPlayerComponent } from './components/media/technique-video-player.component';
+import { CheckinPhotosFieldComponent } from './components/media/checkin-photos-field.component';
+import { ClientTechniqueVideoPickerComponent } from './components/media/client-technique-video-picker.component';
 import { CategoryPipe } from './pipes/category.pipe';
 import { ExpectedPipe } from './pipes/expected-reps.pipe';
 import { MeasurePipe } from './pipes/measure.pipe';
 import { SafePipe } from './pipes/safe.pipe';
 import { TranslateDbPipe } from './pipes/translate-db.pipe';
 import { TranslateDescPipe } from './pipes/translate-desc.pipe';
+import { LocalDatePipe } from './pipes/local-date.pipe';
 import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
 
 @NgModule({
@@ -67,6 +82,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     CategoryPipe,
     TranslateDbPipe,
     TranslateDescPipe,
+    LocalDatePipe,
     DisconnectedComponent,
     RoutineCalendarComponent,
     VideoModalComponent,
@@ -82,6 +98,20 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     GlossaryInfoComponent,
     GlossaryPopoverComponent,
     MaintenanceWarningBannerComponent,
+    MediaVideoPlayerComponent,
+    PhotoCompareComponent,
+    PremiumMediaCardComponent,
+    MediaConsentSheetComponent,
+    PhotoSessionModalComponent,
+    MediaCameraModalComponent,
+    PhotoViewerModalComponent,
+    ProgressPhotosComponent,
+    ProgressVideosComponent,
+    FormCheckSubmitModalComponent,
+    FormCheckListComponent,
+    TechniqueVideoPlayerComponent,
+    CheckinPhotosFieldComponent,
+    ClientTechniqueVideoPickerComponent,
   ],
   imports: [
     SubmitOnEnterDirective,
@@ -122,6 +152,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     CategoryPipe,
     TranslateDbPipe,
     TranslateDescPipe,
+    LocalDatePipe,
     DisconnectedComponent,
     RoutineCalendarComponent,
     CursorEndDirective,
@@ -134,6 +165,20 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     GlossaryInfoComponent,
     GlossaryPopoverComponent,
     MaintenanceWarningBannerComponent,
+    MediaVideoPlayerComponent,
+    PhotoCompareComponent,
+    PremiumMediaCardComponent,
+    MediaConsentSheetComponent,
+    PhotoSessionModalComponent,
+    MediaCameraModalComponent,
+    PhotoViewerModalComponent,
+    ProgressPhotosComponent,
+    ProgressVideosComponent,
+    FormCheckSubmitModalComponent,
+    FormCheckListComponent,
+    TechniqueVideoPlayerComponent,
+    CheckinPhotosFieldComponent,
+    ClientTechniqueVideoPickerComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

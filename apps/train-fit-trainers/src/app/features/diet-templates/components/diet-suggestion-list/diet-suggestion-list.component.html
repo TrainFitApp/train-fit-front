@@ -24,8 +24,8 @@
         class="preview-btn"
         [disabled]="previewingId === t._id"
         (click)="preview(t)"
-        title="Vista previa"
-        [attr.aria-label]="'Vista previa de la dieta ' + t.name"
+        [title]="'DIET_TEMPLATES.VISTA_PREVIA' | translate"
+        [attr.aria-label]="('DIET_TEMPLATES.VISTA_PREVIA_DE_LA_DIETA' | translate) + t.name"
       >
         <ion-spinner name="dots" *ngIf="previewingId === t._id; else eyeIcon"></ion-spinner>
         <ng-template #eyeIcon><ion-icon name="eye-outline"></ion-icon></ng-template>
@@ -34,15 +34,13 @@
   </div>
 
   <p class="empty-hint" *ngIf="!d.ranked.length">
-    No hay dietas que encajen con los filtros. Ajusta los parámetros a la derecha,
-    o crea una desde cero.
+    {{ 'DIET_TEMPLATES.NO_HAY_DIETAS_QUE_ENCAJEN' | translate }}
   </p>
 
   <!-- Las que no cumplen ya no se esconden: se listan detrás con su aviso.
        Esta nota explica el rojo y qué hacer con él. -->
   <p class="missing-note" *ngIf="missingCount(d.ranked) as n">
-    {{ n }} de estas dietas no {{ n === 1 ? 'cumple' : 'cumplen' }} las restricciones del
-    cliente. Se pueden aplicar igual: cambia después los alimentos que fallen.
+    {{ n }} {{ 'TRAINER_MISC.DE_ESTAS_DIETAS_NO' | translate }} {{ (n === 1 ? 'TRAINER_MISC.MEETS_ONE' : 'TRAINER_MISC.MEETS_MANY') | translate }} {{ 'TRAINER_MISC.LAS_RESTRICCIONES_DEL_CLIENTE_SE' | translate }}
   </p>
 </ng-container>
 
@@ -53,6 +51,6 @@
     <div class="skeleton-block"></div>
   </div>
   <ng-template #pickParams>
-    <p class="empty-hint">Elige los parámetros en el panel de la derecha para ver las dietas sugeridas.</p>
+    <p class="empty-hint">{{ 'DIET_TEMPLATES.ELIGE_LOS_PARAMETROS_EN_EL' | translate }}</p>
   </ng-template>
 </ng-template>

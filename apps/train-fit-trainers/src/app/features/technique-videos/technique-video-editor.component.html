@@ -1,0 +1,113 @@
+<ion-header class="ion-no-border">
+  <div class="panel-header">
+    <h1 class="panel-title">{{ (isEdit ? 'MEDIA.TRAINER.EDIT_VIDEO' : 'MEDIA.TRAINER.NEW_VIDEO') | translate }}</h1>
+    <button type="button" class="panel-close" (click)="close()" [disabled]="saving" [attr.aria-label]="'MEDIA.CLOSE' | translate">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="panel-content">
+  <form class="editor" (ngSubmit)="save()">
+    <!-- Origen (solo al crear) -->
+    <div class="field" *ngIf="!isEdit">
+      <span class="field-label">{{ 'MEDIA.TRAINER.SOURCE' | translate }}</span>
+      <div class="source-switch" role="radiogroup" [attr.aria-label]="'MEDIA.TRAINER.SOURCE' | translate">
+        <button type="button" role="radio" [attr.aria-checked]="source === 'upload'" [class.active]="source === 'upload'" (click)="setSource('upload')">
+          <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.TRAINER.SOURCE_UPLOAD' | translate }}
+        </button>
+        <button type="button" role="radio" [attr.aria-checked]="source === 'youtube'" [class.active]="source === 'youtube'" (click)="setSource('youtube')">
+          <ion-icon name="logo-youtube" aria-hidden="true"></ion-icon>YouTube
+        </button>
+        <button type="button" role="radio" [attr.aria-checked]="source === 'vimeo'" [class.active]="source === 'vimeo'" (click)="setSource('vimeo')">
+          <ion-icon name="logo-vimeo" aria-hidden="true"></ion-icon>Vimeo
+        </button>
+      </div>
+    </div>
+
+    <!-- Archivo -->
+    <div class="field" *ngIf="!isEdit && source === 'upload'">
+      <label class="file-drop" [class.file-drop--filled]="file">
+        <input type="file" accept="video/*" (change)="onFile($event)" [disabled]="saving" />
+        <ion-icon [name]="file ? 'film-outline' : 'cloud-upload-outline'" aria-hidden="true"></ion-icon>
+        <span class="file-text">
+          <strong>{{ file ? file.name : ('MEDIA.TRAINER.PICK_FILE' | translate) }}</strong>
+          <span>{{ file ? duration(fileDuration) : ('MEDIA.TRAINER.PICK_FILE_HINT' | translate) }}</span>
+        </span>
+      </label>
+    </div>
+
+    <!-- Enlace -->
+    <label class="field" *ngIf="!isEdit && source !== 'upload'">
+      <span class="field-label">{{ 'MEDIA.TRAINER.LINK' | translate }}</span>
+      <input
+        class="tf-input"
+        type="url"
+        name="externalUrl"
+        [value]="externalUrl"
+        (input)="onInput('externalUrl', $event)"
+        [placeholder]="source === 'youtube' ? 'https://youtu.be/…' : 'https://vimeo.com/…'"
+      />
+    </label>
+
+    <!-- Vídeo existente -->
+    <div class="field" *ngIf="isEdit && video">
+      <app-technique-video-player [video]="video"></app-technique-video-player>
+    </div>
+
+    <label class="field">
+      <span class="field-label">{{ 'MEDIA.TRAINER.TITLE' | translate }}</span>
+      <input class="tf-input" name="title" maxlength="120" [value]="title" (input)="onInput('title', $event)" />
+    </label>
+
+    <label class="field">
+      <span class="field-label">{{ 'MEDIA.TRAINER.CUES' | translate }} <span class="optional">{{ 'MEDIA.TRAINER.OPTIONAL' | translate }}</span></span>
+      <textarea
+        class="tf-input"
+        name="cues"
+        rows="3"
+        maxlength="1000"
+        [value]="cues"
+        (input)="onInput('cues', $event)"
+        [placeholder]="'MEDIA.TRAINER.CUES_PLACEHOLDER' | translate"
+      ></textarea>
+    </label>
+
+    <div class="field">
+      <span class="field-label">{{ 'MEDIA.TRAINER.EXERCISES' | translate }}</span>
+      <p class="field-hint">{{ 'MEDIA.TRAINER.EXERCISES_HINT' | translate }}</p>
+      <div class="chips" *ngIf="exercises.length">
+        <span class="chip" *ngFor="let exercise of exercises">
+          {{ exercise.name | translateDb }}
+          <button type="button" (click)="removeExercise(exercise.id)" [attr.aria-label]="'MEDIA.TRAINER.REMOVE_EXERCISE' | translate">
+            <ion-icon name="close"></ion-icon>
+          </button>
+        </span>
+      </div>
+      <ion-searchbar
+        class="exercise-search"
+        [placeholder]="'MEDIA.TRAINER.EXERCISE_SEARCH' | translate"
+        [debounce]="0"
+        (ionInput)="onSearch($event)"
+      ></ion-searchbar>
+      <div class="results" *ngIf="searchResults.length">
+        <button type="button" class="result" *ngFor="let exercise of searchResults; trackBy: trackExercise" (click)="addExercise(exercise)">
+          <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>{{ exercise.name | translateDb }}
+        </button>
+      </div>
+    </div>
+
+    <p class="error" *ngIf="error" role="alert">{{ error }}</p>
+  </form>
+</ion-content>
+
+<ion-footer class="ion-no-border panel-footer">
+  <div class="upload" *ngIf="saving && source === 'upload' && !isEdit" role="status">
+    <span class="bar"><span class="bar-fill" [style.transform]="'scaleX(' + progress + ')'"></span></span>
+    <span>{{ 'MEDIA.UPLOADING_PERCENT' | translate: { percent: (progress * 100 | number: '1.0-0') } }}</span>
+  </div>
+  <button type="button" class="save-button" (click)="save()" [disabled]="!canSave">
+    <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
+    {{ (isEdit ? 'MEDIA.TRAINER.SAVE' : 'MEDIA.TRAINER.ADD_TO_LIBRARY') | translate }}
+  </button>
+</ion-footer>

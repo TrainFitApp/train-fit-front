@@ -1,14 +1,14 @@
 <app-payments-sheet
-  title="Avisos de cobro"
-  subtitle="Solo dentro de las apps, sin notificaciones del móvil. Te llegan siempre; al cliente, solo si lo activas en su cuota."
+  [title]="'PAYMENTS.AVISOS_DE_COBRO' | translate"
+  [subtitle]="'PAYMENTS.SOLO_DENTRO_DE_LAS_APPS' | translate"
   (closed)="closed.emit()"
 >
   <form id="payment-settings-form" class="settings-form" (ngSubmit)="submit()" novalidate>
     <section class="form-group">
-      <p class="group-label">Cuándo avisar</p>
+      <p class="group-label">{{ 'PAYMENTS.CUANDO_AVISAR' | translate }}</p>
       <div class="field-row">
         <div class="field">
-          <label class="field-label" for="settings-before">Días antes</label>
+          <label class="field-label" for="settings-before">{{ 'PAYMENTS.DIAS_ANTES' | translate }}</label>
           <div class="input-wrapper">
             <input
               id="settings-before"
@@ -24,7 +24,7 @@
           </div>
         </div>
         <div class="field">
-          <label class="field-label" for="settings-after">Días después</label>
+          <label class="field-label" for="settings-after">{{ 'PAYMENTS.DIAS_DESPUES' | translate }}</label>
           <div class="input-wrapper">
             <input
               id="settings-after"
@@ -42,18 +42,18 @@
       </div>
       <label class="check-row">
         <input type="checkbox" name="onDue" [(ngModel)]="onDue" (ngModelChange)="onChange()" />
-        <span>Avisar el mismo día del vencimiento</span>
+        <span>{{ 'PAYMENTS.AVISAR_EL_MISMO_DIA_DEL' | translate }}</span>
       </label>
       <p class="field-error" *ngIf="daysError">{{ daysError }}</p>
-      <p class="field-hint">0 = sin ese aviso. Los avisos de después solo salen si queda saldo pendiente.</p>
-      <p class="field-hint" *ngIf="simplified">Tenías una configuración con más avisos: al guardar quedará como se ve aquí.</p>
+      <p class="field-hint">{{ 'PAYMENTS.0_SIN_ESE_AVISO_LOS' | translate }}</p>
+      <p class="field-hint" *ngIf="simplified">{{ 'PAYMENTS.TENIAS_UNA_CONFIGURACION_CON_MAS' | translate }}</p>
     </section>
 
     <section class="form-group">
-      <p class="group-label">Hora y zona</p>
+      <p class="group-label">{{ 'PAYMENTS.HORA_ZONA' | translate }}</p>
       <div class="field-row">
         <div class="field">
-          <label class="field-label" for="settings-time">Hora</label>
+          <label class="field-label" for="settings-time">{{ 'PAYMENTS.HORA' | translate }}</label>
           <div class="input-wrapper">
             <ion-icon name="time-outline" class="input-icon" aria-hidden="true"></ion-icon>
             <app-date-field
@@ -69,13 +69,13 @@
           </div>
         </div>
         <div class="field">
-          <label class="field-label" for="settings-zone">Zona horaria</label>
+          <label class="field-label" for="settings-zone">{{ 'PAYMENTS.ZONA_HORARIA' | translate }}</label>
           <div class="input-wrapper">
             <select id="settings-zone" class="input-field" name="timeZone" [(ngModel)]="timeZone" (ngModelChange)="onChange()">
-              <optgroup label="Habituales">
+              <optgroup [label]="'PAYMENTS.HABITUALES' | translate">
                 <option *ngFor="let zone of commonZones" [value]="zone">{{ zone }}</option>
               </optgroup>
-              <optgroup label="Todas" *ngIf="allZones.length">
+              <optgroup [label]="'TRAINER_COMMON.ALL_F' | translate" *ngIf="allZones.length">
                 <option *ngFor="let zone of allZones" [value]="zone">{{ zone }}</option>
               </optgroup>
             </select>
@@ -83,30 +83,30 @@
         </div>
       </div>
       <p class="field-hint">
-        Decide qué día es «hoy» para tus cobros y a qué hora salen los avisos, uses el dispositivo que uses.
+        {{ 'PAYMENTS.DECIDE_QUE_DIA_ES_HOY' | translate }}
       </p>
     </section>
 
     <div class="outcome">
-      <span class="outcome__label">Quedará así</span>
+      <span class="outcome__label">{{ 'PAYMENTS.QUEDARA_ASI' | translate }}</span>
       <span class="outcome__value outcome__value--text">{{ summary }}</span>
     </div>
 
     <section class="change-preview" *ngIf="zoneOrTimeChanged" aria-live="polite">
-      <p class="group-label">Efecto del cambio</p>
+      <p class="group-label">{{ 'PAYMENTS.EFECTO_DEL_CAMBIO' | translate }}</p>
       <p class="field-hint">
-        Las fechas de vencimiento y de recepción no cambian. Solo se recalculan los avisos que aún no han salido; ninguno se repite.
+        {{ 'PAYMENTS.LAS_FECHAS_DE_VENCIMIENTO_DE' | translate }}
       </p>
       <p class="field-hint" *ngIf="preview?.todayChanges as change">
-        Ojo: con esta zona, «hoy» pasa a ser el {{ day(change.to) }} (ahora es el {{ day(change.from) }}).
+        {{ 'PAYMENTS.OJO_CON_ESTA_ZONA_HOY' | translate }} {{ day(change.to) }} ({{ 'PAYMENTS.AHORA_ES_EL' | translate }} {{ day(change.from) }}).
       </p>
       <ul class="samples" *ngIf="preview?.samples?.length">
         <li *ngFor="let sample of preview?.samples">
-          <span>Vence el {{ day(sample.dueDay) }}</span>
+          <span>{{ 'PAYMENTS.VENCE_EL' | translate }} {{ day(sample.dueDay) }}</span>
           <span class="samples__change">
             {{ instant(sample.currentNext?.instant, settings.timeZone) }} → {{ instant(sample.nextNext?.instant, timeZone) }}
             <ng-container *ngIf="timeZone !== settings.timeZone && sample.nextNext">
-              <br /><span class="samples__equivalent">({{ instant(sample.nextNext.instant, settings.timeZone) }} en {{ settings.timeZone }})</span>
+              <br /><span class="samples__equivalent">({{ instant(sample.nextNext.instant, settings.timeZone) }} {{ 'PAYMENTS.EN' | translate }} {{ settings.timeZone }})</span>
             </ng-container>
           </span>
         </li>
@@ -119,9 +119,9 @@
     </div>
   </form>
 
-  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">Cancelar</button>
+  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">{{ 'COMMON.CANCEL' | translate }}</button>
   <button sheetFooter type="submit" class="submit-button" form="payment-settings-form" [disabled]="!canSubmit">
     <ion-spinner name="dots" *ngIf="saving"></ion-spinner>
-    <span *ngIf="!saving">Guardar avisos</span>
+    <span *ngIf="!saving">{{ 'PAYMENTS.GUARDAR_AVISOS' | translate }}</span>
   </button>
 </app-payments-sheet>

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerClientsApiService } from '../clients/services/trainer-clients-api.service';
@@ -16,6 +17,9 @@ import { CoachAlertsApiService } from './services/coach-alerts-api.service';
 import { CoachTasksApiService } from './services/coach-tasks-api.service';
 import { CoachAlert, CoachAlertPriority, CoachAlertType } from './models/coach-alert.model';
 import { CoachTask } from './models/coach-task.model';
+import { ReviewQueueApiService } from '../review-queue/review-queue-api.service';
+import { ReviewCounts } from '../review-queue/review-queue.model';
+import { uiLocale, localizeRecord, localizeList } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 type AlertFilter = 'all' | 'high';
@@ -26,6 +30,8 @@ const NOTIFICATION_ICONS: Record<TrainerNotificationType, string> = {
   checkin_responded: 'clipboard-outline',
   nutrition_preferences_updated: 'nutrition-outline',
   payment_reminder: 'wallet-outline',
+  form_check_submitted: 'videocam-outline',
+  form_check_expiring: 'time-outline',
 };
 
 // Un icono por TIPO de problema, no por prioridad: la prioridad ya se lee en
@@ -48,6 +54,7 @@ const PRIORITY_LABELS: Record<CoachAlertPriority, string> = {
   medium: 'Revisar',
   low: 'Menor',
 };
+localizeRecord(PRIORITY_LABELS, 'CLIENT_SUMMARY.PRIORITY');
 
 // Título por defecto de la tarea que nace de cada alerta. El coach puede
 // cambiarlo antes de guardar — esto solo evita empezar con un campo vacío
@@ -63,9 +70,11 @@ const TASK_TITLE_BY_ALERT: Record<CoachAlertType, string> = {
   inactive_client: 'Contactar con el cliente',
   no_training_activity: 'Revisar por qué no entrena',
 };
+localizeRecord(TASK_TITLE_BY_ALERT, 'DASHBOARD.TASK_TITLES');
 
-const EUROS_COMPACT = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const EUROS_COMPACT = () => new Intl.NumberFormat(uiLocale(), { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+localizeList(MONTH_LABELS, 'DASHBOARD.MONTHS_SHORT');
 
 // Fase 1 Coach Pro — el dashboard deja de ser un panel de métricas para
 // responder una sola pregunta: "¿dónde tengo que intervenir hoy?".
@@ -89,6 +98,8 @@ const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
   styleUrls: ['dashboard.page.scss'],
 })
 export class DashboardPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   private static readonly ALERT_PREVIEW_COUNT = 12;
 
   public activeClientsCount: number | null = null;
@@ -124,7 +135,8 @@ export class DashboardPage implements OnInit {
     private coachAlertsApi: CoachAlertsApiService,
     private coachTasksApi: CoachTasksApiService,
     private ionicUtilService: IonicUtilService,
-    private router: Router
+    private router: Router,
+    private reviewQueueApi: ReviewQueueApiService
   ) {}
 
   public ngOnInit(): void {
@@ -144,6 +156,34 @@ export class DashboardPage implements OnInit {
     this.loadNotifications();
     this.loadClientsCount();
     this.loadPaymentsSummary();
+    this.loadReviewCounts();
+  }
+
+  // --- Por revisar ---
+  // Lo que los clientes han mandado y espera respuesta. No son alertas (esas
+  // las detecta el sistema): se resume arriba y se trabaja en la bandeja.
+
+  public reviewCounts: ReviewCounts | null = null;
+  public reviewSummary = '';
+
+  private loadReviewCounts(): void {
+    this.reviewQueueApi.count().subscribe({
+      next: (counts) => {
+        this.reviewCounts = counts;
+        this.reviewSummary = [
+          counts.checkin ? `${counts.checkin} check-in${counts.checkin === 1 ? '' : 's'}` : '',
+          counts.form_check ? this.translate.instant('DASHBOARD.VIDEO_DE_TECNICA', { form_check: counts.form_check, p1: counts.form_check === 1 ? '' : 's' }) : '',
+          counts.intake ? this.translate.instant('DASHBOARD.CUESTIONARIO_DE_ALTA', { intake: counts.intake, p1: counts.intake === 1 ? '' : 's' }) : '',
+        ]
+          .filter(Boolean)
+          .join(' · ');
+      },
+      error: () => (this.reviewCounts = null),
+    });
+  }
+
+  public openReviewQueue(): void {
+    void this.router.navigate(['/tabs/review']);
   }
 
   // --- Alertas ---
@@ -191,7 +231,7 @@ export class DashboardPage implements OnInit {
   }
 
   public priorityLabel(priority: CoachAlertPriority): string {
-    return PRIORITY_LABELS[priority] || 'Revisar';
+    return PRIORITY_LABELS[priority] || this.translate.instant('DASHBOARD.REVISAR');
   }
 
   // "Detectado hoy" / "hace 3 días" — la antigüedad importa: un
@@ -201,9 +241,9 @@ export class DashboardPage implements OnInit {
     const days = Math.floor(
       (Date.now() - new Date(alert.createdAt).getTime()) / 86400000
     );
-    if (days <= 0) return 'Detectado hoy';
-    if (days === 1) return 'Detectado ayer';
-    return `Detectado hace ${days} días`;
+    if (days <= 0) return this.translate.instant('DASHBOARD.DETECTADO_HOY');
+    if (days === 1) return this.translate.instant('DASHBOARD.DETECTADO_AYER');
+    return this.translate.instant('DASHBOARD.DETECTADO_HACE_DIAS', { days });
   }
 
   public isResolving(alert: CoachAlert): boolean {
@@ -236,25 +276,25 @@ export class DashboardPage implements OnInit {
       error: (error) => {
         this.resolvingAlertIds.delete(alert._id);
         this.restoreAlert(alert, index);
-        void this.ionicUtilService.showErrorToast(error, 'No se pudo resolver la alerta');
+        void this.ionicUtilService.showErrorToast(error, this.translate.instant('DASHBOARD.NO_SE_PUDO_RESOLVER_LA'));
       },
     });
   }
 
   private async presentUndoToast(alert: CoachAlert, index: number): Promise<void> {
     await this.ionicUtilService.showToast({
-      message: `Resuelta: ${alert.clientName}`,
+      message: this.translate.instant('DASHBOARD.RESUELTA', { clientName: alert.clientName }),
       duration: 5000,
       position: 'bottom',
       cssClass: 'toast-safe-area',
       buttons: [
         {
-          text: 'Deshacer',
+          text: this.translate.instant('DASHBOARD.DESHACER'),
           handler: () => {
             this.coachAlertsApi.setStatus(alert._id, 'open').subscribe({
               next: () => this.restoreAlert(alert, index),
               error: (error) =>
-                void this.ionicUtilService.showErrorToast(error, 'No se pudo reabrir la alerta'),
+                void this.ionicUtilService.showErrorToast(error, this.translate.instant('DASHBOARD.NO_SE_PUDO_REABRIR_LA')),
             });
           },
         },
@@ -284,7 +324,7 @@ export class DashboardPage implements OnInit {
       },
       error: (error) => {
         this.isEvaluating = false;
-        void this.ionicUtilService.showErrorToast(error, 'No se pudo revisar a tus clientes');
+        void this.ionicUtilService.showErrorToast(error, this.translate.instant('DASHBOARD.NO_SE_PUDO_REVISAR_TUS'));
       },
     });
   }
@@ -322,7 +362,7 @@ export class DashboardPage implements OnInit {
   // enseñar más tarde de dónde salió.
   public openTaskPanelFromAlert(alert: CoachAlert, event: Event): void {
     event.stopPropagation();
-    this.taskTitle = TASK_TITLE_BY_ALERT[alert.type] || 'Revisar cliente';
+    this.taskTitle = TASK_TITLE_BY_ALERT[alert.type] || this.translate.instant('DASHBOARD.REVISAR_CLIENTE');
     this.taskDueDate = '';
     this.taskClientId = alert.clientId;
     this.taskClientName = alert.clientName;
@@ -357,7 +397,7 @@ export class DashboardPage implements OnInit {
         },
         error: (error) => {
           this.isSavingTask = false;
-          void this.ionicUtilService.showErrorToast(error, 'No se pudo crear la tarea');
+          void this.ionicUtilService.showErrorToast(error, this.translate.instant('DASHBOARD.NO_SE_PUDO_CREAR_LA'));
         },
       });
   }
@@ -374,7 +414,7 @@ export class DashboardPage implements OnInit {
         const next = [...this.tasks];
         next.splice(Math.min(index, next.length), 0, task);
         this.tasks = next;
-        void this.ionicUtilService.showErrorToast(error, 'No se pudo completar la tarea');
+        void this.ionicUtilService.showErrorToast(error, this.translate.instant('DASHBOARD.NO_SE_PUDO_COMPLETAR_LA'));
       },
     });
   }
@@ -395,9 +435,9 @@ export class DashboardPage implements OnInit {
   public taskDueLabel(task: CoachTask): string | null {
     if (!task.dueDate) return null;
     const today = new Date().toISOString().slice(0, 10);
-    if (task.dueDate < today) return 'Vencida';
-    if (task.dueDate === today) return 'Vence hoy';
-    return `Vence el ${this.formatShortDate(task.dueDate)}`;
+    if (task.dueDate < today) return this.translate.instant('DASHBOARD.VENCIDA');
+    if (task.dueDate === today) return this.translate.instant('DASHBOARD.VENCE_HOY');
+    return this.translate.instant('DASHBOARD.VENCE_EL', { p0: this.formatShortDate(task.dueDate) });
   }
 
   public isTaskOverdue(task: CoachTask): boolean {
@@ -434,7 +474,7 @@ export class DashboardPage implements OnInit {
   }
 
   public notificationClientName(notification: TrainerNotification): string {
-    if (!notification.client) return 'Un cliente';
+    if (!notification.client) return this.translate.instant('DASHBOARD.UN_CLIENTE');
     return `${notification.client.name} ${notification.client.lastname}`.trim();
   }
 
@@ -442,17 +482,25 @@ export class DashboardPage implements OnInit {
     const name = this.notificationClientName(notification);
     switch (notification.type) {
       case 'invite_accepted':
-        return `${name} aceptó tu invitación`;
+        return this.translate.instant('DASHBOARD.ACEPTO_TU_INVITACION', { name });
       case 'intake_submitted_trainer':
-        return `${name} completó su cuestionario inicial`;
+        return this.translate.instant('DASHBOARD.COMPLETO_SU_CUESTIONARIO_INICIAL', { name });
       case 'checkin_responded':
-        return `${name} respondió un check-in`;
+        return this.translate.instant('DASHBOARD.RESPONDIO_UN_CHECK_IN', { name });
       case 'nutrition_preferences_updated':
-        return `${name} actualizó sus preferencias nutricionales`;
+        return this.translate.instant('DASHBOARD.ACTUALIZO_SUS_PREFERENCIAS_NUTRICIONALES', { name });
       case 'payment_reminder':
         return trainerPaymentNoticeTitle(notification.payload as PaymentNoticePayload, name);
+      case 'form_check_submitted': {
+        const exercise = notification.payload?.['exerciseName'];
+        return exercise ? this.translate.instant('DASHBOARD.TE_HA_MANDADO_UN_VIDEO', { name, exercise }) : this.translate.instant('DASHBOARD.TE_HA_MANDADO_UN_VIDEO_2', { name });
+      }
+      case 'form_check_expiring': {
+        const exercise = notification.payload?.['exerciseName'];
+        return this.translate.instant('DASHBOARD.EL_VIDEO_DE_SE_BORRA', { name, p1: exercise ? ` (${exercise})` : '' });
+      }
       default:
-        return 'Nueva actividad';
+        return this.translate.instant('COACH_NOTIFICATIONS.TITLES.DEFAULT');
     }
   }
 
@@ -489,6 +537,12 @@ export class DashboardPage implements OnInit {
           void this.router.navigate(['/tabs/clients']);
         }
         break;
+      case 'form_check_submitted':
+      case 'form_check_expiring': {
+        const formCheckId = notification.payload?.['formCheckId'];
+        void this.router.navigate(formCheckId ? ['/tabs/form-checks', String(formCheckId)] : ['/tabs/review'], formCheckId ? {} : { queryParams: { type: 'form_check' } });
+        break;
+      }
       case 'nutrition_preferences_updated':
       case 'intake_submitted_trainer':
       case 'invite_accepted':
@@ -554,7 +608,7 @@ export class DashboardPage implements OnInit {
 
   // Etiqueta corta de barra: sin decimales para que quepa en la columna.
   public eurosCompact(amount: number): string {
-    return EUROS_COMPACT.format(amount);
+    return EUROS_COMPACT().format(amount);
   }
 
   public goToPayments(): void {

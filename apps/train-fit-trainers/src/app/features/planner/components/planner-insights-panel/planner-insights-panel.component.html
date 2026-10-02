@@ -3,11 +3,11 @@
     type="button"
     class="panel-toggle"
     [attr.aria-expanded]="!collapsed"
-    [attr.aria-label]="collapsed ? 'Mostrar el panel de análisis' : 'Ocultar el panel de análisis'"
+    [attr.aria-label]="collapsed ? ('PLANNER.MOSTRAR_EL_PANEL_DE_ANALISIS' | translate) : ('PLANNER.OCULTAR_EL_PANEL_DE_ANALISIS' | translate)"
     (click)="toggle()"
   >
     <ion-icon [name]="collapsed ? 'chevron-back-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
-    <span class="panel-toggle-label" *ngIf="!collapsed">Análisis</span>
+    <span class="panel-toggle-label" *ngIf="!collapsed">{{ 'PLANNER.ANALISIS' | translate }}</span>
   </button>
 
   <ng-container *ngIf="!collapsed">
@@ -20,16 +20,16 @@
       (ionChange)="onSegmentChange($any($event).detail?.value)"
     >
       <ion-segment-button value="week">
-        <ion-label>Semana</ion-label>
+        <ion-label>{{ 'TRAINER_COMMON.WEEK' | translate }}</ion-label>
       </ion-segment-button>
       <ion-segment-button value="session">
-        <ion-label>Sesión</ion-label>
+        <ion-label>{{ 'PLANNER.SESION' | translate }}</ion-label>
       </ion-segment-button>
     </ion-segment>
 
     <div class="insights-body">
       <ng-container *ngIf="tab === 'week'">
-        <p class="tab-question">¿Cuántas series le doy a cada grupo esta semana?</p>
+        <p class="tab-question">{{ 'PLANNER.CUANTAS_SERIES_LE_DOY_CADA' | translate }}</p>
         <app-muscle-volume-panel
           [embedded]="true"
           [split]="split"
@@ -39,7 +39,7 @@
       </ng-container>
 
       <ng-container *ngIf="tab === 'session'">
-        <p class="tab-question">¿Cómo queda repartida esta sesión concreta?</p>
+        <p class="tab-question">{{ 'PLANNER.COMO_QUEDA_REPARTIDA_ESTA_SESION' | translate }}</p>
         <app-session-load-panel [embedded]="true" [workout]="workout"></app-session-load-panel>
       </ng-container>
     </div>

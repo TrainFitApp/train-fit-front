@@ -1,0 +1,150 @@
+// Misma familia visual que CreateFoodSheetComponent y RecentFoodsSheetComponent
+// (hoja inferior, colores de Ionic y nunca hex sueltos, para que siga al tema
+// claro y al oscuro), y los campos con la misma forma que el modal de medidas
+// (AnthropometryModalComponent): etiqueta encima, valor grande y unidad al
+// lado, en una caja de 44px+ que se pulsa entera.
+:host {
+  display: block;
+  padding: 26px 16px calc(env(safe-area-inset-bottom) + 16px);
+}
+
+.quick-add {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quick-add__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 2px 4px;
+}
+
+.quick-add__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.quick-add__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--ion-color-medium);
+}
+
+.quick-add__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quick-add__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 8px 12px;
+  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.12);
+  border-radius: 14px;
+  background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+
+  &:focus-within {
+    border-color: var(--ion-color-primary);
+    background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.06);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.quick-add__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ion-color-medium);
+}
+
+.quick-add__control {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.quick-add__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --background: transparent;
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+  --placeholder-opacity: 1;
+  --highlight-color-focused: transparent;
+  caret-color: var(--ion-color-primary);
+  font-size: 1rem;
+}
+
+.quick-add__input--number {
+  font-size: 1.25rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.quick-add__unit {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+}
+
+// Atajo para cuadrar las kcal con los macros escritos. Solo sale cuando las
+// dos cifras no coinciden (ver showKcalHint), así que nunca es ruido.
+.quick-add__kcal-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.35);
+  border-radius: 12px;
+  background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.08);
+  color: var(--ion-color-primary);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+.quick-add__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+
+  ion-button {
+    margin: 0;
+  }
+}

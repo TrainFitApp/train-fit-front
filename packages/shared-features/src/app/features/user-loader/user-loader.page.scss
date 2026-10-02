@@ -9,6 +9,15 @@
   --loader-accent: #fe9000;
   --loader-ease: cubic-bezier(0.2, 0, 0, 1);
   --loader-ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
+  // Lo mismo que MIN_SPLASH_MS (user-loader.page.ts): el barrido acaba justo
+  // cuando se cumple el mínimo en pantalla, así que el fundido de salida
+  // recoge el logo ya entero.
+  --sweep-duration: 1000ms;
+  // Velocidad constante a propósito. Con una curva ease-out el barrido se
+  // comía dos tercios del logo en el primer cuarto de segundo y luego se
+  // arrastraba: justo la sensación de ir a tirones de la que venimos.
+  --sweep-ease: linear;
 }
 
 .splash-container {
@@ -25,17 +34,19 @@
 // La caja mide lo que mide el dibujo del PNG (866×602 dentro de un lienzo
 // 1920×1080 transparente), así el logo queda centrado de verdad.
 .logo-stage {
-  --fill: 0;
-
   position: relative;
   width: min(56vw, 240px);
   aspect-ratio: 866 / 602;
   // `backwards`, no `both`: un fill hacia delante fijaría opacity/transform
   // y taparía la transición de salida (.is-leaving).
-  animation: stage-in 560ms var(--loader-ease) backwards;
+  animation: stage-in 320ms var(--loader-ease) backwards;
+  // 240 ms, lo mismo que EXIT_ANIMATION_MS en el TS: la navegación sale justo
+  // cuando acaba el fundido, sin espera de más. Es también lo que tarda el
+  // barrido en cerrar el 100 %, así que el logo acaba de colorearse mientras
+  // se funde en vez de cortarse a medias.
   transition:
-    opacity 400ms var(--loader-ease-exit),
-    transform 400ms var(--loader-ease-exit);
+    opacity 240ms var(--loader-ease-exit),
+    transform 240ms var(--loader-ease-exit);
 }
 
 .logo-layer {
@@ -56,14 +67,66 @@
   animation: ghost-breathe 2.4s ease-in-out infinite;
 }
 
-// Lo cargado: borde diagonal con la inclinación de los trazos del logo
-// (~18 % del ancho). Con --fill 0 el borde queda a la izquierda del dibujo;
-// con 100, a la derecha.
-.logo-fill {
-  --edge: calc(30% + var(--fill) * 0.55%);
+// Lo cargado: el logo a color, revelado por una máscara en diagonal con la
+// inclinación de sus propios trazos.
+//
+// Cómo funciona. .logo-sweep es una caja de 3 anchos de logo con una máscara
+// opaca por la izquierda que se desvanece hacia la derecha; se desplaza con
+// `transform` de izquierda a derecha, descubriendo la marca a su paso.
+// .logo-sweep-frame hace el movimiento contrario exacto (mismo recorrido,
+// misma curva), así que el logo no se mueve ni un píxel: lo único que viaja
+// es la máscara. Dentro de ese marco el <img> conserva sus porcentajes de
+// .logo-layer, porque el marco mide justo lo que el dibujo.
+//
+// Todo son keyframes de `transform`: lo lleva el compositor, se ve aunque el
+// hilo principal esté ocupado con el arranque y no depende de ningún
+// requestAnimationFrame ni de que una petición responda. Antes lo movía el TS
+// frame a frame, y cualquier cosa que lo interrumpiera dejaba el logo gris y
+// quieto.
+//
+// El borde está difuminado a propósito. Con un `clip-path` el corte era una
+// guillotina recta que partía las letras por la mitad: con el barrido a
+// medias se leía como un logo roto a trozos, no como algo cargando.
+.logo-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -200%;
+  width: 300%;
+  -webkit-mask-image: linear-gradient(120deg, #000 0 70%, transparent 80%);
+  mask-image: linear-gradient(120deg, #000 0 70%, transparent 80%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: sweep var(--sweep-duration) var(--sweep-ease) forwards;
+}
 
-  clip-path: polygon(0 0, var(--edge) 0, calc(var(--edge) - 18%) 100%, 0 100%);
-  transition: clip-path 520ms var(--loader-ease);
+.logo-sweep-frame {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 66.6667%;
+  width: 33.3333%;
+  animation: sweep-counter var(--sweep-duration) var(--sweep-ease) forwards;
+}
+
+// Recorridos espejo: +1,3 anchos de logo la máscara, -1,3 el marco.
+// (13,34 % de 3 anchos = 40 % de 1; 30 % de 3 = 90 % de 1.)
+@keyframes sweep {
+  from {
+    transform: translateX(-26.67%);
+  }
+  to {
+    transform: translateX(35%);
+  }
+}
+
+@keyframes sweep-counter {
+  from {
+    transform: translateX(80%);
+  }
+  to {
+    transform: translateX(-105%);
+  }
 }
 
 // Barra fina bajo el logo, del mismo ancho y al mismo ritmo que el relleno.
@@ -77,16 +140,24 @@
   border-radius: 2px;
   background: var(--loader-track);
   overflow: hidden;
-  animation: bar-in 320ms 160ms var(--loader-ease) backwards;
+  animation: bar-in 240ms 100ms var(--loader-ease) backwards;
 }
 
 .progress-fill {
   height: 100%;
   border-radius: inherit;
   background: var(--loader-accent);
-  transform: scaleX(calc(var(--fill) / 100));
   transform-origin: left center;
-  transition: transform 520ms var(--loader-ease);
+  animation: bar-fill var(--sweep-duration) var(--sweep-ease) forwards;
+}
+
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 .loader-status {
@@ -103,10 +174,17 @@
   animation: status-in 320ms var(--loader-ease) both;
 }
 
-// Error final: el fantasma deja de respirar (ya no se está cargando nada).
+// Error final: nada sigue cargando, así que el fantasma deja de respirar y el
+// barrido se queda congelado donde llegó.
 .is-failed .logo-ghost {
   animation: none;
   opacity: 0.2;
+}
+
+.is-failed .logo-sweep,
+.is-failed .logo-sweep-frame,
+.is-failed .progress-fill {
+  animation-play-state: paused;
 }
 
 // Salida hacia la app: crece un poco mientras se desvanece.
@@ -167,11 +245,6 @@
 
   .logo-ghost {
     animation: none;
-  }
-
-  .logo-fill,
-  .progress-fill {
-    transition-duration: 0ms;
   }
 }
 

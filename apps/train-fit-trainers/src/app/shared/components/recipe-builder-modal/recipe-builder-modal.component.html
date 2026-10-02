@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Nueva receta</h1>
+        <h1 class="tf-page-header__title">{{ 'SHARED_COMPONENTS.NUEVA_RECETA' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -16,7 +16,7 @@
 
 <ion-content class="builder-modal-content" [appSubmitOnEnter]="saveButton">
   <p class="panel-hint">
-    Crea una receta real a partir de 2 o más productos: quedará en tu biblioteca, lista para pautar en cualquier plantilla o cliente.
+    {{ 'SHARED_COMPONENTS.CREA_UNA_RECETA_REAL_PARTIR' | translate }}
   </p>
 
   <div class="input-wrapper">
@@ -24,7 +24,7 @@
     <input
       type="text"
       class="input-field"
-      placeholder="Nombre de la receta"
+      [placeholder]="'SHARED_COMPONENTS.NOMBRE_DE_LA_RECETA' | translate"
       [(ngModel)]="name"
     />
   </div>
@@ -33,7 +33,7 @@
        (description-editor-wrapper: cabecera tipo acordeón + pasos debajo). -->
   <div class="description-editor-wrapper">
     <button type="button" class="description-trigger" (click)="toggleInstructions()">
-      <span class="trigger-title">Preparación</span>
+      <span class="trigger-title">{{ 'SHARED_COMPONENTS.PREPARACION' | translate }}</span>
       <div class="trigger-right">
         <span class="step-counter" *ngIf="instructions.length > 0">
           {{ instructions.length }}/{{ maxInstructionSteps }}
@@ -50,14 +50,14 @@
             <textarea
               class="description-step-input"
               rows="1"
-              placeholder="Ej. Corta la zanahoria y ponla a hervir..."
+              [placeholder]="'SHARED_COMPONENTS.EJ_CORTA_LA_ZANAHORIA_PONLA' | translate"
               [value]="step"
               (input)="onInstructionChange(i, $any($event.target).value)"
             ></textarea>
             <button
               type="button"
               class="remove-step-btn-inline"
-              aria-label="Quitar paso"
+              [attr.aria-label]="'SHARED_COMPONENTS.QUITAR_PASO' | translate"
               *ngIf="instructions.length > 1"
               (click)="removeInstructionStep(i)"
             >
@@ -73,10 +73,10 @@
           (click)="addInstructionStep()"
         >
           <ion-icon name="add-outline"></ion-icon>
-          <span>Añadir paso</span>
+          <span>{{ 'SHARED_COMPONENTS.ANADIR_PASO' | translate }}</span>
         </button>
         <span class="steps-limit-hint" *ngIf="instructions.length >= maxInstructionSteps">
-          Máximo {{ maxInstructionSteps }} pasos
+          {{ 'SHARED_COMPONENTS.MAXIMO' | translate }} {{ maxInstructionSteps }} {{ 'SHARED_COMPONENTS.PASOS' | translate }}
         </span>
       </div>
     </div>
@@ -89,19 +89,19 @@
         <button
           type="button"
           class="picked-food-name picked-food-name-btn"
-          aria-label="Ver detalle del ingrediente"
-          title="Ver detalle"
+          [attr.aria-label]="'SHARED_COMPONENTS.VER_DETALLE_DEL_INGREDIENTE' | translate"
+          [title]="'SHARED_COMPONENTS.VER_DETALLE' | translate"
           (click)="previewIngredient(i)"
         >
           <ion-icon name="nutrition-outline"></ion-icon>
           {{ ingredient.product.name }}
         </button>
-        <button type="button" class="remove-btn" aria-label="Quitar ingrediente" (click)="removeIngredient(i)">
+        <button type="button" class="remove-btn" [attr.aria-label]="'SHARED_COMPONENTS.QUITAR_INGREDIENTE' | translate" (click)="removeIngredient(i)">
           <ion-icon name="trash-outline"></ion-icon>
         </button>
       </div>
       <div class="picked-food-qty-row">
-        <ion-label class="qty-label">Cantidad</ion-label>
+        <ion-label class="qty-label">{{ 'SHARED_COMPONENTS.CANTIDAD' | translate }}</ion-label>
         <div class="qty-input-wrapper">
           <input
             type="number"
@@ -136,17 +136,17 @@
 
   <button type="button" class="add-ingredient-btn" (click)="openIngredientPicker()" [disabled]="isOpeningPicker">
     <ion-icon name="add-outline"></ion-icon>
-    Añadir ingrediente
+    {{ 'SHARED_COMPONENTS.ANADIR_INGREDIENTE' | translate }}
   </button>
 
   <p class="ingredients-hint" *ngIf="ingredients.length > 0 && ingredients.length < 2">
-    Añade al menos 2 ingredientes para poder guardar.
+    {{ 'SHARED_COMPONENTS.ANADE_AL_MENOS_2_INGREDIENTES' | translate }}
   </p>
 </ion-content>
 
 <ion-footer class="builder-modal-footer">
   <button #saveButton type="button" class="submit-button" (click)="save()" [disabled]="!canSave || isSaving">
-    <span *ngIf="!isSaving">Guardar receta</span>
+    <span *ngIf="!isSaving">{{ 'SHARED_COMPONENTS.GUARDAR_RECETA' | translate }}</span>
     <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
   </button>
 </ion-footer>

@@ -1,18 +1,18 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="page-toolbar">
     <ion-buttons slot="start">
-      <button type="button" class="back-btn" (click)="close()" aria-label="Volver">
+      <button type="button" class="back-btn" (click)="close()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
         <ion-icon name="chevron-back-outline"></ion-icon>
       </button>
     </ion-buttons>
-    <ion-title>Lista de la compra</ion-title>
+    <ion-title>{{ 'COACH.SHOPPING_LIST' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="shopping-content">
   <!-- El selector va fuera de los estados de carga: cambiar de rango no debe
        obligar a esperar a que termine el anterior para poder volver atrás. -->
-  <div class="range-picker" role="group" aria-label="Periodo de la compra">
+  <div class="range-picker" role="group" [attr.aria-label]="'SHOPPING_LIST.RANGE_ARIA' | translate">
     <button
       type="button"
       class="range-option"
@@ -21,7 +21,7 @@
       [attr.aria-pressed]="selectedDays === range.days"
       (click)="selectRange(range.days)"
     >
-      {{ range.label }}
+      {{ range.label | translate }}
     </button>
   </div>
 
@@ -31,31 +31,29 @@
 
   <div class="page-state" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <p>No se pudo cargar tu lista.</p>
-    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'SHOPPING_LIST.LOAD_ERROR' | translate }}</p>
+    <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <div class="page-state" *ngIf="isEmpty">
     <ion-icon name="cart-outline" aria-hidden="true"></ion-icon>
     <p>
-      No hay nada pautado en este periodo. Cuando tu profesional te deje comidas planificadas,
-      aquí saldrá lo que tienes que comprar.
+      {{ 'SHOPPING_LIST.EMPTY' | translate }}
     </p>
   </div>
 
   <ng-container *ngIf="state === 'loaded' && !isEmpty">
     <p class="page-hint">
-      Para {{ list?.daysWithPlan }} día{{ list?.daysWithPlan === 1 ? '' : 's' }} con plan: lo de
-      cada día multiplicado por los días.
-      <ng-container *ngIf="hasChoices">Reparte los días entre tus menús y elige alternativa.</ng-container>
+      {{ (list?.daysWithPlan === 1 ? 'SHOPPING_LIST.HINT_ONE' : 'SHOPPING_LIST.HINT_MANY') | translate: { count: list?.daysWithPlan } }}
+      <ng-container *ngIf="hasChoices">{{ 'SHOPPING_LIST.CHOICES_HINT' | translate }}</ng-container>
     </p>
 
     <!-- Menús y alternativas: solo si hay algo que elegir. Un menú a la vez
          (desplegable) para no apilar una tarjeta por menú. -->
-    <section class="choices" *ngIf="hasChoices" aria-label="Menús y alternativas">
+    <section class="choices" *ngIf="hasChoices" [attr.aria-label]="'SHOPPING_LIST.CHOICES_ARIA' | translate">
       <div class="segment" *ngFor="let segment of segments; trackBy: trackByPlan">
         <p class="segment-label" *ngIf="segments.length > 1">
-          {{ segmentLabel(segment) }} · {{ segment.days }} día{{ segment.days === 1 ? '' : 's' }}
+          {{ segmentLabel(segment) }} · {{ (segment.days === 1 ? 'SHOPPING_LIST.DAYS_ONE' : 'SHOPPING_LIST.DAYS_MANY') | translate: { count: segment.days } }}
         </p>
 
         <ng-container *ngIf="activeMenu(segment) as menu">
@@ -64,9 +62,9 @@
               class="choice-select"
               interface="action-sheet"
               mode="ios"
-              cancelText="Cancelar"
+              [cancelText]="'COMMON.CANCEL' | translate"
               toggleIcon="chevron-down-outline"
-              aria-label="Menú"
+              [attr.aria-label]="'SHOPPING_LIST.MENU_ARIA' | translate"
               [value]="menu.name"
               (ionChange)="setActiveMenu(segment, $event.detail.value)"
             >
@@ -81,7 +79,7 @@
                 class="stepper-btn"
                 [disabled]="menuDays(segment, menu) <= 0"
                 (click)="changeMenuDays(segment, menu, -1)"
-                [attr.aria-label]="'Un día menos de ' + menu.name"
+                [attr.aria-label]="'SHOPPING_LIST.ONE_DAY_LESS' | translate: { name: menu.name }"
               >
                 <ion-icon name="remove-outline" aria-hidden="true"></ion-icon>
               </button>
@@ -91,7 +89,7 @@
                 class="stepper-btn"
                 [disabled]="unassigned(segment) <= 0"
                 (click)="changeMenuDays(segment, menu, 1)"
-                [attr.aria-label]="'Un día más de ' + menu.name"
+                [attr.aria-label]="'SHOPPING_LIST.ONE_DAY_MORE' | translate: { name: menu.name }"
               >
                 <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
               </button>
@@ -103,19 +101,19 @@
           <p class="menu-summary" *ngIf="segment.menus.length > 1">
             {{ menuSummary(segment) }}
             <span class="segment-warning" *ngIf="unassigned(segment) > 0">
-              · {{ unassigned(segment) }} sin menú
+              · {{ 'SHOPPING_LIST.WITHOUT_MENU' | translate: { count: unassigned(segment) } }}
             </span>
           </p>
 
           <div class="choice-row" *ngFor="let meal of mealsWithChoice(menu)">
-            <span class="meal-slot">{{ meal.slot }}</span>
+            <span class="meal-slot">{{ meal.slot | translateDb }}</span>
             <ion-select
               class="choice-select"
               interface="action-sheet"
               mode="ios"
-              cancelText="Cancelar"
+              [cancelText]="'COMMON.CANCEL' | translate"
               toggleIcon="chevron-down-outline"
-              [attr.aria-label]="'Alternativa de ' + meal.slot"
+              [attr.aria-label]="'SHOPPING_LIST.ALTERNATIVE_OF' | translate: { slot: (meal.slot | translateDb) }"
               [value]="selectedAlternative(segment, menu, meal)"
               (ionChange)="selectAlternative(segment, menu, meal, $event.detail.value)"
             >
@@ -129,10 +127,10 @@
     </section>
 
     <div class="list-progress" *ngIf="checkedCount">
-      {{ checkedCount }} de {{ items.length }} en el carro
+      {{ 'SHOPPING_LIST.IN_CART' | translate: { count: checkedCount, total: items.length } }}
     </div>
 
-    <p class="page-hint" *ngIf="!items.length">Con este reparto no hay nada que comprar.</p>
+    <p class="page-hint" *ngIf="!items.length">{{ 'SHOPPING_LIST.NOTHING_TO_BUY' | translate }}</p>
 
     <button
       type="button"

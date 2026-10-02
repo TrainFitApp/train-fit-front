@@ -1,13 +1,11 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Plantillas de entrenamientos"></app-page-header>
+  <app-page-header [title]="'ROUTINES.PLANTILLAS_DE_ENTRENAMIENTOS' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="routines-content" appScrollMemory="routines">
   <div class="templates-page">
     <p class="templates-hint">
-      Crea una plantilla con sus bloques, ejercicios y series prescritas, y aplícala a
-      cualquier cliente desde el Planificador en lugar de construir cada entrenamiento
-      desde cero.
+      {{ 'ROUTINES.CREA_UNA_PLANTILLA_CON_SUS' | translate }}
     </p>
 
     <div class="create-bar" appSubmitOnEnter="createRoutine">
@@ -16,7 +14,7 @@
         <input
           type="text"
           class="input-field"
-          placeholder="Plantilla día de empuje"
+          [placeholder]="'ROUTINES.PLANTILLA_DIA_DE_EMPUJE' | translate"
           [(ngModel)]="newName"
         />
       </div>
@@ -27,7 +25,7 @@
         (click)="createAndEdit()"
         data-enter-submit-action="createRoutine"
       >
-        <span *ngIf="!isCreating">Crear plantilla</span>
+        <span *ngIf="!isCreating">{{ 'ROUTINES.CREAR_PLANTILLA' | translate }}</span>
         <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
       </button>
     </div>
@@ -43,8 +41,8 @@
          está justo encima. -->
     <div class="state-message" *ngIf="!loading && templates.length === 0">
       <ion-icon name="albums-outline"></ion-icon>
-      <h2>Todavía no tienes plantillas</h2>
-      <p>Crea la primera con el formulario de arriba para reutilizarla con cualquier cliente.</p>
+      <h2>{{ 'ROUTINES.TODAVIA_NO_TIENES_PLANTILLAS' | translate }}</h2>
+      <p>{{ 'ROUTINES.CREA_LA_PRIMERA_CON_EL' | translate }}</p>
     </div>
 
     <div class="templates-grid" *ngIf="!loading && templates.length > 0">
@@ -67,16 +65,16 @@
         </div>
 
         <div class="template-meta">
-          <span>{{ blockCount(template) }} bloques</span>
-          <span>{{ exerciseCount(template) }} ejercicios</span>
+          <span>{{ blockCount(template) }} {{ 'ROUTINES.BLOQUES' | translate }}</span>
+          <span>{{ exerciseCount(template) }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
         </div>
 
         <div class="template-card-actions">
           <button type="button" class="secondary-button" [disabled]="isDuplicating" (click)="duplicateTemplate(template, $event)">
-            Duplicar
+            {{ 'TRAINER_COMMON.DUPLICATE' | translate }}
           </button>
           <button type="button" class="danger-button" (click)="confirmDelete(template, $event)">
-            Borrar
+            {{ 'TRAINER_COMMON.ERASE' | translate }}
           </button>
         </div>
       </div>

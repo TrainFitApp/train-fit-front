@@ -158,6 +158,8 @@ export const TABLE_NAMES_ES_EN: Record<string, string> = {
   "Entrenamiento predeterminado": "Default workout",
   "Split Predeterminado": "Default Split",
   "Entrenamiento": "Workout",
+  "Rutina predeterminada": "Default routine",
+  "Ejercicio eliminado del catálogo": "Exercise removed from the catalogue",
   // Common workout day names
   "Día 1": "Day 1",
   "Día 2": "Day 2",
@@ -251,6 +253,36 @@ export const CONCEPT_DESCS_ES_EN: Record<string, string> = {
   "Barra anatómicamente acodada (angulosa) para facilitar un agarre cómodo con las manos.": "Anatomically angled bar to facilitate a comfortable hand grip.",
 };
 
+// Closed catalogs of pain zones (pain.ts) and joints (exercise-score.ts):
+// their Spanish names are what the backend stores.
+export const BODY_ZONES_ES_EN: Record<string, string> = {
+  "Hombro izq.": "Left shoulder",
+  "Hombro der.": "Right shoulder",
+  "Codo izq.": "Left elbow",
+  "Codo der.": "Right elbow",
+  "Muñeca izq.": "Left wrist",
+  "Muñeca der.": "Right wrist",
+  "Cadera izq.": "Left hip",
+  "Cadera der.": "Right hip",
+  "Rodilla izq.": "Left knee",
+  "Rodilla der.": "Right knee",
+  "Tobillo izq.": "Left ankle",
+  "Tobillo der.": "Right ankle",
+  "Codo": "Elbow",
+  "Muñeca": "Wrist",
+  "Columna cervical": "Cervical spine",
+  "Columna lumbar": "Lumbar spine",
+  "Cadera": "Hip",
+  "Rodilla": "Knee",
+  "Tobillo": "Ankle",
+  // Escala fija de frecuencia de los check-ins (FREQUENCY_OPTIONS).
+  "Nunca": "Never",
+  "Rara vez": "Rarely",
+  "A veces": "Sometimes",
+  "A menudo": "Often",
+  "Siempre": "Always",
+};
+
 /**
  * Master lookup that merges all finite-value maps.
  * Pipe will check this map first, then fall through to original value.
@@ -262,4 +294,5 @@ export const DB_ES_EN_MAP: Record<string, string> = {
   ...TABLE_NAMES_ES_EN,
   ...MEAL_NAMES_ES_EN,
   ...CONCEPT_DESCS_ES_EN,
+  ...BODY_ZONES_ES_EN,
 };

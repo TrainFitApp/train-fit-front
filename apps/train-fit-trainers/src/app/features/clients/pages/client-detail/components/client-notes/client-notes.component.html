@@ -1,8 +1,8 @@
 <div class="client-notes-panel">
   <div class="notes-header">
     <div class="notes-heading">
-      <h3 class="notes-title">Notas del cliente</h3>
-      <span class="notes-unread" *ngIf="unread.total">{{ unread.total }} sin ver</span>
+      <h3 class="notes-title">{{ 'CLIENTS.NOTAS_DEL_CLIENTE' | translate }}</h3>
+      <span class="notes-unread" *ngIf="unread.total">{{ unread.total }} {{ 'CLIENTS.SIN_VER' | translate }}</span>
     </div>
     <button
       type="button"
@@ -11,7 +11,7 @@
       [disabled]="markingAll"
       (click)="markAllSeen()"
     >
-      Marcar todas como vistas
+      {{ 'CLIENTS.MARCAR_TODAS_COMO_VISTAS' | translate }}
     </button>
   </div>
 
@@ -20,11 +20,11 @@
       <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
       <input
         type="search"
-        placeholder="Buscar en las notas"
+        [placeholder]="'CLIENTS.BUSCAR_EN_LAS_NOTAS' | translate"
         maxlength="100"
         [value]="query"
         (input)="onQueryInput($any($event.target).value)"
-        aria-label="Buscar en las notas"
+        [attr.aria-label]="'CLIENTS.BUSCAR_EN_LAS_NOTAS' | translate"
       />
     </label>
 
@@ -32,30 +32,30 @@
          todas. Dentro de cada par solo uno a la vez, porque los dos juntos
          equivalen a no filtrar. -->
     <div class="notes-filters">
-      <div class="notes-filter-group" role="group" aria-label="Filtrar por ámbito" *ngIf="scopes.length > 1">
+      <div class="notes-filter-group" role="group" [attr.aria-label]="'CLIENTS.FILTRAR_POR_AMBITO' | translate" *ngIf="scopes.length > 1">
         <button type="button" class="notes-chip" [class.active]="domain === 'training'" [attr.aria-pressed]="domain === 'training'" (click)="toggleDomain('training')">
           <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
-          Entrenamiento
+          {{ 'TRAINER_COMMON.TRAINING' | translate }}
         </button>
         <button type="button" class="notes-chip" [class.active]="domain === 'nutrition'" [attr.aria-pressed]="domain === 'nutrition'" (click)="toggleDomain('nutrition')">
           <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
-          Nutrición
+          {{ 'TRAINER_COMMON.NUTRITION' | translate }}
         </button>
       </div>
 
       <span class="notes-filter-divider" aria-hidden="true" *ngIf="scopes.length > 1"></span>
 
-      <div class="notes-filter-group" role="group" aria-label="Filtrar por estado">
+      <div class="notes-filter-group" role="group" [attr.aria-label]="'CLIENTS.FILTRAR_POR_ESTADO' | translate">
         <button type="button" class="notes-chip" [class.active]="seen === false" [attr.aria-pressed]="seen === false" (click)="toggleSeenFilter(false)">
-          No vistas<span class="notes-chip-count" *ngIf="unreadInFilter">{{ unreadInFilter }}</span>
+          {{ 'CLIENTS.NO_VISTAS' | translate }}<span class="notes-chip-count" *ngIf="unreadInFilter">{{ unreadInFilter }}</span>
         </button>
         <button type="button" class="notes-chip" [class.active]="seen === true" [attr.aria-pressed]="seen === true" (click)="toggleSeenFilter(true)">
-          Vistas
+          {{ 'CLIENTS.VISTAS' | translate }}
         </button>
       </div>
 
       <button type="button" class="notes-clear" *ngIf="domain !== null || seen !== null" (click)="clearFilters()">
-        Limpiar
+        {{ 'CLIENTS.LIMPIAR' | translate }}
       </button>
     </div>
   </div>
@@ -65,23 +65,22 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar las notas del cliente.</p>
-    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'CLIENTS.NO_SE_PUDIERON_CARGAR_LAS_2' | translate }}</p>
+    <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <p class="panel-empty" *ngIf="!notes.length && !hasFilters">
-      Este cliente todavía no ha escrito ninguna nota. Aquí saldrán las que deje en sus sesiones, ejercicios,
-      registro de dolor y diario de comidas.
+      {{ 'CLIENTS.ESTE_CLIENTE_TODAVIA_NO_HA' | translate }}
     </p>
     <!-- Con "No vistas" (el filtro por defecto si hay pendientes) una lista
          vacía es buena noticia, no un filtro fallido: se dice y se ofrece el resto. -->
     <div class="notes-caught-up" *ngIf="isCaughtUp">
-      <p class="panel-empty">No quedan notas sin ver.</p>
-      <button type="button" class="retry-button" (click)="toggleSeenFilter(false)">Ver todas</button>
+      <p class="panel-empty">{{ 'CLIENTS.NO_QUEDAN_NOTAS_SIN_VER' | translate }}</p>
+      <button type="button" class="retry-button" (click)="toggleSeenFilter(false)">{{ 'TRAINER_COMMON.SEE_ALL_F' | translate }}</button>
     </div>
     <p class="panel-empty" *ngIf="!notes.length && hasFilters && !isCaughtUp">
-      Ninguna nota coincide con estos filtros.
+      {{ 'CLIENTS.NINGUNA_NOTA_COINCIDE_CON_ESTOS' | translate }}
     </p>
 
     <ul class="notes-list" *ngIf="notes.length">
@@ -89,9 +88,9 @@
         <button type="button" class="note-open" (click)="open(note)">
           <span class="note-meta">
             <ion-icon [name]="iconFor(note)" aria-hidden="true"></ion-icon>
-            <span class="note-domain">{{ note.domain === 'training' ? 'Entrenamiento' : 'Nutrición' }}</span>
+            <span class="note-domain">{{ note.domain === 'training' ? ('TRAINER_COMMON.TRAINING' | translate) : ('TRAINER_COMMON.NUTRITION' | translate) }}</span>
             <time class="note-date" *ngIf="dateLabel(note) as label" [attr.datetime]="note.date">· {{ label }}</time>
-            <span class="note-new" *ngIf="!note.seen">Nueva</span>
+            <span class="note-new" *ngIf="!note.seen">{{ 'CLIENTS.NUEVA' | translate }}</span>
           </span>
           <span class="note-location">{{ locationOf(note) }}</span>
           <p class="note-text">{{ note.text }}</p>
@@ -101,18 +100,18 @@
           class="note-seen-toggle"
           [class.note-seen-toggle--on]="note.seen"
           [attr.aria-pressed]="note.seen"
-          [attr.aria-label]="note.seen ? 'Marcar como no vista' : 'Marcar como vista'"
+          [attr.aria-label]="note.seen ? ('CLIENTS.MARCAR_COMO_NO_VISTA' | translate) : ('CLIENTS.MARCAR_COMO_VISTA' | translate)"
           (click)="toggleSeen(note, $event)"
         >
           <ion-icon [name]="note.seen ? 'checkmark-done-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
-          <span>{{ note.seen ? 'Vista' : 'Marcar vista' }}</span>
+          <span>{{ note.seen ? ('CLIENTS.VISTA' | translate) : ('CLIENTS.MARCAR_VISTA' | translate) }}</span>
         </button>
       </li>
     </ul>
 
     <div class="notes-more" *ngIf="hasMore">
       <button type="button" class="retry-button" [disabled]="loadingMore" (click)="loadMore()">
-        {{ loadingMore ? 'Cargando…' : 'Cargar más' }}
+        {{ loadingMore ? ('CLIENTS.CARGANDO' | translate) : ('CLIENTS.CARGAR_MAS' | translate) }}
       </button>
     </div>
   </ng-container>

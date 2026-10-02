@@ -2,6 +2,7 @@ import { Split } from 'src/app/core/models/split';
 import { normalizeRirValue } from 'src/app/core/models/rir';
 import { countDoneSets, sumSets } from './planner-metrics';
 import { CompareExerciseRow, PrescriptionSummary } from './planner-compare';
+import { uiLocale, uiText } from 'src/app/core/i18n/localized-catalog';
 
 export type ComparisonMode = 'plan' | 'done';
 export type MetricKey = 'weight' | 'reps' | 'sets' | 'rir';
@@ -15,11 +16,11 @@ export interface MetricComparison {
   direction: 'up' | 'down' | 'flat' | 'unknown';
 }
 
-const numberFormat = new Intl.NumberFormat('es-ES', {
+const numberFormat = () => new Intl.NumberFormat(uiLocale(), {
   maximumFractionDigits: 1,
 });
 export const formatMetric = (value: number): string =>
-  numberFormat.format(value);
+  numberFormat().format(value);
 
 export function metricComparison(
   key: string,
@@ -38,7 +39,7 @@ export function metricComparison(
     label,
     a: a === null ? '—' : `${formatMetric(a)}${unit}`,
     b: b === null ? '—' : `${formatMetric(b)}${unit}`,
-    delta: delta === null ? 'Sin dato comparable' : `${signed(delta)}${unit}`,
+    delta: delta === null ? uiText('PLANNER.SIN_DATO_COMPARABLE') : `${signed(delta)}${unit}`,
     percent:
       percentage && a !== null && a > 0 && delta !== null
         ? `${signed((delta / a) * 100)}%`
@@ -119,11 +120,11 @@ export function overviewMetrics(
         workout.exercises?.some((exercise) => exercise.sets?.length)
     ).length;
   return [
-    metricComparison('sets', 'Series', sumSets(a), sumSets(b)),
+    metricComparison('sets', uiText('TRAINER_COMMON.SETS'), sumSets(a), sumSets(b)),
     metricComparison('rir', 'RIR medio', rirA.mean, rirB.mean, '', false),
     metricComparison(
       'failure',
-      'Series al fallo',
+      uiText('PLANNER.SERIES_AL_FALLO'),
       rirA.failure,
       rirB.failure,
       '',
@@ -131,7 +132,7 @@ export function overviewMetrics(
     ),
     metricComparison(
       'days',
-      'Sesiones con series',
+      uiText('PLANNER.SESIONES_CON_SERIES'),
       days(a),
       days(b),
       '',
@@ -163,7 +164,7 @@ export function exerciseMetrics(row: CompareExerciseRow): MetricComparison[] {
   return (['weight', 'reps', 'sets', 'rir'] as const).map((key) => {
     const result = metricComparison(
       key,
-      { weight: 'Carga', reps: 'Reps', sets: 'Series', rir: 'RIR' }[key],
+      { weight: uiText('PLANNER.CARGA'), reps: uiText('PLANNER.REPS'), sets: uiText('TRAINER_COMMON.SETS'), rir: 'RIR' }[key],
       value(row.a, key),
       value(row.b, key),
       key === 'weight' ? ' kg' : '',
@@ -176,10 +177,10 @@ export function exerciseMetrics(row: CompareExerciseRow): MetricComparison[] {
     if (result.direction === 'unknown') {
       result.delta =
         result.a === result.b && result.a !== '—'
-          ? 'Igual'
+          ? uiText('PLANNER.IGUAL')
           : result.a === '—' || result.b === '—'
           ? '—'
-          : 'Ver series';
+          : uiText('PLANNER.VER_SERIES');
     }
     return result;
   });

@@ -1,11 +1,11 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="page-toolbar">
     <ion-buttons slot="start">
-      <button type="button" class="back-btn" (click)="close()" aria-label="Volver">
+      <button type="button" class="back-btn" (click)="close()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
         <ion-icon name="chevron-back-outline"></ion-icon>
       </button>
     </ion-buttons>
-    <ion-title>Suplementos</ion-title>
+    <ion-title>{{ 'COACH.SUPPLEMENTS' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -17,13 +17,13 @@
 
   <div class="page-state" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <p>No se pudieron cargar tus suplementos.</p>
-    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'SUPPLEMENTS.LOAD_ERROR' | translate }}</p>
+    <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <div class="page-state" *ngIf="isEmpty">
     <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
-    <p>Tu profesional no te ha pautado ningún suplemento.</p>
+    <p>{{ 'SUPPLEMENTS.EMPTY' | translate }}</p>
   </div>
 
   <ng-container *ngIf="state === 'loaded' && groups.length">
@@ -47,13 +47,13 @@
              tarjeta sería ruido. -->
         <p class="supplement-days" *ngIf="weekdaysLabel(supplement) as days">
           <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-          Solo {{ days }}
+          {{ 'SUPPLEMENTS.ONLY_DAYS' | translate: { days: days } }}
         </p>
 
         <p class="supplement-reason" *ngIf="supplement.reason">{{ supplement.reason }}</p>
 
         <div class="supplement-footer">
-          <span class="supplement-trainer">Pautado por {{ supplement.trainerName }}</span>
+          <span class="supplement-trainer">{{ 'SUPPLEMENTS.PRESCRIBED_BY' | translate: { name: supplement.trainerName } }}</span>
           <button
             type="button"
             class="purchase-button"
@@ -61,7 +61,7 @@
             (click)="openPurchase(supplement)"
           >
             <ion-icon name="open-outline" aria-hidden="true"></ion-icon>
-            Dónde comprarlo
+            {{ 'SUPPLEMENTS.WHERE_TO_BUY' | translate }}
           </button>
         </div>
       </article>

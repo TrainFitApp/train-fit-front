@@ -9,6 +9,7 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import {
   CHECKIN_FIELDS_BY_KEY,
@@ -16,6 +17,7 @@ import {
 } from 'src/app/core/constants/checkin-fields';
 import { CustomCheckinQuestion } from 'src/app/features/checkin-templates/models/checkin-template.model';
 import { CheckinResponseEntry } from '../../models/client-detail.model';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 interface SerieOption {
   key: string;
@@ -43,6 +45,8 @@ interface SerieOption {
   styleUrls: ['./checkin-history-chart.component.scss'],
 })
 export class CheckinHistoryChartComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() public responses: CheckinResponseEntry[] = [];
   @Input() public customQuestions: CustomCheckinQuestion[] = [];
 
@@ -124,7 +128,7 @@ export class CheckinHistoryChartComponent implements AfterViewInit, OnChanges, O
         (q) => String(q._id) === key.slice('custom:'.length)
       );
       return {
-        label: pregunta?.label || 'Pregunta propia',
+        label: pregunta?.label || this.translate.instant('CLIENTS.PREGUNTA_PROPIA'),
         unit: pregunta?.unit || '',
         scaleMax: pregunta?.type === 'scale_1_5' ? 5 : null,
       };
@@ -167,7 +171,7 @@ export class CheckinHistoryChartComponent implements AfterViewInit, OnChanges, O
       type: 'line',
       data: {
         labels: serie.puntos.map((p) =>
-          new Date(p.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+          new Date(p.fecha).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short' })
         ),
         datasets: [
           {

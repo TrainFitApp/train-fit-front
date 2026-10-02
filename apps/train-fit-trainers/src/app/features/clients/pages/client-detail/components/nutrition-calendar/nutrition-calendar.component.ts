@@ -1,10 +1,12 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import { NutritionComplianceDay } from '../../models/client-detail.model';
 import { PlanAssignmentApiService } from '../../../../../../shared/services/plan-assignment-api.service';
 import { PlanAssignment } from '../../../../../../shared/models/plan-assignment.model';
 import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
+import { uiLocale, localizeList } from 'src/app/core/i18n/localized-catalog';
 
 interface CalendarPhaseInfo {
   // Identidad de la FASE (phaseId, o el _id si no lo tiene), no del documento:
@@ -48,10 +50,12 @@ interface CalendarCell {
 }
 
 const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+localizeList(WEEKDAY_LABELS, 'WEIGHT_INFO.DAYS_INITIALS');
 const MONTH_LABELS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
+localizeList(MONTH_LABELS, 'WEIGHT_INFO.MONTHS');
 
 // Paleta y algoritmo de asignación — ver phase-color.util.ts (historial
 // completo de cómo se eligieron estos 6 tonos ahí, junto con el porqué de
@@ -107,6 +111,8 @@ function buildMonthGrid(year: number, month: number): CalendarCell[] {
   styleUrls: ['./nutrition-calendar.component.scss'],
 })
 export class NutritionCalendarComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   @Input() clientId = '';
   @Input() selectedDate = '';
 
@@ -160,14 +166,14 @@ export class NutritionCalendarComponent implements OnChanges {
   @Output() skipDayRequested = new EventEmitter<string>();
 
   public get selectedDateLabel(): string {
-    if (!this.selectedDate) return 'este día';
+    if (!this.selectedDate) return this.translate.instant('CLIENTS.ESTE_DIA');
     const fecha = new Date(this.selectedDate + 'T00:00:00Z');
-    const etiqueta = fecha.toLocaleDateString('es-ES', {
+    const etiqueta = fecha.toLocaleDateString(uiLocale(), {
       day: 'numeric',
       month: 'short',
       timeZone: 'UTC',
     });
-    return this.selectedDate === todayIso() ? `hoy (${etiqueta})` : `el ${etiqueta}`;
+    return this.selectedDate === todayIso() ? this.translate.instant('CLIENTS.HOY_2', { etiqueta }) : `el ${etiqueta}`;
   }
   // F20-quinquies — click día inicio, click día fin: alimenta el rango de
   // <app-nutrition-tracking-chart> en el padre. Modo aparte del click de
@@ -329,8 +335,8 @@ export class NutritionCalendarComponent implements OnChanges {
   }
 
   public get rangeToggleLabel(): string {
-    if (!this.isRangeMode) return 'Seleccionar rango';
-    return this.awaitingRangeEnd ? 'Elige el día final' : 'Elige el día inicial';
+    if (!this.isRangeMode) return this.translate.instant('CLIENTS.SELECCIONAR_RANGO');
+    return this.awaitingRangeEnd ? this.translate.instant('CLIENTS.ELIGE_EL_DIA_FINAL') : this.translate.instant('CLIENTS.ELIGE_EL_DIA_INICIAL');
   }
 
   public toggleRangeMode(): void {
@@ -378,8 +384,8 @@ export class NutritionCalendarComponent implements OnChanges {
       const choque = this.findBlockingPhaseInRange(start, end);
       if (choque) {
         this.rangeError =
-          `Ese tramo cae dentro de «${choque.planName || 'otra fase'}» (${choque.startDate} → ` +
-          `${this.phaseEndLabel(choque)}). Empiézala hoy para cortarla, o elige fechas posteriores.`;
+          this.translate.instant('CLIENTS.ESE_TRAMO_CAE_DENTRO_DE', { p0: choque.planName || 'otra fase', startDate: choque.startDate }) + ' ' +
+          this.translate.instant('CLIENTS.EMPIEZALA_HOY_PARA_CORTARLA_ELIGE', { p0: this.phaseEndLabel(choque) });
         this.rangeStart = null;
         this.rangeEnd = null;
         this.hoverDate = null;
@@ -428,8 +434,8 @@ export class NutritionCalendarComponent implements OnChanges {
     const nombre = cell.phase.planName || 'otra fase';
     this.occupiedTooltip = {
       text: cell.phase.blocksNewPhase
-        ? `Ocupado por ${nombre}. No puedes empezar una fase nueva aquí.`
-        : `${nombre} sigue vigente. Si empiezas aquí, se corta el día anterior.`,
+        ? this.translate.instant('CLIENTS.OCUPADO_POR_NO_PUEDES_EMPEZAR', { nombre })
+        : this.translate.instant('CLIENTS.SIGUE_VIGENTE_SI_EMPIEZAS_AQUI', { nombre }),
       left: this.tooltipLeft(celda),
       // offsetTop va contra la propia rejilla (position: relative en el
       // scss), que es donde se pinta el globo — así no hace falta medir la
@@ -608,7 +614,7 @@ export class NutritionCalendarComponent implements OnChanges {
       legend.push({
         id: cell.phase.key,
         color: cell.phase.color,
-        label: cell.phase.planName || 'Plan aplicado',
+        label: cell.phase.planName || this.translate.instant('CLIENT_DETAIL.PLAN_APPLIED'),
       });
     }
     return legend;

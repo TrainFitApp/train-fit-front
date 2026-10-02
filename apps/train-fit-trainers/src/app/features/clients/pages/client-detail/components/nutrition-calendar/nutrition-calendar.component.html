@@ -3,7 +3,7 @@
     <button
       type="button"
       class="nutrition-calendar__nav-btn"
-      aria-label="Mes anterior"
+      [attr.aria-label]="'CLIENTS.MES_ANTERIOR' | translate"
       (click)="previousMonth()"
     >
       <ion-icon name="chevron-back-outline"></ion-icon>
@@ -12,7 +12,7 @@
     <button
       type="button"
       class="nutrition-calendar__nav-btn"
-      aria-label="Mes siguiente"
+      [attr.aria-label]="'CLIENTS.MES_SIGUIENTE' | translate"
       (click)="nextMonth()"
     >
       <ion-icon name="chevron-forward-outline"></ion-icon>
@@ -35,7 +35,7 @@
         type="button"
         class="range-clear-btn"
         *ngIf="rangeStart && !isRangeMode"
-        aria-label="Quitar rango seleccionado"
+        [attr.aria-label]="'CLIENTS.QUITAR_RANGO_SELECCIONADO' | translate"
         (click)="clearRange()"
       >
         <ion-icon name="close-circle-outline"></ion-icon>
@@ -90,7 +90,7 @@
       <span
         class="nutrition-calendar__week-badge"
         *ngIf="cell.phase?.weekLabel && !isPickerMode"
-        [attr.aria-label]="'Semana ' + cell.phase?.weekLabel"
+        [attr.aria-label]="('CLIENTS.SEMANA' | translate) + cell.phase?.weekLabel"
       >{{ cell.phase?.weekLabel }}</span>
       <!-- Suplementación pautada ese día: va por fechas, así que también se
            ve aquí. Solo el icono; qué suplementos son, al pasar por encima. -->
@@ -98,7 +98,7 @@
         class="nutrition-calendar__supplement"
         name="flask-outline"
         *ngIf="cell.supplements.length && !isPickerMode"
-        [attr.aria-label]="'Suplementos: ' + cell.supplements.join(', ')"
+        [attr.aria-label]="('CLIENTS.SUPLEMENTOS' | translate) + cell.supplements.join(', ')"
         (mouseenter)="onSupplementEnter(cell, $event)"
         (mouseleave)="onSupplementLeave()"
       ></ion-icon>
@@ -140,7 +140,7 @@
        dónde estás mirando tú (hoy, seleccionado, rango). Mezclarlas en una
        fila hacía leer el borde naranja del rango como si fuera un dato. -->
   <div class="nutrition-calendar__legend" *ngIf="!isPickerMode">
-    <p class="legend-title">Qué dice del cliente</p>
+    <p class="legend-title">{{ 'CLIENTS.QUE_DICE_DEL_CLIENTE' | translate }}</p>
 
     <!-- Escala, no un cuadradito: el cumplimiento se lee por INTENSIDAD del
          relleno, no por color. Con una muestra única no había forma de
@@ -151,7 +151,7 @@
         <span class="legend-scale__step" style="--step: 0.35"></span>
         <span class="legend-scale__step" style="--step: 0.55"></span>
       </span>
-      Cumplimiento: de nada a todo
+      {{ 'CLIENTS.CUMPLIMIENTO_DE_NADA_TODO' | translate }}
     </span>
 
     <!-- Una entrada por fase que de verdad aparece este mes, con su color
@@ -166,10 +166,10 @@
     </span>
     <span class="legend-item" *ngIf="!visiblePhaseLegend.length">
       <span class="legend-swatch legend-swatch--phase"></span>
-      Fase del plan (un color por fase)
+      {{ 'CLIENTS.FASE_DEL_PLAN_UN_COLOR' | translate }}
     </span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--skipped"></span>Día saltado</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--empty"></span>Sin plan ese día</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--skipped"></span>{{ 'DIETS.DAY_SKIPPED' | translate }}</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--empty"></span>{{ 'CLIENTS.SIN_PLAN_ESE_DIA' | translate }}</span>
   </div>
 
   <!-- Selector de fechas para una fase nueva: lo único que importa aquí es
@@ -179,17 +179,17 @@
   <div class="nutrition-calendar__legend" *ngIf="isPickerMode">
     <span class="legend-item">
       <span class="legend-swatch legend-swatch--occupied"></span>
-      Ocupado (otra fase, no seleccionable)
+      {{ 'CLIENTS.OCUPADO_OTRA_FASE_NO_SELECCIONABLE' | translate }}
     </span>
     <span class="legend-item">
       <span class="legend-swatch legend-swatch--empty"></span>
-      Libre
+      {{ 'CLIENTS.LIBRE' | translate }}
     </span>
     <!-- Solo si de verdad hay una en pantalla: si no, es una regla de más
          que nadie necesita leer. -->
     <span class="legend-item" *ngIf="hasOpenEndedVisible">
       <span class="legend-swatch legend-swatch--phase-bar"></span>
-      Plan indefinido en curso — puedes empezar encima, se corta solo
+      {{ 'CLIENTS.PLAN_INDEFINIDO_EN_CURSO_PUEDES' | translate }}
     </span>
   </div>
 
@@ -199,10 +199,10 @@
   </p>
 
   <div class="nutrition-calendar__legend nutrition-calendar__legend--nav" *ngIf="!isPickerMode">
-    <p class="legend-title">Dónde estás mirando</p>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Hoy</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--selected"></span>Día seleccionado</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--endpoint"></span>Inicio y fin del rango</span>
+    <p class="legend-title">{{ 'CLIENTS.DONDE_ESTAS_MIRANDO' | translate }}</p>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>{{ 'TRAINER_COMMON.TODAY' | translate }}</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--selected"></span>{{ 'CLIENTS.DIA_SELECCIONADO' | translate }}</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--endpoint"></span>{{ 'CLIENTS.INICIO_FIN_DEL_RANGO' | translate }}</span>
   </div>
 
   <!-- Debajo de la leyenda y no en la tarjeta del plan: la acción es sobre
@@ -217,6 +217,6 @@
     (click)="skipDayRequested.emit(selectedDate)"
   >
     <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon>
-    Marcar {{ selectedDateLabel }} como día saltado
+    {{ 'CLIENTS.MARCAR' | translate }} {{ selectedDateLabel }} {{ 'CLIENTS.COMO_DIA_SALTADO' | translate }}
   </button>
 </div>

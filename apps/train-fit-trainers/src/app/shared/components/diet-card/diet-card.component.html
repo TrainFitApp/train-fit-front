@@ -12,13 +12,13 @@
   <div class="card-top">
     <span class="medal" *ngIf="medal">{{ medal }}</span>
     <span class="card-name">{{ name }}</span>
-    <span class="tag tag--verified" *ngIf="verified">de fábrica</span>
-    <span class="tag tag--owned" *ngIf="ownedByClient">de un cliente</span>
+    <span class="tag tag--verified" *ngIf="verified">{{ 'SHARED_COMPONENTS.DE_FABRICA' | translate }}</span>
+    <span class="tag tag--owned" *ngIf="ownedByClient">{{ 'SHARED_COMPONENTS.DE_UN_CLIENTE' | translate }}</span>
   </div>
 
   <!-- Cuadra de macros pero incumple alguna restricción del cliente: se
        elige igual y se cambian esos alimentos después. -->
-  <p class="card-missing" *ngIf="missingFlags.length">No cumple: {{ missingFlagsLabel() }}</p>
+  <p class="card-missing" *ngIf="missingFlags.length">{{ 'SHARED_COMPONENTS.NO_CUMPLE' | translate }}: {{ missingFlagsLabel() }}</p>
 
   <!-- Panel de kcal + macros — mismo recuadro que .target-card en
        diet-suggestion-drawer.component.scss (superficie propia, borde,

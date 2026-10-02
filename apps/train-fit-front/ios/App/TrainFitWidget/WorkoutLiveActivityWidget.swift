@@ -22,9 +22,20 @@ private func elapsedText(since start: Date) -> String {
     return String(format: "%d:%02d", minutes, seconds % 60)
 }
 
-// PASO 4: informa, ajusta KG/REPS/RIR, marca la serie y navega entre series y
-// ejercicios. Fila de arriba: los tres steppers. Fila de abajo: flechas de
-// ejercicio en los extremos, de serie por dentro, y el check en el centro.
+@available(iOS 16.2, *)
+private extension ActivityViewContext where Attributes == WorkoutActivityAttributes {
+    /// Textos en el idioma de la app; las tarjetas de versiones anteriores no
+    /// los traen.
+    var labels: WorkoutActivityLabels { attributes.labels ?? .fallback }
+}
+
+// Informa, ajusta KG/REPS/RIR y marca la serie. Todo en una fila: los tres
+// steppers y, a su derecha, el check.
+//
+// Las flechas de serie (‹ ›) y ejercicio (« ») estaban en una segunda fila y se
+// han quitado: navegar obligaba a guardar un cursor que solo conocía la
+// tarjeta, y cuando iOS no conseguía repintar ese cursor y lo que se veía
+// dejaban de coincidir.
 
 @available(iOS 17.0, *)
 struct WorkoutLiveActivityWidget: Widget {
@@ -52,16 +63,13 @@ struct WorkoutLiveActivityWidget: Widget {
                             .font(.system(size: 13, weight: .semibold))
                             .lineLimit(1)
                             .foregroundStyle(.white)
-                        SetLabel(state: context.state, size: 11)
+                        SetLabel(state: context.state, labels: context.labels, size: 11)
                         ProgressBar(done: context.state.doneCount, total: context.state.totalCount)
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    VStack(spacing: 6) {
-                        ValuesRow(state: context.state, compact: true)
-                        NavigationRow(state: context.state, height: 28)
-                    }
-                    .padding(.horizontal, 6)
+                    ValuesAndCheckRow(state: context.state, labels: context.labels, compact: true)
+                        .padding(.horizontal, 6)
                 }
             } compactLeading: {
                 Image(systemName: "dumbbell.fill")
@@ -93,7 +101,7 @@ private struct LockScreenView: View {
 
                 Spacer(minLength: 8)
 
-                Text("Ejercicio \(context.state.exerciseIndex)/\(context.state.totalExercises)")
+                Text("\(context.labels.exercise) \(context.state.exerciseIndex)/\(context.state.totalExercises)")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Brand.muted)
                     .lineLimit(1)
@@ -117,15 +125,14 @@ private struct LockScreenView: View {
                         .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
-                    SetLabel(state: context.state, size: 12)
+                    SetLabel(state: context.state, labels: context.labels, size: 12)
                     ProgressBar(done: context.state.doneCount, total: context.state.totalCount)
                 }
 
                 Spacer(minLength: 0)
             }
 
-            ValuesRow(state: context.state)
-            NavigationRow(state: context.state, height: 30)
+            ValuesAndCheckRow(state: context.state, labels: context.labels)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -136,20 +143,27 @@ private struct LockScreenView: View {
 @available(iOS 17.0, *)
 private struct ValuesRow: View {
     let state: WorkoutActivityAttributes.ContentState
+    let labels: WorkoutActivityLabels
     var compact: Bool = false
 
     var body: some View {
         HStack(spacing: 0) {
-            Stepper(field: "weight", delta: 1, value: formattedWeight, unit: "KG", compact: compact)
+            Stepper(field: "weight", delta: 1, value: formattedWeight, unit: labels.weight, compact: compact)
             Divider().frame(height: 20).overlay(Color.white.opacity(0.12))
-            Stepper(field: "reps", delta: 1, value: "\(state.reps)", unit: "REPS", compact: compact)
+            Stepper(field: "reps", delta: 1, value: "\(state.reps)", unit: labels.reps, compact: compact)
             Divider().frame(height: 20).overlay(Color.white.opacity(0.12))
-            Stepper(field: "rir", delta: 1, value: "\(state.rir)", unit: "RIR", compact: compact)
+            Stepper(field: "rir", delta: 1, value: formattedRir, unit: labels.rir, compact: compact)
         }
         .padding(.horizontal, 2)
         .padding(.vertical, compact ? 5 : 7)
         .frame(maxWidth: .infinity)
         .background(Brand.field, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    /// Igual que en la app: «—» sin dato, fallo para -1.
+    private var formattedRir: String {
+        guard let rir = state.rir else { return "—" }
+        return rir < 0 ? labels.fail : "\(rir)"
     }
 
     private var formattedWeight: String {
@@ -175,7 +189,7 @@ private struct Stepper: View {
                 Image(systemName: "minus")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(Brand.muted)
-                    .frame(width: compact ? 20 : 24, height: 26)
+                    .frame(width: compact ? 18 : 22, height: 26)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -197,7 +211,7 @@ private struct Stepper: View {
                 Image(systemName: "plus")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(Brand.primary)
-                    .frame(width: compact ? 20 : 24, height: 26)
+                    .frame(width: compact ? 18 : 22, height: 26)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -207,79 +221,43 @@ private struct Stepper: View {
     }
 }
 
-/// Flechas de ejercicio en los extremos, de serie por dentro, y el check en el
-/// centro. Los Spacer simétricos son los que dejan el check centrado.
+/// Los tres steppers y el check, en la misma fila. El check a la derecha, con
+/// la altura del bloque de los steppers.
 @available(iOS 17.0, *)
-private struct NavigationRow: View {
+private struct ValuesAndCheckRow: View {
     let state: WorkoutActivityAttributes.ContentState
-    let height: CGFloat
+    let labels: WorkoutActivityLabels
+    var compact: Bool = false
 
     var body: some View {
-        HStack(spacing: 0) {
-            NavButton(scope: "exercise", step: -1, systemName: "chevron.left.2",
-                      enabled: state.canPrevExercise, height: height)
-            Spacer(minLength: 4)
-            NavButton(scope: "set", step: -1, systemName: "chevron.left",
-                      enabled: state.canPrevSet, height: height)
-            Spacer(minLength: 4)
-            CheckButton(doned: state.doned, height: height)
-            Spacer(minLength: 4)
-            NavButton(scope: "set", step: 1, systemName: "chevron.right",
-                      enabled: state.canNextSet, height: height)
-            Spacer(minLength: 4)
-            NavButton(scope: "exercise", step: 1, systemName: "chevron.right.2",
-                      enabled: state.canNextExercise, height: height)
+        HStack(spacing: 6) {
+            ValuesRow(state: state, labels: labels, compact: compact)
+            CheckButton(doned: state.doned, compact: compact)
         }
+        // La fila mide lo que miden los steppers; el check se estira hasta esa
+        // altura en vez de imponer la suya.
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
-@available(iOS 17.0, *)
-private struct NavButton: View {
-    let scope: String
-    let step: Int
-    let systemName: String
-    let enabled: Bool
-    let height: CGFloat
-
-    var body: some View {
-        // Sin destino no se monta el Button: un botón deshabilitado sigue
-        // capturando el toque y parpadea.
-        if enabled {
-            Button(intent: NavigateSetIntent(scope: scope, step: step)) {
-                icon(color: .white)
-            }
-            .buttonStyle(.plain)
-        } else {
-            icon(color: Brand.muted.opacity(0.35))
-        }
-    }
-
-    private func icon(color: Color) -> some View {
-        Image(systemName: systemName)
-            .font(.system(size: 13, weight: .bold))
-            .foregroundStyle(color)
-            .frame(width: 42, height: height)
-            .background(Brand.field, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-            .contentShape(Rectangle())
-    }
-}
-
-/// Marca o desmarca la serie en curso. Se enciende cuando está hecha.
+/// Marca la serie en curso. Se enciende cuando está hecha.
 @available(iOS 17.0, *)
 private struct CheckButton: View {
     let doned: Bool
-    let height: CGFloat
+    var compact: Bool = false
 
     var body: some View {
         Button(intent: CompleteSetIntent()) {
             Image(systemName: "checkmark")
-                .font(.system(size: 16, weight: .bold))
+                .font(.system(size: compact ? 15 : 17, weight: .bold))
                 .foregroundStyle(doned ? .black : Brand.muted)
-                .frame(width: 60, height: height)
+                .frame(width: compact ? 44 : 52)
+                .frame(maxHeight: .infinity)
                 .background(
                     doned ? AnyShapeStyle(Brand.primary) : AnyShapeStyle(Brand.field),
-                    in: RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
                 )
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -290,17 +268,18 @@ private struct CheckButton: View {
 @available(iOS 17.0, *)
 private struct SetLabel: View {
     let state: WorkoutActivityAttributes.ContentState
+    let labels: WorkoutActivityLabels
     let size: CGFloat
 
     var body: some View {
         HStack(spacing: 4) {
-            Text("Serie \(state.setIndex)/\(state.totalSets)")
+            Text("\(labels.set) \(state.setIndex)/\(state.totalSets)")
                 .font(.system(size: size))
                 .foregroundStyle(Brand.muted)
                 .lineLimit(1)
 
             if state.doned {
-                Text("hecha")
+                Text(labels.done)
                     .font(.system(size: size - 1, weight: .semibold))
                     .foregroundStyle(Brand.primary)
                     .padding(.horizontal, 5)

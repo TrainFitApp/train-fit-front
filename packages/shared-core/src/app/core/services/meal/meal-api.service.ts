@@ -13,12 +13,20 @@ export class MealAPIService {
 
   constructor(private http: HttpService, private userService: UserService) {}
 
+  /**
+   * `recentIds` son los productos recientes de la comida que la pantalla ya
+   * tiene en memoria. El backend los usa solo para subirlos en el ranking
+   * (ver meal-dao.js#searchAllWithFilters): lo que el usuario come a diario
+   * sale primero también cuando escribe, y el orden no se rompe al paginar.
+   */
   public searchAllWithFilters(
-    searchFilterGroup: SearchFilterGroup
+    searchFilterGroup: SearchFilterGroup,
+    recentIds: string[] = []
   ): Observable<IProduct[]> {
     const payload = {
       ...searchFilterGroup,
       userId: searchFilterGroup?.userId || this.userService.getLocalUser?._id,
+      recentIds,
     };
 
     return this.http.post<IProduct[]>(

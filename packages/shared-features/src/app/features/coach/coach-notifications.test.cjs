@@ -56,10 +56,34 @@ function harness(items = [notification('one'), notification('two')]) {
     getOpenAmount: async () => 0,
     close: async () => { calls.close++; },
   };
+  // Las dependencias van por POSICIÓN: el orden es el del constructor de
+  // CoachPage (router, professionalsApi, coachDashboardApi, notificationsApi,
+  // tasksApi, coachService, notificationsService, onboardingService,
+  // ionicUtilService, translate). Añadir una dependencia nueva en medio
+  // desplaza todo lo de abajo — ver el assert de más abajo, que lo detecta.
   const page = new CoachPage(
     { navigate: (...args) => { calls.navigate.push(args); return Promise.resolve(true); } },
     {}, {}, api, {}, {}, badge, {},
-    { showErrorToast: (...args) => { calls.errors.push(args); } }
+    { showErrorToast: (...args) => { calls.errors.push(args); } },
+    { instant: (key) => key }
+  );
+  // 2026-10 — CoachPage ganó `translate` como 10.º parámetro y este harness
+  // seguía pasando el doble de ionicUtilService ahí, así que
+  // `this.ionicUtilService.showErrorToast` era undefined: el aviso de "no se
+  // pudo borrar" dejó de comprobarse (y de ejecutarse) sin que nadie lo viera,
+  // porque este fichero estaba fuera del runner. El assert evita que vuelva a
+  // pasar en silencio.
+  assert.equal(
+    typeof page.ionicUtilService?.showErrorToast,
+    'function',
+    'El constructor de CoachPage ha cambiado de orden: ionicUtilService ya no ' +
+      'cae en la posición 9. Reordena los dobles de arriba.'
+  );
+  assert.equal(
+    typeof page.translate?.instant,
+    'function',
+    'El constructor de CoachPage ha cambiado de orden: translate ya no cae en ' +
+      'la posición 10. Reordena los dobles de arriba.'
   );
   page.notificationsState = 'loaded';
   page.notifications = [...items];

@@ -1,0 +1,199 @@
+<div class="progress" [class.progress--trainer]="!isClient">
+  <!-- Carga -->
+  <div class="progress-skeleton" *ngIf="loading">
+    <div class="skeleton-block skeleton-block--tall"></div>
+    <div class="skeleton-block"></div>
+  </div>
+
+  <div class="progress-state" *ngIf="!loading && failed">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <p>{{ 'MEDIA.LOAD_ERROR' | translate }}</p>
+    <button type="button" class="ghost-button" (click)="load()">{{ 'MEDIA.RETRY' | translate }}</button>
+  </div>
+
+  <ng-container *ngIf="!loading && !failed">
+    <!-- Cliente sin acceso: card de premium. Lo ya subido se sigue viendo. -->
+    <app-premium-media-card
+      *ngIf="isClient && status?.enabled && !status?.canUpload"
+      variant="photos"
+      [showcase]="!photoDays.length"
+    ></app-premium-media-card>
+
+    <p class="progress-note" *ngIf="isClient && status && !status.enabled">{{ 'MEDIA.DISABLED' | translate }}</p>
+
+    <!-- Pregunta única: ¿compartir el historial anterior a la relación? -->
+    <section
+      *ngFor="let trainer of (isClient ? pendingHistoryPrompts : []); trackBy: trackTrainer"
+      class="history-prompt"
+      role="group"
+      [attr.aria-label]="'MEDIA.HISTORY_PROMPT_LABEL' | translate"
+    >
+      <ion-icon name="people-outline" class="history-prompt-icon"></ion-icon>
+      <div class="history-prompt-body">
+        <p class="history-prompt-text">
+          {{ 'MEDIA.HISTORY_PROMPT' | translate: { name: trainer.name, count: trainer.previousDays } }}
+        </p>
+        <p class="history-prompt-sub">{{ 'MEDIA.HISTORY_PROMPT_SUB' | translate: { date: trainer.since ? shortDate(trainer.since) : '' } }}</p>
+        <div class="history-prompt-actions">
+          <button type="button" class="ghost-button" (click)="answerHistory(trainer, false)">{{ 'MEDIA.HISTORY_NO' | translate }}</button>
+          <button type="button" class="primary-button primary-button--small" (click)="answerHistory(trainer, true)">
+            {{ 'MEDIA.HISTORY_YES' | translate }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Acción principal -->
+    <button type="button" class="primary-button session-button" *ngIf="isClient && canUpload" (click)="openSession()">
+      <ion-icon name="camera-outline"></ion-icon>
+      <span>{{ (todayDay?.photos?.length ? 'MEDIA.CONTINUE_TODAY' : 'MEDIA.NEW_SESSION') | translate }}</span>
+    </button>
+
+    <!-- Trainer: desde cuándo ve las fotos -->
+    <p class="progress-note" *ngIf="!isClient && since">
+      {{ (historyShared ? 'MEDIA.TRAINER_SEES_ALL' : 'MEDIA.TRAINER_SEES_SINCE') | translate: { date: shortDate(since) } }}
+    </p>
+
+    <!-- Comparador -->
+    <section class="compare-block" *ngIf="compareCandidates.length >= 2 && beforeSide && afterSide">
+      <header class="block-header">
+        <h2 class="block-title">{{ 'MEDIA.COMPARE_TITLE' | translate }}</h2>
+        <div class="mode-switch" role="radiogroup" [attr.aria-label]="'MEDIA.COMPARE_MODE' | translate">
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="compareMode === 'slider'"
+            [class.active]="compareMode === 'slider'"
+            (click)="compareMode = 'slider'"
+            [attr.aria-label]="'MEDIA.COMPARE_SLIDER_MODE' | translate"
+          >
+            <ion-icon name="swap-horizontal-outline"></ion-icon>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="compareMode === 'side'"
+            [class.active]="compareMode === 'side'"
+            (click)="compareMode = 'side'"
+            [attr.aria-label]="'MEDIA.COMPARE_SIDE_MODE' | translate"
+          >
+            <ion-icon name="grid-outline"></ion-icon>
+          </button>
+        </div>
+      </header>
+
+      <div class="pose-chips" role="tablist">
+        <button
+          *ngFor="let pose of comparePoses"
+          type="button"
+          role="tab"
+          class="pose-chip"
+          [class.active]="pose === comparePose"
+          [attr.aria-selected]="pose === comparePose"
+          (click)="selectComparePose(pose)"
+        >
+          {{ ('MEDIA.POSE_' + pose.toUpperCase()) | translate }}
+        </button>
+      </div>
+
+      <div class="compare-dates">
+        <select class="date-select" (change)="onBeforeChange($event)" [attr.aria-label]="'MEDIA.COMPARE_BEFORE' | translate">
+          <option *ngFor="let day of compareCandidates" [value]="day.date" [selected]="day.date === beforeDate">{{ shortDate(day.date) }}</option>
+        </select>
+        <ion-icon name="arrow-forward-outline" class="compare-arrow" aria-hidden="true"></ion-icon>
+        <select class="date-select" (change)="onAfterChange($event)" [attr.aria-label]="'MEDIA.COMPARE_AFTER' | translate">
+          <option *ngFor="let day of compareCandidates" [value]="day.date" [selected]="day.date === afterDate">{{ shortDate(day.date) }}</option>
+        </select>
+      </div>
+
+      <app-photo-compare [before]="beforeSide" [after]="afterSide" [mode]="compareMode"></app-photo-compare>
+
+      <ul class="deltas" *ngIf="compareDeltas.length">
+        <li *ngFor="let delta of compareDeltas; trackBy: trackDelta">
+          <span class="delta-label">{{ delta.key | translate }}</span>
+          <span class="delta-value">{{ delta.value }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <p class="compare-empty" *ngIf="photoDays.length === 1">
+      {{ (isClient ? 'MEDIA.COMPARE_NEED_TWO' : 'MEDIA.COMPARE_NEED_TWO_TRAINER') | translate }}
+    </p>
+
+    <!-- Línea temporal -->
+    <section class="timeline" *ngIf="photoDays.length">
+      <h2 class="block-title">{{ (isClient ? 'MEDIA.TIMELINE_TITLE' : 'MEDIA.TIMELINE_TITLE_TRAINER') | translate }}</h2>
+      <article class="day" *ngFor="let day of photoDays; trackBy: trackDay">
+        <header class="day-header">
+          <div class="day-heading">
+            <h3 class="day-date">{{ longDate(day.date) }}</h3>
+            <div class="day-meta">
+              <span class="chip chip--neutral" *ngIf="day.anthropometry?.['weight']">{{ formatNumber(day.anthropometry?.['weight']) }} kg</span>
+              <span class="chip chip--accent" *ngIf="day.answersCheckin">
+                <ion-icon name="clipboard-outline"></ion-icon>{{ 'MEDIA.SENT_IN_CHECKIN' | translate }}
+              </span>
+              <span class="chip chip--muted" *ngIf="isClient && day.hiddenFromTrainers && status?.hasActiveTrainer">
+                <ion-icon name="eye-off-outline"></ion-icon>{{ 'MEDIA.HIDDEN_FROM_TRAINER' | translate }}
+              </span>
+            </div>
+          </div>
+          <div class="day-actions" *ngIf="isClient">
+            <button
+              type="button"
+              class="icon-button"
+              *ngIf="status?.hasActiveTrainer"
+              (click)="toggleDayVisibility(day)"
+              [attr.aria-label]="(day.hiddenFromTrainers ? 'MEDIA.SHOW_TO_TRAINER' : 'MEDIA.HIDE_FROM_TRAINER') | translate"
+            >
+              <ion-icon [name]="day.hiddenFromTrainers ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            </button>
+            <button
+              type="button"
+              class="icon-button"
+              *ngIf="canUpload"
+              (click)="openSession(day.date)"
+              [attr.aria-label]="'MEDIA.EDIT_SESSION' | translate"
+            >
+              <ion-icon name="create-outline"></ion-icon>
+            </button>
+          </div>
+        </header>
+        <div class="day-photos">
+          <button
+            type="button"
+            class="day-photo"
+            *ngFor="let photo of day.photos"
+            (click)="openViewer(day, photo.pose)"
+            [attr.aria-label]="('MEDIA.POSE_' + photo.pose.toUpperCase()) | translate"
+          >
+            <img [src]="photo.asset.thumbUrl || photo.asset.url" alt="" loading="lazy" />
+            <span class="day-photo-tag">{{ ('MEDIA.POSE_' + photo.pose.toUpperCase()) | translate }}</span>
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <!-- Vacío -->
+    <div class="progress-state" *ngIf="!photoDays.length && (!isClient || canUpload)">
+      <ion-icon name="images-outline"></ion-icon>
+      <p>{{ (isClient ? 'MEDIA.EMPTY_CLIENT' : 'MEDIA.EMPTY_TRAINER') | translate }}</p>
+    </div>
+
+    <!-- Privacidad con cada profesional -->
+    <section class="privacy" *ngIf="isClient && trainers.length">
+      <h2 class="block-title">{{ 'MEDIA.PRIVACY_TITLE' | translate }}</h2>
+      <p class="privacy-intro">{{ 'MEDIA.PRIVACY_INTRO' | translate }}</p>
+      <label class="privacy-row" *ngFor="let trainer of trainers; trackBy: trackTrainer">
+        <span class="privacy-text">
+          <strong>{{ trainer.name }}</strong>
+          <span>{{ (trainer.historyShared ? 'MEDIA.PRIVACY_ALL' : 'MEDIA.PRIVACY_SINCE') | translate: { date: trainer.since ? shortDate(trainer.since) : '' } }}</span>
+        </span>
+        <ion-toggle
+          [checked]="trainer.historyShared"
+          (ionChange)="toggleHistory(trainer, $event)"
+          [attr.aria-label]="'MEDIA.PRIVACY_TOGGLE' | translate: { name: trainer.name }"
+        ></ion-toggle>
+      </label>
+    </section>
+  </ng-container>
+</div>

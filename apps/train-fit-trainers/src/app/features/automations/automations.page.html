@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Avisos automatizados">
+  <app-page-header [title]="'AUTOMATIONS.AVISOS_AUTOMATIZADOS' | translate">
     <ng-container pageActions>
-      <button type="button" class="tf-page-header__back-button" (click)="createRule()" aria-label="Nuevo aviso automatizado">
+      <button type="button" class="tf-page-header__back-button" (click)="createRule()" [attr.aria-label]="'AUTOMATIONS.NUEVO_AVISO_AUTOMATIZADO' | translate">
         <ion-icon name="add-outline"></ion-icon>
       </button>
     </ng-container>
@@ -16,22 +16,20 @@
 
   <div class="page-state" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <h2>No se pudieron cargar tus avisos automatizados</h2>
-    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    <h2>{{ 'AUTOMATIONS.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</h2>
+    <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <!-- Estado vacío que enseña qué es esto, con un ejemplo concreto: "no hay
        nada" no explicaría para qué sirve la pantalla. -->
   <div class="page-state page-state--intro" *ngIf="state === 'loaded' && !rules.length">
     <ion-icon name="git-branch-outline" aria-hidden="true"></ion-icon>
-    <h2>Tu metodología, aplicada sola</h2>
+    <h2>{{ 'AUTOMATIONS.TU_METODOLOGIA_APLICADA_SOLA' | translate }}</h2>
     <p>
-      Un aviso automatizado vigila a tus clientes por ti y te avisa cuando pasa algo que a ti te
-      importa. Por ejemplo: <em>si el peso apenas baja durante 2 semanas y la adherencia supera el
-      85%, avísame de un posible estancamiento</em>.
+      {{ 'AUTOMATIONS.UN_AVISO_AUTOMATIZADO_VIGILA_TUS' | translate }} <em>{{ 'AUTOMATIONS.SI_EL_PESO_APENAS_BAJA' | translate }}</em>.
     </p>
     <button type="button" class="primary-button" (click)="createRule()">
-      Crear mi primer aviso automatizado
+      {{ 'AUTOMATIONS.CREAR_MI_PRIMER_AVISO_AUTOMATIZADO' | translate }}
     </button>
   </div>
 
@@ -75,7 +73,7 @@
           (click)="toggleRule(rule, $event)"
           role="switch"
           [attr.aria-checked]="rule.enabled"
-          [attr.aria-label]="(rule.enabled ? 'Desactivar' : 'Activar') + ' ' + rule.name"
+          [attr.aria-label]="(rule.enabled ? ('AUTOMATIONS.DESACTIVAR' | translate) : ('AUTOMATIONS.ACTIVAR' | translate)) + ' ' + rule.name"
         >
           <span class="rule-switch-knob" aria-hidden="true"></span>
         </button>
@@ -83,7 +81,7 @@
           type="button"
           class="rule-delete"
           (click)="confirmDelete(rule, $event)"
-          [attr.aria-label]="'Eliminar ' + rule.name"
+          [attr.aria-label]="('AUTOMATIONS.ELIMINAR' | translate) + rule.name"
         >
           <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
         </button>

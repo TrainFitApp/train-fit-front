@@ -1,13 +1,13 @@
 <!-- Fase anterior a guardar el cálculo: no hay cuenta que enseñar. -->
 <ng-container *ngIf="!need">
-  <p class="need-empty">Esta fase se creó antes de guardar el cálculo de la necesidad.</p>
+  <p class="need-empty">{{ 'CLIENTS.ESTA_FASE_SE_CREO_ANTES' | translate }}</p>
 </ng-container>
 
 <ng-container *ngIf="need">
   <!-- No se pudo calcular: se dice qué faltó, y lo que sí había. -->
   <p class="need-missing" *ngIf="missing.length">
     <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-    No se pudo calcular: faltaba <strong>{{ missing.join(', ') }}</strong> del cliente.
+    {{ 'CLIENTS.NO_SE_PUDO_CALCULAR_FALTABA' | translate }} <strong>{{ missing.join(', ') }}</strong> {{ 'CLIENTS.DEL_CLIENTE' | translate }}
   </p>
 
   <!-- Resultado + comparación con lo pautado -->
@@ -16,46 +16,46 @@
     <span class="need-result__macros">P {{ n(t.protein) }} g · C {{ n(t.carbs) }} g · G {{ n(t.fat) }} g</span>
   </div>
   <p class="need-verdict" *ngIf="plannedDelta !== null">
-    <ng-container *ngIf="plannedDelta === 0; else offTarget">La pauta coincide con la necesidad.</ng-container>
+    <ng-container *ngIf="plannedDelta === 0; else offTarget">{{ 'CLIENTS.LA_PAUTA_COINCIDE_CON_LA' | translate }}</ng-container>
     <ng-template #offTarget>
-      La pauta queda <strong>{{ n(absPlannedDelta) }} kcal</strong> {{ plannedDelta < 0 ? 'por debajo' : 'por encima' }} de la necesidad.
+      {{ 'CLIENTS.LA_PAUTA_QUEDA' | translate }} <strong>{{ n(absPlannedDelta) }} kcal</strong> {{ plannedDelta < 0 ? ('CLIENTS.POR_DEBAJO' | translate) : ('CLIENTS.POR_ENCIMA' | translate) }} {{ 'CLIENTS.OF_THE_REQUIREMENT' | translate }}
     </ng-template>
   </p>
 
   <!-- Datos que entraron -->
   <dl class="need-inputs" *ngIf="inputs as i">
     <div class="need-inputs__row">
-      <dt>Peso</dt>
+      <dt>{{ 'TRAINER_COMMON.WEIGHT' | translate }}</dt>
       <dd>
         {{ weightLine }}
         <span class="need-note" *ngIf="breakdown?.adjustedWeightKg as adj">
-          · ajustado a {{ n(adj, 1) }} kg (IMC ≥ 30)
+          · {{ 'CLIENTS.AJUSTADO' | translate }} {{ n(adj, 1) }} {{ 'CLIENTS.KG_IMC_30' | translate }})
         </span>
       </dd>
     </div>
     <div class="need-inputs__row">
-      <dt>Altura · edad · sexo</dt>
-      <dd>{{ i.heightCm ? n(i.heightCm) + ' cm' : '—' }} · {{ i.age !== null ? i.age + ' años' : '—' }} · {{ sexLabel }}</dd>
+      <dt>{{ 'CLIENTS.ALTURA_EDAD_SEXO' | translate }}</dt>
+      <dd>{{ i.heightCm ? n(i.heightCm) + ' cm' : '—' }} · {{ i.age !== null ? i.age + ('CLIENTS.ANOS' | translate) : '—' }} · {{ sexLabel }}</dd>
     </div>
     <div class="need-inputs__row">
-      <dt>Pasos</dt>
+      <dt>{{ 'CLIENTS.PASOS' | translate }}</dt>
       <dd>{{ stepsLine }}</dd>
     </div>
     <div class="need-inputs__row">
-      <dt>Entrenamiento</dt>
+      <dt>{{ 'TRAINER_COMMON.TRAINING' | translate }}</dt>
       <dd>{{ trainingLine }}</dd>
     </div>
     <div class="need-inputs__row" *ngIf="breakdown?.usesActivity">
-      <dt>Actividad</dt>
-      <dd>factor {{ n(i.activity, 2) }} (el perfil no cuenta pasos)</dd>
+      <dt>{{ 'CLIENTS.ACTIVIDAD' | translate }}</dt>
+      <dd>{{ 'CLIENTS.FACTOR' | translate }} {{ n(i.activity, 2) }} ({{ 'CLIENTS.EL_PERFIL_NO_CUENTA_PASOS' | translate }})</dd>
     </div>
     <div class="need-inputs__row">
-      <dt>Objetivo</dt>
+      <dt>{{ 'CLIENT_DETAIL.GOAL' | translate }}</dt>
       <dd>
-        {{ deltaLabel }} kcal ({{ deltaKind }})
+        {{ deltaLabel }} {{ 'CLIENTS.KCAL' | translate }}{{ deltaKind }})
         <ng-container *ngIf="breakdown as b">
-          · proteína {{ n(b.proteinPerKg, 2) }} g/kg · grasa {{ n(b.fatPerKg, 2) }} g/kg
-          <span class="need-note">{{ i.proteinPerKg || i.fatPerKg ? '(fijados por ti)' : '(fórmula por defecto)' }}</span>
+          · {{ 'CLIENTS.PROTEINA' | translate }} {{ n(b.proteinPerKg, 2) }} {{ 'CLIENTS.KG_GRASA' | translate }} {{ n(b.fatPerKg, 2) }} g/kg
+          <span class="need-note">{{ i.proteinPerKg || i.fatPerKg ? ('CLIENTS.FIJADOS_POR_TI' | translate) : ('CLIENTS.FORMULA_POR_DEFECTO' | translate) }}</span>
         </ng-container>
       </dd>
     </div>
@@ -65,40 +65,40 @@
   <ng-container *ngIf="breakdown as b">
     <button type="button" class="need-math__toggle" (click)="showMath = !showMath">
       <ion-icon [name]="showMath ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
-      {{ showMath ? 'Ocultar la cuenta' : 'Ver la cuenta' }}
+      {{ showMath ? ('CLIENTS.OCULTAR_LA_CUENTA' | translate) : ('CLIENTS.VER_LA_CUENTA' | translate) }}
     </button>
     <ol class="need-math" *ngIf="showMath">
       <li>
-        <span class="need-math__label">Metabolismo basal (Mifflin-St Jeor)</span>
+        <span class="need-math__label">{{ 'CLIENTS.METABOLISMO_BASAL_MIFFLIN_ST_JEOR' | translate }}</span>
         <span class="need-math__value">{{ n(b.bmr) }} kcal</span>
       </li>
       <li>
         <span class="need-math__label">
-          Gasto diario = basal × {{ n(b.factor, 3) }}
+          {{ 'CLIENTS.GASTO_DIARIO_BASAL' | translate }} {{ n(b.factor, 3) }}
           <span class="need-note">({{ factorLine }})</span>
         </span>
         <span class="need-math__value">{{ n(b.expenditure) }} kcal</span>
       </li>
       <li>
         <span class="need-math__label">
-          {{ deltaLabel }} kcal de objetivo ({{ deltaKind }}) = necesidad
+          {{ deltaLabel }} {{ 'CLIENTS.KCAL_DE_OBJETIVO' | translate }}{{ deltaKind }}{{ 'CLIENTS.NECESIDAD' | translate }}
         </span>
         <span class="need-math__value need-math__value--total">{{ n(target?.kcal) }} kcal</span>
       </li>
       <li>
-        <span class="need-math__label">Proteína {{ n(b.proteinPerKg, 2) }} g/kg × {{ n(proteinWeight, 1) }} kg</span>
+        <span class="need-math__label">{{ 'TRAINER_COMMON.PROTEIN' | translate }} {{ n(b.proteinPerKg, 2) }} {{ 'CLIENTS.KG' | translate }} {{ n(proteinWeight, 1) }} kg</span>
         <span class="need-math__value">{{ n(target?.protein, 1) }} g</span>
       </li>
       <li>
-        <span class="need-math__label">Grasa {{ n(b.fatPerKg, 2) }} g/kg × {{ n(proteinWeight, 1) }} kg</span>
+        <span class="need-math__label">{{ 'TRAINER_COMMON.FAT_SINGULAR' | translate }} {{ n(b.fatPerKg, 2) }} {{ 'CLIENTS.KG' | translate }} {{ n(proteinWeight, 1) }} kg</span>
         <span class="need-math__value">{{ n(target?.fat, 1) }} g</span>
       </li>
       <li>
-        <span class="need-math__label">Carbohidratos = el resto de las kcal</span>
+        <span class="need-math__label">{{ 'CLIENTS.CARBOHIDRATOS_EL_RESTO_DE_LAS' | translate }}</span>
         <span class="need-math__value">{{ n(target?.carbs, 1) }} g</span>
       </li>
     </ol>
   </ng-container>
 
-  <p class="need-computed" *ngIf="need.computedAt">Calculado el {{ fmtDate(need.computedAt) }}.</p>
+  <p class="need-computed" *ngIf="need.computedAt">{{ 'CLIENTS.CALCULADO_EL' | translate }} {{ fmtDate(need.computedAt) }}.</p>
 </ng-container>

@@ -1,4 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { IProduct } from 'src/app/core/models/product';
 import { Recipe } from 'src/app/core/models/recipe';
@@ -7,6 +8,7 @@ import { CustomProductService } from 'src/app/core/services/custom-product/custo
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { CreateProductPage } from 'src/app/features/diets/components/meal/components/search-foods/components/create-product/create-product.page';
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 interface NutrientRow {
   label: string;
@@ -28,6 +30,8 @@ interface NutrientRow {
   styleUrls: ['./product-detail-panel.component.scss'],
 })
 export class ProductDetailPanelComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() product?: IProduct;
   @Input() recipe?: Recipe;
   @Input() quantity: number | null = 100;
@@ -38,7 +42,7 @@ export class ProductDetailPanelComponent implements OnInit {
   // (ver day-meal-editor-modal/RecipeBuilderModalComponent#showDetailPanel)
   // — al editar un ingrediente YA añadido no tiene sentido, no se pasa.
   @Input() onAdd?: (quantity: number) => void;
-  @Input() addLabel = 'Añadir';
+  @Input() addLabel = this.translate.instant('TRAINER_COMMON.ADD');
 
   private readonly modalController = inject(ModalController);
   private readonly customProductService = inject(CustomProductService);
@@ -77,6 +81,13 @@ export class ProductDetailPanelComponent implements OnInit {
     { label: 'Vitamina B9 (fólico)', field: 'vitaminB9100g', unit: 'µg', toDisplay: 1000000 },
     { label: 'Vitamina B12', field: 'vitaminB12100g', unit: 'µg', toDisplay: 1000000 },
   ];
+
+  // Etiquetas en el idioma del usuario (mismas claves que el tablero de dietas).
+  static {
+    [...ProductDetailPanelComponent.SECONDARY_MACROS, ...ProductDetailPanelComponent.MICRONUTRIENTS].forEach((row) =>
+      localizeProp(row, 'label', `DIET_TEMPLATES.NUTRIENTS.${row.field}`)
+    );
+  }
 
   // Calculados UNA vez (ngOnInit y cada vez que cambia la cantidad o el
   // producto), no con getters.

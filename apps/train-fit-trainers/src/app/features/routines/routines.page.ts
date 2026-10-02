@@ -1,14 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { WorkoutTemplateApiService } from 'src/app/core/services/workout-template/workout-template-api.service';
 import { WorkoutTemplate, WorkoutTemplateLevel } from 'src/app/core/models/workout-template';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 const LEVEL_LABELS: Record<WorkoutTemplateLevel, string> = {
   principiante: 'Principiante',
   intermedio: 'Intermedio',
   avanzado: 'Avanzado',
 };
+localizeRecord(LEVEL_LABELS, 'PLANNER.TEMPLATE_LEVELS');
 
 // Rediseño de entrenamiento (Fase A) — hub "Plantillas de rutinas" conectado
 // a datos reales (WorkoutTemplate). El contenido (bloques/ejercicios/series)
@@ -23,6 +26,8 @@ const LEVEL_LABELS: Record<WorkoutTemplateLevel, string> = {
   styleUrls: ['routines.page.scss'],
 })
 export class RoutinesPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   public templates: WorkoutTemplate[] = [];
   public loading = true;
   public newName = '';
@@ -59,7 +64,7 @@ export class RoutinesPage implements OnInit {
       error: () => {
         this.loading = false;
         this.ionicUtilService.showToast({
-          message: 'No se pudieron cargar las plantillas',
+          message: this.translate.instant('TABLES.TEMPLATES_LOAD_ERROR'),
           duration: 2500,
         });
       },
@@ -95,7 +100,7 @@ export class RoutinesPage implements OnInit {
       error: () => {
         this.isCreating = false;
         this.ionicUtilService.showToast({
-          message: 'No se pudo crear la plantilla',
+          message: this.translate.instant('ROUTINES.NO_SE_PUDO_CREAR_LA'),
           duration: 2500,
         });
       },
@@ -136,12 +141,12 @@ export class RoutinesPage implements OnInit {
         next: (created) => {
           this.isDuplicating = false;
           this.templates = [created, ...this.templates];
-          this.ionicUtilService.showToast({ message: 'Plantilla duplicada', duration: 1500 });
+          this.ionicUtilService.showToast({ message: this.translate.instant('ROUTINES.PLANTILLA_DUPLICADA'), duration: 1500 });
         },
         error: () => {
           this.isDuplicating = false;
           this.ionicUtilService.showToast({
-            message: 'No se pudo duplicar la plantilla',
+            message: this.translate.instant('ROUTINES.NO_SE_PUDO_DUPLICAR_LA'),
             duration: 2500,
           });
         },
@@ -151,22 +156,22 @@ export class RoutinesPage implements OnInit {
   public async confirmDelete(template: WorkoutTemplate, event: Event): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: 'Borrar plantilla',
-      message: `¿Seguro que quieres borrar "${template.name}"? Esta acción no se puede deshacer.`,
+      header: this.translate.instant('ROUTINES.BORRAR_PLANTILLA'),
+      message: this.translate.instant('ROUTINES.SEGURO_QUE_QUIERES_BORRAR_ESTA', { name: template.name }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Borrar',
+          text: this.translate.instant('TRAINER_COMMON.ERASE'),
           cssClass: 'alert-button-danger',
           handler: () => {
             this.workoutTemplateApi.delete(template._id).subscribe({
               next: () => {
                 this.templates = this.templates.filter((t) => t._id !== template._id);
-                this.ionicUtilService.showToast({ message: 'Plantilla borrada', duration: 1500 });
+                this.ionicUtilService.showToast({ message: this.translate.instant('ROUTINES.PLANTILLA_BORRADA'), duration: 1500 });
               },
               error: () => {
                 this.ionicUtilService.showToast({
-                  message: 'No se pudo borrar la plantilla',
+                  message: this.translate.instant('ROUTINES.NO_SE_PUDO_BORRAR_LA'),
                   duration: 2500,
                 });
               },

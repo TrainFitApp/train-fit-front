@@ -199,9 +199,14 @@ export class NavigationService {
   // TASK-010 — returnUrl opcional: permite que user-loader.page.ts navegue
   // al deep link originalmente solicitado en vez de siempre caer al
   // dashboard tras el login (ver auth.guard.ts#buildReturnUrl).
+  // `animated: false` a propósito: el splash ya tiene su propia entrada
+  // (user-loader.page.scss#stage-in). Con la transición forward de Ionic
+  // encima se solapaban dos animaciones distintas sobre el mismo fondo negro
+  // y el logo entraba a tirones.
   public goToUserLoader(returnUrl?: string | null): void {
     this.navController.navigateForward([this.USER_LOADER_ROUTE], {
       replaceUrl: true,
+      animated: false,
       queryParams: returnUrl ? { returnUrl } : undefined,
     });
   }

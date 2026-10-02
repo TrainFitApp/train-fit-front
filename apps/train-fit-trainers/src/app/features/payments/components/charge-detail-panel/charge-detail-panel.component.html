@@ -6,8 +6,8 @@
 
   <div class="pay-state" *ngIf="state === 'error'" role="alert">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <p>No se pudo cargar este cobro. Los importes no se muestran hasta poder leerlos.</p>
-    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'PAYMENTS.NO_SE_PUDO_CARGAR_ESTE' | translate }}</p>
+    <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded' && charge as c">
@@ -23,22 +23,22 @@
     </section>
 
     <!-- Cifras: la fórmula del saldo -->
-    <section class="figures" aria-label="Importes del cobro">
+    <section class="figures" [attr.aria-label]="'PAYMENTS.IMPORTES_DEL_COBRO' | translate">
       <div class="figure">
-        <span class="figure__label">Importe</span>
+        <span class="figure__label">{{ 'PAYMENTS.IMPORTE' | translate }}</span>
         <span class="figure__value">{{ money(c.amountCents) }}</span>
-        <span class="figure__meta" *ngIf="c.originalAmountCents !== c.amountCents">Original {{ money(c.originalAmountCents) }}</span>
+        <span class="figure__meta" *ngIf="c.originalAmountCents !== c.amountCents">{{ 'PAYMENTS.ORIGINAL' | translate }} {{ money(c.originalAmountCents) }}</span>
       </div>
       <div class="figure">
-        <span class="figure__label">Recibido</span>
+        <span class="figure__label">{{ 'PAYMENTS.RECIBIDO' | translate }}</span>
         <span class="figure__value figure__value--received">{{ money(c.receivedCents) }}</span>
       </div>
       <div class="figure" *ngIf="c.cancelledCents > 0">
-        <span class="figure__label">Anulado</span>
+        <span class="figure__label">{{ 'PAYMENTS.ANULADO' | translate }}</span>
         <span class="figure__value figure__value--cancelled">{{ money(c.cancelledCents) }}</span>
       </div>
       <div class="figure">
-        <span class="figure__label">Pendiente</span>
+        <span class="figure__label">{{ 'MY_CHECKINS.PENDING' | translate }}</span>
         <span
           class="figure__value"
           [class.figure__value--overdue]="c.temporal === 'overdue' && c.balanceCents > 0"
@@ -58,80 +58,80 @@
     </div>
     <div class="notice" *ngIf="readOnly">
       <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
-      <span>Cliente en solo lectura por las plazas de tu plan: puedes consultar, no modificar.</span>
+      <span>{{ 'PAYMENTS.CLIENTE_EN_SOLO_LECTURA_POR' | translate }}</span>
     </div>
 
     <!-- Acciones -->
     <section class="actions" *ngIf="writable">
       <button type="button" class="pay-primary" *ngIf="canRegister" (click)="openRegister()">
         <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
-        Registrar pago
+        {{ 'PAYMENTS.REGISTRAR_PAGO' | translate }}
       </button>
       <button type="button" class="pay-secondary" (click)="openEdit()">
         <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
-        Editar cobro
+        {{ 'PAYMENTS.EDITAR_COBRO' | translate }}
       </button>
       <button type="button" class="pay-danger-quiet" *ngIf="canCancel && action !== 'cancel'" (click)="startAction('cancel')">
-        Anular saldo pendiente
+        {{ 'PAYMENTS.ANULAR_SALDO_PENDIENTE' | translate }}
       </button>
       <button type="button" class="pay-quiet" *ngIf="canRestore && action !== 'restore'" (click)="startAction('restore')">
-        Recuperar saldo anulado
+        {{ 'PAYMENTS.RECUPERAR_SALDO_ANULADO' | translate }}
       </button>
     </section>
 
     <!-- Anular saldo -->
     <section class="inline-form inline-form--danger" *ngIf="action === 'cancel'" aria-labelledby="cancel-title">
-      <h2 class="inline-form__title" id="cancel-title">Anular {{ money(c.balanceCents) }} pendientes</h2>
+      <h2 class="inline-form__title" id="cancel-title">{{ 'PAYMENTS.ANULAR' | translate }} {{ money(c.balanceCents) }} {{ 'PAYMENTS.PENDIENTES' | translate }}</h2>
       <p class="inline-form__text">
-        El cobro queda cerrado sin cobrar ese resto.
-        <ng-container *ngIf="c.receivedCents > 0">Lo ya recibido ({{ money(c.receivedCents) }}) se conserva.</ng-container>
-        No es un cobro ni una devolución y deja de generar avisos.
+        {{ 'PAYMENTS.EL_COBRO_QUEDA_CERRADO_SIN' | translate }}
+        <ng-container *ngIf="c.receivedCents > 0">{{ 'PAYMENTS.LO_YA_RECIBIDO' | translate }}{{ money(c.receivedCents) }}{{ 'PAYMENTS.SE_CONSERVA' | translate }}</ng-container>
+        {{ 'PAYMENTS.NO_ES_UN_COBRO_NI' | translate }}
       </p>
-      <label class="field-label" for="cancel-reason">Motivo</label>
+      <label class="field-label" for="cancel-reason">{{ 'TRAINER_COMMON.REASON' | translate }}</label>
       <div class="input-wrapper">
-        <input id="cancel-reason" class="input-field" type="text" maxlength="300" placeholder="Descuento acordado, baja…" [(ngModel)]="cancelReason" />
+        <input id="cancel-reason" class="input-field" type="text" maxlength="300" [placeholder]="'PAYMENTS.DESCUENTO_ACORDADO_BAJA' | translate" [(ngModel)]="cancelReason" />
       </div>
       <div class="inline-form__actions">
-        <button type="button" class="ghost-button" (click)="cancelAction()">Volver</button>
+        <button type="button" class="ghost-button" (click)="cancelAction()">{{ 'COMMON.GO_BACK' | translate }}</button>
         <button type="button" class="submit-button submit-button--danger" [disabled]="busy || cancelReason.trim().length < 3" (click)="submitCancel()">
-          Anular {{ money(c.balanceCents) }}
+          {{ 'PAYMENTS.ANULAR' | translate }} {{ money(c.balanceCents) }}
         </button>
       </div>
     </section>
 
     <!-- Recuperar saldo anulado -->
     <section class="inline-form" *ngIf="action === 'restore'" aria-labelledby="restore-title">
-      <h2 class="inline-form__title" id="restore-title">Recuperar saldo anulado</h2>
-      <p class="inline-form__text">Rectifica una anulación: el importe vuelve a quedar pendiente. No se enviarán avisos atrasados.</p>
+      <h2 class="inline-form__title" id="restore-title">{{ 'PAYMENTS.RECUPERAR_SALDO_ANULADO' | translate }}</h2>
+      <p class="inline-form__text">{{ 'PAYMENTS.RECTIFICA_UNA_ANULACION_EL_IMPORTE' | translate }}</p>
       <div class="field-row">
         <div class="field">
-          <label class="field-label" for="restore-amount">Importe a recuperar</label>
+          <label class="field-label" for="restore-amount">{{ 'PAYMENTS.IMPORTE_RECUPERAR' | translate }}</label>
           <div class="input-wrapper input-wrapper--money">
             <input id="restore-amount" class="input-field" type="text" inputmode="decimal" [(ngModel)]="restoreAmountText" />
             <span class="input-suffix" aria-hidden="true">€</span>
           </div>
-          <p class="field-hint">Máximo {{ money(c.cancelledCents) }}.</p>
+          <p class="field-hint">{{ 'PAYMENTS.MAXIMO' | translate }} {{ money(c.cancelledCents) }}.</p>
         </div>
         <div class="field">
-          <label class="field-label" for="restore-reason">Motivo</label>
+          <label class="field-label" for="restore-reason">{{ 'TRAINER_COMMON.REASON' | translate }}</label>
           <div class="input-wrapper">
             <input id="restore-reason" class="input-field" type="text" maxlength="300" [(ngModel)]="restoreReason" />
           </div>
         </div>
       </div>
       <div class="outcome outcome--warning" *ngIf="restoreResultCents !== null">
-        <span class="outcome__label">Volverá a quedar pendiente</span>
+        <span class="outcome__label">{{ 'PAYMENTS.VOLVERA_QUEDAR_PENDIENTE' | translate }}</span>
         <span class="outcome__value">{{ money(restoreResultCents) }}</span>
       </div>
       <div class="inline-form__actions">
-        <button type="button" class="ghost-button" (click)="cancelAction()">Volver</button>
+        <button type="button" class="ghost-button" (click)="cancelAction()">{{ 'COMMON.GO_BACK' | translate }}</button>
         <button
           type="button"
           class="submit-button"
           [disabled]="busy || restoreResultCents === null || restoreReason.trim().length < 3"
           (click)="submitRestore()"
         >
-          Confirmar y reabrir
+          {{ 'PAYMENTS.CONFIRMAR_REABRIR' | translate }}
         </button>
       </div>
     </section>
@@ -143,8 +143,8 @@
 
     <!-- Pagos registrados -->
     <section class="block" aria-labelledby="payments-title">
-      <h2 class="block__title" id="payments-title">Pagos registrados</h2>
-      <p class="block__empty" *ngIf="!c.payments.length">Todavía no has registrado ningún pago de este cobro.</p>
+      <h2 class="block__title" id="payments-title">{{ 'PAYMENTS.PAGOS_REGISTRADOS' | translate }}</h2>
+      <p class="block__empty" *ngIf="!c.payments.length">{{ 'PAYMENTS.TODAVIA_NO_HAS_REGISTRADO_NINGUN' | translate }}</p>
       <ul class="movements" *ngIf="c.payments.length">
         <li class="movement" *ngFor="let m of c.payments" [class.movement--voided]="m.status === 'voided'">
           <div class="movement__main">
@@ -152,44 +152,44 @@
             <span class="movement__method">{{ method(m.method) }}</span>
           </div>
           <p class="movement__meta">
-            <ng-container *ngIf="m.receivedDaySource === 'entered'; else markedPaid">Recibido el {{ day(m.receivedDay) }}</ng-container>
-            <ng-template #markedPaid>Marcado como pagado el {{ day(m.receivedDay) }} · fecha real de recepción no registrada</ng-template>
-            <ng-container *ngIf="m.recordedAt"> · anotado el {{ instant(m.recordedAt) }}</ng-container>
+            <ng-container *ngIf="m.receivedDaySource === 'entered'; else markedPaid">{{ 'PAYMENTS.RECIBIDO_EL' | translate }} {{ day(m.receivedDay) }}</ng-container>
+            <ng-template #markedPaid>{{ 'PAYMENTS.MARCADO_COMO_PAGADO_EL' | translate }} {{ day(m.receivedDay) }} · {{ 'PAYMENTS.FECHA_REAL_DE_RECEPCION_NO' | translate }}</ng-template>
+            <ng-container *ngIf="m.recordedAt"> · {{ 'PAYMENTS.ANOTADO_EL' | translate }} {{ instant(m.recordedAt) }}</ng-container>
           </p>
           <p class="movement__note" *ngIf="m.note">{{ m.note }}</p>
-          <p class="movement__correction" *ngIf="m.status === 'voided'">Corregido: {{ m.voidReason || 'sin motivo' }}</p>
-          <p class="movement__correction" *ngIf="isReplacement(m) && m.status === 'valid'">Sustituye a un pago corregido</p>
+          <p class="movement__correction" *ngIf="m.status === 'voided'">{{ 'TRAINER_MISC.CORREGIDO' | translate }}: {{ m.voidReason || ('PAYMENTS.SIN_MOTIVO' | translate) }}</p>
+          <p class="movement__correction" *ngIf="isReplacement(m) && m.status === 'valid'">{{ 'PAYMENTS.SUSTITUYE_UN_PAGO_CORREGIDO' | translate }}</p>
           <button
             type="button"
             class="pay-quiet movement__action"
             *ngIf="writable && m.status === 'valid' && !(action === 'correct' && correctTarget?.id === m.id)"
             (click)="startAction('correct', m)"
           >
-            Corregir
+            {{ 'PAYMENTS.CORREGIR' | translate }}
           </button>
 
           <!-- Corrección de este pago -->
           <div class="inline-form" *ngIf="action === 'correct' && correctTarget?.id === m.id">
-            <p class="inline-form__text">El pago original se conserva marcado como corregido, con su motivo.</p>
-            <div class="segmented" role="radiogroup" aria-label="Tipo de corrección">
+            <p class="inline-form__text">{{ 'PAYMENTS.EL_PAGO_ORIGINAL_SE_CONSERVA' | translate }}</p>
+            <div class="segmented" role="radiogroup" [attr.aria-label]="'PAYMENTS.TIPO_DE_CORRECCION' | translate">
               <button type="button" class="segment" role="radio" [class.segment--active]="correctMode === 'replace'" [attr.aria-checked]="correctMode === 'replace'" (click)="correctMode = 'replace'">
-                Cambiar importe, fecha o método
+                {{ 'PAYMENTS.CAMBIAR_IMPORTE_FECHA_METODO' | translate }}
               </button>
               <button type="button" class="segment" role="radio" [class.segment--active]="correctMode === 'void'" [attr.aria-checked]="correctMode === 'void'" (click)="correctMode = 'void'">
-                No se recibió: anular
+                {{ 'PAYMENTS.NO_SE_RECIBIO_ANULAR' | translate }}
               </button>
             </div>
             <ng-container *ngIf="correctMode === 'replace'">
               <div class="field-row">
                 <div class="field">
-                  <label class="field-label" [for]="'fix-amount-' + m.id">Importe</label>
+                  <label class="field-label" [for]="'fix-amount-' + m.id">{{ 'PAYMENTS.IMPORTE' | translate }}</label>
                   <div class="input-wrapper input-wrapper--money">
                     <input [id]="'fix-amount-' + m.id" class="input-field" type="text" inputmode="decimal" [(ngModel)]="correctAmountText" />
                     <span class="input-suffix" aria-hidden="true">€</span>
                   </div>
                 </div>
                 <div class="field">
-                  <label class="field-label" [for]="'fix-day-' + m.id">Recibido el</label>
+                  <label class="field-label" [for]="'fix-day-' + m.id">{{ 'PAYMENTS.RECIBIDO_EL' | translate }}</label>
                   <div class="input-wrapper">
                     <ion-icon name="calendar-outline" class="input-icon" aria-hidden="true"></ion-icon>
                     <app-date-field
@@ -197,7 +197,7 @@
                       </div>
                       </div>
                       </div>
-                      <div class="segmented" role="radiogroup" aria-label="Método">
+                      <div class="segmented" role="radiogroup" [attr.aria-label]="'PAYMENTS.METODO' | translate">
                       <button
                       type="button"
                       class="segment"
@@ -211,20 +211,20 @@
                       </button>
                       </div>
                       </ng-container>
-                      <label class="field-label" [for]="'fix-reason-' + m.id">Motivo</label>
+                      <label class="field-label" [for]="'fix-reason-' + m.id">{{ 'TRAINER_COMMON.REASON' | translate }}</label>
                       <div class="input-wrapper">
-                      <input [id]="'fix-reason-' + m.id" class="input-field" type="text" maxlength="300" placeholder="Importe mal anotado, pago duplicado…" [(ngModel)]="correctReason" />
+                      <input [id]="'fix-reason-' + m.id" class="input-field" type="text" maxlength="300" [placeholder]="'PAYMENTS.IMPORTE_MAL_ANOTADO_PAGO_DUPLICADO' | translate" [(ngModel)]="correctReason" />
                       </div>
                       <div class="notice notice--warning" role="alert" *ngIf="reopenBalanceCents !== null">
                       <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
-                      <span>El cobro vuelve a tener <strong>{{ money(reopenBalanceCents) }}</strong> pendientes. Confírmalo para reabrirlo; no se enviarán avisos atrasados.</span>
+                      <span>{{ 'PAYMENTS.EL_COBRO_VUELVE_TENER' | translate }} <strong>{{ money(reopenBalanceCents) }}</strong> {{ 'PAYMENTS.PENDIENTES_CONFIRMALO_PARA_REABRIRLO_NO' | translate }}</span>
                       </div>
                       <div class="notice notice--danger" role="alert" *ngIf="errorMessage">
                       <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
                       <span>{{ errorMessage }}</span>
                       </div>
                       <div class="inline-form__actions">
-                      <button type="button" class="ghost-button" (click)="cancelAction()">Volver</button>
+                      <button type="button" class="ghost-button" (click)="cancelAction()">{{ 'COMMON.GO_BACK' | translate }}</button>
                       <button
                       type="button"
                       class="submit-button"
@@ -232,10 +232,10 @@
                       [disabled]="!canSubmitCorrection"
                       (click)="submitCorrection()"
                       >
-                      Guardar corrección
+                      {{ 'PAYMENTS.GUARDAR_CORRECCION' | translate }}
                       </button>
                       <button type="button" class="submit-button" *ngIf="reopenBalanceCents !== null" [disabled]="busy" (click)="submitCorrection(true)">
-                      Confirmar y reabrir
+                      {{ 'PAYMENTS.CONFIRMAR_REABRIR' | translate }}
                       </button>
                       </div>
                       </div>
@@ -244,12 +244,12 @@
                       </section>
                       
                       <section class="block" *ngIf="c.note">
-                      <h2 class="block__title">Nota interna</h2>
+                      <h2 class="block__title">{{ 'PAYMENTS.NOTA_INTERNA' | translate }}</h2>
                       <p class="private-note">{{ c.note }}</p>
                       </section>
                       
                       <section class="block" *ngIf="adjustments.length" aria-labelledby="history-title">
-                      <h2 class="block__title" id="history-title">Historial de cambios</h2>
+                      <h2 class="block__title" id="history-title">{{ 'PAYMENTS.HISTORIAL_DE_CAMBIOS' | translate }}</h2>
                       <ul class="history">
                       <li *ngFor="let item of adjustments">
                       <span class="history__text">{{ adjustmentText(item) }}</span>
@@ -259,7 +259,7 @@
                       </section>
                       </ng-container>
                       
-                      <button sheetFooter type="button" class="ghost-button ghost-button--wide" (click)="closed.emit()">Cerrar</button>
+                      <button sheetFooter type="button" class="ghost-button ghost-button--wide" (click)="closed.emit()">{{ 'COMMON.CLOSE_ARIA' | translate }}</button>
                       </app-payments-sheet>
                       
                       <app-payment-register-panel

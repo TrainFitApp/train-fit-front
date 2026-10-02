@@ -1,3 +1,4 @@
+import { localizeList } from '../i18n/localized-catalog';
 import { SORENESS_MUSCLES } from './soreness';
 
 // Movimiento 6 Coach Pro — el método del entrenador, en números.
@@ -66,6 +67,11 @@ export const JOINT_SCORE_ANCHORS: string[] = [
   'Carga alta: hay que dosificarla',
   'Muy exigente: no encadenar sesiones',
 ];
+
+// Las articulaciones son datos guardados (se traducen al pintar con
+// translateDb); las anclas solo se muestran.
+localizeList(MUSCLE_SCORE_ANCHORS, 'EXERCISE_SCORE.MUSCLE_ANCHORS');
+localizeList(JOINT_SCORE_ANCHORS, 'EXERCISE_SCORE.JOINT_ANCHORS');
 
 export const SCORE_LEVELS: number[] = Array.from(
   { length: SCORE_MAX - SCORE_MIN + 1 },

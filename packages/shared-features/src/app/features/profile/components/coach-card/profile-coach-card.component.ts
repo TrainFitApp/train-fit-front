@@ -187,8 +187,8 @@ export class ProfileCoachCardComponent implements OnInit {
       id: `notification-${notification._id}`,
       kind: 'notification',
       icon: notificationIcon(notification),
-      title: notificationTitle(notification),
-      subtitle: `${notificationTrainerName(notification)} · ${this.shortDate(notification.createdAt)}`,
+      title: notificationTitle(notification, (key, params) => this.translate.instant(key, params)),
+      subtitle: `${notificationTrainerName(notification, (key, params) => this.translate.instant(key, params))} · ${this.shortDate(notification.createdAt)}`,
       route: notificationRoute(notification),
       notification,
     };

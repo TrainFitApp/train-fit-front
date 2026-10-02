@@ -1,4 +1,5 @@
-import { Component, HostBinding, Input, OnChanges } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { STEPS, STEPS_TYPES, STEPS_VALUES } from 'src/app/shared/constants/steps';
 import { ACTIVITY_FACTOR_VALUES } from 'src/app/shared/constants/activity-factor';
 import { calculateTrainingValues } from 'src/app/shared/constants/training';
@@ -13,6 +14,7 @@ import {
   TRAINING_LOCATION_LABELS,
   TrainingLocation,
 } from '../../../invites/models/trainer-invite.model';
+import { uiLocale, uiText, localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 const EXPERIENCE_LABELS: Record<NonNullable<ClientIntake['experienceLevel']>, string> = {
   none: 'Sin experiencia',
@@ -20,12 +22,14 @@ const EXPERIENCE_LABELS: Record<NonNullable<ClientIntake['experienceLevel']>, st
   intermediate: 'Intermedio',
   advanced: 'Avanzado',
 };
+localizeRecord(EXPERIENCE_LABELS, 'INTAKE.EXPERIENCE');
 
 const COOKS_AT_HOME_LABELS: Record<NonNullable<ClientIntakeNutrition['cooksAtHome']>, string> = {
   yes: 'Sí',
   sometimes: 'A veces',
   no: 'No',
 };
+localizeRecord(COOKS_AT_HOME_LABELS, 'INTAKE.COOKS');
 
 const STEPS_NOT_COUNTED = Number(STEPS[STEPS_TYPES.notCounted].value);
 
@@ -52,6 +56,8 @@ interface AnswerRow {
   styleUrls: ['intake-answers.component.scss'],
 })
 export class IntakeAnswersComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   @Input() public intake!: ClientIntake;
   // list = una respuesta debajo de otra (panel de la ficha); grid = en
   // columnas que llenan el ancho (fila desplegada de la Cartera).
@@ -73,11 +79,11 @@ export class IntakeAnswersComponent implements OnChanges {
   }
 
   public experienceLabel(level: ClientIntake['experienceLevel']): string {
-    return level ? EXPERIENCE_LABELS[level] : 'No indicado';
+    return level ? EXPERIENCE_LABELS[level] : this.translate.instant('CLIENTS.NO_INDICADO');
   }
 
   public trainingLocationLabel(location: TrainingLocation | null): string {
-    return location ? TRAINING_LOCATION_LABELS[location] || location : 'No indicado';
+    return location ? TRAINING_LOCATION_LABELS[location] || location : this.translate.instant('CLIENTS.NO_INDICADO');
   }
 
   public equipmentTagLabel(tag: EquipmentTag): string {
@@ -92,7 +98,7 @@ function toNumber(value: number | string | null): number | null {
 }
 
 function formatNumber(value: number): string {
-  return value.toLocaleString('es-ES', { maximumFractionDigits: 1 });
+  return value.toLocaleString(uiLocale(), { maximumFractionDigits: 1 });
 }
 
 function ageFrom(birth: string): number | null {
@@ -107,9 +113,9 @@ function ageFrom(birth: string): number | null {
 // Mismo criterio que el formulario: objetive es el delta de kcal (0 =
 // mantener, >0 superávit, <0 déficit) que el cliente eligió con el deslizador.
 function objectiveLabel(kcal: number): string {
-  if (kcal === 0) return 'Mantener peso';
-  const amount = `${formatNumber(Math.abs(kcal))} kcal al día`;
-  return kcal > 0 ? `Ganar peso (+${amount})` : `Perder peso (−${amount})`;
+  if (kcal === 0) return this.translate.instant('CLIENTS.MANTENER_PESO');
+  const amount = uiText('CLIENTS.KCAL_AL_DIA', { p0: formatNumber(Math.abs(kcal)) });
+  return kcal > 0 ? uiText('CLIENTS.GANAR_PESO', { amount }) : uiText('CLIENTS.PERDER_PESO', { amount });
 }
 
 // Solo lo que tiene valor: el formulario pregunta según lo que activó el
@@ -119,27 +125,27 @@ function buildProfileRows(profile: ClientIntakeProfile): AnswerRow[] {
   const weight = toNumber(profile.weight);
   const height = toNumber(profile.height);
   const steps = toNumber(profile.steps);
-  if (weight) rows.push({ label: 'Peso', value: `${formatNumber(weight)} kg` });
-  if (height) rows.push({ label: 'Altura', value: `${formatNumber(height)} cm` });
+  if (weight) rows.push({ label: this.translate.instant('TRAINER_COMMON.WEIGHT'), value: `${formatNumber(weight)} kg` });
+  if (height) rows.push({ label: this.translate.instant('CLIENTS.ALTURA'), value: `${formatNumber(height)} cm` });
   if (profile.sex === SEX_TYPES.female || profile.sex === SEX_TYPES.male) {
-    rows.push({ label: 'Sexo', value: SEX[profile.sex as SEX_TYPES] });
+    rows.push({ label: this.translate.instant('CLIENTS.SEXO'), value: SEX[profile.sex as SEX_TYPES] });
   }
   const age = profile.birth ? ageFrom(profile.birth) : null;
-  if (age !== null) rows.push({ label: 'Edad', value: `${age} años` });
+  if (age !== null) rows.push({ label: this.translate.instant('CLIENTS.EDAD'), value: uiText('CLIENTS.ANOS_2', { age }) });
   const stepsOption = STEPS_VALUES.find((s) => Number(s.value) === steps);
-  if (stepsOption) rows.push({ label: 'Pasos al día', value: stepsOption.name, translate: true });
+  if (stepsOption) rows.push({ label: this.translate.instant('CLIENTS.PASOS_AL_DIA'), value: stepsOption.name, translate: true });
   // Como en el formulario: la actividad diaria solo cuenta sin pasos.
   const activityOption = steps === STEPS_NOT_COUNTED
     ? ACTIVITY_FACTOR_VALUES.find((a) => a.value === profile.activity)
     : undefined;
-  if (activityOption) rows.push({ label: 'Actividad diaria', value: activityOption.name, translate: true });
+  if (activityOption) rows.push({ label: this.translate.instant('CLIENTS.ACTIVIDAD_DIARIA'), value: activityOption.name, translate: true });
   const trainingOptions = steps !== null ? calculateTrainingValues(steps) : null;
   const trainingOption = trainingOptions
     ? Object.values(trainingOptions).find((t) => Number(t.value) === profile.training)
     : undefined;
-  if (trainingOption) rows.push({ label: 'Entrenamiento semanal', value: trainingOption.name, translate: true });
+  if (trainingOption) rows.push({ label: this.translate.instant('CLIENTS.ENTRENAMIENTO_SEMANAL'), value: trainingOption.name, translate: true });
   if (profile.objetive !== null && Number.isFinite(profile.objetive)) {
-    rows.push({ label: 'Objetivo', value: objectiveLabel(profile.objetive), span: true });
+    rows.push({ label: this.translate.instant('CLIENT_DETAIL.GOAL'), value: objectiveLabel(profile.objetive), span: true });
   }
   return rows;
 }
@@ -148,11 +154,11 @@ function buildNutritionRows(nutrition: ClientIntakeNutrition): AnswerRow[] {
   const rows: AnswerRow[] = [];
   // Mismas etiquetas que el entrenador ve al configurar su cuestionario
   // (invites.page.ts#intakeFieldLabels).
-  if (nutrition.allergies) rows.push({ label: 'Alergias', value: nutrition.allergies, wide: true, critical: true });
-  if (nutrition.favoriteFoods) rows.push({ label: 'Alimentos favoritos', value: nutrition.favoriteFoods, wide: true });
-  if (nutrition.dislikedFoods) rows.push({ label: 'Alimentos que no le gustan', value: nutrition.dislikedFoods, wide: true });
+  if (nutrition.allergies) rows.push({ label: this.translate.instant('INTAKE.ALLERGIES_TITLE'), value: nutrition.allergies, wide: true, critical: true });
+  if (nutrition.favoriteFoods) rows.push({ label: this.translate.instant('INTAKE.FAVORITES_TITLE'), value: nutrition.favoriteFoods, wide: true });
+  if (nutrition.dislikedFoods) rows.push({ label: this.translate.instant('CLIENTS.ALIMENTOS_QUE_NO_LE_GUSTAN'), value: nutrition.dislikedFoods, wide: true });
   if (nutrition.cooksAtHome) {
-    rows.push({ label: 'Cocina en casa', value: COOKS_AT_HOME_LABELS[nutrition.cooksAtHome] });
+    rows.push({ label: this.translate.instant('CLIENTS.COCINA_EN_CASA'), value: COOKS_AT_HOME_LABELS[nutrition.cooksAtHome] });
   }
   return rows;
 }

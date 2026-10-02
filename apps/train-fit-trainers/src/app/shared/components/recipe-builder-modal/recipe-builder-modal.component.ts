@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { IProduct } from 'src/app/core/models/product';
 import { CustomProduct } from 'src/app/core/models/customProduct';
@@ -36,6 +37,8 @@ interface RecipeIngredient {
   styleUrls: ['./recipe-builder-modal.component.scss'],
 })
 export class RecipeBuilderModalComponent {
+  private readonly translate = inject(TranslateService);
+
   private readonly modalController = inject(ModalController);
   private readonly customProductService = inject(CustomProductService);
   private readonly recipeService = inject(RecipeService);
@@ -143,7 +146,7 @@ export class RecipeBuilderModalComponent {
       // (mismo criterio que ConfigRecipePage.addIngredients con
       // ingredientMode:true, que restringe la búsqueda a "products"): las
       // recetas marcadas en la selección múltiple se descartan aquí.
-      targetLabel: this.name.trim() || 'la receta',
+      targetLabel: this.name.trim() || this.translate.instant('SHARED_COMPONENTS.LA_RECETA'),
       confirmSelection: (items: TrainerFoodSelection[]) => this.addIngredients(items, replaceIndex),
       closeSelf: closeOuter,
       registerSelectionApi: (api) => (this.selectionApi = api),
@@ -194,7 +197,7 @@ export class RecipeBuilderModalComponent {
           ingredientIndex === null && item.kind === 'product' && item.product
             ? (quantity: number) => this.selectionApi?.setSelected(item, quantity)
             : undefined,
-        addLabel: `Añadir a ${this.name.trim() || 'la receta'}`,
+        addLabel: this.translate.instant('SHARED_COMPONENTS.ANADIR', { p0: this.name.trim() || 'la receta' }),
       },
       // 2 paneles de 420px delante (receta + buscador) mientras el
       // buscador esté abierto; solo 1 (la receta) si ya se cerró.
@@ -322,8 +325,8 @@ export class RecipeBuilderModalComponent {
       error: (err) => {
         this.isSaving = false;
         this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo crear la receta',
-          'Error',
+          err?.error?.message || this.translate.instant('SHARED_COMPONENTS.NO_SE_PUDO_CREAR_LA'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },

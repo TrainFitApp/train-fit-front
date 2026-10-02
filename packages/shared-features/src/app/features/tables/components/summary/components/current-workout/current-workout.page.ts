@@ -56,6 +56,10 @@ import {
 } from 'src/app/shared/constants/actions';
 import { Theme, THEMES } from 'src/app/shared/models/theme';
 import { VideoModalComponent } from './video-modal/video-modal.component';
+import { TechniqueVideoView } from 'src/app/core/models/media';
+import { MediaApiService } from 'src/app/core/services/media/media-api.service';
+import { MediaGateService } from 'src/app/shared/components/media/media-gate.service';
+import { FormCheckSubmitModalComponent } from 'src/app/shared/components/media/form-check-submit-modal.component';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { CustomExerciseComponent } from './custom-exercise/custom-exercise.component';
 import { WorkoutSummaryModalComponent } from './workout-summary-modal/workout-summary-modal.component';
@@ -151,6 +155,15 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly exerciseHistoryService = inject(ExerciseHistoryService);
   public readonly restTimerService = inject(RestTimerService);
   private readonly pinnedExerciseNoteService = inject(PinnedExerciseNoteService);
+  private readonly mediaApi = inject(MediaApiService);
+  private readonly mediaGate = inject(MediaGateService);
+
+  // Revisiones de técnica y vídeos del entrenador (docs/plan-medidas-multimedia.md).
+  // Solo con un entrenador de entrenamiento activo, esté o no pautada esta rutina.
+  public canSendFormCheck = false;
+  public techniqueVideos: Record<string, TechniqueVideoView> = {};
+  public formCheckInfo = new Map<string, { count: number; unseen: boolean }>();
+  private mediaContextLoaded = false;
 
   constructor(
     private navigationService: NavigationService,
@@ -213,6 +226,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
+    this.loadMediaContext();
     this.themeService.theme
       .pipe(takeUntil(this.destroy$))
       .subscribe((res: Theme) => (this.theme = res));
@@ -524,13 +538,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     // ion-alert (a diferencia del de readiness, que pasó a modal): es una
     // sola pregunta de cinco opciones, y las radios del alert la resuelven
     // sin construir una pantalla entera. Lo que faltaba eran las etiquetas.
-    const EFFORT_ANCHORS = [
-      'Muy suave, casi no me ha costado',
-      'Cómodo, podría haber hecho más',
-      'Exigente pero llevadero',
-      'Duro, he acabado justo',
-      'Al límite, no podía más',
-    ];
+    const EFFORT_ANCHORS: string[] = this.translate.instant('TABLES.EFFORT_ANCHORS');
     const inputs: AlertOptions['inputs'] = EFFORT_ANCHORS.map((anchor, index) => ({
       type: 'radio',
       label: `${index + 1} · ${anchor}`,
@@ -937,15 +945,86 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
       });
   }
 
+  // La miniatura abre el vídeo del ejercicio: el de su entrenador si lo hay,
+  // el del catálogo y sus revisiones de técnica.
   public async navigateYTVideo(url: string, exercise?: any) {
-    if (!url) return;
+    const exerciseId: string | undefined = exercise?.exercise?._id;
+    const techniqueVideo = exerciseId ? this.techniqueVideos[exerciseId] || null : null;
+    if (!url && !techniqueVideo && !this.canSendFormCheck) return;
     await this.ionicUtilService.showModal({
       component: VideoModalComponent,
       componentProps: {
         videoUrl: url,
         exercise: exercise?.exercise || exercise,
+        techniqueVideo,
+        formCheck: this.canSendFormCheck ? this.formCheckContextOf(exercise) : null,
       },
     });
+    this.refreshFormCheckInfo();
+  }
+
+  private loadMediaContext(): void {
+    if (this.mediaContextLoaded) return;
+    this.mediaContextLoaded = true;
+    this.mediaGate
+      .status()
+      .then((status) => {
+        this.canSendFormCheck = status.enabled && status.hasTrainingTrainer;
+        if (!status.hasTrainingTrainer) return;
+        this.mediaApi.myTechniqueVideos().subscribe({
+          next: ({ byExercise }) => (this.techniqueVideos = byExercise || {}),
+          error: () => undefined,
+        });
+        this.refreshFormCheckInfo();
+      })
+      .catch(() => (this.mediaContextLoaded = false));
+  }
+
+  public refreshFormCheckInfo(): void {
+    if (!this.canSendFormCheck) return;
+    this.mediaApi.listMyFormChecks().subscribe({
+      next: ({ formChecks }) => {
+        const info = new Map<string, { count: number; unseen: boolean }>();
+        for (const check of formChecks) {
+          if (!check.exerciseId) continue;
+          const current = info.get(check.exerciseId) || { count: 0, unseen: false };
+          info.set(check.exerciseId, { count: current.count + 1, unseen: current.unseen || check.unseenFeedback });
+        }
+        this.formCheckInfo = info;
+      },
+      error: () => undefined,
+    });
+  }
+
+  public formCheckInfoOf(exercise: CustomExercise): { count: number; unseen: boolean } | null {
+    const id = exercise?.exercise?._id;
+    return id ? this.formCheckInfo.get(id) || null : null;
+  }
+
+  public hasTechniqueVideo(exercise: CustomExercise): boolean {
+    const id = exercise?.exercise?._id;
+    return !!id && !!this.techniqueVideos[id];
+  }
+
+  private formCheckContextOf(exercise: any) {
+    return {
+      exerciseId: exercise?.exercise?._id || null,
+      exerciseName: exercise?.exercise?.name || '',
+      tableId: this.tableInUse?._id || null,
+      sets: exercise?.sets || [],
+      date: this.utilService.formatDateToYYYYMMDD(new Date()),
+    };
+  }
+
+  public async openFormCheck(exercise: CustomExercise): Promise<void> {
+    const gate = await this.mediaGate.ensureCanUpload();
+    if (gate !== 'ok') return;
+    const result = await this.ionicUtilService.showModal({
+      component: FormCheckSubmitModalComponent,
+      componentProps: this.formCheckContextOf(exercise),
+      cssClass: 'fullscreen-modal',
+    });
+    if (result?.role === 'sent') this.refreshFormCheckInfo();
   }
 
   public onSetCompleted(set: Set): void {

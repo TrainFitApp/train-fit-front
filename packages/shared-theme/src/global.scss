@@ -37,6 +37,16 @@ body.hide-tabs ion-tab-bar {
 }
 
 /*
+ * Texto de ion-button siempre en mayúsculas. Ionic solo lo hace en modo md
+ * (Android, web); en iOS hereda el texto del i18n tal cual y los botones
+ * compañeros salían mezclados («NOTA» junto a «series»). Los botones que
+ * fijan su propio text-transform en el componente lo siguen respetando.
+ */
+ion-button {
+  text-transform: uppercase;
+}
+
+/*
  * Teclado numérico a medida (app-numeric-keypad, montado fuera de ion-app en
  * app.component.html). Mientras está abierto, ion-app se encoge para dejarle
  * sitio, igual que hace el webview con el teclado del sistema
@@ -1015,6 +1025,60 @@ ion-modal.confirm-sheet-modal {
 /* Nota del entrenador (TrainerNoteSheetComponent) — hoja de alto automático:
    crece con el texto y el scroll va dentro del componente (.tn-body). */
 ion-modal.trainer-note-sheet-modal {
+  --height: auto;
+  --border-radius: 20px 20px 0 0;
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
+/* Nuevo producto / nueva receta del buscador de alimentos
+   (CreateFoodSheetComponent) — hoja de alto automático. */
+ion-modal.create-food-sheet-modal {
+  --height: auto;
+  --border-radius: 20px 20px 0 0;
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
+/* Adición rápida del buscador de alimentos (QuickAddSheetComponent) — hoja
+   de alto automático: con el teclado abierto, el alto fijo dejaría los
+   botones fuera de la pantalla. */
+ion-modal.quick-add-sheet-modal {
+  --height: auto;
+  --border-radius: 20px 20px 0 0;
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
+/* Recientes de una comida del buscador de alimentos
+   (RecentFoodsSheetComponent) — hoja de alto automático; la lista hace
+   scroll dentro del componente. */
+ion-modal.recent-foods-sheet-modal {
+  --height: auto;
+  --border-radius: 20px 20px 0 0;
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
+/* Consentimiento de fotos y vídeos (MediaConsentSheetComponent) — hoja de
+   alto automático: el texto cambia de largo según idioma y entrenador. */
+ion-modal.media-consent-sheet-modal {
   --height: auto;
   --border-radius: 20px 20px 0 0;
 

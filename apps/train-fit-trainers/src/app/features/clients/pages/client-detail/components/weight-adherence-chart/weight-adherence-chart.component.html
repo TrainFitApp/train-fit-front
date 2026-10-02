@@ -2,18 +2,18 @@
   <div class="weight-chart__summary" *ngIf="hasData">
     <span class="weight-chart__summary-item" *ngIf="averageCompliance !== null">
       <span class="weight-chart__summary-dot weight-chart__summary-dot--adherence"></span>
-      Cumplimiento medio
+      {{ 'CLIENTS.CUMPLIMIENTO_MEDIO' | translate }}
       <strong>{{ averageCompliance }}%</strong>
     </span>
     <span class="weight-chart__summary-item" *ngIf="weightDelta as delta">
       <span class="weight-chart__summary-dot weight-chart__summary-dot--weight"></span>
-      Peso
-      <strong>{{ delta.startKg }} kg → {{ delta.endKg }} kg</strong>
+      {{ 'TRAINER_COMMON.WEIGHT' | translate }}
+      <strong>{{ delta.startKg }} {{ 'CLIENTS.KG_3' | translate }} {{ delta.endKg }} kg</strong>
     </span>
   </div>
 
   <p class="empty-hint" *ngIf="!isLoading && !hasData">
-    Sin cumplimiento ni pesajes registrados en este rango.
+    {{ 'CLIENTS.SIN_CUMPLIMIENTO_NI_PESAJES_REGISTRADOS' | translate }}
   </p>
 
   <div class="weight-chart__canvas-wrap" [class.is-loading]="isLoading">
@@ -21,10 +21,10 @@
   </div>
 
   <div class="weight-chart__legend">
-    <span class="legend-item"><span class="legend-swatch legend-swatch--adherence"></span>Cumplimiento (% pautado)</span>
-    <span class="legend-item" *ngIf="hasWeightData"><span class="legend-swatch legend-swatch--weight"></span>Peso</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--adherence"></span>{{ 'CLIENTS.CUMPLIMIENTO_PAUTADO' | translate }}</span>
+    <span class="legend-item" *ngIf="hasWeightData"><span class="legend-swatch legend-swatch--weight"></span>{{ 'TRAINER_COMMON.WEIGHT' | translate }}</span>
     <span class="weight-chart__no-weight" *ngIf="!isLoading && hasData && !hasWeightData">
-      Sin pesajes registrados en este rango.
+      {{ 'CLIENTS.SIN_PESAJES_REGISTRADOS_EN_ESTE' | translate }}
     </span>
   </div>
 </div>

@@ -1745,7 +1745,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         this.applyingTemplate = false;
         if (!templates.length) {
           this.ionicUtilService.showToast({
-            message: 'Todavía no tienes plantillas de rutina. Créalas desde "Plantillas de rutinas".',
+            message: this.translate.instant('TABLES.NO_WORKOUT_TEMPLATES'),
             duration: 3000,
           });
           return;
@@ -1755,7 +1755,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       error: () => {
         this.applyingTemplate = false;
         this.ionicUtilService.showToast({
-          message: 'No se pudieron cargar las plantillas',
+          message: this.translate.instant('TABLES.TEMPLATES_LOAD_ERROR'),
           duration: 2500,
         });
       },
@@ -1771,7 +1771,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     }));
 
     await this.ionicUtilService.showAlert({
-      header: 'Aplicar plantilla a este microciclo',
+      header: this.translate.instant('TABLES.APPLY_TEMPLATE_HEADER'),
       inputs,
       buttons: [
         { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
@@ -1795,12 +1795,12 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         this.applyingTemplate = false;
         this.tableInUse.splits = resSplits;
         this.tableService.setCurrentTable = this.tableInUse;
-        this.ionicUtilService.showToast({ message: 'Plantilla aplicada', duration: 1500 });
+        this.ionicUtilService.showToast({ message: this.translate.instant('TABLES.TEMPLATE_APPLIED'), duration: 1500 });
       },
       error: () => {
         this.applyingTemplate = false;
         this.ionicUtilService.showToast({
-          message: 'No se pudo aplicar la plantilla',
+          message: this.translate.instant('TABLES.TEMPLATE_APPLY_ERROR'),
           duration: 2500,
         });
       },

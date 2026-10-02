@@ -1,6 +1,7 @@
 import { CHECKIN_FIELDS, CHECKIN_FIELDS_BY_KEY, checkinAnchorFor, scaleLevelsFor } from 'src/app/core/constants/checkin-fields';
 import { CustomCheckinQuestion } from '../checkin-templates/models/checkin-template.model';
 import { checkinFieldLabel, checkinValueLabel, shortDayLabel } from './checkin-labels.util';
+import { uiLocale, uiText, localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 // Cómo se pinta UNA respuesta de check-in en el panel de semana: el peso
 // arriba, los datos agrupados por tipo, la frase que eligió el cliente en cada
@@ -52,6 +53,7 @@ const GROUPS: Omit<CheckinDisplayGroup, 'rows'>[] = [
   { key: 'custom', label: 'Tus preguntas', layout: 'list' },
   { key: 'comment', label: '', layout: 'list' },
 ];
+GROUPS.forEach((item) => localizeProp(item, 'label', `CLIENTS.CHECKIN_GROUPS.${item.key}`));
 
 // Orden del catálogo: antes salían en el de las claves de la respuesta, que
 // cambia de un formulario a otro. Las preguntas propias, al final y en su orden.
@@ -60,7 +62,7 @@ const CATALOG_ORDER = new Map(CHECKIN_FIELDS.map((field, index) => [field.key, i
 const CUSTOM_ORDER = 10000;
 const LONG_TEXT_CHARS = 32;
 
-const fmt = (value: number): string => value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+const fmt = (value: number): string => value.toLocaleString(uiLocale(), { maximumFractionDigits: 2 });
 
 function groupOf(key: string): string {
   if (key.startsWith('custom:')) return 'custom';
@@ -84,7 +86,7 @@ function fieldOf(
 
 function deltaText(current: number, previous: number, unit: string): string {
   const diff = Math.round((current - previous) * 100) / 100;
-  if (diff === 0) return 'Igual';
+  if (diff === 0) return uiText('CLIENTS.IGUAL');
   return `${diff > 0 ? '+' : '−'}${fmt(Math.abs(diff))}${unit ? ' ' + unit : ''}`;
 }
 
@@ -99,7 +101,9 @@ function rowFor(
   const before = previous?.values?.[key];
 
   let shown: string;
-  if (typeof value === 'number') shown = isScale ? `${fmt(value)}/${levels}` : `${fmt(value)}${unit ? ' ' + unit : ''}`;
+  // Fotos: el valor es el id del día; las fotos se ven en la revisión.
+  if (type === 'photos') shown = uiText('CLIENTS.FOTOS_ENVIADAS');
+  else if (typeof value === 'number') shown = isScale ? `${fmt(value)}/${levels}` : `${fmt(value)}${unit ? ' ' + unit : ''}`;
   else shown = checkinValueLabel(value);
 
   return {

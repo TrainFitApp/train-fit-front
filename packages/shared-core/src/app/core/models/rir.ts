@@ -1,3 +1,5 @@
+import { uiText } from '../i18n/localized-catalog';
+
 export type RirValue = number[] | null;
 
 export interface RirSelection {
@@ -8,6 +10,13 @@ export interface RirSelection {
 export const RIR_FAIL_VALUE = -1;
 export const RIR_EMPTY_LABEL = '-';
 export const RIR_FAIL_LABEL = 'FALLO';
+
+// "FALLO" en el idioma del usuario (RIR.FAIL); RIR_FAIL_LABEL es el respaldo
+// y lo que se sigue aceptando al teclearlo.
+export function rirFailLabel(): string {
+  const label = uiText('RIR.FAIL');
+  return label === 'RIR.FAIL' ? RIR_FAIL_LABEL : label;
+}
 
 const MIN_RIR_VALUE = 0;
 const MAX_RIR_VALUE = 10;
@@ -95,6 +104,7 @@ export function normalizeRirValue(value: unknown): RirValue {
 
   if (
     trimmedValue.toUpperCase() === RIR_FAIL_LABEL ||
+    trimmedValue.toUpperCase() === rirFailLabel().toUpperCase() ||
     trimmedValue === RIR_FAIL_VALUE.toString()
   ) {
     return [RIR_FAIL_VALUE];
@@ -152,7 +162,7 @@ export function formatRirValue(
   }
 
   if (normalizedValue[0] === RIR_FAIL_VALUE) {
-    return RIR_FAIL_LABEL;
+    return rirFailLabel();
   }
 
   const label = normalizedValue.join('-');

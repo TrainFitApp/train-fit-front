@@ -4,9 +4,9 @@
 
 <div class="state-message" *ngIf="state === 'error'">
   <ion-icon name="cloud-offline-outline"></ion-icon>
-  <h2>No se pudo cargar tu cartera</h2>
-  <p>Comprueba tu conexión e inténtalo de nuevo.</p>
-  <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  <h2>{{ 'CLIENTS.NO_SE_PUDO_CARGAR_TU' | translate }}</h2>
+  <p>{{ 'CLIENTS.COMPRUEBA_TU_CONEXION_INTENTALO_DE' | translate }}</p>
+  <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
 </div>
 
 <ng-container *ngIf="state === 'loaded'">
@@ -15,7 +15,7 @@
        ámbar = se espera al cliente; aro gris = aún no ha aceptado. -->
   <section class="pending-block" *ngIf="pendingCount" aria-labelledby="roster-pending-title">
     <h2 class="pending-title" id="roster-pending-title">
-      Pendientes <span class="pending-count">{{ pendingCount }}</span>
+      {{ 'CLIENTS.PENDIENTES' | translate }} <span class="pending-count">{{ pendingCount }}</span>
     </h2>
 
     <ul class="pending-list">
@@ -37,7 +37,7 @@
             <span class="pending-name">{{ row.clientName }}</span>
             <span class="intake-status" [class.intake-status--review]="row.intakeStatus === 'submitted'">
               <span class="intake-status-dot" aria-hidden="true"></span>
-              {{ row.intakeStatus === 'submitted' ? 'Intake por revisar' : 'Pendiente de rellenar el intake' }}
+              {{ row.intakeStatus === 'submitted' ? ('CLIENTS.INTAKE_POR_REVISAR' | translate) : ('CLIENTS.PENDIENTE_DE_RELLENAR_EL_INTAKE' | translate) }}
             </span>
             <span class="pending-meta" *ngIf="row.scopes.length">{{ scopesLabel(row.scopes) }}</span>
           </span>
@@ -52,21 +52,21 @@
           class="intake-review"
           *ngIf="expandedClientId === row.clientId"
           [id]="'roster-detail-' + row.clientId"
-          [attr.aria-label]="'Intake de ' + row.clientName"
+          [attr.aria-label]="('CLIENTS.INTAKE_DE' | translate) + row.clientName"
         >
           <header class="intake-review-header">
             <div class="intake-review-heading">
               <h4 class="intake-review-title">
-                {{ row.intakeStatus === 'submitted' ? 'Intake por revisar' : 'Pendiente de rellenar el intake' }}
+                {{ row.intakeStatus === 'submitted' ? ('CLIENTS.INTAKE_POR_REVISAR' | translate) : ('CLIENTS.PENDIENTE_DE_RELLENAR_EL_INTAKE' | translate) }}
               </h4>
               <p class="intake-review-note" *ngIf="row.intakeStatus === 'submitted'">
                 <ng-container *ngIf="intakeState === 'loaded' && expandedIntake?.submittedAt">
-                  Enviado el {{ expandedIntake?.submittedAt | date: 'd MMM y' }} ·
+                  {{ 'CLIENTS.ENVIADO_EL' | translate }} {{ expandedIntake?.submittedAt | localDate: 'd MMM y' }} ·
                 </ng-container>
-                Revísalo para abrir su ficha. Hasta entonces puede cambiar sus respuestas.
+                {{ 'CLIENTS.REVISALO_PARA_ABRIR_SU_FICHA' | translate }}
               </p>
               <p class="intake-review-note" *ngIf="row.intakeStatus === 'pending'">
-                Aún no lo ha enviado. Podrás abrir su ficha cuando lo envíe y lo revises.
+                {{ 'CLIENTS.AUN_NO_LO_HA_ENVIADO' | translate }}
               </p>
             </div>
 
@@ -77,7 +77,7 @@
                 [disabled]="busyClientId === row.clientId"
                 (click)="confirmReject(row)"
               >
-                Rechazar
+                {{ 'ONBOARDING.DECLINE' | translate }}
               </button>
               <button
                 type="button"
@@ -86,7 +86,7 @@
                 [disabled]="busyClientId === row.clientId"
                 (click)="markIntakeReviewed(row)"
               >
-                <span *ngIf="busyClientId !== row.clientId">Marcar revisado y abrir ficha</span>
+                <span *ngIf="busyClientId !== row.clientId">{{ 'CLIENTS.MARCAR_REVISADO_ABRIR_FICHA' | translate }}</span>
                 <ion-spinner name="dots" *ngIf="busyClientId === row.clientId"></ion-spinner>
               </button>
             </div>
@@ -95,8 +95,8 @@
           <ng-container *ngIf="row.intakeStatus === 'submitted'">
             <div class="skeleton-block intake-review-skeleton" *ngIf="intakeState === 'loading'"></div>
             <p class="detail-line" *ngIf="intakeState === 'error'">
-              No se pudo cargar el intake.
-              <button type="button" class="intake-review-retry" (click)="loadIntake(row.clientId)">Reintentar</button>
+              {{ 'CLIENTS.NO_SE_PUDO_CARGAR_EL_2' | translate }}
+              <button type="button" class="intake-review-retry" (click)="loadIntake(row.clientId)">{{ 'COMMON.RETRY' | translate }}</button>
             </p>
             <app-intake-answers
               *ngIf="intakeState === 'loaded' && expandedIntake as intake"
@@ -113,7 +113,7 @@
             <span class="pending-name" [title]="group.clientEmail">{{ group.clientName || group.clientEmail }}</span>
             <span class="intake-status intake-status--invite">
               <span class="intake-status-dot" aria-hidden="true"></span>
-              Pendiente de aceptar
+              {{ 'CLIENTS.PENDIENTE_DE_ACEPTAR' | translate }}
             </span>
             <span class="pending-meta">{{ scopesLabel(inviteScopes(group)) }} · {{ invitedLabel(group) }}</span>
           </span>
@@ -122,9 +122,9 @@
             class="intake-review-reject"
             [disabled]="cancellingEmail === group.clientEmail"
             (click)="confirmCancelInvite(group)"
-            [attr.aria-label]="'Cancelar la invitación de ' + (group.clientName || group.clientEmail)"
+            [attr.aria-label]="('CLIENTS.CANCELAR_LA_INVITACION_DE' | translate) + (group.clientName || group.clientEmail)"
           >
-            Cancelar
+            {{ 'COMMON.CANCEL' | translate }}
           </button>
         </div>
       </li>
@@ -133,8 +133,8 @@
 
   <div class="state-message" *ngIf="!activeRows.length">
     <ion-icon name="people-outline"></ion-icon>
-    <h2>Todavía no hay nada que comparar</h2>
-    <p>Cuando tengas clientes activos verás aquí su adherencia, su peso y sus check-ins uno al lado del otro.</p>
+    <h2>{{ 'CLIENTS.TODAVIA_NO_HAY_NADA_QUE' | translate }}</h2>
+    <p>{{ 'CLIENTS.CUANDO_TENGAS_CLIENTES_ACTIVOS_VERAS' | translate }}</p>
   </div>
 </ng-container>
 
@@ -148,8 +148,8 @@
       <input
         type="search"
         class="roster-search__input"
-        placeholder="Buscar por nombre o correo"
-        aria-label="Buscar por nombre o correo"
+        [placeholder]="'CLIENTS.BUSCAR_POR_NOMBRE_CORREO' | translate"
+        [attr.aria-label]="'CLIENTS.BUSCAR_POR_NOMBRE_CORREO' | translate"
         [(ngModel)]="searchQuery"
       />
     </div>
@@ -159,7 +159,7 @@
       class="roster-filter-btn"
       [class.has-filters]="activeFilterCount"
       (click)="showFilters = true"
-      aria-label="Filtrar clientes"
+      [attr.aria-label]="'CLIENTS.FILTRAR_CLIENTES' | translate"
     >
       <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
       <span class="roster-filter-btn__count" *ngIf="activeFilterCount">{{ activeFilterCount }}</span>
@@ -167,7 +167,7 @@
   </div>
 
   <p class="roster-hint">
-    Últimos {{ periodDays }} días. Pulsa una columna para ordenar, una fila para abrir la ficha o su flecha para ver el desglose.
+    {{ 'CLIENTS.ULTIMOS' | translate }} {{ periodDays }} {{ 'CLIENTS.DIAS_PULSA_UNA_COLUMNA_PARA' | translate }}
   </p>
 
   <!-- La tabla desborda en horizontal dentro de su propio contenedor; el
@@ -179,42 +179,48 @@
         <tr>
           <th scope="col" class="col-name">
             <button type="button" class="sort-button" (click)="toggleSort('name')">
-              Cliente
+              {{ 'TRAINER_COMMON.CLIENT' | translate }}
               <ion-icon [name]="sortIcon('name')" aria-hidden="true"></ion-icon>
             </button>
           </th>
           <th scope="col">
             <button type="button" class="sort-button" (click)="toggleSort('adherence')">
-              Adherencia
+              {{ 'CLIENTS.ADHERENCIA' | translate }}
               <ion-icon [name]="sortIcon('adherence')" aria-hidden="true"></ion-icon>
             </button>
           </th>
-          <th scope="col">Punto débil</th>
+          <th scope="col">{{ 'CLIENTS.PUNTO_DEBIL' | translate }}</th>
           <th scope="col">
             <button type="button" class="sort-button" (click)="toggleSort('weight')">
-              Peso
+              {{ 'TRAINER_COMMON.WEIGHT' | translate }}
               <ion-icon [name]="sortIcon('weight')" aria-hidden="true"></ion-icon>
             </button>
           </th>
           <th scope="col">
             <button type="button" class="sort-button" (click)="toggleSort('checkin')">
-              Último check-in
+              {{ 'CLIENTS.ULTIMO_CHECK_IN' | translate }}
               <ion-icon [name]="sortIcon('checkin')" aria-hidden="true"></ion-icon>
             </button>
           </th>
           <th scope="col">
             <button type="button" class="sort-button" (click)="toggleSort('sessions')">
-              Sesiones
+              {{ 'CLIENTS.SESIONES' | translate }}
               <ion-icon [name]="sortIcon('sessions')" aria-hidden="true"></ion-icon>
             </button>
           </th>
           <th scope="col">
+            <button type="button" class="sort-button" (click)="toggleSort('review')">
+              {{ 'CLIENTS.POR_REVISAR' | translate }}
+              <ion-icon [name]="sortIcon('review')" aria-hidden="true"></ion-icon>
+            </button>
+          </th>
+          <th scope="col">
             <button type="button" class="sort-button" (click)="toggleSort('alerts')">
-              Alertas
+              {{ 'CLIENTS.ALERTAS' | translate }}
               <ion-icon [name]="sortIcon('alerts')" aria-hidden="true"></ion-icon>
             </button>
           </th>
-          <th scope="col"><span class="sr-only">Desplegar desglose</span></th>
+          <th scope="col"><span class="sr-only">{{ 'CLIENTS.DESPLEGAR_DESGLOSE' | translate }}</span></th>
         </tr>
       </thead>
 
@@ -230,7 +236,7 @@
                 type="button"
                 class="row-name"
                 (click)="openClient(row); $event.stopPropagation()"
-                [attr.aria-label]="'Abrir la ficha de ' + row.clientName"
+                [attr.aria-label]="('CLIENTS.ABRIR_LA_FICHA_DE' | translate) + row.clientName"
               >
                 {{ row.clientName }}
               </button>
@@ -256,6 +262,34 @@
 
             <td class="cell-number">{{ row.sessions }}</td>
 
+            <!-- Lo que te ha mandado y espera respuesta. Cada chip lleva a
+                 donde se revisa, sin pasar por la ficha a buscarlo. -->
+            <td>
+              <span class="pending-chips" *ngIf="row.pendingCheckins || row.pendingFormChecks; else noPending">
+                <button
+                  type="button"
+                  class="pending-chip"
+                  *ngIf="row.pendingCheckins"
+                  (click)="openPendingCheckins(row, $event)"
+                  [attr.aria-label]="row.pendingCheckins + (row.pendingCheckins === 1 ? ' check-in' : ' check-ins') + ('CLIENTS.POR_REVISAR_DE' | translate) + row.clientName"
+                  [title]="row.pendingCheckins + (row.pendingCheckins === 1 ? ' check-in' : ' check-ins') + ('CLIENTS.POR_REVISAR_2' | translate)"
+                >
+                  <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>{{ row.pendingCheckins }}
+                </button>
+                <button
+                  type="button"
+                  class="pending-chip"
+                  *ngIf="row.pendingFormChecks"
+                  (click)="openPendingFormChecks(row, $event)"
+                  [attr.aria-label]="row.pendingFormChecks + (row.pendingFormChecks === 1 ? ('CLIENTS.VIDEO' | translate) : ('CLIENTS.VIDEOS' | translate)) + ('CLIENTS.DE_TECNICA_POR_REVISAR_DE' | translate) + row.clientName"
+                  [title]="row.pendingFormChecks + (row.pendingFormChecks === 1 ? ('CLIENTS.VIDEO' | translate) : ('CLIENTS.VIDEOS' | translate)) + ('CLIENTS.DE_TECNICA_POR_REVISAR' | translate)"
+                >
+                  <ion-icon name="videocam-outline" aria-hidden="true"></ion-icon>{{ row.pendingFormChecks }}
+                </button>
+              </span>
+              <ng-template #noPending><span class="cell-muted">—</span></ng-template>
+            </td>
+
             <td>
               <span class="alert-count" *ngIf="row.openAlerts" [class.alert-count--urgent]="row.urgentAlerts">
                 {{ row.openAlerts }}
@@ -268,7 +302,7 @@
                 type="button"
                 class="expand-button"
                 (click)="toggleRow(row); $event.stopPropagation()"
-                [attr.aria-label]="(expandedClientId === row.clientId ? 'Ocultar ' : 'Ver ') + 'el desglose de ' + row.clientName"
+                [attr.aria-label]="(expandedClientId === row.clientId ? ('CLIENTS.OCULTAR' | translate) : ('CLIENTS.VER' | translate)) + ('CLIENTS.EL_DESGLOSE_DE' | translate) + row.clientName"
                 [attr.aria-expanded]="expandedClientId === row.clientId"
                 [attr.aria-controls]="expandedClientId === row.clientId ? 'roster-detail-' + row.clientId : null"
               >
@@ -283,7 +317,7 @@
           <!-- Desglose: los cuatro números detrás de la media, y el motivo
                por el que alguno no se puede medir. -->
           <tr class="roster-detail-row" *ngIf="expandedClientId === row.clientId" [id]="'roster-detail-' + row.clientId">
-            <td [attr.colspan]="8">
+            <td [attr.colspan]="9">
 
               <div class="dimension-grid">
                 <button
@@ -291,7 +325,7 @@
                   class="dimension"
                   *ngFor="let key of dimensionKeys; trackBy: trackByDimension"
                   (click)="openClientDimension(row, key, $event)"
-                  [attr.aria-label]="'Abrir ' + dimensionLabel(key) + ' de ' + row.clientName"
+                  [attr.aria-label]="('CLIENTS.ABRIR' | translate) + dimensionLabel(key) + ('CLIENTS.DE' | translate) + row.clientName"
                 >
                   <span class="dimension-label">{{ dimensionLabel(key) }}</span>
                   <span
@@ -330,8 +364,8 @@
     <div class="panel-handle"></div>
 
     <header class="sheet-header">
-      <h3 class="panel-title" id="roster-filters-title">Filtrar</h3>
-      <button type="button" class="close-button" (click)="showFilters = false" aria-label="Cerrar">
+      <h3 class="panel-title" id="roster-filters-title">{{ 'CLIENTS.FILTRAR' | translate }}</h3>
+      <button type="button" class="close-button" (click)="showFilters = false" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
         <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
       </button>
     </header>
@@ -339,14 +373,14 @@
     <!-- Los recuentos salen de las filas ya filtradas por la búsqueda: sin
          avisarlo, "Nutrición 1" con 30 clientes parece un error. -->
     <p class="search-note" *ngIf="searchQuery.trim()">
-      Contando solo los que coinciden con «{{ searchQuery.trim() }}».
+      {{ 'CLIENTS.CONTANDO_SOLO_LOS_QUE_COINCIDEN' | translate }}{{ searchQuery.trim() }}».
     </p>
 
     <!-- Cada grupo es una lista de filas, no pastillas sueltas: cinco
          pastillas se partían en dos renglones desiguales según el ancho y
          medían 36px. Radio = se elige una; casilla = se suman. -->
     <fieldset class="filter-group">
-      <legend class="group-label">Punto débil</legend>
+      <legend class="group-label">{{ 'CLIENTS.PUNTO_DEBIL' | translate }}</legend>
       <div class="filter-list">
         <label class="filter-row" [class.is-active]="!filterWeakest">
           <input
@@ -357,7 +391,7 @@
             (change)="filterWeakest = null"
           />
           <span class="filter-row__mark filter-row__mark--radio" aria-hidden="true"></span>
-          <span class="filter-row__label">Cualquiera</span>
+          <span class="filter-row__label">{{ 'CLIENTS.CUALQUIERA' | translate }}</span>
           <span class="filter-row__count">{{ countWith({ weakest: null }) }}</span>
         </label>
         <label
@@ -380,14 +414,14 @@
     </fieldset>
 
     <fieldset class="filter-group">
-      <legend class="group-label">Solo mostrar</legend>
+      <legend class="group-label">{{ 'CLIENTS.SOLO_MOSTRAR' | translate }}</legend>
       <div class="filter-list">
         <label class="filter-row" [class.is-active]="filterOnlyWithAlerts">
           <input type="checkbox" class="filter-row__input" [(ngModel)]="filterOnlyWithAlerts" />
           <span class="filter-row__mark filter-row__mark--check" aria-hidden="true">
             <ion-icon name="checkmark"></ion-icon>
           </span>
-          <span class="filter-row__label">Con alertas abiertas</span>
+          <span class="filter-row__label">{{ 'CLIENTS.CON_ALERTAS_ABIERTAS' | translate }}</span>
           <span class="filter-row__count">{{ countWith({ onlyWithAlerts: true }) }}</span>
         </label>
         <label class="filter-row" [class.is-active]="filterOnlyOverdueCheckin">
@@ -395,18 +429,26 @@
           <span class="filter-row__mark filter-row__mark--check" aria-hidden="true">
             <ion-icon name="checkmark"></ion-icon>
           </span>
-          <span class="filter-row__label">Con el check-in vencido</span>
+          <span class="filter-row__label">{{ 'CLIENTS.CON_EL_CHECK_IN_VENCIDO' | translate }}</span>
           <span class="filter-row__count">{{ countWith({ onlyOverdueCheckin: true }) }}</span>
+        </label>
+        <label class="filter-row" [class.is-active]="filterOnlyWithPending">
+          <input type="checkbox" class="filter-row__input" [(ngModel)]="filterOnlyWithPending" />
+          <span class="filter-row__mark filter-row__mark--check" aria-hidden="true">
+            <ion-icon name="checkmark"></ion-icon>
+          </span>
+          <span class="filter-row__label">{{ 'CLIENTS.CON_ALGO_POR_REVISAR' | translate }}</span>
+          <span class="filter-row__count">{{ countWith({ onlyWithPending: true }) }}</span>
         </label>
       </div>
     </fieldset>
 
     <footer class="sheet-footer">
       <button type="button" class="ghost-button" [disabled]="!activeFilterCount" (click)="clearFilters()">
-        Quitar filtros
+        {{ 'CLIENTS.QUITAR_FILTROS' | translate }}
       </button>
       <button type="button" class="submit-button" (click)="showFilters = false">
-        Ver {{ visibleRows.length }} {{ visibleRows.length === 1 ? 'cliente' : 'clientes' }}
+        {{ 'ONBOARDING.VIEW' | translate }} {{ visibleRows.length }} {{ (visibleRows.length === 1 ? 'TRAINER_COMMON.PL_CLIENT_ONE' : 'TRAINER_COMMON.PL_CLIENT_MANY') | translate }}
       </button>
     </footer>
   </div>

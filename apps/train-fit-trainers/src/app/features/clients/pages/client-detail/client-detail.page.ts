@@ -8,6 +8,7 @@ import {
   ViewContainerRef,
   inject,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, skip } from 'rxjs/operators';
 import { firstValueFrom, of, Subscription } from 'rxjs';
@@ -31,6 +32,8 @@ import {
   TrainingLocation,
 } from '../../../invites/models/trainer-invite.model';
 
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
+
 Chart.register(...registerables);
 
 const TRAINING_GOAL_TYPE_LABELS: Record<TrainingGoalType, string> = {
@@ -40,10 +43,14 @@ const TRAINING_GOAL_TYPE_LABELS: Record<TrainingGoalType, string> = {
   mobility: 'Movilidad',
   general: 'General',
 };
+Object.keys(TRAINING_GOAL_TYPE_LABELS).forEach((type) =>
+  localizeProp(TRAINING_GOAL_TYPE_LABELS, type as TrainingGoalType, `CLIENT_DETAIL.TRAINING_GOAL_TYPES.${type}`)
+);
 import {
   checkinAnchorFor,
   checkinScaleSuffix,
 } from 'src/app/core/constants/checkin-fields';
+import { HABIT_TYPE_ICONS } from 'src/app/core/constants/habit-icons';
 import { formatSoreness } from 'src/app/core/constants/soreness';
 import {
   AdherenceDimension,
@@ -130,6 +137,7 @@ import {
 import { ClientNote } from './models/client-notes.model';
 import { LedgerIntent } from '../../../payments/components/client-payments-ledger/client-payments-ledger.component';
 import { PaymentsCardRequest } from '../../../payments/components/client-payments-card/client-payments-card.component';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
@@ -153,6 +161,9 @@ const TRACKING_PRESETS_WITH_PHASE: TrackingPresetOption[] = [
   ...TRACKING_PRESETS,
   { key: 'phase', label: 'Fase actual' },
 ];
+[...TRACKING_PRESETS_WITH_PHASE].forEach((preset) =>
+  localizeProp(preset, 'label', `CLIENT_DETAIL.TRACKING_PRESETS.${preset.key}`)
+);
 
 // Una FASE por entrada, no un doc por entrada: las semanas preparadas de
 // una fase son docs DietTemplate con el mismo phaseId, y
@@ -185,8 +196,10 @@ function groupPhaseDocs(docs: PlanAssignment[]): PlanAssignment[] {
   styleUrls: ['client-detail.page.scss'],
 })
 export class ClientDetailPage implements OnInit, AfterViewInit {
+  private readonly translate = inject(TranslateService);
+
   public clientId = '';
-  public name = 'Cliente';
+  public name = this.translate.instant('TRAINER_COMMON.CLIENT');
   public scopes: ClientScope[] = [];
   public activeTab: ClientDetailTab = 'training';
   // Movimiento 1 Coach Pro — las 9 pestañas planas pasan a 4 secciones con
@@ -263,23 +276,17 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public taskTargetMax: number | null = null;
   public taskUnit = '';
   public isSavingTask = false;
-  public readonly taskTypeIcons: Record<TrainerTaskType, string> = {
-    steps: 'footsteps-outline',
-    water: 'water-outline',
-    sleep: 'moon-outline',
-    cardio: 'heart-outline',
-    custom: 'checkmark-circle-outline',
-  };
+  public readonly taskTypeIcons: Record<TrainerTaskType, string> = HABIT_TYPE_ICONS;
   public readonly taskTypeOptions: {
     value: TrainerTaskType;
     label: string;
     defaultUnit: string;
   }[] = [
-    { value: 'steps', label: 'Pasos', defaultUnit: 'pasos' },
-    { value: 'water', label: 'Agua', defaultUnit: 'L' },
-    { value: 'sleep', label: 'Sueño', defaultUnit: 'horas' },
-    { value: 'cardio', label: 'Cardio', defaultUnit: 'min' },
-    { value: 'custom', label: 'Personalizada', defaultUnit: '' },
+    { value: 'steps', label: this.translate.instant('CLIENT_DETAIL.PASOS'), defaultUnit: this.translate.instant('CLIENT_DETAIL.UNIT_STEPS') },
+    { value: 'water', label: this.translate.instant('CLIENT_DETAIL.AGUA'), defaultUnit: 'L' },
+    { value: 'sleep', label: this.translate.instant('CLIENT_DETAIL.SUENO'), defaultUnit: this.translate.instant('CLIENT_DETAIL.UNIT_HOURS') },
+    { value: 'cardio', label: this.translate.instant('CLIENT_DETAIL.CARDIO'), defaultUnit: 'min' },
+    { value: 'custom', label: this.translate.instant('CLIENT_DETAIL.PERSONALIZADA'), defaultUnit: '' },
   ];
 
   // --- Entrenamiento ---
@@ -431,7 +438,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     const range = this.customTrackingRange;
     if (!range) return '';
     const fmt = (iso: string): string =>
-      new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
+      new Date(iso + 'T00:00:00Z').toLocaleDateString(uiLocale(), {
         day: 'numeric',
         month: 'short',
         timeZone: 'UTC',
@@ -583,14 +590,14 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         if (!match) {
           this.headerState = 'error';
           this.ionicUtilService.showToast({
-            message: 'No se encontró este cliente o no tienes acceso.',
+            message: this.translate.instant('CLIENT_DETAIL.NO_SE_ENCONTRO_ESTE_CLIENTE'),
             duration: 3000,
           });
           return;
         }
         this.name = match.user
           ? `${match.user.name} ${match.user.lastname}`.trim()
-          : 'Cliente';
+          : this.translate.instant('TRAINER_COMMON.CLIENT');
         this.scopes = match.scopes;
         this.headerState = 'loaded';
         this.initTabsAndLoadSections();
@@ -598,7 +605,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       error: () => {
         this.headerState = 'error';
         this.ionicUtilService.showToast({
-          message: 'No se pudo cargar la información de este cliente.',
+          message: this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_CARGAR_LA_2'),
           duration: 3000,
         });
       },
@@ -650,6 +657,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.checkinTemplateToOpen = tabGuardada
       ? null
       : this.route.snapshot.queryParamMap.get('checkinTemplate');
+    this.checkinResponseToOpen = tabGuardada ? null : this.route.snapshot.queryParamMap.get('response');
     // Aviso de cobro → ?tab=payments&charge=<id>: abre ese cobro, solo en una
     // entrada nueva (al volver de una pantalla hija la URL aún lo lleva).
     this.paymentsFocusChargeId = tabGuardada ? null : this.route.snapshot.queryParamMap.get('charge');
@@ -813,7 +821,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public trainingGoalTypeLabel(type: TrainingGoalType | null): string {
-    return type ? TRAINING_GOAL_TYPE_LABELS[type] || type : 'Sin declarar';
+    return type ? TRAINING_GOAL_TYPE_LABELS[type] || type : this.translate.instant('CLIENT_DETAIL.SIN_DECLARAR');
   }
 
   public startEditTrainingGoal(): void {
@@ -840,8 +848,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       error: () => {
         this.isSavingTrainingGoal = false;
         this.ionicUtilService.showErrorToast(
-          'No se pudo guardar el objetivo',
-          'Error',
+          this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_GUARDAR_EL'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
@@ -1199,7 +1207,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     } catch (error) {
       void this.ionicUtilService.showErrorToast(
         error,
-        'No se pudieron abrir las estadísticas de esta rutina.'
+        this.translate.instant('CLIENT_DETAIL.NO_SE_PUDIERON_ABRIR_LAS')
       );
     } finally {
       this.isOpeningSessionsStats = false;
@@ -1218,9 +1226,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public get lastActivityLabel(): string | null {
     const workout = this.completedWorkouts[0];
     if (!workout?.date) return null;
-    return `registró "${workout.name}" · ${this.relativeDayTime(
+    return this.translate.instant('CLIENTS.REGISTRO', { name: workout.name, p1: this.relativeDayTime(
       new Date(workout.date as Date)
-    )}`;
+    ) });
   }
 
   // Cabecera persistente — nota fijada (Notas, F19). notes ya se carga sin
@@ -1239,13 +1247,13 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       a.getDate() === b.getDate();
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
-    const time = date.toLocaleTimeString('es-ES', {
+    const time = date.toLocaleTimeString(uiLocale(), {
       hour: '2-digit',
       minute: '2-digit',
     });
     if (isSameDay(date, now)) return `hoy, ${time}`;
     if (isSameDay(date, yesterday)) return `ayer, ${time}`;
-    return `${date.toLocaleDateString('es-ES', {
+    return `${date.toLocaleDateString(uiLocale(), {
       day: 'numeric',
       month: 'short',
     })}, ${time}`;
@@ -1274,7 +1282,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public trainingLocationLabel(location: TrainingLocation | null): string {
     return location
       ? TRAINING_LOCATION_LABELS[location] || location
-      : 'No indicado';
+      : this.translate.instant('CLIENT_DETAIL.NO_INDICADO');
   }
 
   public equipmentTagLabel(tag: EquipmentTag): string {
@@ -1302,11 +1310,11 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     value: ClientIntake['experienceLevel'];
     label: string;
   }[] = [
-    { value: null, label: 'Sin declarar' },
-    { value: 'none', label: 'Sin experiencia' },
-    { value: 'beginner', label: 'Principiante' },
-    { value: 'intermediate', label: 'Intermedio' },
-    { value: 'advanced', label: 'Avanzado' },
+    { value: null, label: this.translate.instant('CLIENT_DETAIL.SIN_DECLARAR') },
+    { value: 'none', label: this.translate.instant('INTAKE.EXPERIENCE.none') },
+    { value: 'beginner', label: this.translate.instant('INTAKE.EXPERIENCE.beginner') },
+    { value: 'intermediate', label: this.translate.instant('INTAKE.EXPERIENCE.intermediate') },
+    { value: 'advanced', label: this.translate.instant('INTAKE.EXPERIENCE.advanced') },
   ];
 
   public readonly trainingLocationOptions = (
@@ -1379,14 +1387,14 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
           this.isEditingIntake = false;
           this.intakeDraft = null;
           this.ionicUtilService.showToast({
-            message: 'Cuestionario actualizado',
+            message: this.translate.instant('CLIENT_DETAIL.CUESTIONARIO_ACTUALIZADO'),
             duration: 2500,
           });
         },
         error: () => {
           this.isSavingIntake = false;
           this.ionicUtilService.showToast({
-            message: 'No se pudo guardar el cuestionario',
+            message: this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_GUARDAR_EL_2'),
             duration: 3000,
           });
         },
@@ -1498,13 +1506,13 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       1,
       Math.floor((Date.now() - start) / (7 * 86400000)) + 1
     );
-    if (!phase.estimatedEndDate) return `Semana ${currentWeek}`;
+    if (!phase.estimatedEndDate) return this.translate.instant('COACH.WEEK_N', { n: currentWeek });
     const end = new Date(phase.estimatedEndDate + 'T00:00:00Z').getTime();
     const totalWeeks = Math.max(
       currentWeek,
       Math.ceil((end - start) / (7 * 86400000))
     );
-    return `Semana ${currentWeek} de ${totalWeeks}`;
+    return this.translate.instant('CLIENT_DETAIL.WEEK_N_OF', { n: currentWeek, total: totalWeeks });
   }
 
   // Lo mismo para la línea de nutrición de la cabecera, leído de phaseWeeks
@@ -1515,8 +1523,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     const current = this.phaseWeeks?.current;
     if (!current) return null;
     return this.phaseWeeks?.phaseEnd
-      ? `Semana ${current.number} de ${this.phaseWeeks.weeks.length}`
-      : `Semana ${current.number}`;
+      ? this.translate.instant('CLIENT_DETAIL.WEEK_N_OF', { n: current.number, total: this.phaseWeeks.weeks.length })
+      : this.translate.instant('COACH.WEEK_N', { n: current.number });
   }
 
   public toggleRoutineHistory(): void {
@@ -1567,7 +1575,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       next: () => {
         this.cancellingRoutinePhaseId = null;
         this.ionicUtilService.showToast({
-          message: 'Fase quitada',
+          message: this.translate.instant('CLIENT_DETAIL.FASE_QUITADA'),
           duration: 1500,
         });
         this.loadActiveRoutine();
@@ -1576,7 +1584,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       error: (err) => {
         this.cancellingRoutinePhaseId = null;
         this.ionicUtilService.showToast({
-          message: err?.error?.message || 'No se pudo quitar la fase',
+          message: err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_QUITAR_LA'),
           duration: 2500,
         });
       },
@@ -1610,7 +1618,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     if (role !== 'confirm' || !data) return;
 
     this.ionicUtilService.showToast({
-      message: 'Fecha actualizada',
+      message: this.translate.instant('CLIENT_DETAIL.FECHA_ACTUALIZADA'),
       duration: 1500,
     });
     this.loadActiveRoutine();
@@ -1654,7 +1662,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     if (role !== 'confirm' || !data) return;
 
     this.ionicUtilService.showToast({
-      message: 'Rutina programada',
+      message: this.translate.instant('CLIENT_DETAIL.RUTINA_PROGRAMADA'),
       duration: 2000,
     });
     this.loadActiveRoutine();
@@ -1762,7 +1770,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }): string {
     const sets = exercise.sets || [];
     const doneSets = sets.filter((s) => s.doned);
-    if (!doneSets.length) return 'Sin series realizadas';
+    if (!doneSets.length) return this.translate.instant('CLIENT_DETAIL.SIN_SERIES_REALIZADAS');
     return doneSets
       .map((s) =>
         s.weight != null
@@ -1780,7 +1788,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }): string {
     const sets = exercise.sets || [];
     const withExpected = sets.filter((s) => s.expectedReps?.length);
-    if (!withExpected.length) return 'Sin prescripción';
+    if (!withExpected.length) return this.translate.instant('CLIENT_DETAIL.SIN_PRESCRIPCION');
     return withExpected
       .map((s) => {
         const reps = (s.expectedReps || []).join('/');
@@ -1985,12 +1993,12 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   ): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: 'Borrar rutina',
-      message: `¿Seguro que quieres borrar por completo "${table.name}"? Esta acción no se puede deshacer.`,
+      header: this.translate.instant('CLIENT_DETAIL.BORRAR_RUTINA'),
+      message: this.translate.instant('CLIENT_DETAIL.DELETE_ROUTINE_MSG', { name: table.name }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Borrar',
+          text: this.translate.instant('TRAINER_COMMON.ERASE'),
           cssClass: 'alert-button-danger',
           handler: () => {
             this.clientDetailApi
@@ -2006,14 +2014,14 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
                   if (this.expandedTableId === table._id)
                     this.expandedTableId = null;
                   this.ionicUtilService.showToast({
-                    message: 'Rutina borrada',
+                    message: this.translate.instant('CLIENT_DETAIL.RUTINA_BORRADA'),
                     duration: 1500,
                   });
                   this.loadTraining();
                 },
                 error: () => {
                   this.ionicUtilService.showToast({
-                    message: 'No se pudo borrar la rutina',
+                    message: this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_BORRAR_LA'),
                     duration: 2500,
                   });
                 },
@@ -2040,7 +2048,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     if (role !== 'confirm' || !table) return;
 
     this.ionicUtilService.showToast({
-      message: `Plantilla asignada a ${this.name}`,
+      message: this.translate.instant('CLIENT_DETAIL.TEMPLATE_ASSIGNED_TO', { name: this.name }),
       duration: 2000,
     });
     void this.openPlanner(table);
@@ -2049,8 +2057,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   private onRoutineAssignError(err: any): void {
     this.isAssigningRoutine = false;
     this.ionicUtilService.showErrorToast(
-      err?.error?.message || 'No se pudo asignar la rutina',
-      'Error',
+      err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_ASIGNAR_LA'),
+      this.translate.instant('COMMON.ERROR'),
       3500
     );
   }
@@ -2319,7 +2327,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     // Macros que no cuadran con las kcal: no se guarda.
     const macroError = this.goalMacroAdjust?.validate();
     if (macroError) {
-      this.ionicUtilService.showErrorToast(macroError, 'Error', 4500);
+      this.ionicUtilService.showErrorToast(macroError, this.translate.instant('COMMON.ERROR'), 4500);
       return;
     }
     const macros = this.goalAdjustedMacros ?? this.goalDefaultMacros;
@@ -2336,7 +2344,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
           this.savingNutritionalGoal = false;
           this.editingNutritionalGoal = false;
           this.ionicUtilService.showToast({
-            message: 'Objetivo actualizado',
+            message: this.translate.instant('CLIENT_DETAIL.OBJETIVO_ACTUALIZADO'),
             duration: 2000,
           });
           this.loadNutritionalGoal();
@@ -2344,8 +2352,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         error: (err) => {
           this.savingNutritionalGoal = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo guardar el objetivo',
-            'Error',
+            err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_GUARDAR_EL'),
+            this.translate.instant('COMMON.ERROR'),
             3500
           );
         },
@@ -2368,8 +2376,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         error: (err) => {
           this.savingNutritionalGoal = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo recalcular el objetivo',
-            'Error',
+            err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_RECALCULAR_EL'),
+            this.translate.instant('COMMON.ERROR'),
             3500
           );
         },
@@ -2418,9 +2426,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public goalSplitLabel(goal: ClientNutritionalGoal): string {
     const split = this.goalMacroSplit(goal);
     const pct = (n: number) => Math.round(n);
-    return `Reparto de kcal: proteína ${pct(
+    return this.translate.instant('CLIENTS.REPARTO_DE_KCAL_PROTEINA_CARBOHIDRATOS', { p0: pct(
       split.protein
-    )}%, carbohidratos ${pct(split.carbs)}%, grasas ${pct(split.fat)}%`;
+    ), p1: pct(split.carbs), p2: pct(split.fat) });
   }
 
   // La cuenta que enseña app-need-breakdown: los mismos inputs/desglose que
@@ -2625,7 +2633,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   public weekDateRange(window: { start: string; end: string | null }): string {
     const fmt = (iso: string): string =>
-      new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', {
+      new Date(`${iso}T00:00:00Z`).toLocaleDateString(uiLocale(), {
         day: 'numeric',
         month: 'short',
         timeZone: 'UTC',
@@ -2636,7 +2644,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public shortDay(iso: string): string {
-    return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', {
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString(uiLocale(), {
       day: 'numeric',
       month: 'short',
       timeZone: 'UTC',
@@ -2675,6 +2683,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // "0 check-ins" antes de tiempo sería mentir).
   public checkinSchedulesCount: number | null = null;
   public checkinTemplateToOpen: string | null = null;
+  // Bandeja «Por revisar» → ?tab=measurements&response=<id>: abre esa
+  // respuesta de check-in.
+  public checkinResponseToOpen: string | null = null;
   private schedulesPanel: HTMLIonModalElement | null = null;
   private scheduleHistoryPanel: HTMLIonModalElement | null = null;
 
@@ -2847,7 +2858,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       next: () => {
         this.cancellingPlanPhaseId = null;
         this.ionicUtilService.showToast({
-          message: 'Fase quitada',
+          message: this.translate.instant('CLIENT_DETAIL.FASE_QUITADA'),
           duration: 1500,
         });
         // loadNutrition (no solo loadActivePlan): la adherencia se mide
@@ -2861,7 +2872,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       error: (err) => {
         this.cancellingPlanPhaseId = null;
         this.ionicUtilService.showToast({
-          message: err?.error?.message || 'No se pudo quitar la fase',
+          message: err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_QUITAR_LA'),
           duration: 2500,
         });
       },
@@ -2903,13 +2914,13 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public async skipSelectedDay(): Promise<void> {
     if (!this.activePlan || this.isSkippingDay) return;
     await this.ionicUtilService.showAlert({
-      header: `¿Marcar ${this.nutritionDateLabel} como día saltado?`,
+      header: this.translate.instant('CLIENT_DETAIL.SKIP_DAY_HEADER', { date: this.nutritionDateLabel }),
       message:
-        'Ese día queda vacío: se le quitan las comidas del plan y deja de contar para la adherencia. Lo que el cliente haya anotado por su cuenta se queda, y el resto de la planificación no se toca.',
+        this.translate.instant('CLIENT_DETAIL.ESE_DIA_QUEDA_VACIO_SE'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Marcar día saltado',
+          text: this.translate.instant('CLIENT_DETAIL.MARCAR_DIA_SALTADO'),
           role: 'destructive',
           handler: () => {
             this.isSkippingDay = true;
@@ -2919,7 +2930,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
                 next: () => {
                   this.isSkippingDay = false;
                   this.ionicUtilService.showToast({
-                    message: 'Día marcado como saltado',
+                    message: this.translate.instant('CLIENT_DETAIL.DIA_MARCADO_COMO_SALTADO'),
                     duration: 2000,
                   });
                   this.loadNutrition();
@@ -2927,8 +2938,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
                 error: () => {
                   this.isSkippingDay = false;
                   this.ionicUtilService.showErrorToast(
-                    'No se pudo marcar el día como saltado',
-                    'Error',
+                    this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_MARCAR_EL'),
+                    this.translate.instant('COMMON.ERROR'),
                     3000
                   );
                 },
@@ -2941,13 +2952,13 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   public get nutritionDateLabel(): string {
     const date = new Date(`${this.nutritionDate}T00:00:00.000Z`);
-    const label = date.toLocaleDateString('es-ES', {
+    const label = date.toLocaleDateString(uiLocale(), {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
       timeZone: 'UTC',
     });
-    return this.isNutritionDateToday ? `Hoy · ${label}` : label;
+    return this.isNutritionDateToday ? `${this.translate.instant('TRAINER_COMMON.TODAY')} · ${label}` : label;
   }
 
   public get isNutritionDateToday(): boolean {
@@ -2979,15 +2990,15 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         this.isRequestingPreferences = false;
         this.nutritionPreferences = preferences;
         this.ionicUtilService.showToast({
-          message: `Cuestionario solicitado a ${this.name}`,
+          message: this.translate.instant('CLIENT_DETAIL.QUESTIONNAIRE_REQUESTED_TO', { name: this.name }),
           duration: 2500,
         });
       },
       error: (err) => {
         this.isRequestingPreferences = false;
         this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo solicitar el cuestionario',
-          'Error',
+          err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_SOLICITAR_EL'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
@@ -3003,10 +3014,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public cooksAtHomeLabel(value: 'yes' | 'no' | 'sometimes' | null): string {
-    if (value === 'yes') return 'Sí';
-    if (value === 'no') return 'No';
+    if (value === 'yes') return this.translate.instant('COMMON.YES');
+    if (value === 'no') return this.translate.instant('COMMON.NO');
     if (value === 'sometimes') return 'A veces';
-    return 'Sin especificar';
+    return this.translate.instant('CLIENT_DETAIL.NOT_SPECIFIED');
   }
 
   // Icono + color por restricción, compartido con diet-card y el cajón de
@@ -3059,7 +3070,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     if (role !== 'confirm' || !data) return;
 
     this.ionicUtilService.showToast({
-      message: `Plan aplicado a ${this.name} desde hoy`,
+      message: this.translate.instant('CLIENT_DETAIL.PLAN_APPLIED_TO', { name: this.name }),
       duration: 3000,
     });
     void this.loadActivePlan();
@@ -3100,7 +3111,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     if (!phase?.phaseId) return;
 
     this.phaseDatesPhaseId = phase.phaseId as string;
-    this.phaseDatesTitle = phase.phaseName || phase.planName || 'Fase';
+    this.phaseDatesTitle = phase.phaseName || phase.planName || this.translate.instant('CLIENT_DETAIL.FASE');
     this.phaseDatesStart = phase.startDate || '';
     this.phaseDatesEnd = phase.endDate || '';
     this.showPhaseDatesPanel = true;
@@ -3130,7 +3141,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
           this.isSavingPhaseDates = false;
           this.showPhaseDatesPanel = false;
           this.ionicUtilService.showToast({
-            message: 'Fechas de la fase actualizadas',
+            message: this.translate.instant('CLIENT_DETAIL.FECHAS_DE_LA_FASE_ACTUALIZADAS'),
             duration: 2200,
           });
           void this.loadActivePlan();
@@ -3141,8 +3152,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         error: (err) => {
           this.isSavingPhaseDates = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudieron cambiar las fechas',
-            'Error',
+            err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDIERON_CAMBIAR_LAS'),
+            this.translate.instant('COMMON.ERROR'),
             4000
           );
         },
@@ -3195,7 +3206,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public get missingScopeLabel(): string {
-    return this.missingScope === 'training' ? 'entrenamiento' : 'nutrición';
+    return this.missingScope === 'training' ? this.translate.instant('CLIENT_DETAIL.ENTRENAMIENTO') : this.translate.instant('CLIENT_DETAIL.NUTRICION');
   }
 
   private loadMissingScopeInvite(): void {
@@ -3232,12 +3243,12 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     if (!scope || !email || this.missingScopeInvitePending) return;
     const label = this.missingScopeLabel;
     await this.ionicUtilService.showAlert({
-      header: `Invitar a ${label}`,
-      message: `${this.name} recibirá una invitación para que también lleves su ${label}. Cuando la acepte, aparecerá aquí.`,
+      header: this.translate.instant('CLIENT_DETAIL.INVITE_TO', { scope: label }),
+      message: this.translate.instant('CLIENT_DETAIL.INVITE_MSG', { name: this.name, scope: label }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Invitar',
+          text: this.translate.instant('CLIENT_DETAIL.INVITAR'),
           handler: () => this.inviteMissingScope(scope, email),
         },
       ],
@@ -3253,15 +3264,15 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         const result = response.results.find((r) => r.scope === scope);
         if (!result?.success) {
           this.ionicUtilService.showErrorToast(
-            result?.error || 'No se pudo enviar la invitación',
-            'Error',
+            result?.error || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_ENVIAR_LA'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
           return;
         }
         this.missingScopeInvitePending = true;
         this.ionicUtilService.showToast({
-          message: `Invitación de ${label} enviada`,
+          message: this.translate.instant('CLIENT_DETAIL.INVITE_SENT_TO', { scope: label }),
           duration: 3000,
         });
       },
@@ -3272,8 +3283,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         this.ionicUtilService.showErrorToast(
           err?.error?.results?.[0]?.error ||
             err?.error?.message ||
-            'No se pudo enviar la invitación',
-          'Error',
+            this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_ENVIAR_LA'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
@@ -3282,14 +3293,14 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   // --- F08: finalizar relación (lado profesional) ---
   public async confirmRevoke(scope: ClientScope): Promise<void> {
-    const scopeLabel = scope === 'training' ? 'entrenamiento' : 'nutrición';
+    const scopeLabel = scope === 'training' ? this.translate.instant('CLIENT_DETAIL.ENTRENAMIENTO') : this.translate.instant('CLIENT_DETAIL.NUTRICION');
     await this.ionicUtilService.showAlert({
-      header: 'Finalizar relación',
-      message: `¿Seguro que quieres dejar de llevar el ${scopeLabel} de ${this.name}? Esta acción es inmediata y no se puede deshacer.`,
+      header: this.translate.instant('CLIENT_DETAIL.FINALIZAR_RELACION'),
+      message: this.translate.instant('CLIENT_DETAIL.REVOKE_MSG', { scope: scopeLabel, name: this.name }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Finalizar',
+          text: this.translate.instant('CLIENT_DETAIL.FINALIZAR'),
           cssClass: 'alert-button-danger',
           handler: () => this.revoke(scope),
         },
@@ -3305,7 +3316,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         this.scopes = this.scopes.filter((s) => s !== scope);
         if (!this.scopes.length) {
           this.ionicUtilService.showToast({
-            message: `Ya no llevas a ${this.name}`,
+            message: this.translate.instant('CLIENT_DETAIL.NO_LONGER_CLIENT', { name: this.name }),
             duration: 3000,
           });
           void this.router.navigate(['/tabs/clients']);
@@ -3316,17 +3327,15 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         if (this.activeTab === scope) this.selectTab(this.scopes[0]);
         this.loadMissingScopeInvite();
         this.ionicUtilService.showToast({
-          message: `Relación de ${
-            scope === 'training' ? 'entrenamiento' : 'nutrición'
-          } finalizada`,
+          message: this.translate.instant('CLIENTS.RELACION_DE_FINALIZADA', { p0: scope === 'training' ? this.translate.instant('CLIENT_DETAIL.ENTRENAMIENTO') : this.translate.instant('CLIENT_DETAIL.NUTRICION') }),
           duration: 3000,
         });
       },
       error: () => {
         this.isRevoking = false;
         this.ionicUtilService.showErrorToast(
-          'No se pudo finalizar la relación',
-          'Error',
+          this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_FINALIZAR_LA'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
@@ -3361,8 +3370,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       error: (err) => {
         this.isSavingNote = false;
         this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo guardar la nota',
-          'Error',
+          err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_GUARDAR_LA'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
@@ -3394,15 +3403,15 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
           this.resortNotes();
           if (nextPinned) {
             this.ionicUtilService.showToast({
-              message: 'Nota fijada — visible en la cabecera del cliente',
+              message: this.translate.instant('CLIENT_DETAIL.NOTA_FIJADA_VISIBLE_EN_LA'),
               duration: 2500,
             });
           }
         },
         error: () => {
           this.ionicUtilService.showErrorToast(
-            'No se pudo actualizar la nota',
-            'Error',
+            this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_ACTUALIZAR_LA'),
+            this.translate.instant('COMMON.ERROR'),
             2500
           );
         },
@@ -3445,8 +3454,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         error: () => {
           this.isSavingNoteEdit = false;
           this.ionicUtilService.showErrorToast(
-            'No se pudo guardar el cambio',
-            'Error',
+            this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_GUARDAR_EL_3'),
+            this.translate.instant('COMMON.ERROR'),
             2500
           );
         },
@@ -3477,8 +3486,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       error: () => {
         this.isDeletingNoteId = null;
         this.ionicUtilService.showErrorToast(
-          'No se pudo borrar la nota',
-          'Error',
+          this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_BORRAR_LA_2'),
+          this.translate.instant('COMMON.ERROR'),
           2500
         );
       },
@@ -3609,8 +3618,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   // "10.000 a 15.000 pasos / día" cuando el hábito lleva rango.
   public taskTargetLabel(task: TrainerTask): string {
-    const rango = task.targetMax ? ` a ${task.targetMax}` : '';
-    return `${task.target}${rango} ${task.unit} / día`;
+    const rango = task.targetMax ? ` ${this.translate.instant('COACH.RANGE_TO')} ${task.targetMax}` : '';
+    return `${task.target}${rango} ${task.unit} ${this.translate.instant('CLIENT_DETAIL.PER_DAY')}`;
   }
 
   public onTaskTypeChange(type: TrainerTaskType): void {
@@ -3650,8 +3659,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         error: (err) => {
           this.isSavingTask = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo crear el hábito',
-            'Error',
+            err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_CREAR_EL'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
         },
@@ -3660,14 +3669,14 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   public async confirmDeactivateTask(task: TrainerTask): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Quitar hábito',
-      message: `¿Seguro que quieres dejar de asignar "${this.taskDisplayLabel(
+      header: this.translate.instant('CLIENT_DETAIL.QUITAR_HABITO'),
+      message: this.translate.instant('CLIENTS.SEGURO_QUE_QUIERES_DEJAR_DE', { p0: this.taskDisplayLabel(
         task
-      )}"? El historial de cumplimiento ya registrado se conserva.`,
+      ) }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Quitar',
+          text: this.translate.instant('TRAINER_COMMON.REMOVE'),
           cssClass: 'alert-button-danger',
           handler: () => this.deactivateTask(task),
         },
@@ -3682,8 +3691,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       },
       error: () => {
         this.ionicUtilService.showErrorToast(
-          'No se pudo quitar el hábito',
-          'Error',
+          this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_QUITAR_EL'),
+          this.translate.instant('COMMON.ERROR'),
           2500
         );
       },
@@ -3691,7 +3700,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public taskDisplayLabel(task: TrainerTask): string {
-    if (task.type === 'custom') return task.label || 'Hábito';
+    if (task.type === 'custom') return task.label || this.translate.instant('CLIENT_DETAIL.HABITO');
     return (
       this.taskTypeOptions.find((o) => o.value === task.type)?.label ||
       task.type

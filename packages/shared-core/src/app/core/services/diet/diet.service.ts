@@ -8,6 +8,8 @@ import { CustomProduct } from '../../models/customProduct';
 import { Diet } from '../../models/diet';
 import { HttpService } from '../http/http.service';
 
+export type RecentFoodKind = 'product' | 'recipe';
+
 @Injectable()
 export class DietService {
   private _currentDiet$: BehaviorSubject<Diet> = new BehaviorSubject<Diet>(
@@ -67,10 +69,25 @@ export class DietService {
     );
   }
 
-  // Refactor nutrición (2026-09) — sin wrapper Diet el día ya nace con su
-  // dueño: el endpoint sobrevive como no-op para las apps instaladas.
-  addDietDietDay(idDiet: string, idDietDay: string): Observable<Diet> {
-    return this.http.put<Diet>(`diets/${idDiet}/${idDietDay}`, null);
+  // Ocultar recientes del buscador de una comida (por posición, como el
+  // cálculo de recientes). Los recientes salen del historial, así que no se
+  // borran: se dejan de mostrar hasta que se vuelvan a añadir. Siempre del
+  // usuario autenticado.
+  hideRecentFoods(body: {
+    mealIndex: number;
+    kind: RecentFoodKind;
+    ids?: string[];
+    all?: boolean;
+  }): Observable<{ success: boolean }> {
+    return this.http.post('recent-foods/hidden', body);
+  }
+
+  restoreRecentFoods(body: {
+    mealIndex: number;
+    kind: RecentFoodKind;
+    ids: string[];
+  }): Observable<{ success: boolean }> {
+    return this.http.post('recent-foods/hidden/restore', body);
   }
 
   getDietAverageKcal(diet: Diet) {

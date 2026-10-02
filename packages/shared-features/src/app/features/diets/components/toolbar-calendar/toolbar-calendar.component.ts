@@ -265,24 +265,25 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
         return;
       }
 
-      if (!this.dietDay._id) {
-        this.loadingChange.emit(true);
-        const newDietDay = this.dietDayService.getStandardDietDay(this.dietDay.date);
-        const createdDietDay = await this.dietDayService.createDietDay(newDietDay).toPromise();
-        await this.dietService.addDietDietDay(this.dietId, createdDietDay._id).toPromise();
-        createdDietDay.notes = notesValue;
-        (this._service as DietDayService).updateDietDay(createdDietDay).subscribe(() => {
-          this.selectCalendarDayEmit.emit(createdDietDay.date);
+      // Una sola llamada tanto si el día existe como si no: la nota va por
+      // fecha y el backend asegura el día (ver DietDayService#updateDietDay).
+      // Antes, para un día que aún no existía, eran tres peticiones — y si la
+      // fecha ya tenía día en base de datos pero esta pantalla no lo tenía con
+      // _id, la primera creaba un día duplicado.
+      const hadDietDay = !!this.dietDay._id;
+      this.dietDay.notes = notesValue;
+      if (!hadDietDay) this.loadingChange.emit(true);
+
+      (this._service as DietDayService).updateDietDay(this.dietDay).subscribe({
+        next: () => {
+          if (!hadDietDay) this.selectCalendarDayEmit.emit(this.dietDay.date);
           this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
-        });
-      } else {
-        this.dietDay.notes = notesValue;
-        (this._service as DietDayService)
-          .updateDietDay(this.dietDay)
-          .subscribe(() => {
-            this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
-          });
-      }
+        },
+        error: (err) => {
+          if (!hadDietDay) this.loadingChange.emit(false);
+          console.error('[ToolbarCalendar] Failed to save note', err);
+        },
+      });
     });
   }
 

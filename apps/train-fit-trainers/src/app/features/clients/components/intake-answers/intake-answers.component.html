@@ -3,7 +3,7 @@
 <section class="intake-section" *ngIf="profileRows.length">
   <h5 class="intake-section-title">
     <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
-    Perfil
+    {{ 'CLIENTS.PERFIL' | translate }}
   </h5>
   <div class="intake-section-fields">
     <div class="intake-field" *ngFor="let row of profileRows" [class.intake-field--span]="row.span">
@@ -16,36 +16,36 @@
 <section class="intake-section">
   <h5 class="intake-section-title">
     <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
-    Entrenamiento
+    {{ 'TRAINER_COMMON.TRAINING' | translate }}
   </h5>
   <div class="intake-section-fields">
     <div class="intake-field intake-field--wide">
-      <span class="intake-field-label">Objetivos</span>
-      <p class="intake-field-value" [class.is-empty]="!intake.goals">{{ intake.goals || 'Sin especificar' }}</p>
+      <span class="intake-field-label">{{ 'CLIENTS.OBJETIVOS' | translate }}</span>
+      <p class="intake-field-value" [class.is-empty]="!intake.goals">{{ intake.goals || ('CLIENT_DETAIL.NOT_SPECIFIED' | translate) }}</p>
     </div>
     <!-- Lesiones con superficie propia cuando las hay: es lo que no se
          puede pasar por alto al pautar. -->
     <div class="intake-field intake-field--wide" [class.intake-field--caution]="intake.healthConditions">
       <span class="intake-field-label">
         <ion-icon name="warning-outline" aria-hidden="true" *ngIf="intake.healthConditions"></ion-icon>
-        Salud / lesiones
+        {{ 'CLIENTS.SALUD_LESIONES' | translate }}
       </span>
-      <p class="intake-field-value" [class.is-empty]="!intake.healthConditions">{{ intake.healthConditions || 'Ninguna indicada' }}</p>
+      <p class="intake-field-value" [class.is-empty]="!intake.healthConditions">{{ intake.healthConditions || ('CLIENT_DETAIL.NONE_GIVEN' | translate) }}</p>
     </div>
     <div class="intake-field">
-      <span class="intake-field-label">Experiencia</span>
+      <span class="intake-field-label">{{ 'CLIENTS.EXPERIENCIA' | translate }}</span>
       <p class="intake-field-value" [class.is-empty]="!intake.experienceLevel">{{ experienceLabel(intake.experienceLevel) }}</p>
     </div>
     <div class="intake-field">
-      <span class="intake-field-label">Lugar de entrenamiento</span>
+      <span class="intake-field-label">{{ 'INTAKE.LOCATION_TITLE' | translate }}</span>
       <p class="intake-field-value" [class.is-empty]="!intake.trainingLocation">{{ trainingLocationLabel(intake.trainingLocation) }}</p>
     </div>
     <div class="intake-field intake-field--wide">
-      <span class="intake-field-label">Disponibilidad</span>
-      <p class="intake-field-value" [class.is-empty]="!intake.availability">{{ intake.availability || 'Sin especificar' }}</p>
+      <span class="intake-field-label">{{ 'CLIENTS.DISPONIBILIDAD' | translate }}</span>
+      <p class="intake-field-value" [class.is-empty]="!intake.availability">{{ intake.availability || ('CLIENT_DETAIL.NOT_SPECIFIED' | translate) }}</p>
     </div>
     <div class="intake-field intake-field--wide" *ngIf="intake.equipmentTags?.length">
-      <span class="intake-field-label">Equipamiento</span>
+      <span class="intake-field-label">{{ 'CLIENTS.EQUIPAMIENTO' | translate }}</span>
       <div class="intake-tags">
         <span class="intake-tag" *ngFor="let tag of intake.equipmentTags">{{ equipmentTagLabel(tag) }}</span>
       </div>
@@ -56,11 +56,11 @@
 <section class="intake-section" *ngIf="dietaryFlagLabels.length || nutritionRows.length">
   <h5 class="intake-section-title">
     <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
-    Nutrición
+    {{ 'TRAINER_COMMON.NUTRITION' | translate }}
   </h5>
   <div class="intake-section-fields">
     <div class="intake-field intake-field--wide" *ngIf="dietaryFlagLabels.length">
-      <span class="intake-field-label">Restricciones</span>
+      <span class="intake-field-label">{{ 'CLIENTS.RESTRICCIONES' | translate }}</span>
       <div class="intake-tags">
         <span class="intake-tag" *ngFor="let flag of dietaryFlagLabels">{{ flag }}</span>
       </div>
@@ -83,12 +83,12 @@
 <section class="intake-section" *ngIf="intake.customAnswers?.length">
   <h5 class="intake-section-title">
     <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
-    Tus preguntas
+    {{ 'CLIENTS.TUS_PREGUNTAS' | translate }}
   </h5>
   <div class="intake-section-fields">
     <div class="intake-field intake-field--wide intake-field--question" *ngFor="let answer of intake.customAnswers">
       <span class="intake-field-question">{{ answer.label }}</span>
-      <p class="intake-field-value" [class.is-empty]="!answer.value">{{ answer.value || 'Sin responder' }}</p>
+      <p class="intake-field-value" [class.is-empty]="!answer.value">{{ answer.value || ('CLIENTS.SIN_RESPONDER' | translate) }}</p>
     </div>
   </div>
 </section>

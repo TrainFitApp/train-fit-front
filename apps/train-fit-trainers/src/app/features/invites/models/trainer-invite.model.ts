@@ -1,4 +1,5 @@
 import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 export type TrainerInviteScope = 'training' | 'nutrition';
 // TAREA 3 (coach-tab) — cuestionario_pendiente/en_revision son los estados
@@ -67,6 +68,7 @@ export const TRAINING_LOCATION_LABELS: Record<TrainingLocation, string> = {
   outdoor: 'Exterior',
   mixed: 'Mixto',
 };
+localizeRecord(TRAINING_LOCATION_LABELS, 'INTAKE.LOCATION');
 
 export const EQUIPMENT_TAG_LABELS: Record<EquipmentTag, string> = {
   dumbbells: 'Mancuernas',
@@ -78,6 +80,7 @@ export const EQUIPMENT_TAG_LABELS: Record<EquipmentTag, string> = {
   pullup_bar: 'Barra de dominadas',
   none: 'Sin material',
 };
+localizeRecord(EQUIPMENT_TAG_LABELS, 'INTAKE.EQUIPMENT');
 
 // TAREA 3 — cuestionario inicial enviado por el cliente, uno por par
 // (profesional, cliente) — no por scope.

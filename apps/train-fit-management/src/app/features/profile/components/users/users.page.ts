@@ -20,6 +20,7 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
 import { UserAPIService } from 'src/app/core/services/user/user-api.service';
 import { UsersFilterPage } from './users-filter.page';
 import { UsersFilter } from './users-filter.model';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 export interface DashboardUser extends User {
   productsCount?: number;
@@ -189,7 +190,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     if (!user?.premium?.expiresAt) {
       return '';
     }
-    return ` hasta ${new Intl.DateTimeFormat('es-ES', {
+    return ` ${this.translate.instant('MANAGEMENT.USERS.UNTIL')} ${new Intl.DateTimeFormat(uiLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -385,7 +386,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     if (!user?.lastLogin) {
       return this.translate.instant('MANAGEMENT.USERS.LAST_LOGIN_NONE');
     }
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(uiLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -403,7 +404,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   }
 
   public get formattedTotalUsers(): string {
-    return new Intl.NumberFormat('es-ES').format(this.totalUsers || 0);
+    return new Intl.NumberFormat(uiLocale()).format(this.totalUsers || 0);
   }
 
   private resetAndLoadUsers(): void {

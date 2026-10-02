@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { DietTemplate } from '../../models/diet-template.model';
@@ -21,6 +22,8 @@ import { DietTemplateApiService } from '../../services/diet-template-api.service
   styleUrls: ['./diet-suggestion-list.component.scss'],
 })
 export class DietSuggestionListComponent {
+  private readonly translate = inject(TranslateService);
+
   public readonly results$: Observable<DietSuggestionResponse | null>;
   public readonly selectedId$: Observable<string | null>;
   public readonly loading$: Observable<boolean>;
@@ -65,7 +68,7 @@ export class DietSuggestionListComponent {
       },
       error: () => {
         this.previewingId = null;
-        this.ionicUtilService.showErrorToast('No se pudo cargar la vista previa', 'Error', 3000);
+        this.ionicUtilService.showErrorToast(this.translate.instant('DIET_TEMPLATES.NO_SE_PUDO_CARGAR_LA_3'), this.translate.instant('COMMON.ERROR'), 3000);
       },
     });
   }

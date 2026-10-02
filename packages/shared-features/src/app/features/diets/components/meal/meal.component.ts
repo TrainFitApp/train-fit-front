@@ -16,13 +16,13 @@ import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.
 import {
   CUSTOM_PRODUCT_KEYS,
   CustomProduct,
+  QuickAddMacros,
 } from 'src/app/core/models/customProduct';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { User } from 'src/app/core/models/user';
 import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
-import { DietService } from 'src/app/core/services/diet/diet.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { CustomRecipeApiService } from 'src/app/core/services/custom-recipe/custom-recipe-api.service';
 import { CustomRecipe } from 'src/app/core/models/customRecipe';
@@ -44,6 +44,10 @@ import { PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view
 import { MealProposal } from '../../models/meal-proposal.model';
 import { MealProposalApiService } from '../../services/meal-proposal-api.service';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
+import {
+  QUICK_ADD_SHEET_OPTIONS,
+  QuickAddSheetComponent,
+} from './components/search-foods/components/quick-add-sheet/quick-add-sheet.component';
 
 @Component({
   selector: 'app-meal',
@@ -110,7 +114,6 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
     private dietDayService: DietDayService,
-    private dietService: DietService,
     private customProductService: CustomProductService,
     private customRecipeService: CustomRecipeApiService,
     private recipeService: RecipeService,
@@ -213,6 +216,14 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     // #assertMealEditable, ya lo rechazaría igualmente; esto solo evita
     // navegar a un editor que fallaría al guardar).
     if (this.selectionMode || customProduct.assignedByTrainerId) return;
+
+    // Adición rápida: no hay Product detrás que AddProductPage pueda editar,
+    // así que se vuelve a abrir la hoja con la que se escribió.
+    if (this.isQuickAdd(customProduct)) {
+      void this.editQuickAdd(customProduct);
+      return;
+    }
+
     const product = customProduct.product;
     const isOwnProduct = !!product?.userId;
     const queryParams: any = {
@@ -232,6 +243,46 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
         selectedDate: this.dietDay.date,
       },
     });
+  }
+
+  // Nombre que se pinta de un producto de la comida: el del catálogo, o el
+  // que escribió el cliente en la adición rápida (ver CustomProduct#name).
+  public getProductName(customProduct: CustomProduct): string {
+    return (
+      this.customProductService.customProductName(customProduct) ||
+      this.translate.instant('SEARCH_FOODS.QUICK_ADD_DEFAULT_NAME')
+    );
+  }
+
+  public isQuickAdd(customProduct: CustomProduct): boolean {
+    return !!customProduct?.quickAdd;
+  }
+
+  /**
+   * Reabre la hoja de adición rápida con lo que ya tenía y guarda lo que
+   * salga. La cantidad no se toca (siempre QUICK_ADD_QUANTITY): lo que se
+   * edita son los macros en sí, no una cantidad de nada.
+   */
+  private async editQuickAdd(customProduct: CustomProduct): Promise<void> {
+    const { data } = await this.ionicUtilService.showModal({
+      component: QuickAddSheetComponent,
+      componentProps: { mealName: this.meal?.name, customProduct },
+      ...QUICK_ADD_SHEET_OPTIONS,
+    });
+
+    const values: QuickAddMacros | undefined = data;
+    if (!values) return;
+
+    const updated: CustomProduct = {
+      ...customProduct,
+      name: values.name,
+      energyKcal100g: values.kcal,
+      protein100g: values.protein,
+      carbohydrates100g: values.carbs,
+      fat100g: values.fat,
+    };
+
+    this.dietDayService.updateCustomProduct(updated, this.meal, this.dietDay);
   }
 
   public editCustomRecipe(instance: CustomRecipe): void {
@@ -292,11 +343,12 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   public deleteProduct(meal: Meal, product: CustomProduct): void {
     if (product.assignedByTrainerId) return;
 
-    const productTemp = product.product;
     const t = this.translate.instant.bind(this.translate);
     const alertOptions: AlertOptions = {
       header: t('MEAL.DELETE_PRODUCT_HEADER'),
-      message: t('MEAL.DELETE_PRODUCT_CONFIRM', { name: productTemp.name }),
+      message: t('MEAL.DELETE_PRODUCT_CONFIRM', {
+        name: this.getProductName(product),
+      }),
       buttons: [
         {
           text: t('COMMON.CANCEL').toUpperCase(),
@@ -328,17 +380,17 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
 
   public async createMealFromClipboard(meal: Meal): Promise<void> {
     this.loadPaste = true;
+    // El día se asegura (createDietDay es idempotente: si esa fecha ya tiene
+    // día devuelve el que hay, nunca crea un segundo) y la comida destino se
+    // vuelve a buscar en el día ya real, que es el que tiene _id.
     if (!this.dietDay._id) {
-      this.dietDay = this.dietDayService.getStandardDietDay(this.dietDay.date);
       this.dietDay = await this.dietDayService
-        .createDietDay(this.dietDay)
+        .createDietDay(this.dietDayService.getStandardDietDay(this.dietDay.date))
         .toPromise();
       this.meal = this.dietDay.meals.find(
         (mealTemp) => mealTemp.name === meal.name
       );
-      await this.dietService
-        .addDietDietDay(this.user.dietInUse, this.dietDay._id)
-        .toPromise();
+      this.dietDayService.setCurrentDietDay = this.dietDay;
     }
 
     const clipboard = this.mealService.getMealClipboard;
@@ -375,12 +427,23 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     await modal.present();
     const { data, role } = await modal.onDidDismiss();
 
+    // Cancelar solo aborta este pegado: el portapapeles sigue vivo y los
+    // botones de pegar del resto de comidas tienen que seguir ahi.
     if (role !== 'confirm' || !data) {
-      this.pasteMode = false;
-      this.pasteEvent.emit({ paste: this.pasteMode });
       this.loadPaste = false;
       return;
     }
+
+    // Lo que habia en el portapapeles antes de aplicar la seleccion del modal,
+    // para devolverlo tal cual si luego se cancela el aviso de fusionar.
+    const previousClipboard = {
+      isFullMeal: clipboard.isFullMeal,
+      selectedProducts: [...clipboard.selectedProducts],
+      selectedRecipes: [...clipboard.selectedRecipes],
+      mealToPaste: clipboard.mealToPaste,
+    };
+    const previousSelectedProductIds = new Set(this.selectedProductIds);
+    const previousSelectedRecipeIds = new Set(this.selectedRecipeIds);
 
     const { selectedProductIds: newProductIds, selectedRecipeIds: newRecipeIds } = data;
     const totalProducts = products.length;
@@ -425,31 +488,66 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
           {
             text: t('COMMON.CANCEL').toUpperCase(),
             role: 'cancel',
-            handler: () => {
-              this.pasteMode = false;
-              this.pasteEvent.emit({ paste: this.pasteMode });
-              this.loadPaste = false;
-            },
           },
           {
             text: t('MEAL.PASTE_REPLACE'),
-            handler: () => {
-              this.handleMealPaste(false);
-            },
+            role: 'replace',
           },
           {
             text: t('MEAL.PASTE_MERGE'),
-            handler: () => {
-              this.handleMealPaste(true);
-            },
+            role: 'merge',
           },
         ],
       };
 
-      this.ionicUtilService.showAlert(alertOptions);
+      // El rol se lee del resultado, no de un handler por botón: cerrar la hoja
+      // arrastrando, con el botón atrás o tocando fuera no dispara handlers y
+      // dejaba el spinner girando para siempre.
+      const { role: pasteRole } = await this.ionicUtilService.showAlert(alertOptions);
+
+      if (pasteRole !== 'replace' && pasteRole !== 'merge') {
+        this.restorePreviousClipboard(
+          clipboard.mealClipboard,
+          previousClipboard,
+          previousSelectedProductIds,
+          previousSelectedRecipeIds
+        );
+        this.loadPaste = false;
+        return;
+      }
+
+      this.handleMealPaste(pasteRole === 'merge');
     } else {
       this.handleMealPaste(false);
     }
+  }
+
+  // Cancelar el aviso de fusionar deja el portapapeles como estaba antes de
+  // aplicar la selección del modal, para que pegar en otra comida siga ofreciendo
+  // lo que se copió.
+  private restorePreviousClipboard(
+    sourceMeal: Meal,
+    previous: {
+      isFullMeal: boolean;
+      selectedProducts: string[];
+      selectedRecipes: string[];
+      mealToPaste: Meal;
+    },
+    previousSelectedProductIds: Set<string>,
+    previousSelectedRecipeIds: Set<string>
+  ): void {
+    if (previous.isFullMeal) {
+      this.mealService.setFullMealClipboard(sourceMeal, previous.mealToPaste);
+    } else {
+      this.mealService.setPartialMealClipboard(
+        sourceMeal,
+        previous.mealToPaste,
+        previous.selectedProducts,
+        previous.selectedRecipes
+      );
+    }
+    this.selectedProductIds = previousSelectedProductIds;
+    this.selectedRecipeIds = previousSelectedRecipeIds;
   }
 
   private handleMealPaste(merge: boolean): void {
@@ -754,10 +852,10 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
       const notesValue = result.data.values.notes.trim();
 
       if (!this.dietDay._id) {
-        this.dietDay = this.dietDayService.getStandardDietDay(this.dietDay.date);
-        this.dietDay = await this.dietDayService.createDietDay(this.dietDay).toPromise();
+        this.dietDay = await this.dietDayService
+          .createDietDay(this.dietDayService.getStandardDietDay(this.dietDay.date))
+          .toPromise();
         this.meal = this.dietDay.meals.find((m) => m.name === this.meal.name);
-        await this.dietService.addDietDietDay(this.user.dietInUse, this.dietDay._id).toPromise();
         this.dietDayService.setCurrentDietDay = this.dietDay;
       }
 

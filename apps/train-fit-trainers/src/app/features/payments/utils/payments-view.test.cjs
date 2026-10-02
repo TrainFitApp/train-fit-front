@@ -6,8 +6,15 @@ const { buildSync } = require('esbuild');
 
 // Mismo runner esbuild + node:test que trainer-billing.test.cjs: se ejecuta
 // la utilidad real (PURA) de la vista de cobros.
+const { esTable } = require('../../../../../../../tests/i18n-es.cjs');
+
 const bundled = buildSync({
-  entryPoints: [path.resolve(__dirname, 'payments-view.util.ts')],
+  stdin: {
+    contents: "export * from './payments-view.util'; export { applyCatalogTranslations } from 'src/app/core/i18n/localized-catalog';",
+    resolveDir: __dirname,
+    loader: 'ts',
+  },
+  tsconfig: path.resolve(__dirname, '../../../../../tsconfig.json'),
   bundle: true,
   platform: 'node',
   format: 'cjs',
@@ -16,6 +23,8 @@ const bundled = buildSync({
 const compiled = new Module(__filename);
 compiled._compile(bundled.outputFiles[0].text, __filename);
 const view = compiled.exports;
+// Textos en español, como los ve el usuario por defecto.
+view.applyCatalogTranslations(esTable('train-fit-trainers'), 'es');
 
 // Espacio duro que usa Intl entre la cifra y el símbolo.
 const eur = (text) => text.replace(/ /g, ' ');

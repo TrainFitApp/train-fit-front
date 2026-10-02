@@ -7,6 +7,7 @@ import { SearchFoodsPageModule } from './components/meal/components/search-foods
 import { MealComponent } from './components/meal/meal.component';
 import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/clipboard-meal-modal.component';
 import { PautadoItemViewModule } from './components/pautado-item-view/pautado-item-view.module';
+import { QuickAddSheetModule } from './components/meal/components/search-foods/components/quick-add-sheet/quick-add-sheet.module';
 import { DatesSliderComponent } from './components/toolbar-calendar/components/dates-slider/dates-slider.component';
 import { ToolbarCalendarComponent } from './components/toolbar-calendar/toolbar-calendar.component';
 import { DietsPageRoutingModule } from './diets-routing.module';
@@ -26,6 +27,7 @@ import { MacrosBarsModule } from './components/macros-bars/macros-bars.module';
     SharedModule,
     MacrosBarsModule,
     PautadoItemViewModule,
+    QuickAddSheetModule,
     DietsPageRoutingModule,
     NgChartsModule,
     SearchFoodsPageModule,

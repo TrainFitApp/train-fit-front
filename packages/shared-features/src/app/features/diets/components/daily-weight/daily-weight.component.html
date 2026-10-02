@@ -3,7 +3,7 @@
     <div class="weight-row">
       <form [formGroup]="weightForm" class="weight-form">
         <div class="input-wrapper">
-          <span class="input-prefix">PESO DIARIO</span>
+          <span class="input-prefix">{{ 'DAILY_WEIGHT.TITLE' | translate }}</span>
           <ion-input
             #inputWeight
             formControlName="weight"
@@ -24,7 +24,7 @@
           [class.disabled]="!weightForm?.get('weight')?.value || !isLoad"
           (click)="saveWeight()"
           type="button"
-          aria-label="Guardar peso"
+          [attr.aria-label]="'DAILY_WEIGHT.SAVE_ARIA' | translate"
         >
           <ion-icon [name]="getCheckIconName()"></ion-icon>
         </button>
@@ -32,14 +32,14 @@
       <button
         class="calendar-button"
         (click)="openAnthropometryModal(); $event.stopPropagation()"
-        aria-label="Apuntar medidas corporales"
+        [attr.aria-label]="'DAILY_WEIGHT.MEASUREMENTS_ARIA' | translate"
       >
         <ion-icon name="accessibility-outline"></ion-icon>
       </button>
       <button
         class="calendar-button"
         (click)="openWeightInfo(); $event.stopPropagation()"
-        aria-label="Ver calendario de pesos"
+        [attr.aria-label]="'DAILY_WEIGHT.CALENDAR_ARIA' | translate"
       >
         <ion-icon name="stats-chart-outline"></ion-icon>
       </button>

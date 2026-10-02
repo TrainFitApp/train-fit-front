@@ -8,16 +8,16 @@
     type="button"
     class="panel-toggle"
     [attr.aria-expanded]="!collapsed"
-    [attr.aria-label]="collapsed ? 'Mostrar la carga de la sesión' : 'Ocultar la carga de la sesión'"
+    [attr.aria-label]="collapsed ? ('PLANNER.MOSTRAR_LA_CARGA_DE_LA' | translate) : ('PLANNER.OCULTAR_LA_CARGA_DE_LA' | translate)"
     (click)="toggle()"
   >
     <ion-icon [name]="collapsed ? 'chevron-back-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
-    <span class="panel-toggle-label" *ngIf="!collapsed">Carga de la sesión</span>
+    <span class="panel-toggle-label" *ngIf="!collapsed">{{ 'PLANNER.CARGA_DE_LA_SESION' | translate }}</span>
   </button>
 
   <div class="panel-body" *ngIf="embedded || !collapsed">
     <p class="panel-empty" *ngIf="!workout">
-      Toca la cabecera de un entrenamiento en el tablero para ver cómo queda repartido.
+      {{ 'PLANNER.TOCA_LA_CABECERA_DE_UN' | translate }}
     </p>
 
     <ng-container *ngIf="workout">
@@ -29,17 +29,15 @@
            pero de un solo entrenamiento y sin rango (10-20 es semanal). -->
       <ng-container *ngIf="seriesByMuscle.length || unclassifiedSets">
         <h4 class="group-title">
-          <span>Series por músculo</span>
-          <span class="group-unit">{{ totalWorkoutSets }} en total</span>
+          <span>{{ 'PLANNER.SERIES_POR_MUSCULO' | translate }}</span>
+          <span class="group-unit">{{ totalWorkoutSets }} {{ 'PLANNER.EN_TOTAL' | translate }}</span>
         </h4>
         <app-muscle-tree *ngIf="seriesByMuscle.length" [rows]="seriesByMuscle"></app-muscle-tree>
         <p class="panel-warning" *ngIf="unclassifiedSets">
-          {{ unclassifiedSets }} {{ unclassifiedSets === 1 ? 'serie no cuenta' : 'series no cuentan' }}:
-          su ejercicio aún no tiene músculos asignados.
+          {{ unclassifiedSets }} {{ unclassifiedSets === 1 ? ('PLANNER.SERIE_NO_CUENTA' | translate) : ('PLANNER.SERIES_NO_CUENTAN' | translate) }}: {{ 'TRAINER_MISC.SU_EJERCICIO_AUN_NO_TIENE_2' | translate }}
         </p>
         <p class="panel-hint panel-hint--tight">
-          Principal suma la serie entera, secundario media, estabilizador nada. Debajo de cada
-          grupo, su reparto por porciones; «Todo el grupo» es trabajo sin énfasis en una porción.
+          {{ 'PLANNER.PRINCIPAL_SUMA_LA_SERIE_ENTERA' | translate }}
         </p>
       </ng-container>
 
@@ -48,13 +46,13 @@
       </div>
 
       <div class="panel-error" *ngIf="state === 'error'">
-        <p>No se pudo calcular.</p>
-        <button type="button" class="retry-button" (click)="reload()">Reintentar</button>
+        <p>{{ 'PLANNER.NO_SE_PUDO_CALCULAR' | translate }}</p>
+        <button type="button" class="retry-button" (click)="reload()">{{ 'COMMON.RETRY' | translate }}</button>
       </div>
 
       <ng-container *ngIf="state === 'loaded' && load">
         <h4 class="group-title" *ngIf="seriesByMuscle.length">
-          <span>Carga estimada</span>
+          <span>{{ 'PLANNER.CARGA_ESTIMADA' | translate }}</span>
         </h4>
 
         <!-- La duración va arriba del reparto: es el dato que decide si la
@@ -62,35 +60,33 @@
         <div class="duration">
           <ion-icon name="stopwatch-outline" aria-hidden="true"></ion-icon>
           <span class="duration-value">{{ durationLabel }}</span>
-          <span class="duration-label">estimados</span>
+          <span class="duration-label">{{ 'PLANNER.ESTIMADOS' | translate }}</span>
         </div>
 
         <!-- Un reparto que ignora media sesión en silencio parece completo:
              se dice cuántos ejercicios faltan por puntuar. -->
         <p class="panel-warning" *ngIf="load.unscoredExercises && hasAnyLoad">
           <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-          {{ load.unscoredExercises }} de {{ load.totalExercises }} ejercicios sin puntuar: no
-          cuentan en el reparto.
+          {{ load.unscoredExercises }} {{ 'PLANNER.DE' | translate }} {{ load.totalExercises }} {{ 'PLANNER.EJERCICIOS_SIN_PUNTUAR_NO_CUENTAN' | translate }}
         </p>
 
         <!-- Tres vacíos distintos (2026-09): antes los tres decían "puntúa
              los ejercicios", culpando al entrenador aunque el problema fuese
              que la sesión no tiene series todavía. -->
         <p class="panel-empty" *ngIf="emptyReason === 'no-exercises'">
-          Este entrenamiento aún no tiene ejercicios.
+          {{ 'PLANNER.ESTE_ENTRENAMIENTO_AUN_NO_TIENE' | translate }}
         </p>
         <p class="panel-empty" *ngIf="emptyReason === 'no-sets'">
-          Los ejercicios están puntuados, pero este entrenamiento aún no tiene series que repartir.
+          {{ 'PLANNER.LOS_EJERCICIOS_ESTAN_PUNTUADOS_PERO' | translate }}
         </p>
         <p class="panel-empty" *ngIf="emptyReason === 'unscored'">
-          Ninguno de estos {{ load.totalExercises }} ejercicios está puntuado todavía. Puntúalos en
-          Mi método → Puntuaciones y aquí verás el reparto.
+          {{ 'PLANNER.NINGUNO_DE_ESTOS' | translate }} {{ load.totalExercises }} {{ 'PLANNER.EJERCICIOS_ESTA_PUNTUADO_TODAVIA_PUNTUAL' | translate }}
         </p>
 
         <ng-container *ngIf="load.muscles.length">
           <h4 class="group-title">
-            <span>Músculos</span>
-            <span class="group-unit">pts × series</span>
+            <span>{{ 'PLANNER.MUSCULOS' | translate }}</span>
+            <span class="group-unit">{{ 'PLANNER.PTS_SERIES' | translate }}</span>
           </h4>
           <div class="bar-row" *ngFor="let muscle of load.muscles; trackBy: trackByName">
             <span class="bar-name">{{ muscle.name | translateDb }}</span>
@@ -103,8 +99,8 @@
 
         <ng-container *ngIf="load.joints.length">
           <h4 class="group-title">
-            <span>Articulaciones</span>
-            <span class="group-unit">pts × series</span>
+            <span>{{ 'PLANNER.ARTICULACIONES' | translate }}</span>
+            <span class="group-unit">{{ 'PLANNER.PTS_SERIES' | translate }}</span>
           </h4>
           <div class="bar-row" *ngFor="let joint of load.joints; trackBy: trackByName">
             <span class="bar-name">{{ joint.name | translateDb }}</span>
@@ -119,9 +115,7 @@
              *ngIf="hasAnyLoad", así que la única explicación de la métrica
              no se leía justo cuando más falta hacía. -->
         <p class="panel-hint">
-          Cada número es la puntuación que diste a ese músculo en el ejercicio × sus series. Es el
-          reparto DENTRO de esta sesión, no una escala absoluta ni series reales (eso está en la
-          pestaña Semana).
+          {{ 'PLANNER.CADA_NUMERO_ES_LA_PUNTUACION' | translate }}
         </p>
       </ng-container>
     </ng-container>

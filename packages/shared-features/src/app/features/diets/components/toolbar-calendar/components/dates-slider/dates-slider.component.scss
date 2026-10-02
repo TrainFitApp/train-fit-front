@@ -22,7 +22,7 @@
 // Grid principal
 ion-grid {
   font-size: 0.85rem;
-  padding: 12px 6px;
+  padding: var(--diets-gap, 8px) 6px var(--diets-gap, 8px);
   margin: 0;
   width: 100%;
 }
@@ -92,8 +92,10 @@ ion-col {
   }
 }
 
-// Estilos para el contenido de cada día
-div {
+// Estilos para el contenido de cada día. Acotado a `ion-col > div`: un `div`
+// suelto también alcanzaba a `.phase-line` (primer `div` de la slide) y le
+// metía margen inferior y tamaño de fuente, separándola de los días.
+ion-col > div {
   font-weight: 600;
   font-family: 'Work Sans', sans-serif;
   line-height: 1.2;
@@ -121,13 +123,13 @@ div {
 // Dos capas: una línea fina por FASE encima de la semana (color + nombre) y,
 // en cada día, un badge "Cn" arriba a la derecha con el color del ciclo.
 // Pequeño a propósito: es contexto, no debe robarle sitio al número del día.
-// Los `div` genéricos de arriba (font/tamaños del contenido del día) se
-// resetean aquí explícitamente — heredarían el 1rem/0.7rem del día.
+// La línea va pegada a la fila de días: el único aire entre la barra y los
+// días es el `padding-top` de `ion-grid` (ver arriba).
 .phase-line {
   display: flex;
   gap: 4px;
   padding: 0 6px;
-  margin: 0 0 -6px;
+  margin: 0;
   font-size: 0;
   line-height: 1;
 
@@ -139,12 +141,6 @@ div {
     min-width: 0;
     margin: 0;
     font-size: 0;
-
-    &:first-child,
-    &:last-child {
-      font-size: 0;
-      margin: 0;
-    }
   }
 
   &__name {

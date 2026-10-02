@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import {
   CustomRecipe,
@@ -93,7 +94,10 @@ export class RecipeService {
     'glutenFree',
   ];
 
-  constructor(private recipeApiService: RecipeApiService) {}
+  constructor(
+    private recipeApiService: RecipeApiService,
+    private translate: TranslateService
+  ) {}
 
   public getById(id: string): Observable<Recipe> {
     return this.recipeApiService.getById(id);
@@ -413,7 +417,7 @@ export class RecipeService {
     return [...ingredients]
       .sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
       .slice(0, count)
-      .map((cp) => cp.product?.name || 'Ingrediente')
+      .map((cp) => cp.product?.name || this.translate.instant('RECIPE_CARD.INGREDIENT_FALLBACK'))
       .join(', ');
   }
 
@@ -427,7 +431,7 @@ export class RecipeService {
     return [...recipe.customProducts]
       .sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
       .map((cp) => ({
-        name: cp.product?.name || 'Ingrediente',
+        name: cp.product?.name || this.translate.instant('RECIPE_CARD.INGREDIENT_FALLBACK'),
         quantity: cp.quantity || 0,
       }));
   }

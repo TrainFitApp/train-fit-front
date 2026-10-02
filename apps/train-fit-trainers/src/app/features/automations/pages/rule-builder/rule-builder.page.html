@@ -1,5 +1,5 @@
 <ion-header class="ion-no-border">
-  <app-page-header [title]="isNew ? 'Nuevo aviso automatizado' : 'Editar aviso automatizado'"></app-page-header>
+  <app-page-header [title]="isNew ? ('AUTOMATIONS.NUEVO_AVISO_AUTOMATIZADO' | translate) : ('AUTOMATIONS.EDITAR_AVISO_AUTOMATIZADO' | translate)"></app-page-header>
 </ion-header>
 
 <ion-content class="builder-content" appSubmitOnEnter="saveRule">
@@ -11,21 +11,21 @@
 
   <div class="page-state" *ngIf="state === 'error'">
     <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-    <h2>No se pudo abrir este aviso automatizado</h2>
-    <button type="button" class="retry-button" (click)="goBack()">Volver</button>
+    <h2>{{ 'AUTOMATIONS.NO_SE_PUDO_ABRIR_ESTE' | translate }}</h2>
+    <button type="button" class="retry-button" (click)="goBack()">{{ 'COMMON.GO_BACK' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <!-- Nombre -->
     <section class="builder-card">
-      <label class="field-label" for="rule-name">Nombre</label>
+      <label class="field-label" for="rule-name">{{ 'TRAINER_COMMON.NAME' | translate }}</label>
       <div class="input-wrapper">
         <input
           id="rule-name"
           class="input-field"
           type="text"
           maxlength="100"
-          placeholder="Posible estancamiento"
+          [placeholder]="'AUTOMATIONS.POSIBLE_ESTANCAMIENTO' | translate"
           [(ngModel)]="name"
         />
       </div>
@@ -34,11 +34,11 @@
     <!-- ============ CUÁNDO ============ -->
     <section class="step-card">
       <div class="step-head">
-        <span class="step-badge">Cuándo</span>
-        <span class="step-hint">Con qué frecuencia reviso a tus clientes</span>
+        <span class="step-badge">{{ 'AUTOMATIONS.CUANDO' | translate }}</span>
+        <span class="step-hint">{{ 'AUTOMATIONS.CON_QUE_FRECUENCIA_REVISO_TUS' | translate }}</span>
       </div>
 
-      <div class="option-list" role="radiogroup" aria-label="Cuándo se evalúa el aviso automatizado">
+      <div class="option-list" role="radiogroup" [attr.aria-label]="'AUTOMATIONS.CUANDO_SE_EVALUA_EL_AVISO' | translate">
         <button
           type="button"
           class="option-card"
@@ -59,13 +59,13 @@
     <!-- ============ SI ============ -->
     <section class="step-card">
       <div class="step-head">
-        <span class="step-badge">Si</span>
-        <span class="step-hint">Se cumple lo siguiente</span>
+        <span class="step-badge">{{ 'AUTOMATIONS.SI' | translate }}</span>
+        <span class="step-hint">{{ 'AUTOMATIONS.SE_CUMPLE_LO_SIGUIENTE' | translate }}</span>
       </div>
 
       <!-- Y / O. Solo dos opciones: paréntesis anidados dejarían de ser un
            constructor visual para ser un editor de expresiones. -->
-      <div class="logic-switch" *ngIf="conditions.length > 1" role="group" aria-label="Cómo se combinan las condiciones">
+      <div class="logic-switch" *ngIf="conditions.length > 1" role="group" [attr.aria-label]="'AUTOMATIONS.COMO_SE_COMBINAN_LAS_CONDICIONES' | translate">
         <button
           type="button"
           class="logic-option"
@@ -73,7 +73,7 @@
           [attr.aria-pressed]="conditionLogic === 'all'"
           (click)="conditionLogic = 'all'"
         >
-          Se cumplen todas
+          {{ 'AUTOMATIONS.SE_CUMPLEN_TODAS' | translate }}
         </button>
         <button
           type="button"
@@ -82,7 +82,7 @@
           [attr.aria-pressed]="conditionLogic === 'any'"
           (click)="conditionLogic = 'any'"
         >
-          Se cumple alguna
+          {{ 'AUTOMATIONS.SE_CUMPLE_ALGUNA' | translate }}
         </button>
       </div>
 
@@ -102,7 +102,7 @@
                 labelPlacement="stacked"
                 [(ngModel)]="condition.metric"
                 (ngModelChange)="onMetricChange(condition)"
-                [attr.aria-label]="'Métrica de la condición ' + (i + 1)"
+                [attr.aria-label]="('AUTOMATIONS.METRICA_DE_LA_CONDICION' | translate) + (i + 1)"
               >
                 <!-- ion-select no tiene <optgroup>: el grupo va como opción deshabilitada -->
                 <ng-container *ngFor="let group of metricGroups">
@@ -122,7 +122,7 @@
                 toggleIcon="chevron-down-outline"
                 labelPlacement="stacked"
                 [(ngModel)]="condition.operator"
-                [attr.aria-label]="'Comparación de la condición ' + (i + 1)"
+                [attr.aria-label]="('AUTOMATIONS.COMPARACION_DE_LA_CONDICION' | translate) + (i + 1)"
               >
                 <ion-select-option *ngFor="let operator of operatorsFor(condition)" [value]="operator.key">
                   {{ operator.label }}
@@ -135,7 +135,7 @@
                   type="number"
                   step="any"
                   [(ngModel)]="condition.value"
-                  [attr.aria-label]="'Valor de la condición ' + (i + 1)"
+                  [attr.aria-label]="('AUTOMATIONS.VALOR_DE_LA_CONDICION' | translate) + (i + 1)"
                 />
                 <span class="value-unit" *ngIf="unitFor(condition)">{{ unitFor(condition) }}</span>
               </div>
@@ -147,7 +147,7 @@
                 toggleIcon="chevron-down-outline"
                 labelPlacement="stacked"
                 [(ngModel)]="condition.periodDays"
-                [attr.aria-label]="'Periodo de la condición ' + (i + 1)"
+                [attr.aria-label]="('AUTOMATIONS.PERIODO_DE_LA_CONDICION' | translate) + (i + 1)"
               >
                 <ion-select-option *ngFor="let period of catalog?.periods" [value]="period.days">
                   {{ period.label }}
@@ -160,7 +160,7 @@
               class="condition-remove"
               *ngIf="conditions.length > 1"
               (click)="removeCondition(i)"
-              [attr.aria-label]="'Quitar la condición ' + (i + 1)"
+              [attr.aria-label]="('AUTOMATIONS.QUITAR_LA_CONDICION' | translate) + (i + 1)"
             >
               <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
             </button>
@@ -175,7 +175,7 @@
         (click)="addCondition()"
       >
         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-        Añadir condición
+        {{ 'AUTOMATIONS.ANADIR_CONDICION' | translate }}
       </button>
     </section>
 
@@ -184,8 +184,8 @@
     <!-- ============ ENTONCES ============ -->
     <section class="step-card">
       <div class="step-head">
-        <span class="step-badge">Entonces</span>
-        <span class="step-hint">Esto es lo que hago</span>
+        <span class="step-badge">{{ 'AUTOMATIONS.ENTONCES' | translate }}</span>
+        <span class="step-hint">{{ 'AUTOMATIONS.ESTO_ES_LO_QUE_HAGO' | translate }}</span>
       </div>
 
       <div class="condition-list">
@@ -196,14 +196,14 @@
               aria-hidden="true"
             ></ion-icon>
             <span class="action-title">
-              {{ action.type === 'create_alert' ? 'Avisarme con una alerta' : 'Crear una tarea' }}
+              {{ action.type === 'create_alert' ? ('AUTOMATIONS.AVISARME_CON_UNA_ALERTA' | translate) : ('AUTOMATIONS.CREAR_UNA_TAREA' | translate) }}
             </span>
             <button
               type="button"
               class="condition-remove"
               *ngIf="action.type !== 'create_alert'"
               (click)="removeAction(i)"
-              aria-label="Quitar la tarea"
+              [attr.aria-label]="'AUTOMATIONS.QUITAR_LA_TAREA' | translate"
             >
               <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
             </button>
@@ -214,25 +214,25 @@
               class="input-field"
               type="text"
               maxlength="200"
-              [placeholder]="action.type === 'create_alert' ? 'Posible estancamiento' : 'Revisar estrategia nutricional'"
+              [placeholder]="action.type === 'create_alert' ? ('AUTOMATIONS.POSIBLE_ESTANCAMIENTO' | translate) : ('AUTOMATIONS.REVISAR_ESTRATEGIA_NUTRICIONAL' | translate)"
               [(ngModel)]="action.message"
-              [attr.aria-label]="action.type === 'create_alert' ? 'Texto de la alerta' : 'Título de la tarea'"
+              [attr.aria-label]="action.type === 'create_alert' ? ('AUTOMATIONS.TEXTO_DE_LA_ALERTA' | translate) : ('AUTOMATIONS.TITULO_DE_LA_TAREA' | translate)"
             />
           </div>
 
           <div class="priority-row" *ngIf="action.type === 'create_alert'">
-            <span class="priority-label">Prioridad</span>
+            <span class="priority-label">{{ 'AUTOMATIONS.PRIORIDAD' | translate }}</span>
             <ion-select
               class="tf-select builder-select"
               interface="popover"
               toggleIcon="chevron-down-outline"
               labelPlacement="stacked"
               [(ngModel)]="action.priority"
-              aria-label="Prioridad de la alerta"
+              [attr.aria-label]="'AUTOMATIONS.PRIORIDAD_DE_LA_ALERTA' | translate"
             >
-              <ion-select-option value="high">Urgente</ion-select-option>
-              <ion-select-option value="medium">Revisar</ion-select-option>
-              <ion-select-option value="low">Menor</ion-select-option>
+              <ion-select-option value="high">{{ 'AUTOMATIONS.URGENTE' | translate }}</ion-select-option>
+              <ion-select-option value="medium">{{ 'AUTOMATIONS.REVISAR' | translate }}</ion-select-option>
+              <ion-select-option value="low">{{ 'AUTOMATIONS.MENOR' | translate }}</ion-select-option>
             </ion-select>
           </div>
         </div>
@@ -240,18 +240,18 @@
 
       <button type="button" class="add-row-button" *ngIf="!hasTaskAction" (click)="addAction('create_task')">
         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-        Añadir una tarea
+        {{ 'AUTOMATIONS.ANADIR_UNA_TAREA' | translate }}
       </button>
     </section>
 
     <!-- ============ Nivel de automatización ============ -->
     <section class="step-card">
       <div class="step-head">
-        <span class="step-badge step-badge--muted">Hasta dónde</span>
-        <span class="step-hint">Cuánta libertad le doy</span>
+        <span class="step-badge step-badge--muted">{{ 'AUTOMATIONS.HASTA_DONDE' | translate }}</span>
+        <span class="step-hint">{{ 'AUTOMATIONS.CUANTA_LIBERTAD_LE_DOY' | translate }}</span>
       </div>
 
-      <div class="option-list" role="radiogroup" aria-label="Nivel del aviso automatizado">
+      <div class="option-list" role="radiogroup" [attr.aria-label]="'AUTOMATIONS.NIVEL_DEL_AVISO_AUTOMATIZADO' | translate">
         <button
           type="button"
           class="option-card"
@@ -268,24 +268,23 @@
 
       <p class="inline-warning" *ngIf="levelNeedsTask">
         <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
-        Este nivel necesita una tarea que sugerir o crear. Añádela arriba.
+        {{ 'AUTOMATIONS.ESTE_NIVEL_NECESITA_UNA_TAREA' | translate }}
       </p>
 
       <!-- Límite duro, dicho antes de guardar y no descubierto después -->
       <p class="inline-note">
         <ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon>
-        Un aviso automatizado nunca modifica planes, calorías ni rutinas. Como mucho te avisa y te crea
-        tareas. Si diera positivo en demasiados clientes a la vez, se desactivaría solo y te lo diría.
+        {{ 'AUTOMATIONS.UN_AVISO_AUTOMATIZADO_NUNCA_MODIFICA' | translate }}
       </p>
     </section>
 
     <!-- ============ A quién ============ -->
     <section class="step-card">
       <div class="step-head">
-        <span class="step-badge step-badge--muted">A quién</span>
+        <span class="step-badge step-badge--muted">{{ 'AUTOMATIONS.QUIEN' | translate }}</span>
       </div>
 
-      <div class="option-list option-list--inline" role="radiogroup" aria-label="A qué clientes se aplica">
+      <div class="option-list option-list--inline" role="radiogroup" [attr.aria-label]="'AUTOMATIONS.QUE_CLIENTES_SE_APLICA' | translate">
         <button
           type="button"
           class="option-card"
@@ -294,7 +293,7 @@
           [attr.aria-checked]="appliesTo === 'all_clients'"
           (click)="appliesTo = 'all_clients'"
         >
-          <span class="option-title">Todos mis clientes</span>
+          <span class="option-title">{{ 'AUTOMATIONS.TODOS_MIS_CLIENTES' | translate }}</span>
         </button>
         <button
           type="button"
@@ -304,17 +303,17 @@
           [attr.aria-checked]="appliesTo === 'selected'"
           (click)="appliesTo = 'selected'"
         >
-          <span class="option-title">Solo algunos</span>
+          <span class="option-title">{{ 'AUTOMATIONS.SOLO_ALGUNOS' | translate }}</span>
         </button>
       </div>
 
       <div class="client-picker" *ngIf="appliesTo === 'selected'">
         <button type="button" class="secondary-button" (click)="openClientPicker()">
           <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
-          {{ clientIds.length ? 'Cambiar selección' : 'Elegir clientes' }}
+          {{ clientIds.length ? ('AUTOMATIONS.CAMBIAR_SELECCION' | translate) : ('AUTOMATIONS.ELEGIR_CLIENTES' | translate) }}
         </button>
         <span class="client-count">
-          {{ clientIds.length }} cliente{{ clientIds.length === 1 ? '' : 's' }} seleccionado{{ clientIds.length === 1 ? '' : 's' }}
+          {{ clientIds.length }} {{ (clientIds.length === 1 ? 'TRAINER_COMMON.PL_CLIENT_ONE' : 'TRAINER_COMMON.PL_CLIENT_MANY') | translate }} {{ (clientIds.length === 1 ? 'TRAINER_COMMON.PL_SELECTED_ONE' : 'TRAINER_COMMON.PL_SELECTED_MANY') | translate }}
         </span>
       </div>
     </section>
@@ -324,7 +323,7 @@
     <div class="save-bar">
       <p class="save-error" *ngIf="validationError">{{ validationError }}</p>
       <button type="button" class="primary-button" [disabled]="isSaving" (click)="save()" data-enter-submit-action="saveRule">
-        <span *ngIf="!isSaving">{{ isNew ? 'Crear aviso automatizado' : 'Guardar cambios' }}</span>
+        <span *ngIf="!isSaving">{{ isNew ? ('AUTOMATIONS.CREAR_AVISO_AUTOMATIZADO' | translate) : ('AUTOMATIONS.GUARDAR_CAMBIOS' | translate) }}</span>
         <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
       </button>
     </div>

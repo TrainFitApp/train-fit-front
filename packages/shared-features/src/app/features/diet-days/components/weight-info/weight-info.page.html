@@ -8,7 +8,9 @@
       </div>
 
       <div class="title-section">
-        <h1 class="page-title">{{ monthYear }}</h1>
+        <h1 class="page-title">
+          {{ section === 'numbers' ? monthYear : ((section === 'photos' ? 'MEDIA.SECTION_PHOTOS' : 'MEDIA.SECTION_VIDEOS') | translate) }}
+        </h1>
       </div>
 
       <div class="actions-section"></div>
@@ -17,11 +19,33 @@
     <div class="progress-bar" [style.visibility]="load ? 'hidden' : 'visible'">
       <div class="progress-indicator"></div>
     </div>
+
+    <!-- Medidas: números, fotos y vídeos (docs/plan-medidas-multimedia.md) -->
+    <div class="section-switch">
+      <ion-segment [value]="section" (ionChange)="onSectionChange($event)" mode="ios" class="section-segment">
+        <ion-segment-button value="numbers">
+          <ion-label>{{ 'MEDIA.SECTION_NUMBERS' | translate }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="photos">
+          <ion-label>{{ 'MEDIA.SECTION_PHOTOS' | translate }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="videos">
+          <ion-label>{{ 'MEDIA.SECTION_VIDEOS' | translate }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
   </div>
 </ion-header>
 
 <ion-content>
-  <div class="weight-info-container">
+  <div class="weight-info-container media-container" *ngIf="section === 'photos'">
+    <app-progress-photos mode="client"></app-progress-photos>
+  </div>
+  <div class="weight-info-container media-container" *ngIf="section === 'videos'">
+    <app-progress-videos mode="client"></app-progress-videos>
+  </div>
+
+  <div class="weight-info-container" [hidden]="section !== 'numbers'">
     <div class="calendar-section">
       <app-calendar
         #weightCalendar

@@ -248,16 +248,15 @@ export class SearchExercisesPage implements OnInit {
     if (this.isChangeMode) {
       // Mostrar alerta de confirmación antes de proceder con el cambio
       const alertOptions: AlertOptions = {
-        header: 'Confirmar cambio',
-        message:
-          'Este ejercicio se sustituirá en este entrenamiento para todos los micro-ciclos',
+        header: this.translate.instant('SEARCH_EXERCISES.SWAP_CONFIRM_HEADER'),
+        message: this.translate.instant('SEARCH_EXERCISES.SWAP_CONFIRM_MSG'),
         buttons: [
           {
-            text: 'Cancelar',
+            text: this.translate.instant('COMMON.CANCEL'),
             role: 'cancel',
           },
           {
-            text: 'Confirmar',
+            text: this.translate.instant('SEARCH_EXERCISES.SWAP_CONFIRM_BTN'),
             handler: () => this.modalController.dismiss(exercise),
           },
         ],

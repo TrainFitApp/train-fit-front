@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { WorkoutTemplateApiService } from 'src/app/core/services/workout-template/workout-template-api.service';
 import { WorkoutTemplate } from 'src/app/core/models/workout-template';
@@ -28,10 +29,12 @@ import { CategoryCard } from '../../shared/components/category-grid/category-gri
   styleUrls: ['templates.page.scss'],
 })
 export class TemplatesPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   public readonly categories: CategoryCard[] = [
     {
-      name: 'Entrenamientos',
-      description: 'Biblioteca de bloques de entrenamiento reutilizables',
+      name: this.translate.instant('TEMPLATES.ENTRENAMIENTOS'),
+      description: this.translate.instant('TEMPLATES.BIBLIOTECA_DE_BLOQUES_DE_ENTRENAMIENTO'),
       icon: 'barbell-outline',
       colorVar: 'var(--tf-accent)',
       path: '/tabs/routines',
@@ -43,15 +46,15 @@ export class TemplatesPage implements OnInit {
       // splits/workouts) del profesional, construida con el mismo
       // Planificador que usa con sus clientes — distinta de "Entrenamientos"
       // (plantilla de un solo día/sesión).
-      name: 'Rutinas',
-      description: 'Plantillas de rutina completa, listas para aplicar a cualquier cliente',
+      name: this.translate.instant('TEMPLATES.RUTINAS'),
+      description: this.translate.instant('TEMPLATES.PLANTILLAS_DE_RUTINA_COMPLETA_LISTAS'),
       icon: 'calendar-outline',
       colorVar: 'var(--tf-accent)',
       path: '/tabs/routine-templates',
     },
     {
-      name: 'Dietas',
-      description: 'Días de comidas reutilizables para aplicar a cualquier cliente',
+      name: this.translate.instant('TEMPLATES.DIETAS'),
+      description: this.translate.instant('TEMPLATES.DIAS_DE_COMIDAS_REUTILIZABLES_PARA'),
       icon: 'restaurant-outline',
       colorVar: 'var(--ion-color-tertiary, #ffd359)',
       path: '/tabs/diet-templates',
@@ -64,11 +67,20 @@ export class TemplatesPage implements OnInit {
     // (PRODUCT.md > Design Principles) para una pantalla de consulta, no de
     // flujo de trabajo principal.
     {
-      name: 'Ejercicios',
-      description: 'Consulta el catálogo completo fuera de construir un entrenamiento',
+      name: this.translate.instant('TRAINER_COMMON.EXERCISES'),
+      description: this.translate.instant('TEMPLATES.CONSULTA_EL_CATALOGO_COMPLETO_FUERA'),
       icon: 'search-outline',
       colorVar: 'var(--tf-danger, #ff5c5c)',
       path: '/tabs/exercises',
+    },
+    // Vídeos de técnica propios (subidos o enlazados) que ven sus clientes
+    // en cada ejercicio (docs/plan-medidas-multimedia.md).
+    {
+      name: this.translate.instant('TEMPLATES.VIDEOS_DE_TECNICA'),
+      description: this.translate.instant('TEMPLATES.TUS_VIDEOS_DE_EJECUCION_VINCULADOS'),
+      icon: 'videocam-outline',
+      colorVar: 'var(--tf-secondary, #ffc455)',
+      path: '/tabs/technique-videos',
     },
   ];
 
@@ -196,6 +208,6 @@ export class TemplatesPage implements OnInit {
 
   public dietTemplateMeta(template: DietTemplate): string {
     const n = template.menus?.length || 0;
-    return `${n} menú${n === 1 ? '' : 's'}`;
+    return this.translate.instant('TEMPLATES.MENU', { n, p1: n === 1 ? '' : 's' });
   }
 }

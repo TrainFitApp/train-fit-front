@@ -308,7 +308,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public getMicrocycleLabel(): string {
-    return `Microciclo ${this.historicalSplitIndex + 1}`;
+    return this.translate.instant('TABLES.MICROCYCLE_N', { n: this.historicalSplitIndex + 1 });
   }
 
   // 2026-09 bis — análisis "casuísticas current-workout con rutina
@@ -325,7 +325,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   private guardReadonly(): boolean {
     if (!this.isReadonly) return false;
     this.ionicUtilService.showToast({
-      message: 'Esta rutina te la asignó tu entrenador. Pídele el cambio en vez de editarla tú mismo.',
+      message: this.translate.instant('TABLES.READONLY_ASSIGNED'),
       duration: 3000,
     });
     return true;
@@ -479,7 +479,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
         },
         error: () => {
           this.customExercise.clientNotes = previousClientNotes;
-          this.ionicUtilService.showErrorToast('No se pudo guardar la nota', 'Error', 2500);
+          this.ionicUtilService.showErrorToast(this.translate.instant('TABLES.NOTE_SAVE_ERROR'), this.translate.instant('COMMON.ERROR'), 2500);
         },
       });
     });
@@ -576,19 +576,45 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     };
 
     this.ionicUtilService.showModal(modalOptions).then((resSet) => {
-      if (resSet.data) {
-        // 2026-09 bis — ManageSetComponent edita config PAUTADA (expectedReps/
-        // expectedRir/restSeconds/restPause/drop), no lo REALMENTE hecho, así
-        // que este guardado tiene que ir por updateCustomExercise (protegido
-        // en rutinas asignadas), no por setService.updateSet (deliberadamente
-        // abierto para marcar series hechas — ver set-controller.js#updateSet).
-        // Mismo patrón que ya usa el Planner: workout.component.ts#persistSetUpdate.
-        this.customExerciseService
-          .updateCustomExercise(this.customExercise, [], [resSet.data as Set], [])
-          .subscribe((resCustomExercise) => {
+      if (!resSet.data) return;
+
+      // 2026-09 bis — ManageSetComponent edita config PAUTADA (expectedReps/
+      // expectedRir/restSeconds/restPause/drop), no lo REALMENTE hecho, así
+      // que este guardado tiene que ir por updateCustomExercise (protegido
+      // en rutinas asignadas), no por setService.updateSet (deliberadamente
+      // abierto para marcar series hechas — ver set-controller.js#updateSet).
+      // Mismo patrón que ya usa el Planner: workout.component.ts#persistSetUpdate.
+      const updatedSet = resSet.data as Set;
+
+      // 2026-10 — el objetivo de la serie no se guardaba. El backend
+      // persiste SOLO lo que viaja en customExercise.sets
+      // (custom-exercise-dao.js#updateCustomExercise recibe setsToUpdate y
+      // no lo usa para nada), y el modal devuelve una COPIA del set, así
+      // que el array enviado seguía con los valores viejos y la respuesta
+      // los repintaba: el cambio desaparecía sin error ninguno. Se mete la
+      // copia en el array antes de enviar, igual que el Planner
+      // (workout.component.ts#persistSetUpdate).
+      const indexSet = this.customExercise.sets.findIndex(
+        (setTemp) => setTemp._id === updatedSet._id
+      );
+      const previousSet =
+        indexSet >= 0 ? this.customExercise.sets[indexSet] : null;
+      if (indexSet >= 0) this.customExercise.sets[indexSet] = updatedSet;
+
+      this.customExerciseService
+        .updateCustomExercise(this.customExercise, [], [updatedSet], [])
+        .subscribe({
+          next: (resCustomExercise) => {
             this.replaceCurrentSets(resCustomExercise.sets);
-          });
-      }
+          },
+          error: () => {
+            if (previousSet) this.customExercise.sets[indexSet] = previousSet;
+            this.ionicUtilService.showToast({
+              message: this.translate.instant('TABLES.UPDATE_SET_ERROR'),
+              duration: 2500,
+            });
+          },
+        });
     });
   }
 

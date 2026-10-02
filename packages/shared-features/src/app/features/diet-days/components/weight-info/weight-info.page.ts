@@ -41,6 +41,8 @@ export class WeightInfoPage implements OnDestroy {
 
   public monthYear: string;
   public CHART_RANGES = CHART_RANGES;
+  // Números (peso y perímetros), fotos o vídeos de progreso.
+  public section: 'numbers' | 'photos' | 'videos' = 'numbers';
   public chartRange: string;
 
   private translate = inject(TranslateService);
@@ -73,6 +75,11 @@ export class WeightInfoPage implements OnDestroy {
     this.chartRange = CHART_RANGES.month;
     this.getChartConfigurationByRange();
     this.loadAnthropometryData();
+  }
+
+  public onSectionChange(event: any): void {
+    const value = event?.detail?.value;
+    if (value === 'numbers' || value === 'photos' || value === 'videos') this.section = value;
   }
 
   public chartRangeChange(event: any): void {

@@ -11,13 +11,10 @@ public struct WorkoutActivityAttributes: ActivityAttributes {
         public var totalSets: Int
         public var reps: Int
         public var weight: Double
-        public var rir: Int
+        /// `nil` = sin dato («—»), `-1` = fallo.
+        public var rir: Int?
         public var doned: Bool
         public var imageKey: String?
-        public var canPrevSet: Bool
-        public var canNextSet: Bool
-        public var canPrevExercise: Bool
-        public var canNextExercise: Bool
         /// Progreso de todo el entrenamiento, para la barra de la tarjeta.
         public var doneCount: Int
         public var totalCount: Int
@@ -30,13 +27,9 @@ public struct WorkoutActivityAttributes: ActivityAttributes {
             totalSets: Int,
             reps: Int,
             weight: Double,
-            rir: Int,
+            rir: Int?,
             doned: Bool,
             imageKey: String?,
-            canPrevSet: Bool,
-            canNextSet: Bool,
-            canPrevExercise: Bool,
-            canNextExercise: Bool,
             doneCount: Int,
             totalCount: Int
         ) {
@@ -50,16 +43,11 @@ public struct WorkoutActivityAttributes: ActivityAttributes {
             self.rir = rir
             self.doned = doned
             self.imageKey = imageKey
-            self.canPrevSet = canPrevSet
-            self.canNextSet = canNextSet
-            self.canPrevExercise = canPrevExercise
-            self.canNextExercise = canNextExercise
             self.doneCount = doneCount
             self.totalCount = totalCount
         }
 
-        /// Estado pintado por el widget: la serie en curso más qué flechas de
-        /// navegación tienen destino (las que no, salen apagadas).
+        /// Estado pintado por el widget: la serie en curso.
         public init?(session: WorkoutSession) {
             guard let item = session.currentItem else { return nil }
             self.init(
@@ -73,11 +61,7 @@ public struct WorkoutActivityAttributes: ActivityAttributes {
                 rir: item.rir,
                 doned: item.doned,
                 imageKey: item.imageKey,
-                canPrevSet: session.indexForSetStep(-1) != nil,
-                canNextSet: session.indexForSetStep(1) != nil,
-                canPrevExercise: session.indexForExerciseStep(-1) != nil,
-                canNextExercise: session.indexForExerciseStep(1) != nil,
-                doneCount: session.items.filter { $0.doned }.count,
+                doneCount: session.doneCount,
                 totalCount: session.items.count
             )
         }
@@ -85,17 +69,62 @@ public struct WorkoutActivityAttributes: ActivityAttributes {
 
     public var workoutName: String
     public var startedAt: Date
+    /// Opcionales: las tarjetas abiertas por versiones anteriores no los
+    /// traen y el decoder sintetizado las descartaría.
+    public var workoutId: String?
+    public var labels: WorkoutActivityLabels?
 
-    public init(workoutName: String, startedAt: Date) {
+    public init(workoutName: String, startedAt: Date, workoutId: String?, labels: WorkoutActivityLabels?) {
         self.workoutName = workoutName
         self.startedAt = startedAt
+        self.workoutId = workoutId
+        self.labels = labels
     }
+
+    /// La tarjeta pertenece a esta sesión de entrenamiento (mismo workout y
+    /// mismo arranque, que es lo que pinta el cronómetro).
+    public func belongs(to session: WorkoutSession) -> Bool {
+        (workoutId == nil || workoutId == session.workoutId)
+            && abs(startedAt.timeIntervalSince(session.startedAt)) < 1
+    }
+}
+
+/// Textos de la tarjeta en el idioma de la app (no en el del sistema: la app
+/// tiene su propio selector de idioma). Viajan en los atributos porque no
+/// cambian durante el entrenamiento y el estado tiene un límite de 4 KB.
+public struct WorkoutActivityLabels: Codable, Hashable, Sendable {
+    public var exercise: String
+    public var set: String
+    public var done: String
+    public var fail: String
+    public var weight: String
+    public var reps: String
+    public var rir: String
+
+    public init(exercise: String, set: String, done: String, fail: String, weight: String, reps: String, rir: String) {
+        self.exercise = exercise
+        self.set = set
+        self.done = done
+        self.fail = fail
+        self.weight = weight
+        self.reps = reps
+        self.rir = rir
+    }
+
+    /// Solo para tarjetas abiertas por versiones que no mandaban los textos.
+    public static let fallback = WorkoutActivityLabels(
+        exercise: "Ejercicio",
+        set: "Serie",
+        done: "hecha",
+        fail: "Fallo",
+        weight: "KG",
+        reps: "REPS",
+        rir: "RIR"
+    )
 }
 
 @available(iOS 16.2, *)
 public enum WorkoutLiveActivityController {
-    /// Sincroniza la Live Activity en curso con la sesión guardada. Si ya no
-    /// quedan sets pendientes, la cierra.
     /// Lista de actividades vivas, esperando a que ActivityKit la publique.
     ///
     /// Cuando el proceso acaba de despertar (que es siempre: el sistema levanta
@@ -111,15 +140,9 @@ public enum WorkoutLiveActivityController {
         return []
     }
 
+    /// Sincroniza la Live Activity en curso con la sesión guardada. Si ya no
+    /// quedan sets pendientes, la cierra.
     public static func refresh(session: WorkoutSession) async {
-        var session = session
-        if session.currentItem == nil {
-            // Índice fuera de rango: se recoloca en la primera serie pendiente
-            // en vez de cerrar la notificación por una incoherencia pasajera.
-            session.currentIndex = session.firstPendingIndex ?? 0
-            WorkoutActivityStore.saveSession(session)
-        }
-
         guard let state = WorkoutActivityAttributes.ContentState(session: session) else {
             WorkoutActivityStore.trace("refresh sin estado: se cierra")
             await end()
@@ -154,8 +177,60 @@ public enum WorkoutLiveActivityController {
         }
     }
 
+    public enum Presence: Sendable, Equatable {
+        /// Ya había tarjeta de esta sesión: se ha refrescado.
+        case reused
+        /// No había y se ha abierto una nueva.
+        case opened
+        /// No hay tarjeta y no se ha pedido abrirla.
+        case missing
+        /// ActivityKit ha rechazado abrirla (p. ej. app en segundo plano).
+        case failed(String)
+    }
+
+    /// Deja una sola tarjeta, la de esta sesión: si ya hay una viva se
+    /// reutiliza y solo se refresca. Cerrarla y abrir otra era lo que hacía la
+    /// app cada vez que el sistema la relanzaba en segundo plano para atender
+    /// un botón: la tarjeta desaparecía en mitad de la navegación y, en un
+    /// iPhone real, ya no volvía (ActivityKit solo deja abrir tarjetas con la
+    /// app en primer plano).
+    public static func ensure(
+        session: WorkoutSession,
+        labels: WorkoutActivityLabels?,
+        open: Bool
+    ) async -> Presence {
+        let activities = await liveActivities()
+        let mine = activities.filter { $0.attributes.belongs(to: session) }
+        let foreign = activities.filter { !$0.attributes.belongs(to: session) }
+
+        // Otra sesión (otro workout, u otra vuelta del mismo): sobra.
+        for activity in foreign {
+            await activity.end(nil, dismissalPolicy: .immediate)
+        }
+        // Duplicadas de la misma sesión (de versiones anteriores): una basta.
+        for activity in mine.dropFirst() {
+            await activity.end(nil, dismissalPolicy: .immediate)
+        }
+        if !foreign.isEmpty || mine.count > 1 {
+            WorkoutActivityStore.trace("tarjetas cerradas: otras=\(foreign.count) duplicadas=\(max(mine.count - 1, 0))")
+        }
+
+        if !mine.isEmpty {
+            await refresh(session: session)
+            return .reused
+        }
+        guard open else { return .missing }
+
+        do {
+            return try start(session: session, labels: labels) != nil ? .opened : .missing
+        } catch {
+            WorkoutActivityStore.trace("no se pudo abrir: \(error.localizedDescription)")
+            return .failed(error.localizedDescription)
+        }
+    }
+
     @discardableResult
-    public static func start(session: WorkoutSession) throws -> String? {
+    public static func start(session: WorkoutSession, labels: WorkoutActivityLabels?) throws -> String? {
         guard let state = WorkoutActivityAttributes.ContentState(session: session) else { return nil }
 
         let authorization = ActivityAuthorizationInfo()
@@ -163,7 +238,9 @@ public enum WorkoutLiveActivityController {
 
         let attributes = WorkoutActivityAttributes(
             workoutName: session.workoutName,
-            startedAt: session.startedAt
+            startedAt: session.startedAt,
+            workoutId: session.workoutId,
+            labels: labels
         )
         let activity = try Activity.request(
             attributes: attributes,
@@ -176,6 +253,7 @@ public enum WorkoutLiveActivityController {
         // entrenamiento. Sin esto no hay forma de distinguirlo.
         observeState(of: activity)
 
+        WorkoutActivityStore.trace("notificacion abierta id=\(activity.id)")
         return activity.id
     }
 
@@ -248,19 +326,72 @@ public actor WorkoutSessionMutator {
         }
     }
 
-    /// Sustituye la sesión completa: la manda la app, que es la fuente de
-    /// verdad, y no debe pisar un cambio de la notificación a medias.
-    public func replace(with session: WorkoutSession) async {
-        await enqueue { WorkoutActivityStore.saveSession(session) }
+    /// Recibe el entrenamiento que manda la app y lo funde, **dentro de la
+    /// cola**, con la sesión guardada más reciente (ver
+    /// `WorkoutSession.merging`).
+    ///
+    /// La publicación (y la apertura de la tarjeta, si `open`) va en la misma
+    /// vuelta de la cola: publicar después, fuera de ella, podía enseñar un
+    /// estado más viejo que el que acababa de publicar un botón.
+    public func sync(
+        _ incoming: WorkoutSession,
+        labels: WorkoutActivityLabels?,
+        open: Bool
+    ) async -> WorkoutLiveActivityController.Presence {
+        await enqueueReturning {
+            let merged = WorkoutSession.merging(
+                incoming: incoming,
+                previous: WorkoutActivityStore.loadSession(),
+                pending: WorkoutActivityStore.loadPending()
+            )
+            WorkoutActivityStore.saveSession(merged)
+            let presence = await WorkoutLiveActivityController.ensure(
+                session: merged,
+                labels: labels,
+                open: open
+            )
+            WorkoutActivityStore.trace("app sincroniza serie=\(merged.currentIndex) tarjeta=\(presence)")
+            return presence
+        }
+    }
+
+    /// Pone las miniaturas recién descargadas sobre la sesión **actual** y
+    /// republica. Hacerlo sobre una copia leída antes de la descarga
+    /// devolvía la tarjeta a la serie de hace unos segundos.
+    public func applyImageKeys(_ keysBySet: [String: String], workoutId: String) async {
+        await enqueue {
+            guard var session = WorkoutActivityStore.loadSession(),
+                  session.workoutId == workoutId else { return }
+            var changed = false
+            for index in session.items.indices {
+                guard let key = keysBySet[session.items[index].setId],
+                      session.items[index].imageKey != key else { continue }
+                session.items[index].imageKey = key
+                changed = true
+            }
+            guard changed else { return }
+            WorkoutActivityStore.saveSession(session)
+            await WorkoutLiveActivityController.refresh(session: session)
+        }
+    }
+
+    /// Trabajo suelto que toca el App Group (p. ej. borrar acciones
+    /// pendientes) sin competir con los botones.
+    public func run(_ work: @escaping @Sendable () async -> Void) async {
+        await enqueue(work)
     }
 
     private func enqueue(_ work: @escaping @Sendable () async -> Void) async {
+        await enqueueReturning(work)
+    }
+
+    private func enqueueReturning<T: Sendable>(_ work: @escaping @Sendable () async -> T) async -> T {
         let previous = tail
-        let task = Task {
+        let task = Task { () -> T in
             await previous?.value
-            await work()
+            return await work()
         }
-        tail = task
-        await task.value
+        tail = Task { _ = await task.value }
+        return await task.value
     }
 }

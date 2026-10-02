@@ -1,4 +1,5 @@
 import type { BlockExerciseProgress, BlockMuscleGroup, TrainingBlock, TrainingComparisonMetric } from '../../models/client-progress.model';
+import { uiLocale, uiText } from 'src/app/core/i18n/localized-catalog';
 
 export interface ComparisonRow {
   key: string;
@@ -14,7 +15,7 @@ export interface ComparisonRow {
 }
 
 export function formatMetric(value: number | null | undefined): string {
-  return value == null || !Number.isFinite(value) ? '—' : value.toLocaleString('es-ES', { maximumFractionDigits: 1 });
+  return value == null || !Number.isFinite(value) ? '—' : value.toLocaleString(uiLocale(), { maximumFractionDigits: 1 });
 }
 
 export function comparisonRow(key: string, label: string, unit: string, a?: number | null, b?: number | null): ComparisonRow {
@@ -24,7 +25,7 @@ export function comparisonRow(key: string, label: string, unit: string, a?: numb
   return {
     key, label, unit, a: left, b: right,
     direction: difference == null ? 'missing' : difference > 0 ? 'up' : difference < 0 ? 'down' : 'flat',
-    delta: difference == null ? 'Sin comparación' : difference === 0 ? '=' : `${difference > 0 ? '↑ +' : '↓ −'}${formatMetric(Math.abs(difference))}${unit ? ' ' + unit : ''}`,
+    delta: difference == null ? uiText('CLIENTS.SIN_COMPARACION') : difference === 0 ? '=' : `${difference > 0 ? '↑ +' : '↓ −'}${formatMetric(Math.abs(difference))}${unit ? ' ' + unit : ''}`,
     percentage: difference == null || !left || difference === 0 ? null : `${difference > 0 ? '+' : '−'}${formatMetric(Math.abs(((right! - left) / left) * 100))}%`,
   };
 }
@@ -43,7 +44,7 @@ function rirValue(exercise?: BlockExerciseProgress): number | null {
 }
 
 function rirText(exercise?: BlockExerciseProgress): string {
-  return exercise?.bestSet?.rir?.map((value) => value === -1 ? 'Fallo' : formatMetric(value)).join('–') || '—';
+  return exercise?.bestSet?.rir?.map((value) => value === -1 ? uiText('CLIENTS.FALLO') : formatMetric(value)).join('–') || '—';
 }
 
 export function exerciseRows(a?: BlockExerciseProgress, b?: BlockExerciseProgress): ComparisonRow[] {
@@ -53,21 +54,21 @@ export function exerciseRows(a?: BlockExerciseProgress, b?: BlockExerciseProgres
   // El RIR es una escala: mostrar cambio absoluto, nunca un porcentaje.
   rir.percentage = null;
   return [
-    comparisonRow('load', 'Carga máxima', 'kg', a?.maxWeight, b?.maxWeight),
-    comparisonRow('reps', 'Reps · serie de mayor carga', '', a?.bestSet?.reps, b?.bestSet?.reps),
+    comparisonRow('load', uiText('CLIENTS.CARGA_MAXIMA'), 'kg', a?.maxWeight, b?.maxWeight),
+    comparisonRow('reps', uiText('CLIENTS.REPS_SERIE_DE_MAYOR_CARGA'), '', a?.bestSet?.reps, b?.bestSet?.reps),
     rir,
-    comparisonRow('sets', 'Series realizadas', '', a?.sets, b?.sets),
-    comparisonRow('totalReps', 'Repeticiones totales', '', a?.totalReps, b?.totalReps),
-    comparisonRow('volume', 'Volumen del ejercicio', 'kg', a?.volume, b?.volume),
+    comparisonRow('sets', uiText('CLIENTS.SERIES_REALIZADAS'), '', a?.sets, b?.sets),
+    comparisonRow('totalReps', uiText('CLIENTS.REPETICIONES_TOTALES'), '', a?.totalReps, b?.totalReps),
+    comparisonRow('volume', uiText('CLIENTS.VOLUMEN_DEL_EJERCICIO'), 'kg', a?.volume, b?.volume),
   ];
 }
 
 export function overviewRows(a?: TrainingBlock, b?: TrainingBlock): ComparisonRow[] {
   return [
-    comparisonRow('volume', 'Volumen / sesión', 'kg', blockMetric(a, 'volume'), blockMetric(b, 'volume')),
-    comparisonRow('sets', 'Series / sesión', '', blockMetric(a, 'sets'), blockMetric(b, 'sets')),
-    comparisonRow('sessions', 'Sesiones registradas', '', a?.sessions, b?.sessions),
-    comparisonRow('totalSets', 'Series totales', '', a?.sets, b?.sets),
+    comparisonRow('volume', uiText('CLIENTS.VOLUMEN_SESION'), 'kg', blockMetric(a, 'volume'), blockMetric(b, 'volume')),
+    comparisonRow('sets', uiText('CLIENTS.SERIES_SESION_2'), '', blockMetric(a, 'sets'), blockMetric(b, 'sets')),
+    comparisonRow('sessions', uiText('CLIENTS.SESIONES_REGISTRADAS'), '', a?.sessions, b?.sessions),
+    comparisonRow('totalSets', uiText('CLIENTS.SERIES_TOTALES'), '', a?.sets, b?.sets),
   ];
 }
 

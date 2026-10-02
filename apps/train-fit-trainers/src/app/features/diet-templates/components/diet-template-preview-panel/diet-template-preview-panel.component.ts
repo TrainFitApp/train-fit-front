@@ -1,5 +1,4 @@
-import {
-  AfterViewInit,
+import { AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -8,8 +7,8 @@ import {
   Input,
   OnChanges,
   Output,
-  ViewChild,
-} from '@angular/core';
+  ViewChild, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { CustomRecipe } from 'src/app/core/models/customRecipe';
 import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
@@ -54,6 +53,8 @@ interface PreviewMenu {
   styleUrls: ['diet-template-preview-panel.component.scss'],
 })
 export class DietTemplatePreviewPanelComponent implements OnChanges, AfterViewInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public template: DietTemplate | null = null;
   // Aptitud efectiva (derivada ∪ forzada), la misma que pinta la card.
   @Input() public flags: string[] = [];
@@ -104,14 +105,14 @@ export class DietTemplatePreviewPanelComponent implements OnChanges, AfterViewIn
   }
 
   public itemLabel(item: TemplateFoodItem): string {
-    return (item.recipeId ? item.recipeName : item.productName) || 'Sin alimento';
+    return (item.recipeId ? item.recipeName : item.productName) || this.translate.instant('DIET_TEMPLATES.SIN_ALIMENTO');
   }
 
   // Misma numeración descendente que las cabeceras del editor de comida
   // (day-meal-editor-modal) y las celdas del constructor: "Opción 2" es la
   // misma aquí que allí.
   public alternativeLabel(alt: PreviewAlternative, index: number, total: number): string {
-    return alt.label || `Opción ${total - index}`;
+    return alt.label || this.translate.instant('DIET_TEMPLATES.OPCION_2', { p0: total - index });
   }
 
   private buildMenu(menu: DietTemplateMenuPayload): PreviewMenu {
@@ -153,7 +154,7 @@ export class DietTemplatePreviewPanelComponent implements OnChanges, AfterViewIn
           const macros = this.customProductService.getMacros(cp as CustomProduct);
           return {
             productId: typeof cp.product === 'string' ? cp.product : cp.product?._id,
-            productName: cp.product?.name || 'Alimento guardado',
+            productName: cp.product?.name || this.translate.instant('DIET_TEMPLATES.ALIMENTO_GUARDADO'),
             quantity: cp.quantity,
             ...macros,
           };
@@ -167,7 +168,7 @@ export class DietTemplatePreviewPanelComponent implements OnChanges, AfterViewIn
           ).portionMacros;
           return {
             recipeId: typeof cr.recipe === 'string' ? cr.recipe : cr.recipe?._id,
-            recipeName: cr.recipe?.name || 'Receta guardada',
+            recipeName: cr.recipe?.name || this.translate.instant('DIET_TEMPLATES.RECETA_GUARDADA'),
             quantity: cr.quantity,
             kcal: macros.kcal,
             protein: macros.protein,

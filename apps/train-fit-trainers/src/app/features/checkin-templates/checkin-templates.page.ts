@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { CHECKIN_FIELDS, CheckinField, CheckinFieldGroup } from 'src/app/core/constants/checkin-fields';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -9,6 +10,7 @@ import {
   CustomCheckinQuestion,
 } from './models/checkin-template.model';
 import { CheckinTemplatesApiService } from './services/checkin-templates-api.service';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -21,12 +23,15 @@ const GROUP_LABELS: Record<CheckinFieldGroup, string> = {
   composicion_corporal: 'Composición corporal',
   perimetros: 'Perímetros',
   bienestar: 'Bienestar',
+  fotos: 'Fotos de progreso',
 };
+localizeRecord(GROUP_LABELS, 'CHECKIN_FIELD_GROUPS');
 
 const GROUP_ICONS: Record<CheckinFieldGroup, string> = {
   composicion_corporal: 'body-outline',
   perimetros: 'resize-outline',
   bienestar: 'heart-outline',
+  fotos: 'camera-outline',
 };
 
 @Component({
@@ -35,11 +40,13 @@ const GROUP_ICONS: Record<CheckinFieldGroup, string> = {
   styleUrls: ['checkin-templates.page.scss'],
 })
 export class CheckinTemplatesPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   public state: ViewState = 'loading';
   public templates: CheckinTemplateDefinition[] = [];
 
   public groups: { key: CheckinFieldGroup; label: string; fields: CheckinField[] }[] = (
-    ['composicion_corporal', 'perimetros', 'bienestar'] as CheckinFieldGroup[]
+    ['composicion_corporal', 'perimetros', 'bienestar', 'fotos'] as CheckinFieldGroup[]
   ).map((key) => ({
     key,
     label: GROUP_LABELS[key],
@@ -202,11 +209,11 @@ export class CheckinTemplatesPage implements OnInit {
   // desactivado sin explicación.
   public get customQuestionsError(): string | null {
     for (const question of this.formCustomQuestions) {
-      if (!question.label.trim()) return 'Todas las preguntas necesitan un enunciado.';
+      if (!question.label.trim()) return this.translate.instant('CHECKIN_TEMPLATES.TODAS_LAS_PREGUNTAS_NECESITAN_UN');
       if (question.type === 'select') {
         const options = (question.options || []).filter((o) => o.trim());
         if (options.length < 2) {
-          return `"${question.label || 'Sin título'}" necesita al menos 2 opciones.`;
+          return this.translate.instant('CHECKIN_TEMPLATES.NECESITA_AL_MENOS_2_OPCIONES', { p0: question.label || 'Sin título' });
         }
       }
     }
@@ -230,7 +237,7 @@ export class CheckinTemplatesPage implements OnInit {
 
     const questionsError = this.customQuestionsError;
     if (questionsError) {
-      this.ionicUtilService.showErrorToast(questionsError, 'Revisa las preguntas', 3000);
+      this.ionicUtilService.showErrorToast(questionsError, this.translate.instant('CHECKIN_TEMPLATES.REVISA_LAS_PREGUNTAS'), 3000);
       return;
     }
 
@@ -259,7 +266,7 @@ export class CheckinTemplatesPage implements OnInit {
         this.isSaving = false;
         this.showEditPanel = false;
         this.ionicUtilService.showToast({
-          message: this.editingId ? 'Plantilla actualizada' : 'Plantilla creada',
+          message: this.editingId ? this.translate.instant('CHECKIN_TEMPLATES.PLANTILLA_ACTUALIZADA') : this.translate.instant('CHECKIN_TEMPLATES.PLANTILLA_CREADA'),
           duration: 2500,
         });
         this.load();
@@ -267,8 +274,8 @@ export class CheckinTemplatesPage implements OnInit {
       error: (err) => {
         this.isSaving = false;
         this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo guardar la plantilla',
-          'Error',
+          err?.error?.message || this.translate.instant('TABLES.TEMPLATE_SAVE_ERROR'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
@@ -277,12 +284,12 @@ export class CheckinTemplatesPage implements OnInit {
 
   public async confirmDelete(template: CheckinTemplateDefinition): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Borrar plantilla',
-      message: `¿Seguro que quieres borrar "${template.name}"? Los clientes que ya la tengan aplicada conservan su configuración actual.`,
+      header: this.translate.instant('CHECKIN_TEMPLATES.BORRAR_PLANTILLA_2'),
+      message: this.translate.instant('CHECKIN_TEMPLATES.SEGURO_QUE_QUIERES_BORRAR_LOS', { name: template.name }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Borrar',
+          text: this.translate.instant('TRAINER_COMMON.ERASE'),
           cssClass: 'alert-button-danger',
           handler: () => this.deleteTemplate(template),
         },
@@ -293,14 +300,14 @@ export class CheckinTemplatesPage implements OnInit {
   private deleteTemplate(template: CheckinTemplateDefinition): void {
     this.checkinTemplatesApi.delete(template._id).subscribe({
       next: () => {
-        this.ionicUtilService.showToast({ message: 'Plantilla borrada', duration: 2000 });
+        this.ionicUtilService.showToast({ message: this.translate.instant('CHECKIN_TEMPLATES.PLANTILLA_BORRADA'), duration: 2000 });
         // Borrada desde el propio panel: dejarlo abierto sería seguir
         // editando algo que ya no existe.
         if (this.editingId === template._id) this.closeEditPanel();
         this.load();
       },
       error: () => {
-        this.ionicUtilService.showErrorToast('No se pudo borrar la plantilla', 'Error', 2500);
+        this.ionicUtilService.showErrorToast(this.translate.instant('CHECKIN_TEMPLATES.NO_SE_PUDO_BORRAR_LA'), this.translate.instant('COMMON.ERROR'), 2500);
       },
     });
   }

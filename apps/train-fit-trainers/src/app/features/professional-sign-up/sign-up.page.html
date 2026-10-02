@@ -2,7 +2,7 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="goToLogin()" aria-label="Volver">
+        <button type="button" class="tf-page-header__back-button" (click)="goToLogin()" [attr.aria-label]="'COMMON.GO_BACK' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
@@ -15,9 +15,9 @@
 <ion-content class="signup-content" fullscreen>
   <div class="signup-container">
     <div class="signup-step" *ngIf="!codeSended">
-      <h1 class="signup-title">Crea tu cuenta de profesional</h1>
+      <h1 class="signup-title">{{ 'PROFESSIONAL_SIGN_UP.CREA_TU_CUENTA_DE_PROFESIONAL' | translate }}</h1>
       <p class="signup-subtitle">
-        Gestiona a tus clientes de entrenamiento y nutrición desde TrainFit.
+        {{ 'PROFESSIONAL_SIGN_UP.GESTIONA_TUS_CLIENTES_DE_ENTRENAMIENTO' | translate }}
       </p>
 
       <form class="signup-form" [formGroup]="form" (ngSubmit)="register()" appSubmitOnEnter="register">
@@ -106,7 +106,7 @@
             <button
               type="button"
               class="password-toggle"
-              [attr.aria-label]="showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-label]="showPass ? ('PROFESSIONAL_SIGN_UP.OCULTAR_CONTRASENA' | translate) : ('PROFESSIONAL_SIGN_UP.MOSTRAR_CONTRASENA' | translate)"
               (click)="showPass = !showPass"
             >
               <ion-icon [name]="showPass ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
@@ -136,7 +136,7 @@
             <button
               type="button"
               class="password-toggle"
-              [attr.aria-label]="showPassRep ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-label]="showPassRep ? ('PROFESSIONAL_SIGN_UP.OCULTAR_CONTRASENA' | translate) : ('PROFESSIONAL_SIGN_UP.MOSTRAR_CONTRASENA' | translate)"
               (click)="showPassRep = !showPassRep"
             >
               <ion-icon [name]="showPassRep ? 'eye-off-outline' : 'eye-outline'"></ion-icon>

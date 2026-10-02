@@ -61,7 +61,11 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Esta aplicación necesita acceso a la cámara para escanear códigos.</string>
+	<string>Usamos la cámara para escanear códigos de alimentos y para hacer tus fotos y vídeos de progreso y de técnica.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Usamos el micrófono al grabar un vídeo de técnica para tu entrenador.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Puedes elegir de tu galería las fotos y vídeos que quieras subir a TrainFit.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>TrainFit necesita acceso a la red local para conectarse con servidores de tu red.</string>
 	<key>NSSupportsLiveActivities</key>

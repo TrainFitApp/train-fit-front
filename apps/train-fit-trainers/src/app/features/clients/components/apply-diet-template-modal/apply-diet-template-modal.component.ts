@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { DietTemplateApiService } from '../../../diet-templates/services/diet-template-api.service';
 import { DietTemplate } from '../../../diet-templates/models/diet-template.model';
@@ -30,8 +31,10 @@ function todayIsoDate(): string {
   styleUrls: ['apply-diet-template-modal.component.scss'],
 })
 export class ApplyDietTemplateModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId!: string;
-  @Input() public clientName = 'este cliente';
+  @Input() public clientName = this.translate.instant('CLIENTS.ESTE_CLIENTE');
 
   // Mensaje del 409 del backend: las fechas pisan otra fase.
   public overlapError: string | null = null;
@@ -123,7 +126,7 @@ export class ApplyDietTemplateModalComponent implements OnInit {
           // genérico obligaría a reabrirlo y adivinar qué falló.
           this.overlapError =
             err?.status === 409
-              ? err?.error?.message || 'Esas fechas se solapan con otra fase.'
+              ? err?.error?.message || this.translate.instant('CLIENTS.ESAS_FECHAS_SE_SOLAPAN_CON')
               : null;
         },
       });

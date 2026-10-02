@@ -10,7 +10,7 @@
       </div>
       <span class="compare-card__dates">{{ formatRange(l) }}</span>
       <label class="compare-card__picker" *ngIf="hasComparison">
-        <span class="sr-only">Semana a comparar</span>
+        <span class="sr-only">{{ 'CLIENTS.SEMANA_COMPARAR' | translate }}</span>
         <ion-select
           class="tf-select"
           interface="popover"
@@ -18,7 +18,7 @@
           labelPlacement="stacked"
           [value]="l.number"
           (ionChange)="selectLeft($event.detail.value)"
-          aria-label="Semana a comparar"
+          [attr.aria-label]="'CLIENTS.SEMANA_COMPARAR' | translate"
         >
           <ion-select-option *ngFor="let c of weeks; trackBy: trackByNumber" [value]="c.number">{{ weekOptionLabel(c) }}</ion-select-option>
         </ion-select>
@@ -51,7 +51,7 @@
     <div class="compare-card__head">
       <ng-container *ngIf="right as r; else noReference">
         <div class="compare-card__title">
-          <span class="compare-card__kicker">Comparado con</span>
+          <span class="compare-card__kicker">{{ 'CLIENTS.COMPARADO_CON' | translate }}</span>
           <span class="compare-card__week">S{{ r.number }}</span>
           <span class="compare-card__status" [class.compare-card__status--current]="r.status === 'current'">
             {{ statusLabel(r) }}
@@ -61,21 +61,21 @@
       </ng-container>
       <ng-template #noReference>
         <div class="compare-card__title">
-          <span class="compare-card__kicker">Comparado con</span>
+          <span class="compare-card__kicker">{{ 'CLIENTS.COMPARADO_CON' | translate }}</span>
           <span class="compare-card__week compare-card__week--muted">—</span>
         </div>
       </ng-template>
       <label class="compare-card__picker" *ngIf="hasComparison">
-        <span class="sr-only">Semana de referencia</span>
+        <span class="sr-only">{{ 'CLIENTS.SEMANA_DE_REFERENCIA' | translate }}</span>
         <ion-select
           class="tf-select"
           interface="popover"
           toggleIcon="chevron-down-outline"
           labelPlacement="stacked"
-          placeholder="Elige una semana"
+          [placeholder]="'CLIENTS.ELIGE_UNA_SEMANA' | translate"
           [value]="right?.number"
           (ionChange)="selectRight($event.detail.value)"
-          aria-label="Semana de referencia"
+          [attr.aria-label]="'CLIENTS.SEMANA_DE_REFERENCIA' | translate"
         >
           <ion-select-option *ngFor="let c of weeks; trackBy: trackByNumber" [value]="c.number" [disabled]="c.number === l.number">
             {{ weekOptionLabel(c) }}
@@ -92,7 +92,7 @@
     </dl>
     <ng-template #noReferenceBody>
       <p class="empty-hint">
-        {{ hasComparison ? 'Sin semana anterior con la que comparar: elige una arriba.' : 'Es la primera semana de la fase: todavía no hay otra con la que comparar.' }}
+        {{ hasComparison ? ('CLIENTS.SIN_SEMANA_ANTERIOR_CON_LA' | translate) : ('CLIENTS.ES_LA_PRIMERA_SEMANA_DE' | translate) }}
       </p>
     </ng-template>
   </div>

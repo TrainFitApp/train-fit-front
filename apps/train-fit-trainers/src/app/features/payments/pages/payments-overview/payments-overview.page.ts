@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -21,6 +22,7 @@ import {
   formatDay,
   statusChips,
 } from '../../utils/payments-view.util';
+import { localizeList } from 'src/app/core/i18n/localized-catalog';
 
 interface OpenCharge {
   clientId: string;
@@ -34,7 +36,10 @@ interface OpenClient {
   clientName: string;
 }
 
-const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const MONTHS = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
+localizeList(MONTHS, 'PAYMENTS.MONTHS_IN_SENTENCE');
 
 // Configuración > Cobros: la cartera entera, activos y antiguos. Los totales
 // se agregan en el backend sobre todo el conjunto (nunca sobre la página) y
@@ -46,19 +51,21 @@ const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 
   styleUrls: ['./payments-overview.page.scss'],
 })
 export class PaymentsOverviewPage implements OnInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   public readonly states: Array<{ key: OverviewState; label: string }> = [
-    { key: 'pending', label: 'Pendientes' },
-    { key: 'overdue', label: 'Vencidos' },
-    { key: 'due_today', label: 'Hoy' },
-    { key: 'upcoming', label: 'Próximos' },
-    { key: 'settled', label: 'Liquidados' },
-    { key: 'cancelled', label: 'Anulados' },
-    { key: 'all', label: 'Todos' },
+    { key: 'pending', label: this.translate.instant('PAYMENTS.PENDIENTES_2') },
+    { key: 'overdue', label: this.translate.instant('PAYMENTS.VENCIDOS_2') },
+    { key: 'due_today', label: this.translate.instant('TRAINER_COMMON.TODAY') },
+    { key: 'upcoming', label: this.translate.instant('PAYMENTS.PROXIMOS') },
+    { key: 'settled', label: this.translate.instant('PAYMENTS.LIQUIDADOS') },
+    { key: 'cancelled', label: this.translate.instant('PAYMENTS.ANULADOS_2') },
+    { key: 'all', label: this.translate.instant('TRAINER_COMMON.ALL_M') },
   ];
   public readonly relations: Array<{ key: OverviewRelation; label: string }> = [
-    { key: 'all', label: 'Todos los clientes' },
-    { key: 'active', label: 'Clientes activos' },
-    { key: 'former', label: 'Antiguos clientes' },
+    { key: 'all', label: this.translate.instant('PAYMENTS.TODOS_LOS_CLIENTES') },
+    { key: 'active', label: this.translate.instant('PAYMENTS.CLIENTES_ACTIVOS') },
+    { key: 'former', label: this.translate.instant('PAYMENTS.ANTIGUOS_CLIENTES') },
   ];
 
   public state: 'loading' | 'error' | 'loaded' = 'loading';
@@ -166,7 +173,7 @@ export class PaymentsOverviewPage implements OnInit, OnDestroy {
     if (!clientId || !chargeId) return;
     this.payments.getClientSummary(clientId).subscribe({
       next: (response) => {
-        this.openCharge = { clientId, clientName: params.get('name') || 'Cliente', chargeId, access: response.access };
+        this.openCharge = { clientId, clientName: params.get('name') || this.translate.instant('TRAINER_COMMON.CLIENT'), chargeId, access: response.access };
       },
       error: () => (this.openCharge = null),
     });
@@ -234,14 +241,14 @@ export class PaymentsOverviewPage implements OnInit, OnDestroy {
 
   public get monthName(): string {
     const month = Number(this.data?.scope.month.slice(5, 7) ?? 0);
-    return MONTHS[month - 1] ?? 'este mes';
+    return MONTHS[month - 1] ?? this.translate.instant('PAYMENTS.ESTE_MES');
   }
 
   public get scopeLabel(): string {
     const scope = this.data?.scope;
     if (!scope) return '';
-    const who = scope.relation === 'active' ? 'tus clientes activos' : scope.relation === 'former' ? 'tus antiguos clientes' : 'toda tu cartera';
-    return scope.search ? `${who} que coinciden con «${scope.search}»` : who;
+    const who = scope.relation === 'active' ? this.translate.instant('PAYMENTS.TUS_CLIENTES_ACTIVOS') : scope.relation === 'former' ? this.translate.instant('PAYMENTS.TUS_ANTIGUOS_CLIENTES') : this.translate.instant('PAYMENTS.TODA_TU_CARTERA');
+    return scope.search ? this.translate.instant('PAYMENTS.QUE_COINCIDEN_CON', { who, search: scope.search }) : who;
   }
 
   public get reminderSummary(): string {
@@ -249,18 +256,18 @@ export class PaymentsOverviewPage implements OnInit, OnDestroy {
     if (!settings) return '';
     const parts: string[] = [];
     for (const offset of settings.offsets) {
-      if (offset < 0) parts.push(`${-offset} ${offset === -1 ? 'día' : 'días'} antes`);
-      else if (offset === 0) parts.push('el día del vencimiento');
-      else parts.push(`${offset} ${offset === 1 ? 'día' : 'días'} después si queda saldo`);
+      if (offset < 0) parts.push(`${-offset} ${offset === -1 ? this.translate.instant('PAYMENTS.DIA') : this.translate.instant('PAYMENTS.DIAS')} antes`);
+      else if (offset === 0) parts.push(this.translate.instant('PAYMENTS.EL_DIA_DEL_VENCIMIENTO'));
+      else parts.push(this.translate.instant('PAYMENTS.DESPUES_SI_QUEDA_SALDO_2', { offset, p1: offset === 1 ? 'día' : 'días' }));
     }
-    return parts.length ? `${parts.join(', ')} · a las ${settings.time} (${settings.timeZone})` : 'Sin avisos de cobro';
+    return parts.length ? this.translate.instant('PAYMENTS.LAS_2', { p0: parts.join(', '), time: settings.time, timeZone: settings.timeZone }) : this.translate.instant('PAYMENTS.SIN_AVISOS_DE_COBRO');
   }
 
   public figures(row: OverviewRow): string {
     const money = (cents: number) => this.money(cents, row.currency);
-    if (row.status === 'settled') return 'Liquidado';
-    if (row.status === 'cancelled') return row.receivedCents > 0 ? `Recibido ${money(row.receivedCents)} · anulado ${money(row.cancelledCents)}` : 'Anulado sin cobrar';
-    return row.receivedCents > 0 ? `de ${money(row.amountCents)} · recibido ${money(row.receivedCents)}` : `de ${money(row.amountCents)}`;
+    if (row.status === 'settled') return this.translate.instant('PAYMENTS.LIQUIDADO');
+    if (row.status === 'cancelled') return row.receivedCents > 0 ? this.translate.instant('PAYMENTS.RECIBIDO_ANULADO', { p0: money(row.receivedCents), p1: money(row.cancelledCents) }) : this.translate.instant('PAYMENTS.ANULADO_SIN_COBRAR');
+    return row.receivedCents > 0 ? this.translate.instant('PAYMENTS.DE_RECIBIDO', { p0: money(row.amountCents), p1: money(row.receivedCents) }) : `de ${money(row.amountCents)}`;
   }
 
   public isReadOnly(row: OverviewRow): boolean {

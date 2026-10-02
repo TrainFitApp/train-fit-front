@@ -1,6 +1,11 @@
 import { Workout } from 'src/app/core/models/workout';
 import { Set } from 'src/app/core/models/set';
-import { formatRirValue, isRirFail } from 'src/app/core/models/rir';
+import { formatRirValue, isRirFail, rirFailLabel } from 'src/app/core/models/rir';
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
+
+// Nombre de reserva de un ejercicio borrado del catálogo, en el idioma del usuario.
+const FALLBACK = { exerciseName: 'Ejercicio' };
+localizeProp(FALLBACK, 'exerciseName', 'WORKOUT_NOTIFICATION.EXERCISE');
 
 // Mismo mapeo de color que el resto de la app: RP azul, DS rojo, FALLO
 // primary (ver set.component.scss / statistics.page.scss).
@@ -58,7 +63,7 @@ function buildSetSummary(
   if (set.drop) badges.push({ label: 'DS', type: 'drop' });
   if (set.restPause) badges.push({ label: `RP ${set.restPause}`, type: 'restPause' });
   if (!isCardio && !isIsometric && isRirFail(set.rir)) {
-    badges.push({ label: 'FALLO', type: 'fail' });
+    badges.push({ label: rirFailLabel(), type: 'fail' });
   }
 
   if (isCardio) {
@@ -111,7 +116,7 @@ export function buildWorkoutSummary(
       .sort((a, b) => getSetOrder(a, 0) - getSetOrder(b, 0));
     if (doneSets.length === 0) {
       incompleteExerciseNames.push(
-        customExercise.exercise?.name || 'Exercise'
+        customExercise.exercise?.name || FALLBACK.exerciseName
       );
       return;
     }
@@ -131,7 +136,7 @@ export function buildWorkoutSummary(
     }
 
     exercises.push({
-      name: customExercise.exercise?.name || 'Exercise',
+      name: customExercise.exercise?.name || FALLBACK.exerciseName,
       sets: doneSets.map((set, index) =>
         buildSetSummary(set, index, isCardio, isIsometric)
       ),

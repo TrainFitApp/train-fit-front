@@ -25,6 +25,11 @@
                 "output": "assets"
               },
               {
+                "glob": "*.json",
+                "input": "../../packages/shared-core/src/assets/i18n",
+                "output": "assets/i18n/shared"
+              },
+              {
                 "glob": "**/*.svg",
                 "input": "../../node_modules/ionicons/dist/ionicons/svg",
                 "output": "./svg"
@@ -74,6 +79,29 @@
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.pre.ts"
                 }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                }
+              ]
+            },
+            "pre-dev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.pre.ts"
+                }
               ]
             },
             "live": {
@@ -106,7 +134,7 @@
               "browserTarget": "app:build:production"
             },
             "pre": {
-              "browserTarget": "app:build:pre"
+              "browserTarget": "app:build:pre-dev"
             },
             "live": {
               "browserTarget": "app:build:live"

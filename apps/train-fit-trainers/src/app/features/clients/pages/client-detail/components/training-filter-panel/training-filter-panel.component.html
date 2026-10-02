@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Comparar por</h1>
+        <h1 class="tf-page-header__title">{{ 'CLIENTS.COMPARAR_POR' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -15,7 +15,7 @@
 </ion-header>
 
 <ion-content class="filter-panel-content">
-  <p class="panel-subtitle">Qué métrica comparar entre microciclos.</p>
+  <p class="panel-subtitle">{{ 'CLIENTS.QUE_METRICA_COMPARAR_ENTRE_MICROCICLOS' | translate }}</p>
 
   <div class="metric-option-list">
     <button
@@ -35,7 +35,7 @@
   <!-- 2026-09 — granularidad. Oculto para 'sessions': es un conteo DE
        sesiones por microciclo, no tiene una lectura "por sesión". -->
   <ng-container *ngIf="selectedMetric !== 'sessions'">
-    <p class="panel-subtitle">Cómo agrupar los puntos.</p>
+    <p class="panel-subtitle">{{ 'CLIENTS.COMO_AGRUPAR_LOS_PUNTOS' | translate }}</p>
     <div class="granularity-toggle">
       <button
         type="button"
@@ -43,7 +43,7 @@
         [class.granularity-option--selected]="selectedGranularity === 'block'"
         (click)="chooseGranularity('block')"
       >
-        Por microciclo
+        {{ 'CLIENT_DETAIL.PER_MICROCYCLE' | translate }}
       </button>
       <button
         type="button"
@@ -51,7 +51,7 @@
         [class.granularity-option--selected]="selectedGranularity === 'session'"
         (click)="chooseGranularity('session')"
       >
-        Por sesión
+        {{ 'CLIENT_DETAIL.PER_SESSION' | translate }}
       </button>
     </div>
   </ng-container>
@@ -60,7 +60,7 @@
        (a diferencia del selector de ejercicio, que solo aparece en modo
        'exercise'): siempre visible, con "Todos" para quitarlo. -->
   <ng-container *ngIf="workoutNames.length">
-    <p class="panel-subtitle">Qué entrenamiento ver.</p>
+    <p class="panel-subtitle">{{ 'CLIENTS.QUE_ENTRENAMIENTO_VER' | translate }}</p>
     <div class="metric-option-list">
       <button
         type="button"
@@ -68,7 +68,7 @@
         [class.metric-option--selected]="!selectedWorkout"
         (click)="chooseWorkout(null)"
       >
-        <span>Todos</span>
+        <span>{{ 'TRAINER_COMMON.ALL_M' | translate }}</span>
         <ion-icon [name]="!selectedWorkout ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
       </button>
       <button
@@ -89,20 +89,20 @@
        microciclo a microciclo, hasta maxComparedExercises a la vez. -->
   <ng-container *ngIf="selectedMetric === 'exercise'">
     <p class="panel-subtitle">
-      Qué ejercicios seguir (hasta {{ maxComparedExercises }}).
+      {{ 'CLIENTS.QUE_EJERCICIOS_SEGUIR_HASTA' | translate }} {{ maxComparedExercises }}).
       <ng-container *ngIf="selectedExercises.length">
         {{ selectedExercises.length }}/{{ maxComparedExercises }}
       </ng-container>
     </p>
 
     <p class="empty-hint" *ngIf="!exerciseNames.length">
-      Sin ejercicios con carga registrada en el rango elegido.
+      {{ 'CLIENTS.SIN_EJERCICIOS_CON_CARGA_REGISTRADA' | translate }}
     </p>
 
     <ng-container *ngIf="exerciseNames.length">
       <div class="exercise-search" *ngIf="exerciseNames.length > 6">
         <ion-icon name="search-outline"></ion-icon>
-        <input type="text" placeholder="Buscar ejercicio" [(ngModel)]="exerciseSearch" />
+        <input type="text" [placeholder]="'CLIENTS.BUSCAR_EJERCICIO' | translate" [(ngModel)]="exerciseSearch" />
       </div>
 
       <div class="metric-option-list exercise-option-list">
@@ -125,5 +125,5 @@
 </ion-content>
 
 <ion-footer class="filter-panel-footer">
-  <button class="submit-button" [disabled]="!canConfirm" (click)="confirm()">Aplicar</button>
+  <button class="submit-button" [disabled]="!canConfirm" (click)="confirm()">{{ 'TRAINER_COMMON.APPLY' | translate }}</button>
 </ion-footer>

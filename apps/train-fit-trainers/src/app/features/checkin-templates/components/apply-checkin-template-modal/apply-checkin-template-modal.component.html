@@ -6,13 +6,13 @@
           type="button"
           class="tf-page-header__back-button"
           (click)="dismiss()"
-          aria-label="Cerrar"
+          [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
         >
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Aplicar "{{ template?.name }}"</h1>
+        <h1 class="tf-page-header__title">{{ 'CHECKIN_TEMPLATES.APLICAR' | translate }}{{ template?.name }}"</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -20,22 +20,22 @@
 </ion-header>
 
 <ion-content class="apply-modal-content">
-  <p class="panel-subtitle">Elige el cliente: te llevamos a programar sus check-ins con esta plantilla.</p>
+  <p class="panel-subtitle">{{ 'CHECKIN_TEMPLATES.ELIGE_EL_CLIENTE_TE_LLEVAMOS' | translate }}</p>
 
   <div class="input-wrapper" *ngIf="myClients.length">
     <ion-icon name="search-outline" class="input-icon"></ion-icon>
     <input
       type="text"
       class="input-field"
-      placeholder="Buscar por nombre o correo"
+      [placeholder]="'CHECKIN_TEMPLATES.BUSCAR_POR_NOMBRE_CORREO' | translate"
       [ngModel]="searchQuery"
       (ngModelChange)="onSearchChange($event)"
     />
   </div>
 
-  <p class="empty-hint" *ngIf="!loadingClients && !myClients.length">No tienes clientes todavía.</p>
+  <p class="empty-hint" *ngIf="!loadingClients && !myClients.length">{{ 'CHECKIN_TEMPLATES.NO_TIENES_CLIENTES_TODAVIA' | translate }}</p>
   <p class="empty-hint" *ngIf="myClients.length && !filteredClients.length">
-    Ningún cliente coincide con la búsqueda.
+    {{ 'CHECKIN_TEMPLATES.NINGUN_CLIENTE_COINCIDE_CON_LA' | translate }}
   </p>
 
   <div class="apply-client-list">

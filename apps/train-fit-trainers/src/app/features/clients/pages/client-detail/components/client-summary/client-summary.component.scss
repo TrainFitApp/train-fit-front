@@ -410,14 +410,98 @@
 
 .tracking-delta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 5px;
   margin-top: var(--tf-space-2);
   font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-secondary);
+  color: var(--tf-text-muted);
+}
+
+.tracking-sub--delta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+// Cambio frente al periodo anterior, en pastilla: el número se lee de un
+// vistazo y el color dice si preocupa. Verde/ámbar/rojo solo donde subir es
+// bueno sin discusión (sesiones, adherencia); peso, perímetros y volumen van
+// en neutro porque depende del objetivo del cliente.
+.delta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px 2px 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 
   ion-icon {
     font-size: 13px;
+  }
+
+  &[data-tone='good'] {
+    background: var(--tf-success-soft);
+    color: var(--tf-success);
+  }
+
+  &[data-tone='warn'] {
+    background: var(--tf-warning-soft);
+    color: var(--tf-warning);
+  }
+
+  &[data-tone='bad'] {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+
+  // Bajada prevista (descarga o vacaciones en el planificador): borde
+  // discontinuo, se ve que es un cambio buscado y no se confunde con alarma.
+  &[data-tone='planned'] {
+    background: transparent;
+    border: 1px dashed var(--tf-border-strong);
+    color: var(--tf-text);
+  }
+}
+
+// Porcentajes de adherencia: mismos umbrales y tokens que la Cartera
+// (adherence-pill de client-roster), para que un 62% diga lo mismo en las
+// dos pantallas.
+.tracking-value,
+.adherence-overall-value,
+.dimension-value,
+.habit-value {
+  &[data-level='ok'] {
+    color: var(--tf-success);
+  }
+
+  &[data-level='low'] {
+    color: var(--tf-accent-text);
+  }
+
+  &[data-level='critical'] {
+    color: var(--tf-danger-text);
+  }
+}
+
+.dimension-bar-fill,
+.habit-bar-fill {
+  &[data-level='ok'] {
+    background: var(--tf-success);
+  }
+
+  &[data-level='low'] {
+    background: var(--tf-accent);
+  }
+
+  &[data-level='critical'] {
+    background: var(--tf-danger);
   }
 }
 
@@ -459,7 +543,13 @@
   min-height: 3px;
   border-radius: 2px 2px 0 0;
   background: var(--tf-accent);
-  opacity: 0.85;
+  // Semanas pasadas más tenues; la actual (última barra), entera: así se lee
+  // de un vistazo si esta semana va por encima o por debajo.
+  opacity: 0.4;
+
+  .tracking-sparkline-bar:last-child & {
+    opacity: 1;
+  }
 
   &--empty {
     background: var(--tf-surface-4);
@@ -1137,8 +1227,30 @@
 // "2200 → 2100" en tabulares: es la forma en que un coach lee un cambio, y
 // alinea entre filas cuando hay varios macros modificados a la vez.
 .change-field-values {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
   color: var(--tf-text-secondary);
   font-variant-numeric: tabular-nums;
+
+  > ion-icon {
+    font-size: 12px;
+    color: var(--tf-text-faint);
+  }
+}
+
+// Antes tachado y apagado, después en blanco: el cambio se lee sin pensar
+// cuál de los dos es el vigente.
+.change-old {
+  color: var(--tf-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--tf-text-faint);
+}
+
+.change-new {
+  font-weight: 700;
+  color: var(--tf-text);
 }
 
 // El motivo es la razón de ser de todo el historial: se destaca sobre los
@@ -1240,7 +1352,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   padding: 0 var(--tf-space-2);
   font-size: var(--tf-font-size-sm);
   font-weight: 700;
@@ -1250,11 +1362,98 @@
     font-size: 18px;
   }
 
-  // Subir volumen no es "bueno" por sí solo (un descarga es una bajada
-  // buscada), así que el color informa de la DIRECCIÓN, no de un juicio:
-  // el acento de la app para arriba, gris para abajo. Nada de verde/rojo.
+  // El color lo pone la pastilla (volumeTone): una descarga marcada en el
+  // planificador va en neutro, así que ya no hace falta renunciar al color
+  // para no alarmar con una bajada buscada.
+}
+
+// Pastilla más grande para el cambio entre microciclos, que es la cifra
+// central de su bloque.
+.delta-chip--large {
+  padding: 4px 10px 4px 8px;
+  font-size: var(--tf-font-size-sm);
+
+  ion-icon {
+    font-size: 15px;
+  }
+}
+
+// El valor del microciclo actual se tiñe como su cambio: se ve de un
+// vistazo cuál de los dos lados es el que preocupa.
+.block-value {
+  &[data-tone='good'] {
+    color: var(--tf-success);
+  }
+
+  &[data-tone='warn'] {
+    color: var(--tf-warning);
+  }
+
+  &[data-tone='bad'] {
+    color: var(--tf-danger-text);
+  }
+}
+
+// «Descarga prevista»: explica por qué una bajada no lleva color de alarma.
+.planned-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+}
+
+// Récord de los últimos 7 días.
+.new-tag {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: 0.68rem;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+
+// Tablas semana a semana: el último dato de cada fila va en negrita con su
+// cambio frente al anterior. Sin verde ni rojo: si un perímetro que baja es
+// bueno depende del objetivo del cliente.
+.trend-cell--last {
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.trend-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 11px;
+  }
+}
+
+// Flecha de la columna «Actual» en la evolución de cargas: sube en verde
+// (progresión), baja en gris y sin rojo, porque una descarga es una bajada
+// buscada (mismo criterio que .block-arrow).
+.load-trend {
+  margin-left: 3px;
+  font-size: 12px;
+  vertical-align: -1px;
+
   &[data-direction='up'] {
-    color: var(--tf-accent-text);
+    color: var(--tf-success);
   }
 
   &[data-direction='down'] {

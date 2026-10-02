@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -33,6 +34,7 @@ import { of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { alternativeTotals, MacroTotals } from '../../utils/alternative-macros';
 import { computeItemMicros, TOTALS_NUTRIENT_FIELDS } from '../../utils/nutrient-fields';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -103,6 +105,8 @@ type BoardClipboard =
   styleUrls: ['diet-template-builder.page.scss'],
 })
 export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy, PendingChangesComponent {
+  private readonly translate = inject(TranslateService);
+
   public state: ViewState = 'loading';
 
   // Referencia de "lo último guardado" (pendingChangesGuard): el builder no
@@ -151,10 +155,10 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // son las que el entrenador fuerza cuando la deriva no basta (productos sin
   // el flag rellenado). Solo aplican al editar una plantilla ya guardada.
   public readonly dietaryFlagOptions: { key: string; label: string }[] = [
-    { key: 'vegan', label: 'Vegana' },
-    { key: 'vegetarian', label: 'Vegetariana' },
-    { key: 'lactoseFree', label: 'Sin lactosa' },
-    { key: 'glutenFree', label: 'Sin gluten' },
+    { key: 'vegan', label: this.translate.instant('INTAKE.DIETARY.vegan') },
+    { key: 'vegetarian', label: this.translate.instant('INTAKE.DIETARY.vegetarian') },
+    { key: 'lactoseFree', label: this.translate.instant('INTAKE.DIETARY.lactoseFree') },
+    { key: 'glutenFree', label: this.translate.instant('INTAKE.DIETARY.glutenFree') },
   ];
   public suitableForDerived: string[] = [];
   public suitableForOverride = new Set<string>();
@@ -294,7 +298,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       // en la ficha). Por query param para que un F5 no lo pierda.
       const query = this.route.snapshot.queryParamMap;
       this.fromClientId = query.get('clientId') || '';
-      this.clientContextName = query.get('name') || 'este cliente';
+      this.clientContextName = query.get('name') || this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
       this.load();
     });
   }
@@ -311,7 +315,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     const nav = this.navigationState;
     this.isCreatingForClient = true;
     this.clientId = clientId;
-    this.clientName = nav.clientName || 'este cliente';
+    this.clientName = nav.clientName || this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
     this.name = nav.name || '';
     this.phaseStartDate = nav.startDate || todayIsoDate();
     if (nav.phase) {
@@ -329,7 +333,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     // los datos del cliente — es lo primero que hay que ver para montar las
     // comidas (docs/plan-semanas.md).
     if (this.clientTarget) {
-      this.clientTargetLabel = 'Objetivo de la fase';
+      this.clientTargetLabel = this.translate.instant('DIET_TEMPLATES.OBJETIVO_DE_LA_FASE');
     } else {
       this.loadClientGoal(clientId);
     }
@@ -350,7 +354,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     this.isEditingAssignedCopy = true;
     this.assignedPlanId = planId;
     this.clientId = clientId;
-    this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
+    this.clientName = this.route.snapshot.queryParamMap.get('name') || this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
     this.clientContextKind = 'assigned';
     this.clientContextName = this.clientName;
 
@@ -373,7 +377,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     this.isPreparingNextWeek = true;
     this.nextWeekPhaseId = phaseId;
     this.clientId = clientId;
-    this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
+    this.clientName = this.route.snapshot.queryParamMap.get('name') || this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
     this.clientContextKind = 'next-week';
     this.clientContextName = this.clientName;
     const query = this.route.snapshot.queryParamMap;
@@ -420,7 +424,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
           menus: scaled.content.menus as DietTemplateMenuPayload[],
         } as unknown as DietTemplate);
         this.clientTarget = this.nextWeekTargetAt(this.nextWeekKcal);
-        this.clientTargetLabel = `Objetivo de S${scaled.weekNumber}`;
+        this.clientTargetLabel = this.translate.instant('DIET_TEMPLATES.OBJETIVO_DE', { weekNumber: scaled.weekNumber });
         this.rescaling = false;
         this.savedSnapshot = this.snapshot();
         this.state = 'loaded';
@@ -445,7 +449,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   }
 
   private fmtDay(iso: string): string {
-    return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' });
   }
 
   public load(): void {
@@ -508,7 +512,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
           this.clientTarget = { ...calculated };
           this.clientTargetSource = 'calculated';
         }
-        this.clientTargetLabel = 'Objetivo de la fase';
+        this.clientTargetLabel = this.translate.instant('DIET_TEMPLATES.OBJETIVO_DE_LA_FASE');
       },
       error: () => undefined,
     });
@@ -549,7 +553,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
           const target = res?.need?.target;
           if (!res || !target) return;
           this.clientTarget = { kcal: target.kcal, protein: target.protein, carbs: target.carbs, fat: target.fat };
-          this.clientTargetLabel = `Necesidad de S${res.weekNumber}`;
+          this.clientTargetLabel = this.translate.instant('DIET_TEMPLATES.NECESIDAD_DE', { weekNumber: res.weekNumber });
         },
         // En silencio: la referencia ayuda a ajustar, no hace falta para
         // editar. Un error aquí no debe estorbar el trabajo de la pantalla.
@@ -618,7 +622,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   }
 
   public get emptyRowsHint(): string {
-    return 'Añade el primer menú para empezar.';
+    return this.translate.instant('DIET_TEMPLATES.ANADE_EL_PRIMER_MENU_PARA');
   }
 
   public rowLabel(row: TemplateMenu): string {
@@ -656,7 +660,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
         const product = typeof cp.product === 'object' ? cp.product : undefined;
         return {
           productId: typeof cp.product === 'string' ? cp.product : cp.product?._id,
-          productName: cp.product?.name || 'Alimento guardado',
+          productName: cp.product?.name || this.translate.instant('DIET_TEMPLATES.ALIMENTO_GUARDADO'),
           quantity: cp.quantity,
           kcal: macros.kcal,
           protein: macros.protein,
@@ -690,7 +694,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
         const recipe = typeof cr.recipe === 'object' ? cr.recipe : undefined;
         return {
           recipeId: typeof cr.recipe === 'string' ? cr.recipe : cr.recipe?._id,
-          recipeName: cr.recipe?.name || 'Receta guardada',
+          recipeName: cr.recipe?.name || this.translate.instant('DIET_TEMPLATES.RECETA_GUARDADA'),
           quantity: cr.quantity,
           kcal: macros.kcal,
           protein: macros.protein,
@@ -750,7 +754,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   public addRow(): void {
     if (this.menus.length >= this.maxMenus) return;
     this.menus.push({
-      name: `Menú ${this.menus.length + 1}`,
+      name: this.translate.instant('DIET_TEMPLATES.MENU', { p0: this.menus.length + 1 }),
       meals: this.mealSlots.map((slot) => ({ slot, alternatives: [] })),
     });
   }
@@ -864,7 +868,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
 
   public mealSummary(meal: TemplateMeal): string {
     const alternatives = meal.alternatives || [];
-    if (!alternatives.length) return 'Vacía';
+    if (!alternatives.length) return this.translate.instant('DIET_TEMPLATES.VACIA');
     if (alternatives.length === 1) {
       const n = alternatives[0].items.length;
       return `${n} alimento${n === 1 ? '' : 's'}`;
@@ -882,14 +886,14 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   }
 
   public itemLabel(item: TemplateFoodItem): string {
-    return (item.recipeId ? item.recipeName : item.productName) || 'Sin alimento';
+    return (item.recipeId ? item.recipeName : item.productName) || this.translate.instant('DIET_TEMPLATES.SIN_ALIMENTO');
   }
 
   // Misma numeración descendente que las cabeceras del editor de comida
   // (day-meal-editor-modal.component.html), para que "Opción 2" sea la misma
   // en el tablero y dentro del modal.
   public alternativeLabel(alt: TemplateMealAlternative, index: number, total: number): string {
-    return alt.label?.trim() || `Opción ${total - index}`;
+    return alt.label?.trim() || this.translate.instant('DIET_TEMPLATES.OPCION_2', { p0: total - index });
   }
 
   // alternatives.length > 0 NO basta para "tiene comida": abrir el editor de
@@ -985,11 +989,11 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     const targetMeal = this.activeRows[dayIndex].meals[mealIndex];
     if (targetMeal.alternatives.length) {
       await this.ionicUtilService.showAlert({
-        header: `¿Sobrescribir "${this.rowLabel(this.activeRows[dayIndex])} · ${targetMeal.slot}"?`,
-        message: 'Ya tiene alimentos compuestos — se reemplazan por los de la comida que arrastraste.',
+        header: this.translate.instant('DIET_TEMPLATES.SOBRESCRIBIR', { p0: this.rowLabel(this.activeRows[dayIndex]), slot: targetMeal.slot }),
+        message: this.translate.instant('DIET_TEMPLATES.YA_TIENE_ALIMENTOS_COMPUESTOS_SE'),
         buttons: [
-          { text: 'Cancelar', role: 'cancel' },
-          { text: 'Sobrescribir', role: 'destructive', handler: () => this.moveMeal(from, { dayIndex, mealIndex }) },
+          { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+          { text: this.translate.instant('DIET_TEMPLATES.SOBRESCRIBIR_2'), role: 'destructive', handler: () => this.moveMeal(from, { dayIndex, mealIndex }) },
         ],
       });
       return;
@@ -1087,20 +1091,20 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     }
 
     await this.ionicUtilService.showActionSheet({
-      header: `"${targetMeal.slot}" ya tiene comida`,
+      header: this.translate.instant('DIET_TEMPLATES.YA_TIENE_COMIDA', { slot: targetMeal.slot }),
       buttons: [
         {
-          text: 'Unificar (añadir como alternativa)',
+          text: this.translate.instant('DIET_TEMPLATES.UNIFICAR_ANADIR_COMO_ALTERNATIVA'),
           handler: () => this.mergeAlternativesInto(targetMeal, clip.alternatives),
         },
         {
-          text: 'Sobrescribir',
+          text: this.translate.instant('DIET_TEMPLATES.SOBRESCRIBIR_2'),
           role: 'destructive',
           handler: () => {
             targetMeal.alternatives = this.cloneAlternatives(clip.alternatives);
           },
         },
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
       ],
     });
   }
@@ -1125,10 +1129,10 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     }
 
     await this.ionicUtilService.showActionSheet({
-      header: `"${this.rowLabel(row)}" ya tiene comida`,
+      header: this.translate.instant('DIET_TEMPLATES.YA_TIENE_COMIDA_2', { p0: this.rowLabel(row) }),
       buttons: [
         {
-          text: 'Unificar (añadir como alternativas)',
+          text: this.translate.instant('DIET_TEMPLATES.UNIFICAR_ANADIR_COMO_ALTERNATIVAS'),
           handler: () => {
             row.meals.forEach((meal, i) => {
               const source = clip.meals[i]?.alternatives || [];
@@ -1136,8 +1140,8 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
             });
           },
         },
-        { text: 'Sobrescribir', role: 'destructive', handler: overwrite },
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('DIET_TEMPLATES.SOBRESCRIBIR_2'), role: 'destructive', handler: overwrite },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
       ],
     });
   }
@@ -1150,7 +1154,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     const merged = [...targetMeal.alternatives, ...this.cloneAlternatives(alternatives)];
     if (merged.length > this.maxAlternatives) {
       this.ionicUtilService.showToast({
-        message: `Solo se han añadido hasta ${this.maxAlternatives} alternativas por comida.`,
+        message: this.translate.instant('DIET_TEMPLATES.SOLO_SE_HAN_ANADIDO_HASTA', { maxAlternatives: this.maxAlternatives }),
         duration: 2500,
       });
     }
@@ -1164,11 +1168,11 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     const meal = row.meals[mealIndex];
 
     await this.ionicUtilService.showAlert({
-      header: `¿Vaciar "${this.rowLabel(row)} · ${meal.slot}"?`,
-      message: 'Se eliminan los alimentos de esta comida.',
+      header: this.translate.instant('DIET_TEMPLATES.VACIAR', { p0: this.rowLabel(row), slot: meal.slot }),
+      message: this.translate.instant('DIET_TEMPLATES.SE_ELIMINAN_LOS_ALIMENTOS_DE'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Vaciar', role: 'destructive', handler: () => (meal.alternatives = []) },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('DIET_TEMPLATES.VACIAR_2'), role: 'destructive', handler: () => (meal.alternatives = []) },
       ],
     });
   }
@@ -1186,9 +1190,9 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   private mealProblem(menu: TemplateMenu, meal: TemplateMeal): string | null {
     const isMultiple = meal.alternatives.length >= 2;
     for (const [i, alt] of meal.alternatives.entries()) {
-      const where = `${this.rowLabel(menu)} · ${meal.slot}${isMultiple ? `, Opción ${meal.alternatives.length - i}` : ''}`;
-      if (!alt.items.length) return `${where}: no tiene alimentos.`;
-      if (!alt.items.every((item) => item.productId || item.recipeId)) return `${where}: hay un alimento sin elegir.`;
+      const where = `${this.rowLabel(menu)} · ${meal.slot}${isMultiple ? this.translate.instant('DIET_TEMPLATES.OPCION_3', { p0: meal.alternatives.length - i }) : ''}`;
+      if (!alt.items.length) return this.translate.instant('DIET_TEMPLATES.NO_TIENE_ALIMENTOS', { where });
+      if (!alt.items.every((item) => item.productId || item.recipeId)) return this.translate.instant('DIET_TEMPLATES.HAY_UN_ALIMENTO_SIN_ELEGIR', { where });
     }
     return null;
   }
@@ -1197,10 +1201,10 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // El botón no se deshabilita: save() lo muestra en un aviso para que el
   // entrenador sepa qué falta.
   private get validationError(): string | null {
-    if (!this.name.trim()) return 'Falta el nombre de la dieta.';
+    if (!this.name.trim()) return this.translate.instant('DIET_TEMPLATES.FALTA_EL_NOMBRE_DE_LA');
     const unnamed = this.menus.findIndex((menu) => !menu.name.trim());
-    if (unnamed >= 0) return `Falta el nombre del menú ${unnamed + 1}.`;
-    if (this.duplicateMenuNamesWarning) return `Hay menús con el mismo nombre: ${this.duplicateMenuNamesWarning}.`;
+    if (unnamed >= 0) return this.translate.instant('DIET_TEMPLATES.FALTA_EL_NOMBRE_DEL_MENU', { p0: unnamed + 1 });
+    if (this.duplicateMenuNamesWarning) return this.translate.instant('DIET_TEMPLATES.HAY_MENUS_CON_EL_MISMO_2', { duplicateMenuNamesWarning: this.duplicateMenuNamesWarning });
     for (const menu of this.menus) {
       for (const meal of menu.meals) {
         const problem = this.mealProblem(menu, meal);
@@ -1234,7 +1238,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     // convierte a formato "clipboard" (customProducts/customRecipes) — el
     // que realmente espera el backend, no el TemplateFoodItem de la UI.
     const menusToSave = this.menus.map((menu, i) => ({
-      name: menu.name.trim() || `Menú ${i + 1}`,
+      name: menu.name.trim() || this.translate.instant('DIET_TEMPLATES.MENU', { p0: i + 1 }),
       meals: this.mealsToSave(menu.meals),
     }));
 
@@ -1259,11 +1263,11 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       next: () => {
         this.isSaving = false;
         this.savedSnapshot = this.snapshot();
-        this.ionicUtilService.showToast({ message: 'Plantilla guardada', duration: 2000 });
+        this.ionicUtilService.showToast({ message: this.translate.instant('TABLES.TEMPLATE_SAVED'), duration: 2000 });
       },
       error: () => {
         this.isSaving = false;
-        this.ionicUtilService.showErrorToast('No se pudo guardar la plantilla', 'Error', 3000);
+        this.ionicUtilService.showErrorToast(this.translate.instant('TABLES.TEMPLATE_SAVE_ERROR'), this.translate.instant('COMMON.ERROR'), 3000);
       },
     });
   }
@@ -1310,7 +1314,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
           this.isSaving = false;
           this.savedSnapshot = this.snapshot();
           this.ionicUtilService.showToast({
-            message: `Dieta creada y aplicada a ${this.clientName} desde el ${startDate}.`,
+            message: this.translate.instant('DIET_TEMPLATES.DIETA_CREADA_APLICADA_DESDE_EL', { clientName: this.clientName, startDate }),
             duration: 3000,
           });
           this.router.navigate(['/tabs/clients', this.clientId]);
@@ -1323,14 +1327,14 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
             this.savedSnapshot = this.snapshot();
             this.ionicUtilService.showErrorToast(
               err?.error?.message ||
-                `La dieta quedó guardada como dieta de ${this.clientName}, pero esas fechas se solapan con otra fase. Aplícala desde "Siguiente fase".`,
-              'Fechas ocupadas',
+                this.translate.instant('DIET_TEMPLATES.LA_DIETA_QUEDO_GUARDADA_COMO', { clientName: this.clientName }),
+              this.translate.instant('DIET_TEMPLATES.FECHAS_OCUPADAS'),
               5000
             );
             this.router.navigate(['/tabs/clients', this.clientId]);
             return;
           }
-          this.ionicUtilService.showErrorToast('No se pudo crear la dieta', 'Error', 3500);
+          this.ionicUtilService.showErrorToast(this.translate.instant('DIET_TEMPLATES.NO_SE_PUDO_CREAR_LA'), this.translate.instant('COMMON.ERROR'), 3500);
         },
       });
   }
@@ -1346,15 +1350,15 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
           this.savedSnapshot = this.snapshot();
           this.ionicUtilService.showToast({
             message: week
-              ? `S${this.nextWeekNumber} preparada para ${this.clientName}`
-              : `Sin cambios: S${this.nextWeekNumber} repetirá lo anterior`,
+              ? this.translate.instant('DIET_TEMPLATES.PREPARADA_PARA', { nextWeekNumber: this.nextWeekNumber, clientName: this.clientName })
+              : this.translate.instant('DIET_TEMPLATES.SIN_CAMBIOS_REPETIRA_LO_ANTERIOR', { nextWeekNumber: this.nextWeekNumber }),
             duration: 3000,
           });
           this.router.navigate(['/tabs/clients', this.clientId]);
         },
         error: (err) => {
           this.isSaving = false;
-          this.ionicUtilService.showErrorToast(err?.error?.message || 'No se pudo preparar la semana', 'Error', 3500);
+          this.ionicUtilService.showErrorToast(err?.error?.message || this.translate.instant('DIET_TEMPLATES.NO_SE_PUDO_PREPARAR_LA'), this.translate.instant('COMMON.ERROR'), 3500);
         },
       });
   }
@@ -1368,12 +1372,12 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
         next: () => {
           this.isSaving = false;
           this.savedSnapshot = this.snapshot();
-          this.ionicUtilService.showToast({ message: `Dieta actualizada para ${this.clientName}`, duration: 2500 });
+          this.ionicUtilService.showToast({ message: this.translate.instant('DIET_TEMPLATES.DIETA_ACTUALIZADA_PARA', { clientName: this.clientName }), duration: 2500 });
           this.router.navigate(['/tabs/clients', this.clientId]);
         },
         error: () => {
           this.isSaving = false;
-          this.ionicUtilService.showErrorToast('No se pudieron guardar los cambios', 'Error', 3000);
+          this.ionicUtilService.showErrorToast(this.translate.instant('DIET_TEMPLATES.NO_SE_PUDIERON_GUARDAR_LOS'), this.translate.instant('COMMON.ERROR'), 3000);
         },
       });
   }

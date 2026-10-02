@@ -6,7 +6,7 @@
     </div>
     <button
       class="close-action-button ripple-effect"
-      aria-label="Cerrar"
+      [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
       (click)="dismiss()"
     >
       <ion-icon name="close" color="primary"></ion-icon>

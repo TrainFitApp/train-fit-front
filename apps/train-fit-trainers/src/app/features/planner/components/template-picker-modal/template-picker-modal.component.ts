@@ -1,12 +1,14 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { WorkoutTemplate, WorkoutTemplateLevel } from 'src/app/core/models/workout-template';
+import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 const LEVEL_LABELS: Record<WorkoutTemplateLevel, string> = {
   principiante: 'Principiante',
   intermedio: 'Intermedio',
   avanzado: 'Avanzado',
 };
+localizeRecord(LEVEL_LABELS, 'PLANNER.TEMPLATE_LEVELS');
 
 // TASK-043 (MASTER_BACKLOG.md) — sustituye el AlertOptions de texto plano de
 // planner-column.component.ts#applyTemplateAlert() (sin buscador ni preview,

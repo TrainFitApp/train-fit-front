@@ -1,4 +1,5 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
   PAIN_LEVELS,
@@ -45,6 +46,8 @@ interface ZoneSummary {
   styleUrls: ['pain-panel.component.scss'],
 })
 export class PainPanelComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
 
   public state: ViewState = 'loading';
@@ -135,12 +138,12 @@ export class PainPanelComponent implements OnChanges {
     if (summary.latest === null) return null;
     if (summary.latest < summary.worst) return 'mejor';
     if (summary.latest > summary.worst) return 'peor';
-    return 'igual';
+    return this.translate.instant('CLIENTS.IGUAL_2');
   }
 
   public thresholdLabel(summary: ZoneSummary): string {
-    if (!summary.threshold) return 'Sin umbrales fijados';
-    return `Normal hasta ${summary.threshold.workLevel} · Parar desde ${summary.threshold.painLevel}`;
+    if (!summary.threshold) return this.translate.instant('CLIENTS.SIN_UMBRALES_FIJADOS');
+    return this.translate.instant('CLIENTS.NORMAL_HASTA_PARAR_DESDE', { workLevel: summary.threshold.workLevel, painLevel: summary.threshold.painLevel });
   }
 
   // Zonas que todavía no aparecen en la tabla, para el desplegable de
@@ -227,19 +230,19 @@ export class PainPanelComponent implements OnChanges {
         },
         error: () => {
           this.isSaving = false;
-          this.ionicUtilService.showErrorToast('No se pudo guardar el umbral', 'Error', 2500);
+          this.ionicUtilService.showErrorToast(this.translate.instant('CLIENTS.NO_SE_PUDO_GUARDAR_EL_2'), this.translate.instant('COMMON.ERROR'), 2500);
         },
       });
   }
 
   public async confirmRemoveThreshold(summary: ZoneSummary): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Quitar umbrales',
-      message: `¿Seguro que quieres quitar los umbrales de "${summary.zone}"? Lo que el cliente haya apuntado se conserva.`,
+      header: this.translate.instant('CLIENTS.QUITAR_UMBRALES'),
+      message: this.translate.instant('CLIENTS.SEGURO_QUE_QUIERES_QUITAR_LOS', { zone: summary.zone }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Quitar',
+          text: this.translate.instant('TRAINER_COMMON.REMOVE'),
           cssClass: 'alert-button-danger',
           handler: () => this.removeThreshold(summary),
         },
@@ -251,7 +254,7 @@ export class PainPanelComponent implements OnChanges {
     this.clientDetailApi.removePainThreshold(this.clientId, summary.zone).subscribe({
       next: () => this.load(),
       error: () =>
-        this.ionicUtilService.showErrorToast('No se pudo quitar el umbral', 'Error', 2500),
+        this.ionicUtilService.showErrorToast(this.translate.instant('CLIENTS.NO_SE_PUDO_QUITAR_EL'), this.translate.instant('COMMON.ERROR'), 2500),
     });
   }
 

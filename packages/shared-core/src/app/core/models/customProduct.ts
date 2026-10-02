@@ -7,6 +7,17 @@ export class CustomProduct {
   product?: IProduct;
   lastUsedAt?: string;
 
+  // Adición rápida (2026-10) — línea suelta que el cliente apunta con sus
+  // macros a mano, sin crear un Product en el catálogo: `product` queda
+  // vacío y el nombre vive aquí. Con `product` presente manda el nombre del
+  // producto base, así que para pintar se lee siempre
+  // `product?.name || name` (customProductName() en CustomProductService).
+  name?: string;
+  // Lo que distingue una línea escrita a mano de un CustomProduct al que le
+  // falte `product` por un dato corrupto, y lo que decide qué editor abre la
+  // app al tocarla (la hoja de adición rápida, no AddProductPage).
+  quickAdd?: boolean;
+
   mealId?: string;
   customRecipeId?: string;
   baseCustomProductId?: string | CustomProduct;
@@ -80,6 +91,25 @@ export class CustomProduct {
   vegetarian?: boolean;
   lactoseFree?: boolean;
   glutenFree?: boolean;
+}
+
+/**
+ * Cantidad con la que se guarda toda adición rápida. Los macros se escriben
+ * tal cual en los campos "por 100 g", así que con cantidad 100 el cálculo
+ * normal (valor × cantidad / 100) devuelve exactamente lo que escribió el
+ * cliente — ninguna pantalla necesita un caso especial para sumarlos.
+ * A cambio, la cantidad NO significa gramos aquí: quien pinte "xx g" tiene
+ * que saltársela cuando `quickAdd` está puesto.
+ */
+export const QUICK_ADD_QUANTITY = 100;
+
+/** Lo que el cliente escribe en la hoja de adición rápida. */
+export interface QuickAddMacros {
+  name: string;
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
 }
 
 export const CUSTOM_PRODUCT_KEYS = {

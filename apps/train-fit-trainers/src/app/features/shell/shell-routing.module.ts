@@ -105,6 +105,33 @@ const routes: Routes = [
           ),
       },
       {
+        // Bandeja «Por revisar»: check-ins, vídeos de técnica y
+        // cuestionarios de alta que esperan respuesta. Sección raíz del menú.
+        path: 'review',
+        loadChildren: () =>
+          import('src/app/features/review-queue/review-queue.module').then(
+            (m) => m.ReviewQueuePageModule
+          ),
+      },
+      {
+        // Revisión de un vídeo de técnica (docs/plan-medidas-multimedia.md).
+        // Su lista es la bandeja «Por revisar».
+        path: 'form-checks',
+        loadChildren: () =>
+          import('src/app/features/form-checks/form-checks.module').then(
+            (m) => m.FormChecksPageModule
+          ),
+      },
+      {
+        // Biblioteca de vídeos de técnica del entrenador.
+        path: 'technique-videos',
+        data: { parent: '/tabs/templates' },
+        loadChildren: () =>
+          import('src/app/features/technique-videos/technique-videos.module').then(
+            (m) => m.TechniqueVideosPageModule
+          ),
+      },
+      {
         // TASK-042 (MASTER_BACKLOG.md) — catálogo de ejercicios como pantalla
         // propia, alcanzable desde la categoría "Ejercicios" en Biblioteca
         // (/tabs/templates), no como destino nuevo del sidebar.

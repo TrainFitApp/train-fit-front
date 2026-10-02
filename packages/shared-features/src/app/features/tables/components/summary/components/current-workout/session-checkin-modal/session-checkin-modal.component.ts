@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { localizeList } from 'src/app/core/i18n/localized-catalog';
 import { SORENESS_ANCHORS, SORENESS_MUSCLES, SorenessEntry } from 'src/app/core/constants/soreness';
 
 // Movimiento 2 Coach Pro — anclas de "¿cómo llegas hoy?".
@@ -14,6 +15,8 @@ const READINESS_ANCHORS = [
   'Bien, con ganas',
   'A tope, me como el mundo',
 ];
+
+localizeList(READINESS_ANCHORS, 'TABLES.READINESS_ANCHORS');
 
 export interface SessionCheckinResult {
   readiness: number | null;

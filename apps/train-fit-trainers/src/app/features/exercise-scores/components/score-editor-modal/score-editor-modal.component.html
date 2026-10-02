@@ -3,10 +3,10 @@
     <div class="editor-title-block">
       <h2 class="editor-title">{{ exerciseName }}</h2>
       <p class="editor-subtitle">
-        Tu criterio sobre este ejercicio. Solo lo ves tú: no se comparte con otros profesionales.
+        {{ 'EXERCISE_SCORES.TU_CRITERIO_SOBRE_ESTE_EJERCICIO' | translate }}
       </p>
     </div>
-    <button type="button" class="close-button" (click)="cancel()" aria-label="Cerrar">
+    <button type="button" class="close-button" (click)="cancel()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
       <ion-icon name="close-outline"></ion-icon>
     </button>
   </header>
@@ -18,7 +18,7 @@
          como "esto ya lo puntué yo". -->
     <p class="default-hint" *ngIf="isDefault">
       <ion-icon name="bulb-outline" aria-hidden="true"></ion-icon>
-      Sugerencia de partida según el tipo de ejercicio. Ajústala a tu criterio y guarda.
+      {{ 'EXERCISE_SCORES.SUGERENCIA_DE_PARTIDA_SEGUN_EL' | translate }}
     </p>
 
     <!-- Vuelve a la sugerencia por patrón de movimiento (la misma con la
@@ -27,14 +27,14 @@
     <div class="reset-row">
       <button type="button" class="reset-button" [disabled]="isRestoring || isSaving" (click)="restoreDefaults()">
         <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
-        <span>Restablecer por defecto</span>
+        <span>{{ 'EXERCISE_SCORES.RESTABLECER_POR_DEFECTO' | translate }}</span>
       </button>
     </div>
 
     <!-- ===== Músculos ===== -->
     <div class="section-head">
-      <h3 class="section-title">Estimulación muscular</h3>
-      <span class="section-count" *ngIf="scoredMuscleCount">{{ scoredMuscleCount }} marcados</span>
+      <h3 class="section-title">{{ 'EXERCISE_SCORES.ESTIMULACION_MUSCULAR' | translate }}</h3>
+      <span class="section-count" *ngIf="scoredMuscleCount">{{ scoredMuscleCount }} {{ 'EXERCISE_SCORES.MARCADOS' | translate }}</span>
     </div>
 
     <!-- La leyenda va UNA vez arriba: son las mismas cuatro frases para los
@@ -69,8 +69,8 @@
          más para llegar al botón de guardar. -->
     <button type="button" class="joints-toggle" [attr.aria-expanded]="showJoints" (click)="toggleJoints()">
       <ion-icon [name]="showJoints ? 'chevron-down-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
-      <span class="joints-toggle-label">Estrés articular</span>
-      <span class="section-count" *ngIf="scoredJointCount">{{ scoredJointCount }} marcadas</span>
+      <span class="joints-toggle-label">{{ 'EXERCISE_SCORES.ESTRES_ARTICULAR' | translate }}</span>
+      <span class="section-count" *ngIf="scoredJointCount">{{ scoredJointCount }} {{ 'EXERCISE_SCORES.MARCADAS' | translate }}</span>
     </button>
 
     <div class="joints-body" *ngIf="showJoints">
@@ -100,10 +100,9 @@
     </div>
 
     <!-- ===== Tiempo por serie ===== -->
-    <label class="field-label" for="seconds-per-set">Segundos por serie (opcional)</label>
+    <label class="field-label" for="seconds-per-set">{{ 'EXERCISE_SCORES.SEGUNDOS_POR_SERIE_OPCIONAL' | translate }}</label>
     <p class="field-hint">
-      Sin contar el descanso. Se usa para estimar cuánto dura una sesión; si lo dejas vacío se
-      usa un valor por defecto.
+      {{ 'EXERCISE_SCORES.SIN_CONTAR_EL_DESCANSO_SE' | translate }}
     </p>
     <div class="input-wrapper">
       <ion-icon name="stopwatch-outline" class="input-icon"></ion-icon>
@@ -121,7 +120,7 @@
 
   <footer class="editor-footer">
     <button type="button" class="submit-button" (click)="save()" [disabled]="isSaving" data-enter-submit-action="saveScore">
-      <span *ngIf="!isSaving">Guardar</span>
+      <span *ngIf="!isSaving">{{ 'COMMON.SAVE' | translate }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </footer>

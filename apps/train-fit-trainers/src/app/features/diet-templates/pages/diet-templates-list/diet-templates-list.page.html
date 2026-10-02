@@ -1,11 +1,10 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Plantillas de dieta"></app-page-header>
+  <app-page-header [title]="'DIET_TEMPLATES.PLANTILLAS_DE_DIETA' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="templates-content" appScrollMemory="diet-templates">
   <p class="page-hint">
-    Construye una plantilla una vez (menús con sus comidas) y aplícala a cualquier cliente eligiendo
-    solo la fecha de inicio, en vez de teclear cada comida de cada día a mano.
+    {{ 'DIET_TEMPLATES.CONSTRUYE_UNA_PLANTILLA_UNA_VEZ' | translate }}
   </p>
 
   <div class="create-template-row" appSubmitOnEnter="createDiet">
@@ -14,7 +13,7 @@
       <input
         type="text"
         class="input-field"
-        placeholder="Nombre de la nueva plantilla"
+        [placeholder]="'DIET_TEMPLATES.NOMBRE_DE_LA_NUEVA_PLANTILLA' | translate"
         [(ngModel)]="newName"
       />
     </div>
@@ -25,7 +24,7 @@
       (click)="createAndEdit()"
       data-enter-submit-action="createDiet"
     >
-      <span *ngIf="!isCreating">Crear</span>
+      <span *ngIf="!isCreating">{{ 'TRAINER_COMMON.CREATE' | translate }}</span>
       <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
     </button>
   </div>
@@ -42,16 +41,16 @@
 
   <div class="state-message" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline"></ion-icon>
-    <h2>No se pudieron cargar tus plantillas</h2>
-    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
-    <button class="retry-button" (click)="load()">Reintentar</button>
+    <h2>{{ 'DIET_TEMPLATES.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</h2>
+    <p>{{ 'DIET_TEMPLATES.COMPRUEBA_TU_CONEXION_INTENTALO_DE' | translate }}</p>
+    <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <div class="state-message" *ngIf="!templates.length">
       <ion-icon name="restaurant-outline"></ion-icon>
-      <h2>Todavía no has creado ninguna plantilla</h2>
-      <p>Crea tu primera plantilla arriba: un conjunto de días y comidas reutilizable entre clientes.</p>
+      <h2>{{ 'DIET_TEMPLATES.TODAVIA_NO_HAS_CREADO_NINGUNA' | translate }}</h2>
+      <p>{{ 'DIET_TEMPLATES.CREA_TU_PRIMERA_PLANTILLA_ARRIBA' | translate }}</p>
     </div>
 
     <div class="templates-grid" *ngIf="templates.length">
@@ -70,8 +69,8 @@
           type="button"
           class="preview-template-btn"
           (click)="openPreview(template)"
-          title="Vista previa"
-          [attr.aria-label]="'Vista previa de la plantilla ' + template.name"
+          [title]="'DIET_TEMPLATES.VISTA_PREVIA' | translate"
+          [attr.aria-label]="('DIET_TEMPLATES.VISTA_PREVIA_DE_LA_PLANTILLA' | translate) + template.name"
         >
           <ion-icon name="eye-outline"></ion-icon>
         </button>
@@ -79,7 +78,7 @@
           type="button"
           class="delete-template-btn"
           (click)="confirmDelete(template, $event)"
-          [attr.aria-label]="'Eliminar plantilla ' + template.name"
+          [attr.aria-label]="('DIET_TEMPLATES.ELIMINAR_PLANTILLA' | translate) + template.name"
         >
           <ion-icon name="trash-outline"></ion-icon>
         </button>

@@ -1,5 +1,5 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Plantilla de entrenamiento"></app-page-header>
+  <app-page-header [title]="'ROUTINES.PLANTILLA_DE_ENTRENAMIENTO' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="builder-content" appSubmitOnEnter="saveRoutine">
@@ -11,9 +11,9 @@
 
   <div class="state-message" *ngIf="state === 'error'">
     <ion-icon name="cloud-offline-outline"></ion-icon>
-    <h2>No se pudo cargar la plantilla</h2>
-    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
-    <button class="retry-button" (click)="load()">Reintentar</button>
+    <h2>{{ 'ROUTINES.NO_SE_PUDO_CARGAR_LA' | translate }}</h2>
+    <p>{{ 'ROUTINES.COMPRUEBA_TU_CONEXION_INTENTALO_DE' | translate }}</p>
+    <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
@@ -22,16 +22,16 @@
            falta bajar hasta el final para guardar mientras se editan bloques. -->
       <div class="builder-sidebar">
         <div class="builder-section">
-          <label class="field-label">Nombre</label>
+          <label class="field-label">{{ 'TRAINER_COMMON.NAME' | translate }}</label>
           <div class="input-wrapper">
             <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
-            <input type="text" class="input-field" placeholder="Ej: Empuje 4 series" [(ngModel)]="name" />
+            <input type="text" class="input-field" [placeholder]="'ROUTINES.EJ_EMPUJE_4_SERIES' | translate" [(ngModel)]="name" />
           </div>
 
-          <label class="field-label">Descripción</label>
-          <textarea class="builder-textarea" rows="2" placeholder="Descripción (opcional)" [(ngModel)]="description"></textarea>
+          <label class="field-label">{{ 'ROUTINES.DESCRIPCION' | translate }}</label>
+          <textarea class="builder-textarea" rows="2" [placeholder]="'TABLES.TEMPLATE_DESCRIPTION_OPTIONAL' | translate" [(ngModel)]="description"></textarea>
 
-          <label class="field-label">Nivel</label>
+          <label class="field-label">{{ 'ROUTINES.NIVEL' | translate }}</label>
           <div class="level-picker">
             <button
               type="button"
@@ -46,24 +46,24 @@
 
           <div class="field-pair">
             <div class="field-pair-col">
-              <label class="field-label">Etiquetas</label>
+              <label class="field-label">{{ 'ROUTINES.ETIQUETAS' | translate }}</label>
               <div class="input-wrapper">
                 <ion-icon name="bookmarks-outline" class="input-icon"></ion-icon>
-                <input type="text" class="input-field" placeholder="fuerza, tren superior..." [(ngModel)]="tagsText" />
+                <input type="text" class="input-field" [placeholder]="'ROUTINES.FUERZA_TREN_SUPERIOR' | translate" [(ngModel)]="tagsText" />
               </div>
             </div>
             <div class="field-pair-col">
-              <label class="field-label">Equipo</label>
+              <label class="field-label">{{ 'ROUTINES.EQUIPO' | translate }}</label>
               <div class="input-wrapper">
                 <ion-icon name="barbell-outline" class="input-icon"></ion-icon>
-                <input type="text" class="input-field" placeholder="mancuernas, banco..." [(ngModel)]="equipmentText" />
+                <input type="text" class="input-field" [placeholder]="'ROUTINES.MANCUERNAS_BANCO' | translate" [(ngModel)]="equipmentText" />
               </div>
             </div>
           </div>
         </div>
 
         <button type="button" class="submit-button" [disabled]="!canSave" (click)="save()" data-enter-submit-action="saveRoutine">
-          <span *ngIf="!isSaving">Guardar</span>
+          <span *ngIf="!isSaving">{{ 'COMMON.SAVE' | translate }}</span>
           <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
         </button>
       </div>
@@ -72,11 +72,11 @@
       <div class="builder-main">
         <div class="builder-section">
           <div class="section-heading">
-            <span>Contenido</span>
+            <span>{{ 'ROUTINES.CONTENIDO' | translate }}</span>
           </div>
 
           <p class="empty-hint" *ngIf="blocks.length === 0">
-            Todavía no has añadido ningún bloque. Un bloque agrupa uno o varios ejercicios (recta, superserie, circuito...).
+            {{ 'ROUTINES.TODAVIA_NO_HAS_ANADIDO_NINGUN' | translate }}
           </p>
 
           <div class="block-card" *ngFor="let block of blocks; trackBy: trackByIndex">
@@ -88,19 +88,19 @@
                 <ion-icon name="chevron-forward-outline" class="block-header-chevron"></ion-icon>
               </div>
               <div class="block-header-meta" *ngIf="block.rounds || block.restBetweenExercises || block.restBetweenRounds">
-                <span *ngIf="block.rounds">{{ block.rounds }} rondas</span>
-                <span *ngIf="block.restBetweenExercises">Descanso ejercicios: {{ block.restBetweenExercises }}s</span>
-                <span *ngIf="block.restBetweenRounds">Descanso rondas: {{ block.restBetweenRounds }}s</span>
+                <span *ngIf="block.rounds">{{ block.rounds }} {{ 'ROUTINES.RONDAS' | translate }}</span>
+                <span *ngIf="block.restBetweenExercises">{{ 'ROUTINES.DESCANSO_EJERCICIOS' | translate }}: {{ block.restBetweenExercises }}s</span>
+                <span *ngIf="block.restBetweenRounds">{{ 'ROUTINES.DESCANSO_RONDAS' | translate }}: {{ block.restBetweenRounds }}s</span>
               </div>
             </button>
 
             <div class="exercise-row" *ngFor="let ex of block.exercises; trackBy: trackByIndex">
               <div class="exercise-row-header">
-                <span class="exercise-name">{{ ex.exercise?.name || 'Ejercicio eliminado del catálogo' }}</span>
+                <span class="exercise-name">{{ ex.exercise?.name || ('TABLES.EXERCISE_DELETED' | translate) }}</span>
                 <button
                   type="button"
                   class="remove-exercise-btn"
-                  aria-label="Quitar ejercicio"
+                  [attr.aria-label]="'ROUTINES.QUITAR_EJERCICIO' | translate"
                   (click)="removeExercise(block, ex)"
                 >
                   <ion-icon name="close-outline"></ion-icon>
@@ -109,49 +109,49 @@
 
               <div class="scheme-fields" *ngIf="isSchemeNormal(ex.scheme)">
                 <label class="scheme-field">
-                  <span>Series</span>
+                  <span>{{ 'TRAINER_COMMON.SETS' | translate }}</span>
                   <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
                 </label>
                 <label class="scheme-field">
-                  <span>Reps min</span>
+                  <span>{{ 'ROUTINES.REPS_MIN' | translate }}</span>
                   <input type="number" min="0" [(ngModel)]="ex.scheme.repsMin" />
                 </label>
                 <label class="scheme-field">
-                  <span>Reps max</span>
+                  <span>{{ 'ROUTINES.REPS_MAX' | translate }}</span>
                   <input type="number" min="0" [(ngModel)]="ex.scheme.repsMax" />
                 </label>
                 <label class="scheme-field">
-                  <span>RIR min</span>
+                  <span>{{ 'ROUTINES.RIR_MIN' | translate }}</span>
                   <input type="number" min="-1" [(ngModel)]="ex.scheme.rirMin" />
                 </label>
                 <label class="scheme-field">
-                  <span>RIR max</span>
+                  <span>{{ 'ROUTINES.RIR_MAX' | translate }}</span>
                   <input type="number" min="-1" [(ngModel)]="ex.scheme.rirMax" />
                 </label>
               </div>
 
               <div class="scheme-fields" *ngIf="isSchemeIsometric(ex.scheme)">
                 <label class="scheme-field">
-                  <span>Series</span>
+                  <span>{{ 'TRAINER_COMMON.SETS' | translate }}</span>
                   <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
                 </label>
                 <label class="scheme-field scheme-field--wide">
-                  <span>Tiempo</span>
-                  <input type="text" placeholder="ej. 30s" [(ngModel)]="ex.scheme.expectedTime" />
+                  <span>{{ 'ROUTINES.TIEMPO' | translate }}</span>
+                  <input type="text" [placeholder]="'ROUTINES.EJ_30S' | translate" [(ngModel)]="ex.scheme.expectedTime" />
                 </label>
               </div>
 
               <div class="scheme-fields" *ngIf="isSchemeCardio(ex.scheme)">
                 <label class="scheme-field">
-                  <span>Series</span>
+                  <span>{{ 'TRAINER_COMMON.SETS' | translate }}</span>
                   <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
                 </label>
                 <label class="scheme-field scheme-field--wide">
-                  <span>Tiempo</span>
-                  <input type="text" placeholder="ej. 10min" [(ngModel)]="ex.scheme.expectedTime" />
+                  <span>{{ 'ROUTINES.TIEMPO' | translate }}</span>
+                  <input type="text" [placeholder]="'ROUTINES.EJ_10MIN' | translate" [(ngModel)]="ex.scheme.expectedTime" />
                 </label>
                 <label class="scheme-field">
-                  <span>Distancia (km)</span>
+                  <span>{{ 'ROUTINES.DISTANCIA_KM' | translate }}</span>
                   <input type="number" min="0" [(ngModel)]="ex.scheme.expectedDistance" />
                 </label>
               </div>
@@ -161,13 +161,13 @@
 
             <button type="button" class="add-exercise-btn" (click)="addExercise(block)">
               <ion-icon name="add-outline"></ion-icon>
-              Añadir ejercicio
+              {{ 'ROUTINES.ANADIR_EJERCICIO' | translate }}
             </button>
           </div>
 
           <button type="button" class="add-block-btn" (click)="addBlockAlert()">
             <ion-icon name="add-circle-outline"></ion-icon>
-            Añadir bloque
+            {{ 'ROUTINES.ANADIR_BLOQUE' | translate }}
           </button>
         </div>
       </div>

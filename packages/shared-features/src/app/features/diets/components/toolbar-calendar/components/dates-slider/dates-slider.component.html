@@ -1,5 +1,5 @@
 <swiper-container class="t-dates-slider" #dateSlides>
-  <swiper-slide *ngFor="let slide of allDateSlides; let s = index">
+  <swiper-slide *ngFor="let slide of allDateSlides; let s = index; trackBy: trackBySlide">
     <!-- Línea fina por FASE encima de los días, con su nombre y en qué
          semana de ella va; corta donde empieza la siguiente. La semana se
          dice aquí y no día a día: la tira ENTERA es una semana. -->
@@ -13,7 +13,7 @@
       >
         <span class="phase-line__name" *ngIf="seg.color">
           {{ seg.name }}
-          <span class="phase-line__week" *ngIf="seg.weekNumber">· Semana {{ seg.weekNumber }}</span>
+          <span class="phase-line__week" *ngIf="seg.weekNumber">· {{ 'COACH.WEEK_N' | translate: { n: seg.weekNumber } }}</span>
         </span>
         <span class="phase-line__bar"></span>
       </div>
@@ -21,7 +21,7 @@
     <ion-grid>
       <ion-row>
         <ion-col
-          *ngFor="let day of slide"
+          *ngFor="let day of slide; trackBy: trackByDay"
           (click)="sendSelectedDate(day)"
           [class.selected]="datesAreOnSameDay(currentDate, day)"
           [class.today]="today.getDate() === day.getDate() && today.getMonth() === day.getMonth()"

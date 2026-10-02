@@ -1,0 +1,40 @@
+<div class="media-panel">
+  <div class="media-tabs" role="tablist" [attr.aria-label]="'MEDIA.TRAINER.PANEL_TITLE' | translate">
+    <button type="button" role="tab" [class.active]="section === 'photos'" [attr.aria-selected]="section === 'photos'" (click)="select('photos')">
+      <ion-icon name="images-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.SECTION_PHOTOS' | translate }}
+    </button>
+    <button type="button" role="tab" [class.active]="section === 'videos'" [attr.aria-selected]="section === 'videos'" (click)="select('videos')">
+      <ion-icon name="film-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.SECTION_VIDEOS' | translate }}
+    </button>
+    <button
+      type="button"
+      role="tab"
+      *ngIf="hasTraining"
+      [class.active]="section === 'formChecks'"
+      [attr.aria-selected]="section === 'formChecks'"
+      (click)="select('formChecks')"
+    >
+      <ion-icon name="videocam-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.FORM_CHECKS_TITLE' | translate }}
+    </button>
+  </div>
+
+  <app-progress-photos *ngIf="section === 'photos'" mode="trainer" [clientId]="clientId"></app-progress-photos>
+  <app-progress-videos *ngIf="section === 'videos'" mode="trainer" [clientId]="clientId"></app-progress-videos>
+
+  <div class="checks" *ngIf="section === 'formChecks'">
+    <div class="checks-loading" *ngIf="formChecksLoading"><ion-spinner name="dots"></ion-spinner></div>
+    <p class="checks-empty" *ngIf="!formChecksLoading && !formChecks.length">{{ 'MEDIA.TRAINER.CLIENT_FORM_CHECKS_EMPTY' | translate }}</p>
+    <button type="button" class="check-row" *ngFor="let check of formChecks; trackBy: trackCheck" (click)="open(check)">
+      <img class="check-thumb" *ngIf="check.video?.thumbUrl as thumb; else noThumb" [src]="thumb" alt="" />
+      <ng-template #noThumb><span class="check-thumb check-thumb--empty"><ion-icon name="videocam-outline"></ion-icon></span></ng-template>
+      <span class="check-main">
+        <strong>{{ check.exerciseName | translateDb }}</strong>
+        <span>{{ dateLabel(check.date) }}<ng-container *ngIf="check.daysLeft != null"> · {{ 'MEDIA.EXPIRES_IN' | translate: { days: check.daysLeft } }}</ng-container></span>
+      </span>
+      <span class="check-status" [class.check-status--pending]="check.status === 'pending'">
+        {{ (check.status === 'pending' ? 'MEDIA.STATUS_PENDING' : 'MEDIA.STATUS_REVIEWED') | translate }}
+      </span>
+      <ion-icon name="chevron-forward-outline" class="check-chevron" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+</div>

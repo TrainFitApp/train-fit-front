@@ -1,10 +1,12 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Subject, Subscription, of } from 'rxjs';
 import { catchError, debounceTime, switchMap } from 'rxjs/operators';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { PaymentSettings, SettingsPreview } from '../../models/payments.model';
 import { TrainerPaymentsService } from '../../services/trainer-payments.service';
 import { formatDay, paymentsErrorMessage } from '../../utils/payments-view.util';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 const COMMON_ZONES = ['Europe/Madrid', 'Atlantic/Canary', 'Europe/Lisbon', 'Europe/London', 'America/Mexico_City', 'America/Bogota', 'America/Argentina/Buenos_Aires'];
 
@@ -17,6 +19,8 @@ const COMMON_ZONES = ['Europe/Madrid', 'Atlantic/Canary', 'Europe/Lisbon', 'Euro
   styleUrls: ['./payment-settings-panel.component.scss'],
 })
 export class PaymentSettingsPanelComponent implements OnInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() public settings!: PaymentSettings;
   @Output() public closed = new EventEmitter<void>();
   @Output() public saved = new EventEmitter<PaymentSettings>();
@@ -83,8 +87,8 @@ export class PaymentSettingsPanelComponent implements OnInit, OnDestroy {
   public get daysError(): string | null {
     const before = Number(this.beforeDays);
     const after = Number(this.afterDays);
-    if (!Number.isInteger(before) || before < 0 || before > -this.limits.offsetMin) return `Antes: de 0 a ${-this.limits.offsetMin} días.`;
-    if (!Number.isInteger(after) || after < 0 || after > this.limits.offsetMax) return `Después: de 0 a ${this.limits.offsetMax} días.`;
+    if (!Number.isInteger(before) || before < 0 || before > -this.limits.offsetMin) return this.translate.instant('PAYMENTS.ANTES_DE_0_DIAS', { p0: -this.limits.offsetMin });
+    if (!Number.isInteger(after) || after < 0 || after > this.limits.offsetMax) return this.translate.instant('PAYMENTS.DESPUES_DE_0_DIAS', { offsetMax: this.limits.offsetMax });
     return null;
   }
 
@@ -102,10 +106,10 @@ export class PaymentSettingsPanelComponent implements OnInit, OnDestroy {
 
   public get summary(): string {
     const parts: string[] = [];
-    if (this.beforeDays > 0) parts.push(`${this.beforeDays} ${this.beforeDays === 1 ? 'día' : 'días'} antes`);
-    if (this.onDue) parts.push('el día del vencimiento');
-    if (this.afterDays > 0) parts.push(`${this.afterDays} ${this.afterDays === 1 ? 'día' : 'días'} después si queda saldo`);
-    return parts.length ? `${parts.join(', ')} · a las ${this.time}` : 'Sin avisos de cobro';
+    if (this.beforeDays > 0) parts.push(`${this.beforeDays} ${this.beforeDays === 1 ? this.translate.instant('PAYMENTS.DIA') : this.translate.instant('PAYMENTS.DIAS')} antes`);
+    if (this.onDue) parts.push(this.translate.instant('PAYMENTS.EL_DIA_DEL_VENCIMIENTO'));
+    if (this.afterDays > 0) parts.push(this.translate.instant('PAYMENTS.DESPUES_SI_QUEDA_SALDO', { afterDays: this.afterDays, p1: this.afterDays === 1 ? 'día' : 'días' }));
+    return parts.length ? this.translate.instant('PAYMENTS.LAS', { p0: parts.join(', '), time: this.time }) : this.translate.instant('PAYMENTS.SIN_AVISOS_DE_COBRO');
   }
 
   public onChange(): void {
@@ -114,8 +118,8 @@ export class PaymentSettingsPanelComponent implements OnInit, OnDestroy {
   }
 
   public instant(value: string | null | undefined, zone: string): string {
-    if (!value) return 'sin avisos pendientes';
-    return new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: zone })
+    if (!value) return this.translate.instant('PAYMENTS.SIN_AVISOS_PENDIENTES');
+    return new Intl.DateTimeFormat(uiLocale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: zone })
       .format(new Date(value))
       .replace('.', '');
   }
@@ -131,13 +135,13 @@ export class PaymentSettingsPanelComponent implements OnInit, OnDestroy {
     this.payments.saveSettings(this.body()).subscribe({
       next: (settings) => {
         this.saving = false;
-        void this.ionicUtil.showSuccessToast('Avisos de cobro guardados');
+        void this.ionicUtil.showSuccessToast(this.translate.instant('PAYMENTS.AVISOS_DE_COBRO_GUARDADOS'));
         this.saved.emit(settings);
         this.closed.emit();
       },
       error: (error) => {
         this.saving = false;
-        this.errorMessage = paymentsErrorMessage(error, 'No se pudieron guardar los avisos.');
+        this.errorMessage = paymentsErrorMessage(error, this.translate.instant('PAYMENTS.NO_SE_PUDIERON_GUARDAR_LOS'));
       },
     });
   }

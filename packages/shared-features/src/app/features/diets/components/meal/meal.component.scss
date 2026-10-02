@@ -3,7 +3,9 @@
   background: #141414;
   border: 1px solid #252525;
   border-radius: 12px;
-  margin: 2px;
+  // Distancia con lo de arriba (cabecera, tarjeta u otra comida): una sola,
+  // la de la pantalla. Abajo no hay margen: lo pone el siguiente elemento.
+  margin: var(--diets-gap, 8px) 2px 0;
   padding: 0;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -113,6 +115,27 @@
             border-radius: 12px;
             font-weight: 500;
             margin-left: 6px;
+          }
+
+          // Adición rápida: en vez de los gramos (que no significan nada
+          // ahí, ver QUICK_ADD_QUANTITY) va su distintivo, en el mismo azul
+          // que la opción de la hoja del + que la creó.
+          .item-quick-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ion-color-alternative);
+            background: rgba(var(--ion-color-alternative-rgb), 0.14);
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 6px;
+            white-space: nowrap;
+
+            ion-icon {
+              font-size: 12px;
+            }
           }
 
           // Delta sobre lo pautado, a la derecha de la cantidad — mismo
@@ -280,16 +303,6 @@
 
     }
   }
-
-  // Espaciado entre tarjetas
-  &+.meal-card {
-    margin-top: 20px;
-  }
-
-  // Primera tarjeta
-  &:first-child {
-    margin-top: 7px;
-  }
 }
 
 .start {
@@ -354,8 +367,16 @@
     }
   }
 
-  &--add ion-icon {
-    font-size: 30px;
+  // Acción principal de la card: un punto más grande que el resto de botones
+  // de la cabecera para que sea el blanco más cómodo al apuntar comidas.
+  &--add {
+    width: 48px;
+    height: 48px;
+    --border-radius: 24px;
+
+    ion-icon {
+      font-size: 38px;
+    }
   }
 
   &--paste {

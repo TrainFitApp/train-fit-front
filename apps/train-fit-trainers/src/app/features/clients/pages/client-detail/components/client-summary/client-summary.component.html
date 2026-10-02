@@ -9,11 +9,9 @@
 <section class="pain-banner" *ngIf="painState === 'loaded' && limitingPain as pain">
   <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
   <div class="pain-banner-text">
-    <strong>{{ pain.zone }}</strong> en nivel de dolor limitante: {{ pain.level }}/10
-    (a partir de {{ pain.threshold.painLevel }} se para el entrenamiento en esta zona)
-    · registrado por {{ clientName }}, última vez el {{ pain.lastDate | date: 'd MMM' }}
+    <strong>{{ pain.zone }}</strong> {{ 'CLIENTS.EN_NIVEL_DE_DOLOR_LIMITANTE' | translate }}: {{ pain.level }}{{ 'CLIENTS.10_PARTIR_DE' | translate }} {{ pain.threshold.painLevel }} {{ 'CLIENTS.SE_PARA_EL_ENTRENAMIENTO_EN' | translate }} {{ clientName }}, {{ 'CLIENTS.ULTIMA_VEZ_EL' | translate }} {{ pain.lastDate | localDate: 'd MMM' }}
   </div>
-  <button type="button" class="pain-banner-link" (click)="openTab.emit('pain')">Ver dolor</button>
+  <button type="button" class="pain-banner-link" (click)="openTab.emit('pain')">{{ 'CLIENTS.VER_DOLOR' | translate }}</button>
 </section>
 
 <!-- ================= ALERTAS DE ESTE CLIENTE ================= -->
@@ -21,7 +19,7 @@
      sitio más valioso de la pantalla para decir que no pasa nada. -->
 <section class="summary-card alerts-card" *ngIf="summaryState === 'loaded' && summary?.alerts?.length">
   <div class="summary-card-header">
-    <h2 class="summary-card-title">Requiere tu atención</h2>
+    <h2 class="summary-card-title">{{ 'CLIENTS.REQUIERE_TU_ATENCION' | translate }}</h2>
     <span class="alerts-count">{{ summary?.alerts?.length }}</span>
   </div>
 
@@ -47,15 +45,15 @@
           *ngIf="alertNavTab(alert) as tab"
           (click)="openTab.emit(tab)"
         >
-          Ver
+          {{ 'ONBOARDING.VIEW' | translate }}
         </button>
         <button
           type="button"
           class="alert-resolve"
           (click)="resolveAlert(alert)"
           [disabled]="isResolving(alert)"
-          [attr.aria-label]="'Marcar como resuelta: ' + alert.reason"
-          title="Marcar resuelta"
+          [attr.aria-label]="('CLIENTS.MARCAR_COMO_RESUELTA' | translate) + alert.reason"
+          [title]="'CLIENTS.MARCAR_RESUELTA' | translate"
         >
           <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
         </button>
@@ -70,24 +68,26 @@
      (weightTrend), solo que compactados en 3 tarjetas — no se piden datos
      nuevos ni se inventa ninguna comparación que el backend no dé ya. -->
 <section class="recent-tracking" *ngIf="summaryState === 'loaded' && summary as data">
-  <h2 class="recent-tracking-title">Seguimiento reciente</h2>
+  <h2 class="recent-tracking-title">{{ 'CLIENTS.SEGUIMIENTO_RECIENTE' | translate }}</h2>
 
   <div class="tracking-grid">
     <div class="tracking-card">
       <div class="tracking-card-header">
         <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
-        <span>Entrenamiento</span>
+        <span>{{ 'TRAINER_COMMON.TRAINING' | translate }}</span>
       </div>
       <ng-container *ngIf="data.adherence.dimensions.training.applicable; else trackingTrainingEmpty">
-        <div class="tracking-value">{{ data.adherence.dimensions.training.percentage }}%</div>
+        <div class="tracking-value" [attr.data-level]="adherenceLevel(data.adherence.dimensions.training.percentage)">{{ data.adherence.dimensions.training.percentage }}%</div>
         <div class="tracking-detail">{{ data.adherence.dimensions.training.detail }}</div>
         <!-- Delta real de NÚMERO de sesiones (no hay % de plan cumplido
              comparado entre periodos todavía) — se muestra tal como es, sin
              disfrazarlo de puntos porcentuales. -->
         <div class="tracking-delta" *ngIf="progress?.comparison?.sessions as delta">
-          <ion-icon [name]="deltaIcon(delta)" aria-hidden="true"></ion-icon>
-          {{ deltaSign(delta) }}{{ formatValue(delta.absolute, 0) }} sesion{{ delta.absolute === 1 || delta.absolute === -1 ? '' : 'es' }}
-          vs. la semana anterior
+          <span class="delta-chip" [attr.data-tone]="deltaTone(delta.absolute, 2)">
+            <ion-icon [name]="deltaIcon(delta)" aria-hidden="true"></ion-icon>
+            {{ deltaSign(delta) }}{{ formatValue(delta.absolute, 0) }} {{ (delta.absolute === 1 || delta.absolute === -1 ? 'TRAINER_COMMON.PL_SESSION_ONE' : 'TRAINER_COMMON.PL_SESSION_MANY') | translate }}
+          </span>
+          {{ 'CLIENTS.VS_LA_SEMANA_ANTERIOR' | translate }}
         </div>
         <!-- Tendencia de sesiones/semana en la ventana de Evolución
              (progress.series, ya cargado) — mismo patrón de barras que las
@@ -103,31 +103,34 @@
              al mensaje de "sin fase en curso" como si se contradijeran —
              sesiones de una fase YA terminada no son "esta fase sin datos". -->
         <div class="tracking-sub" *ngIf="lastTrainingWeek as week">
-          Última semana con registro: {{ formatValue(week.volume, 0) }} kg · {{ week.sessions }} sesión{{ week.sessions === 1 ? '' : 'es' }}
+          {{ 'CLIENTS.ULTIMA_SEMANA_CON_REGISTRO' | translate }}: {{ formatValue(week.volume, 0) }} kg · {{ week.sessions }} {{ (week.sessions === 1 ? 'TRAINER_COMMON.PL_SESSION_ONE' : 'TRAINER_COMMON.PL_SESSION_MANY') | translate }}
         </div>
       </ng-container>
       <ng-template #trackingTrainingEmpty>
         <p class="tracking-empty">
           {{ unavailableLabel(data.adherence.dimensions.training) }}
           <ng-container *ngIf="lastTrainingWeek as week">
-            — última actividad registrada: {{ formatValue(week.volume, 0) }} kg, {{ week.sessions }} sesión{{ week.sessions === 1 ? '' : 'es' }}
+            — {{ 'CLIENTS.ULTIMA_ACTIVIDAD_REGISTRADA' | translate }}: {{ formatValue(week.volume, 0) }} kg, {{ week.sessions }} {{ (week.sessions === 1 ? 'TRAINER_COMMON.PL_SESSION_ONE' : 'TRAINER_COMMON.PL_SESSION_MANY') | translate }}
           </ng-container>
         </p>
       </ng-template>
-      <button type="button" class="tracking-link" (click)="openTab.emit('training')">Ver entrenamiento →</button>
+      <button type="button" class="tracking-link" (click)="openTab.emit('training')">{{ 'CLIENTS.VER_ENTRENAMIENTO' | translate }}</button>
     </div>
 
     <div class="tracking-card">
       <div class="tracking-card-header">
         <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
-        <span>Nutrición</span>
+        <span>{{ 'TRAINER_COMMON.NUTRITION' | translate }}</span>
       </div>
       <ng-container *ngIf="data.adherence.dimensions.nutrition.applicable; else trackingNutritionEmpty">
-        <div class="tracking-value">{{ data.adherence.dimensions.nutrition.percentage }}%</div>
+        <div class="tracking-value" [attr.data-level]="adherenceLevel(data.adherence.dimensions.nutrition.percentage)">{{ data.adherence.dimensions.nutrition.percentage }}%</div>
         <div class="tracking-detail">{{ data.adherence.dimensions.nutrition.detail }}</div>
         <div class="tracking-delta" *ngIf="progress?.comparison?.nutritionAdherence as delta">
-          <ion-icon [name]="deltaIcon(delta)" aria-hidden="true"></ion-icon>
-          {{ deltaSign(delta) }}{{ formatValue(delta.absolute, 0) }} p.p. vs. la semana anterior
+          <span class="delta-chip" [attr.data-tone]="deltaTone(delta.absolute, 10)">
+            <ion-icon [name]="deltaIcon(delta)" aria-hidden="true"></ion-icon>
+            {{ deltaSign(delta) }}{{ formatValue(delta.absolute, 0) }} p.p.
+          </span>
+          {{ 'CLIENTS.VS_LA_SEMANA_ANTERIOR' | translate }}
         </div>
         <div class="tracking-sparkline" *ngIf="nutritionSparkline.length > 1" aria-hidden="true">
           <span class="tracking-sparkline-bar" *ngFor="let bar of nutritionSparkline">
@@ -141,31 +144,34 @@
              aún ningún día registrado — mostrarlo suelto junto a "sin datos
              suficientes" leía como contradicción. -->
         <div class="tracking-sub" *ngIf="data.activePlan">
-          Plan: {{ data.activePlan.name }}
+          {{ 'CLIENTS.PLAN' | translate }}: {{ data.activePlan.name }}
         </div>
       </ng-container>
       <ng-template #trackingNutritionEmpty>
         <p class="tracking-empty">
           {{ unavailableLabel(data.adherence.dimensions.nutrition) }}
-          <ng-container *ngIf="data.activePlan"> — plan asignado: {{ data.activePlan.name }}</ng-container>
+          <ng-container *ngIf="data.activePlan"> — {{ 'CLIENTS.PLAN_ASIGNADO' | translate }}: {{ data.activePlan.name }}</ng-container>
         </p>
       </ng-template>
-      <button type="button" class="tracking-link" (click)="openTab.emit('nutrition')">Ver nutrición →</button>
+      <button type="button" class="tracking-link" (click)="openTab.emit('nutrition')">{{ 'CLIENTS.VER_NUTRICION' | translate }}</button>
     </div>
 
     <div class="tracking-card">
       <div class="tracking-card-header">
         <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
-        <span>Progreso</span>
+        <span>{{ 'CLIENTS.PROGRESO' | translate }}</span>
       </div>
       <ng-container *ngIf="data.weightTrend as trend; else trackingProgressEmpty">
         <div class="tracking-value">{{ formatValue(trend.toWeek.average, 1) }} kg</div>
         <div class="tracking-delta">
-          <ion-icon
-            [name]="trend.absolute > 0 ? 'arrow-up-outline' : trend.absolute < 0 ? 'arrow-down-outline' : 'remove-outline'"
-            aria-hidden="true"
-          ></ion-icon>
-          {{ trend.absolute > 0 ? '+' : '' }}{{ formatValue(trend.absolute, 1) }} kg en {{ trend.weeksCovered }} semana{{ trend.weeksCovered === 1 ? '' : 's' }}
+          <span class="delta-chip" data-tone="neutral">
+            <ion-icon
+              [name]="trend.absolute > 0 ? 'arrow-up-outline' : trend.absolute < 0 ? 'arrow-down-outline' : 'remove-outline'"
+              aria-hidden="true"
+            ></ion-icon>
+            {{ trend.absolute > 0 ? '+' : '' }}{{ formatValue(trend.absolute, 1) }} kg
+          </span>
+          {{ 'CLIENTS.EN' | translate }} {{ trend.weeksCovered }} {{ (trend.weeksCovered === 1 ? 'TRAINER_COMMON.PL_WEEK_ONE' : 'TRAINER_COMMON.PL_WEEK_MANY') | translate }}
         </div>
         <div class="tracking-sparkline" *ngIf="weightSparkline.length > 1" aria-hidden="true">
           <span class="tracking-sparkline-bar" *ngFor="let bar of weightSparkline">
@@ -174,12 +180,16 @@
         </div>
       </ng-container>
       <ng-template #trackingProgressEmpty>
-        <p class="tracking-empty">Hacen falta pesajes en al menos dos semanas distintas.</p>
+        <p class="tracking-empty">{{ 'CLIENTS.HACEN_FALTA_PESAJES_EN_AL' | translate }}</p>
       </ng-template>
-      <div class="tracking-sub" *ngIf="firstMeasurementDelta as delta">
-        {{ delta.label }}: {{ deltaSign(delta) }}{{ formatValue(delta.absolute, 1) }} cm
+      <div class="tracking-sub tracking-sub--delta" *ngIf="firstMeasurementDelta as delta">
+        {{ delta.label }}
+        <span class="delta-chip" data-tone="neutral">
+          <ion-icon [name]="deltaIcon(delta)" aria-hidden="true"></ion-icon>
+          {{ deltaSign(delta) }}{{ formatValue(delta.absolute, 1) }} cm
+        </span>
       </div>
-      <button type="button" class="tracking-link" (click)="openTab.emit('measurements')">Ver progreso →</button>
+      <button type="button" class="tracking-link" (click)="openTab.emit('measurements')">{{ 'CLIENTS.VER_PROGRESO' | translate }}</button>
     </div>
   </div>
 </section>
@@ -202,8 +212,8 @@
 <!-- ================= ADHERENCIA MULTIDIMENSIONAL ================= -->
 <section class="summary-card">
   <div class="summary-card-header">
-    <h2 class="summary-card-title">Adherencia</h2>
-    <span class="summary-card-hint" *ngIf="summary as data">últimos {{ data.period.days }} días</span>
+    <h2 class="summary-card-title">{{ 'CLIENTS.ADHERENCIA' | translate }}</h2>
+    <span class="summary-card-hint" *ngIf="summary as data">{{ 'CLIENTS.ULTIMOS_2' | translate }} {{ data.period.days }} {{ 'CLIENTS.DIAS_2' | translate }}</span>
   </div>
 
   <div class="section-skeleton" *ngIf="summaryState === 'loading'">
@@ -213,8 +223,8 @@
 
   <div class="section-state" *ngIf="summaryState === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <p>No se pudo cargar el resumen de este cliente.</p>
-    <button type="button" class="retry-button" (click)="loadSummary()">Reintentar</button>
+    <p>{{ 'CLIENTS.NO_SE_PUDO_CARGAR_EL_5' | translate }}</p>
+    <button type="button" class="retry-button" (click)="loadSummary()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="summaryState === 'loaded' && summary as data">
@@ -222,19 +232,19 @@
          media sola vuelve a esconder exactamente lo que hay que ver. -->
     <div class="adherence-headline">
       <div class="adherence-overall">
-        <span class="adherence-overall-value">
+        <span class="adherence-overall-value" [attr.data-level]="adherenceLevel(data.adherence.overall)">
           {{ data.adherence.overall !== null ? data.adherence.overall + '%' : '—' }}
         </span>
-        <span class="adherence-overall-label">Global</span>
+        <span class="adherence-overall-label">{{ 'CLIENTS.GLOBAL' | translate }}</span>
       </div>
       <p class="adherence-verdict" *ngIf="data.adherence.overall === null">
-        Todavía no hay datos suficientes para medir la adherencia de este cliente.
+        {{ 'CLIENTS.TODAVIA_NO_HAY_DATOS_SUFICIENTES' | translate }}
       </p>
       <p class="adherence-verdict" *ngIf="data.adherence.overall !== null && showsWeakest">
-        Donde más falla: <strong>{{ weakestLabel }}</strong>
+        {{ 'CLIENTS.DONDE_MAS_FALLA' | translate }} <strong>{{ weakestLabel }}</strong>
       </p>
       <p class="adherence-verdict" *ngIf="data.adherence.overall !== null && !showsWeakest">
-        Medido sobre una sola dimensión.
+        {{ 'CLIENTS.MEDIDO_SOBRE_UNA_SOLA_DIMENSION' | translate }}
       </p>
     </div>
 
@@ -257,10 +267,11 @@
           <span class="dimension-bar" aria-hidden="true">
             <span
               class="dimension-bar-fill"
+              [attr.data-level]="adherenceLevel(data.adherence.dimensions[key].percentage)"
               [style.width.%]="data.adherence.dimensions[key].percentage"
             ></span>
           </span>
-          <span class="dimension-value">{{ data.adherence.dimensions[key].percentage }}%</span>
+          <span class="dimension-value" [attr.data-level]="adherenceLevel(data.adherence.dimensions[key].percentage)">{{ data.adherence.dimensions[key].percentage }}%</span>
           <span class="dimension-detail">{{ data.adherence.dimensions[key].detail }}</span>
         </ng-container>
 
@@ -282,9 +293,9 @@
               {{ habito.target }} {{ habito.unit }}
             </span>
             <span class="habit-bar" aria-hidden="true">
-              <span class="habit-bar-fill" [style.width.%]="habito.percentage"></span>
+              <span class="habit-bar-fill" [attr.data-level]="adherenceLevel(habito.percentage)" [style.width.%]="habito.percentage"></span>
             </span>
-            <span class="habit-value">{{ habito.percentage }}%</span>
+            <span class="habit-value" [attr.data-level]="adherenceLevel(habito.percentage)">{{ habito.percentage }}%</span>
             <span class="habit-detail">{{ habito.detail }}</span>
           </li>
         </ul>
@@ -295,34 +306,34 @@
          última vez. Cada uno enlaza a la pestaña donde se actúa. -->
     <div class="context-grid">
       <button type="button" class="context-item" (click)="openTab.emit('measurements')">
-        <span class="context-label">Último peso</span>
+        <span class="context-label">{{ 'CLIENTS.ULTIMO_PESO' | translate }}</span>
         <span class="context-value">
           {{ data.latestWeight !== null ? formatValue(data.latestWeight, 1) + ' kg' : '—' }}
         </span>
         <span class="context-sub" *ngIf="data.latestWeightDate">
-          {{ data.latestWeightDate | date: 'd MMM' }}
+          {{ data.latestWeightDate | localDate: 'd MMM' }}
         </span>
-        <span class="context-sub" *ngIf="!data.latestWeightDate">Sin registros</span>
+        <span class="context-sub" *ngIf="!data.latestWeightDate">{{ 'CLIENTS.SIN_REGISTROS' | translate }}</span>
       </button>
 
       <button type="button" class="context-item" (click)="openTab.emit('measurements')">
-        <span class="context-label">Último check-in</span>
+        <span class="context-label">{{ 'CLIENTS.ULTIMO_CHECK_IN' | translate }}</span>
         <span class="context-value">
-          {{ data.lastCheckinAt ? (data.lastCheckinAt | date: 'd MMM') : '—' }}
+          {{ data.lastCheckinAt ? (data.lastCheckinAt | localDate: 'd MMM') : '—' }}
         </span>
-        <span class="context-sub">{{ data.nextCheckinDate ? 'Próximo ' + data.nextCheckinDate : 'Sin programar' }}</span>
+        <span class="context-sub">{{ data.nextCheckinDate ? ('CLIENTS.PROXIMO_2' | translate) + data.nextCheckinDate : ('CLIENTS.SIN_PROGRAMAR' | translate) }}</span>
       </button>
 
       <button type="button" class="context-item" (click)="openTab.emit('nutrition')">
-        <span class="context-label">Dieta</span>
+        <span class="context-label">{{ 'CLIENTS.DIETA' | translate }}</span>
         <span class="context-value context-value--text">{{ data.activePlan?.name || '—' }}</span>
-        <span class="context-sub">{{ data.activePlan ? 'Desde ' + (data.activePlan.startDate | date: 'd MMM') : 'Sin asignar' }}</span>
+        <span class="context-sub">{{ data.activePlan ? ('CLIENTS.DESDE_2' | translate) + (data.activePlan.startDate | localDate: 'd MMM') : ('COACH.PLANS_NONE' | translate) }}</span>
       </button>
 
       <button type="button" class="context-item" (click)="openTab.emit('training')">
-        <span class="context-label">Rutina</span>
+        <span class="context-label">{{ 'CLIENTS.RUTINA' | translate }}</span>
         <span class="context-value context-value--text">{{ data.routine?.name || '—' }}</span>
-        <span class="context-sub">{{ data.routine ? 'Asignada' : 'Sin asignar' }}</span>
+        <span class="context-sub">{{ data.routine ? ('CLIENTS.ASIGNADA' | translate) : ('COACH.PLANS_NONE' | translate) }}</span>
       </button>
     </div>
   </ng-container>
@@ -336,8 +347,8 @@
      para no volver a ser la pared de filas que esto vino a arreglar. -->
 <section class="summary-card">
   <div class="summary-card-header">
-    <h2 class="summary-card-title">Perímetros</h2>
-    <div class="week-switch" role="group" aria-label="Ventana de análisis">
+    <h2 class="summary-card-title">{{ 'CLIENTS.PERIMETROS' | translate }}</h2>
+    <div class="week-switch" role="group" [attr.aria-label]="'CLIENTS.VENTANA_DE_ANALISIS' | translate">
       <button
         type="button"
         class="week-option"
@@ -346,7 +357,7 @@
         [attr.aria-pressed]="selectedWeeks === option"
         (click)="selectWeeks(option)"
       >
-        {{ option }} sem
+        {{ option }} {{ 'CLIENTS.SEM' | translate }}
       </button>
     </div>
   </div>
@@ -358,14 +369,14 @@
 
   <div class="section-state" *ngIf="progressState === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <p>No se pudo cargar la evolución de perímetros de este cliente.</p>
-    <button type="button" class="retry-button" (click)="loadProgress()">Reintentar</button>
+    <p>{{ 'CLIENTS.NO_SE_PUDO_CARGAR_LA_3' | translate }}</p>
+    <button type="button" class="retry-button" (click)="loadProgress()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="progressState === 'loaded'">
     <div class="section-state section-state--calm" *ngIf="!perimeterOptions.length">
       <ion-icon name="resize-outline" aria-hidden="true"></ion-icon>
-      <p>Sin perímetros registrados en esta ventana todavía.</p>
+      <p>{{ 'CLIENTS.SIN_PERIMETROS_REGISTRADOS_EN_ESTA' | translate }}</p>
     </div>
 
     <ng-container *ngIf="perimeterOptions.length">
@@ -376,13 +387,13 @@
       <div class="perimeter-primary-bar">
         <span class="perimeter-primary-label">
           <ng-container *ngIf="selectedPerimeters.size; else perimeterNonePicked">
-            Principales: {{ primaryPerimeterLabels }}
+            {{ 'CLIENTS.PRINCIPALES' | translate }}: {{ primaryPerimeterLabels }}
           </ng-container>
-          <ng-template #perimeterNonePicked>Sin perímetros principales elegidos</ng-template>
+          <ng-template #perimeterNonePicked>{{ 'CLIENTS.SIN_PERIMETROS_PRINCIPALES_ELEGIDOS' | translate }}</ng-template>
         </span>
         <button type="button" class="perimeter-edit-button" (click)="openPerimeterFilterPanel()">
           <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
-          Elegir
+          {{ 'CLIENTS.ELEGIR' | translate }}
         </button>
       </div>
 
@@ -391,11 +402,11 @@
         <div class="trend-scroll">
           <table class="trend-table">
             <caption class="sr-only">
-              Perímetros principales de {{ clientName }} durante las últimas {{ selectedWeeks }} semanas
+              {{ 'CLIENTS.PERIMETROS_PRINCIPALES_DE' | translate }} {{ clientName }} {{ 'CLIENTS.DURANTE_LAS_ULTIMAS' | translate }} {{ selectedWeeks }} {{ 'CLIENTS.SEMANAS' | translate }}
             </caption>
             <thead>
               <tr>
-                <th scope="col" class="trend-metric-head">Perímetro</th>
+                <th scope="col" class="trend-metric-head">{{ 'CLIENTS.PERIMETRO' | translate }}</th>
                 <th scope="col" *ngFor="let week of data.series; let i = index">
                   {{ weekLabel(week, i, data.series.length) }}
                 </th>
@@ -404,8 +415,15 @@
             <tbody>
               <tr *ngFor="let row of primaryTrendRows; trackBy: trackByRowLabel">
                 <th scope="row" class="trend-metric-head">{{ row.label }}</th>
-                <td *ngFor="let value of row.values">
+                <td *ngFor="let value of row.values; let i = index" [class.trend-cell--last]="i === lastValueIndex(row.values)">
                   {{ formatValue(value, row.decimals) }}<span class="trend-unit" *ngIf="value !== null">{{ row.unit }}</span>
+                  <span
+                    class="trend-change"
+                    *ngIf="i === lastValueIndex(row.values) && valueChange(row.values) as diff"
+                    [attr.data-direction]="diff > 0 ? 'up' : 'down'"
+                  >
+                    <ion-icon [name]="diff > 0 ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>{{ diff > 0 ? '+' : '' }}{{ formatValue(diff, row.decimals) }}
+                  </span>
                 </td>
               </tr>
             </tbody>
@@ -415,9 +433,9 @@
 
       <p class="empty-hint" *ngIf="!primaryTrendRows.length">
         <ng-container *ngIf="selectedPerimeters.size; else perimeterPickSome">
-          Los principales elegidos no tienen dato en esta ventana.
+          {{ 'CLIENTS.LOS_PRINCIPALES_ELEGIDOS_NO_TIENEN' | translate }}
         </ng-container>
-        <ng-template #perimeterPickSome>Elige perímetros principales para verlos aquí.</ng-template>
+        <ng-template #perimeterPickSome>{{ 'CLIENTS.ELIGE_PERIMETROS_PRINCIPALES_PARA_VERLOS' | translate }}</ng-template>
       </p>
 
       <!-- El resto, colapsado por defecto: existe para no perder datos, no
@@ -430,17 +448,17 @@
           (click)="showMorePerimeters = !showMorePerimeters"
         >
           <ion-icon [name]="showMorePerimeters ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
-          {{ showMorePerimeters ? 'Ocultar' : 'Ver' }} {{ otherTrendRows.length }} perímetro{{ otherTrendRows.length === 1 ? '' : 's' }} más
+          {{ showMorePerimeters ? ('CLIENTS.OCULTAR_2' | translate) : ('ONBOARDING.VIEW' | translate) }} {{ otherTrendRows.length }} {{ (otherTrendRows.length === 1 ? 'TRAINER_COMMON.PL_CIRCUMFERENCE_ONE' : 'TRAINER_COMMON.PL_CIRCUMFERENCE_MANY') | translate }} {{ 'CLIENTS.MAS' | translate }}
         </button>
 
         <div class="trend-scroll" *ngIf="showMorePerimeters">
           <table class="trend-table">
             <caption class="sr-only">
-              Resto de perímetros de {{ clientName }} durante las últimas {{ selectedWeeks }} semanas
+              {{ 'CLIENTS.RESTO_DE_PERIMETROS_DE' | translate }} {{ clientName }} {{ 'CLIENTS.DURANTE_LAS_ULTIMAS' | translate }} {{ selectedWeeks }} {{ 'CLIENTS.SEMANAS' | translate }}
             </caption>
             <thead>
               <tr>
-                <th scope="col" class="trend-metric-head">Perímetro</th>
+                <th scope="col" class="trend-metric-head">{{ 'CLIENTS.PERIMETRO' | translate }}</th>
                 <th scope="col" *ngFor="let week of progress?.series; let i = index">
                   {{ weekLabel(week, i, (progress?.series || []).length) }}
                 </th>
@@ -449,8 +467,15 @@
             <tbody>
               <tr *ngFor="let row of otherTrendRows; trackBy: trackByRowLabel">
                 <th scope="row" class="trend-metric-head">{{ row.label }}</th>
-                <td *ngFor="let value of row.values">
+                <td *ngFor="let value of row.values; let i = index" [class.trend-cell--last]="i === lastValueIndex(row.values)">
                   {{ formatValue(value, row.decimals) }}<span class="trend-unit" *ngIf="value !== null">{{ row.unit }}</span>
+                  <span
+                    class="trend-change"
+                    *ngIf="i === lastValueIndex(row.values) && valueChange(row.values) as diff"
+                    [attr.data-direction]="diff > 0 ? 'up' : 'down'"
+                  >
+                    <ion-icon [name]="diff > 0 ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>{{ diff > 0 ? '+' : '' }}{{ formatValue(diff, row.decimals) }}
+                  </span>
                 </td>
               </tr>
             </tbody>
@@ -468,8 +493,8 @@
      cara del módulo y a uno de solo nutrición no le dice nada. -->
 <section class="summary-card" *ngIf="hasTrainingScope">
   <div class="summary-card-header">
-    <h2 class="summary-card-title">Entrenamiento</h2>
-    <span class="summary-card-hint">últimas {{ selectedWeeks }} semanas</span>
+    <h2 class="summary-card-title">{{ 'TRAINER_COMMON.TRAINING' | translate }}</h2>
+    <span class="summary-card-hint">{{ 'CLIENTS.ULTIMAS' | translate }} {{ selectedWeeks }} {{ 'CLIENTS.SEMANAS' | translate }}</span>
   </div>
 
   <div class="section-skeleton" *ngIf="trainingState === 'loading'">
@@ -479,8 +504,8 @@
 
   <div class="section-state" *ngIf="trainingState === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <p>No se pudo cargar el entrenamiento de este cliente.</p>
-    <button type="button" class="retry-button" (click)="loadTraining()">Reintentar</button>
+    <p>{{ 'CLIENTS.NO_SE_PUDO_CARGAR_EL_6' | translate }}</p>
+    <button type="button" class="retry-button" (click)="loadTraining()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <div
@@ -488,10 +513,9 @@
     *ngIf="trainingState === 'loaded' && !training?.totalSets"
   >
     <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
-    <p class="section-state__title">Sin series completadas</p>
+    <p class="section-state__title">{{ 'CLIENTS.SIN_SERIES_COMPLETADAS' | translate }}</p>
     <p>
-      Aquí aparecerán el volumen, los récords y la evolución de cargas en cuanto marque series como
-      hechas en su rutina.
+      {{ 'CLIENTS.AQUI_APARECERAN_EL_VOLUMEN_LOS' | translate }}
     </p>
   </div>
 
@@ -501,15 +525,19 @@
     <div class="adherence-headline" *ngIf="lastTrainingWeek as week">
       <div class="adherence-overall">
         <span class="adherence-overall-value">{{ formatValue(week.volume, 0) }}</span>
-        <span class="adherence-overall-label">kg de volumen</span>
+        <span class="adherence-overall-label">{{ 'CLIENTS.KG_DE_VOLUMEN' | translate }}</span>
       </div>
       <p class="adherence-verdict">
-        {{ week.sessions }} sesión{{ week.sessions === 1 ? '' : 'es' }} ·
-        {{ week.sets }} serie{{ week.sets === 1 ? '' : 's' }}
+        {{ week.sessions }} {{ (week.sessions === 1 ? 'TRAINER_COMMON.PL_SESSION_ONE' : 'TRAINER_COMMON.PL_SESSION_MANY') | translate }} ·
+        {{ week.sets }} {{ (week.sets === 1 ? 'TRAINER_COMMON.PL_SET_ONE' : 'TRAINER_COMMON.PL_SET_MANY') | translate }}
         <ng-container *ngIf="training?.volumeComparison as vc">
           <br />
-          <strong>{{ vc.absolute > 0 ? '+' : '' }}{{ formatValue(vc.percentage, 1) }}%</strong>
-          respecto a la semana anterior
+          <span class="delta-chip" [attr.data-tone]="volumeTone(vc.percentage, vc.reducedLoad)">
+            <ion-icon [name]="vc.absolute > 0 ? 'arrow-up-outline' : vc.absolute < 0 ? 'arrow-down-outline' : 'remove-outline'" aria-hidden="true"></ion-icon>
+            {{ vc.absolute > 0 ? '+' : '' }}{{ formatValue(vc.percentage, 1) }}%
+          </span>
+          {{ 'CLIENTS.RESPECTO_LA_SEMANA_ANTERIOR' | translate }}
+          <span class="planned-tag" *ngIf="vc.reducedLoad">{{ 'CLIENTS.DESCARGA_PREVISTA' | translate }}</span>
         </ng-container>
       </p>
     </div>
@@ -521,34 +549,40 @@
          Se compara el volumen POR SESIÓN porque dos bloques rara vez tienen
          las mismas sesiones. -->
     <div class="block-comparison" *ngIf="training?.blockComparison as bc">
-      <h3 class="subsection-title">Microciclo actual vs. anterior</h3>
+      <h3 class="subsection-title">{{ 'CLIENTS.MICROCICLO_ACTUAL_VS_ANTERIOR' | translate }}</h3>
       <div class="block-comparison-body">
         <div class="block-side">
           <span class="block-name">{{ bc.previous.name }}</span>
           <span class="block-value">{{ formatValue(bc.previous.volumePerSession, 0) }} kg</span>
-          <span class="block-meta">{{ bc.previous.sessions }} sesión{{ bc.previous.sessions === 1 ? '' : 'es' }}</span>
+          <span class="block-meta">{{ bc.previous.sessions }} {{ (bc.previous.sessions === 1 ? 'TRAINER_COMMON.PL_SESSION_ONE' : 'TRAINER_COMMON.PL_SESSION_MANY') | translate }}</span>
         </div>
-        <div class="block-arrow" [attr.data-direction]="bc.absolute >= 0 ? 'up' : 'down'">
-          <ion-icon [name]="bc.absolute >= 0 ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>
-          <span>{{ bc.absolute > 0 ? '+' : '' }}{{ formatValue(bc.percentage, 1) }}%</span>
+        <div class="block-arrow">
+          <span class="delta-chip delta-chip--large" [attr.data-tone]="volumeTone(bc.percentage, bc.reducedLoad)">
+            <ion-icon [name]="bc.absolute >= 0 ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>
+            {{ bc.absolute > 0 ? '+' : '' }}{{ formatValue(bc.percentage, 1) }}%
+          </span>
+          <span class="planned-tag" *ngIf="bc.reducedLoad">{{ 'CLIENTS.DESCARGA_PREVISTA' | translate }}</span>
         </div>
         <div class="block-side">
           <span class="block-name">{{ bc.current.name }}</span>
-          <span class="block-value">{{ formatValue(bc.current.volumePerSession, 0) }} kg</span>
-          <span class="block-meta">{{ bc.current.sessions }} sesión{{ bc.current.sessions === 1 ? '' : 'es' }}</span>
+          <span class="block-value" [attr.data-tone]="volumeTone(bc.percentage, bc.reducedLoad)">{{ formatValue(bc.current.volumePerSession, 0) }} kg</span>
+          <span class="block-meta">{{ bc.current.sessions }} {{ (bc.current.sessions === 1 ? 'TRAINER_COMMON.PL_SESSION_ONE' : 'TRAINER_COMMON.PL_SESSION_MANY') | translate }}</span>
         </div>
       </div>
-      <p class="block-hint">Volumen medio por sesión.</p>
+      <p class="block-hint">{{ 'CLIENTS.VOLUMEN_MEDIO_POR_SESION' | translate }}</p>
     </div>
 
     <!-- Récords -->
     <ng-container *ngIf="topRecords.length">
-      <h3 class="subsection-title">Mejores marcas</h3>
+      <h3 class="subsection-title">{{ 'CLIENTS.MEJORES_MARCAS' | translate }}</h3>
       <ul class="delta-list">
         <li class="delta-row" *ngFor="let record of topRecords; trackBy: trackByIndex">
-          <span class="delta-label">{{ record.exerciseName }}</span>
-          <span class="delta-current">{{ formatValue(record.weight, 0) }} kg × {{ record.reps }}</span>
-          <span class="delta-change">{{ record.date | date: 'd MMM' }}</span>
+          <span class="delta-label">
+            {{ record.exerciseName }}
+            <span class="new-tag" *ngIf="isRecent(record.date)">{{ 'CLIENTS.NUEVA' | translate }}</span>
+          </span>
+          <span class="delta-current">{{ formatValue(record.weight, 0) }} {{ 'CLIENTS.KG_2' | translate }} {{ record.reps }}</span>
+          <span class="delta-change">{{ record.date | localDate: 'd MMM' }}</span>
         </li>
       </ul>
     </ng-container>
@@ -556,15 +590,15 @@
     <!-- Evolución de cargas: peso máximo por semana, de más antigua a
          actual. Responde "¿le sube la carga o se ha quedado plano?". -->
     <ng-container *ngIf="training?.loadEvolution?.length">
-      <h3 class="subsection-title">Evolución de cargas (kg máx. por semana)</h3>
+      <h3 class="subsection-title">{{ 'CLIENTS.EVOLUCION_DE_CARGAS_KG_MAX' | translate }}</h3>
       <div class="trend-scroll">
         <table class="trend-table">
           <caption class="sr-only">
-            Peso máximo por semana de los ejercicios más entrenados por {{ clientName }}
+            {{ 'CLIENTS.PESO_MAXIMO_POR_SEMANA_DE' | translate }} {{ clientName }}
           </caption>
           <thead>
             <tr>
-              <th scope="col" class="trend-metric-head">Ejercicio</th>
+              <th scope="col" class="trend-metric-head">{{ 'WORKOUT_NOTIFICATION.EXERCISE' | translate }}</th>
               <th scope="col" *ngFor="let week of training?.weekly; let i = index">
                 {{ weekLabel(week, i, (training?.weekly || []).length) }}
               </th>
@@ -573,8 +607,15 @@
           <tbody>
             <tr *ngFor="let exercise of training?.loadEvolution; trackBy: trackByIndex">
               <th scope="row" class="trend-metric-head">{{ exercise.exerciseName }}</th>
-              <td *ngFor="let week of exercise.weeks">
+              <td *ngFor="let week of exercise.weeks; let last = last">
                 {{ week.maxWeight === null ? '—' : formatValue(week.maxWeight, 0) }}
+                <ion-icon
+                  class="load-trend"
+                  *ngIf="last && loadTrend(exercise) as direction"
+                  [attr.data-direction]="direction"
+                  [name]="direction === 'up' ? 'arrow-up-outline' : 'arrow-down-outline'"
+                  [attr.aria-label]="direction === 'up' ? ('CLIENTS.SUBE_RESPECTO_LA_SEMANA_ANTERIOR' | translate) : ('CLIENTS.BAJA_RESPECTO_LA_SEMANA_ANTERIOR' | translate)"
+                ></ion-icon>
               </td>
             </tr>
           </tbody>
@@ -587,7 +628,7 @@
 <!-- ================= HISTORIAL DE CAMBIOS (Fase 4) ================= -->
 <section class="summary-card">
   <div class="summary-card-header">
-    <h2 class="summary-card-title">Qué le he cambiado</h2>
+    <h2 class="summary-card-title">{{ 'CLIENTS.QUE_LE_HE_CAMBIADO' | translate }}</h2>
   </div>
 
   <div class="section-skeleton" *ngIf="changesState === 'loading'">
@@ -596,16 +637,15 @@
 
   <div class="section-state" *ngIf="changesState === 'error'">
     <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
-    <p>No se pudo cargar el historial de cambios.</p>
-    <button type="button" class="retry-button" (click)="loadChanges()">Reintentar</button>
+    <p>{{ 'CLIENTS.NO_SE_PUDO_CARGAR_EL_7' | translate }}</p>
+    <button type="button" class="retry-button" (click)="loadChanges()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <div class="section-state section-state--calm" *ngIf="changesState === 'loaded' && !changes.length">
     <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
-    <p class="section-state__title">Todavía sin cambios registrados</p>
+    <p class="section-state__title">{{ 'CLIENTS.TODAVIA_SIN_CAMBIOS_REGISTRADOS' | translate }}</p>
     <p>
-      Cada vez que le cambies el objetivo o el plan quedará anotado aquí, con el motivo si lo
-      escribes. Es lo que responde dentro de tres semanas a "¿por qué está en estas calorías?".
+      {{ 'CLIENTS.CADA_VEZ_QUE_LE_CAMBIES' | translate }}
     </p>
   </div>
 
@@ -613,13 +653,20 @@
     <li class="change-row" *ngFor="let change of visibleChanges; trackBy: trackByChangeId">
       <div class="change-head">
         <span class="change-title">{{ changeTitle(change) }}</span>
-        <span class="change-date">{{ change.createdAt | date: 'd MMM y' }}</span>
+        <span class="change-date">{{ change.createdAt | localDate: 'd MMM y' }}</span>
       </div>
 
       <ul class="change-fields" *ngIf="change.changes.length">
         <li class="change-field" *ngFor="let field of change.changes; trackBy: trackByRowLabel">
           <span class="change-field-label">{{ field.label }}</span>
-          <span class="change-field-values">{{ changeDetail(field) }}</span>
+          <span class="change-field-values">
+            <span class="change-old">{{ changeValue(field.previousValue) }}</span>
+            <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+            <span class="change-new">{{ changeValue(field.newValue) }}</span>
+            <span class="delta-chip" data-tone="neutral" *ngIf="changeDelta(field) as diff">
+              {{ diff > 0 ? '+' : '' }}{{ formatValue(diff, diff % 1 === 0 ? 0 : 1) }}
+            </span>
+          </span>
         </li>
       </ul>
 
@@ -635,6 +682,6 @@
     *ngIf="changesState === 'loaded' && !showAllChanges && hiddenChangesCount > 0"
     (click)="showAllChanges = true"
   >
-    Ver {{ hiddenChangesCount }} cambio{{ hiddenChangesCount === 1 ? '' : 's' }} más
+    {{ 'ONBOARDING.VIEW' | translate }} {{ hiddenChangesCount }} {{ (hiddenChangesCount === 1 ? 'TRAINER_COMMON.PL_CHANGE_ONE' : 'TRAINER_COMMON.PL_CHANGE_MANY') | translate }} {{ 'CLIENTS.MAS' | translate }}
   </button>
 </section>

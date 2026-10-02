@@ -8,7 +8,7 @@
     <div class="metric-toggles" *ngIf="availableMetrics.length > 1">
       <div class="toggle-group">
         <span class="toggle-label">{{ 'ANTHROPOMETRY.SHOW' | translate }}:</span>
-        <div class="toggles" role="group" aria-label="Metric toggles">
+        <div class="toggles" role="group" [attr.aria-label]="'ANTHROPOMETRY.METRIC_TOGGLES' | translate">
           <button
             type="button"
             class="metric-toggle"

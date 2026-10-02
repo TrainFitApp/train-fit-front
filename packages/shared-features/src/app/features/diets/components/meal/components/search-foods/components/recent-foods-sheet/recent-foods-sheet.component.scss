@@ -1,0 +1,163 @@
+// Misma familia que CreateFoodSheetComponent y ConfirmSheetComponent: hoja de
+// alto automático con colores de Ionic para seguir al tema claro y al oscuro.
+// La lista hace scroll dentro; cabecera y botones quedan siempre a la vista.
+:host {
+  display: flex;
+  flex-direction: column;
+  max-height: 78vh;
+  padding: 26px 16px calc(env(safe-area-inset-bottom) + 12px);
+}
+
+.recents-head {
+  padding: 0 4px 12px;
+}
+
+.recents-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.recents-hint {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--ion-color-medium);
+}
+
+.recents-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 -16px;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.08);
+  border-bottom: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.08);
+}
+
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+  padding: 6px 8px 6px 20px;
+
+  & + & {
+    border-top: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.06);
+  }
+}
+
+.recent-row__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.recent-row__name {
+  overflow: hidden;
+  font-size: 0.98rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: color 140ms ease;
+}
+
+.recent-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  font-size: 0.82rem;
+  color: var(--ion-color-medium);
+
+  > span + span::before {
+    content: '·';
+    margin-right: 6px;
+  }
+}
+
+.recent-row__qty {
+  font-variant-numeric: tabular-nums;
+}
+
+// Oculta pero aún deshacible: el nombre pierde peso y se tacha, la fila no se
+// mueve para que DESHACER quede donde estaba la ✕.
+.recent-row.is-hidden .recent-row__name {
+  font-weight: 500;
+  color: var(--ion-color-medium);
+  text-decoration: line-through;
+  text-decoration-color: rgba(var(--ion-color-medium-rgb, 146, 148, 156), 0.6);
+}
+
+.recent-row__remove,
+.recent-row__undo {
+  flex: 0 0 auto;
+  min-width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 140ms ease;
+
+  &:active:not(:disabled) {
+    background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.recent-row__remove {
+  display: grid;
+  place-items: center;
+  color: var(--ion-color-medium);
+
+  ion-icon {
+    font-size: 22px;
+  }
+}
+
+.recent-row__undo {
+  padding: 0 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ion-color-primary);
+}
+
+.recents-empty {
+  margin: 8px 4px 4px;
+  font-size: 0.92rem;
+  color: var(--ion-color-medium);
+}
+
+.recents-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 14px;
+
+  ion-button {
+    flex: 1;
+    margin: 0;
+    --border-radius: 12px;
+    font-weight: 600;
+  }
+}

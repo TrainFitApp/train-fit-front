@@ -2,18 +2,18 @@
   <ion-toolbar>
     <ion-title>{{ exercise?.name }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button *ngIf="isOwnExercise" (click)="requestEdit()" aria-label="Editar ejercicio">
+      <ion-button *ngIf="isOwnExercise" (click)="requestEdit()" [attr.aria-label]="'EXERCISE_LIBRARY.EDITAR_EJERCICIO' | translate">
         <ion-icon name="create-outline" slot="icon-only"></ion-icon>
       </ion-button>
       <ion-button
         *ngIf="isOwnExercise"
         color="danger"
         (click)="requestDelete()"
-        aria-label="Eliminar ejercicio"
+        [attr.aria-label]="'EXERCISE_LIBRARY.ELIMINAR_EJERCICIO' | translate"
       >
         <ion-icon name="trash-bin-outline" slot="icon-only"></ion-icon>
       </ion-button>
-      <ion-button (click)="close()" aria-label="Cerrar">
+      <ion-button (click)="close()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -35,7 +35,7 @@
   <p class="exercise-description" *ngIf="exercise?.description">{{ exercise.description }}</p>
 
   <div class="taxonomy-section" *ngIf="muscleRoles.length; else legacyMuscles">
-    <h3>Músculos</h3>
+    <h3>{{ 'EXERCISE_LIBRARY.MUSCULOS' | translate }}</h3>
     <div class="muscle-role-row" *ngFor="let row of muscleRoles">
       <span class="muscle-role-label muscle-role-label--{{ row.role }}">{{ row.label }}</span>
       <div class="chip-row">
@@ -47,7 +47,7 @@
   </div>
   <ng-template #legacyMuscles>
     <div class="taxonomy-section" *ngIf="muscleGroups.length">
-      <h3>Grupos musculares</h3>
+      <h3>{{ 'EXERCISE_LIBRARY.GRUPOS_MUSCULARES' | translate }}</h3>
       <div class="chip-row">
         <span class="chip" *ngFor="let m of muscleGroups">{{ m }}</span>
       </div>
@@ -55,14 +55,14 @@
   </ng-template>
 
   <div class="taxonomy-section" *ngIf="categories.length">
-    <h3>Categorías</h3>
+    <h3>{{ 'EXERCISE_LIBRARY.CATEGORIAS' | translate }}</h3>
     <div class="chip-row">
       <span class="chip" *ngFor="let c of categories">{{ c }}</span>
     </div>
   </div>
 
   <div class="taxonomy-section" *ngIf="exercise?.equipment?.length">
-    <h3>Equipamiento</h3>
+    <h3>{{ 'EXERCISE_LIBRARY.EQUIPAMIENTO' | translate }}</h3>
     <div class="chip-row">
       <span class="chip" *ngFor="let e of exercise.equipment">{{ e }}</span>
     </div>

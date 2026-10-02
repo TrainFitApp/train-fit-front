@@ -32,6 +32,64 @@
 // uno es un filtro de la lista de abajo en vez de una tarjeta que solo se
 // mira. "Clientes activos" queda a la derecha como contexto tipográfico —
 // dato de fondo, no una decisión que tomar.
+.review-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+  margin-bottom: var(--tf-space-4);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: 1px solid var(--tf-accent-soft-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-accent-soft);
+  color: var(--tf-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.review-strip__icon {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--tf-accent-text);
+}
+
+.review-strip__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: var(--tf-font-size-base);
+  }
+
+  span {
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+  }
+}
+
+.review-strip__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  flex-shrink: 0;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-accent-text);
+}
+
 .triage-bar {
   display: flex;
   align-items: center;

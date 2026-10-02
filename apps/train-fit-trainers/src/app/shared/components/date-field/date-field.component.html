@@ -13,7 +13,7 @@
   *ngIf="clearable && value && !disabled"
   type="button"
   class="date-clear"
-  aria-label="Quitar"
+  [attr.aria-label]="'TRAINER_COMMON.REMOVE' | translate"
   (click)="clear($event)"
 >
   <ion-icon name="close-circle" aria-hidden="true"></ion-icon>

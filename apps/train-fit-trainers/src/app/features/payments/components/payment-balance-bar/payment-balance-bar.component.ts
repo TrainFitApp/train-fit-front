@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { PaymentCharge } from '../../models/payments.model';
 import { BalanceSegments, balanceSegments, formatCents } from '../../utils/payments-view.util';
 
@@ -15,6 +16,8 @@ type BarCharge = Pick<PaymentCharge, 'amountCents' | 'receivedCents' | 'cancelle
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaymentBalanceBarComponent {
+  private readonly translate = inject(TranslateService);
+
   @Input() public set charge(value: BarCharge | null) {
     this.current = value;
     this.segments = value ? balanceSegments(value) : { received: 0, cancelled: 0, pending: 0 };
@@ -27,7 +30,7 @@ export class PaymentBalanceBarComponent {
   public get label(): string {
     const charge = this.current;
     if (!charge) return '';
-    const parts = [`Recibido ${formatCents(charge.receivedCents, charge.currency)} de ${formatCents(charge.amountCents, charge.currency)}`];
+    const parts = [this.translate.instant('PAYMENTS.RECIBIDO_DE', { p0: formatCents(charge.receivedCents, charge.currency), p1: formatCents(charge.amountCents, charge.currency) })];
     if (charge.cancelledCents > 0) parts.push(`anulado ${formatCents(charge.cancelledCents, charge.currency)}`);
     parts.push(`pendiente ${formatCents(charge.balanceCents, charge.currency)}`);
     return parts.join(', ');

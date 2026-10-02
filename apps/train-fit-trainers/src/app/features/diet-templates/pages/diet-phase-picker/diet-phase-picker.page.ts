@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ModalController } from '@ionic/angular';
@@ -24,8 +25,10 @@ import { DietTemplateApiService } from '../../services/diet-template-api.service
   styleUrls: ['diet-phase-picker.page.scss'],
 })
 export class DietPhasePickerPage {
+  private readonly translate = inject(TranslateService);
+
   public clientId = '';
-  public clientName = 'este cliente';
+  public clientName = this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
 
   private drawer: HTMLIonModalElement | null = null;
 
@@ -52,7 +55,7 @@ export class DietPhasePickerPage {
   // entrar (otro cliente, u otra fase del mismo) no abriría el panel.
   public ionViewWillEnter(): void {
     this.clientId = this.route.snapshot.paramMap.get('clientId') || '';
-    this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
+    this.clientName = this.route.snapshot.queryParamMap.get('name') || this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
     this.leaving = false;
     this.closePreview();
     void this.openDrawer();
@@ -104,7 +107,7 @@ export class DietPhasePickerPage {
       void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
         state: {
           clientName: this.clientName,
-          name: data.phase?.name || 'Nueva dieta',
+          name: data.phase?.name || this.translate.instant('DIET_TEMPLATES.NUEVA_DIETA'),
           startDate: data.startDate,
           phase: data.phase,
         },
@@ -121,7 +124,7 @@ export class DietPhasePickerPage {
       void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
         state: {
           clientName: this.clientName,
-          name: data.phase?.name || template.name || 'Nueva dieta',
+          name: data.phase?.name || template.name || this.translate.instant('DIET_TEMPLATES.NUEVA_DIETA'),
           startDate: data.startDate,
           phase: data.phase,
           prefill: { name: template.name, menus: template.menus },

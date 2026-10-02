@@ -1,0 +1,24 @@
+<ion-content class="viewer" [fullscreen]="true">
+  <div class="viewer-top">
+    <button type="button" class="viewer-close" (click)="close()" [attr.aria-label]="'MEDIA.CLOSE' | translate">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+    <span class="viewer-date">{{ dateLabel }}</span>
+  </div>
+
+  <img *ngIf="current" class="viewer-img" [src]="current.asset.url || current.asset.thumbUrl" [alt]="('MEDIA.POSE_' + pose.toUpperCase()) | translate" />
+
+  <div class="viewer-poses" *ngIf="(day?.photos?.length || 0) > 1" role="tablist">
+    <button
+      *ngFor="let photo of day?.photos"
+      type="button"
+      role="tab"
+      class="viewer-pose"
+      [class.viewer-pose--active]="photo.pose === pose"
+      [attr.aria-selected]="photo.pose === pose"
+      (click)="select(photo.pose)"
+    >
+      {{ ('MEDIA.POSE_' + photo.pose.toUpperCase()) | translate }}
+    </button>
+  </div>
+</ion-content>

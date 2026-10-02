@@ -1,4 +1,5 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import {
   ShoppingListItem,
@@ -12,6 +13,7 @@ import {
   shoppingQuantityLabel,
   unassignedDays,
 } from 'src/app/core/utils/shopping-list.util';
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'idle' | 'loading' | 'error' | 'loaded';
 
@@ -22,6 +24,7 @@ const RANGES = [
   { days: 14, label: '2 semanas' },
   { days: 30, label: 'Un mes' },
 ];
+RANGES.forEach((item) => localizeProp(item, 'label', `CLIENTS.SHOPPING_RANGES.${item.days}`));
 
 /**
  * Movimiento 5 Coach Pro — lo que el cliente tiene que comprar para cumplir
@@ -42,6 +45,8 @@ const RANGES = [
   styleUrls: ['shopping-list-panel.component.scss'],
 })
 export class ShoppingListPanelComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
 
   public state: ViewState = 'idle';
@@ -159,13 +164,13 @@ export class ShoppingListPanelComponent implements OnChanges {
   }
 
   public alternativeLabel(label: string, index: number): string {
-    return label || `Opción ${index + 1}`;
+    return label || this.translate.instant('CLIENTS.OPCION', { p0: index + 1 });
   }
 
   // Tramo con fechas solo si hay más de uno: con uno solo es el rango pedido.
   public segmentLabel(segment: ShoppingSegment): string {
     const fmt = (iso: string) => `${Number(iso.slice(8, 10))}/${Number(iso.slice(5, 7))}`;
-    return `Del ${fmt(segment.from)} al ${fmt(segment.to)}`;
+    return this.translate.instant('CLIENTS.DEL_AL', { p0: fmt(segment.from), p1: fmt(segment.to) });
   }
 
   public quantityLabel(item: ShoppingListItem): string {

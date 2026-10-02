@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, inject } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { SubmitOnEnterDirective } from 'src/app/shared/directives/submit-on-enter.directive';
 import { IonicModule, ModalController } from '@ionic/angular';
@@ -8,6 +9,7 @@ import { DietSuggestionApiService } from '../../../diet-templates/services/diet-
 import { DailyDeviation, MacroSet, PhaseWeeksResponse } from '../../../diet-templates/models/diet-suggestion.model';
 import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
 import { KCAL_PER_G, MacroAdjustComponent, MacroKey } from '../../../../shared/components/macro-adjust/macro-adjust.component';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 const MACRO_KEYS: MacroKey[] = ['protein', 'carbs', 'fat'];
 
@@ -25,14 +27,16 @@ const MACRO_KEYS: MacroKey[] = ['protein', 'carbs', 'fat'];
 @Component({
   selector: 'app-next-week-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, NeedBreakdownComponent, MacroAdjustComponent, SubmitOnEnterDirective],
+  imports: [CommonModule, FormsModule, IonicModule, NeedBreakdownComponent, MacroAdjustComponent, SubmitOnEnterDirective, TranslateModule],
   templateUrl: './next-week-modal.component.html',
   styleUrls: ['./next-week-modal.component.scss'],
 })
 export class NextWeekModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId!: string;
   @Input() public phaseId!: string;
-  @Input() public clientName = 'este cliente';
+  @Input() public clientName = this.translate.instant('CLIENTS.ESTE_CLIENTE');
   @Input() public weeks!: PhaseWeeksResponse;
 
   public targetKcal = 0;
@@ -114,8 +118,8 @@ export class NextWeekModalComponent implements OnInit {
 
   public get periodLabel(): string {
     return this.next.end
-      ? `Del ${this.fmt(this.next.start)} al ${this.fmt(this.next.end)}`
-      : `Desde el ${this.fmt(this.next.start)}`;
+      ? this.translate.instant('CLIENTS.DEL_AL', { p0: this.fmt(this.next.start), p1: this.fmt(this.next.end) })
+      : this.translate.instant('CLIENTS.DESDE_EL_2', { p0: this.fmt(this.next.start) });
   }
 
   public get deviations(): DailyDeviation[] {
@@ -123,11 +127,11 @@ export class NextWeekModalComponent implements OnInit {
   }
 
   public deviationLine(d: DailyDeviation): string {
-    if (!d.hasPlan) return 'Sin nada pautado ese día';
+    if (!d.hasPlan) return this.translate.instant('CLIENTS.SIN_NADA_PAUTADO_ESE_DIA');
     const parts: string[] = [];
-    if (d.unchecked.length) parts.push(`sin marcar: ${d.unchecked.join(', ')}`);
+    if (d.unchecked.length) parts.push(this.translate.instant('CLIENTS.SIN_MARCAR', { p0: d.unchecked.join(', ') }));
     if (d.unplanned.length) {
-      parts.push(`fuera de pauta: ${d.unplanned.map((u) => `${u.name} ${u.quantity} g`).join(', ')}`);
+      parts.push(this.translate.instant('CLIENTS.FUERA_DE_PAUTA', { p0: d.unplanned.map((u) => `${u.name} ${u.quantity} g`).join(', ') }));
     }
     return parts.join(' · ');
   }
@@ -139,7 +143,7 @@ export class NextWeekModalComponent implements OnInit {
   public pctLabel(value: number | null): string {
     if (value === null) return '';
     const rounded = Math.round(value * 10) / 10;
-    return `${rounded > 0 ? '+' : ''}${rounded.toLocaleString('es-ES', { maximumFractionDigits: 1 })} %`;
+    return `${rounded > 0 ? '+' : ''}${rounded.toLocaleString(uiLocale(), { maximumFractionDigits: 1 })} %`;
   }
 
   private pctChange(now: number, before: number): number | null {
@@ -165,7 +169,7 @@ export class NextWeekModalComponent implements OnInit {
     // Macros tocados que no cuadran con las kcal: no se prepara.
     const macroError = this.macroAdjust?.validate();
     if (macroError) {
-      this.ionicUtil.showErrorToast(macroError, 'Error', 4500);
+      this.ionicUtil.showErrorToast(macroError, this.translate.instant('COMMON.ERROR'), 4500);
       return;
     }
     void this.modalController.dismiss(
@@ -183,14 +187,14 @@ export class NextWeekModalComponent implements OnInit {
     this.api.discardNextWeek(this.clientId, this.phaseId).subscribe({
       next: () => {
         this.ionicUtil.showToast({
-          message: `Semana ${this.next.number} descartada: repetirá lo anterior`,
+          message: this.translate.instant('CLIENTS.SEMANA_DESCARTADA_REPETIRA_LO_ANTERIOR', { number: this.next.number }),
           duration: 2500,
         });
         void this.modalController.dismiss(null, 'discarded');
       },
       error: (err) => {
         this.discarding = false;
-        this.ionicUtil.showErrorToast(err?.error?.message || 'No se pudo descartar la semana', 'Error', 3500);
+        this.ionicUtil.showErrorToast(err?.error?.message || this.translate.instant('CLIENTS.NO_SE_PUDO_DESCARTAR_LA'), this.translate.instant('COMMON.ERROR'), 3500);
       },
     });
   }
@@ -200,6 +204,6 @@ export class NextWeekModalComponent implements OnInit {
   }
 
   public fmt(iso: string): string {
-    return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' });
   }
 }

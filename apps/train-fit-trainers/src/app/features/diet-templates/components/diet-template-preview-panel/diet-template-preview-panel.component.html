@@ -5,14 +5,14 @@
   <header class="panel-header">
     <div class="panel-heading">
       <h3 class="panel-title" id="diet-preview-title">{{ template?.name }}</h3>
-      <p class="panel-sub">Vista previa · solo lectura</p>
+      <p class="panel-sub">{{ 'DIET_TEMPLATES.VISTA_PREVIA_SOLO_LECTURA' | translate }}</p>
     </div>
     <button
       type="button"
       class="panel-close"
       #closeButton
       (click)="closed.emit()"
-      aria-label="Cerrar vista previa"
+      [attr.aria-label]="'DIET_TEMPLATES.CERRAR_VISTA_PREVIA' | translate"
     >
       <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
     </button>
@@ -26,7 +26,7 @@
           *ngTemplateOutlet="macroTags; context: { $implicit: template?.macroProfile }"
         ></ng-container>
         <p class="summary-note">
-          {{ menuCount === 1 ? '1 menú' : '≈ media de los ' + menuCount + ' menús' }}
+          {{ menuCount === 1 ? ('DIET_TEMPLATES.1_MENU' | translate) : ('DIET_TEMPLATES.MEDIA_DE_LOS' | translate) + menuCount + ('DIET_TEMPLATES.MENUS' | translate) }}
         </p>
       </ng-container>
       <div class="summary-flags" *ngIf="flags.length">
@@ -37,7 +37,7 @@
       </div>
     </section>
 
-    <p class="panel-empty" *ngIf="!hasAnyFood">Esta plantilla todavía no tiene alimentos.</p>
+    <p class="panel-empty" *ngIf="!hasAnyFood">{{ 'DIET_TEMPLATES.ESTA_PLANTILLA_TODAVIA_NO_TIENE' | translate }}</p>
 
     <section class="menu" *ngFor="let menu of menus">
       <header class="menu-head">
@@ -46,12 +46,12 @@
           <ng-container *ngTemplateOutlet="macroTags; context: { $implicit: t }"></ng-container>
         </ng-container>
       </header>
-      <p class="menu-note" *ngIf="menu.averaged">Las comidas con opciones cuentan su media.</p>
+      <p class="menu-note" *ngIf="menu.averaged">{{ 'DIET_TEMPLATES.LAS_COMIDAS_CON_OPCIONES_CUENTAN' | translate }}</p>
 
-      <p class="menu-empty" *ngIf="!menu.meals.length">Menú vacío.</p>
+      <p class="menu-empty" *ngIf="!menu.meals.length">{{ 'DIET_TEMPLATES.MENU_VACIO' | translate }}</p>
 
       <div class="meal" *ngFor="let meal of menu.meals">
-        <h5 class="meal-slot">{{ meal.slot }}</h5>
+        <h5 class="meal-slot">{{ meal.slot | translateDb }}</h5>
 
         <div class="alt" *ngFor="let alt of meal.alternatives; let a = index">
           <span class="alt-label" *ngIf="meal.alternatives.length > 1">

@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { dietaryFlagUi } from '../../utils/dietary-flag-ui.util';
 
 export interface DietCardProfile {
@@ -18,6 +19,8 @@ export interface DietCardProfile {
   styleUrls: ['./diet-card.component.scss'],
 })
 export class DietCardComponent {
+  private readonly translate = inject(TranslateService);
+
   @Input() public name = '';
   @Input() public profile: DietCardProfile | null = null;
   @Input() public deltas: DietCardProfile | null = null;
@@ -57,7 +60,7 @@ export class DietCardComponent {
 
   public get modeLabel(): string {
     const n = this.contentUnits;
-    return n ? `${n} menú${n === 1 ? '' : 's'} a elegir` : 'El cliente elige cada día';
+    return n ? this.translate.instant('SHARED_COMPONENTS.MENU_ELEGIR', { n, p1: n === 1 ? '' : 's' }) : this.translate.instant('SHARED_COMPONENTS.EL_CLIENTE_ELIGE_CADA_DIA');
   }
 
   // Las kcal/macros del panel NO son un dato asignado a la plantilla: salen
@@ -66,7 +69,7 @@ export class DietCardComponent {
   // hay media que matizar.
   public get averageNote(): string | null {
     const n = this.contentUnits;
-    return n < 2 ? null : `≈ media de los ${n} menús`;
+    return n < 2 ? null : this.translate.instant('SHARED_COMPONENTS.MEDIA_DE_LOS_MENUS', { n });
   }
 
   public flagLabel(flag: string): string {

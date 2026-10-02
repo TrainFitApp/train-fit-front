@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { CHECKIN_FIELDS_BY_KEY } from 'src/app/core/constants/checkin-fields';
@@ -22,6 +23,7 @@ import {
   ClientProgress,
   ClientSummary,
   ClientTrainingProgress,
+  LoadEvolutionExercise,
   PROGRESS_WEEK_OPTIONS,
   PersonalRecord,
   PlanChange,
@@ -31,6 +33,7 @@ import {
   ProgressWeek,
   TrainingWeek,
 } from '../../models/client-progress.model';
+import { uiLocale, localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
@@ -40,6 +43,7 @@ const DIMENSION_LABELS: Record<AdherenceDimensionKey, string> = {
   habits: 'Hábitos',
   checkins: 'Check-ins',
 };
+localizeRecord(DIMENSION_LABELS, 'CLIENT_SUMMARY.DIMENSIONS');
 
 const DIMENSION_ICONS: Record<AdherenceDimensionKey, string> = {
   nutrition: 'nutrition-outline',
@@ -81,12 +85,14 @@ const UNAVAILABLE_LABELS: Record<string, string> = {
   sin_cadencia: 'Sin check-in configurado',
   periodo_corto: 'Aún no tocaba ninguno',
 };
+localizeRecord(UNAVAILABLE_LABELS, 'CLIENT_SUMMARY.UNAVAILABLE');
 
 const PRIORITY_LABELS: Record<CoachAlertPriority, string> = {
   high: 'Urgente',
   medium: 'Revisar',
   low: 'Menor',
 };
+localizeRecord(PRIORITY_LABELS, 'CLIENT_SUMMARY.PRIORITY');
 
 // Mismo catálogo que dashboard.page.ts#ALERT_ICONS — un icono por tipo para
 // distinguir "peso" de "check-in" de un vistazo. Duplicado a propósito
@@ -117,6 +123,7 @@ const OWNER_BY_TYPE: Record<CoachAlertType, string> = {
   inactive_client: 'Pendiente del cliente',
   no_training_activity: 'Pendiente del cliente',
 };
+localizeRecord(OWNER_BY_TYPE, 'CLIENT_SUMMARY.OWNER');
 
 // A qué subpestaña lleva "Ver" — solo los tipos con un destino inequívoco.
 // Los demás se quedan solo con el botón de resolver, sin enlace que no lleve
@@ -136,6 +143,7 @@ const CHANGE_ENTITY_LABELS: Record<PlanChangeEntity, string> = {
   checkin_config: 'Check-in',
   protocol: 'Protocolo',
 };
+localizeRecord(CHANGE_ENTITY_LABELS, 'CLIENT_SUMMARY.CHANGE_ENTITY');
 
 // Una fila de la tabla de perímetros. Se construye solo con las circunferencias
 // que tienen algún dato en la ventana pedida — así la tabla no arrastra filas
@@ -155,12 +163,18 @@ const PERIMETERS_STORAGE_KEY = 'tf-trainers.summary-primary-perimeters';
 // no ha elegido nada — no un catálogo entero de 16 perímetros de golpe.
 const DEFAULT_PERIMETERS = ['waist', 'hip'];
 
+// Umbrales de adherencia de la Cartera (client-roster.component.ts).
+const ADHERENCE_LOW = 70;
+const ADHERENCE_CRITICAL = 50;
+
 @Component({
   selector: 'app-client-summary',
   templateUrl: 'client-summary.component.html',
   styleUrls: ['client-summary.component.scss'],
 })
 export class ClientSummaryComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
   @Input() public clientName = '';
 
@@ -311,20 +325,37 @@ export class ClientSummaryComponent implements OnInit {
   }
 
   public changeTitle(change: PlanChange): string {
-    const entityLabel = CHANGE_ENTITY_LABELS[change.entity] || 'Cambio';
+    const entityLabel = CHANGE_ENTITY_LABELS[change.entity] || this.translate.instant('CLIENTS.CAMBIO_2');
     return change.entityName ? `${entityLabel}: ${change.entityName}` : entityLabel;
   }
 
   // "2200 → 2100" es la forma en que un coach lee un cambio. Un valor vacío
   // se dice con palabra ("sin definir"), no con una flecha desde la nada.
   public changeDetail(field: PlanChangeField): string {
-    const before = field.previousValue === null || field.previousValue === undefined
-      ? 'sin definir'
-      : String(field.previousValue);
-    const after = field.newValue === null || field.newValue === undefined
-      ? 'sin definir'
-      : String(field.newValue);
-    return `${before} → ${after}`;
+    return `${this.changeValue(field.previousValue)} → ${this.changeValue(field.newValue)}`;
+  }
+
+  // Un valor del historial tal como se lee: fechas "26 sept" (con año si no
+  // es el actual) en vez de "2026-09-26", y números con coma decimal.
+  public changeValue(value: string | number | null | undefined): string {
+    if (value === null || value === undefined || value === '') return this.translate.instant('CLIENTS.SIN_DEFINIR');
+    if (typeof value === 'number') return this.formatValue(value, value % 1 === 0 ? 0 : 1);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const date = new Date(`${value}T12:00:00`);
+      const sameYear = date.getFullYear() === new Date().getFullYear();
+      return date.toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short', ...(sameYear ? {} : { year: 'numeric' }) });
+    }
+    return value;
+  }
+
+  // Diferencia de un cambio numérico ("2200 → 2100" = -100); null si no son
+  // dos números o no cambió.
+  public changeDelta(field: PlanChangeField): number | null {
+    const before = Number(field.previousValue);
+    const after = Number(field.newValue);
+    if (field.previousValue === null || field.newValue === null || field.previousValue === '' || field.newValue === '') return null;
+    if (!Number.isFinite(before) || !Number.isFinite(after) || before === after) return null;
+    return Math.round((after - before) * 10) / 10;
   }
 
   public trackByChangeId(_index: number, change: PlanChange): string {
@@ -453,7 +484,7 @@ export class ClientSummaryComponent implements OnInit {
   }
 
   public ownerLabel(alert: CoachAlert): string {
-    return OWNER_BY_TYPE[alert.type] || 'Tú revisas';
+    return OWNER_BY_TYPE[alert.type] || this.translate.instant('CLIENTS.TU_REVISAS');
   }
 
   public alertNavTab(alert: CoachAlert): ClientDetailTab | null {
@@ -464,9 +495,9 @@ export class ClientSummaryComponent implements OnInit {
   // línea corta junto al resto de la fila.
   public alertAge(alert: CoachAlert): string {
     const days = Math.floor((Date.now() - new Date(alert.createdAt).getTime()) / 86400000);
-    if (days <= 0) return 'hoy';
-    if (days === 1) return 'hace 1 día';
-    return `hace ${days} días`;
+    if (days <= 0) return this.translate.instant('CLIENTS.HOY');
+    if (days === 1) return this.translate.instant('CLIENTS.HACE_1_DIA');
+    return this.translate.instant('CLIENTS.HACE_DIAS_2', { days });
   }
 
   // --- Seguimiento reciente (3 tarjetas) ---
@@ -520,7 +551,7 @@ export class ClientSummaryComponent implements OnInit {
   }
 
   public unavailableLabel(dimension: AdherenceDimension): string {
-    return UNAVAILABLE_LABELS[dimension.reason || ''] || 'No disponible';
+    return UNAVAILABLE_LABELS[dimension.reason || ''] || this.translate.instant('CLIENTS.NO_DISPONIBLE');
   }
 
   public get weakestLabel(): string | null {
@@ -559,13 +590,13 @@ export class ClientSummaryComponent implements OnInit {
   }
 
   public dimensionAriaLabel(key: AdherenceDimensionKey): string {
-    return `Ver ${DIMENSION_LABELS[key].toLowerCase()} de este cliente`;
+    return this.translate.instant('CLIENTS.VER_DE_ESTE_CLIENTE', { p0: DIMENSION_LABELS[key].toLowerCase() });
   }
 
   // --- Alertas de este cliente ---
 
   public priorityLabel(priority: CoachAlertPriority): string {
-    return PRIORITY_LABELS[priority] || 'Revisar';
+    return PRIORITY_LABELS[priority] || this.translate.instant('CLIENTS.REVISAR');
   }
 
   public isResolving(alert: CoachAlert): boolean {
@@ -587,7 +618,7 @@ export class ClientSummaryComponent implements OnInit {
       error: (error) => {
         this.resolvingAlertIds.delete(alert._id);
         if (this.summary) this.summary.alerts = previous;
-        void this.ionicUtilService.showErrorToast(error, 'No se pudo resolver la alerta');
+        void this.ionicUtilService.showErrorToast(error, this.translate.instant('CLIENTS.NO_SE_PUDO_RESOLVER_LA'));
       },
     });
   }
@@ -715,7 +746,7 @@ export class ClientSummaryComponent implements OnInit {
   // como la de entrenamiento, que comparten las mismas ventanas pero no el
   // resto de campos.
   public weekLabel(week: { start: string }, index: number, total: number): string {
-    if (index === total - 1) return 'Actual';
+    if (index === total - 1) return this.translate.instant('CLIENTS.ACTUAL');
     const [, month, day] = week.start.split('-');
     return `${Number(day)}/${Number(month)}`;
   }
@@ -732,7 +763,7 @@ export class ClientSummaryComponent implements OnInit {
   // (y registrar el locale de una vez) es trabajo de la Fase 7.
   public formatValue(value: number | null, decimals: number): string {
     if (value === null || value === undefined) return '—';
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat(uiLocale(), {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     }).format(value);
@@ -747,6 +778,77 @@ export class ClientSummaryComponent implements OnInit {
     if (delta.absolute > 0) return 'arrow-up-outline';
     if (delta.absolute < 0) return 'arrow-down-outline';
     return 'remove-outline';
+  }
+
+  // Color de un porcentaje de adherencia: mismos umbrales y tokens que la
+  // Cartera (client-roster), para que un 62% se vea igual en las dos.
+  public adherenceLevel(value: number | null | undefined): 'none' | 'critical' | 'low' | 'ok' {
+    if (value === null || value === undefined) return 'none';
+    if (value < ADHERENCE_CRITICAL) return 'critical';
+    if (value < ADHERENCE_LOW) return 'low';
+    return 'ok';
+  }
+
+  // Tono de un cambio frente a la semana anterior. Solo se juzga donde subir
+  // es bueno sin discusión (sesiones hechas, adherencia): bajar un poco es
+  // aviso y bajar mucho (badFrom), alarma. Peso, perímetros y volumen van en
+  // 'neutral': que suban o bajen depende del objetivo del cliente, que la
+  // ficha no sabe.
+  public deltaTone(absolute: number | null | undefined, badFrom?: number): 'good' | 'warn' | 'bad' | 'neutral' {
+    if (!absolute || badFrom === undefined) return 'neutral';
+    if (absolute > 0) return 'good';
+    return -absolute >= badFrom ? 'bad' : 'warn';
+  }
+
+  // Tono de un cambio de volumen (semana o microciclo). Subir es verde;
+  // bajar, ámbar desde un 10% y rojo desde un 25%. Si el tramo actual es una
+  // descarga o vacaciones (tipo del microciclo en el planificador), la bajada
+  // es la prevista y va en 'planned' (borde discontinuo, sin alarma).
+  public volumeTone(percentage: number, reducedLoad?: boolean): 'good' | 'warn' | 'bad' | 'neutral' | 'planned' {
+    if (reducedLoad) return 'planned';
+    if (percentage > 0) return 'good';
+    if (percentage <= -25) return 'bad';
+    if (percentage <= -10) return 'warn';
+    return 'neutral';
+  }
+
+  // Marca de los últimos 7 días: se destaca como novedad.
+  public isRecent(date: string): boolean {
+    return Date.now() - new Date(date).getTime() <= 7 * 24 * 60 * 60 * 1000;
+  }
+
+  // Tablas semana a semana: posición del último dato de la fila y cuánto
+  // cambió frente al anterior con dato. Primitivos, nunca objetos nuevos:
+  // se evalúan en la plantilla en cada detección de cambios.
+  public lastValueIndex(values: (number | null)[]): number {
+    for (let i = values.length - 1; i >= 0; i--) if (values[i] !== null && values[i] !== undefined) return i;
+    return -1;
+  }
+
+  public valueChange(values: (number | null)[]): number | null {
+    const last = this.lastValueIndex(values);
+    if (last <= 0) return null;
+    for (let i = last - 1; i >= 0; i--) {
+      const previous = values[i];
+      if (previous === null || previous === undefined) continue;
+      const diff = Math.round(((values[last] as number) - previous) * 10) / 10;
+      return diff === 0 ? null : diff;
+    }
+    return null;
+  }
+
+  // Carga de la semana actual frente a la última semana con dato. Devuelve
+  // un string (nunca un objeto nuevo) porque se evalúa en la plantilla.
+  public loadTrend(exercise: LoadEvolutionExercise): 'up' | 'down' | null {
+    const weeks = exercise.weeks;
+    const current = weeks[weeks.length - 1]?.maxWeight;
+    if (current === null || current === undefined) return null;
+    for (let i = weeks.length - 2; i >= 0; i--) {
+      const previous = weeks[i].maxWeight;
+      if (previous === null || previous === undefined) continue;
+      return current > previous ? 'up' : current < previous ? 'down' : null;
+    }
+    return null;
   }
 
   public trackByAlertId(_index: number, alert: CoachAlert): string {

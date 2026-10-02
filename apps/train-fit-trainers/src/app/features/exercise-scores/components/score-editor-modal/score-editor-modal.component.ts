@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
@@ -25,6 +26,8 @@ import { ExerciseScoresApiService, ScoreCatalog } from '../../services/exercise-
   styleUrls: ['score-editor-modal.component.scss'],
 })
 export class ScoreEditorModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public exerciseId = '';
   @Input() public exerciseName = '';
   @Input() public existing: ExerciseScore | null = null;
@@ -83,8 +86,8 @@ export class ScoreEditorModalComponent implements OnInit {
       error: () => {
         this.isRestoring = false;
         this.ionicUtilService.showErrorToast(
-          'No se pudo cargar la puntuación por defecto',
-          'Error',
+          this.translate.instant('EXERCISE_SCORES.NO_SE_PUDO_CARGAR_LA'),
+          this.translate.instant('COMMON.ERROR'),
           2500
         );
       },
@@ -161,8 +164,8 @@ export class ScoreEditorModalComponent implements OnInit {
         error: () => {
           this.isSaving = false;
           this.ionicUtilService.showErrorToast(
-            'No se pudo guardar la puntuación',
-            'Error',
+            this.translate.instant('EXERCISE_SCORES.NO_SE_PUDO_GUARDAR_LA'),
+            this.translate.instant('COMMON.ERROR'),
             2500
           );
         },

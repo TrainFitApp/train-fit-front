@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+  <app-page-header [title]="'MEDIA.TRAINER.LIBRARY_TITLE' | translate">
+    <ng-container pageActions>
+      <button type="button" class="header-add-btn" (click)="openEditor()">
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.TRAINER.NEW_VIDEO' | translate }}
+      </button>
+    </ng-container>
+  </app-page-header>
+</ion-header>
+
+<ion-content class="library-content">
+  <div class="library">
+    <div class="library-top">
+      <p class="library-intro">{{ 'MEDIA.TRAINER.LIBRARY_INTRO' | translate }}</p>
+      <div class="quota" *ngIf="status?.libraryBytes">
+        <span class="quota-label">
+          {{ 'MEDIA.TRAINER.QUOTA' | translate: { used: formatBytes(status?.libraryUsedBytes), total: formatBytes(status?.libraryBytes) } }}
+        </span>
+        <span class="quota-bar" role="progressbar" [attr.aria-valuenow]="usedPercent" aria-valuemin="0" aria-valuemax="100">
+          <span class="quota-fill" [style.width.%]="usedPercent" [class.quota-fill--high]="usedPercent >= 85"></span>
+        </span>
+      </div>
+    </div>
+
+    <ion-searchbar
+      *ngIf="videos.length > 4"
+      class="library-search"
+      [placeholder]="'MEDIA.TRAINER.SEARCH_PLACEHOLDER' | translate"
+      [debounce]="150"
+      (ionInput)="onSearch($event)"
+    ></ion-searchbar>
+
+    <div class="library-state" *ngIf="state === 'loading'"><ion-spinner name="dots"></ion-spinner></div>
+
+    <div class="library-state" *ngIf="state === 'error'">
+      <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+      <p>{{ 'MEDIA.LOAD_ERROR' | translate }}</p>
+      <button type="button" class="secondary-button" (click)="load()">{{ 'MEDIA.RETRY' | translate }}</button>
+    </div>
+
+    <ng-container *ngIf="state === 'loaded'">
+      <div class="library-state library-state--empty" *ngIf="!videos.length">
+        <ion-icon name="film-outline" aria-hidden="true"></ion-icon>
+        <p>{{ 'MEDIA.TRAINER.LIBRARY_EMPTY' | translate }}</p>
+        <button type="button" class="primary-button" (click)="openEditor()">
+          <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.TRAINER.NEW_VIDEO' | translate }}
+        </button>
+      </div>
+
+      <div class="grid">
+        <article class="video-card" *ngFor="let video of filtered; trackBy: trackVideo">
+          <div class="video-media">
+            <app-technique-video-player *ngIf="playing === video.id; else preview" [video]="video" [autoplay]="true"></app-technique-video-player>
+            <ng-template #preview>
+              <button type="button" class="video-preview" (click)="playing = video.id" [attr.aria-label]="'MEDIA.TRAINER.PLAY' | translate: { title: video.title }">
+                <img *ngIf="video.video?.thumbUrl as thumb" [src]="thumb" alt="" />
+                <img *ngIf="video.youtubeId" [src]="'https://i.ytimg.com/vi/' + video.youtubeId + '/mqdefault.jpg'" alt="" />
+                <span class="play-dot"><ion-icon name="play"></ion-icon></span>
+                <span class="processing" *ngIf="video.source === 'upload' && video.video?.status !== 'ready'">
+                  {{ (video.video?.status === 'failed' ? 'MEDIA.VIDEO_FAILED' : 'MEDIA.VIDEO_PROCESSING') | translate }}
+                </span>
+              </button>
+            </ng-template>
+          </div>
+          <div class="video-body">
+            <div class="video-head">
+              <h2 class="video-title">{{ video.title }}</h2>
+              <span class="source">{{ sourceLabel(video) | translate }}</span>
+            </div>
+            <p class="video-cues" *ngIf="video.cues">{{ video.cues }}</p>
+            <div class="exercise-chips" *ngIf="video.exercises.length; else noExercises">
+              <span class="exercise-chip" *ngFor="let exercise of video.exercises">{{ exercise.name | translateDb }}</span>
+            </div>
+            <ng-template #noExercises>
+              <p class="video-cues video-cues--muted">{{ 'MEDIA.TRAINER.NO_EXERCISES' | translate }}</p>
+            </ng-template>
+            <div class="video-actions">
+              <button type="button" class="secondary-button" (click)="openEditor(video)">
+                <ion-icon name="create-outline" aria-hidden="true"></ion-icon>{{ 'MEDIA.TRAINER.EDIT' | translate }}
+              </button>
+              <button type="button" class="icon-button icon-button--danger" (click)="remove(video)" [attr.aria-label]="'MEDIA.TRAINER.DELETE' | translate">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

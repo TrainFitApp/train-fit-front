@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * Servicio para extraer y formatear mensajes de error del backend
@@ -8,8 +9,22 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class ErrorHandlerService {
-  private readonly unexpectedMessage = 'Ha ocurrido un error inesperado';
-  private readonly connectionMessage = 'No se pudo conectar. Inténtalo de nuevo';
+  // TranslateService se pide al usarse y no en el constructor: su loader usa
+  // HttpClient y este servicio lo usan los interceptores (dependencia circular).
+  constructor(private injector: Injector) {}
+
+  private t(key: string): string {
+    return this.injector.get(TranslateService).instant(key);
+  }
+
+  private get unexpectedMessage(): string {
+    return this.t('HTTP_ERRORS.UNEXPECTED');
+  }
+
+  private get connectionMessage(): string {
+    return this.t('HTTP_ERRORS.CONNECTION');
+  }
+
   private readonly unsafeMessagePattern =
     /(\/api\/|https?:\/\/|Http failure response|stack|trace|TypeError|ReferenceError|SyntaxError|AxiosError|Mongo(Error|ServerError)?|CastError|ECONN|ETIMEDOUT|ENOTFOUND|Cannot\s)/i;
   private readonly sensitiveAuthPattern =
@@ -84,18 +99,18 @@ export class ErrorHandlerService {
    */
   private getDefaultErrorByStatus(status: number): string {
     const errorMessages: { [key: number]: string } = {
-      400: 'Solicitud inválida. Verifica los datos.',
-      401: 'No autorizado. Inicia sesión de nuevo.',
-      402: 'No se proporcionó token.',
-      403: 'No tienes permiso para acceder a esto.',
-      404: 'Recurso no encontrado.',
-      409: 'Conflicto con los datos. Intenta de nuevo.',
-      422: 'Datos inválidos. Verifica los campos.',
-      429: 'Demasiadas solicitudes. Espera un momento.',
+      400: this.t('HTTP_ERRORS.400'),
+      401: this.t('HTTP_ERRORS.401'),
+      402: this.t('HTTP_ERRORS.402'),
+      403: this.t('HTTP_ERRORS.403'),
+      404: this.t('HTTP_ERRORS.404'),
+      409: this.t('HTTP_ERRORS.409'),
+      422: this.t('HTTP_ERRORS.422'),
+      429: this.t('HTTP_ERRORS.429'),
       500: this.unexpectedMessage,
       502: this.unexpectedMessage,
       503: this.connectionMessage,
-      504: 'La conexión tardó demasiado. Inténtalo de nuevo',
+      504: this.t('HTTP_ERRORS.504'),
     };
 
     return errorMessages[status] || this.unexpectedMessage;

@@ -7,6 +7,7 @@ import {
   TrainingComparisonMetric,
   TrainingGranularity,
 } from '../../models/client-progress.model';
+import { TranslateModule } from '@ngx-translate/core';
 
 // Comparación de varios ejercicios a la vez (2026-09 bis) — mismo tope que
 // MAX_COMPARED_EXERCISES en client-progress-controller.js: más líneas en la
@@ -37,7 +38,7 @@ export interface TrainingFilterResult {
 @Component({
   selector: 'app-training-filter-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, IonicModule, TranslateModule],
   templateUrl: './training-filter-panel.component.html',
   styleUrls: ['./training-filter-panel.component.scss'],
 })

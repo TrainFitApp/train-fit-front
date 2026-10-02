@@ -1,8 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Comparar microciclos</ion-title>
+    <ion-title>{{ 'PLANNER.COMPARAR_MICROCICLOS' | translate }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="close()" aria-label="Cerrar comparación">
+      <ion-button (click)="close()" [attr.aria-label]="'PLANNER.CERRAR_COMPARACION' | translate">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -17,7 +17,7 @@
         {{ labelFor(i) }} · {{ purposeLabel(split) }}
       </ion-select-option>
     </ion-select>
-    <button type="button" class="swap-button" (click)="swap()" aria-label="Intercambiar A y B" [disabled]="!hasPair">
+    <button type="button" class="swap-button" (click)="swap()" [attr.aria-label]="'PLANNER.INTERCAMBIAR' | translate" [disabled]="!hasPair">
       <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
     </button>
     <ion-select class="picker-select" interface="popover" [label]="'B · ' + purposeLabel(splitB)" [selectedText]="labelFor(indexB)" labelPlacement="stacked"
@@ -28,27 +28,27 @@
     </ion-select>
   </div>
 
-  <p class="empty-state" *ngIf="!hasPair">Necesitas dos microciclos para comparar. Cierra esta vista y añade otro en el Planner.</p>
+  <p class="empty-state" *ngIf="!hasPair">{{ 'PLANNER.NECESITAS_DOS_MICROCICLOS_PARA_COMPARAR' | translate }}</p>
   <ng-container *ngIf="hasPair">
     <div class="comparison-tools">
-      <ion-segment [value]="mode" (ionChange)="onModeChange($event.detail.value)" aria-label="Datos de la comparación">
-        <ion-segment-button value="plan"><ion-label>Pauta</ion-label></ion-segment-button>
-        <ion-segment-button value="done"><ion-label>Registrado</ion-label></ion-segment-button>
+      <ion-segment [value]="mode" (ionChange)="onModeChange($event.detail.value)" [attr.aria-label]="'PLANNER.DATOS_DE_LA_COMPARACION' | translate">
+        <ion-segment-button value="plan"><ion-label>{{ 'PLANNER.PAUTA' | translate }}</ion-label></ion-segment-button>
+        <ion-segment-button value="done"><ion-label>{{ 'PLANNER.REGISTRADO' | translate }}</ion-label></ion-segment-button>
       </ion-segment>
-      <span class="comparison-legend">A → B <span>·</span> Variación respecto a A</span>
+      <span class="comparison-legend">A → B <span>·</span> {{ 'PLANNER.VARIACION_RESPECTO' | translate }}</span>
     </div>
-    <p class="data-scope">{{ mode === 'plan' ? 'Reps y RIR pautados · carga guardada en el ejercicio.' : 'Solo series marcadas como completadas · reps y RIR registrados.' }}</p>
+    <p class="data-scope">{{ mode === 'plan' ? ('PLANNER.REPS_RIR_PAUTADOS_CARGA_GUARDADA' | translate) : ('PLANNER.SOLO_SERIES_MARCADAS_COMO_COMPLETADAS' | translate) }}</p>
 
     <div class="context-line" *ngIf="splitA?.objective || splitB?.objective || splitB?.purpose === 'deload'">
-      <span *ngIf="splitB?.purpose === 'deload'" class="purpose-note">B · Descarga</span>
+      <span *ngIf="splitB?.purpose === 'deload'" class="purpose-note">{{ 'PLANNER.DESCARGA' | translate }}</span>
       <span *ngIf="splitA?.objective"><b>A</b> {{ splitA?.objective }}</span>
       <span *ngIf="splitB?.objective"><b>B</b> {{ splitB?.objective }}</span>
     </div>
     <p class="notice" *ngIf="result?.structure as structure">
-      {{ structure.a }} sesiones en A / {{ structure.b }} en B. Se emparejan por posición; las sobrantes quedan sin pareja.
+      {{ structure.a }} {{ 'PLANNER.SESIONES_EN' | translate }} {{ structure.b }} {{ 'PLANNER.EN_SE_EMPAREJAN_POR_POSICION' | translate }}
     </p>
 
-    <section class="overview" aria-label="Resumen de microciclos">
+    <section class="overview" [attr.aria-label]="'PLANNER.RESUMEN_DE_MICROCICLOS' | translate">
       <div class="overview-metric" *ngFor="let metric of metrics">
         <h2>{{ metric.label }}</h2>
         <div class="metric-values"><span>{{ metric.a }}</span><span class="value-arrow" aria-hidden="true">→</span><strong>{{ metric.b }}</strong></div>
@@ -56,8 +56,8 @@
       </div>
     </section>
 
-    <div class="completion-strip" aria-label="Series completadas">
-      <span>Completadas</span>
+    <div class="completion-strip" [attr.aria-label]="'PLANNER.SERIES_COMPLETADAS' | translate">
+      <span>{{ 'PLANNER.COMPLETADAS' | translate }}</span>
       <span class="completion-item"><b>A</b> {{ completionA.done }}/{{ completionA.total }}
         <span class="completion-track" aria-hidden="true"><i [style.width.%]="completionA.percent"></i></span>
         {{ completionA.total ? completionA.percent + '%' : '—' }}
@@ -68,42 +68,42 @@
       </span>
     </div>
     <p class="notice" *ngIf="mode === 'done' && (completionA.done < completionA.total || completionB.done < completionB.total)">
-      Registro parcial. Compara también las series completadas antes de interpretar la variación.
+      {{ 'PLANNER.REGISTRO_PARCIAL_COMPARA_TAMBIEN_LAS' | translate }}
     </p>
     <p class="notice" *ngIf="mode === 'done' && (!completionA.done || !completionB.done)">
-      {{ !completionA.done && !completionB.done ? 'A y B no tienen' : !completionA.done ? 'A no tiene' : 'B no tiene' }} series completadas. Los guiones indican ausencia de registro.
+      {{ !completionA.done && !completionB.done ? ('PLANNER.NO_TIENEN' | translate) : !completionA.done ? ('PLANNER.NO_TIENE' | translate) : ('PLANNER.NO_TIENE_2' | translate) }} {{ 'TRAINER_MISC.SERIES_COMPLETADAS_LOS_GUIONES_INDICAN' | translate }}
     </p>
 
-    <div class="progress-strip" *ngIf="result?.progress as progress" aria-label="Cambios de carga máxima por ejercicio">
-      <span class="trend-up"><ion-icon name="arrow-up-outline" aria-hidden="true"></ion-icon><b>{{ progress.progressed }}</b> suben carga</span>
-      <span class="trend-down"><ion-icon name="arrow-down-outline" aria-hidden="true"></ion-icon><b>{{ progress.regressed }}</b> bajan carga</span>
-      <span><b>{{ progress.stagnant }}</b> sin cambios</span>
-      <span *ngIf="progress.added || progress.removed"><b>{{ progress.added }}/{{ progress.removed }}</b> solo B / solo A</span>
+    <div class="progress-strip" *ngIf="result?.progress as progress" [attr.aria-label]="'PLANNER.CAMBIOS_DE_CARGA_MAXIMA_POR' | translate">
+      <span class="trend-up"><ion-icon name="arrow-up-outline" aria-hidden="true"></ion-icon><b>{{ progress.progressed }}</b> {{ 'PLANNER.SUBEN_CARGA' | translate }}</span>
+      <span class="trend-down"><ion-icon name="arrow-down-outline" aria-hidden="true"></ion-icon><b>{{ progress.regressed }}</b> {{ 'PLANNER.BAJAN_CARGA' | translate }}</span>
+      <span><b>{{ progress.stagnant }}</b> {{ 'PLANNER.SIN_CAMBIOS' | translate }}</span>
+      <span *ngIf="progress.added || progress.removed"><b>{{ progress.added }}/{{ progress.removed }}</b> {{ 'PLANNER.SOLO_SOLO' | translate }}</span>
     </div>
 
     <section class="exercise-section" aria-labelledby="exercise-heading">
       <div class="section-toolbar">
-        <h2 id="exercise-heading">Ejercicios <span>{{ visibleCount }}/{{ totalCount }}</span></h2>
-        <ion-checkbox [(ngModel)]="onlyChanges" (ionChange)="filterWorkouts()" labelPlacement="end">Solo cambios</ion-checkbox>
+        <h2 id="exercise-heading">{{ 'TRAINER_COMMON.EXERCISES' | translate }} <span>{{ visibleCount }}/{{ totalCount }}</span></h2>
+        <ion-checkbox [(ngModel)]="onlyChanges" (ionChange)="filterWorkouts()" labelPlacement="end">{{ 'PLANNER.SOLO_CAMBIOS' | translate }}</ion-checkbox>
       </div>
-      <p class="table-guide">Cada celda: A → B · Δ carga sobre el máximo · ↑ sube / ↓ baja, sin juicio de mejora.</p>
-      <div class="table-scroll" role="region" aria-label="Comparación de ejercicios; desplaza horizontalmente para ver todas las métricas" tabindex="0" *ngIf="visibleWorkouts.length">
+      <p class="table-guide">{{ 'PLANNER.CADA_CELDA_CARGA_SOBRE_EL' | translate }}</p>
+      <div class="table-scroll" role="region" [attr.aria-label]="'PLANNER.COMPARACION_DE_EJERCICIOS_DESPLAZA_HORIZ' | translate" tabindex="0" *ngIf="visibleWorkouts.length">
         <table class="exercise-table">
-          <caption class="sr-only">{{ labelFor(indexA) }} frente a {{ labelFor(indexB) }}. Datos {{ mode === 'plan' ? 'de pauta' : 'registrados' }}.</caption>
+          <caption class="sr-only">{{ labelFor(indexA) }} {{ 'TRAINER_MISC.FRENTE' | translate }} {{ labelFor(indexB) }}{{ 'TRAINER_MISC.DATOS' | translate }} {{ mode === 'plan' ? ('PLANNER.DE_PAUTA' | translate) : ('TRAINER_MISC.LOGGED_PLURAL' | translate) }}.</caption>
           <colgroup><col class="exercise-column"><col><col><col><col></colgroup>
-          <thead><tr><th scope="col">Ejercicio</th><th scope="col">Carga · kg</th><th scope="col">Repeticiones</th><th scope="col">Series</th><th scope="col">RIR</th></tr></thead>
+          <thead><tr><th scope="col">{{ 'WORKOUT_NOTIFICATION.EXERCISE' | translate }}</th><th scope="col">{{ 'PLANNER.CARGA_KG' | translate }}</th><th scope="col">{{ 'PLANNER.REPETICIONES' | translate }}</th><th scope="col">{{ 'TRAINER_COMMON.SETS' | translate }}</th><th scope="col">RIR</th></tr></thead>
           <tbody *ngFor="let workout of visibleWorkouts; trackBy: trackByIndex">
             <tr class="workout-heading"><th colspan="5" scope="rowgroup">
-              <div><span>Día {{ workout.index + 1 }} · {{ workout.nameB || workout.nameA || 'Sin nombre' }}</span><span>{{ workout.setsA }} → {{ workout.setsB }} series</span></div>
-              <small *ngIf="workout.onlyIn">Solo en {{ workout.onlyIn === 'a' ? 'A' : 'B' }}</small>
-              <small *ngIf="workout.restDayA !== workout.restDayB">{{ workout.restDayA ? 'Descanso → entrenamiento' : 'Entrenamiento → descanso' }}</small>
+              <div><span>{{ 'TRAINER_MISC.DIA' | translate }} {{ workout.index + 1 }} · {{ workout.nameB || workout.nameA || ('PLANNER.SIN_NOMBRE' | translate) }}</span><span>{{ workout.setsA }} → {{ workout.setsB }} {{ 'PLANNER.SERIES' | translate }}</span></div>
+              <small *ngIf="workout.onlyIn">{{ 'PLANNER.SOLO_EN' | translate }} {{ workout.onlyIn === 'a' ? 'A' : 'B' }}</small>
+              <small *ngIf="workout.restDayA !== workout.restDayB">{{ workout.restDayA ? ('PLANNER.DESCANSO_ENTRENAMIENTO' | translate) : ('PLANNER.ENTRENAMIENTO_DESCANSO' | translate) }}</small>
             </th></tr>
             <tr *ngFor="let exercise of workout.exercises; trackBy: trackByIndex">
               <th scope="row" class="exercise-name">
-                <span>{{ (exercise.name || 'Ejercicio eliminado del catálogo') | translateDb }}</span>
+                <span>{{ (exercise.name || ('TABLES.EXERCISE_DELETED' | translate)) | translateDb }}</span>
                 <small [class.status-changed]="exercise.status !== 'same'">{{ statusLabel(exercise) }}</small>
                 <details *ngIf="exercise.details.length || exercise.chips.length" class="set-details">
-                  <summary>Ver series</summary>
+                  <summary>{{ 'PLANNER.VER_SERIES' | translate }}</summary>
                   <div class="set-detail-content">
                     <p *ngFor="let detail of exercise.details"><span><b>A</b> {{ detail.a }}</span><span><b>B</b> {{ detail.b }}</span></p>
                     <p *ngFor="let chip of exercise.chips" class="detail-change">{{ chip }}</p>
@@ -115,31 +115,31 @@
                 <ng-container *ngTemplateOutlet="delta; context: { $implicit: metric }"></ng-container>
               </td>
             </tr>
-            <tr *ngIf="!workout.exercises.length"><td colspan="5" class="empty-row">{{ workout.restDayA && workout.restDayB ? 'Descanso pautado' : 'Sin ejercicios comparables en esta sesión.' }}</td></tr>
+            <tr *ngIf="!workout.exercises.length"><td colspan="5" class="empty-row">{{ workout.restDayA && workout.restDayB ? ('PLANNER.DESCANSO_PAUTADO' | translate) : ('PLANNER.SIN_EJERCICIOS_COMPARABLES_EN_ESTA' | translate) }}</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="empty-state" *ngIf="!visibleWorkouts.length">{{ onlyChanges ? 'Sin diferencias entre A y B. Desactiva «Solo cambios» para ver todos los ejercicios.' : 'Estos microciclos no tienen sesiones. Añade ejercicios desde el Planner.' }}</p>
+      <p class="empty-state" *ngIf="!visibleWorkouts.length">{{ onlyChanges ? ('PLANNER.SIN_DIFERENCIAS_ENTRE_DESACTIVA_SOLO' | translate) : ('PLANNER.ESTOS_MICROCICLOS_NO_TIENEN_SESIONES' | translate) }}</p>
     </section>
 
     <details class="muscle-section">
-      <summary>Volumen por grupo muscular <span>{{ muscles.length }} {{ muscles.length === 1 ? 'grupo' : 'grupos' }}</span></summary>
-      <p class="table-guide">Series por grupo, igual que en Análisis: principal ×1, secundario ×0,5 · barras A / B en la misma escala · frecuencia en sesiones.</p>
+      <summary>{{ 'PLANNER.VOLUMEN_POR_GRUPO_MUSCULAR' | translate }} <span>{{ muscles.length }} {{ muscles.length === 1 ? 'grupo' : 'grupos' }}</span></summary>
+      <p class="table-guide">{{ 'PLANNER.SERIES_POR_GRUPO_IGUAL_QUE' | translate }}</p>
       <div class="muscle-row" *ngFor="let muscle of muscles">
         <strong>{{ muscle.name | translateDb }}</strong>
         <div class="muscle-bars" aria-hidden="true"><i [style.width.%]="muscle.widthA"></i><i [style.width.%]="muscle.widthB"></i></div>
-        <span>{{ muscle.metric.a }} → <b>{{ muscle.metric.b }}</b><small>{{ muscle.daysA }} → {{ muscle.daysB }} sesiones</small></span>
+        <span>{{ muscle.metric.a }} → <b>{{ muscle.metric.b }}</b><small>{{ muscle.daysA }} → {{ muscle.daysB }} {{ 'PLANNER.SESIONES' | translate }}</small></span>
         <ng-container *ngTemplateOutlet="delta; context: { $implicit: muscle.metric }"></ng-container>
       </div>
-      <p class="empty-state" *ngIf="!muscles.length">Sin series asignadas a grupos musculares.</p>
+      <p class="empty-state" *ngIf="!muscles.length">{{ 'PLANNER.SIN_SERIES_ASIGNADAS_GRUPOS_MUSCULARES' | translate }}</p>
     </details>
     <details class="reading-notes">
-      <summary>Cómo leer los datos</summary>
-      <p>Los cambios son B − A. Una bajada de carga o series puede corresponder a una descarga; más carga por sí sola no demuestra mejora.</p>
-      <p>El peso es compartido entre pauta y registro: no conserva una prescripción histórica. «Registrado» usa solo series confirmadas como completadas; una copia puede conservar valores previos si el cliente los confirma sin editarlos.</p>
-      <p>RIR medio excluye FALLO y valores ausentes. Un RIR menor significa menos repeticiones en reserva. Los rangos muestran los valores disponibles; «Ver series» permite localizar huecos y cambios de distribución.</p>
-      <p>Cardio e isométricos no tienen carga comparable. Tiempo y distancia aparecen en el detalle. Los porcentajes no se calculan con referencia cero o ausente.</p>
-      <p>Las sesiones se emparejan por posición y los ejercicios por identidad dentro de cada sesión. Cada serie cuenta en todos sus grupos primarios; los secundarios se excluyen.</p>
+      <summary>{{ 'PLANNER.COMO_LEER_LOS_DATOS' | translate }}</summary>
+      <p>{{ 'PLANNER.LOS_CAMBIOS_SON_UNA_BAJADA' | translate }}</p>
+      <p>{{ 'PLANNER.EL_PESO_ES_COMPARTIDO_ENTRE' | translate }}</p>
+      <p>{{ 'PLANNER.RIR_MEDIO_EXCLUYE_FALLO_VALORES' | translate }}</p>
+      <p>{{ 'PLANNER.CARDIO_ISOMETRICOS_NO_TIENEN_CARGA' | translate }}</p>
+      <p>{{ 'PLANNER.LAS_SESIONES_SE_EMPAREJAN_POR' | translate }}</p>
     </details>
   </ng-container>
 </ion-content>

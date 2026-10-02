@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Siguiente semana</h1>
+        <h1 class="tf-page-header__title">{{ 'CLIENTS.SIGUIENTE_SEMANA' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -17,7 +17,7 @@
 <ion-content class="week-content" [appSubmitOnEnter]="prepareButton">
   <p class="week-period">
     <strong>S{{ next.number }}</strong> · {{ periodLabel }}
-    <span class="week-period__edited" *ngIf="alreadyPrepared">· ya preparada</span>
+    <span class="week-period__edited" *ngIf="alreadyPrepared">{{ 'CLIENTS.YA_PREPARADA' | translate }}</span>
   </p>
 
   <!-- La sugerencia mira cómo respondió el peso en la semana en curso y
@@ -30,16 +30,16 @@
       aria-hidden="true"
     ></ion-icon>
     <div class="reason-body">
-      <span class="reason-label">{{ suggestion.flag ? 'Aviso' : 'Sugerencia' }}</span>
+      <span class="reason-label">{{ suggestion.flag ? ('CLIENTS.AVISO' | translate) : ('CLIENTS.SUGERENCIA' | translate) }}</span>
       <p class="reason-text">{{ suggestion.reason }}</p>
       <div class="weight-row" *ngIf="suggestion.hasData">
-        Peso {{ suggestion.weightStartKg }} → {{ suggestion.weightEndKg }} kg
-        <span *ngIf="suggestion.actualWeeklyRateKg !== null">({{ deltaLabel(suggestion.actualWeeklyRateKg) }} kg/sem)</span>
-        <span *ngIf="suggestion.comparedToWeek"> · vs S{{ suggestion.comparedToWeek }}</span>
+        {{ 'TRAINER_COMMON.WEIGHT' | translate }} {{ suggestion.weightStartKg }} → {{ suggestion.weightEndKg }} kg
+        <span *ngIf="suggestion.actualWeeklyRateKg !== null">({{ deltaLabel(suggestion.actualWeeklyRateKg) }} {{ 'CLIENTS.KG_SEM' | translate }})</span>
+        <span *ngIf="suggestion.comparedToWeek"> · {{ 'CLIENTS.VS' | translate }}{{ suggestion.comparedToWeek }}</span>
       </div>
       <div class="weight-row" *ngIf="suggestion.adherencePct !== null">
-        Adherencia de la semana en curso: <strong>{{ suggestion.adherencePct }} %</strong>
-        <span class="muted-inline">({{ suggestion.adherenceDays }} día{{ suggestion.adherenceDays === 1 ? '' : 's' }} con pauta)</span>
+        {{ 'CLIENTS.ADHERENCIA_DE_LA_SEMANA_EN' | translate }} <strong>{{ suggestion.adherencePct }} %</strong>
+        <span class="muted-inline">({{ suggestion.adherenceDays }} {{ (suggestion.adherenceDays === 1 ? 'TRAINER_COMMON.PL_DAY_ONE' : 'TRAINER_COMMON.PL_DAY_MANY') | translate }} {{ 'CLIENTS.CON_PAUTA' | translate }})</span>
       </div>
     </div>
   </section>
@@ -50,7 +50,7 @@
   <section class="deviations" *ngIf="deviations.length">
     <button type="button" class="deviations__toggle" (click)="showDeviations = !showDeviations">
       <ion-icon [name]="showDeviations ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
-      {{ deviations.length }} día{{ deviations.length === 1 ? '' : 's' }} con desvíos
+      {{ deviations.length }} {{ (deviations.length === 1 ? 'TRAINER_COMMON.PL_DAY_ONE' : 'TRAINER_COMMON.PL_DAY_MANY') | translate }} {{ 'CLIENTS.CON_DESVIOS' | translate }}
     </button>
     <ul class="deviations__list" *ngIf="showDeviations">
       <li *ngFor="let d of deviations">
@@ -66,9 +66,9 @@
   <section class="need-now" *ngIf="needNow as nn">
     <button type="button" class="need-now__toggle" (click)="showNeed = !showNeed">
       <ion-icon [name]="showNeed ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
-      <span class="need-now__label">Necesidad con datos actuales</span>
+      <span class="need-now__label">{{ 'CLIENTS.NECESIDAD_CON_DATOS_ACTUALES' | translate }}</span>
       <strong class="need-now__kcal" *ngIf="nn.target as t">{{ t.kcal }} kcal</strong>
-      <span class="need-now__kcal need-now__kcal--missing" *ngIf="!nn.target">sin calcular</span>
+      <span class="need-now__kcal need-now__kcal--missing" *ngIf="!nn.target">{{ 'CLIENTS.SIN_CALCULAR' | translate }}</span>
     </button>
     <div class="need-now__body" *ngIf="showNeed">
       <app-need-breakdown [need]="nn" [plannedKcal]="baseKcal" [collapsed]="true"></app-need-breakdown>
@@ -76,12 +76,12 @@
   </section>
 
   <section class="target-edit">
-    <label class="field-label">kcal de S{{ next.number }}</label>
+    <label class="field-label">{{ 'CLIENTS.KCAL_DE' | translate }}{{ next.number }}</label>
     <input type="number" step="50" [(ngModel)]="targetKcal" (ngModelChange)="onKcalChange()" />
     <p class="delta-hint">
-      Pautado ahora: {{ baseKcal || '—' }} kcal
+      {{ 'CLIENTS.PAUTADO_AHORA' | translate }}: {{ baseKcal || '—' }} kcal
       <ng-container *ngIf="baseKcal">
-        · cambio:
+        {{ 'CLIENTS.CAMBIO' | translate }}
         <strong class="delta-hint__value" [class.is-up]="kcalDelta > 0" [class.is-down]="kcalDelta < 0">
           {{ deltaLabel(kcalDelta) }} kcal
           <ng-container *ngIf="kcalDeltaPct !== null">({{ pctLabel(kcalDeltaPct) }})</ng-container>
@@ -107,18 +107,17 @@
   ></app-macro-adjust>
 
   <p class="muted">
-    Al preparar, todas las cantidades de lo pautado hoy se escalan en proporción a estas kcal y se abren
-    en el editor para retocarlas. Si no cambias nada, S{{ next.number }} repetirá lo actual.
+    {{ 'CLIENTS.AL_PREPARAR_TODAS_LAS_CANTIDADES' | translate }}{{ next.number }} {{ 'CLIENTS.REPETIRA_LO_ACTUAL' | translate }}
   </p>
 </ion-content>
 
 <ion-footer class="ion-no-border">
   <div class="footer-actions">
     <button #prepareButton type="button" class="confirm-button" [disabled]="!(targetKcal > 0)" (click)="prepare()">
-      Preparar S{{ next.number }} en el editor
+      {{ 'CLIENTS.PREPARAR' | translate }}{{ next.number }} {{ 'CLIENTS.EN_EL_EDITOR' | translate }}
     </button>
     <button type="button" class="discard-link" *ngIf="alreadyPrepared" [disabled]="discarding" (click)="discard()">
-      {{ discarding ? 'Descartando…' : 'Descartar la semana preparada' }}
+      {{ discarding ? ('CLIENTS.DESCARTANDO' | translate) : ('CLIENTS.DESCARTAR_LA_SEMANA_PREPARADA' | translate) }}
     </button>
   </div>
 </ion-footer>

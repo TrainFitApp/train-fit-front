@@ -4,7 +4,7 @@
      editor de puntuación. -->
 <ng-container *ngIf="showPicker">
   <ion-header class="ion-no-border">
-    <app-page-header title="Elige un ejercicio" (back)="closePicker()"></app-page-header>
+    <app-page-header [title]="'EXERCISE_SCORES.ELIGE_UN_EJERCICIO' | translate" (back)="closePicker()"></app-page-header>
   </ion-header>
 
   <app-search-exercises mode="library" (exerciseSelected)="onExerciseSelected($event)"></app-search-exercises>
@@ -12,9 +12,9 @@
 
 <ng-container *ngIf="!showPicker">
   <ion-header class="ion-no-border">
-    <app-page-header title="Puntuaciones">
+    <app-page-header [title]="'EXERCISE_SCORES.PUNTUACIONES' | translate">
       <ng-container pageActions>
-        <button type="button" class="tf-page-header__back-button" (click)="openPicker()" aria-label="Puntuar un ejercicio">
+        <button type="button" class="tf-page-header__back-button" (click)="openPicker()" [attr.aria-label]="'EXERCISE_SCORES.PUNTUAR_UN_EJERCICIO' | translate">
           <ion-icon name="add-outline"></ion-icon>
         </button>
       </ng-container>
@@ -23,8 +23,7 @@
 
   <ion-content class="scores-content" appScrollMemory="exercise-scores">
     <p class="page-hint">
-      Cuánto estimula cada ejercicio a cada músculo y cuánto castiga a cada articulación,
-      según tu criterio. El planificador lo suma mientras montas una sesión.
+      {{ 'EXERCISE_SCORES.CUANTO_ESTIMULA_CADA_EJERCICIO_CADA' | translate }}
     </p>
 
     <div class="page-skeleton" *ngIf="state === 'loading'">
@@ -33,19 +32,18 @@
 
     <div class="state-message" *ngIf="state === 'error'">
       <ion-icon name="cloud-offline-outline"></ion-icon>
-      <h2>No se pudieron cargar tus puntuaciones</h2>
-      <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+      <h2>{{ 'EXERCISE_SCORES.NO_SE_PUDIERON_CARGAR_TUS' | translate }}</h2>
+      <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
     </div>
 
     <ng-container *ngIf="state === 'loaded'">
       <div class="state-message" *ngIf="!rows.length">
         <ion-icon name="analytics-outline"></ion-icon>
-        <h2>Todavía no has puntuado ningún ejercicio</h2>
+        <h2>{{ 'EXERCISE_SCORES.TODAVIA_NO_HAS_PUNTUADO_NINGUN' | translate }}</h2>
         <p>
-          Empieza por los que más usas. Con cuatro o cinco puntuados el planificador ya te dice
-          cómo queda repartida una sesión.
+          {{ 'EXERCISE_SCORES.EMPIEZA_POR_LOS_QUE_MAS' | translate }}
         </p>
-        <button type="button" class="invite-cta" (click)="openPicker()">Puntuar un ejercicio</button>
+        <button type="button" class="invite-cta" (click)="openPicker()">{{ 'EXERCISE_SCORES.PUNTUAR_UN_EJERCICIO' | translate }}</button>
       </div>
 
       <ng-container *ngIf="rows.length">
@@ -55,11 +53,11 @@
             <input
               type="text"
               class="search-input"
-              placeholder="Buscar entre los que ya has puntuado"
+              [placeholder]="'EXERCISE_SCORES.BUSCAR_ENTRE_LOS_QUE_YA' | translate"
               [(ngModel)]="searchQuery"
             />
           </div>
-          <span class="scored-count">{{ rows.length }} puntuados</span>
+          <span class="scored-count">{{ rows.length }} {{ 'EXERCISE_SCORES.PUNTUADOS' | translate }}</span>
         </div>
 
         <div class="score-card" *ngFor="let row of filteredRows; trackBy: trackByRow">
@@ -77,12 +75,12 @@
             </span>
 
             <div class="score-card-actions">
-              <button type="button" class="row-action" (click)="editRow(row)">Editar</button>
+              <button type="button" class="row-action" (click)="editRow(row)">{{ 'TRAINER_COMMON.EDIT' | translate }}</button>
               <button
                 type="button"
                 class="row-action row-action--danger"
                 (click)="confirmRemove(row)"
-                [attr.aria-label]="'Borrar la puntuación de ' + row.name"
+                [attr.aria-label]="('EXERCISE_SCORES.BORRAR_LA_PUNTUACION_DE' | translate) + row.name"
               >
                 <ion-icon name="trash-outline"></ion-icon>
               </button>
@@ -91,7 +89,7 @@
         </div>
 
         <p class="empty-hint" *ngIf="!filteredRows.length">
-          Ningún ejercicio puntuado coincide con la búsqueda.
+          {{ 'EXERCISE_SCORES.NINGUN_EJERCICIO_PUNTUADO_COINCIDE_CON' | translate }}
         </p>
       </ng-container>
     </ng-container>

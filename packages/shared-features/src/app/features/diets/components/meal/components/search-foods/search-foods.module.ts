@@ -2,14 +2,19 @@ import { NgModule } from '@angular/core';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { MacrosBarsModule } from '../../../macros-bars/macros-bars.module';
 import { PautadoItemViewModule } from '../../../pautado-item-view/pautado-item-view.module';
+import { CreateFoodSheetComponent } from './components/create-food-sheet/create-food-sheet.component';
 import { ProductComponent } from './components/product/product.component';
+import { RecentFoodsSheetComponent } from './components/recent-foods-sheet/recent-foods-sheet.component';
+import { QuickAddSheetModule } from './components/quick-add-sheet/quick-add-sheet.module';
 import { RecipeCardComponent } from './components/recipe-card/recipe-card.component';
 import { SearchFoodsPageRoutingModule } from './search-foods-routing.module';
 import { SearchFoodsPage } from './search-foods.page';
 
 @NgModule({
   declarations: [
+    CreateFoodSheetComponent,
     ProductComponent,
+    RecentFoodsSheetComponent,
     RecipeCardComponent,
     SearchFoodsPage,
   ],
@@ -21,6 +26,7 @@ import { SearchFoodsPage } from './search-foods.page';
     SharedModule,
     MacrosBarsModule,
     PautadoItemViewModule,
+    QuickAddSheetModule,
     SearchFoodsPageRoutingModule,
   ],
 })

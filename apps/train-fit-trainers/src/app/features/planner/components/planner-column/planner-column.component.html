@@ -51,10 +51,10 @@
         [title]="purposeTooltip"
         (click)="requestPurpose($event)"
       >
-        Tipo
+        {{ 'TRAINER_COMMON.TYPE' | translate }}
       </button>
       <button type="button" class="block-action" (click)="requestObjective($event)">
-        {{ split.objective ? 'Objetivo' : '+ Objetivo' }}
+        {{ split.objective ? ('CLIENT_DETAIL.GOAL' | translate) : '+ Objetivo' }}
       </button>
     </div>
 
@@ -67,12 +67,12 @@
          para no repetir esto en las veinte columnas del tablero. -->
     <div class="planner-column-compare" *ngIf="selected && totalSets > 0">
       <div class="compare-row">
-        <span class="compare-label">Series</span>
+        <span class="compare-label">{{ 'TRAINER_COMMON.SETS' | translate }}</span>
         <span class="compare-value">{{ totalSets }}</span>
         <span class="compare-delta" *ngIf="setsDeltaText">{{ setsDeltaText }}</span>
       </div>
       <div class="compare-row" *ngIf="avgRir !== null">
-        <span class="compare-label">RIR medio</span>
+        <span class="compare-label">{{ 'PLANNER.RIR_MEDIO' | translate }}</span>
         <span class="compare-value">{{ avgRirLabel }}</span>
         <span class="compare-delta" *ngIf="rirDeltaText">{{ rirDeltaText }}</span>
       </div>

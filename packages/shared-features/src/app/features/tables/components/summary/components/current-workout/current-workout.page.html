@@ -177,7 +177,8 @@
     >
       <ion-accordion
         [value]="'exercise-' + i"
-        [readonly]="reorderExercisesMode || seriesReorderExerciseIndex === i"
+        [readonly]="reorderExercisesMode"
+        [class.series-reorder-locked]="seriesReorderExerciseIndex === i"
       >
         <ion-item
           slot="header"
@@ -209,6 +210,14 @@
               <!-- 2026-09 — aviso del entrenador (nota de esta sesión o
                    anclada) en la esquina de la miniatura: se ve con el
                    ejercicio cerrado. -->
+              <!-- Vídeo de su entrenador para este ejercicio -->
+              <span
+                class="thumbnail-video-badge"
+                *ngIf="!reorderExercisesMode && hasTechniqueVideo(exercise)"
+                [attr.aria-label]="'MEDIA.TRAINER_VIDEO' | translate"
+              >
+                <ion-icon name="play"></ion-icon>
+              </span>
               <app-trainer-note-dot
                 *ngIf="!reorderExercisesMode"
                 class="thumbnail-note-dot"
@@ -272,6 +281,23 @@
             (reorderModeChange)="onExerciseReorderModeChange(i, $event)"
             (setCompleted)="onSetCompleted($event)"
           ></app-custom-exercise>
+
+          <!-- Revisión de técnica: mandar un vídeo de una serie al entrenador -->
+          <div class="form-check-row" *ngIf="canSendFormCheck && !reorderExercisesMode && seriesReorderExerciseIndex === null">
+            <button type="button" class="form-check-send" (click)="openFormCheck(exercise)">
+              <ion-icon name="videocam-outline"></ion-icon>
+              <span>{{ 'MEDIA.SEND_TO_TRAINER' | translate }}</span>
+            </button>
+            <button
+              type="button"
+              class="form-check-answers"
+              *ngIf="formCheckInfoOf(exercise) as info"
+              (click)="navigateYTVideo(exercise.exercise?.videoUrl || '', exercise)"
+            >
+              <span class="unseen-dot" *ngIf="info.unseen" aria-hidden="true"></span>
+              <span>{{ (info.unseen ? 'MEDIA.NEW_FEEDBACK' : 'MEDIA.MY_FORM_CHECKS') | translate: { count: info.count } }}</span>
+            </button>
+          </div>
         </ion-list>
       </ion-accordion>
     </ion-accordion-group>

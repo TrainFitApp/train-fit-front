@@ -6,7 +6,9 @@ import {
   OnChanges,
   OnDestroy,
   ViewChild,
+  inject,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { sanitizeDecimalString } from 'src/app/core/directives/decimal-input.directive';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
@@ -18,6 +20,7 @@ import {
   isKnownDoseUnit,
   parseDose,
 } from './supplement-dose.util';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -59,6 +62,8 @@ const TIMING_ICONS: Record<string, string> = {
   styleUrls: ['supplements-panel.component.scss'],
 })
 export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
 
   public state: ViewState = 'loading';
@@ -130,7 +135,7 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
   }
 
   public timingLabel(supplement: Supplement): string {
-    if (supplement.timing === 'custom') return supplement.customTiming || 'Otro momento';
+    if (supplement.timing === 'custom') return supplement.customTiming || this.translate.instant('DIETS.OTHER_TIME');
     return this.timings.find((timing) => timing.key === supplement.timing)?.label || supplement.timing;
   }
 
@@ -141,7 +146,7 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
   public datesLabel(supplement: Supplement): string {
     if (!supplement.startDate) return '';
     const fmt = (iso: string): string =>
-      new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+      new Date(`${iso}T00:00:00Z`).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' });
     return supplement.endDate
       ? `${fmt(supplement.startDate)} → ${fmt(supplement.endDate)}`
       : `desde ${fmt(supplement.startDate)}`;
@@ -262,8 +267,8 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
       error: (err) => {
         this.isSaving = false;
         this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo guardar el suplemento',
-          'Error',
+          err?.error?.message || this.translate.instant('CLIENTS.NO_SE_PUDO_GUARDAR_EL_3'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
@@ -272,12 +277,12 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
 
   public async confirmRemove(supplement: Supplement): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Quitar suplemento',
-      message: `¿Seguro que quieres dejar de pautarle "${supplement.name}"?`,
+      header: this.translate.instant('CLIENTS.QUITAR_SUPLEMENTO'),
+      message: this.translate.instant('CLIENTS.SEGURO_QUE_QUIERES_DEJAR_DE_2', { name: supplement.name }),
       buttons: [
-        { text: 'Volver', role: 'cancel' },
+        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
-          text: 'Quitar',
+          text: this.translate.instant('TRAINER_COMMON.REMOVE'),
           cssClass: 'alert-button-danger',
           handler: () => this.remove(supplement),
         },
@@ -289,7 +294,7 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
     this.clientDetailApi.deleteSupplement(this.clientId, supplement._id).subscribe({
       next: () => this.load(),
       error: () =>
-        this.ionicUtilService.showErrorToast('No se pudo quitar el suplemento', 'Error', 2500),
+        this.ionicUtilService.showErrorToast(this.translate.instant('CLIENTS.NO_SE_PUDO_QUITAR_EL_2'), this.translate.instant('COMMON.ERROR'), 2500),
     });
   }
 

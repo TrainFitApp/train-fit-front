@@ -191,7 +191,7 @@ export class SetComponent implements OnInit, OnChanges {
   private guardReadonly(): boolean {
     if (!this.isReadonly) return false;
     this.ionicUtilService.showToast({
-      message: 'Esta rutina te la asignó tu entrenador. Pídele el cambio en vez de editarla tú mismo.',
+      message: this.translate.instant('TABLES.READONLY_ASSIGNED'),
       duration: 3000,
     });
     return true;

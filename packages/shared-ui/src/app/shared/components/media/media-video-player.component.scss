@@ -1,0 +1,90 @@
+@use './media-shared' as *;
+
+:host {
+  display: block;
+}
+
+.player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.player-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+// Marcas de los comentarios, justo encima de la barra de controles nativa.
+.player-markers {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 44px;
+  height: 0;
+  pointer-events: none;
+}
+
+.player-marker {
+  position: absolute;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: $media-accent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  transition: transform 160ms $media-ease;
+
+  &--active {
+    transform: scale(1.5);
+  }
+}
+
+.player-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: $media-muted;
+  font-size: 0.85rem;
+  text-align: center;
+
+  &--failed {
+    gap: 8px;
+    align-content: center;
+
+    ion-icon {
+      font-size: 28px;
+      color: $media-danger;
+    }
+  }
+}
+
+.player-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.35);
+}
+
+.player-state-label {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+
+  ion-spinner {
+    color: $media-accent;
+  }
+}

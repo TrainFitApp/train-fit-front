@@ -4,8 +4,11 @@ const path = require('node:path');
 const Module = require('node:module');
 const { buildSync } = require('esbuild');
 
+const { esTranslator } = require('../../../../../../../tests/i18n-es.cjs');
+
 const bundled = buildSync({
   entryPoints: [path.join(__dirname, 'coach-notification-view.ts')],
+  tsconfig: path.resolve(__dirname, '../../../../../../../apps/train-fit-front/tsconfig.json'),
   bundle: true,
   platform: 'node',
   format: 'cjs',
@@ -13,7 +16,11 @@ const bundled = buildSync({
 });
 const compiled = new Module(__filename);
 compiled._compile(bundled.outputFiles[0].text, __filename);
-const { notificationIcon, notificationRoute, notificationTitle, notificationTrainerName } = compiled.exports;
+const { notificationIcon, notificationRoute } = compiled.exports;
+// Los títulos se traducen con el TranslateService de la página; aquí, en español.
+const { instant } = esTranslator('train-fit-front');
+const notificationTitle = (n) => compiled.exports.notificationTitle(n, instant);
+const notificationTrainerName = (n) => compiled.exports.notificationTrainerName(n, instant);
 
 const notification = (type, payload = {}, trainer = null) => ({
   _id: 'n1', type, payload, trainer, read: false, createdAt: '2026-09-27T10:00:00Z',

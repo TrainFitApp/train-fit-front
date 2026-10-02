@@ -1,21 +1,21 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Mi método"></app-page-header>
+  <app-page-header [title]="'METHOD.MI_METODO' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="method-content" appScrollMemory="method">
-  <p class="page-hint">Cómo trabajas tú: qué preguntas a tus clientes, qué le montas a uno nuevo y de qué te avisa la app sola.</p>
+  <p class="page-hint">{{ 'METHOD.COMO_TRABAJAS_TU_QUE_PREGUNTAS' | translate }}</p>
 
   <app-category-grid [categories]="categories"></app-category-grid>
 
-  <h2 class="section-heading">Recientes</h2>
+  <h2 class="section-heading">{{ 'METHOD.RECIENTES' | translate }}</h2>
 
   <!-- Mismo patrón de columnas que Biblioteca: auto-fit, así una columna sin
        datos ni skeleton no reserva hueco. -->
   <div class="recent-columns">
     <section class="recent-column" *ngIf="loadingCheckinTemplates || checkinTemplates.length">
       <div class="recent-column-header">
-        <h3 class="recent-column-title">Check-ins</h3>
-        <a class="recent-column-link" routerLink="/tabs/checkin-templates">Ver todas</a>
+        <h3 class="recent-column-title">{{ 'TRAINER_COMMON.CHECKINS' | translate }}</h3>
+        <a class="recent-column-link" routerLink="/tabs/checkin-templates">{{ 'TRAINER_COMMON.SEE_ALL_F' | translate }}</a>
       </div>
 
       <div class="recent-skeleton" *ngIf="loadingCheckinTemplates">
@@ -26,14 +26,14 @@
         <div class="recent-row recent-row--with-actions" *ngFor="let ct of checkinTemplates; trackBy: trackById">
           <div class="recent-row-info" (click)="goToCheckinTemplates()">
             <span class="recent-row-name">{{ ct.name }}</span>
-            <span class="recent-row-meta">{{ ct.enabledFields.length }} campos</span>
+            <span class="recent-row-meta">{{ ct.enabledFields.length }} {{ 'METHOD.CAMPOS' | translate }}</span>
           </div>
           <div class="recent-row-actions">
-            <button class="recent-row-action-btn" (click)="openApplyPanel(ct)">Aplicar</button>
+            <button class="recent-row-action-btn" (click)="openApplyPanel(ct)">{{ 'TRAINER_COMMON.APPLY' | translate }}</button>
             <button
               class="recent-row-action-btn recent-row-action-btn--danger"
               (click)="confirmDeleteCheckinTemplate(ct)"
-              [attr.aria-label]="'Borrar plantilla ' + ct.name"
+              [attr.aria-label]="('METHOD.BORRAR_PLANTILLA' | translate) + ct.name"
             >
               <ion-icon name="trash-outline"></ion-icon>
             </button>
@@ -44,8 +44,8 @@
 
     <section class="recent-column" *ngIf="loadingProtocols || protocols.length">
       <div class="recent-column-header">
-        <h3 class="recent-column-title">Protocolos</h3>
-        <a class="recent-column-link" routerLink="/tabs/protocols">Ver todos</a>
+        <h3 class="recent-column-title">{{ 'METHOD.PROTOCOLOS' | translate }}</h3>
+        <a class="recent-column-link" routerLink="/tabs/protocols">{{ 'TRAINER_COMMON.SEE_ALL_M' | translate }}</a>
       </div>
 
       <div class="recent-skeleton" *ngIf="loadingProtocols">
@@ -70,8 +70,8 @@
 
     <section class="recent-column" *ngIf="loadingRules || rules.length">
       <div class="recent-column-header">
-        <h3 class="recent-column-title">Avisos automatizados</h3>
-        <a class="recent-column-link" routerLink="/tabs/automations">Ver todos</a>
+        <h3 class="recent-column-title">{{ 'METHOD.AVISOS_AUTOMATIZADOS' | translate }}</h3>
+        <a class="recent-column-link" routerLink="/tabs/automations">{{ 'TRAINER_COMMON.SEE_ALL_M' | translate }}</a>
       </div>
 
       <div class="recent-skeleton" *ngIf="loadingRules">
@@ -96,6 +96,6 @@
   </div>
 
   <p class="empty-hint" *ngIf="isEmpty">
-    Todavía no has definido tu método. Empieza por las plantillas de check-in: son las preguntas que le harás a todos tus clientes.
+    {{ 'METHOD.TODAVIA_NO_HAS_DEFINIDO_TU' | translate }}
   </p>
 </ion-content>

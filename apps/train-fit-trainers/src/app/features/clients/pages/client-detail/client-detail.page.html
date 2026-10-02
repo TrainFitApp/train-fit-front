@@ -25,10 +25,10 @@
 
   <div class="state-message" *ngIf="headerState === 'error'">
     <ion-icon name="alert-circle-outline"></ion-icon>
-    <h2>No se pudo cargar este cliente</h2>
-    <p>Puede que ya no exista o que no tengas acceso a su ficha.</p>
+    <h2>{{ 'CLIENT_DETAIL.NO_SE_PUDO_CARGAR_ESTE' | translate }}</h2>
+    <p>{{ 'CLIENT_DETAIL.PUEDE_QUE_YA_NO_EXISTA' | translate }}</p>
     <button type="button" class="retry-button" (click)="goToClientsList()">
-      Volver a clientes
+      {{ 'CLIENT_DETAIL.VOLVER_CLIENTES' | translate }}
     </button>
   </div>
 
@@ -36,20 +36,20 @@
     <div class="profile-main">
       <div class="read-only-banner" *ngIf="readOnlyLimit !== null" role="status">
         <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
-        <p><strong>Cliente en solo lectura.</strong> Tu plan admite {{ readOnlyLimit }} clientes activos: puedes consultar su historial, pero no modificar sus rutinas, dietas ni check-ins.</p>
-        <button type="button" class="read-only-action" (click)="goToSeats()">Elegir clientes activos</button>
+        <p><strong>{{ 'CLIENT_DETAIL.CLIENTE_EN_SOLO_LECTURA' | translate }}</strong> {{ 'CLIENT_DETAIL.READ_ONLY_LIMIT' | translate: { limit: readOnlyLimit } }}</p>
+        <button type="button" class="read-only-action" (click)="goToSeats()">{{ 'CLIENT_DETAIL.ELEGIR_CLIENTES_ACTIVOS' | translate }}</button>
       </div>
       <!-- Breadcrumb "Cliente Resumen" (mockup claude.ai/design) — único
            control de "Volver" de la página: reutiliza goToClientsList(),
            ya usado en el estado de error de arriba. -->
-      <nav class="summary-breadcrumb" aria-label="Ruta">
+      <nav class="summary-breadcrumb" [attr.aria-label]="'CLIENT_DETAIL.RUTA' | translate">
         <button
           type="button"
           class="breadcrumb-link"
           (click)="goToClientsList()"
         >
           <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
-          Clientes
+          {{ 'TRAINER_COMMON.CLIENTS' | translate }}
         </button>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">{{ name }}</span>
@@ -75,8 +75,8 @@
                 [name]="status === 'attention' ? 'alert-circle' : status === 'ok' ? 'checkmark-circle' : 'help-circle'"
                 aria-hidden="true"
               ></ion-icon>
-              {{ status === 'attention' ? 'Requiere atención' : status === 'ok'
-              ? 'Sin incidencias detectadas' : 'Datos insuficientes' }}
+              {{ (status === 'attention' ? 'CLIENT_DETAIL.STATUS_ATTENTION' : status === 'ok'
+              ? 'CLIENT_DETAIL.STATUS_OK' : 'CLIENT_DETAIL.STATUS_INSUFFICIENT') | translate }}
             </span>
           </div>
           <!-- Nota fijada (Notas, F19) — mismo sitio en la cabecera que
@@ -112,7 +112,7 @@
             >
               <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
               <span class="summary-header-activity-text"
-                >Última actividad: {{ activity }}</span
+                >{{ 'CLIENT_DETAIL.LAST_ACTIVITY' | translate: { activity: activity } }}</span
               >
             </span>
           </div>
@@ -126,19 +126,19 @@
           >
             <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
             <ng-container *ngIf="activePhase as phase; else noDietAssigned">
-              <span *ngIf="phase.phaseName" title="Fase de nutrición"
+              <span *ngIf="phase.phaseName" [title]="'CLIENT_DETAIL.FASE_DE_NUTRICION' | translate"
                 >{{ phase.phaseName }} ·
               </span>
-              <span title="Dieta asignada">{{ phase.planName || 'Plan aplicado' }}</span>
+              <span [title]="'CLIENT_DETAIL.DIETA_ASIGNADA' | translate">{{ phase.planName || ('CLIENT_DETAIL.PLAN_APPLIED' | translate) }}</span>
               <span *ngIf="currentDietWeekLabel as weekLabel">
                 · {{ weekLabel }}</span
               >
             </ng-container>
-            <ng-template #noDietAssigned><span>Sin dieta asignada</span></ng-template>
-            <span *ngIf="nutritionalGoal?.goal as goal" title="Objetivo nutricional">
-              · Objetivo {{ goal.kcalTotal | number: '1.0-0' }} kcal (P
+            <ng-template #noDietAssigned><span>{{ 'CLIENT_DETAIL.SIN_DIETA_ASIGNADA' | translate }}</span></ng-template>
+            <span *ngIf="nutritionalGoal?.goal as goal" [title]="'CLIENT_DETAIL.OBJETIVO_NUTRICIONAL' | translate">
+              · {{ 'CLIENT_DETAIL.GOAL' | translate }} {{ goal.kcalTotal | number: '1.0-0' }} kcal (P
               {{ goal.proteinsGTotal | number: '1.0-0' }} · C
-              {{ goal.carbohydratesGTotal | number: '1.0-0' }} · G
+              {{ goal.carbohydratesGTotal | number: '1.0-0' }} · {{ 'CLIENT_DETAIL.FAT_INITIAL' | translate }}
               {{ goal.fatGTotal | number: '1.0-0' }} g)
             </span>
           </div>
@@ -150,7 +150,7 @@
             (click)="openIntakePanel()"
           >
             <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
-            Ver intake
+            {{ 'CLIENT_DETAIL.VER_INTAKE' | translate }}
           </button>
         </div>
       </section>
@@ -159,7 +159,7 @@
            (Resumen · Plan · Progreso · Gestión) con una subbarra dentro. La
            subbarra solo aparece si la sección tiene más de una subpestaña
            disponible para este cliente: ver visibleSubTabs. -->
-      <nav class="detail-tabbar" aria-label="Secciones de la ficha">
+      <nav class="detail-tabbar" [attr.aria-label]="'CLIENT_DETAIL.SECCIONES_DE_LA_FICHA' | translate">
         <button
           class="scope-tab"
           *ngFor="let section of visibleSections; trackBy: trackBySectionKey"
@@ -174,7 +174,7 @@
       <nav
         class="detail-subtabbar"
         *ngIf="visibleSubTabs.length"
-        aria-label="Apartados de la sección"
+        [attr.aria-label]="'CLIENT_DETAIL.APARTADOS_DE_LA_SECCION' | translate"
       >
         <button
           class="sub-tab"
@@ -192,7 +192,7 @@
           <span
             class="sub-tab-badge"
             *ngIf="tab.key === 'clientNotes' && clientNotesUnread > 0"
-            [attr.aria-label]="clientNotesUnread + ' sin ver'"
+            [attr.aria-label]="'CLIENT_DETAIL.UNSEEN_COUNT' | translate: { count: clientNotesUnread }"
           >{{ clientNotesUnread > 99 ? '99+' : clientNotesUnread }}</span>
         </button>
         <!-- Scope que le falta al cliente: invitarle desde aquí, al final de
@@ -212,9 +212,9 @@
               aria-hidden="true"
             ></ion-icon>
             <span class="sub-tab-label">{{
-              missingScopeInvitePending
-                ? 'Invitación a ' + missingScopeLabel + ' enviada'
-                : 'Invitar a ' + missingScopeLabel
+              (missingScopeInvitePending
+                ? 'CLIENT_DETAIL.INVITE_SENT_TO'
+                : 'CLIENT_DETAIL.INVITE_TO') | translate: { scope: missingScopeLabel }
             }}</span>
           </ng-container>
         </button>
@@ -229,10 +229,10 @@
         <div class="read-only-banner" *ngIf="clientNotesUnread > 0" role="status">
           <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
           <p>
-            <strong>{{ clientNotesUnread === 1 ? '1 nota del cliente sin ver.' : clientNotesUnread + ' notas del cliente sin ver.' }}</strong>
-            Lo que ha escrito en sus sesiones, ejercicios, dolor o dieta.
+            <strong>{{ (clientNotesUnread === 1 ? 'CLIENT_DETAIL.UNSEEN_NOTE_ONE' : 'CLIENT_DETAIL.UNSEEN_NOTES_MANY') | translate: { count: clientNotesUnread } }}</strong>
+            {{ 'CLIENT_DETAIL.LO_QUE_HA_ESCRITO_EN' | translate }}
           </p>
-          <button type="button" class="read-only-action" (click)="selectTab('clientNotes')">Ver notas</button>
+          <button type="button" class="read-only-action" (click)="selectTab('clientNotes')">{{ 'CLIENT_DETAIL.VER_NOTAS' | translate }}</button>
         </div>
         <app-client-summary
           [clientId]="clientId"
@@ -257,9 +257,9 @@
         </div>
 
         <div class="section-error" *ngIf="trainingState === 'error'">
-          <p>No se pudo cargar el entrenamiento de este cliente.</p>
+          <p>{{ 'CLIENT_DETAIL.NO_SE_PUDO_CARGAR_EL' | translate }}</p>
           <button class="retry-button" (click)="loadTraining()">
-            Reintentar
+            {{ 'COMMON.RETRY' | translate }}
           </button>
         </div>
 
@@ -283,7 +283,7 @@
                   </div>
                   <span class="fidelity-label">
                     <ion-icon name="checkmark-done-outline"></ion-icon>
-                    Adherencia de entrenamiento
+                    {{ 'CLIENT_DETAIL.ADHERENCIA_DE_ENTRENAMIENTO' | translate }}
                   </span>
                   <span class="fidelity-detail"
                     >{{ trainingAdherence?.detail }}</span
@@ -297,8 +297,7 @@
                 >
                   <ion-icon name="pie-chart-outline"></ion-icon>
                   <span
-                    >Programa una fase de rutina (con fecha) para ver su
-                    adherencia de entrenamiento.</span
+                    >{{ 'CLIENT_DETAIL.PROGRAMA_UNA_FASE_DE_RUTINA' | translate }}</span
                   >
                 </div>
               </ng-template>
@@ -312,7 +311,7 @@
                calcula sobre la fase vigente, no sobre un número declarado a
                mano. -->
               <div class="section-row">
-                <h2 class="section-heading">Objetivo de entrenamiento</h2>
+                <h2 class="section-heading">{{ 'CLIENT_DETAIL.OBJETIVO_DE_ENTRENAMIENTO' | translate }}</h2>
               </div>
               <div
                 class="detail-skeleton"
@@ -325,7 +324,7 @@
                 *ngIf="trainingGoalState === 'loaded' && !isEditingTrainingGoal"
               >
                 <div class="equipment-field">
-                  <span class="equipment-field-label">Tipo</span>
+                  <span class="equipment-field-label">{{ 'TRAINER_COMMON.TYPE' | translate }}</span>
                   <span class="equipment-field-value"
                     >{{ trainingGoalTypeLabel(trainingGoal?.trainingGoalType ??
                     null) }}</span
@@ -337,22 +336,22 @@
                   (click)="startEditTrainingGoal()"
                 >
                   <ion-icon name="create-outline"></ion-icon>
-                  Editar
+                  {{ 'TRAINER_COMMON.EDIT' | translate }}
                 </button>
               </div>
               <div class="equipment-card" *ngIf="isEditingTrainingGoal">
                 <div class="equipment-field">
-                  <span class="equipment-field-label">Tipo</span>
+                  <span class="equipment-field-label">{{ 'TRAINER_COMMON.TYPE' | translate }}</span>
                   <ion-select
                     class="tf-select"
                     interface="popover"
                     toggleIcon="chevron-down-outline"
                     labelPlacement="stacked"
-                    aria-label="Tipo de objetivo"
+                    [attr.aria-label]="'CLIENT_DETAIL.TIPO_DE_OBJETIVO' | translate"
                     [(ngModel)]="trainingGoalTypeDraft"
                     [disabled]="isSavingTrainingGoal"
                   >
-                    <ion-select-option [value]="null">Sin declarar</ion-select-option>
+                    <ion-select-option [value]="null">{{ 'CLIENT_DETAIL.SIN_DECLARAR' | translate }}</ion-select-option>
                     <ion-select-option
                       *ngFor="let opt of trainingGoalTypeOptions"
                       [value]="opt.value"
@@ -370,7 +369,7 @@
                     (click)="cancelEditTrainingGoal()"
                     [disabled]="isSavingTrainingGoal"
                   >
-                    Cancelar
+                    {{ 'COMMON.CANCEL' | translate }}
                   </button>
                   <button
                     type="button"
@@ -382,7 +381,7 @@
                       name="dots"
                       *ngIf="isSavingTrainingGoal"
                     ></ion-spinner>
-                    <span *ngIf="!isSavingTrainingGoal">Guardar</span>
+                    <span *ngIf="!isSavingTrainingGoal">{{ 'COMMON.SAVE' | translate }}</span>
                   </button>
                 </div>
               </div>
@@ -391,7 +390,7 @@
                 <ion-icon name="scale-outline"></ion-icon>
                 <div>
                   <span class="stat-value">{{ weight }} kg</span>
-                  <span class="stat-label">Peso más reciente</span>
+                  <span class="stat-label">{{ 'CLIENT_DETAIL.PESO_MAS_RECIENTE' | translate }}</span>
                 </div>
               </div>
 
@@ -400,7 +399,7 @@
                respondido por el cliente en el cuestionario inicial, no
                pautado por el entrenador. -->
               <div class="section-row">
-                <h2 class="section-heading">Equipamiento utilizado</h2>
+                <h2 class="section-heading">{{ 'CLIENT_DETAIL.EQUIPAMIENTO_UTILIZADO' | translate }}</h2>
               </div>
 
               <div
@@ -413,10 +412,10 @@
                 class="empty-hint"
                 *ngIf="clientIntakeState === 'loaded' && !clientIntake"
               >
-                Este cliente todavía no ha respondido su cuestionario inicial.
+                {{ 'CLIENT_DETAIL.ESTE_CLIENTE_TODAVIA_NO_HA' | translate }}
               </p>
               <p class="empty-hint" *ngIf="clientIntakeState === 'error'">
-                No se pudo cargar el cuestionario inicial.
+                {{ 'CLIENT_DETAIL.NO_SE_PUDO_CARGAR_EL_2' | translate }}
               </p>
               <div
                 class="equipment-card"
@@ -424,7 +423,7 @@
               >
                 <div class="equipment-field">
                   <span class="equipment-field-label"
-                    >Lugar de entrenamiento</span
+                    >{{ 'INTAKE.LOCATION_TITLE' | translate }}</span
                   >
                   <span class="equipment-field-value"
                     >{{ trainingLocationLabel(intake.trainingLocation) }}</span
@@ -435,7 +434,7 @@
                   *ngIf="intake.equipmentTags?.length"
                 >
                   <span class="equipment-field-label"
-                    >Maquinaria disponible</span
+                    >{{ 'CLIENT_DETAIL.MAQUINARIA_DISPONIBLE' | translate }}</span
                   >
                   <div class="equipment-tags">
                     <span
@@ -449,7 +448,7 @@
                   class="empty-hint"
                   *ngIf="!intake.equipmentTags?.length && !intake.trainingLocation"
                 >
-                  No indicó lugar de entrenamiento ni equipamiento.
+                  {{ 'CLIENT_DETAIL.NO_INDICO_LUGAR_DE_ENTRENAMIENTO' | translate }}
                 </p>
               </div>
             </div>
@@ -471,7 +470,7 @@
                     (click)="openRoutinePanel()"
                   >
                     <ion-icon name="add-outline"></ion-icon>
-                    Asignar rutina
+                    {{ 'CLIENT_DETAIL.ASIGNAR_RUTINA' | translate }}
                   </button>
                   <button
                     type="button"
@@ -479,7 +478,7 @@
                     (click)="openApplyRoutinePhaseModal()"
                   >
                     <ion-icon name="calendar-outline"></ion-icon>
-                    Programar
+                    {{ 'CLIENT_DETAIL.PROGRAMAR' | translate }}
                   </button>
                 </div>
               </div>
@@ -505,7 +504,7 @@
                     *ngIf="routinePhases.length > 1"
                   >
                     <ion-icon name="flash" aria-hidden="true"></ion-icon>
-                    En curso
+                    {{ 'CLIENT_DETAIL.EN_CURSO' | translate }}
                   </span>
                   <!-- Icono + nombre/fecha apilados en una sola fila — mismo
                    patrón que .active-plan-header de Nutrición, sin convertir
@@ -523,10 +522,9 @@
                         >{{ phase.tableName }}</span
                       >
                       <span class="routine-phase-range">
-                        Desde el {{ phase.startDate | date: 'd MMM y' }}
+                        {{ 'CLIENT_DETAIL.SINCE_DATE' | translate: { date: (phase.startDate | localDate: 'd MMM y') } }}
                         <ng-container *ngIf="phase.estimatedEndDate">
-                          · Fin previsto el {{ phase.estimatedEndDate | date: 'd
-                          MMM y' }}
+                          · {{ 'CLIENT_DETAIL.EXPECTED_END' | translate: { date: (phase.estimatedEndDate | localDate: 'd MMM y') } }}
                         </ng-container>
                       </span>
                     </div>
@@ -548,7 +546,7 @@
                       class="open-planner-icon"
                       aria-hidden="true"
                     ></ion-icon>
-                    <span>Abrir en el Planificador</span>
+                    <span>{{ 'CLIENT_DETAIL.ABRIR_EN_EL_PLANIFICADOR' | translate }}</span>
                     <ion-icon
                       name="chevron-forward-outline"
                       class="open-planner-chevron"
@@ -578,28 +576,28 @@
                         *ngIf="cancellingRoutinePhaseId === phase._id"
                       ></ion-spinner>
                       <span *ngIf="cancellingRoutinePhaseId !== phase._id"
-                        >Quitar fase</span
+                        >{{ 'CLIENT_DETAIL.QUITAR_FASE' | translate }}</span
                       >
                     </button>
                   </ng-container>
                   <ng-template #confirmActiveRoutineRemove>
                     <div class="phase-remove-confirm">
                       <span class="phase-remove-confirm__label"
-                        >¿Quitar esta fase?</span
+                        >{{ 'CLIENT_DETAIL.QUITAR_ESTA_FASE' | translate }}</span
                       >
                       <button
                         type="button"
                         class="phase-remove-confirm__cancel"
                         (click)="dismissCancelRoutinePhase($event)"
                       >
-                        Cancelar
+                        {{ 'COMMON.CANCEL' | translate }}
                       </button>
                       <button
                         type="button"
                         class="phase-remove-confirm__confirm"
                         (click)="confirmCancelRoutinePhase(phase, $event)"
                       >
-                        Quitar
+                        {{ 'TRAINER_COMMON.REMOVE' | translate }}
                       </button>
                     </div>
                   </ng-template>
@@ -619,9 +617,9 @@
                   >
                     <h4 class="next-phase-card__name">{{ phase.tableName }}</h4>
                     <p class="next-phase-card__range">
-                      Programada · {{ phase.startDate | date: 'd MMM' }}
+                      {{ 'CLIENT_DETAIL.SCHEDULED' | translate }} · {{ phase.startDate | localDate: 'd MMM' }}
                       <ng-container *ngIf="phase.estimatedEndDate">
-                        <br />→ {{ phase.estimatedEndDate | date: 'd MMM' }}
+                        <br />→ {{ phase.estimatedEndDate | localDate: 'd MMM' }}
                       </ng-container>
                     </p>
                     <!-- "Quitar fase programada" reutiliza el mismo enlace
@@ -635,8 +633,8 @@
                     <div class="next-phase-card__actions">
                       <button
                         class="bulk-apply-btn"
-                        title="Cambiar fecha"
-                        aria-label="Cambiar fecha"
+                        [title]="'CLIENT_DETAIL.CAMBIAR_FECHA' | translate"
+                        [attr.aria-label]="'CLIENT_DETAIL.CAMBIAR_FECHA' | translate"
                         *ngIf="confirmingCancelRoutinePhaseId !== phase._id"
                         [disabled]="cancellingRoutinePhaseId === phase._id"
                         (click)="openRescheduleRoutinePhaseModal(phase, $event)"
@@ -657,28 +655,28 @@
                             *ngIf="cancellingRoutinePhaseId === phase._id"
                           ></ion-spinner>
                           <span *ngIf="cancellingRoutinePhaseId !== phase._id"
-                            >Quitar fase</span
+                            >{{ 'CLIENT_DETAIL.QUITAR_FASE' | translate }}</span
                           >
                         </button>
                       </ng-container>
                       <ng-template #confirmScheduledRoutineRemove>
                         <div class="phase-remove-confirm">
                           <span class="phase-remove-confirm__label"
-                            >¿Quitar esta fase?</span
+                            >{{ 'CLIENT_DETAIL.QUITAR_ESTA_FASE' | translate }}</span
                           >
                           <button
                             type="button"
                             class="phase-remove-confirm__cancel"
                             (click)="dismissCancelRoutinePhase($event)"
                           >
-                            Cancelar
+                            {{ 'COMMON.CANCEL' | translate }}
                           </button>
                           <button
                             type="button"
                             class="phase-remove-confirm__confirm"
                             (click)="confirmCancelRoutinePhase(phase, $event)"
                           >
-                            Quitar
+                            {{ 'TRAINER_COMMON.REMOVE' | translate }}
                           </button>
                         </div>
                       </ng-template>
@@ -692,14 +690,14 @@
                   (click)="openApplyRoutinePhaseModal()"
                 >
                   <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-                  <span>Programar fase</span>
+                  <span>{{ 'CLIENT_DETAIL.PROGRAMAR_FASE' | translate }}</span>
                 </button>
               </div>
               <p
                 class="empty-hint"
                 *ngIf="routineHistoryState === 'loaded' && !currentRoutinePhase"
               >
-                Este cliente todavía no tiene ninguna rutina programada.
+                {{ 'CLIENT_DETAIL.ESTE_CLIENTE_TODAVIA_NO_TIENE' | translate }}
               </p>
 
               <!-- Mismo patrón que Nutrición: calendario y comparativa como dos
@@ -710,7 +708,7 @@
               <div class="nutrition-charts-row">
                 <div class="nutrition-calendar-col">
                   <div class="section-row">
-                    <h2 class="section-heading">Entrenamiento</h2>
+                    <h2 class="section-heading">{{ 'TRAINER_COMMON.TRAINING' | translate }}</h2>
                   </div>
                   <div class="nutrition-card">
                     <app-training-calendar
@@ -727,7 +725,7 @@
                 </div>
                 <div class="nutrition-chart-col">
                   <div class="section-row">
-                    <h2 class="section-heading">Comparativa</h2>
+                    <h2 class="section-heading">{{ 'CLIENT_DETAIL.COMPARATIVA' | translate }}</h2>
                   </div>
                   <div class="nutrition-card">
                     <!-- [hidden], no *ngIf/else: alternar con una directiva estructural
@@ -738,7 +736,7 @@
                     <div [hidden]="!!trainingSelectedDay">
                       <div class="training-comparison-controls">
                         <label
-                          >Comparar por
+                          >{{ 'CLIENT_DETAIL.COMPARAR_POR' | translate }}
                           <ion-select
                             class="tf-select"
                             interface="popover"
@@ -746,37 +744,36 @@
                             labelPlacement="stacked"
                             [ngModel]="trainingComparisonMetric"
                             (ngModelChange)="onTrainingMetricChanged($event)"
-                            aria-label="Comparar por"
+                            [attr.aria-label]="'CLIENT_DETAIL.COMPARAR_POR' | translate"
                           >
                             <ion-select-option
                               *ngFor="let option of trainingMetricOptions"
                               [value]="option.value"
                             >
                               {{ trainingGranularity === 'session' &&
-                              option.value === 'muscleGroups' ? 'Volumen por
-                              grupo muscular (kg)' : option.label }}
+                              option.value === 'muscleGroups' ? ('CLIENT_DETAIL.VOLUME_BY_MUSCLE_GROUP' | translate) : option.label }}
                             </ion-select-option>
                           </ion-select>
                         </label>
                         <label *ngIf="trainingComparisonMetric === 'exercise'"
-                          >Ejercicio con carga
+                          >{{ 'CLIENT_DETAIL.EJERCICIO_CON_CARGA' | translate }}
                           <ion-select
                             class="tf-select"
                             interface="popover"
                             toggleIcon="chevron-down-outline"
                             labelPlacement="stacked"
                             [placeholder]="selectedTrainingExercises.length > 1 ?
-                              selectedTrainingExercises.length + ' ejercicios seleccionados' :
-                              'Selecciona un ejercicio'"
+                              ('CLIENT_DETAIL.EXERCISES_SELECTED' | translate: { count: selectedTrainingExercises.length }) :
+                              ('CLIENT_DETAIL.SELECT_EXERCISE' | translate)"
                             [ngModel]="selectedTrainingExercise"
                             (ngModelChange)="onTrainingExerciseChanged($event)"
-                            aria-label="Ejercicio a comparar"
+                            [attr.aria-label]="'CLIENT_DETAIL.EJERCICIO_COMPARAR' | translate"
                           >
                             <ion-select-option
                               *ngIf="selectedTrainingExercise && !trainingExerciseNames.includes(selectedTrainingExercise)"
                               [value]="selectedTrainingExercise"
                             >
-                              {{ selectedTrainingExercise }} · sin registros
+                              {{ selectedTrainingExercise }} · {{ 'CLIENT_DETAIL.NO_RECORDS' | translate }}
                             </ion-select-option>
                             <ion-select-option
                               *ngFor="let name of trainingExerciseNames"
@@ -789,18 +786,17 @@
                       </div>
                       <div class="section-row">
                         <span class="history-subtitle"
-                          >{{ trainingGranularity === 'session' &&
-                          trainingComparisonMetric !== 'sessions' ? 'Por sesión'
-                          : 'Por microciclo' }} · {{ selectedTrainingWorkout ||
-                          'Todos los entrenamientos' }}</span
+                          >{{ (trainingGranularity === 'session' &&
+                          trainingComparisonMetric !== 'sessions' ? 'CLIENT_DETAIL.PER_SESSION'
+                          : 'CLIENT_DETAIL.PER_MICROCYCLE') | translate }} · {{ selectedTrainingWorkout ||
+                          ('CLIENT_DETAIL.ALL_WORKOUTS' | translate) }}</span
                         >
                         <button
                           type="button"
                           class="add-button"
                           (click)="openTrainingFilterPanel()"
                         >
-                          <ion-icon name="options-outline"></ion-icon>Más
-                          filtros
+                          <ion-icon name="options-outline"></ion-icon>{{ 'CLIENT_DETAIL.MAS_FILTROS' | translate }}
                         </button>
                       </div>
                       <app-training-comparison-chart
@@ -840,13 +836,13 @@
                    historial; "Ver todas" abre el historial completo en el
                    panel lateral (antes, Progreso > Sesiones). -->
                   <div class="section-row" *ngIf="completedWorkouts.length">
-                    <h3 class="subsection-heading">Últimas sesiones</h3>
+                    <h3 class="subsection-heading">{{ 'CLIENT_DETAIL.ULTIMAS_SESIONES' | translate }}</h3>
                     <button
                       type="button"
                       class="add-button"
                       (click)="openSessionsPanel()"
                     >
-                      Ver todas
+                      {{ 'TRAINER_COMMON.SEE_ALL_F' | translate }}
                       <ion-icon name="arrow-forward-outline"></ion-icon>
                     </button>
                   </div>
@@ -861,15 +857,15 @@
 
                 <div class="training-plan-col">
                   <div class="section-row">
-                    <h2 class="section-heading">Rutinas</h2>
+                    <h2 class="section-heading">{{ 'CLIENT_DETAIL.RUTINAS' | translate }}</h2>
                     <button class="add-button" (click)="openRoutinePanel()">
                       <ion-icon name="add-outline"></ion-icon>
-                      Asignar rutina
+                      {{ 'CLIENT_DETAIL.ASIGNAR_RUTINA' | translate }}
                     </button>
                   </div>
 
                   <p class="empty-hint" *ngIf="!tables.length">
-                    Este cliente todavía no tiene ninguna rutina.
+                    {{ 'CLIENT_DETAIL.ESTE_CLIENTE_TODAVIA_NO_TIENE_2' | translate }}
                   </p>
 
                   <div
@@ -888,12 +884,12 @@
                           <span class="list-card-title">{{ table.name }}</span>
                           <span class="routine-badges">
                             <span class="in-use-badge" *ngIf="table.isActive"
-                              >En uso</span
+                              >{{ 'CLIENT_DETAIL.EN_USO' | translate }}</span
                             >
                             <span
                               class="assigned-badge"
                               *ngIf="table.assignedByTrainerId"
-                              >Asignada por ti</span
+                              >{{ 'CLIENT_DETAIL.ASIGNADA_POR_TI' | translate }}</span
                             >
                             <!-- Tarea 4bis (2026-09) — cuándo entra en marcha, sin tener
                              que mirar la columna de Fases: las dos vistas leen la
@@ -902,7 +898,7 @@
                               class="scheduled-badge"
                               *ngIf="scheduledPhaseForTable(table._id) as sp"
                             >
-                              Programada · {{ sp.startDate | date: 'd MMM' }}
+                              {{ 'CLIENT_DETAIL.SCHEDULED' | translate }} · {{ sp.startDate | localDate: 'd MMM' }}
                             </span>
                           </span>
                         </span>
@@ -913,24 +909,24 @@
                       </button>
                       <button
                         class="bulk-apply-btn"
-                        title="Ver estadísticas"
-                        aria-label="Ver estadísticas"
+                        [title]="'CLIENT_DETAIL.VER_ESTADISTICAS' | translate"
+                        [attr.aria-label]="'CLIENT_DETAIL.VER_ESTADISTICAS' | translate"
                         (click)="openStatistics(table)"
                       >
                         <ion-icon name="stats-chart-outline"></ion-icon>
                       </button>
                       <button
                         class="bulk-apply-btn"
-                        title="Editar rutina (splits, ejercicios, series)"
-                        aria-label="Editar rutina"
+                        [title]="'CLIENT_DETAIL.EDITAR_RUTINA_SPLITS_EJERCICIOS_SERIES' | translate"
+                        [attr.aria-label]="'CLIENT_DETAIL.EDITAR_RUTINA' | translate"
                         (click)="openPlanner(table)"
                       >
                         <ion-icon name="construct-outline"></ion-icon>
                       </button>
                       <button
                         class="bulk-apply-btn bulk-apply-btn--danger"
-                        title="Borrar rutina completa"
-                        aria-label="Borrar rutina completa"
+                        [title]="'CLIENT_DETAIL.BORRAR_RUTINA_COMPLETA' | translate"
+                        [attr.aria-label]="'CLIENT_DETAIL.BORRAR_RUTINA_COMPLETA' | translate"
                         (click)="confirmDeleteTable(table, $event)"
                       >
                         <ion-icon name="trash-outline"></ion-icon>
@@ -944,7 +940,7 @@
                       *ngIf="expandedTableId === table._id"
                     >
                       <p class="empty-hint" *ngIf="!table.splits?.length">
-                        Esta rutina todavía no tiene microciclos.
+                        {{ 'CLIENT_DETAIL.ESTA_RUTINA_TODAVIA_NO_TIENE' | translate }}
                       </p>
 
                       <div
@@ -952,9 +948,9 @@
                         *ngFor="let split of table.splits"
                       >
                         <div class="split-header">
-                          <h4 class="split-heading">{{ split.name || 'Microciclo' }}</h4>
+                          <h4 class="split-heading">{{ split.name || ('CLIENT_DETAIL.MICROCYCLE' | translate) }}</h4>
                           <span class="split-count">
-                            {{ split.workouts?.length || 0 }} {{ split.workouts?.length === 1 ? 'entrenamiento' : 'entrenamientos' }}
+                            {{ (split.workouts?.length === 1 ? 'CLIENT_DETAIL.WORKOUTS_ONE' : 'CLIENT_DETAIL.WORKOUTS_MANY') | translate: { count: split.workouts?.length || 0 } }}
                           </span>
                         </div>
 
@@ -972,8 +968,8 @@
                                 [name]="workout.date ? 'checkmark-circle-outline' : 'time-outline'"
                                 aria-hidden="true"
                               ></ion-icon>
-                              {{ workout.date ? (workout.date | date: 'd MMM y')
-                              : 'Pendiente' }}
+                              {{ workout.date ? (workout.date | localDate: 'd MMM y')
+                              : ('MY_CHECKINS.PENDING' | translate) }}
                             </span>
                           </div>
                           <div
@@ -981,19 +977,19 @@
                             *ngFor="let exercise of workout.exercises"
                           >
                             <span class="exercise-name"
-                              >{{ exercise.exercise?.name || 'Ejercicio'
+                              >{{ (exercise.exercise?.name || ('WORKOUT_NOTIFICATION.EXERCISE' | translate)) | translateDb
                               }}</span
                             >
                             <div class="exercise-sets-group">
                               <div class="exercise-sets exercise-sets--expected">
-                                <span class="exercise-data-label">Prescrito</span>
+                                <span class="exercise-data-label">{{ 'CLIENT_DETAIL.PRESCRITO' | translate }}</span>
                                 <span class="exercise-data-value">{{ expectedDescription(exercise) }}</span>
                               </div>
                               <div
                                 class="exercise-sets"
                                 [class.exercise-sets--done]="hasAnyDoneSet(exercise)"
                               >
-                                <span class="exercise-data-label">Realizado</span>
+                                <span class="exercise-data-label">{{ 'CLIENT_DETAIL.REALIZADO' | translate }}</span>
                                 <span class="exercise-data-value">{{ setDescription(exercise) }}</span>
                               </div>
                             </div>
@@ -1012,14 +1008,14 @@
                 class="section-row nutrition-history-toggle"
                 (click)="toggleRoutineHistory()"
               >
-                <h2 class="section-heading">Historial de rutinas</h2>
+                <h2 class="section-heading">{{ 'CLIENT_DETAIL.HISTORIAL_DE_RUTINAS' | translate }}</h2>
                 <ion-icon
                   [name]="showRoutineHistory ? 'chevron-up-outline' : 'chevron-down-outline'"
                 ></ion-icon>
               </div>
               <ng-container *ngIf="showRoutineHistory">
                 <p class="empty-hint" *ngIf="!routineHistory.length">
-                  Todavía no hay historial de rutinas.
+                  {{ 'CLIENT_DETAIL.TODAVIA_NO_HAY_HISTORIAL_DE' | translate }}
                 </p>
                 <div
                   class="history-card"
@@ -1028,12 +1024,12 @@
                   <div class="history-card-header">
                     <span class="list-card-title">{{ phase.tableName }}</span>
                     <span class="history-date"
-                      >{{ phase.startDate | date: 'd MMM y' }}</span
+                      >{{ phase.startDate | localDate: 'd MMM y' }}</span
                     >
                   </div>
                   <p class="history-subtitle">
-                    {{ phase.status === 'active' ? 'Activa' : phase.status ===
-                    'superseded' ? 'Sustituida por otra fase' : 'Finalizada' }}
+                    {{ (phase.status === 'active' ? 'CLIENT_DETAIL.PHASE_ACTIVE' : phase.status ===
+                    'superseded' ? 'CLIENT_DETAIL.PHASE_SUPERSEDED' : 'CLIENT_DETAIL.PHASE_ENDED') | translate }}
                   </p>
                 </div>
               </ng-container>
@@ -1049,7 +1045,7 @@
         ></div>
         <div class="panel-sheet" *ngIf="showRoutinePanel">
           <div class="panel-handle"></div>
-          <h3 class="panel-title">Asignar rutina</h3>
+          <h3 class="panel-title">{{ 'CLIENT_DETAIL.ASIGNAR_RUTINA' | translate }}</h3>
 
           <form [formGroup]="routineForm" (ngSubmit)="submitNewRoutine()" appSubmitOnEnter="createRoutine">
             <div class="input-wrapper">
@@ -1058,7 +1054,7 @@
                 type="text"
                 formControlName="name"
                 class="input-field"
-                placeholder="Nombre de rutina"
+                [placeholder]="'CLIENT_DETAIL.NOMBRE_DE_RUTINA' | translate"
               />
             </div>
             <button
@@ -1067,7 +1063,7 @@
               [disabled]="!routineForm.value.name?.trim() || isAssigningRoutine"
               data-enter-submit-action="createRoutine"
             >
-              <span *ngIf="!isAssigningRoutine">Crear y asignar</span>
+              <span *ngIf="!isAssigningRoutine">{{ 'CLIENT_DETAIL.CREAR_ASIGNAR' | translate }}</span>
               <ion-spinner name="dots" *ngIf="isAssigningRoutine"></ion-spinner>
             </button>
           </form>
@@ -1077,7 +1073,7 @@
             class="manage-templates-link"
             (click)="openApplyRoutineTemplateModal()"
           >
-            Usar una plantilla ya construida
+            {{ 'CLIENT_DETAIL.USAR_UNA_PLANTILLA_YA_CONSTRUIDA' | translate }}
           </button>
         </div>
       </div>
@@ -1091,22 +1087,20 @@
        Las fotos siguen pidiendo scope (entrenamiento y/o nutrición); la
        agenda de check-ins no, como cuando era pestaña propia. === -->
       <div class="tab-panel" *ngIf="activeTab === 'measurements'">
-        <app-checkin-workspace [clientId]="clientId" [templateToSchedule]="checkinTemplateToOpen" (openHistory)="openCheckinSchedulesPanel(true)"></app-checkin-workspace>
+        <app-checkin-workspace [clientId]="clientId" [templateToSchedule]="checkinTemplateToOpen" [focusResponseId]="checkinResponseToOpen" (openHistory)="openCheckinSchedulesPanel(true)"></app-checkin-workspace>
 
         <ng-container *ngIf="scopes.includes('training') || scopes.includes('nutrition')">
-          <!-- Fotos de progreso — mock: todavía sin subida real, placeholder
-           para que el flujo se vea completo en la ficha. -->
+          <!-- Fotos de progreso: viven en su propia subpestaña (Progreso ›
+               Fotos y vídeos, docs/plan-medidas-multimedia.md). Aquí solo el
+               acceso, para quien las busque junto a las medidas. -->
           <div class="section-row section-row--top">
-            <h2 class="section-heading">Fotos de progreso</h2>
+            <h2 class="section-heading">{{ 'MEDIA.SESSION_TITLE' | translate }}</h2>
+            <button type="button" class="section-action" (click)="selectTab('media')">
+              {{ 'MEDIA.TRAINER.OPEN_MEDIA' | translate }}
+              <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </button>
           </div>
-          <div class="photos-mock-grid">
-            <div class="photo-mock-slot" *ngFor="let i of [0, 1, 2, 3]">
-              <ion-icon name="camera-outline"></ion-icon>
-            </div>
-          </div>
-          <p class="empty-hint">
-            Próximamente: el cliente podrá subir fotos de progreso desde su app.
-          </p>
+          <p class="empty-hint">{{ 'MEDIA.TRAINER.PHOTOS_MOVED' | translate }}</p>
         </ng-container>
       </div>
 
@@ -1122,9 +1116,9 @@
         </div>
 
         <div class="section-error" *ngIf="nutritionState === 'error'">
-          <p>No se pudo cargar la nutrición de este cliente.</p>
+          <p>{{ 'CLIENT_DETAIL.NO_SE_PUDO_CARGAR_LA' | translate }}</p>
           <button class="retry-button" (click)="loadNutrition()">
-            Reintentar
+            {{ 'COMMON.RETRY' | translate }}
           </button>
         </div>
 
@@ -1144,7 +1138,7 @@
                "manual" y deja de recalcularse solo al cambiar el peso. -->
               <div class="goal-card">
                 <div class="goal-card__head">
-                  <h2 class="section-heading">Objetivos nutricionales</h2>
+                  <h2 class="section-heading">{{ 'CLIENT_DETAIL.OBJETIVOS_NUTRICIONALES' | translate }}</h2>
                   <!-- De dónde salen los números, con color propio para que se
                    distingan de un vistazo: verde = sale solo de los datos
                    del cliente y se recalcula al cambiar el peso; naranja =
@@ -1169,7 +1163,7 @@
                   *ngIf="nutritionalGoalState === 'loading'"
                 ></div>
                 <p class="empty-hint" *ngIf="nutritionalGoalState === 'error'">
-                  No se pudo cargar el objetivo de este cliente.
+                  {{ 'CLIENT_DETAIL.NO_SE_PUDO_CARGAR_EL_3' | translate }}
                 </p>
 
                 <ng-container *ngIf="nutritionalGoalState === 'loaded'">
@@ -1183,7 +1177,7 @@
                         <span class="goal-card__kcal-value"
                           >{{ goal.kcalTotal | number: '1.0-0' }}</span
                         >
-                        <span class="goal-card__kcal-unit">kcal / día</span>
+                        <span class="goal-card__kcal-unit">{{ 'CLIENT_DETAIL.KCAL_DIA' | translate }}</span>
                       </p>
 
                       <!-- Reparto de los macros sobre el total de kcal, no sobre
@@ -1218,7 +1212,7 @@
                       <div class="goal-macros">
                         <div class="goal-macro goal-macro--protein">
                           <span class="goal-macro__label"
-                            ><i class="goal-macro__dot"></i>Proteína</span
+                            ><i class="goal-macro__dot"></i>{{ 'TRAINER_COMMON.PROTEIN' | translate }}</span
                           >
                           <span class="goal-macro__value"
                             >{{ goal.proteinsGTotal | number: '1.0-0' }}<em
@@ -1232,7 +1226,7 @@
                         </div>
                         <div class="goal-macro goal-macro--carbs">
                           <span class="goal-macro__label"
-                            ><i class="goal-macro__dot"></i>Carbos</span
+                            ><i class="goal-macro__dot"></i>{{ 'TRAINER_COMMON.CARBS' | translate }}</span
                           >
                           <span class="goal-macro__value"
                             >{{ goal.carbohydratesGTotal | number: '1.0-0' }}<em
@@ -1246,7 +1240,7 @@
                         </div>
                         <div class="goal-macro goal-macro--fat">
                           <span class="goal-macro__label"
-                            ><i class="goal-macro__dot"></i>Grasas</span
+                            ><i class="goal-macro__dot"></i>{{ 'TRAINER_COMMON.FAT' | translate }}</span
                           >
                           <span class="goal-macro__value"
                             >{{ goal.fatGTotal | number: '1.0-0' }}<em
@@ -1262,7 +1256,7 @@
                     </ng-container>
 
                     <p class="empty-hint" *ngIf="!nutritionalGoal?.goal">
-                      Este cliente todavía no tiene objetivo guardado.
+                      {{ 'CLIENT_DETAIL.ESTE_CLIENTE_TODAVIA_NO_TIENE_3' | translate }}
                     </p>
                     <p
                       class="goal-card__missing"
@@ -1272,8 +1266,7 @@
                         name="alert-circle-outline"
                         aria-hidden="true"
                       ></ion-icon>
-                      Faltan datos para calcularlo: {{
-                      nutritionalGoal?.missing?.join(', ') }}
+                      {{ 'CLIENT_DETAIL.MISSING_DATA' | translate: { fields: nutritionalGoal?.missing?.join(', ') } }}
                     </p>
 
                     <!-- A la derecha: la acción principal pegada al borde y
@@ -1284,13 +1277,13 @@
                         type="button"
                         class="goal-card__btn goal-card__btn--ghost goal-card__btn--fill"
                         *ngIf="nutritionalGoal?.goal?.source === 'manual'"
-                        title="Volver al auto-calculado"
-                        aria-label="Volver al auto-calculado"
+                        [title]="'CLIENT_DETAIL.VOLVER_AL_AUTO_CALCULADO' | translate"
+                        [attr.aria-label]="'CLIENT_DETAIL.VOLVER_AL_AUTO_CALCULADO' | translate"
                         [disabled]="savingNutritionalGoal"
                         (click)="recalculateNutritionalGoal()"
                       >
                         <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
-                        Auto-calculado
+                        {{ 'CLIENT_DETAIL.AUTO_CALCULADO' | translate }}
                       </button>
                       <button
                         type="button"
@@ -1298,7 +1291,7 @@
                         (click)="startEditNutritionalGoal()"
                       >
                         <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
-                        Editar
+                        {{ 'TRAINER_COMMON.EDIT' | translate }}
                       </button>
                     </div>
                   </ng-container>
@@ -1320,11 +1313,11 @@
                         inputmode="numeric"
                         min="0"
                         step="10"
-                        aria-label="Kcal al día"
+                        [attr.aria-label]="'CLIENT_DETAIL.KCAL_AL_DIA' | translate"
                         [ngModel]="goalDraftKcal"
                         (ngModelChange)="onGoalKcalChange($event)"
                       />
-                      <span class="goal-kcal__unit">kcal / día</span>
+                      <span class="goal-kcal__unit">{{ 'CLIENT_DETAIL.KCAL_DIA' | translate }}</span>
                     </label>
                     <app-macro-adjust
                       [targetKcal]="goalDraftKcal"
@@ -1346,7 +1339,7 @@
                         [disabled]="savingNutritionalGoal"
                         (click)="editingNutritionalGoal = false"
                       >
-                        Cancelar
+                        {{ 'COMMON.CANCEL' | translate }}
                       </button>
                       <button
                         type="button"
@@ -1355,7 +1348,7 @@
                         (click)="saveNutritionalGoal()"
                         data-enter-submit-action="saveNutritionalGoal"
                       >
-                        {{ savingNutritionalGoal ? 'Guardando…' : 'Guardar' }}
+                        {{ (savingNutritionalGoal ? 'COMMON.SAVING' : 'COMMON.SAVE') | translate }}
                       </button>
                     </div>
                   </div>
@@ -1372,7 +1365,7 @@
                         [name]="showGoalMath ? 'chevron-up-outline' : 'chevron-down-outline'"
                         aria-hidden="true"
                       ></ion-icon>
-                      Cómo se ha calculado
+                      {{ 'CLIENT_DETAIL.COMO_SE_HA_CALCULADO' | translate }}
                     </button>
                     <app-need-breakdown
                       *ngIf="showGoalMath"
@@ -1398,15 +1391,14 @@
                   </div>
                   <span class="fidelity-label">
                     <ion-icon name="flame-outline"></ion-icon>
-                    Adherencia calórica
+                    {{ 'CLIENT_DETAIL.ADHERENCIA_CALORICA' | translate }}
                   </span>
                   <!-- Fase 1 Coach Pro — el porcentaje es sobre los días CON
                    plan, así que el detalle tiene que decir sobre cuántos se
                    calcula: "84% de 12 días" y "84% de 2 días" no merecen la
                    misma confianza, y el número solo no lo distingue. -->
                   <span class="fidelity-detail">
-                    {{ adherence?.daysCounted }} de {{ adherence?.daysInRange }}
-                    días con plan
+                    {{ 'CLIENT_DETAIL.DAYS_WITH_PLAN' | translate: { count: adherence?.daysCounted, total: adherence?.daysInRange } }}
                   </span>
                 </div>
                 <div
@@ -1416,10 +1408,10 @@
                   <div class="fidelity-value">{{ compliancePercentage }}%</div>
                   <span class="fidelity-label">
                     <ion-icon name="checkmark-done-outline"></ion-icon>
-                    Cumplimiento del plan
+                    {{ 'CLIENT_DETAIL.CUMPLIMIENTO_DEL_PLAN' | translate }}
                   </span>
                   <span class="fidelity-detail"
-                    >últimos 30 días · lo marcado como hecho</span
+                    >{{ 'CLIENT_DETAIL.ULTIMOS_30_DIAS_LO_MARCADO' | translate }}</span
                   >
                 </div>
               </div>
@@ -1429,14 +1421,13 @@
               >
                 <ion-icon name="pie-chart-outline"></ion-icon>
                 <span
-                  >Aplica un plan de dieta para ver la adherencia de este
-                  cliente.</span
+                  >{{ 'CLIENT_DETAIL.APLICA_UN_PLAN_DE_DIETA' | translate }}</span
                 >
               </div>
 
               <!-- F29 -->
               <div class="section-row">
-                <h2 class="section-heading">Preferencias nutricionales</h2>
+                <h2 class="section-heading">{{ 'CLIENT_DETAIL.PREFERENCIAS_NUTRICIONALES' | translate }}</h2>
                 <div class="section-row-actions">
                   <!-- Editar directamente en vez de esperar a que el cliente
                    responda el cuestionario. -->
@@ -1445,7 +1436,7 @@
                     (click)="nutritionPreferencesPanel.open()"
                   >
                     <ion-icon name="create-outline"></ion-icon>
-                    Editar
+                    {{ 'TRAINER_COMMON.EDIT' | translate }}
                   </button>
                   <button
                     class="add-button"
@@ -1454,14 +1445,13 @@
                     [disabled]="isRequestingPreferences"
                   >
                     <ion-icon name="paper-plane-outline"></ion-icon>
-                    {{ nutritionPreferences ? 'Volver a solicitar' : 'Solicitar
-                    cuestionario' }}
+                    {{ (nutritionPreferences ? 'CLIENT_DETAIL.REQUEST_AGAIN' : 'CLIENT_DETAIL.REQUEST_QUESTIONNAIRE') | translate }}
                   </button>
                 </div>
               </div>
 
               <p class="empty-hint" *ngIf="nutritionPreferencesPending">
-                Solicitado, pendiente de respuesta de {{ name }}.
+                {{ 'CLIENT_DETAIL.REQUESTED_PENDING' | translate: { name: name } }}
               </p>
 
               <div
@@ -1471,23 +1461,23 @@
                 <div class="preferences-field preferences-field--critical">
                   <span class="preferences-label">
                     <ion-icon name="warning-outline"></ion-icon>
-                    Alergias / intolerancias
+                    {{ 'NUTRITION_PREFERENCES.ALLERGIES' | translate }}
                   </span>
                   <p class="preferences-value">
-                    {{ nutritionPreferences?.allergies || 'Ninguna indicada' }}
+                    {{ nutritionPreferences?.allergies || ('CLIENT_DETAIL.NONE_GIVEN' | translate) }}
                   </p>
                 </div>
                 <div class="preferences-field">
-                  <span class="preferences-label">Favoritos</span>
+                  <span class="preferences-label">{{ 'CLIENT_DETAIL.FAVORITOS' | translate }}</span>
                   <p class="preferences-value">
-                    {{ nutritionPreferences?.favoriteFoods || 'Sin especificar'
+                    {{ nutritionPreferences?.favoriteFoods || ('CLIENT_DETAIL.NOT_SPECIFIED' | translate)
                     }}
                   </p>
                 </div>
                 <div class="preferences-field">
-                  <span class="preferences-label">No le gustan</span>
+                  <span class="preferences-label">{{ 'CLIENT_DETAIL.NO_LE_GUSTAN' | translate }}</span>
                   <p class="preferences-value">
-                    {{ nutritionPreferences?.dislikedFoods || 'Sin especificar'
+                    {{ nutritionPreferences?.dislikedFoods || ('CLIENT_DETAIL.NOT_SPECIFIED' | translate)
                     }}
                   </p>
                 </div>
@@ -1496,7 +1486,7 @@
                   *ngIf="nutritionPreferences?.dietaryFlags?.length"
                 >
                   <span class="preferences-label"
-                    >Restricciones dietéticas</span
+                    >{{ 'CLIENT_DETAIL.RESTRICCIONES_DIETETICAS' | translate }}</span
                   >
                   <!-- Mismo icono y color por flag que diet-card y el cajón de
                    sugerencias (dietary-flag-ui.util). -->
@@ -1514,7 +1504,7 @@
                   </div>
                 </div>
                 <div class="preferences-field">
-                  <span class="preferences-label">¿Cocina en casa?</span>
+                  <span class="preferences-label">{{ 'CLIENT_DETAIL.COCINA_EN_CASA' | translate }}</span>
                   <p class="preferences-value">
                     {{ cooksAtHomeLabel(nutritionPreferences?.cooksAtHome ??
                     null) }}
@@ -1528,7 +1518,7 @@
                   class="preferences-field"
                   *ngIf="nutritionPreferences?.disabledMealSlots?.length"
                 >
-                  <span class="preferences-label">Comidas que no hace</span>
+                  <span class="preferences-label">{{ 'CLIENT_DETAIL.COMIDAS_QUE_NO_HACE' | translate }}</span>
                   <p class="preferences-value">
                     {{ nutritionPreferences.disabledMealSlots.join(', ') }}
                   </p>
@@ -1588,7 +1578,7 @@
                     (click)="startDietPhase()"
                   >
                     <ion-icon name="download-outline"></ion-icon>
-                    Aplicar plantilla
+                    {{ 'CLIENT_DETAIL.APLICAR_PLANTILLA' | translate }}
                   </button>
                   <!-- La otra forma de darle un plan al cliente, construida aquí
                    mismo en vez de salir de la biblioteca de plantillas.
@@ -1601,7 +1591,7 @@
                     (click)="goToCreateDiet()"
                   >
                     <ion-icon name="add-outline"></ion-icon>
-                    Crear dieta
+                    {{ 'CLIENT_DETAIL.CREAR_DIETA' | translate }}
                   </button>
                 </div>
                 <button
@@ -1609,7 +1599,7 @@
                   class="manage-templates-link"
                   (click)="goToDietTemplates()"
                 >
-                  Gestionar plantillas
+                  {{ 'CLIENT_DETAIL.GESTIONAR_PLANTILLAS' | translate }}
                 </button>
               </div>
 
@@ -1650,7 +1640,7 @@
                     <div class="active-plan-top-row">
                       <span class="plan-phase-order plan-phase-order--current">
                         <ion-icon name="flash" aria-hidden="true"></ion-icon>
-                        {{ phaseOrder(activePlan) }}ª · en curso
+                        {{ 'CLIENT_DETAIL.PHASE_ORDER_CURRENT' | translate: { n: phaseOrder(activePlan) } }}
                       </span>
                       <!-- Los check-ins del cliente, a un toque desde la fase: son
                    los que alimentan la sugerencia de la semana siguiente, así
@@ -1660,11 +1650,11 @@
                         type="button"
                         class="active-plan-checkins"
                         *ngIf="checkinSchedulesCount !== null"
-                        [attr.aria-label]="'Ver los check-ins de este cliente'"
+                        [attr.aria-label]="'CLIENT_DETAIL.VIEW_CHECKINS' | translate"
                         (click)="openCheckinSchedulesPanel()"
                       >
                         <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
-                        {{ checkinSchedulesCount }} check-in{{ checkinSchedulesCount === 1 ? '' : 's' }}
+                        {{ (checkinSchedulesCount === 1 ? 'CLIENT_DETAIL.CHECKINS_ONE' : 'CLIENT_DETAIL.CHECKINS_MANY') | translate: { count: checkinSchedulesCount } }}
                       </button>
                       <!-- Editar las fechas de la fase: se crea para el día en que se
                    crea, y se corrige aquí. A la derecha del todo: es un dato
@@ -1678,7 +1668,7 @@
                           name="calendar-outline"
                           aria-hidden="true"
                         ></ion-icon>
-                        Editar fechas
+                        {{ 'CLIENT_DETAIL.EDITAR_FECHAS' | translate }}
                       </button>
                     </div>
                     <!-- F20-quinquies — la cabecera es ahora el punto de entrada para
@@ -1695,13 +1685,13 @@
                       <div class="active-plan-info">
                         <span class="active-plan-name"
                           >{{ activePhase?.planName || activePlan.planName ||
-                          'Plan aplicado' }}</span
+                          ('CLIENT_DETAIL.PLAN_APPLIED' | translate) }}</span
                         >
                         <span class="active-plan-range">
                           <ng-container
                             *ngIf="!isSingleDayPhase(activePhase); else activePlanSingleDay"
                           >
-                            desde {{ activePhase?.startDate }}
+                            {{ 'CLIENT_DETAIL.SINCE_LOWER' | translate: { date: activePhase?.startDate } }}
                             <ng-container
                               *ngIf="phaseEndLabel(activePhase) as endLabel"
                             >
@@ -1728,9 +1718,7 @@
                       *ngIf="activePlan.stuckDaysCount"
                     >
                       <ion-icon name="alert-circle-outline"></ion-icon>
-                      {{ activePlan.stuckDaysCount }} día{{
-                      activePlan.stuckDaysCount !== 1 ? 's' : '' }} sin que el
-                      cliente elija menú
+                      {{ (activePlan.stuckDaysCount === 1 ? 'CLIENT_DETAIL.STUCK_DAYS_ONE' : 'CLIENT_DETAIL.STUCK_DAYS_MANY') | translate: { count: activePlan.stuckDaysCount } }}
                     </p>
 
                     <div class="active-plan-actions">
@@ -1750,14 +1738,14 @@
                             class="week-tile week-tile--next"
                             *ngIf="pr.next as next"
                             [class.is-edited]="nextWeekState === 'edited'"
-                            [attr.aria-label]="nextWeekState === 'suggested' ? 'Revisar siguiente semana' : 'Preparar siguiente semana'"
+                            [attr.aria-label]="(nextWeekState === 'suggested' ? 'CLIENT_DETAIL.REVIEW_NEXT_WEEK' : 'CLIENT_DETAIL.PREPARE_NEXT_WEEK') | translate"
                             (click)="openNextWeekModal()"
                           >
                             <span class="week-tile__title-row">
                               <span class="week-tile__label"
-                                >S{{ next.number }}</span
+                                >{{ 'CLIENT_DETAIL.WEEK_SHORT' | translate: { n: next.number } }}</span
                               >
-                              <span class="week-tile__tag">PRÓXIMA</span>
+                              <span class="week-tile__tag">{{ 'CLIENT_DETAIL.PROXIMA' | translate }}</span>
                             </span>
                             <span class="week-tile__dates"
                               >{{ weekDateRange(next) }}</span
@@ -1780,7 +1768,7 @@
                             type="button"
                             class="week-tile week-tile--current"
                             *ngIf="pr.current as current"
-                            aria-label="Ver resumen de la semana en curso"
+                            [attr.aria-label]="'CLIENT_DETAIL.VER_RESUMEN_DE_LA_SEMANA' | translate"
                             (click)="openCurrentWeekSummary()"
                           >
                             <span class="week-tile__title-row">
@@ -1789,7 +1777,7 @@
                               >
                               <span
                                 class="week-tile__tag week-tile__tag--accent"
-                                >EN CURSO</span
+                                >{{ 'CLIENT_DETAIL.EN_CURSO_2' | translate }}</span
                               >
                             </span>
                             <span class="week-tile__dates"
@@ -1806,14 +1794,14 @@
                             type="button"
                             class="week-tile week-tile--past"
                             *ngFor="let entry of pastWeeks; trackBy: trackByWeekNumber"
-                            [attr.aria-label]="'Ver el resumen de la semana ' + entry.number"
+                            [attr.aria-label]="'CLIENT_DETAIL.VIEW_WEEK_SUMMARY' | translate: { n: entry.number }"
                             (click)="openWeekSummary(entry)"
                           >
                             <span class="week-tile__title-row">
                               <span class="week-tile__label"
-                                >S{{ entry.number }}</span
+                                >{{ 'CLIENT_DETAIL.WEEK_SHORT' | translate: { n: entry.number } }}</span
                               >
-                              <span class="week-tile__tag">ANTERIOR</span>
+                              <span class="week-tile__tag">{{ 'CLIENT_DETAIL.ANTERIOR' | translate }}</span>
                             </span>
                             <span class="week-tile__dates"
                               >{{ weekDateRange(entry) }}</span
@@ -1847,28 +1835,28 @@
                               *ngIf="cancellingPlanPhaseId === fase._id"
                             ></ion-spinner>
                             <span *ngIf="cancellingPlanPhaseId !== fase._id"
-                              >Quitar fase</span
+                              >{{ 'CLIENT_DETAIL.QUITAR_FASE' | translate }}</span
                             >
                           </button>
                         </ng-container>
                         <ng-template #confirmActivePlanRemove>
                           <div class="phase-remove-confirm">
                             <span class="phase-remove-confirm__label"
-                              >¿Quitar esta fase?</span
+                              >{{ 'CLIENT_DETAIL.QUITAR_ESTA_FASE' | translate }}</span
                             >
                             <button
                               type="button"
                               class="phase-remove-confirm__cancel"
                               (click)="dismissCancelPlanPhase($event)"
                             >
-                              Cancelar
+                              {{ 'COMMON.CANCEL' | translate }}
                             </button>
                             <button
                               type="button"
                               class="phase-remove-confirm__confirm"
                               (click)="confirmCancelPlanPhase(fase, $event)"
                             >
-                              Quitar
+                              {{ 'TRAINER_COMMON.REMOVE' | translate }}
                             </button>
                           </div>
                         </ng-template>
@@ -1905,13 +1893,13 @@
                         >{{ phaseCompactLabel(phase) }}</span
                       >
                       <h4 class="next-phase-card__name">
-                        {{ phase.planName || 'Plan aplicado' }}
+                        {{ phase.planName || ('CLIENT_DETAIL.PLAN_APPLIED' | translate) }}
                       </h4>
                       <p class="next-phase-card__range">
                         <ng-container
                           *ngIf="!isSingleDayPhase(phase); else compactSingleDay"
                         >
-                          desde {{ phase.startDate }}
+                          {{ 'CLIENT_DETAIL.SINCE_LOWER' | translate: { date: phase.startDate } }}
                           <ng-container *ngIf="phaseEndLabel(phase) as endLabel"
                             ><br />{{ endLabel }}</ng-container
                           >
@@ -1942,28 +1930,28 @@
                             *ngIf="cancellingPlanPhaseId === phase._id"
                           ></ion-spinner>
                           <span *ngIf="cancellingPlanPhaseId !== phase._id"
-                            >Quitar fase</span
+                            >{{ 'CLIENT_DETAIL.QUITAR_FASE' | translate }}</span
                           >
                         </button>
                       </ng-container>
                       <ng-template #confirmPhaseRemove>
                         <div class="phase-remove-confirm">
                           <span class="phase-remove-confirm__label"
-                            >¿Quitar esta fase?</span
+                            >{{ 'CLIENT_DETAIL.QUITAR_ESTA_FASE' | translate }}</span
                           >
                           <button
                             type="button"
                             class="phase-remove-confirm__cancel"
                             (click)="dismissCancelPlanPhase($event)"
                           >
-                            Cancelar
+                            {{ 'COMMON.CANCEL' | translate }}
                           </button>
                           <button
                             type="button"
                             class="phase-remove-confirm__confirm"
                             (click)="confirmCancelPlanPhase(phase, $event)"
                           >
-                            Quitar
+                            {{ 'TRAINER_COMMON.REMOVE' | translate }}
                           </button>
                         </div>
                       </ng-template>
@@ -1977,7 +1965,7 @@
                   (click)="startDietPhase()"
                 >
                   <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-                  <span>Siguiente fase</span>
+                  <span>{{ 'CLIENT_DETAIL.SIGUIENTE_FASE' | translate }}</span>
                 </button>
               </div>
 
@@ -1990,7 +1978,7 @@
                   <!-- F20-bis — calendario de mes, sustituye al stepper ±1 día
                    (sin vista de conjunto ni salto directo a una fecha). -->
                   <div class="section-row">
-                    <h2 class="section-heading">Dieta</h2>
+                    <h2 class="section-heading">{{ 'CLIENT_DETAIL.DIETA' | translate }}</h2>
                     <span class="date-nav-label">{{ nutritionDateLabel }}</span>
                   </div>
                   <div class="nutrition-card">
@@ -2014,7 +2002,7 @@
                  (kcal consumidas / cumplimiento). -->
                 <div class="nutrition-chart-col">
                   <div class="section-row">
-                    <h2 class="section-heading">Seguimiento</h2>
+                    <h2 class="section-heading">{{ 'CLIENT_DETAIL.SEGUIMIENTO' | translate }}</h2>
                     <!-- F20-vicies — alterna entre la gráfica diaria (macros
                      pautado/consumido) y peso vs. adherencia, sin perder el
                      rango de fechas elegido (ambas comparten
@@ -2023,7 +2011,7 @@
                     <div
                       class="chart-view-toggle"
                       role="group"
-                      aria-label="Vista de la gráfica de seguimiento"
+                      [attr.aria-label]="'CLIENT_DETAIL.VISTA_DE_LA_GRAFICA_DE' | translate"
                     >
                       <button
                         type="button"
@@ -2031,7 +2019,7 @@
                         [class.is-active]="nutritionChartView === 'daily'"
                         (click)="setNutritionChartView('daily')"
                       >
-                        Cumplimiento
+                        {{ 'CLIENT_DETAIL.CUMPLIMIENTO' | translate }}
                       </button>
                       <button
                         type="button"
@@ -2039,7 +2027,7 @@
                         [class.is-active]="nutritionChartView === 'weight'"
                         (click)="setNutritionChartView('weight')"
                       >
-                        Peso y adherencia
+                        {{ 'CLIENT_DETAIL.PESO_ADHERENCIA' | translate }}
                       </button>
                     </div>
                   </div>
@@ -2054,7 +2042,7 @@
                       <div
                         class="range-preset-group"
                         role="group"
-                        aria-label="Periodo del seguimiento"
+                        [attr.aria-label]="'CLIENT_DETAIL.PERIODO_DEL_SEGUIMIENTO' | translate"
                       >
                         <button
                           type="button"
@@ -2087,7 +2075,7 @@
                    libre respecto al rango de arriba. -->
                   <ng-container *ngIf="phaseWeeks">
                     <div class="section-row">
-                      <h2 class="section-heading">Semana a semana</h2>
+                      <h2 class="section-heading">{{ 'CLIENT_DETAIL.SEMANA_SEMANA' | translate }}</h2>
                     </div>
                     <app-week-comparison-cards
                       [phaseWeeks]="phaseWeeks"
@@ -2105,7 +2093,7 @@
                 class="section-row nutrition-history-toggle"
                 (click)="toggleNutritionHistory()"
               >
-                <h2 class="section-heading">Historial de nutrición</h2>
+                <h2 class="section-heading">{{ 'CLIENT_DETAIL.HISTORIAL_DE_NUTRICION' | translate }}</h2>
                 <ion-icon
                   [name]="showNutritionHistory ? 'chevron-up-outline' : 'chevron-down-outline'"
                 ></ion-icon>
@@ -2124,15 +2112,15 @@
                   class="section-error"
                   *ngIf="nutritionHistoryState === 'error'"
                 >
-                  <p>No se pudo cargar el historial de nutrición.</p>
+                  <p>{{ 'CLIENT_DETAIL.NO_SE_PUDO_CARGAR_EL_4' | translate }}</p>
                   <button class="retry-button" (click)="loadNutritionHistory()">
-                    Reintentar
+                    {{ 'COMMON.RETRY' | translate }}
                   </button>
                 </div>
 
                 <ng-container *ngIf="nutritionHistoryState === 'loaded'">
                   <p class="empty-hint" *ngIf="!nutritionHistory.length">
-                    Este cliente todavía no ha tenido ningún plan asignado.
+                    {{ 'CLIENT_DETAIL.ESTE_CLIENTE_TODAVIA_NO_HA_2' | translate }}
                   </p>
                   <app-nutrition-history-feed
                     *ngIf="nutritionHistory.length"
@@ -2155,10 +2143,10 @@
         ></div>
         <div class="panel-sheet" *ngIf="showPhaseDatesPanel">
           <div class="panel-handle"></div>
-          <h3 class="panel-title">Fechas de la fase</h3>
+          <h3 class="panel-title">{{ 'CLIENT_DETAIL.FECHAS_DE_LA_FASE' | translate }}</h3>
           <p class="phase-dates-subtitle">{{ phaseDatesTitle }}</p>
 
-          <label class="phase-dates-label" for="phase-dates-start">Inicio</label>
+          <label class="phase-dates-label" for="phase-dates-start">{{ 'CLIENT_DETAIL.INICIO' | translate }}</label>
           <div class="input-wrapper">
             <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
             <app-date-field
@@ -2170,14 +2158,14 @@
           </div>
 
           <label class="phase-dates-label" for="phase-dates-end">
-            Fin <span class="phase-dates-optional">(opcional)</span>
+            {{ 'CLIENT_DETAIL.FIN' | translate }} <span class="phase-dates-optional">{{ 'CLIENT_DETAIL.OPCIONAL' | translate }}</span>
           </label>
           <div class="input-wrapper">
             <ion-icon name="flag-outline" class="input-icon"></ion-icon>
             <app-date-field
               class="input-field"
               inputId="phase-dates-end"
-              placeholder="Sin fin: hasta la siguiente fase"
+              [placeholder]="'CLIENT_DETAIL.SIN_FIN_HASTA_LA_SIGUIENTE' | translate"
               pickerTitle="Fin de la fase"
               [min]="phaseDatesStart || null"
               [clearable]="true"
@@ -2185,7 +2173,7 @@
             ></app-date-field>
           </div>
           <p class="phase-dates-error" *ngIf="phaseDatesEnd && phaseDatesStart && phaseDatesEnd < phaseDatesStart">
-            El fin no puede ser anterior al inicio.
+            {{ 'CLIENT_DETAIL.EL_FIN_NO_PUEDE_SER' | translate }}
           </p>
 
           <button
@@ -2193,10 +2181,81 @@
             (click)="savePhaseDates()"
             [disabled]="!canSavePhaseDates"
           >
-            <span *ngIf="!isSavingPhaseDates">Guardar fechas</span>
+            <span *ngIf="!isSavingPhaseDates">{{ 'CLIENT_DETAIL.GUARDAR_FECHAS' | translate }}</span>
             <ion-spinner name="dots" *ngIf="isSavingPhaseDates"></ion-spinner>
           </button>
         </div>
+      </div>
+
+      <!-- === SESIONES HECHAS (F09; antes "Historial") === -->
+      <div
+        class="tab-panel"
+        *ngIf="scopes.includes('training') && $any(activeTab) === 'history'"
+      >
+        <div class="detail-skeleton" *ngIf="trainingState === 'loading'">
+          <div class="skeleton-block skeleton-block--md"></div>
+          <div class="skeleton-block skeleton-block--md"></div>
+        </div>
+
+        <ng-container *ngIf="trainingState === 'loaded'">
+          <!-- TASK-040 (MASTER_BACKLOG.md) — este historial es un log plano
+           (un entrenamiento completado = una fila); la agregación por
+           ejercicio y la comparación semana a semana ya existen en
+           StatisticsPage (TASK-007/020), pero antes no había ningún enlace
+           entre ambas pantallas. -->
+          <button
+            type="button"
+            class="history-stats-link"
+            *ngIf="tables.length > 0"
+            (click)="openStatistics(tables[0])"
+          >
+            <ion-icon name="stats-chart-outline"></ion-icon>
+            {{ 'CLIENT_DETAIL.VER_PROGRESION_POR_EJERCICIO' | translate }}
+          </button>
+
+          <p class="empty-hint" *ngIf="!completedWorkouts.length">
+            {{ 'CLIENT_DETAIL.ESTE_CLIENTE_TODAVIA_NO_HA_3' | translate }}
+          </p>
+
+          <div
+            class="history-card"
+            *ngFor="let workout of completedWorkouts; trackBy: trackByWorkoutId"
+          >
+            <div class="history-card-header">
+              <span class="list-card-title">{{ workout.name }}</span>
+              <span class="history-date"
+                >{{ workout.date | localDate: 'd MMM y' }}</span
+              >
+            </div>
+            <p class="history-subtitle">
+              {{ workout.tableName }} · {{ workout.splitName }}
+            </p>
+            <div class="history-meta">
+              <span *ngIf="workoutDuration(workout) as duration">
+                <ion-icon name="time-outline"></ion-icon> {{ duration }}
+              </span>
+              <span
+                ><ion-icon name="barbell-outline"></ion-icon> {{
+                workout.exercises?.length || 0 }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span
+              >
+              <!-- F18 -->
+              <span class="pulse-badge" *ngIf="workout.readinessPre"
+                >{{ 'CLIENT_DETAIL.READINESS' | translate }} {{ workout.readinessPre }}/5</span
+              >
+              <span class="pulse-badge" *ngIf="workout.perceivedEffortPost"
+                >{{ 'CLIENT_DETAIL.EFFORT' | translate }} {{ workout.perceivedEffortPost }}/5</span
+              >
+            </div>
+
+            <!-- Movimiento 2 Coach Pro — agujetas con las que LLEGÓ a esta
+             sesión (ver soreness.ts). Solo los grupos que marcó por encima
+             de "nada": una sesión sin nada apuntado no pinta nada. -->
+            <p class="soreness-line" *ngIf="sorenessLabel(workout) as soreness">
+              <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
+              {{ 'CLIENT_DETAIL.SORENESS_ON_ARRIVAL' | translate: { soreness: soreness } }}
+            </p>
+          </div>
+        </ng-container>
       </div>
 
       <!-- === COBROS === -->
@@ -2221,8 +2280,8 @@
         </div>
 
         <div class="section-error" *ngIf="tasksState === 'error'">
-          <p>No se pudieron cargar los hábitos de este cliente.</p>
-          <button class="retry-button" (click)="loadTasks()">Reintentar</button>
+          <p>{{ 'CLIENT_DETAIL.NO_SE_PUDIERON_CARGAR_LOS' | translate }}</p>
+          <button class="retry-button" (click)="loadTasks()">{{ 'COMMON.RETRY' | translate }}</button>
         </div>
 
         <ng-container *ngIf="tasksState === 'loaded'">
@@ -2230,15 +2289,15 @@
             <!-- Movimiento 1 Coach Pro — "Tareas" chocaba con las tareas del
              propio entrenador del panel Hoy. Estas las hace EL CLIENTE cada
              día (pasos, agua, sueño): son hábitos. -->
-            <h2 class="section-heading">Hábitos diarios</h2>
+            <h2 class="section-heading">{{ 'CLIENT_DETAIL.HABITOS_DIARIOS' | translate }}</h2>
             <button class="add-button" (click)="openTaskPanel()">
               <ion-icon name="add-outline"></ion-icon>
-              Añadir hábito
+              {{ 'CLIENT_DETAIL.ANADIR_HABITO' | translate }}
             </button>
           </div>
 
           <p class="empty-hint" *ngIf="!tasks.length">
-            Todavía no has asignado ningún hábito diario a este cliente.
+            {{ 'CLIENT_DETAIL.TODAVIA_NO_HAS_ASIGNADO_NINGUN' | translate }}
           </p>
 
           <div
@@ -2258,18 +2317,18 @@
                   class="previous-relation-badge"
                   *ngIf="isFromPreviousRelation(task.createdAt)"
                 >
-                  De una relación anterior
+                  {{ 'CLIENT_DETAIL.DE_UNA_RELACION_ANTERIOR' | translate }}
                 </span>
               </span>
               <span class="payment-due"
-                >Objetivo: {{ taskTargetLabel(task) }}</span
+                >{{ 'CLIENT_DETAIL.TARGET' | translate: { target: taskTargetLabel(task) } }}</span
               >
             </div>
             <button
               class="payment-status-btn"
               (click)="confirmDeactivateTask(task)"
             >
-              Quitar
+              {{ 'TRAINER_COMMON.REMOVE' | translate }}
             </button>
           </div>
         </ng-container>
@@ -2282,7 +2341,7 @@
         ></div>
         <div class="panel-sheet" *ngIf="showTaskPanel" appSubmitOnEnter="submitTask">
           <div class="panel-handle"></div>
-          <h3 class="panel-title">Añadir hábito diario</h3>
+          <h3 class="panel-title">{{ 'CLIENT_DETAIL.ANADIR_HABITO_DIARIO' | translate }}</h3>
 
           <div class="cadence-options">
             <button
@@ -2300,7 +2359,7 @@
             <input
               type="text"
               class="input-field"
-              placeholder="Nombre del hábito"
+              [placeholder]="'CLIENT_DETAIL.NOMBRE_DEL_HABITO' | translate"
               [(ngModel)]="taskLabel"
             />
           </div>
@@ -2309,7 +2368,7 @@
             <input
               type="number"
               class="input-field"
-              placeholder="Objetivo diario"
+              [placeholder]="'CLIENT_DETAIL.OBJETIVO_DIARIO' | translate"
               [(ngModel)]="taskTarget"
               min="0"
               step="1"
@@ -2322,7 +2381,7 @@
             <input
               type="number"
               class="input-field"
-              placeholder="Hasta (opcional, para pautar un rango)"
+              [placeholder]="'CLIENT_DETAIL.HASTA_OPCIONAL_PARA_PAUTAR_UN' | translate"
               [(ngModel)]="taskTargetMax"
               min="0"
               step="1"
@@ -2333,7 +2392,7 @@
             <input
               type="text"
               class="input-field"
-              placeholder="Unidad (pasos, L, horas...)"
+              [placeholder]="'CLIENT_DETAIL.UNIDAD_PASOS_HORAS' | translate"
               [(ngModel)]="taskUnit"
             />
           </div>
@@ -2344,7 +2403,7 @@
             data-enter-submit-action="submitTask"
             [disabled]="!taskTarget || taskTarget <= 0 || !taskUnit.trim() || (taskType === 'custom' && !taskLabel.trim()) || isSavingTask"
           >
-            <span *ngIf="!isSavingTask">Guardar hábito</span>
+            <span *ngIf="!isSavingTask">{{ 'CLIENT_DETAIL.GUARDAR_HABITO' | translate }}</span>
             <ion-spinner name="dots" *ngIf="isSavingTask"></ion-spinner>
           </button>
         </div>
@@ -2358,8 +2417,8 @@
         </div>
 
         <div class="section-error" *ngIf="notesState === 'error'">
-          <p>No se pudieron cargar las notas de este cliente.</p>
-          <button class="retry-button" (click)="loadNotes()">Reintentar</button>
+          <p>{{ 'CLIENT_DETAIL.NO_SE_PUDIERON_CARGAR_LAS' | translate }}</p>
+          <button class="retry-button" (click)="loadNotes()">{{ 'COMMON.RETRY' | translate }}</button>
         </div>
 
         <ng-container *ngIf="notesState === 'loaded'">
@@ -2369,14 +2428,14 @@
               [(ngModel)]="newNoteText"
               maxlength="2000"
               rows="3"
-              placeholder="Apunta aquí tus notas sobre este cliente. Solo tú las ves."
+              [placeholder]="'CLIENT_DETAIL.APUNTA_AQUI_TUS_NOTAS_SOBRE' | translate"
             ></textarea>
             <button
               class="submit-button"
               (click)="submitNote()"
               [disabled]="!newNoteText.trim() || isSavingNote"
             >
-              <span *ngIf="!isSavingNote">Guardar nota</span>
+              <span *ngIf="!isSavingNote">{{ 'CLIENT_DETAIL.GUARDAR_NOTA' | translate }}</span>
               <ion-spinner name="dots" *ngIf="isSavingNote"></ion-spinner>
             </button>
             <!-- La cabecera del cliente solo tiene sitio para una nota — sin
@@ -2384,13 +2443,12 @@
              visible en ningún sitio. -->
             <p class="note-composer-hint">
               <ion-icon name="bookmark-outline" aria-hidden="true"></ion-icon>
-              Solo puede haber una nota fijada a la vez — se muestra en la
-              cabecera del cliente.
+              {{ 'CLIENT_DETAIL.SOLO_PUEDE_HABER_UNA_NOTA' | translate }}
             </p>
           </div>
 
           <p class="empty-hint" *ngIf="!notes.length">
-            Todavía no tienes notas sobre este cliente.
+            {{ 'CLIENT_DETAIL.TODAVIA_NO_TIENES_NOTAS_SOBRE' | translate }}
           </p>
 
           <div
@@ -2400,7 +2458,7 @@
           >
             <div class="note-card-header">
               <span class="note-date"
-                >{{ note.createdAt | date: 'd MMM y, HH:mm' }}</span
+                >{{ note.createdAt | localDate: 'd MMM y, HH:mm' }}</span
               >
               <!-- TASK-062 (MASTER_BACKLOG.md) — no se purga nada al revocar; en
                vez de eso, se marca lo que quedó de antes de la última vez
@@ -2409,7 +2467,7 @@
                 class="previous-relation-badge"
                 *ngIf="isFromPreviousRelation(note.createdAt)"
               >
-                De una relación anterior
+                {{ 'CLIENT_DETAIL.DE_UNA_RELACION_ANTERIOR' | translate }}
               </span>
               <div class="note-card-actions" *ngIf="editingNoteId !== note._id">
                 <ng-container
@@ -2419,7 +2477,7 @@
                     type="button"
                     class="note-icon-button"
                     (click)="startEditNote(note)"
-                    aria-label="Editar nota"
+                    [attr.aria-label]="'CLIENT_DETAIL.EDITAR_NOTA' | translate"
                   >
                     <ion-icon
                       name="create-outline"
@@ -2430,7 +2488,7 @@
                     type="button"
                     class="note-icon-button"
                     (click)="requestDeleteNote(note._id)"
-                    aria-label="Borrar nota"
+                    [attr.aria-label]="'CLIENT_DETAIL.BORRAR_NOTA' | translate"
                   >
                     <ion-icon
                       name="trash-outline"
@@ -2440,7 +2498,7 @@
                   <button
                     class="pin-button"
                     (click)="togglePin(note)"
-                    [attr.aria-label]="note.pinned ? 'Desfijar nota' : 'Fijar nota'"
+                    [attr.aria-label]="(note.pinned ? 'CLIENT_DETAIL.UNPIN_NOTE' : 'CLIENT_DETAIL.PIN_NOTE') | translate"
                   >
                     <ion-icon
                       [name]="note.pinned ? 'bookmark' : 'bookmark-outline'"
@@ -2450,13 +2508,13 @@
                 </ng-container>
                 <ng-template #confirmNoteRemove>
                   <div class="note-delete-confirm">
-                    <span class="note-delete-confirm__label">¿Borrar?</span>
+                    <span class="note-delete-confirm__label">{{ 'CLIENT_DETAIL.BORRAR' | translate }}</span>
                     <button
                       type="button"
                       class="note-delete-confirm__cancel"
                       (click)="dismissDeleteNote()"
                     >
-                      Cancelar
+                      {{ 'COMMON.CANCEL' | translate }}
                     </button>
                     <button
                       type="button"
@@ -2468,7 +2526,7 @@
                         name="dots"
                         *ngIf="isDeletingNoteId === note._id"
                       ></ion-spinner>
-                      <span *ngIf="isDeletingNoteId !== note._id">Borrar</span>
+                      <span *ngIf="isDeletingNoteId !== note._id">{{ 'TRAINER_COMMON.ERASE' | translate }}</span>
                     </button>
                   </div>
                 </ng-template>
@@ -2493,7 +2551,7 @@
                   (click)="saveEditNote(note)"
                   [disabled]="!editingNoteText.trim() || isSavingNoteEdit"
                 >
-                  <span *ngIf="!isSavingNoteEdit">Guardar</span>
+                  <span *ngIf="!isSavingNoteEdit">{{ 'COMMON.SAVE' | translate }}</span>
                   <ion-spinner
                     name="dots"
                     *ngIf="isSavingNoteEdit"
@@ -2505,7 +2563,7 @@
                   (click)="cancelEditNote()"
                   [disabled]="isSavingNoteEdit"
                 >
-                  Cancelar
+                  {{ 'COMMON.CANCEL' | translate }}
                 </button>
               </div>
             </div>
@@ -2518,7 +2576,7 @@
            administración de la relación, no parte del plan. -->
       <div class="tab-panel" *ngIf="activeTab === 'relation'">
         <div class="section-row">
-          <h2 class="section-heading">Servicios que llevas</h2>
+          <h2 class="section-heading">{{ 'CLIENT_DETAIL.SERVICIOS_QUE_LLEVAS' | translate }}</h2>
         </div>
 
         <ul class="relation-list">
@@ -2527,19 +2585,19 @@
               <ion-icon name="barbell-outline"></ion-icon>
             </span>
             <div class="relation-text">
-              <span class="relation-title">Entrenamiento</span>
+              <span class="relation-title">{{ 'TRAINER_COMMON.TRAINING' | translate }}</span>
               <span class="relation-meta" *ngIf="trainingState === 'loaded'">{{
-                currentRoutinePhase?.tableName || 'Sin rutina en curso'
+                currentRoutinePhase?.tableName || ('CLIENT_DETAIL.NO_ROUTINE_IN_PROGRESS' | translate)
               }}</span>
             </div>
             <button
               type="button"
               class="relation-end-button"
-              aria-label="Finalizar relación de entrenamiento"
+              [attr.aria-label]="'CLIENT_DETAIL.FINALIZAR_RELACION_DE_ENTRENAMIENTO' | translate"
               (click)="confirmRevoke('training')"
               [disabled]="isRevoking"
             >
-              Finalizar
+              {{ 'CLIENT_DETAIL.FINALIZAR' | translate }}
             </button>
           </li>
           <li class="relation-row" *ngIf="scopes.includes('nutrition')">
@@ -2547,31 +2605,34 @@
               <ion-icon name="nutrition-outline"></ion-icon>
             </span>
             <div class="relation-text">
-              <span class="relation-title">Nutrición</span>
+              <span class="relation-title">{{ 'TRAINER_COMMON.NUTRITION' | translate }}</span>
               <span class="relation-meta" *ngIf="nutritionState === 'loaded'">{{
-                activePhase?.phaseName || activePhase?.planName || 'Sin fase en curso'
+                activePhase?.phaseName || activePhase?.planName || ('CLIENT_DETAIL.NO_PHASE_IN_PROGRESS' | translate)
               }}</span>
             </div>
             <button
               type="button"
               class="relation-end-button"
-              aria-label="Finalizar relación de nutrición"
+              [attr.aria-label]="'CLIENT_DETAIL.FINALIZAR_RELACION_DE_NUTRICION' | translate"
               (click)="confirmRevoke('nutrition')"
               [disabled]="isRevoking"
             >
-              Finalizar
+              {{ 'CLIENT_DETAIL.FINALIZAR' | translate }}
             </button>
           </li>
         </ul>
 
         <p class="relation-note">
           <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
-          Finalizar es inmediato y no se puede deshacer. Para volver a llevar
-          ese servicio tendrás que invitarle de nuevo.
+          {{ 'CLIENT_DETAIL.FINALIZAR_ES_INMEDIATO_NO_SE' | translate }}
         </p>
       </div>
 
       <!-- === DOLOR (Movimiento 3, subpestaña propia desde el Movimiento final) === -->
+      <div class="tab-panel" *ngIf="activeTab === 'media'">
+        <app-client-media-panel [clientId]="clientId" [hasTraining]="scopes.includes('training')"></app-client-media-panel>
+      </div>
+
       <div class="tab-panel" *ngIf="activeTab === 'pain'">
         <app-pain-panel [clientId]="clientId"></app-pain-panel>
       </div>
@@ -2594,7 +2655,7 @@
     <div class="history-card">
       <div class="history-card-header">
         <span class="list-card-title">{{ workout.name }}</span>
-        <span class="history-date">{{ workout.date | date: 'd MMM y' }}</span>
+        <span class="history-date">{{ workout.date | localDate: 'd MMM y' }}</span>
       </div>
       <p class="history-subtitle">
         {{ workout.tableName }} · {{ workout.splitName }}
@@ -2605,14 +2666,14 @@
         </span>
         <span
           ><ion-icon name="barbell-outline"></ion-icon> {{
-          workout.exercises?.length || 0 }} ejercicios</span
+          workout.exercises?.length || 0 }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span
         >
         <!-- F18 -->
         <span class="pulse-badge" *ngIf="workout.readinessPre"
-          >Readiness {{ workout.readinessPre }}/5</span
+          >{{ 'CLIENT_DETAIL.READINESS' | translate }} {{ workout.readinessPre }}/5</span
         >
         <span class="pulse-badge" *ngIf="workout.perceivedEffortPost"
-          >Esfuerzo {{ workout.perceivedEffortPost }}/5</span
+          >{{ 'CLIENT_DETAIL.EFFORT' | translate }} {{ workout.perceivedEffortPost }}/5</span
         >
       </div>
 
@@ -2621,7 +2682,7 @@
        de "nada": una sesión sin nada apuntado no pinta nada. -->
       <p class="soreness-line" *ngIf="sorenessLabel(workout) as soreness">
         <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
-        Agujetas al llegar: {{ soreness }}
+        {{ 'CLIENT_DETAIL.SORENESS_ON_ARRIVAL' | translate: { soreness: soreness } }}
       </p>
     </div>
   </ng-template>
@@ -2650,14 +2711,14 @@
               type="button"
               class="tf-page-header__back-button"
               (click)="closeSessionsPanel()"
-              aria-label="Cerrar"
+              [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
             >
               <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
             </button>
           </div>
           <div class="tf-page-header__title-section">
             <h1 class="tf-page-header__title" id="sessions-panel-title">
-              Sesiones
+              {{ 'CLIENT_DETAIL.SESIONES' | translate }}
             </h1>
           </div>
           <div class="tf-page-header__actions"></div>
@@ -2677,11 +2738,11 @@
           (click)="openSessionsStats(tables[0])"
         >
           <ion-icon name="stats-chart-outline"></ion-icon>
-          Ver progresión por ejercicio
+          {{ 'CLIENT_DETAIL.VER_PROGRESION_POR_EJERCICIO' | translate }}
         </button>
 
         <p class="empty-hint" *ngIf="!completedWorkouts.length">
-          Este cliente todavía no ha completado ningún entrenamiento.
+          {{ 'CLIENT_DETAIL.ESTE_CLIENTE_TODAVIA_NO_HA_3' | translate }}
         </p>
 
         <ng-container
@@ -2731,14 +2792,14 @@
             type="button"
             class="tf-page-header__back-button"
             (click)="closeIntakePanel()"
-            aria-label="Cerrar"
+            [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
           >
             <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
           </button>
         </div>
         <div class="tf-page-header__title-section">
           <h1 class="tf-page-header__title" id="intake-panel-title">
-            {{ isEditingIntake ? 'Editar cuestionario' : 'Cuestionario inicial' }}
+            {{ (isEditingIntake ? 'CLIENT_DETAIL.EDITAR_CUESTIONARIO' : 'ONBOARDING.TITLE') | translate }}
           </h1>
         </div>
         <div class="tf-page-header__actions">
@@ -2747,8 +2808,8 @@
             class="tf-page-header__back-button"
             *ngIf="!isEditingIntake && clientIntakeState === 'loaded' && clientIntake"
             (click)="startEditIntake()"
-            aria-label="Editar cuestionario"
-            title="Editar"
+            [attr.aria-label]="'CLIENT_DETAIL.EDITAR_CUESTIONARIO' | translate"
+            [title]="'TRAINER_COMMON.EDIT' | translate"
           >
             <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
           </button>
@@ -2763,9 +2824,9 @@
       </div>
       <div class="intake-panel__state" *ngIf="clientIntakeState === 'error'">
         <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-        <p>No se pudo cargar el cuestionario inicial.</p>
+        <p>{{ 'CLIENT_DETAIL.NO_SE_PUDO_CARGAR_EL_2' | translate }}</p>
         <button type="button" class="retry-button" (click)="openIntakePanel()">
-          Reintentar
+          {{ 'COMMON.RETRY' | translate }}
         </button>
       </div>
       <div
@@ -2773,7 +2834,7 @@
         *ngIf="clientIntakeState === 'loaded' && !clientIntake"
       >
         <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
-        <p>Este cliente todavía no ha respondido su cuestionario inicial.</p>
+        <p>{{ 'CLIENT_DETAIL.ESTE_CLIENTE_TODAVIA_NO_HA' | translate }}</p>
       </div>
 
       <ng-container
@@ -2787,11 +2848,11 @@
             *ngIf="intake.submittedAt || intake.reviewedAt"
           >
             <span *ngIf="intake.submittedAt">
-              Enviado el {{ intake.submittedAt | date: 'd MMM y' }}
+              {{ 'CLIENT_DETAIL.SENT_ON' | translate: { date: (intake.submittedAt | localDate: 'd MMM y') } }}
             </span>
             <span class="intake-panel__reviewed" *ngIf="intake.reviewedAt">
               <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
-              Revisado el {{ intake.reviewedAt | date: 'd MMM y' }}
+              {{ 'CLIENT_DETAIL.REVIEWED_ON' | translate: { date: (intake.reviewedAt | localDate: 'd MMM y') } }}
             </span>
           </p>
           <app-intake-answers [intake]="intake"></app-intake-answers>
@@ -2803,7 +2864,7 @@
           *ngIf="isEditingIntake && intakeDraft as draft"
         >
           <label class="intake-edit-label">
-            Objetivos
+            {{ 'CLIENT_DETAIL.OBJETIVOS' | translate }}
             <textarea
               class="textarea-field"
               [(ngModel)]="draft.goals"
@@ -2812,7 +2873,7 @@
             ></textarea>
           </label>
           <label class="intake-edit-label">
-            Salud / lesiones
+            {{ 'CLIENT_DETAIL.SALUD_LESIONES' | translate }}
             <textarea
               class="textarea-field"
               [(ngModel)]="draft.healthConditions"
@@ -2821,13 +2882,13 @@
             ></textarea>
           </label>
           <label class="intake-edit-label">
-            Experiencia
+            {{ 'CLIENT_DETAIL.EXPERIENCIA' | translate }}
             <ion-select
               class="tf-select"
               interface="popover"
               toggleIcon="chevron-down-outline"
               labelPlacement="stacked"
-              aria-label="Experiencia"
+              [attr.aria-label]="'CLIENT_DETAIL.EXPERIENCIA' | translate"
               [(ngModel)]="draft.experienceLevel"
             >
               <ion-select-option
@@ -2839,7 +2900,7 @@
             </ion-select>
           </label>
           <label class="intake-edit-label">
-            Disponibilidad
+            {{ 'CLIENT_DETAIL.DISPONIBILIDAD' | translate }}
             <textarea
               class="textarea-field"
               [(ngModel)]="draft.availability"
@@ -2849,7 +2910,7 @@
           </label>
 
           <div class="intake-edit-group">
-            <span class="intake-edit-label">Lugar de entrenamiento</span>
+            <span class="intake-edit-label">{{ 'INTAKE.LOCATION_TITLE' | translate }}</span>
             <div class="cadence-options">
               <button
                 type="button"
@@ -2864,7 +2925,7 @@
           </div>
 
           <div class="intake-edit-group">
-            <span class="intake-edit-label">Equipamiento disponible</span>
+            <span class="intake-edit-label">{{ 'INTAKE.EQUIPMENT_TITLE' | translate }}</span>
             <div class="cadence-options">
               <button
                 type="button"
@@ -2902,7 +2963,7 @@
         (click)="cancelEditIntake()"
         [disabled]="isSavingIntake"
       >
-        Cancelar
+        {{ 'COMMON.CANCEL' | translate }}
       </button>
       <button
         type="button"
@@ -2911,7 +2972,7 @@
         [disabled]="isSavingIntake"
       >
         <ion-spinner name="dots" *ngIf="isSavingIntake"></ion-spinner>
-        <span *ngIf="!isSavingIntake">Guardar</span>
+        <span *ngIf="!isSavingIntake">{{ 'COMMON.SAVE' | translate }}</span>
       </button>
     </div>
   </div>

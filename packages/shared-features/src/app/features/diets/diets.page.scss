@@ -1,3 +1,11 @@
+// Distancia vertical única de la pantalla de dieta: entre la línea de fase y
+// los días, entre los días y las macros, entre tarjetas y entre comidas.
+// Los componentes hijos la leen con `var(--diets-gap, 8px)`; cambiarla aquí
+// mueve toda la pantalla a la vez.
+:host {
+  --diets-gap: 8px;
+}
+
 ion-spinner {
   width: 7em;
 }
@@ -151,7 +159,7 @@ ion-popover {
   --background-activated: rgba(var(--ion-color-tertiary-rgb), 0.25);
   --border-radius: 12px;
   --color: var(--ion-color-tertiary);
-  margin: 8px 16px;
+  margin: var(--diets-gap) 16px 0;
 
   ion-icon {
     font-size: 1.2rem;
@@ -229,7 +237,7 @@ ion-popover {
   flex-direction: column;
   gap: 8px;
   width: calc(100% - 14px);
-  margin: 12px 7px 0;
+  margin: var(--diets-gap) 7px 0;
   padding: 12px 14px;
   border-radius: 14px;
   background: rgba(254, 144, 0, 0.08);
@@ -320,7 +328,7 @@ ion-popover {
   align-items: center;
   gap: 12px;
   width: calc(100% - 14px);
-  margin: 12px 7px 0;
+  margin: var(--diets-gap) 7px 0;
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid rgba(254, 144, 0, 0.35);
@@ -370,11 +378,23 @@ ion-popover {
   }
 }
 
+// Las comidas ponen su propia distancia (`--diets-gap` arriba de cada tarjeta):
+// sin el padding vertical por defecto de `ion-grid` no se suma al hueco.
+.t-diets-meals {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+// Nota del día (shared-ui): trae 12px arriba y 8px abajo; aquí manda el hueco único.
+.non-meal-content ::ng-deep app-notes .note-wrapper {
+  margin: var(--diets-gap) 7px 0;
+}
+
 // Hábitos del día: se marcan aquí mismo, bajo las comidas.
 .day-habits,
 .day-supplements {
   width: calc(100% - 14px);
-  margin: 12px 7px 0;
+  margin: var(--diets-gap) 7px 0;
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid #2a2a2a;
@@ -415,7 +435,7 @@ ion-popover {
     color: #9ca3af;
   }
 
-  &.is-done > ion-icon {
+  &.is-done > .day-habits__check {
     color: #5db530;
   }
 
@@ -443,7 +463,13 @@ ion-popover {
   }
 }
 
-.day-habits__row.is-done > ion-icon {
+// Icono del tipo de hábito (pasos, agua…): el mismo que ve el entrenador.
+.day-habits__row > .day-habits__type {
+  font-size: 22px;
+  color: var(--ion-color-primary);
+}
+
+.day-habits__row.is-done > .day-habits__check {
   color: var(--ion-color-primary);
 }
 
@@ -458,7 +484,7 @@ ion-popover {
   align-items: center;
   gap: 12px;
   width: calc(100% - 14px);
-  margin: 12px 7px 0;
+  margin: var(--diets-gap) 7px 0;
   padding: 13px 14px;
   border-radius: 14px;
   background: rgba(254, 144, 0, 0.08);

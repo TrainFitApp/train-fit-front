@@ -1,0 +1,95 @@
+<div class="videos">
+  <div class="videos-skeleton" *ngIf="loading"><div class="skeleton-block"></div></div>
+
+  <div class="videos-state" *ngIf="!loading && failed">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <p>{{ 'MEDIA.LOAD_ERROR' | translate }}</p>
+    <button type="button" class="ghost-button" (click)="load()">{{ 'MEDIA.RETRY' | translate }}</button>
+  </div>
+
+  <ng-container *ngIf="!loading && !failed">
+    <app-premium-media-card
+      *ngIf="isClient && status?.enabled && !status?.canUpload"
+      variant="videos"
+      [showcase]="!entries.length"
+    ></app-premium-media-card>
+
+    <ng-container *ngIf="isClient && canUpload">
+      <input #videoInput class="hidden-input" type="file" accept="video/*" (change)="onFile($event)" />
+
+      <!-- Grabar con la cámara de la app (temporizador) o elegir uno ya
+           grabado. -->
+      <div class="add-actions" *ngIf="!draft">
+        <button type="button" class="primary-button" (click)="record()">
+          <ion-icon name="videocam-outline"></ion-icon>
+          <span>{{ 'MEDIA.RECORD_VIDEO' | translate }}</span>
+        </button>
+        <button type="button" class="ghost-button" (click)="pick(videoInput)">
+          <ion-icon name="images-outline"></ion-icon>
+          <span>{{ 'MEDIA.FROM_GALLERY' | translate }}</span>
+        </button>
+      </div>
+      <p class="videos-note" *ngIf="!draft">{{ 'MEDIA.VIDEO_LIMIT_NOTE' | translate }}</p>
+
+      <!-- Borrador: nota opcional antes de subir -->
+      <section class="draft" *ngIf="draft">
+        <div class="draft-file">
+          <ion-icon name="film-outline"></ion-icon>
+          <span class="draft-name">{{ draft.file.name }}</span>
+          <span class="draft-duration">{{ duration(draft.durationSec) }}</span>
+        </div>
+        <textarea
+          class="draft-note"
+          rows="2"
+          maxlength="500"
+          [value]="draft.note"
+          (input)="onNote($event)"
+          [disabled]="draft.uploading"
+          [placeholder]="'MEDIA.VIDEO_NOTE_PLACEHOLDER' | translate"
+          [attr.aria-label]="'MEDIA.VIDEO_NOTE' | translate"
+        ></textarea>
+        <div class="draft-progress" *ngIf="draft.uploading" role="status">
+          <span class="bar"><span class="bar-fill" [style.transform]="'scaleX(' + draft.progress + ')'"></span></span>
+          <span>{{ 'MEDIA.UPLOADING_PERCENT' | translate: { percent: (draft.progress * 100 | number: '1.0-0') } }}</span>
+        </div>
+        <p class="videos-note" *ngIf="draft.uploading">{{ 'MEDIA.KEEP_APP_OPEN' | translate }}</p>
+        <div class="draft-actions">
+          <button type="button" class="ghost-button" (click)="cancelDraft()" [disabled]="draft.uploading">{{ 'COMMON.CANCEL' | translate }}</button>
+          <button type="button" class="primary-button primary-button--small" (click)="upload()" [disabled]="draft.uploading">
+            <ion-icon name="cloud-upload-outline"></ion-icon>
+            <span>{{ 'MEDIA.UPLOAD' | translate }}</span>
+          </button>
+        </div>
+      </section>
+    </ng-container>
+
+    <article class="video" *ngFor="let entry of entries; trackBy: trackEntry">
+      <app-media-video-player
+        [src]="entry.video.asset.url"
+        [poster]="entry.video.asset.thumbUrl"
+        [status]="entry.video.asset.status"
+      ></app-media-video-player>
+      <div class="video-meta">
+        <div class="video-text">
+          <span class="video-date">{{ longDate(entry.day.date) }}</span>
+          <p class="video-note" *ngIf="entry.video.note">{{ entry.video.note }}</p>
+        </div>
+        <span class="video-duration">{{ duration(entry.video.asset.durationSec) }}</span>
+        <button
+          type="button"
+          class="icon-button icon-button--danger"
+          *ngIf="isClient"
+          (click)="remove(entry)"
+          [attr.aria-label]="'MEDIA.REMOVE_VIDEO' | translate"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+    </article>
+
+    <div class="videos-state" *ngIf="!entries.length && !draft && (!isClient || canUpload)">
+      <ion-icon name="videocam-outline"></ion-icon>
+      <p>{{ (isClient ? 'MEDIA.VIDEOS_EMPTY_CLIENT' : 'MEDIA.VIDEOS_EMPTY_TRAINER') | translate }}</p>
+    </div>
+  </ng-container>
+</div>

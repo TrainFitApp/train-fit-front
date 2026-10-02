@@ -7,11 +7,14 @@ import {
   OnDestroy,
   Output,
   ViewChild,
+  inject,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { DIETARY_FLAG_UI } from '../../../../../../shared/utils/dietary-flag-ui.util';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import { ClientNutritionPreferences } from '../../models/client-detail.model';
+import { localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 type CooksAtHome = 'yes' | 'no' | 'sometimes';
 type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
@@ -33,6 +36,7 @@ const COOKS_AT_HOME_OPTIONS: { value: CooksAtHome; label: string; icon: string }
   { value: 'sometimes', label: 'A veces', icon: 'swap-horizontal-outline' },
   { value: 'no', label: 'No', icon: 'fast-food-outline' },
 ];
+COOKS_AT_HOME_OPTIONS.forEach((item) => localizeProp(item, 'label', `INTAKE.COOKS.${item.value}`));
 
 // Mismo icono y color por restricción que las cards de dieta y el cajón de
 // sugerencias (DIETARY_FLAG_UI): lo que el profesional marca aquí es lo que
@@ -56,6 +60,8 @@ const DIETARY_FLAG_OPTIONS = (['vegan', 'vegetarian', 'lactoseFree', 'glutenFree
   styleUrls: ['nutrition-preferences-panel.component.scss'],
 })
 export class NutritionPreferencesPanelComponent implements AfterViewInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
   @Input() public preferences: ClientNutritionPreferences | null = null;
   @Output() public saved = new EventEmitter<ClientNutritionPreferences>();
@@ -151,15 +157,15 @@ export class NutritionPreferencesPanelComponent implements AfterViewInit, OnDest
           this.showPanel = false;
           this.saved.emit(preferences);
           this.ionicUtilService.showToast({
-            message: 'Preferencias nutricionales guardadas',
+            message: this.translate.instant('NUTRITION_PREFERENCES.SAVED'),
             duration: 2500,
           });
         },
         error: (err) => {
           this.isSaving = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudieron guardar las preferencias',
-            'Error',
+            err?.error?.message || this.translate.instant('CLIENTS.NO_SE_PUDIERON_GUARDAR_LAS'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
         },

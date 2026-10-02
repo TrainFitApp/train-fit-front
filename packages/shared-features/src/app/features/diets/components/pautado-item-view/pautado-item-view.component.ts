@@ -121,7 +121,7 @@ export class PautadoItemViewComponent implements OnInit {
 
   public ngOnInit(): void {
     if (this.kind === 'product' && this.product) {
-      this.name = this.product.product?.name || '';
+      this.name = this.customProductService.customProductName(this.product);
       this.quantity = Number(this.product.quantity) || 0;
       this.assignedQuantity =
         this.product.assignedQuantity != null ? Number(this.product.assignedQuantity) : null;

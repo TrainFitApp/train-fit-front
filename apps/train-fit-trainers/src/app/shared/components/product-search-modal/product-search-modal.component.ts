@@ -1,4 +1,5 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { Observable, Subject, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
@@ -36,6 +37,8 @@ export interface ProductSearchResult {
   styleUrls: ['product-search-modal.component.scss'],
 })
 export class ProductSearchModalComponent implements OnInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLButtonElement>;
   // TAREA5 — cuando el producto/receta ya se eligió en otra pantalla (el
   // buscador real de search-foods, ver SearchFoodsTrainerContext), este
@@ -161,8 +164,8 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
   // "cantidad/confirmar" y seguía diciendo "Buscar alimento" aunque la
   // búsqueda ni se mostraba.
   public get headerTitle(): string {
-    if (this.selectedProduct || this.selectedRecipe) return 'Confirmar cantidad';
-    return 'Buscar alimento';
+    if (this.selectedProduct || this.selectedRecipe) return this.translate.instant('SHARED_COMPONENTS.CONFIRMAR_CANTIDAD');
+    return this.translate.instant('SHARED_COMPONENTS.BUSCAR_ALIMENTO');
   }
 
   public trackByProductId(_index: number, product: IProduct): string {

@@ -170,7 +170,7 @@ export class TableCardPage {
       labels: labels,
       datasets: [
         {
-          label: 'Ejercicios',
+          label: this.translate.instant('TABLES.EXERCISES_LABEL'),
           data: [1, 2, 3, 4, 5, 6, 5],
           backgroundColor: [
             'rgba(255, 99, 132, 0.2)',

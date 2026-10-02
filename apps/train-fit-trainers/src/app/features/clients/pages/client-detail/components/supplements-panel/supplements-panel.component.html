@@ -3,13 +3,13 @@
     <span class="panel-icon" aria-hidden="true">
       <ion-icon name="flask-outline"></ion-icon>
     </span>
-    <h3 class="panel-heading">Suplementación</h3>
+    <h3 class="panel-heading">{{ 'DIETS.SUPPLEMENTS' | translate }}</h3>
     <button
       type="button"
       class="add-button"
       (click)="openPanel(null)"
-      aria-label="Añadir suplemento"
-      title="Añadir suplemento"
+      [attr.aria-label]="'CLIENTS.ANADIR_SUPLEMENTO' | translate"
+      [title]="'CLIENTS.ANADIR_SUPLEMENTO' | translate"
     >
       <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
     </button>
@@ -20,16 +20,15 @@
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar los suplementos.</p>
-    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+    <p>{{ 'CLIENTS.NO_SE_PUDIERON_CARGAR_LOS' | translate }}</p>
+    <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
     <div class="panel-empty panel-empty--icon" *ngIf="!supplements.length">
       <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>
       <p>
-        Todavía no le has pautado ningún suplemento. Lo que añadas aquí lo ve el cliente en su app,
-        con la dosis, el momento y el porqué.
+        {{ 'CLIENTS.TODAVIA_NO_LE_HAS_PAUTADO' | translate }}
       </p>
     </div>
 
@@ -58,12 +57,12 @@
         </span>
 
         <div class="supplement-actions">
-          <button type="button" class="row-action" (click)="openPanel(supplement)">Editar</button>
+          <button type="button" class="row-action" (click)="openPanel(supplement)">{{ 'TRAINER_COMMON.EDIT' | translate }}</button>
           <button
             type="button"
             class="row-action row-action--danger"
             (click)="confirmRemove(supplement)"
-            [attr.aria-label]="'Quitar ' + supplement.name"
+            [attr.aria-label]="('CLIENTS.QUITAR' | translate) + supplement.name"
           >
             <ion-icon name="trash-outline"></ion-icon>
           </button>
@@ -100,13 +99,13 @@
     <div class="tf-page-header sheet-header">
       <div class="tf-page-header__content">
         <div class="tf-page-header__back-section">
-          <button type="button" class="tf-page-header__back-button" (click)="closePanel()" aria-label="Cerrar">
+          <button type="button" class="tf-page-header__back-button" (click)="closePanel()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
             <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
           </button>
         </div>
         <div class="tf-page-header__title-section">
           <h1 class="tf-page-header__title" id="supplement-sheet-title">
-            {{ editingId ? 'Editar suplemento' : 'Añadir suplemento' }}
+            {{ editingId ? ('CLIENTS.EDITAR_SUPLEMENTO' | translate) : ('CLIENTS.ANADIR_SUPLEMENTO' | translate) }}
           </h1>
         </div>
         <div class="tf-page-header__actions"></div>
@@ -116,10 +115,10 @@
     <!-- Tres bloques, tres preguntas: qué es, cuándo se toma y para qué.
          Antes eran ocho campos en columna, todos con el mismo peso. -->
     <section class="form-group">
-      <p class="group-label">Qué toma</p>
+      <p class="group-label">{{ 'CLIENTS.QUE_TOMA' | translate }}</p>
 
       <div class="field">
-        <label class="field-label" for="supplement-name">Nombre</label>
+        <label class="field-label" for="supplement-name">{{ 'TRAINER_COMMON.NAME' | translate }}</label>
         <div class="input-wrapper">
           <ion-icon name="medkit-outline" class="input-icon"></ion-icon>
           <input
@@ -127,7 +126,7 @@
             type="text"
             class="input-field"
             maxlength="120"
-            placeholder="Creatina monohidrato"
+            [placeholder]="'CLIENTS.CREATINA_MONOHIDRATO' | translate"
             [(ngModel)]="formName"
           />
         </div>
@@ -136,7 +135,7 @@
       <!-- Cantidad (solo número) y unidad pegadas en una sola caja: se
            leen como un dato, "5 g", y se guardan así. -->
       <div class="field">
-        <label class="field-label" for="supplement-dose">Dosis</label>
+        <label class="field-label" for="supplement-dose">{{ 'CLIENTS.DOSIS' | translate }}</label>
         <div class="input-wrapper dose-control">
           <ion-icon name="beaker-outline" class="input-icon"></ion-icon>
           <input
@@ -159,7 +158,7 @@
             interface="popover"
             toggleIcon="chevron-down-outline"
             labelPlacement="stacked"
-            aria-label="Unidad de la dosis"
+            [attr.aria-label]="'CLIENTS.UNIDAD_DE_LA_DOSIS' | translate"
             [interfaceOptions]="{ animated: false }"
             [(ngModel)]="formDoseUnit"
           >
@@ -172,17 +171,17 @@
     </section>
 
     <section class="form-group">
-      <p class="group-label">Cuándo</p>
+      <p class="group-label">{{ 'CLIENTS.CUANDO' | translate }}</p>
 
       <div class="field">
-        <label class="field-label" for="supplement-timing">Momento del día</label>
+        <label class="field-label" for="supplement-timing">{{ 'CLIENTS.MOMENTO_DEL_DIA' | translate }}</label>
         <ion-select
           id="supplement-timing"
           class="tf-select"
           interface="popover"
           toggleIcon="chevron-down-outline"
           labelPlacement="stacked"
-          aria-label="Momento del día"
+          [attr.aria-label]="'CLIENTS.MOMENTO_DEL_DIA' | translate"
           [(ngModel)]="formTiming"
         >
           <ion-select-option *ngFor="let timing of timings; trackBy: trackByKey" [value]="timing.key">
@@ -192,7 +191,7 @@
       </div>
 
       <div class="field" *ngIf="formTiming === 'custom'">
-        <label class="field-label" for="supplement-custom-timing">Especifica cuándo</label>
+        <label class="field-label" for="supplement-custom-timing">{{ 'CLIENTS.ESPECIFICA_CUANDO' | translate }}</label>
         <div class="input-wrapper">
           <ion-icon name="time-outline" class="input-icon"></ion-icon>
           <input
@@ -200,7 +199,7 @@
             type="text"
             class="input-field"
             maxlength="100"
-            placeholder="Media hora antes de comer"
+            [placeholder]="'CLIENTS.MEDIA_HORA_ANTES_DE_COMER' | translate"
             [(ngModel)]="formCustomTiming"
           />
         </div>
@@ -210,20 +209,20 @@
            siempre. Sin fin, se toma hasta nueva orden. -->
       <div class="field-row">
         <div class="field">
-          <label class="field-label" for="supplement-start">Desde</label>
+          <label class="field-label" for="supplement-start">{{ 'CLIENTS.DESDE' | translate }}</label>
           <div class="input-wrapper">
             <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
             <app-date-field class="input-field" inputId="supplement-start" pickerTitle="Desde" [(ngModel)]="formStartDate"></app-date-field>
           </div>
         </div>
         <div class="field">
-          <label class="field-label" for="supplement-end">Hasta (opcional)</label>
+          <label class="field-label" for="supplement-end">{{ 'CLIENTS.HASTA_OPCIONAL' | translate }}</label>
           <div class="input-wrapper">
             <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
             <app-date-field
               class="input-field"
               inputId="supplement-end"
-              placeholder="Sin fin"
+              [placeholder]="'CLIENTS.SIN_FIN' | translate"
               pickerTitle="Hasta"
               [min]="formStartDate || null"
               [clearable]="true"
@@ -234,10 +233,10 @@
       </div>
 
       <div class="field">
-        <span class="field-label" id="supplement-weekdays-label">Días</span>
+        <span class="field-label" id="supplement-weekdays-label">{{ 'CLIENTS.DIAS' | translate }}</span>
         <!-- El texto de ayuda sale del label a su propia línea: dentro, el
              label dejaba de leerse como nombre del campo. -->
-        <p class="field-hint">Sin marcar ninguno, se toma todos los días.</p>
+        <p class="field-hint">{{ 'CLIENTS.SIN_MARCAR_NINGUNO_SE_TOMA' | translate }}</p>
         <div class="weekday-picker" role="group" aria-labelledby="supplement-weekdays-label">
           <button
             type="button"
@@ -254,23 +253,23 @@
     </section>
 
     <section class="form-group">
-      <p class="group-label">Para qué</p>
+      <p class="group-label">{{ 'CLIENTS.PARA_QUE' | translate }}</p>
 
       <div class="field">
-        <label class="field-label" for="supplement-reason">Motivo</label>
-        <p class="field-hint">Lo lee el cliente. Un suplemento sin motivo se abandona.</p>
+        <label class="field-label" for="supplement-reason">{{ 'TRAINER_COMMON.REASON' | translate }}</label>
+        <p class="field-hint">{{ 'CLIENTS.LO_LEE_EL_CLIENTE_UN' | translate }}</p>
         <textarea
           id="supplement-reason"
           class="note-field"
           rows="2"
           maxlength="300"
-          placeholder="Rendimiento en series de fuerza"
+          [placeholder]="'CLIENTS.RENDIMIENTO_EN_SERIES_DE_FUERZA' | translate"
           [(ngModel)]="formReason"
         ></textarea>
       </div>
 
       <div class="field">
-        <label class="field-label" for="supplement-url">Enlace de compra <span class="field-optional">opcional</span></label>
+        <label class="field-label" for="supplement-url">{{ 'CLIENTS.ENLACE_DE_COMPRA' | translate }} <span class="field-optional">{{ 'CLIENTS.OPCIONAL' | translate }}</span></label>
         <div class="input-wrapper">
           <ion-icon name="link-outline" class="input-icon"></ion-icon>
           <input
@@ -278,7 +277,7 @@
             type="url"
             class="input-field"
             maxlength="500"
-            placeholder="https://…"
+            [placeholder]="'CLIENTS.HTTPS' | translate"
             [(ngModel)]="formUrl"
           />
         </div>
@@ -288,9 +287,9 @@
     <!-- Pie pegado al fondo de la hoja: con el formulario desplazado, el
          botón de guardar quedaba fuera de vista. -->
     <footer class="sheet-footer">
-      <button type="button" class="ghost-button" (click)="closePanel()">Cancelar</button>
+      <button type="button" class="ghost-button" (click)="closePanel()">{{ 'COMMON.CANCEL' | translate }}</button>
       <button class="submit-button" (click)="save()" [disabled]="!canSave" data-enter-submit-action="saveSupplement">
-        <span *ngIf="!isSaving">Guardar</span>
+        <span *ngIf="!isSaving">{{ 'COMMON.SAVE' | translate }}</span>
         <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
       </button>
     </footer>

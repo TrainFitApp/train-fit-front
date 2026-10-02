@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { localizeList } from 'src/app/core/i18n/localized-catalog';
 import {
   MySupplement,
   MySupplementsApiService,
@@ -9,6 +11,7 @@ import {
 type ViewState = 'loading' | 'error' | 'loaded';
 
 const WEEKDAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+localizeList(WEEKDAY_LABELS, 'SUPPLEMENTS.WEEKDAYS_SHORT');
 
 interface TimingGroup {
   key: string;
@@ -39,7 +42,8 @@ export class MySupplementsPage implements OnInit {
 
   constructor(
     private mySupplementsApi: MySupplementsApiService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -101,7 +105,7 @@ export class MySupplementsPage implements OnInit {
     const known = new Set(this.timings.map((timing) => timing.key));
     for (const [key, list] of byTiming) {
       if (known.has(key)) continue;
-      ordered.push({ key, label: 'Otro momento', supplements: list });
+      ordered.push({ key, label: this.translate.instant('DIETS.OTHER_TIME'), supplements: list });
     }
 
     return ordered;

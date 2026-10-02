@@ -635,9 +635,9 @@ export class PlannerPage {
     let chosen: SplitPurpose = current;
 
     await this.ionicUtilService.showAlert({
-      header: 'Tipo de microciclo',
+      header: this.translate.instant('PLANNER.TIPO_DE_MICROCICLO'),
       message:
-        'Nota solo para ti: no la ve el cliente ni aparece en su app. Sirve para leer bien los números del bloque — en una descarga, que el volumen baje es lo previsto.',
+        this.translate.instant('PLANNER.NOTA_SOLO_PARA_TI_NO_2'),
       inputs: SPLIT_PURPOSES.map((option) => ({
         type: 'radio' as const,
         label: option.label,
@@ -664,14 +664,14 @@ export class PlannerPage {
     if (!this.table) return;
 
     await this.ionicUtilService.showAlert({
-      header: 'Objetivo del bloque',
-      message: '¿Qué buscas con este microciclo? Lo lees tú, no el cliente.',
+      header: this.translate.instant('PLANNER.OBJETIVO_DEL_BLOQUE'),
+      message: this.translate.instant('PLANNER.QUE_BUSCAS_CON_ESTE_MICROCICLO'),
       inputs: [
         {
           name: 'objective',
           type: 'textarea',
           value: split.objective || '',
-          placeholder: 'Ej. subir series de espalda sin tocar pierna',
+          placeholder: this.translate.instant('PLANNER.EJ_SUBIR_SERIES_DE_ESPALDA'),
           attributes: { maxlength: 300 },
         },
       ],
@@ -704,7 +704,7 @@ export class PlannerPage {
           Object.assign(split, previous);
           this.persistTable();
           this.ionicUtilService.showToast({
-            message: 'No se pudo guardar el bloque',
+            message: this.translate.instant('PLANNER.NO_SE_PUDO_GUARDAR_EL'),
             duration: 2500,
           });
         },

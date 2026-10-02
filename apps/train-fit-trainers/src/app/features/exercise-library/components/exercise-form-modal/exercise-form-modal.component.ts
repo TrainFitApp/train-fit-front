@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ModalController } from '@ionic/angular';
 import { Exercise } from 'src/app/core/models/exercise';
@@ -33,6 +34,8 @@ type ExerciseMode = 'fuerza' | 'cardio' | 'isometrico';
   styleUrls: ['./exercise-form-modal.component.scss'],
 })
 export class ExerciseFormModalComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() exercise?: Exercise;
 
   public readonly categories = EXERCISE_CATEGORIES;
@@ -143,7 +146,7 @@ export class ExerciseFormModalComponent implements OnInit {
 
   public muscleAriaLabel(label: string, muscle: string): string {
     const role = this.roleOf(muscle);
-    return `${label}: ${role ? this.roleLabel[role].toLowerCase() : 'sin marcar'}`;
+    return `${label}: ${role ? this.roleLabel[role].toLowerCase() : this.translate.instant('EXERCISE_LIBRARY.SIN_MARCAR')}`;
   }
 
   public get selectedMuscles(): ExerciseMuscle[] {
@@ -187,7 +190,7 @@ export class ExerciseFormModalComponent implements OnInit {
       next: (saved) => {
         this.saving = false;
         void this.ionicUtilService.showSuccessToast(
-          this.isEdit ? 'Ejercicio actualizado' : 'Ejercicio creado'
+          this.isEdit ? this.translate.instant('EXERCISE_LIBRARY.EJERCICIO_ACTUALIZADO') : this.translate.instant('EXERCISE_LIBRARY.EJERCICIO_CREADO')
         );
         this.modalController.dismiss({
           saved: true,
@@ -200,7 +203,7 @@ export class ExerciseFormModalComponent implements OnInit {
         this.saving = false;
         void this.ionicUtilService.showErrorToast(
           error,
-          'No se pudo guardar el ejercicio'
+          this.translate.instant('EXERCISE_LIBRARY.NO_SE_PUDO_GUARDAR_EL')
         );
       },
     });

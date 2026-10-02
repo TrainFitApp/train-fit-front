@@ -1,0 +1,15 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="page-toolbar">
+    <ion-buttons slot="start">
+      <button type="button" class="back-btn" (click)="close()" [attr.aria-label]="'COMMON.BACK' | translate">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ 'MEDIA.FORM_CHECKS_TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-checks-content">
+  <p class="page-hint">{{ 'MEDIA.MY_FORM_CHECKS_HINT' | translate }}</p>
+  <app-form-check-list *ngIf="ready" [showExercise]="true" [focusId]="focusId"></app-form-check-list>
+</ion-content>

@@ -1,3 +1,5 @@
+import { localizeList } from '../i18n/localized-catalog';
+
 // Movimiento 2 Coach Pro — agujetas por grupo muscular.
 //
 // Espejo EXACTO de train-fit-back/components/workouts/soreness-catalog.js
@@ -52,6 +54,8 @@ export const SORENESS_ANCHORS: string[] = [
   'Duele y me limita el rango o la fuerza',
   'Muy dolorido, hoy no podría entrenarlo',
 ];
+
+localizeList(SORENESS_ANCHORS, 'SORENESS.ANCHORS');
 
 export function sorenessAnchorFor(level: number): string {
   return SORENESS_ANCHORS[level - 1] || '';

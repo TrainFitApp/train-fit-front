@@ -2,7 +2,7 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="closeModal()" aria-label="Volver">
+        <button type="button" class="tf-page-header__back-button" (click)="closeModal()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>

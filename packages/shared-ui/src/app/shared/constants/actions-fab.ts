@@ -8,6 +8,7 @@ export enum ACTIONS_FAB_TYPES {
   duplicateMicrocycle = 7,
   createExercise = 9,
   createRecipe = 10,
+  quickAdd = 11,
 }
 
 export type ACTIONS_FAB_TYPE = {
@@ -62,6 +63,12 @@ export const ACTIONS_FAB: {
     value: 'ACTIONS_FAB.CREATE_RECIPE',
     icon: 'restaurant-outline',
     color: 'secondary',
+  },
+  [ACTIONS_FAB_TYPES.quickAdd]: {
+    id: ACTIONS_FAB_TYPES.quickAdd,
+    value: 'ACTIONS_FAB.QUICK_ADD',
+    icon: 'flash-outline',
+    color: 'alternative',
   },
   [ACTIONS_FAB_TYPES.addExercise]: {
     id: ACTIONS_FAB_TYPES.addExercise,

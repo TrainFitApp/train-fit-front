@@ -3,7 +3,7 @@
     <section class="form-group">
       <div class="field-row">
         <div class="field">
-          <label class="field-label" [for]="formId + '-amount'">Importe</label>
+          <label class="field-label" [for]="formId + '-amount'">{{ 'PAYMENTS.IMPORTE' | translate }}</label>
           <div class="input-wrapper input-wrapper--money" [class.input-wrapper--invalid]="amountError && amountText">
             <input
               [id]="formId + '-amount'"
@@ -21,7 +21,7 @@
           </div>
         </div>
         <div class="field">
-          <label class="field-label" [for]="formId + '-due'">Vencimiento</label>
+          <label class="field-label" [for]="formId + '-due'">{{ 'PAYMENTS.VENCIMIENTO' | translate }}</label>
           <div class="input-wrapper">
             <ion-icon name="calendar-outline" class="input-icon" aria-hidden="true"></ion-icon>
             <app-date-field
@@ -37,19 +37,18 @@
       </div>
       <p class="field-error" *ngIf="amountError && amountText">{{ amountError }}</p>
       <p class="field-hint" *ngIf="charge && charge.receivedCents + charge.cancelledCents > 0 && !(amountError && amountText)">
-        Ya hay {{ money(charge.receivedCents) }} recibidos<ng-container *ngIf="charge.cancelledCents > 0"> y {{ money(charge.cancelledCents) }} anulados</ng-container>.
+        {{ 'PAYMENTS.YA_HAY' | translate }} {{ money(charge.receivedCents) }} {{ 'PAYMENTS.RECIBIDOS' | translate }}<ng-container *ngIf="charge.cancelledCents > 0"> y {{ money(charge.cancelledCents) }} {{ 'PAYMENTS.ANULADOS' | translate }}</ng-container>.
       </p>
 
       <div class="notice notice--warning" *ngIf="pastDue">
         <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
         <div>
           <p class="notice-text">
-            El vencimiento es anterior a hoy: se incorpora como <strong>deuda anterior</strong>. Contará como vencida y no se
-            enviará ningún aviso atrasado.
+            {{ 'PAYMENTS.EL_VENCIMIENTO_ES_ANTERIOR_HOY' | translate }} <strong>{{ 'PAYMENTS.DEUDA_ANTERIOR' | translate }}</strong>{{ 'PAYMENTS.CONTARA_COMO_VENCIDA_NO_SE' | translate }}
           </p>
           <label class="check-row">
             <input type="checkbox" name="confirmPastDue" [(ngModel)]="confirmPastDue" />
-            <span>Confirmo que es una deuda de antes</span>
+            <span>{{ 'PAYMENTS.CONFIRMO_QUE_ES_UNA_DEUDA' | translate }}</span>
           </label>
         </div>
       </div>
@@ -58,7 +57,7 @@
     <section class="form-group">
       <div class="field">
         <label class="field-label" [for]="formId + '-concept'">
-          Concepto <span class="field-optional">(opcional · lo verá el cliente en sus avisos)</span>
+          {{ 'PAYMENTS.CONCEPTO' | translate }} <span class="field-optional">{{ 'PAYMENTS.OPCIONAL_LO_VERA_EL_CLIENTE' | translate }}</span>
         </label>
         <div class="input-wrapper">
           <input
@@ -67,14 +66,14 @@
             type="text"
             name="concept"
             maxlength="80"
-            placeholder="Plan de nutrición, sesión extra…"
+            [placeholder]="'PAYMENTS.PLAN_DE_NUTRICION_SESION_EXTRA' | translate"
             [(ngModel)]="concept"
           />
         </div>
       </div>
       <div class="field">
         <label class="field-label" [for]="formId + '-note'">
-          Nota interna <span class="field-optional">(solo la ves tú)</span>
+          {{ 'PAYMENTS.NOTA_INTERNA' | translate }} <span class="field-optional">{{ 'PAYMENTS.SOLO_LA_VES_TU' | translate }}</span>
         </label>
         <div class="input-wrapper">
           <textarea
@@ -91,7 +90,7 @@
 
     <section class="form-group" *ngIf="editing && needsReason">
       <div class="field">
-        <label class="field-label" [for]="formId + '-reason'">Motivo del cambio</label>
+        <label class="field-label" [for]="formId + '-reason'">{{ 'PAYMENTS.MOTIVO_DEL_CAMBIO' | translate }}</label>
         <div class="input-wrapper">
           <input
             [id]="formId + '-reason'"
@@ -99,11 +98,11 @@
             type="text"
             name="reason"
             maxlength="300"
-            placeholder="Precio acordado distinto, error al anotar…"
+            [placeholder]="'PAYMENTS.PRECIO_ACORDADO_DISTINTO_ERROR_AL' | translate"
             [(ngModel)]="reason"
           />
         </div>
-        <p class="field-hint">Queda en el historial del cobro junto al valor anterior.</p>
+        <p class="field-hint">{{ 'PAYMENTS.QUEDA_EN_EL_HISTORIAL_DEL' | translate }}</p>
       </div>
     </section>
 
@@ -111,10 +110,9 @@
       <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
       <div>
         <p class="notice-text">
-          Con este cambio el cobro vuelve a tener <strong>{{ money(reopenBalanceCents) }}</strong> pendientes. No se enviarán
-          avisos atrasados.
+          {{ 'PAYMENTS.CON_ESTE_CAMBIO_EL_COBRO' | translate }} <strong>{{ money(reopenBalanceCents) }}</strong> {{ 'PAYMENTS.PENDIENTES_NO_SE_ENVIARAN_AVISOS' | translate }}
         </p>
-        <button type="button" class="submit-button" [disabled]="saving" (click)="confirmReopen()">Confirmar y reabrir</button>
+        <button type="button" class="submit-button" [disabled]="saving" (click)="confirmReopen()">{{ 'PAYMENTS.CONFIRMAR_REABRIR' | translate }}</button>
       </div>
     </div>
 
@@ -124,7 +122,7 @@
     </div>
   </form>
 
-  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">Cancelar</button>
+  <button sheetFooter type="button" class="ghost-button" (click)="closed.emit()">{{ 'COMMON.CANCEL' | translate }}</button>
   <button
     sheetFooter
     type="submit"
@@ -133,6 +131,6 @@
     [disabled]="!canSubmit || reopenBalanceCents !== null"
   >
     <ion-spinner name="dots" *ngIf="saving"></ion-spinner>
-    <span *ngIf="!saving">{{ editing ? 'Guardar cambios' : 'Añadir cobro' }}</span>
+    <span *ngIf="!saving">{{ editing ? ('PAYMENTS.GUARDAR_CAMBIOS' | translate) : ('PAYMENTS.ANADIR_COBRO' | translate) }}</span>
   </button>
 </app-payments-sheet>

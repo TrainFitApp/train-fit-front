@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import {
   BlockAdherence,
@@ -16,6 +17,7 @@ import {
   TRAINING_COMPARISON_METRIC_LABELS,
 } from '../../models/client-progress.model';
 import { blockMetric, ComparisonRow, exerciseRows, formatMetric, muscleRows, overviewRows } from './training-comparison';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 // Paleta categórica para grupos musculares y para comparar varios ejercicios
 // a la vez — misma familia desaturada que el resto de la app (PHASE_COLORS
@@ -66,6 +68,8 @@ const MULTI_SERIES_LEGEND = {
   styleUrls: ['./training-comparison-chart.component.scss'],
 })
 export class TrainingComparisonChartComponent implements OnChanges, AfterViewInit, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() blocks: TrainingBlock[] = [];
   @Input() blockMuscleGroups: BlockMuscleGroup[] = [];
   @Input() blockReadiness: BlockReadiness[] = [];
@@ -119,7 +123,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
   public get comparison(): TrainingBlock | undefined { return this.blocks.find((block) => block.splitId === this.comparisonId); }
   public get metricLabel(): string {
     return this.isSessionMode && this.metric === 'muscleGroups'
-      ? 'Volumen por grupo muscular (kg)'
+      ? this.translate.instant('CLIENT_DETAIL.VOLUME_BY_MUSCLE_GROUP')
       : TRAINING_COMPARISON_METRIC_LABELS[this.metric];
   }
   public get primary(): ComparisonRow | undefined { return this.rows.find((row) => row.key === (this.metric === 'exercise' ? 'load' : this.metric)); }
@@ -138,10 +142,10 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
     return this.selectedExercise ? this.blockExerciseByName[this.selectedExercise] || [] : [];
   }
   public get emptyMessage(): string {
-    if (this.metric === 'exercise' && !this.selectedExercises.length) return 'Elige uno o varios ejercicios para ver su progresión.';
-    if (this.metric === 'readiness') return 'No hay registros de readiness o esfuerzo en este rango.';
-    if (this.metric === 'adherence') return 'No hay series pautadas para calcular adherencia en este rango.';
-    return this.isSessionMode ? 'No hay sesiones con series realizadas en el rango elegido.' : 'No hay microciclos con series realizadas para esta selección.';
+    if (this.metric === 'exercise' && !this.selectedExercises.length) return this.translate.instant('CLIENTS.ELIGE_UNO_VARIOS_EJERCICIOS_PARA');
+    if (this.metric === 'readiness') return this.translate.instant('CLIENTS.NO_HAY_REGISTROS_DE_READINESS');
+    if (this.metric === 'adherence') return this.translate.instant('CLIENTS.NO_HAY_SERIES_PAUTADAS_PARA');
+    return this.isSessionMode ? this.translate.instant('CLIENTS.NO_HAY_SESIONES_CON_SERIES') : this.translate.instant('CLIENTS.NO_HAY_MICROCICLOS_CON_SERIES');
   }
   public selectSide(side: 'a' | 'b', id: string): void {
     if (side === 'a') {
@@ -182,7 +186,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
     const values = this.blocks.map((block) => this.metric === 'exercise'
       ? this.blockExercise.find((exercise) => exercise.splitId === block.splitId)?.maxWeight ?? null
       : blockMetric(block, this.metric));
-    const unit = this.metric === 'exercise' || this.metric === 'volume' ? 'kg' : this.metric === 'sets' ? 'series / sesión' : 'sesiones';
+    const unit = this.metric === 'exercise' || this.metric === 'volume' ? 'kg' : this.metric === 'sets' ? this.translate.instant('CLIENTS.SERIES_SESION') : 'sesiones';
     const config: ChartConfiguration<'line'> = {
       type: 'line',
       data: {
@@ -275,7 +279,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
   // del microciclo (que se repite en varias sesiones seguidas y no
   // distinguiría los puntos).
   private sessionLabel(item: { date: string }): string {
-    return new Date(`${item.date}T00:00:00`).toLocaleDateString('es-ES', {
+    return new Date(`${item.date}T00:00:00`).toLocaleDateString(uiLocale(), {
       day: '2-digit',
       month: 'short',
     });
@@ -345,7 +349,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
                 const name = names[context.datasetIndex];
                 const key = canonicalKeys[context.dataIndex];
                 const entry = entriesByName.get(name)?.get(key);
-                return entry ? [`Volumen: ${entry.volume} kg`, `Series: ${entry.sets}`] : [];
+                return entry ? [this.translate.instant('CLIENTS.VOLUMEN_KG_2', { volume: entry.volume }), this.translate.instant('CLIENTS.SERIES', { sets: entry.sets })] : [];
               },
             },
           },
@@ -385,12 +389,12 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
         labels,
         datasets: [
           {
-            label: 'Readiness (antes de entrenar)',
+            label: this.translate.instant('CLIENTS.READINESS_ANTES_DE_ENTRENAR'),
             data: readinessData,
             ...lineStyle('#4f9fc2', false),
           },
           {
-            label: 'Esfuerzo percibido (al terminar)',
+            label: this.translate.instant('CLIENTS.ESFUERZO_PERCIBIDO_AL_TERMINAR'),
             data: effortData,
             ...lineStyle('#fe9000', false),
           },
@@ -409,7 +413,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
                   afterLabel: (context) => {
                     const block = this.blockReadiness[context.dataIndex];
                     if (!block) return [];
-                    return [`${block.sessionsWithPulse} sesión(es) con pulso registrado`];
+                    return [this.translate.instant('CLIENTS.SESION_ES_CON_PULSO_REGISTRADO', { sessionsWithPulse: block.sessionsWithPulse })];
                   },
                 },
           },
@@ -445,7 +449,7 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
         labels,
         datasets: [
           {
-            label: 'Adherencia a lo pautado (%)',
+            label: this.translate.instant('CLIENTS.ADHERENCIA_LO_PAUTADO'),
             data: items.map((i) => i.adherence),
             ...lineStyle('#4d9b7f', false),
           },
@@ -461,10 +465,10 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
               afterLabel: (context) => {
                 if (sessionMode) {
                   const session = this.sessionAdherence[context.dataIndex];
-                  return session ? [`${session.donedSets} de ${session.totalSets} series`] : [];
+                  return session ? [this.translate.instant('CLIENTS.DE_SERIES', { donedSets: session.donedSets, totalSets: session.totalSets })] : [];
                 }
                 const block = this.blockAdherence[context.dataIndex];
-                return block ? [`${block.sessions} sesión(es)`] : [];
+                return block ? [this.translate.instant('CLIENTS.SESION_ES', { sessions: block.sessions })] : [];
               },
             },
           },
@@ -555,9 +559,9 @@ export class TrainingComparisonChartComponent implements OnChanges, AfterViewIni
   }
 
   private metricUnitLabel(): string {
-    if (this.metric === 'sessions') return 'Entrenos completados';
-    if (this.metric === 'sets') return 'Series completadas';
-    return 'Volumen (kg)';
+    if (this.metric === 'sessions') return this.translate.instant('CLIENTS.ENTRENOS_COMPLETADOS');
+    if (this.metric === 'sets') return this.translate.instant('CLIENTS.SERIES_COMPLETADAS');
+    return this.translate.instant('CLIENTS.VOLUMEN_KG');
   }
 
   private baseOptions(): ChartConfiguration<'line'>['options'] {

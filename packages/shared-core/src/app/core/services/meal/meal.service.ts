@@ -60,9 +60,13 @@ export class MealService {
   }
 
   public searchAllWithFilters(
-    searchFilterGroup: SearchFilterGroup
+    searchFilterGroup: SearchFilterGroup,
+    recentIds: string[] = []
   ): Observable<IProduct[]> {
-    return this.mealAPIService.searchAllWithFilters(searchFilterGroup);
+    return this.mealAPIService.searchAllWithFilters(
+      searchFilterGroup,
+      recentIds
+    );
   }
 
   public pasteMeal(

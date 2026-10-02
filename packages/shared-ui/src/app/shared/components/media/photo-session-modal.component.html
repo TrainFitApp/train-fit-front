@@ -1,0 +1,107 @@
+<ion-header class="ion-no-border">
+  <div class="media-modal-header">
+    <button type="button" class="media-icon-button" (click)="close()" [disabled]="anyUploading" [attr.aria-label]="'MEDIA.CLOSE' | translate">
+      <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+    <h1 class="media-modal-title">
+      {{ 'MEDIA.SESSION_TITLE' | translate }}
+      <span class="media-modal-subtitle">{{ dateLabel }}</span>
+    </h1>
+    <span></span>
+  </div>
+</ion-header>
+
+<ion-content class="session-content">
+  <section class="session-guide" [class.session-guide--open]="showGuide">
+    <button type="button" class="guide-toggle" (click)="showGuide = !showGuide" [attr.aria-expanded]="showGuide">
+      <ion-icon name="bulb-outline"></ion-icon>
+      <span>{{ 'MEDIA.GUIDE_TITLE' | translate }}</span>
+      <ion-icon class="guide-chevron" [name]="showGuide ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+    </button>
+    <ul class="guide-list" *ngIf="showGuide">
+      <li><ion-icon name="location-outline"></ion-icon>{{ 'MEDIA.GUIDE_PLACE' | translate }}</li>
+      <li><ion-icon name="time-outline"></ion-icon>{{ 'MEDIA.GUIDE_TIME' | translate }}</li>
+      <li><ion-icon name="shirt-outline"></ion-icon>{{ 'MEDIA.GUIDE_CLOTHES' | translate }}</li>
+      <li><ion-icon name="phone-portrait-outline"></ion-icon>{{ 'MEDIA.GUIDE_CAMERA' | translate }}</li>
+    </ul>
+  </section>
+
+  <p class="session-count">
+    {{ 'MEDIA.SESSION_COUNT' | translate: { done: requiredDone, total: 3 } }}
+  </p>
+
+  <div class="pose-grid">
+    <article
+      *ngFor="let slot of slots; trackBy: trackSlot"
+      class="pose-slot"
+      [class.pose-slot--filled]="photoOf(slot.pose)"
+      [class.pose-slot--optional]="slot.pose === 'extra'"
+    >
+      <ng-container *ngIf="photoOf(slot.pose) as photo; else emptySlot">
+        <img class="pose-photo" [src]="photo.asset.thumbUrl || photo.asset.url" [alt]="('MEDIA.POSE_' + slot.pose.toUpperCase()) | translate" />
+        <span class="pose-tag">{{ ('MEDIA.POSE_' + slot.pose.toUpperCase()) | translate }}</span>
+        <div class="pose-actions">
+          <button type="button" class="pose-action" (click)="takePhoto(slot)" [disabled]="slot.uploading">
+            <ion-icon name="camera-reverse-outline"></ion-icon>
+            <span>{{ 'MEDIA.RETAKE' | translate }}</span>
+          </button>
+          <button type="button" class="pose-action pose-action--danger" (click)="remove(slot)" [disabled]="slot.uploading" [attr.aria-label]="'MEDIA.REMOVE_PHOTO' | translate">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </ng-container>
+
+      <ng-template #emptySlot>
+        <div class="pose-empty">
+          <img
+            *ngIf="referenceOf(slot.pose) as reference"
+            class="pose-reference"
+            [src]="reference.asset.thumbUrl || reference.asset.url"
+            alt=""
+          />
+          <div class="pose-empty-body">
+            <span class="pose-name">{{ ('MEDIA.POSE_' + slot.pose.toUpperCase()) | translate }}</span>
+            <span class="pose-hint">
+              {{ (slot.pose === 'extra' ? 'MEDIA.POSE_EXTRA_HINT' : referenceOf(slot.pose) ? 'MEDIA.POSE_MATCH_HINT' : 'MEDIA.POSE_FIRST_HINT') | translate }}
+            </span>
+          </div>
+          <div class="pose-pickers">
+            <button type="button" class="pose-picker pose-picker--primary" (click)="takePhoto(slot)" [disabled]="slot.uploading">
+              <ion-icon name="camera-outline"></ion-icon>
+              <span>{{ 'MEDIA.TAKE_PHOTO' | translate }}</span>
+            </button>
+            <label class="pose-picker">
+              <input type="file" accept="image/*" (change)="onFile(slot, $event)" [disabled]="slot.uploading" />
+              <ion-icon name="images-outline"></ion-icon>
+              <span class="sr-only">{{ 'MEDIA.FROM_GALLERY' | translate }}</span>
+            </label>
+          </div>
+        </div>
+      </ng-template>
+
+      <div class="pose-uploading" *ngIf="slot.uploading" role="status">
+        <span class="pose-progress"><span class="pose-progress-bar" [style.transform]="'scaleX(' + slot.progress + ')'"></span></span>
+        <span>{{ 'MEDIA.UPLOADING' | translate }}</span>
+      </div>
+    </article>
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border session-footer">
+  <label class="visibility-row" *ngIf="hasTrainer && mode === 'gallery' && day">
+    <span class="visibility-text">
+      <strong>{{ 'MEDIA.VISIBLE_TO_TRAINER' | translate }}</strong>
+      <span>{{ (day.hiddenFromTrainers ? 'MEDIA.VISIBLE_TO_TRAINER_OFF' : 'MEDIA.VISIBLE_TO_TRAINER_ON') | translate }}</span>
+    </span>
+    <ion-toggle
+      [checked]="!day.hiddenFromTrainers"
+      [disabled]="savingVisibility"
+      (ionChange)="toggleVisibility($event)"
+      [attr.aria-label]="'MEDIA.VISIBLE_TO_TRAINER' | translate"
+    ></ion-toggle>
+  </label>
+  <p class="checkin-note" *ngIf="mode === 'checkin'">{{ 'MEDIA.CHECKIN_SHARED_NOTE' | translate }}</p>
+  <button type="button" class="session-done" (click)="close()" [disabled]="anyUploading">
+    {{ (day?.photos?.length ? 'MEDIA.DONE' : 'MEDIA.CLOSE') | translate }}
+  </button>
+</ion-footer>

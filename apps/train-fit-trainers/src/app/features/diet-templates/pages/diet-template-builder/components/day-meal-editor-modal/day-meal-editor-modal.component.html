@@ -6,13 +6,13 @@
           type="button"
           class="tf-page-header__back-button"
           (click)="dismiss()"
-          aria-label="Cerrar"
+          [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
         >
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ menuName }} · {{ meal.slot }}</h1>
+        <h1 class="tf-page-header__title">{{ menuName }} · {{ meal.slot | translateDb }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -21,8 +21,7 @@
 
 <ion-content class="editor-modal-content" [appSubmitOnEnter]="doneButton">
   <p class="panel-hint">
-    Añade una composición para esta comida, o 2 o más opciones nombradas para que el cliente elija
-    cuál come ese día.
+    {{ 'DIET_TEMPLATES.ANADE_UNA_COMPOSICION_PARA_ESTA' | translate }}
   </p>
 
   <!-- Aviso cuando alguna opción se sale de la tolerancia respecto a la de
@@ -32,7 +31,7 @@
       <ion-icon name="alert-circle-outline"></ion-icon>
       <div class="deviation-warning-body">
         <span class="deviation-warning-title">
-          Opciones desiguales (más de un {{ deviationTolerancePct }} % respecto a {{ alternativeName(referenceIndex) }})
+          {{ 'DIET_TEMPLATES.OPCIONES_DESIGUALES_MAS_DE_UN' | translate }} {{ deviationTolerancePct }} {{ 'DIET_TEMPLATES.RESPECTO' | translate }} {{ alternativeName(referenceIndex) }})
         </span>
         <span class="deviation-warning-line" *ngFor="let line of warnings">{{ line }}</span>
       </div>
@@ -42,15 +41,15 @@
   <div class="alternative-card" *ngFor="let alt of meal.alternatives; let i = index; trackBy: trackByIndex">
     <div class="alternative-header" *ngIf="isMultiple">
       <div class="alternative-title-group">
-        <span class="alternative-title">Opción {{ meal.alternatives.length - i }}</span>
-        <span class="alternative-ref-badge" *ngIf="isReference(i)">referencia</span>
+        <span class="alternative-title">{{ 'DIET_TEMPLATES.OPCION' | translate }} {{ meal.alternatives.length - i }}</span>
+        <span class="alternative-ref-badge" *ngIf="isReference(i)">{{ 'DIET_TEMPLATES.REFERENCIA' | translate }}</span>
       </div>
       <div class="alternative-actions">
         <button
           type="button"
           class="remove-alternative-btn alternative-action-copy"
-          title="Duplicar opción (para cambiar solo un alimento)"
-          aria-label="Duplicar opción"
+          [title]="'DIET_TEMPLATES.DUPLICAR_OPCION_PARA_CAMBIAR_SOLO' | translate"
+          [attr.aria-label]="'DIET_TEMPLATES.DUPLICAR_OPCION' | translate"
           (click)="duplicateAlternative(i)"
           [disabled]="meal.alternatives.length >= maxAlternatives"
         >
@@ -59,7 +58,7 @@
         <button
           type="button"
           class="remove-alternative-btn alternative-action-danger"
-          aria-label="Eliminar opción"
+          [attr.aria-label]="'DIET_TEMPLATES.ELIMINAR_OPCION' | translate"
           (click)="removeAlternative(i)"
           [disabled]="meal.alternatives.length <= 1"
         >
@@ -72,7 +71,7 @@
       <input
         type="text"
         class="input-field"
-        placeholder="Etiqueta (p. ej. Desayuno A)"
+        [placeholder]="'DIET_TEMPLATES.ETIQUETA_EJ_DESAYUNO' | translate"
         [(ngModel)]="alt.label"
         [ngModelOptions]="{ standalone: true }"
       />
@@ -86,8 +85,8 @@
           <button
             type="button"
             class="picked-food-name picked-food-name-btn"
-            aria-label="Cambiar por otro alimento"
-            title="Cambiar por otro alimento"
+            [attr.aria-label]="'DIET_TEMPLATES.CAMBIAR_POR_OTRO_ALIMENTO' | translate"
+            [title]="'DIET_TEMPLATES.CAMBIAR_POR_OTRO_ALIMENTO' | translate"
             (click)="openProductSearch(i, j)"
             [disabled]="isOpeningPicker"
           >
@@ -97,8 +96,8 @@
           <button
             type="button"
             class="remove-alternative-btn"
-            aria-label="Editar ingredientes de la receta"
-            title="Editar ingredientes de la receta"
+            [attr.aria-label]="'DIET_TEMPLATES.EDITAR_INGREDIENTES_DE_LA_RECETA' | translate"
+            [title]="'DIET_TEMPLATES.EDITAR_INGREDIENTES_DE_LA_RECETA' | translate"
             *ngIf="item.recipeId && item.recipe"
             (click)="editRecipeIngredients(i, j)"
           >
@@ -107,7 +106,7 @@
           <button
             type="button"
             class="remove-alternative-btn"
-            aria-label="Eliminar alimento"
+            [attr.aria-label]="'DIET_TEMPLATES.ELIMINAR_ALIMENTO' | translate"
             *ngIf="alt.items.length > 1"
             (click)="removeFoodItem(i, j)"
           >
@@ -115,7 +114,7 @@
           </button>
         </div>
         <div class="picked-food-qty-row">
-          <ion-label class="qty-label">Cantidad</ion-label>
+          <ion-label class="qty-label">{{ 'DIET_TEMPLATES.CANTIDAD' | translate }}</ion-label>
           <div class="qty-input-wrapper">
             <input
               type="number"
@@ -159,12 +158,12 @@
           [disabled]="isOpeningPicker"
         >
           <ion-icon name="search-outline"></ion-icon>
-          Buscar producto o receta real
+          {{ 'DIET_TEMPLATES.BUSCAR_PRODUCTO_RECETA_REAL' | translate }}
         </button>
         <button
           type="button"
           class="remove-alternative-btn"
-          aria-label="Eliminar alimento"
+          [attr.aria-label]="'DIET_TEMPLATES.ELIMINAR_ALIMENTO' | translate"
           *ngIf="alt.items.length > 1"
           (click)="removeFoodItem(i, j)"
         >
@@ -178,7 +177,7 @@
          a la derecha del valor, en fuente pequeña: en fila normal
          "274,7g +67,2" no cabía en el ancho del panel y se montaba. -->
     <div class="alternative-totals" *ngIf="alternativeTotals(alt) as totals">
-      <span class="alternative-totals-title">Total</span>
+      <span class="alternative-totals-title">{{ 'DIET_TEMPLATES.TOTAL' | translate }}</span>
       <ng-container *ngIf="{ deviation: deviationOf(i) } as ctx">
         <div class="alternative-totals-grid">
           <div class="alternative-totals-cell" *ngFor="let key of macroKeys">
@@ -206,7 +205,7 @@
         [disabled]="alt.items.length >= maxFoodItemsPerAlternative || isOpeningPicker"
       >
         <ion-icon name="add-outline"></ion-icon>
-        Añadir alimento
+        {{ 'DIET_TEMPLATES.ANADIR_ALIMENTO' | translate }}
       </button>
       <button
         type="button"
@@ -215,7 +214,7 @@
         [disabled]="alt.items.length >= maxFoodItemsPerAlternative"
       >
         <ion-icon name="bookmark-outline"></ion-icon>
-        Insertar snippet
+        {{ 'DIET_TEMPLATES.INSERTAR_SNIPPET' | translate }}
       </button>
     </div>
 
@@ -226,16 +225,16 @@
       (click)="saveAsSnippet(i, $event)"
     >
       <ion-icon name="bookmark-outline"></ion-icon>
-      Guardar como snippet
+      {{ 'DIET_TEMPLATES.GUARDAR_COMO_SNIPPET' | translate }}
     </button>
   </div>
 
   <button type="button" class="add-alternative-btn" (click)="addAlternative()" [disabled]="meal.alternatives.length >= maxAlternatives">
     <ion-icon name="add-outline"></ion-icon>
-    Añadir alternativa
+    {{ 'DIET_TEMPLATES.ANADIR_ALTERNATIVA' | translate }}
   </button>
 </ion-content>
 
 <ion-footer class="editor-modal-footer">
-  <button #doneButton type="button" class="submit-button" (click)="dismiss()">Listo</button>
+  <button #doneButton type="button" class="submit-button" (click)="dismiss()">{{ 'DIET_TEMPLATES.LISTO' | translate }}</button>
 </ion-footer>

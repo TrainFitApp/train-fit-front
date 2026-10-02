@@ -3,6 +3,7 @@ import { ViewChild } from '@angular/core';
 import { PluginListenerHandle } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
 import { ModalController, ModalOptions, AlertOptions, Platform } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 // No importar IonSearchbar directamente para evitar errores en NgModules
 import { CUSTOM_PRODUCT_VALUES } from 'src/app/core/models/customProduct';
 import { Exercise } from 'src/app/core/models/exercise';
@@ -61,7 +62,8 @@ export class SearchExercisesPageComponent {
     private exerciseService: ExerciseService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
-    private platform: Platform
+    private platform: Platform,
+    private translate: TranslateService
   ) {
     this.initVariables();
     this.searchByFilter();
@@ -129,16 +131,15 @@ export class SearchExercisesPageComponent {
     if (this.isChangeMode) {
       // Mostrar alerta de confirmación antes de proceder con el cambio
       const alertOptions: AlertOptions = {
-        header: 'Confirmar cambio',
-        message:
-          'Este ejercicio se sustituirá en este entrenamiento para todos los micro-ciclos',
+        header: this.translate.instant('SEARCH_EXERCISES.SWAP_CONFIRM_HEADER'),
+        message: this.translate.instant('SEARCH_EXERCISES.SWAP_CONFIRM_MSG'),
         buttons: [
           {
-            text: 'Cancelar',
+            text: this.translate.instant('COMMON.CANCEL'),
             role: 'cancel',
           },
           {
-            text: 'Confirmar',
+            text: this.translate.instant('SEARCH_EXERCISES.SWAP_CONFIRM_BTN'),
             handler: () => this.modalController.dismiss(exercise),
           },
         ],

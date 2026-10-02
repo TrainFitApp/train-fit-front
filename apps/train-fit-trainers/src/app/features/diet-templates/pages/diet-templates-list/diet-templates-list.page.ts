@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { DietTemplateApiService } from '../../services/diet-template-api.service';
@@ -15,6 +16,8 @@ type ViewState = 'loading' | 'error' | 'loaded';
   styleUrls: ['diet-templates-list.page.scss'],
 })
 export class DietTemplatesListPage implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   public state: ViewState = 'loading';
   public templates: DietTemplate[] = [];
   public newName = '';
@@ -79,7 +82,7 @@ export class DietTemplatesListPage implements OnInit {
       },
       error: () => {
         this.isCreating = false;
-        this.ionicUtilService.showErrorToast('No se pudo crear la plantilla', 'Error', 3000);
+        this.ionicUtilService.showErrorToast(this.translate.instant('DIET_TEMPLATES.NO_SE_PUDO_CREAR_LA_2'), this.translate.instant('COMMON.ERROR'), 3000);
       },
     });
   }
@@ -91,17 +94,17 @@ export class DietTemplatesListPage implements OnInit {
   public async confirmDelete(template: DietTemplate, event: Event): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: 'Eliminar plantilla',
-      message: `¿Eliminar "${template.name}"? No afecta a las dietas ya aplicadas a clientes.`,
+      header: this.translate.instant('DIET_TEMPLATES.ELIMINAR_PLANTILLA_2'),
+      message: this.translate.instant('DIET_TEMPLATES.ELIMINAR_NO_AFECTA_LAS_DIETAS', { name: template.name }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Eliminar',
+          text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           handler: () => {
             this.dietTemplateApi.delete(template._id).subscribe({
               next: () => this.load(),
-              error: () => this.ionicUtilService.showErrorToast('No se pudo eliminar', 'Error', 3000),
+              error: () => this.ionicUtilService.showErrorToast(this.translate.instant('DIET_TEMPLATES.NO_SE_PUDO_ELIMINAR'), this.translate.instant('COMMON.ERROR'), 3000),
             });
           },
         },

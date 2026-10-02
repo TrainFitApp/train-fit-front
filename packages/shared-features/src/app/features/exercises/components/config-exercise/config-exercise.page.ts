@@ -50,6 +50,18 @@ import { environment } from "src/environments/environment";
 })
 export class ConfigExercisePage implements OnInit, OnDestroy {
   public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
+
+  // Vídeo de técnica por cliente: solo en la app del entrenador y en la
+  // rutina de un cliente (no en sus plantillas, cuyo dueño es él mismo).
+  public get techniqueVideoClientId(): string | null {
+    if (!this.isTrainerApp) return null;
+    const owner = this.tableInUse?.userId ? String(this.tableInUse.userId) : null;
+    return owner && owner !== String(this.user?._id || '') ? owner : null;
+  }
+
+  public get techniqueVideoExerciseId(): string | null {
+    return this.customExercise?.exercise?._id || this.exercise?._id || null;
+  }
   @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLElement>;
   public muscleGroups: string[] = [
     "Espalda",
@@ -187,7 +199,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public descriptionSteps: string[] = [];
   public readonly maxDescriptionSteps = 20;
   public readonly maxStepLength = 300;
-  public showDescriptionDetails = false;
+  public readonly maxNameLength = 100;
 
   @ViewChildren("stepTextarea") private stepTextareaRefs: QueryList<any>;
 
@@ -587,7 +599,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     this.form = new FormGroup({
       name: new FormControl(
         exerciseConfig.exercise.name,
-        Validators.compose([Validators.required, Validators.maxLength(100)])
+        Validators.compose([Validators.required, Validators.maxLength(this.maxNameLength)])
       ),
       description: new FormControl(exerciseConfig.exercise.description || ""),
     });
@@ -1422,7 +1434,10 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     this.showFilters = !this.showFilters;
   }
 
-  public async setExerciseMode(mode: any): Promise<void> {
+  // `segment` vuelve al tipo vigente si se cancela el aviso: el binding
+  // [value] no cambia y, sin esto, el control se quedaba marcando el tipo
+  // descartado.
+  public async setExerciseMode(mode: any, segment?: { value: unknown }): Promise<void> {
     if (mode !== "fuerza" && mode !== "cardio" && mode !== "isometrico") {
       return;
     }
@@ -1450,6 +1465,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
       const result = await this.ionicUtilService.showAlert(alertOptions);
       if (result.role !== "confirm") {
+        if (segment) segment.value = this.exerciseMode;
         return;
       }
 
@@ -2030,10 +2046,24 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
           this.user.archivedExercises = Array.from(favoriteSet);
           this.isExerciseFavorited = isFavorite;
           this.isFavoritingExercise = false;
+
+          // El icono solo cambia de relleno: el toast dice qué ha pasado.
+          this.ionicUtilService.showToast({
+            message: this.translate.instant(
+              isFavorite
+                ? "EXERCISE_CONFIG.FAVORITE_ADDED"
+                : "EXERCISE_CONFIG.FAVORITE_REMOVED",
+            ),
+            duration: 2000,
+          });
         },
         error: (err) => {
           console.error("Error adding exercise to favorites:", err);
           this.isFavoritingExercise = false;
+          this.ionicUtilService.showToast({
+            message: this.translate.instant("EXERCISE_CONFIG.FAVORITE_FAILED"),
+            duration: 3000,
+          });
         },
       });
   }

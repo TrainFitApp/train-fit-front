@@ -1,0 +1,30 @@
+<ng-container *ngIf="video">
+  <app-media-video-player
+    *ngIf="video.source === 'upload'; else embedded"
+    [src]="video.video?.url || null"
+    [poster]="video.video?.thumbUrl || null"
+    [status]="video.video?.status || 'failed'"
+    [durationSec]="video.video?.durationSec || null"
+    [autoplay]="autoplay"
+    [ariaLabel]="video.title"
+  ></app-media-video-player>
+
+  <ng-template #embedded>
+    <div class="embed" *ngIf="embedUrl; else unavailable">
+      <iframe
+        class="embed-frame"
+        [src]="embedUrl"
+        [title]="video.title"
+        frameborder="0"
+        referrerpolicy="origin"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </ng-template>
+
+  <ng-template #unavailable>
+    <div class="unavailable">{{ 'TABLES.VIDEO_NOT_AVAILABLE' | translate }}</div>
+  </ng-template>
+</ng-container>

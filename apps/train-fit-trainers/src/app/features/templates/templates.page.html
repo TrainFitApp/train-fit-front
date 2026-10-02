@@ -1,13 +1,13 @@
 <ion-header class="ion-no-border">
-  <app-page-header title="Biblioteca"></app-page-header>
+  <app-page-header [title]="'TEMPLATES.BIBLIOTECA' | translate"></app-page-header>
 </ion-header>
 
 <ion-content class="templates-content" appScrollMemory="templates">
-  <p class="page-hint">Todo lo que preparas para dárselo a un cliente: entrenamientos, rutinas y dietas.</p>
+  <p class="page-hint">{{ 'TEMPLATES.TODO_LO_QUE_PREPARAS_PARA' | translate }}</p>
 
   <app-category-grid [categories]="categories"></app-category-grid>
 
-  <h2 class="section-heading">Recientes</h2>
+  <h2 class="section-heading">{{ 'TEMPLATES.RECIENTES' | translate }}</h2>
 
   <!-- En escritorio, cada tipo es su propia columna en una grid (auto-fit:
        una columna sin datos ni skeleton no se renderiza, así que no reserva
@@ -15,8 +15,8 @@
   <div class="recent-columns">
     <section class="recent-column" *ngIf="loadingFullRoutineTemplates || fullRoutineTemplates.length">
       <div class="recent-column-header">
-        <h3 class="recent-column-title">Rutinas</h3>
-        <a class="recent-column-link" routerLink="/tabs/routine-templates">Ver todas</a>
+        <h3 class="recent-column-title">{{ 'TEMPLATES.RUTINAS' | translate }}</h3>
+        <a class="recent-column-link" routerLink="/tabs/routine-templates">{{ 'TRAINER_COMMON.SEE_ALL_F' | translate }}</a>
       </div>
 
       <div class="recent-skeleton" *ngIf="loadingFullRoutineTemplates">
@@ -41,8 +41,8 @@
 
     <section class="recent-column" *ngIf="loadingRoutineTemplates || routineTemplates.length">
       <div class="recent-column-header">
-        <h3 class="recent-column-title">Entrenamientos</h3>
-        <a class="recent-column-link" routerLink="/tabs/routines">Ver todas</a>
+        <h3 class="recent-column-title">{{ 'TEMPLATES.ENTRENAMIENTOS' | translate }}</h3>
+        <a class="recent-column-link" routerLink="/tabs/routines">{{ 'TRAINER_COMMON.SEE_ALL_F' | translate }}</a>
       </div>
 
       <div class="recent-skeleton" *ngIf="loadingRoutineTemplates">
@@ -53,7 +53,7 @@
         <button type="button" class="recent-row" *ngFor="let rt of routineTemplates" (click)="openTemplate(rt)">
           <div class="recent-row-info">
             <span class="recent-row-name">{{ rt.name }}</span>
-            <span class="recent-row-meta">{{ exerciseCount(rt) }} ejercicios</span>
+            <span class="recent-row-meta">{{ exerciseCount(rt) }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
           </div>
           <ion-icon name="chevron-forward-outline" class="recent-row-chevron"></ion-icon>
         </button>
@@ -62,8 +62,8 @@
 
     <section class="recent-column" *ngIf="loadingDietTemplates || dietTemplates.length">
       <div class="recent-column-header">
-        <h3 class="recent-column-title">Dietas</h3>
-        <a class="recent-column-link" routerLink="/tabs/diet-templates">Ver todas</a>
+        <h3 class="recent-column-title">{{ 'TEMPLATES.DIETAS' | translate }}</h3>
+        <a class="recent-column-link" routerLink="/tabs/diet-templates">{{ 'TRAINER_COMMON.SEE_ALL_F' | translate }}</a>
       </div>
 
       <div class="recent-skeleton" *ngIf="loadingDietTemplates">
@@ -90,6 +90,6 @@
       !routineTemplates.length && !dietTemplates.length && !fullRoutineTemplates.length
     "
   >
-    Todavía no has creado nada. Empieza desde cualquiera de las categorías de arriba.
+    {{ 'TEMPLATES.TODAVIA_NO_HAS_CREADO_NADA' | translate }}
   </p>
 </ion-content>

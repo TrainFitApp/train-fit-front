@@ -19,7 +19,56 @@
 </ion-header>
 
 <ion-content class="video-modal-content">
-  <div *ngIf="videoEmbedSrcSafe; else noVideo" class="elegant-card video-card">
+  <!-- Vídeo de su entrenador: pautado, se distingue a simple vista -->
+  <div *ngIf="techniqueVideo" class="elegant-card video-card trainer-video-card">
+    <div class="video-header">
+      <div class="video-info">
+        <div class="video-icon trainer-video-icon">
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </div>
+        <div class="trainer-video-heading">
+          <h3 class="video-title">{{ 'MEDIA.TRAINER_VIDEO' | translate }}</h3>
+          <span class="trainer-video-sub">
+            {{ techniqueVideo.title }}<ng-container *ngIf="techniqueVideo.assignedToYou"> · {{ 'MEDIA.ASSIGNED_TO_YOU' | translate }}</ng-container>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="trainer-video-player">
+      <app-technique-video-player [video]="techniqueVideo"></app-technique-video-player>
+    </div>
+    <p class="trainer-video-cues" *ngIf="techniqueVideo.cues">{{ techniqueVideo.cues }}</p>
+    <button
+      type="button"
+      class="catalog-toggle"
+      *ngIf="videoEmbedSrcSafe"
+      (click)="showCatalogVideo = !showCatalogVideo"
+      [attr.aria-expanded]="showCatalogVideo"
+    >
+      {{ (showCatalogVideo ? 'MEDIA.HIDE_CATALOG_VIDEO' : 'MEDIA.SHOW_CATALOG_VIDEO') | translate }}
+    </button>
+  </div>
+
+  <!-- Revisiones de técnica: sus vídeos y la respuesta del entrenador -->
+  <div *ngIf="formCheck" class="elegant-card form-check-card">
+    <div class="video-header">
+      <div class="video-info">
+        <div class="video-icon">
+          <ion-icon name="videocam-outline"></ion-icon>
+        </div>
+        <h3 class="video-title">{{ 'MEDIA.FORM_CHECKS_TITLE' | translate }}</h3>
+      </div>
+    </div>
+    <div class="form-check-body">
+      <app-form-check-list [exerciseId]="formCheck.exerciseId"></app-form-check-list>
+      <button type="button" class="form-check-send" (click)="sendFormCheck()">
+        <ion-icon name="videocam-outline"></ion-icon>
+        <span>{{ 'MEDIA.SEND_TO_TRAINER' | translate }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="videoEmbedSrcSafe && (!techniqueVideo || showCatalogVideo); else noVideoOrTrainer" class="elegant-card video-card">
     <div class="video-header">
       <div class="video-info">
         <div class="video-icon">
@@ -29,7 +78,7 @@
       </div>
     </div>
     <div class="video-container">
-      <iframe class="video-frame" [src]="videoEmbedSrcSafe" title="YouTube video player" frameborder="0"
+      <iframe class="video-frame" [src]="videoEmbedSrcSafe" [title]="'EXERCISE_CONFIG.VIDEO_PLAYER' | translate" frameborder="0"
         referrerpolicy="origin" loading="lazy"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen playsinline>
@@ -37,8 +86,8 @@
     </div>
   </div>
 
-  <ng-template #noVideo>
-    <div class="no-video">{{ 'TABLES.VIDEO_NOT_AVAILABLE' | translate }}</div>
+  <ng-template #noVideoOrTrainer>
+    <div class="no-video" *ngIf="!videoEmbedSrcSafe && !techniqueVideo">{{ 'TABLES.VIDEO_NOT_AVAILABLE' | translate }}</div>
   </ng-template>
 
   <!-- Historical Stats Section -->

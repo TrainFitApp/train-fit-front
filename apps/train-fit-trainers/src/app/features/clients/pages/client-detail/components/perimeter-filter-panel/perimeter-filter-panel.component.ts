@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { IonicModule, ModalController } from '@ionic/angular';
+import { TranslateModule } from '@ngx-translate/core';
 
 export interface PerimeterOption {
   key: string;
@@ -18,7 +19,7 @@ export const MAX_PRIMARY_PERIMETERS = 4;
 @Component({
   selector: 'app-perimeter-filter-panel',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './perimeter-filter-panel.component.html',
   styleUrls: ['./perimeter-filter-panel.component.scss'],
 })

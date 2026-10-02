@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -41,6 +42,8 @@ let ledgerSeq = 0;
   styleUrls: ['./client-payments-ledger.component.scss'],
 })
 export class ClientPaymentsLedgerComponent implements OnInit, OnChanges, OnDestroy {
+  private readonly translate = inject(TranslateService);
+
   @Input() public clientId = '';
   @Input() public clientName: string | null = null;
   @Input() public readOnly = false;
@@ -51,10 +54,10 @@ export class ClientPaymentsLedgerComponent implements OnInit, OnChanges, OnDestr
 
   public readonly uid = `ledger-${++ledgerSeq}`;
   public readonly filters: Array<{ key: LedgerFilter; label: string }> = [
-    { key: 'all', label: 'Todos' },
-    { key: 'pending', label: 'Pendientes' },
-    { key: 'overdue', label: 'Vencidos' },
-    { key: 'history', label: 'Historial' },
+    { key: 'all', label: this.translate.instant('TRAINER_COMMON.ALL_M') },
+    { key: 'pending', label: this.translate.instant('PAYMENTS.PENDIENTES_2') },
+    { key: 'overdue', label: this.translate.instant('PAYMENTS.VENCIDOS_2') },
+    { key: 'history', label: this.translate.instant('COACH.HISTORY') },
   ];
 
   public state: 'loading' | 'error' | 'loaded' = 'loading';
@@ -168,10 +171,10 @@ export class ClientPaymentsLedgerComponent implements OnInit, OnChanges, OnDestr
     const history = charges.filter((c) => c.temporal === 'closed');
     const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
     this.groups = [
-      { key: 'overdue', title: 'Vencidos', meta: `${count(overdue.length, 'cobro', 'cobros')} · ${this.money(sum(overdue))}`, charges: overdue },
-      { key: 'today', title: 'Vence hoy', meta: this.money(sum(today)), charges: today },
-      { key: 'upcoming', title: 'Próximos', meta: count(upcoming.length, 'cobro', 'cobros'), charges: upcoming },
-      { key: 'history', title: 'Historial', meta: count(history.length, 'cobro cerrado', 'cobros cerrados'), charges: history },
+      { key: 'overdue', title: this.translate.instant('PAYMENTS.VENCIDOS_2'), meta: `${count(overdue.length, 'cobro', 'cobros')} · ${this.money(sum(overdue))}`, charges: overdue },
+      { key: 'today', title: this.translate.instant('PAYMENTS.VENCE_HOY'), meta: this.money(sum(today)), charges: today },
+      { key: 'upcoming', title: this.translate.instant('PAYMENTS.PROXIMOS'), meta: count(upcoming.length, 'cobro', 'cobros'), charges: upcoming },
+      { key: 'history', title: this.translate.instant('COACH.HISTORY'), meta: count(history.length, 'cobro cerrado', 'cobros cerrados'), charges: history },
     ].filter((group) => group.charges.length) as ChargeGroup[];
     this.counts = {
       all: charges.length,
@@ -234,18 +237,18 @@ export class ClientPaymentsLedgerComponent implements OnInit, OnChanges, OnDestr
   }
 
   public planStatusLabel(plan: FeePlanView): string {
-    return plan.status === 'active' ? 'Activa' : plan.status === 'paused' ? 'Pausada' : 'Finalizada';
+    return plan.status === 'active' ? this.translate.instant('CLIENT_DETAIL.PHASE_ACTIVE') : plan.status === 'paused' ? this.translate.instant('PAYMENTS.PAUSADA') : this.translate.instant('CLIENT_DETAIL.PHASE_ENDED');
   }
 
   public figuresLine(charge: PaymentCharge): string {
     const money = (cents: number) => this.money(cents, charge.currency);
     if (charge.status === 'settled') {
-      return charge.lastReceivedDay ? `Liquidado · último pago ${formatDay(charge.lastReceivedDay)}` : 'Liquidado';
+      return charge.lastReceivedDay ? this.translate.instant('PAYMENTS.LIQUIDADO_ULTIMO_PAGO', { p0: formatDay(charge.lastReceivedDay) }) : this.translate.instant('PAYMENTS.LIQUIDADO');
     }
     if (charge.status === 'cancelled') {
-      return charge.receivedCents > 0 ? `Recibido ${money(charge.receivedCents)} · anulado ${money(charge.cancelledCents)}` : 'Anulado sin cobrar';
+      return charge.receivedCents > 0 ? this.translate.instant('PAYMENTS.RECIBIDO_ANULADO', { p0: money(charge.receivedCents), p1: money(charge.cancelledCents) }) : this.translate.instant('PAYMENTS.ANULADO_SIN_COBRAR');
     }
-    if (charge.status === 'void') return 'Previsión anulada';
+    if (charge.status === 'void') return this.translate.instant('PAYMENTS.PREVISION_ANULADA');
     const parts = [`de ${money(charge.amountCents)}`];
     if (charge.receivedCents > 0) parts.push(`recibido ${money(charge.receivedCents)}`);
     return parts.join(' · ');
@@ -253,7 +256,7 @@ export class ClientPaymentsLedgerComponent implements OnInit, OnChanges, OnDestr
 
   public rowLabel(charge: PaymentCharge): string {
     const money = charge.status === 'open' ? `pendiente ${this.money(charge.balanceCents, charge.currency)}` : this.figuresLine(charge);
-    return `${this.title(charge)}, vence ${formatDay(charge.dueDay, true)}, ${money}. Ver detalle`;
+    return this.translate.instant('PAYMENTS.VENCE_VER_DETALLE', { p0: this.title(charge), p1: formatDay(charge.dueDay, true), money });
   }
 
   public trackById(_index: number, charge: PaymentCharge): string {
@@ -284,23 +287,23 @@ export class ClientPaymentsLedgerComponent implements OnInit, OnChanges, OnDestr
 
   public async pause(): Promise<void> {
     await this.ionicUtil.showAlert({
-      header: 'Pausar cuota',
-      message: 'No se generarán vencimientos nuevos hasta que la reanudes. La deuda que ya existe se conserva y sigue visible.',
+      header: this.translate.instant('PAYMENTS.PAUSAR_CUOTA'),
+      message: this.translate.instant('PAYMENTS.NO_SE_GENERARAN_VENCIMIENTOS_NUEVOS'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Pausar', cssClass: 'alert-button-primary', handler: () => this.runPlanAction('pause') },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('PAYMENTS.PAUSAR'), cssClass: 'alert-button-primary', handler: () => this.runPlanAction('pause') },
       ],
     });
   }
 
   public async end(): Promise<void> {
     await this.ionicUtil.showAlert({
-      header: 'Finalizar cuota',
+      header: this.translate.instant('PAYMENTS.FINALIZAR_CUOTA'),
       message:
-        'Deja de generar vencimientos. No cancela los cobros ya creados ni su deuda: se cierran aparte, uno a uno. Podrás configurar una cuota nueva más adelante.',
+        this.translate.instant('PAYMENTS.DEJA_DE_GENERAR_VENCIMIENTOS_NO'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Finalizar cuota', cssClass: 'alert-button-danger', handler: () => this.runPlanAction('end') },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('PAYMENTS.FINALIZAR_CUOTA'), cssClass: 'alert-button-danger', handler: () => this.runPlanAction('end') },
       ],
     });
   }
@@ -313,11 +316,11 @@ export class ClientPaymentsLedgerComponent implements OnInit, OnChanges, OnDestr
     request.subscribe({
       next: () => {
         this.busy = false;
-        void this.ionicUtil.showSuccessToast(action === 'pause' ? 'Cuota pausada' : 'Cuota finalizada');
+        void this.ionicUtil.showSuccessToast(action === 'pause' ? this.translate.instant('PAYMENTS.CUOTA_PAUSADA') : this.translate.instant('PAYMENTS.CUOTA_FINALIZADA'));
       },
       error: (error) => {
         this.busy = false;
-        void this.ionicUtil.showErrorToast(error, paymentsErrorMessage(error, 'No se pudo cambiar la cuota.'));
+        void this.ionicUtil.showErrorToast(error, paymentsErrorMessage(error, this.translate.instant('PAYMENTS.NO_SE_PUDO_CAMBIAR_LA')));
       },
     });
   }
@@ -330,12 +333,12 @@ export class ClientPaymentsLedgerComponent implements OnInit, OnChanges, OnDestr
     this.payments.setPreferences(this.clientId, { clientRemindersEnabled: enabled }).subscribe({
       next: () => {
         this.busy = false;
-        void this.ionicUtil.showSuccessToast(enabled ? 'Avisos al cliente activados' : 'Avisos al cliente desactivados');
+        void this.ionicUtil.showSuccessToast(enabled ? this.translate.instant('PAYMENTS.AVISOS_AL_CLIENTE_ACTIVADOS') : this.translate.instant('PAYMENTS.AVISOS_AL_CLIENTE_DESACTIVADOS'));
       },
       error: (error) => {
         this.busy = false;
         if (this.ledger) this.ledger = { ...this.ledger, preferences: { ...this.ledger.preferences, clientRemindersEnabled: previous } };
-        void this.ionicUtil.showErrorToast(error, paymentsErrorMessage(error, 'No se pudo cambiar el aviso al cliente.'));
+        void this.ionicUtil.showErrorToast(error, paymentsErrorMessage(error, this.translate.instant('PAYMENTS.NO_SE_PUDO_CAMBIAR_EL')));
       },
     });
   }

@@ -1,7 +1,7 @@
 <section class="status-block" aria-labelledby="seguimiento-estado">
   <header class="block-head">
-    <h2 class="block-title" id="seguimiento-estado">Cómo va el seguimiento</h2>
-    <div class="range-chips" role="group" aria-label="Periodo del resumen">
+    <h2 class="block-title" id="seguimiento-estado">{{ 'CLIENTS.COMO_VA_EL_SEGUIMIENTO' | translate }}</h2>
+    <div class="range-chips" role="group" [attr.aria-label]="'CLIENTS.PERIODO_DEL_RESUMEN' | translate">
       <button
         type="button"
         class="range-chip"
@@ -21,7 +21,7 @@
     <div class="stat" [class.stat--action]="pending">
       <span class="stat-label">
         <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
-        {{ pending === 1 ? 'Espera tu respuesta' : 'Esperan tu respuesta' }}
+        {{ pending === 1 ? ('CLIENTS.ESPERA_TU_RESPUESTA' | translate) : ('CLIENTS.ESPERAN_TU_RESPUESTA' | translate) }}
       </span>
       <span class="stat-value">{{ pending }}</span>
     </div>
@@ -29,7 +29,7 @@
     <div class="stat" [class.stat--alert]="state === 'loaded' && summary?.missed">
       <span class="stat-label">
         <ion-icon name="remove-circle-outline" aria-hidden="true"></ion-icon>
-        {{ summary?.missed === 1 ? 'Se cerró sin responder' : 'Se cerraron sin responder' }}
+        {{ summary?.missed === 1 ? ('CLIENTS.SE_CERRO_SIN_RESPONDER' | translate) : ('CLIENTS.SE_CERRARON_SIN_RESPONDER' | translate) }}
       </span>
       <span class="stat-value">{{ state === 'loaded' ? summary?.missed : '—' }}</span>
     </div>
@@ -37,14 +37,14 @@
     <div class="stat" [class.stat--open]="state === 'loaded' && summary?.open">
       <span class="stat-label">
         <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
-        {{ summary?.open === 1 ? 'Abierto, aún puede responder' : 'Abiertos, aún puede responder' }}
+        {{ summary?.open === 1 ? ('CLIENTS.ABIERTO_AUN_PUEDE_RESPONDER' | translate) : ('CLIENTS.ABIERTOS_AUN_PUEDE_RESPONDER' | translate) }}
       </span>
       <span class="stat-value">{{ state === 'loaded' ? summary?.open : '—' }}</span>
     </div>
   </div>
 
   <p class="status-error" *ngIf="state === 'error'" role="alert">
-    No se pudo calcular el resumen.
-    <button type="button" class="plain-link" (click)="retry.emit()">Reintentar</button>
+    {{ 'CLIENTS.NO_SE_PUDO_CALCULAR_EL' | translate }}
+    <button type="button" class="plain-link" (click)="retry.emit()">{{ 'COMMON.RETRY' | translate }}</button>
   </p>
 </section>

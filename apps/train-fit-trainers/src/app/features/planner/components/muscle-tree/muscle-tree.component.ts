@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { MuscleTreePortionRow, MuscleTreeRow } from '../../utils/planner-metrics';
 
 type VolumeStatus = 'low' | 'ok' | 'high';
@@ -32,6 +33,8 @@ function readCollapsed(): Set<string> {
   styleUrls: ['muscle-tree.component.scss'],
 })
 export class MuscleTreeComponent {
+  private readonly translate = inject(TranslateService);
+
   @Input() public rows: MuscleTreeRow[] = [];
   @Input() public showRange = false;
   @Input() public targetMin = 10;
@@ -84,9 +87,9 @@ export class MuscleTreeComponent {
   }
 
   public setsTitle(row: MuscleTreeRow): string {
-    const parts = [`${row.directSets} como músculo principal`];
+    const parts = [this.translate.instant('PLANNER.COMO_MUSCULO_PRINCIPAL', { directSets: row.directSets })];
     if (row.indirectSets) parts.push(`${row.indirectSets} como secundario (cuentan ×0,5)`);
-    return `Series: ${parts.join(' + ')}`;
+    return this.translate.instant('PLANNER.SERIES_2', { p0: parts.join(' + ') });
   }
 
   public hasPortions(row: MuscleTreeRow): boolean {

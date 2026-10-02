@@ -1,4 +1,5 @@
 import { Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
@@ -9,6 +10,7 @@ import { CheckinResponseEntry } from '../../models/client-detail.model';
 import { CheckinAgendaData, CheckinComparisonRow, CheckinDay, CheckinEntry, CheckinSchedule, CheckinScheduleDraft, CheckinStatus, CheckinSummary, CheckinTemplateDefinition, ComparisonTab } from './checkin-workspace.model';
 import { compareCheckins, tabsFor } from './checkin-comparison';
 import { checkinCadenceLabel, checkinWeekLabel } from '../../../../checkin-labels.util';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 function localDate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -18,10 +20,15 @@ function localTime(date: Date): string {
 }
 @Component({ selector: 'app-checkin-workspace', templateUrl: './checkin-workspace.component.html', styleUrls: ['./checkin-workspace.component.scss'] })
 export class CheckinWorkspaceComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   @Input() clientId = '';
   // Plantilla con la que abrir "Nueva programación" (llega desde "Aplicar"
   // en Plantillas de check-in).
   @Input() templateToSchedule: string | null = null;
+  // Respuesta que abrir al cargar (llega desde la bandeja «Por revisar»).
+  @Input() focusResponseId: string | null = null;
+  private pendingFocusId: string | null = null;
   // "Ver historial": la pila de paneles (programaciones → histórico de una)
   // la monta client-detail.page.ts, igual que desde el chip de la fase.
   @Output() openHistory = new EventEmitter<void>();
@@ -34,7 +41,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
   private summarySubscription?: Subscription;
   public readonly today = localDate(new Date());
   public readonly weekdays = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-  public readonly statusLabels: Record<CheckinStatus, string> = { scheduled: 'Programado', open: 'Abierto', unanswered: 'Sin responder', responded: 'Por revisar', reviewed: 'Revisado' };
+  public readonly statusLabels: Record<CheckinStatus, string> = { scheduled: this.translate.instant('CLIENTS.PROGRAMADO'), open: this.translate.instant('CLIENTS.ABIERTO'), unanswered: this.translate.instant('CLIENTS.SIN_RESPONDER'), responded: this.translate.instant('CLIENTS.POR_REVISAR'), reviewed: this.translate.instant('MY_CHECKINS.REVIEWED') };
   public readonly statusIcons: Record<CheckinStatus, string> = { scheduled: 'calendar-outline', open: 'time-outline', unanswered: 'remove-circle-outline', responded: 'mail-unread-outline', reviewed: 'checkmark-circle-outline' };
   public month = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   public monthLabel = '';
@@ -87,6 +94,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
   private scrollToEditorOnLoad = false;
 
   public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['focusResponseId'] && this.focusResponseId) this.pendingFocusId = this.focusResponseId;
     if (changes['clientId'] && this.clientId) { this.data = null; this.selected = null; this.load(); this.loadSummary(); }
     if (changes['templateToSchedule'] && this.templateToSchedule) void this.openEditorWithTemplate(this.templateToSchedule);
   }
@@ -126,8 +134,8 @@ export class CheckinWorkspaceComponent implements OnChanges {
   // La fecha ya viene como día de calendario: sin zona horaria que traducir
   // (docs/plan-semanas.md).
   public dateOf(entry: CheckinEntry): string { return entry.date; }
-  public formatDate(value: string | null | undefined): string { return value ? new Date(value).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
-  public formatDay(value: string | null | undefined): string { return value ? new Date(`${value}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '—'; }
+  public formatDate(value: string | null | undefined): string { return value ? new Date(value).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
+  public formatDay(value: string | null | undefined): string { return value ? new Date(`${value}T00:00:00Z`).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '—'; }
   public formatTime(entry: CheckinEntry): string { return entry.time; }
   public weekLabel(entry: CheckinEntry): string {
     return checkinWeekLabel(entry.week);
@@ -138,20 +146,39 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public rebuild(): void {
     this.visibleSchedules = (this.data?.schedules || []).filter(s => !(s.frequency === 'once' && s.startDate <= this.today));
     const entries = (this.data?.entries || []).filter(e => !this.scheduleFilter || e.scheduleId === this.scheduleFilter);
-    this.monthLabel = this.month.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    this.monthLabel = this.month.toLocaleDateString(uiLocale(), { month: 'long', year: 'numeric' });
     const first = new Date(this.month); first.setDate(1 - (first.getDay() + 6) % 7);
     this.days = Array.from({ length: 42 }, (_, i) => {
       const day = new Date(first); day.setDate(first.getDate() + i);
       const date = localDate(day); const matches = entries.filter(e => this.dateOf(e) === date);
       const statuses = [...new Set(matches.map(e => e.status))];
       return { date, number: day.getDate(), currentMonth: day.getMonth() === this.month.getMonth(), count: matches.length, statuses,
-        label: `${day.toLocaleDateString('es-ES', { dateStyle: 'long' })}. ${matches.length ? matches.map(e => `${e.name}: ${this.statusLabels[e.status]}`).join('. ') : 'Sin check-ins'}` };
+        label: `${day.toLocaleDateString(uiLocale(), { dateStyle: 'long' })}. ${matches.length ? matches.map(e => `${e.name}: ${this.statusLabels[e.status]}`).join('. ') : this.translate.instant('CLIENTS.SIN_CHECK_INS')}` };
     });
     this.agenda = (this.reviewOnly ? (this.data?.responses || []).filter(e => e.status === 'responded') : entries.filter(e => this.dateOf(e) === this.selectedDate))
       .filter(e => !this.scheduleFilter || e.scheduleId === this.scheduleFilter).sort((a, b) => a.date.localeCompare(b.date));
     const previousId = this.selected?._id;
-    const current = this.agenda.find(e => e._id === previousId) || this.agenda[0] || null;
+    // La respuesta pedida manda solo en la primera carga; después, la que
+    // el entrenador tenga abierta. Si ya estaba revisada, se busca fuera de
+    // «Esperan tu respuesta».
+    const focusId = this.data ? this.pendingFocusId : null;
+    if (focusId) this.pendingFocusId = null;
+    const focused = focusId ? this.findResponse(focusId) : null;
+    const current = focused || this.agenda.find(e => e._id === previousId) || this.agenda[0] || null;
     this.selectEntry(current);
+    if (focused) setTimeout(() => this.host.nativeElement.querySelector('.review-panel, .response-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+  private findResponse(id: string): CheckinEntry | null {
+    const match = (entry: CheckinEntry) => entry.responseId === id || entry._id === id;
+    const inAgenda = this.agenda.find(match);
+    if (inAgenda) return inAgenda;
+    const response = (this.data?.responses || []).find(match);
+    if (!response) return null;
+    // Revisada: se enseña su día en el calendario, no la lista de pendientes.
+    this.reviewOnly = false;
+    this.selectedDate = response.date;
+    this.agenda = [response];
+    return response;
   }
   public chooseDay(day: CheckinDay): void {
     if (this.editor) { this.editor.startDate = day.date; return; }
@@ -174,6 +201,15 @@ export class CheckinWorkspaceComponent implements OnChanges {
     // datos, la primera (Peso gana cuando está).
     if (!this.comparisonTabs.some(tab => tab.key === this.selectedComparisonTab)) this.selectedComparisonTab = this.comparisonTabs[0]?.key || null;
     this.chooseComparisonTab(this.selectedComparisonTab);
+  }
+  // Respuesta de referencia elegida (para la pestaña de fotos).
+  public get referenceEntry(): CheckinEntry | null {
+    return this.references.find(r => r._id === this.referenceId) || null;
+  }
+  // Id del día de fotos con el que se respondió (campo progress_photos).
+  public photosDayOf(entry: CheckinEntry | null): string | null {
+    const value = entry?.values?.['progress_photos'];
+    return typeof value === 'string' ? value : null;
   }
   public chooseComparisonTab(tab: ComparisonTab | null): void {
     this.selectedComparisonTab = tab;
@@ -207,17 +243,17 @@ export class CheckinWorkspaceComponent implements OnChanges {
     // plantilla no la vuelve a copiar (ver checkin-agenda-controller.js).
     const { name, startDate, time, frequency, interval, revision, sourceTemplateId, enabledFields } = this.editor;
     const body = { name, startDate, time, frequency, interval, revision, ...(this.sourceMode === 'fields' ? { enabledFields } : { sourceTemplateId }) };
-    await this.mutate(() => this.editingId ? firstValueFrom(this.http.put(`${this.base}/checkin-schedules/${this.editingId}`, body)) : firstValueFrom(this.http.post(`${this.base}/checkin-schedules`, body)), 'Programación guardada', () => { this.editor = null; });
+    await this.mutate(() => this.editingId ? firstValueFrom(this.http.put(`${this.base}/checkin-schedules/${this.editingId}`, body)) : firstValueFrom(this.http.post(`${this.base}/checkin-schedules`, body)), this.translate.instant('CLIENTS.PROGRAMACION_GUARDADA'), () => { this.editor = null; });
   }
   public async setActive(schedule: CheckinSchedule): Promise<void> {
-    await this.mutate(() => firstValueFrom(this.http.patch(`${this.base}/checkin-schedules/${schedule._id}/active`, { active: !schedule.active })), schedule.active ? 'Programación pausada' : 'Programación reanudada');
+    await this.mutate(() => firstValueFrom(this.http.patch(`${this.base}/checkin-schedules/${schedule._id}/active`, { active: !schedule.active })), schedule.active ? this.translate.instant('CLIENTS.PROGRAMACION_PAUSADA') : this.translate.instant('CLIENTS.PROGRAMACION_REANUDADA'));
   }
   // Sin cron que adelante la ocurrencia: el back crea una "una sola vez" de
   // hoy con las mismas preguntas, salvo que ya tenga una abierta sin responder.
   public async requestNow(schedule: CheckinSchedule): Promise<void> {
     await this.mutate(
       () => firstValueFrom(this.http.post<{ alreadyOpen?: boolean }>(`${this.base}/checkin-schedules/${schedule._id}/request`, {})),
-      result => result?.alreadyOpen ? 'Ya tiene este check-in abierto: puede responderlo desde su app' : 'Check-in disponible para el cliente'
+      result => result?.alreadyOpen ? this.translate.instant('CLIENTS.YA_TIENE_ESTE_CHECK_IN') : this.translate.instant('CLIENTS.CHECK_IN_DISPONIBLE_PARA_EL')
     );
   }
   // Quitar la programación: las respuestas ya dadas se quedan (son historial
@@ -228,10 +264,10 @@ export class CheckinWorkspaceComponent implements OnChanges {
       componentProps: {
         icon: 'trash-outline',
         iconColor: 'danger',
-        title: `Eliminar "${schedule.name}"`,
-        message: 'Dejarán de pedirse sus check-ins. Las respuestas que ya envió el cliente se conservan.',
-        confirmText: 'Eliminar',
-        cancelText: 'Cancelar',
+        title: this.translate.instant('CLIENTS.ELIMINAR', { name: schedule.name }),
+        message: this.translate.instant('CLIENTS.DEJARAN_DE_PEDIRSE_SUS_CHECK'),
+        confirmText: this.translate.instant('COMMON.DELETE'),
+        cancelText: this.translate.instant('COMMON.CANCEL'),
         confirmColor: 'danger',
       },
       cssClass: 'confirm-sheet-modal',
@@ -239,7 +275,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
       initialBreakpoint: 1,
     });
     if (res?.data !== true) return;
-    await this.mutate(() => firstValueFrom(this.http.delete(`${this.base}/checkin-schedules/${schedule._id}`)), 'Programación eliminada');
+    await this.mutate(() => firstValueFrom(this.http.delete(`${this.base}/checkin-schedules/${schedule._id}`)), this.translate.instant('CLIENTS.PROGRAMACION_ELIMINADA'));
   }
   public openPuntual(): void { this.puntualFields = []; this.showPuntual = true; }
   public closePuntual(): void { this.showPuntual = false; }
@@ -247,12 +283,12 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public async sendPuntual(): Promise<void> {
     if (!this.puntualFields.length) return;
     const now = new Date();
-    const body = { name: 'Petición puntual', enabledFields: this.puntualFields, startDate: localDate(now), time: localTime(now), frequency: 'once', interval: 1 };
-    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-schedules`, body)), 'Enviado. Tu cliente ya puede contestarlo', () => { this.showPuntual = false; });
+    const body = { name: this.translate.instant('CLIENTS.PETICION_PUNTUAL'), enabledFields: this.puntualFields, startDate: localDate(now), time: localTime(now), frequency: 'once', interval: 1 };
+    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-schedules`, body)), this.translate.instant('CLIENTS.ENVIADO_TU_CLIENTE_YA_PUEDE'), () => { this.showPuntual = false; });
   }
   public async review(): Promise<void> {
     if (!this.selected?.responseId || this.selected.status !== 'responded') return;
-    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-responses/${this.selected!.responseId}/review`, { comment: this.comment })), 'Respuesta revisada. El comentario está disponible para el cliente');
+    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-responses/${this.selected!.responseId}/review`, { comment: this.comment })), this.translate.instant('CLIENTS.RESPUESTA_REVISADA_EL_COMENTARIO_ESTA'));
   }
   private async mutate<T>(action: () => Promise<T>, message: string | ((result: T) => string), done?: () => void): Promise<void> {
     if (this.busy) return; this.busy = true; this.error = ''; this.notice = '';
@@ -261,7 +297,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
       this.notice = typeof message === 'string' ? message : message(result);
       this.load(); this.loadSummary();
     }
-    catch (error: unknown) { this.error = (error as { error?: { message?: string } })?.error?.message || 'No se pudo guardar el cambio. Inténtalo de nuevo.'; }
+    catch (error: unknown) { this.error = (error as { error?: { message?: string } })?.error?.message || this.translate.instant('CLIENTS.NO_SE_PUDO_GUARDAR_EL'); }
     finally { this.busy = false; }
   }
   public editSelected(): void { const schedule = this.data?.schedules.find(s => s._id === this.selected?.scheduleId); if (schedule) void this.openEditor(schedule); }

@@ -356,7 +356,7 @@ export class WorkoutComponent implements OnDestroy {
   private guardReadonly(): boolean {
     if (!this.isReadonly) return false;
     this.ionicUtilService.showToast({
-      message: 'Esta rutina te la asignó tu entrenador. Pídele el cambio en vez de editarla tú mismo.',
+      message: this.translate.instant('TABLES.READONLY_ASSIGNED'),
       duration: 3000,
     });
     return true;
@@ -967,7 +967,7 @@ export class WorkoutComponent implements OnDestroy {
         {
           name: "description",
           type: "textarea",
-          placeholder: "Descripción (opcional)",
+          placeholder: this.translate.instant("TABLES.TEMPLATE_DESCRIPTION_OPTIONAL"),
         },
       ],
       buttons: [
@@ -986,13 +986,13 @@ export class WorkoutComponent implements OnDestroy {
               .subscribe({
                 next: () => {
                   this.ionicUtilService.showToast({
-                    message: "Plantilla guardada",
+                    message: this.translate.instant("TABLES.TEMPLATE_SAVED"),
                     duration: 1500,
                   });
                 },
                 error: () => {
                   this.ionicUtilService.showToast({
-                    message: "No se pudo guardar la plantilla",
+                    message: this.translate.instant("TABLES.TEMPLATE_SAVE_ERROR"),
                     duration: 2500,
                   });
                 },
@@ -1351,11 +1351,12 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public async deleteExercisesAlert(
-    exerciseName: string,
+    exerciseName: string | undefined,
     indexWorkout: number,
     indexExercise: number,
   ) {
     if (this.guardReadonly()) return;
+    exerciseName = exerciseName || this.translate.instant("TABLES.EXERCISE_DELETED");
     const alertOptions: AlertOptions = {
       header: this.translate.instant("TABLES.DELETE_EXERCISE"),
       message: this.translate.instant("TABLES.DELETE_EXERCISE_CONFIRM", {
@@ -2237,13 +2238,19 @@ export class WorkoutComponent implements OnDestroy {
       return null;
     }
 
-    // RIR: -1 es el centinela de FALLO, pero solo como valor único (igual que
-    // el editor de series: isFail => [-1]); no es extremo de un rango.
-    if (
-      field === "rir" &&
-      (parsedMin === -1 || parsedMax === -1) &&
-      (parsedMin === null || parsedMax === null)
-    ) {
+    // RIR: -1 es el centinela de FALLO y nunca es un extremo de rango — un
+    // -1 en cualquiera de los dos campos colapsa a [-1], que es exactamente
+    // lo que hacen el modelo (rir.ts#buildRirValue/normalizeRirValue), el
+    // editor de series (ManageSetComponent, casilla "fallo" => [-1]) y el
+    // propio pintado de esta tabla (isFail(), que ya da FALLO con un -1 en
+    // cualquier posición).
+    //
+    // 2026-10 — antes solo colapsaba si el OTRO campo estaba vacío: escribir
+    // "-1 a 2" se recortaba a los límites (0..20) y se guardaba [0, 2], o
+    // sea "RIR 0-2" en vez de FALLO, distinto de lo que da la misma entrada
+    // por cualquier otra vía. El caso estaba cubierto por un test que llevaba
+    // meses fuera del runner (ver workout-inline-edit.test.cjs).
+    if (field === "rir" && (parsedMin === -1 || parsedMax === -1)) {
       return [-1];
     }
 

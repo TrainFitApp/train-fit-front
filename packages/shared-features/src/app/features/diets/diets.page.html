@@ -34,9 +34,9 @@
     >
       <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
       <div class="premium-banner__text">
-        <span class="premium-banner__title">Hazte Pro</span>
+        <span class="premium-banner__title">{{ 'DIETS.GO_PRO' | translate }}</span>
         <span class="premium-banner__sub"
-          >Recetas ilimitadas, sin anuncios y más</span
+          >{{ 'DIETS.GO_PRO_SUB' | translate }}</span
         >
       </div>
       <ion-icon
@@ -73,14 +73,12 @@
       <ion-icon [name]="openCheckin.respondedAt ? 'checkmark-circle-outline' : 'clipboard-outline'" aria-hidden="true"></ion-icon>
       <span class="checkin-card__text">
         <strong>
-          {{ openCheckin.respondedAt
-            ? (checkinWeek ? 'Editar tu check-in de la semana ' + checkinWeek.number : 'Editar tu check-in')
-            : (checkinWeek ? 'Check-in de la semana ' + checkinWeek.number + ' pendiente' : 'Tienes un check-in pendiente') }}
+          {{ (openCheckin.respondedAt
+            ? (checkinWeek ? 'DIETS.CHECKIN_EDIT_WEEK' : 'DIETS.CHECKIN_EDIT')
+            : (checkinWeek ? 'DIETS.CHECKIN_PENDING_WEEK' : 'DIETS.CHECKIN_PENDING')) | translate: { n: checkinWeek?.number } }}
         </strong>
         <small>
-          {{ openCheckin.respondedAt
-            ? 'Puedes cambiarlo mientras este periodo siga abierto.'
-            : 'Tu entrenador lo usa para ajustar lo que viene.' }}
+          {{ (openCheckin.respondedAt ? 'DIETS.CHECKIN_EDIT_HINT' : 'DIETS.CHECKIN_PENDING_HINT') | translate }}
         </small>
       </span>
       <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
@@ -101,14 +99,14 @@
        los menús disponibles encima de las comidas — el elegido marcado. Click
        = preview y "Elegir"; con uno elegido, "Salir del menú". -->
   <div class="menu-chips menu-chips--skipped" *ngIf="isDaySkipped">
-    <span class="menu-chips__title">Día saltado</span>
+    <span class="menu-chips__title">{{ 'DIETS.DAY_SKIPPED' | translate }}</span>
     <p class="menu-chips__note">
-      Tu profesional marcó este día como saltado: no hay nada pautado y no cuenta para tu adherencia.
+      {{ 'DIETS.DAY_SKIPPED_NOTE' | translate }}
     </p>
   </div>
 
   <div class="menu-chips" *ngIf="menuOptions.length && !isDaySkipped">
-    <span class="menu-chips__title">{{ selectedMenu ? 'Menú de hoy' : '¿Qué menú te toca hoy?' }}</span>
+    <span class="menu-chips__title">{{ (selectedMenu ? 'DIETS.TODAY_MENU' : 'DIETS.WHICH_MENU') | translate }}</span>
     <div class="menu-chips__row">
       <button
         type="button"
@@ -128,7 +126,7 @@
         [disabled]="isLeavingMenu"
         (click)="leaveMenu()"
       >
-        {{ isLeavingMenu ? 'Saliendo…' : 'Salir del menú' }}
+        {{ (isLeavingMenu ? 'DIETS.LEAVING_MENU' : 'DIETS.LEAVE_MENU') | translate }}
       </button>
     </div>
   </div>
@@ -159,7 +157,7 @@
        debajo de las comidas. Lo que marque en "pasos" es lo que entra en el
        cálculo de sus kcal. -->
   <div class="day-habits" *ngIf="habits.length">
-    <p class="day-habits__title">Hábitos de hoy</p>
+    <p class="day-habits__title">{{ 'COACH.TODAY_HABITS' | translate }}</p>
     <button
       type="button"
       class="day-habits__row"
@@ -168,19 +166,20 @@
       [disabled]="!canToggleHabits || togglingHabitId === habit._id"
       (click)="toggleHabit(habit)"
     >
+      <ion-icon class="day-habits__type" [name]="habitIcon(habit)" aria-hidden="true"></ion-icon>
       <span class="day-habits__text">
         <strong>{{ habit.label }}</strong>
         <small>{{ habitTargetLabel(habit) }} · {{ habit.trainerName }}</small>
       </span>
-      <ion-icon [name]="habit.completedToday ? 'checkbox' : 'square-outline'" aria-hidden="true"></ion-icon>
+      <ion-icon class="day-habits__check" [name]="habit.completedToday ? 'checkbox' : 'square-outline'" aria-hidden="true"></ion-icon>
     </button>
-    <p class="day-habits__hint" *ngIf="!canToggleHabits">Un día que todavía no ha llegado no se puede marcar.</p>
+    <p class="day-habits__hint" *ngIf="!canToggleHabits">{{ 'DIETS.FUTURE_DAY_HINT' | translate }}</p>
   </div>
 
   <!-- Suplementación vigente ese día (§14): va por fechas, así que
        desaparece sola cuando termina la pauta. -->
   <div class="day-supplements" *ngIf="supplements.length">
-    <p class="day-supplements__title">Suplementación</p>
+    <p class="day-supplements__title">{{ 'DIETS.SUPPLEMENTS' | translate }}</p>
     <div class="day-supplements__row" *ngFor="let supplement of supplements">
       <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>
       <span class="day-supplements__text">

@@ -1,4 +1,5 @@
 import { Component, DestroyRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -9,6 +10,7 @@ import {
   ClientNoteSource,
   ClientNotesUnread,
 } from '../../models/client-notes.model';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -21,7 +23,7 @@ const SOURCE_ICONS: Record<ClientNoteSource, string> = {
   meal: 'restaurant-outline',
 };
 
-const DATE_FORMAT = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+const DATE_FORMAT = () => new Intl.DateTimeFormat(uiLocale(), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
 interface NotesFilters {
   domain: ClientNoteDomain | null;
@@ -49,6 +51,8 @@ const savedFilters = new Map<string, NotesFilters>();
   styleUrls: ['client-notes.component.scss'],
 })
 export class ClientNotesComponent implements OnChanges {
+  private readonly translate = inject(TranslateService);
+
   @Input() clientId = '';
   // No vistas que ya conoce la ficha: con pendientes, la pestaña abre en "No vistas".
   @Input() unreadHint = 0;
@@ -125,7 +129,7 @@ export class ClientNotesComponent implements OnChanges {
           this.loadingMore = false;
           if (append) {
             this.page -= 1;
-            this.ionicUtil.showToast({ message: 'No se pudieron cargar más notas.', duration: 2500 });
+            this.ionicUtil.showToast({ message: this.translate.instant('CLIENTS.NO_SE_PUDIERON_CARGAR_MAS'), duration: 2500 });
           } else {
             this.state = 'error';
           }
@@ -185,7 +189,7 @@ export class ClientNotesComponent implements OnChanges {
         },
         error: () => {
           note.seen = !next;
-          this.ionicUtil.showToast({ message: 'No se pudo guardar. Inténtalo de nuevo.', duration: 2500 });
+          this.ionicUtil.showToast({ message: this.translate.instant('PAIN.SAVE_ERROR'), duration: 2500 });
         },
       });
   }
@@ -204,7 +208,7 @@ export class ClientNotesComponent implements OnChanges {
         },
         error: () => {
           this.markingAll = false;
-          this.ionicUtil.showToast({ message: 'No se pudieron marcar las notas.', duration: 2500 });
+          this.ionicUtil.showToast({ message: this.translate.instant('CLIENTS.NO_SE_PUDIERON_MARCAR_LAS'), duration: 2500 });
         },
       });
   }
@@ -232,7 +236,7 @@ export class ClientNotesComponent implements OnChanges {
     // 'YYYY-MM-DD' (dieta, dolor) es un día de calendario: sin hora, para que
     // el huso no lo mueva al día anterior.
     const date = /^\d{4}-\d{2}-\d{2}$/.test(note.date) ? new Date(`${note.date}T12:00:00`) : new Date(note.date);
-    return Number.isNaN(date.getTime()) ? '' : DATE_FORMAT.format(date);
+    return Number.isNaN(date.getTime()) ? '' : DATE_FORMAT().format(date);
   }
 
   // El primer tramo ("Entrenamiento"/"Nutrición") ya lo dice la etiqueta de ámbito.

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { CustomProduct } from 'src/app/core/models/customProduct';
@@ -22,6 +23,8 @@ type ViewState = 'loading' | 'error' | 'loaded';
   styleUrls: ['meal-snippet-picker.component.scss'],
 })
 export class MealSnippetPickerComponent implements OnInit {
+  private readonly translate = inject(TranslateService);
+
   public state: ViewState = 'loading';
   public snippets: MealSnippet[] = [];
   // TASK-047 (MASTER_BACKLOG.md) — filtro en memoria: mismo criterio que
@@ -76,12 +79,12 @@ export class MealSnippetPickerComponent implements OnInit {
   // producto/receta real ya está disponible sin llamadas extra.
   public productName(entry: unknown): string {
     const product = (entry as any)?.product;
-    return (product && typeof product === 'object' && product.name) || 'Producto guardado';
+    return (product && typeof product === 'object' && product.name) || this.translate.instant('SHARED_COMPONENTS.PRODUCTO_GUARDADO');
   }
 
   public recipeName(entry: unknown): string {
     const recipe = (entry as any)?.recipe;
-    return (recipe && typeof recipe === 'object' && recipe.name) || 'Receta guardada';
+    return (recipe && typeof recipe === 'object' && recipe.name) || this.translate.instant('SHARED_COMPONENTS.RECETA_GUARDADA');
   }
 
   public entryQuantity(entry: unknown): string {
@@ -116,12 +119,12 @@ export class MealSnippetPickerComponent implements OnInit {
   public async confirmDelete(event: Event, snippet: MealSnippet): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: `¿Borrar "${snippet.name}"?`,
-      message: 'No afecta a las comidas donde ya se haya insertado antes.',
+      header: this.translate.instant('SHARED_COMPONENTS.BORRAR', { name: snippet.name }),
+      message: this.translate.instant('SHARED_COMPONENTS.NO_AFECTA_LAS_COMIDAS_DONDE'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Borrar',
+          text: this.translate.instant('TRAINER_COMMON.ERASE'),
           role: 'destructive',
           handler: () => {
             this.mealSnippetApi.delete(snippet._id).subscribe(() => {
@@ -139,12 +142,12 @@ export class MealSnippetPickerComponent implements OnInit {
   public async renameSnippet(event: Event, snippet: MealSnippet): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: 'Renombrar snippet',
+      header: this.translate.instant('SHARED_COMPONENTS.RENOMBRAR_SNIPPET'),
       inputs: [{ name: 'name', type: 'text', value: snippet.name, attributes: { maxlength: 80 } }],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Guardar',
+          text: this.translate.instant('COMMON.SAVE'),
           handler: (data) => {
             const name = (data?.name || '').trim();
             if (!name) return false;
@@ -154,7 +157,7 @@ export class MealSnippetPickerComponent implements OnInit {
                 this.applySearch();
               },
               error: () => {
-                this.ionicUtilService.showToast({ message: 'No se pudo renombrar el snippet', duration: 2500 });
+                this.ionicUtilService.showToast({ message: this.translate.instant('SHARED_COMPONENTS.NO_SE_PUDO_RENOMBRAR_EL'), duration: 2500 });
               },
             });
             return true;

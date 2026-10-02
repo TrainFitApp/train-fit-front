@@ -5,7 +5,7 @@
     </div>
     <button
       class="close-action-button ripple-effect"
-      aria-label="Cerrar"
+      [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
       (click)="dismiss()"
     >
       <ion-icon name="close" color="primary"></ion-icon>
@@ -73,8 +73,10 @@
         ></ion-checkbox>
 
         <div class="item-info">
-          <span class="item-name">{{ product.product?.name }}</span>
-          <span class="item-quantity">{{ product.quantity | number:'1.0-1' }}g</span>
+          <span class="item-name">{{ getProductName(product) }}</span>
+          <span class="item-quantity" *ngIf="!product.quickAdd"
+            >{{ product.quantity | number:'1.0-1' }}g</span
+          >
         </div>
       </div>
     </ng-container>
