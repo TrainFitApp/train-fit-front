@@ -92,9 +92,8 @@ jobs:
       - name: Instalar Ionic CLI
         run: npm install -g @ionic/cli@7 --no-audit --fund=false
 
-      # El mismo script que se usa en local, sin su `prebuild:pro` (lint +
-      # test): ya han pasado en sus propios trabajos, y aquí el test fallaría
-      # porque este trabajo va en Node 20.
+      # El mismo script que se usa en local (solo compila; lint y test ya han
+      # pasado en sus propios trabajos).
       - name: Compilar Angular
         working-directory: apps/${{ matrix.app }}
-        run: npm run build:pro --ignore-scripts
+        run: npm run build:pro

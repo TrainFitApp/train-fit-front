@@ -7,7 +7,7 @@ Estado a **2026-10-01**. La parte del backend está en `train-fit-back/docs/test
 ```
 npm test                                          # todo: 358 casos
 node --experimental-strip-types --test <fichero>  # uno solo
-npm run verify                                    # lint + test (la puerta del build a pro)
+npm run verify                                    # lint + test (lo que corre el hook pre-push)
 ```
 
 `npm test` **descubre los ficheros por glob** (`packages/**`, `apps/*/src/**`,
@@ -23,8 +23,9 @@ no recogen.
 No hay Karma ni Jest a propósito: todo corre con `node --test`, que es lo que ya
 usaba el repo.
 
-`npm run verify` (= `lint` + `test`) es lo que corre antes de cada build a
-producción, así que un test que falle impide compilar a pro. Ver `docs/lint.md`.
+`npm run verify` (= `lint` + `test`) es lo que corre el hook `pre-push` antes
+de un push a `develop` o `main`, así que un test que falle impide subir. Los
+builds no lo ejecutan. Ver `docs/lint.md`.
 
 ## Cómo se prueba código de Angular sin TestBed
 

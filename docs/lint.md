@@ -8,34 +8,20 @@ Estado a **2026-10-01**. El del backend está en `train-fit-back/.eslintrc.json`
 npm run lint          # la PUERTA: solo errores. Verde hoy.
 npm run lint:report   # todo, incluidos los ~23.200 avisos heredados
 npm run lint:f        # solo una app (también :m y :t)
-npm run verify        # lint + test, lo que corre antes de un build a pro
+npm run verify        # lint + test, lo que corre el hook pre-push
 ```
 
 `lint` cubre `packages/` **y** las tres apps. Antes cubría solo
 `apps/train-fit-front/src`: 17 ficheros de 403.
 
-## Qué bloquea un build a producción
+## Qué bloquea lint y tests
 
-`verify` (= `lint && test`) corre automáticamente antes de **todas** las vías
-que compilan a producción, en las tres apps:
-
-| Script | Pasa por `verify` |
-|---|---|
-| `build:pro`, `build:pro:m`, `build:pro:t` | sí |
-| `build:i:pro`, `build:a:pro` (+ `:m`/`:t`) | sí |
-| `build:i`, `build:a` (alias de los `:pro`) | sí |
-| `build:pre` | **no** — es preproducción |
-| `start:pro` | **no** — es el servidor de desarrollo con la config de producción |
-| `live:i`, `live:a` | **no** — usan `--configuration=live` |
-
-Lo engancha un `prebuild:pro` / `prebuild:i:pro` / `prebuild:a:pro` en cada
-app, que npm dispara tanto si el script se llama desde la raíz
-(`--workspace`) como desde dentro de la carpeta de la app. Si falta un solo
-test o aparece un error de lint, el build no llega a empezar.
-
-Para desbloquear un build urgente sin arreglar la causa:
-`npm run build:pro --workspace @trainfit/train-fit-front --ignore-scripts`.
-Es una salida de emergencia, no una costumbre.
+`verify` (= `lint && test`) lo lanzan el hook `pre-push` (push a `develop` o
+`main`) y `web-ci.yml` en `main`. **Ningún script de build lo ejecuta**: los
+`build:*` solo compilan, para que el build de Cloudflare (y cualquier build
+local) vaya lo más rápido posible. Hasta 2026-10-02 había un `prebuild:pro` /
+`prebuild:i:pro` / `prebuild:a:pro` en cada app que lo enganchaba; se quitó
+porque repetía en el servidor lo que el hook ya había comprobado.
 
 ## Dónde están las reglas
 
