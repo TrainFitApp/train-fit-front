@@ -50,6 +50,7 @@ import { CoachTask } from '../coach/models/coach-dashboard.model';
 import { TasksApiService } from '../coach/services/tasks-api.service';
 import { MySupplement, MySupplementsApiService } from '../supplements/services/my-supplements-api.service';
 import { Router } from '@angular/router';
+import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 @Component({
   selector: 'app-diets',
@@ -814,7 +815,7 @@ export class DietsPage implements OnInit {
   }
 
   public get isPremiumActive(): boolean {
-    return Boolean(this.user?.premium?.entitled);
+    return isPremiumActive(this.user?.premium);
   }
 
   public goToPremium(): void {

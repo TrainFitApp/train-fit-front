@@ -61,6 +61,7 @@ import { TABLE_GROUPS, TABLE_GROUPS_VALUES } from './models/tableGroups';
 import { EditorPage } from './components/configuration/components/editor/editor.page';
 import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 import { ProfileCoachCardComponent } from './components/coach-card/profile-coach-card.component';
+import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 @Component({
   selector: 'app-profile',
@@ -235,7 +236,7 @@ export class ProfilePage implements OnInit {
 
   public ngOnInit(): void {
     this.initVariables();
-    if (this.user && !this.user?.premium?.entitled) {
+    if (this.user && !isPremiumActive(this.user?.premium)) {
       this.adMobService.interstitial('profile_start');
     }
   }
@@ -669,7 +670,7 @@ export class ProfilePage implements OnInit {
   }
 
   public async goToStatistics(): Promise<void> {
-    if (this.user?.premium?.entitled) {
+    if (isPremiumActive(this.user?.premium)) {
       this.navigationService.goToStatistics();
       return;
     }
@@ -967,7 +968,7 @@ this._fatGTotal
   }
 
   public get isPremiumActive(): boolean {
-    return Boolean(this.user?.premium?.entitled);
+    return isPremiumActive(this.user?.premium);
   }
 
   public get showManagementEntry(): boolean {

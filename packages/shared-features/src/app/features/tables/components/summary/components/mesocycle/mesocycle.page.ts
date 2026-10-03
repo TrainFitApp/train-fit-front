@@ -47,6 +47,7 @@ import {
   OPEN_WORKOUT_FROM_CALENDAR_KEY,
   OpenWorkoutFromCalendarState,
 } from "../routine-calendar/routine-calendar.component";
+import { isPremiumActive } from "src/app/core/utils/premium-status.util";
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -708,7 +709,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public isSplitLocked(splitIndex: number): boolean {
-    if (this.user?.premium?.entitled) return false;
+    if (isPremiumActive(this.user?.premium)) return false;
     if (typeof this.microcyclesPerRoutineLimit !== "number") return false;
     return splitIndex >= this.microcyclesPerRoutineLimit;
   }
@@ -718,7 +719,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   private isMicrocycleCreationLimitReached(): boolean {
-    if (this.user?.premium?.entitled) return false;
+    if (isPremiumActive(this.user?.premium)) return false;
     if (typeof this.microcyclesPerRoutineLimit !== "number") return false;
     return (this.tableInUse?.splits?.length || 0) >= this.microcyclesPerRoutineLimit;
   }

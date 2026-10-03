@@ -67,6 +67,7 @@ import {
   WorkoutSummary,
   buildWorkoutSummary,
 } from './workout-summary-modal/workout-summary.model';
+import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -265,7 +266,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
         {
           text: this.translate.instant('TABLES.START'),
           handler: () => {
-            if (this.user?.premium?.entitled) {
+            if (isPremiumActive(this.user?.premium)) {
               this.startWorkoutFlow();
               return;
             }

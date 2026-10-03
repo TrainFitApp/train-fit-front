@@ -21,6 +21,10 @@ import { User } from '../../models/user';
 import { UserService } from '../user/user.service';
 import { BillingApiService } from './billing-api.service';
 import { environment } from 'src/environments/environment';
+import { msUntilPremiumExpiry } from '../../utils/premium-status.util';
+
+// setTimeout no admite esperas de más de ~24,8 días.
+const MAX_TIMER_MS = 2 ** 31 - 1;
 
 export interface BillingPurchaseError {
   userCancelled: boolean;
@@ -45,6 +49,7 @@ export class BillingService {
   private configured = false;
   private cachedEntitlements: BillingEntitlements | null = null;
   private customerInfoListenerId: string | null = null;
+  private premiumExpiryTimer: ReturnType<typeof setTimeout> | null = null;
   private _translate: TranslateService | null = null;
 
   private get translate(): TranslateService {
@@ -118,6 +123,7 @@ export class BillingService {
     try {
       await Purchases.logOut();
       this.cachedEntitlements = null;
+      this.clearPremiumExpiryTimer();
     } catch (error) {
       console.warn('RevenueCat logOut error', error);
     }
@@ -603,6 +609,7 @@ export class BillingService {
 
   private applyPremiumToLocalUser(entitlements: BillingEntitlements | null): void {
     if (!entitlements) return;
+    this.scheduleRefreshAtPremiumExpiry(entitlements);
     const localUser = this.userService.getLocalUser;
     if (!localUser) return;
 
@@ -617,6 +624,32 @@ export class BillingService {
       },
     };
     this.userService.setLocalUser = updatedUser;
+  }
+
+  /**
+   * Con la app abierta, el PRO con fecha (tiempo concedido desde management,
+   * suscripción cancelada) se quita justo al acabarse: se piden los
+   * entitlements de nuevo en ese momento en vez de esperar a que la app vuelva
+   * de segundo plano.
+   */
+  private scheduleRefreshAtPremiumExpiry(entitlements: BillingEntitlements): void {
+    this.clearPremiumExpiryTimer();
+    const remainingMs = msUntilPremiumExpiry({
+      entitled: entitlements.isPremium,
+      expiresAt: entitlements.expiresAt,
+    });
+    if (remainingMs === null || remainingMs > MAX_TIMER_MS) return;
+
+    this.premiumExpiryTimer = setTimeout(() => {
+      this.premiumExpiryTimer = null;
+      void this.refreshBackendEntitlements();
+    }, remainingMs + 1000);
+  }
+
+  private clearPremiumExpiryTimer(): void {
+    if (!this.premiumExpiryTimer) return;
+    clearTimeout(this.premiumExpiryTimer);
+    this.premiumExpiryTimer = null;
   }
 
   private resolveCurrentSubscriptionProductId(

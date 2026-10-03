@@ -23,6 +23,7 @@ import { IonicUtilService } from "src/app/core/services/util/ionic-util.service"
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
+import { isPremiumActive } from "src/app/core/utils/premium-status.util";
 
 @Component({
   selector: "app-nutrition-editor",
@@ -913,7 +914,7 @@ export class NutritionEditorPage implements OnInit {
       return entitlements.adsEnabled;
     }
 
-    return !Boolean(this.user?.premium?.entitled);
+    return !isPremiumActive(this.user?.premium);
   }
 
   private executeSave(): void {

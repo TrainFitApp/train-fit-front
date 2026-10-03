@@ -24,6 +24,7 @@ import { PinnedExerciseNote } from "src/app/core/models/pinned-exercise-note";
 import { RemoteConfigGateService } from "src/app/core/services/remote-config/remote-config-gate.service";
 import { Subscription } from "rxjs";
 import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
+import { isPremiumActive } from "src/app/core/utils/premium-status.util";
 
 @Component({
   selector: "app-summary",
@@ -241,7 +242,7 @@ export class SummaryPage {
         void this.billingService.refreshBackendEntitlements();
         this.navigationService.goToMesocycle();
 
-        if (!this.user?.premium?.entitled) {
+        if (!isPremiumActive(this.user?.premium)) {
           this.adMobService.interstitial("create_routine");
         }
         const toastOptions: ToastOptions = {
@@ -444,7 +445,7 @@ export class SummaryPage {
       return entitlements.adsEnabled;
     }
 
-    return !Boolean(this.user?.premium?.entitled);
+    return !isPremiumActive(this.user?.premium);
   }
 
   // Nuevos métodos para la interfaz móvil
@@ -528,7 +529,7 @@ export class SummaryPage {
   }
 
   public get isPremiumActive(): boolean {
-    return Boolean(this.user?.premium?.entitled);
+    return isPremiumActive(this.user?.premium);
   }
 
   public goToPremium(): void {

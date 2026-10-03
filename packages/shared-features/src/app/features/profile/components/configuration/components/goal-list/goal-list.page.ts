@@ -10,6 +10,7 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
 import { NutritionEditorPage } from '../editor/components/nutrition-editor/nutrition-editor.page';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 @Component({
   selector: 'app-goal-list',
@@ -216,7 +217,7 @@ export class GoalListPage implements OnInit, OnDestroy {
   }
 
   private get goalLimit(): number {
-    return this.userService.getLocalUser?.premium?.entitled ? 10 : 1;
+    return isPremiumActive(this.userService.getLocalUser?.premium) ? 10 : 1;
   }
 
   private hasReachedGoalLimit(): boolean {
@@ -225,7 +226,7 @@ export class GoalListPage implements OnInit, OnDestroy {
 
   public isGoalLocked(goal: NutritionalGoal): boolean {
     if (this.readOnly) return false;
-    if (this.userService.getLocalUser?.premium?.entitled) return false;
+    if (isPremiumActive(this.userService.getLocalUser?.premium)) return false;
     if (this.goals.length <= this.goalLimit) return false;
     return goal._id !== this.getUnlockedFreeGoalId();
   }
@@ -244,7 +245,7 @@ export class GoalListPage implements OnInit, OnDestroy {
   }
 
   private async showGoalLimitAlert(): Promise<void> {
-    const isPremium = Boolean(this.userService.getLocalUser?.premium?.entitled);
+    const isPremium = isPremiumActive(this.userService.getLocalUser?.premium);
     if (!isPremium) {
       await this.ionicUtilService.showPremiumLimitAlert({
         message: this.translate.instant('NUTRITION_GOALS.LIMIT_REACHED_FREE'),

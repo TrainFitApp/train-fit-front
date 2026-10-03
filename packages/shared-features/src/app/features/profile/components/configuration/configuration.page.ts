@@ -19,6 +19,7 @@ import { AdPreferencesPage } from './components/ad-preferences/ad-preferences.pa
 import { NutritionEditorPage } from './components/editor/components/nutrition-editor/nutrition-editor.page';
 import { EditorPage } from './components/editor/editor.page';
 import { GoalListPage } from './components/goal-list/goal-list.page';
+import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 @Component({
   selector: 'app-configuration',
@@ -63,7 +64,7 @@ export class ConfigurationPage {
   ) {
     this.theme = this.themeService.getTheme;
     this.user = this.userService.getLocalUser;
-    this.isPremium = !!this.user?.premium?.entitled;
+    this.isPremium = isPremiumActive(this.user?.premium);
     this.currentLang = this.i18nService.current;
     void this.loadNotificationSettings();
   }

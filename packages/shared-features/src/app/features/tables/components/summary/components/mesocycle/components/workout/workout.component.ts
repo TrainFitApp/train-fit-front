@@ -76,6 +76,7 @@ import {
 } from "src/app/core/models/pinned-exercise-note";
 import { WorkoutSummaryModalComponent } from "src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component";
 import { buildWorkoutSummary } from "src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary.model";
+import { isPremiumActive } from "src/app/core/utils/premium-status.util";
 
 @Component({
   selector: "app-workout",
@@ -2556,7 +2557,7 @@ export class WorkoutComponent implements OnDestroy {
         {
           text: this.translate.instant("TABLES.START"),
           handler: () => {
-            if (this.user?.premium?.entitled) {
+            if (isPremiumActive(this.user?.premium)) {
               this.startWorkoutAndNavigate();
               return;
             }

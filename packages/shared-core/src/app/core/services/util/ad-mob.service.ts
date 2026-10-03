@@ -15,6 +15,7 @@ import { Platform } from '@ionic/angular';
 import { environment } from 'src/environments/environment';
 import { BillingService } from '../billing/billing.service';
 import { APP_SHELL_CONFIG } from 'src/app/app-shell.config';
+import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 export type InterstitialPlacement =
   | 'default'
@@ -445,7 +446,7 @@ export class AdMobService {
       return cachedEntitlements.adsEnabled;
     }
 
-    return !Boolean(user?.premium?.entitled);
+    return !isPremiumActive(user?.premium);
   }
 
   private getActiveInterstitialLogContext(): Record<string, unknown> {

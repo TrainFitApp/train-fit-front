@@ -24,6 +24,7 @@ import { MUSCLE_GROUPS_ES } from 'src/app/shared/constants/muscle-groups';
 import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 import { EXERCISE_NAMES_ES_EN } from 'src/app/shared/constants/db-translations/exercise-names-es-en.map';
 import { TablePreviewModalComponent } from '../table-preview-modal/table-preview-modal.component';
+import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 const TRANSLATE_DB_MAP: Record<string, string> = {
   ...DB_ES_EN_MAP,
@@ -278,7 +279,7 @@ export class TableCardPage {
             text: this.translate.instant(this.ownFilter ? 'TABLES.START_ROUTINE' : 'COMMON.CONFIRM', this.ownFilter ? { name: this.translateDbValue(this.tableCard.name) } : {}),
            cssClass: 'alert-button-success',
            handler: () => {
-            if (!this.user?.premium?.entitled) {
+            if (!isPremiumActive(this.user?.premium)) {
               this.adMobService
                 .interstitial('acquire_routine')
                 .catch((error) =>

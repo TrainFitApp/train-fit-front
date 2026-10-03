@@ -21,6 +21,7 @@ import { UserAPIService } from 'src/app/core/services/user/user-api.service';
 import { UsersFilterPage } from './users-filter.page';
 import { UsersFilter } from './users-filter.model';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 export interface DashboardUser extends User {
   productsCount?: number;
@@ -135,12 +136,14 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     return `${user?.name ?? ''} ${user?.lastname ?? ''}`.trim() || this.translate.instant('MANAGEMENT.USERS.NO_NAME');
   }
 
+  // PRO vigente: un `entitled` cuya fecha ya pasó (tiempo concedido acabado,
+  // EXPIRATION perdido) no es PRO, igual que en el backend.
   public isPremiumUser(user: User): boolean {
-    return user?.premium?.entitled === true;
+    return isPremiumActive(user?.premium);
   }
 
   public isManualPremiumUser(user: User): boolean {
-    return user?.premium?.entitled === true && user?.premium?.source === 'manual';
+    return this.isPremiumUser(user) && user?.premium?.source === 'manual';
   }
 
   public isStorePremiumUser(user: User): boolean {
@@ -742,9 +745,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     let filteredUsers = usersList ?? [];
 
     if (this.filters.premiumOnly) {
-      filteredUsers = filteredUsers.filter(
-        (user) => user?.premium?.entitled === true
-      );
+      filteredUsers = filteredUsers.filter((user) => this.isPremiumUser(user));
     }
 
     if (this.filters.withHashOnly) {
