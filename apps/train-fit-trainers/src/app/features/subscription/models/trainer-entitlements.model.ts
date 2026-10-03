@@ -101,9 +101,8 @@ export interface TrainerBillingDetails {
   paymentMethod: TrainerPaymentMethod | null;
 }
 
-// immediate: se cobra ahora y se aplica al pagar. deferred: plazas adicionales mensuales, se
-// aplican ya y la prorrata va a la siguiente factura. scheduled: se aplica en la renovación.
-export type TrainerChangeKind = 'immediate' | 'deferred' | 'scheduled';
+// immediate: se cobra ahora y se aplica al pagar. scheduled: se aplica en la renovación.
+export type TrainerChangeKind = 'immediate' | 'scheduled';
 
 export interface TrainerChangeQuote {
   lines?: TrainerQuoteLine[];
@@ -114,8 +113,6 @@ export interface TrainerChangeQuote {
   to: TrainerStateView;
   effectiveAt: string;
   amountDueNow: number;
-  // Prorrata que se suma a la próxima factura (solo deferred).
-  deferredAmount: number;
   creditBalance?: number;
   // IVA incluido en amountDueNow.
   taxAmount?: number;

@@ -217,7 +217,6 @@ export class SubscriptionPage implements OnDestroy {
     const quote = this.quote;
     if (this.managementBusy) return this.translate.instant('SUBSCRIPTION.CONFIRMANDO');
     if (!quote || quote.kind === 'scheduled') return this.translate.instant('SUBSCRIPTION.PROGRAMAR_CAMBIO');
-    if (quote.kind === 'deferred') return this.translate.instant('SUBSCRIPTION.QUOTE_CONFIRM_SEATS');
     return quote.amountDueNow > 0
       ? this.translate.instant('SUBSCRIPTION.CONFIRMAR_PAGAR', { p0: this.formatAmount(quote.amountDueNow, quote.currency) })
       : this.translate.instant('SEARCH_EXERCISES.SWAP_CONFIRM_HEADER');
@@ -642,7 +641,6 @@ export class SubscriptionPage implements OnDestroy {
         this.actionPaymentUrl = result.status === 'payment_pending' ? result.paymentActionUrl || null : null;
         this.feedback = result.status === 'scheduled' ? this.translate.instant('SUBSCRIPTION.CAMBIO_PROGRAMADO_TU_PLAN_ACTUAL')
           : result.status === 'payment_pending' ? this.translate.instant('SUBSCRIPTION.FALTA_CONFIRMAR_EL_PAGO_PARA')
-          : kind === 'deferred' ? this.translate.instant('SUBSCRIPTION.QUOTE_SEATS_ADDED')
           : this.translate.instant('SUBSCRIPTION.TU_CAMBIO_DE_PLAN_SE');
         this.seatsReason = false;
         this.returnState = 'none';

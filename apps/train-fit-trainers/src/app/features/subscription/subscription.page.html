@@ -353,7 +353,7 @@
               </div>
               <ion-icon class="route-arrow" name="arrow-forward-outline" [attr.aria-label]="'SUBSCRIPTION.PASA' | translate"></ion-icon>
               <div class="route-plan to">
-                <span class="route-when">{{ change.kind === 'immediate' ? ('SUBSCRIPTION.HOY_AL_PAGAR' | translate) : change.kind === 'deferred' ? ('SUBSCRIPTION.QUOTE_FROM_NOW' | translate) : formatDate(change.effectiveAt) }}</span>
+                <span class="route-when">{{ change.kind === 'immediate' ? ('SUBSCRIPTION.HOY_AL_PAGAR' | translate) : formatDate(change.effectiveAt) }}</span>
                 <strong>{{ stateLabel(change.to) }}</strong>
                 <span>{{ tariff(change.to.amount, change.to.interval, change.currency) }}</span>
               </div>
@@ -368,12 +368,8 @@
               <div class="quote-line" *ngIf="change.taxAmount"><dt>{{ 'SUBSCRIPTION.IVA_2' | translate }}</dt><dd>{{ formatAmount(change.taxAmount, change.currency) }}</dd></div>
               <div class="amount-due">
                 <dt>{{ 'SUBSCRIPTION.PAGAR_AHORA' | translate }}<span>{{ change.kind === 'immediate' ? ('SUBSCRIPTION.IMPORTE_EXACTO_DE_STRIPE_VALIDO' | translate)
-                  : change.kind === 'deferred' ? ('SUBSCRIPTION.QUOTE_DEFERRED_NOW' | translate) : ('SUBSCRIPTION.SIN_COBRO_HASTA_LA_FECHA' | translate) }}</span></dt>
+                  : ('SUBSCRIPTION.SIN_COBRO_HASTA_LA_FECHA' | translate) }}</span></dt>
                 <dd>{{ change.kind === 'immediate' ? stripeAmount(change.amountDueNow, change.currency) : formatAmount(0, change.currency) }}</dd>
-              </div>
-              <div *ngIf="change.kind === 'deferred'">
-                <dt>{{ 'SUBSCRIPTION.QUOTE_DEFERRED_ADDED' | translate }}<span>{{ formatDate(change.nextRenewal.at) }}</span></dt>
-                <dd>{{ 'SUBSCRIPTION.AMOUNT_PLUS_VAT' | translate: { amount: formatAmount(change.deferredAmount, change.currency) } }}</dd>
               </div>
               <div *ngIf="change.creditBalance"><dt>{{ 'SUBSCRIPTION.SALDO_FAVOR' | translate }}</dt><dd>{{ formatAmount(change.creditBalance, change.currency) }}</dd></div>
               <div>
@@ -388,7 +384,6 @@
             </div>
             <ul class="consequences">
               <li *ngIf="change.kind === 'immediate'">{{ 'SUBSCRIPTION.EL_NUEVO_CUPO_ESTARA_DISPONIBLE' | translate }}</li>
-              <li *ngIf="change.kind === 'deferred'">{{ 'SUBSCRIPTION.QUOTE_DEFERRED_NOTE' | translate }}</li>
               <li *ngIf="change.kind === 'scheduled'">{{ 'SUBSCRIPTION.HASTA_ESA_FECHA_CONSERVAS_TU' | translate }}</li>
               <li *ngIf="change.kind === 'scheduled' && change.to.seats < change.from.seats">{{ 'SUBSCRIPTION.QUOTE_ADMISSION_LIMIT' | translate: { seats: change.to.seats } }}</li>
               <li *ngIf="change.readOnlyAfter > 0">{{ 'SUBSCRIPTION.QUOTE_READ_ONLY' | translate: { count: change.readOnlyAfter, date: formatDate(change.effectiveAt) } }}</li>

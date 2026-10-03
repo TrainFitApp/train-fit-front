@@ -64,9 +64,9 @@ const managed = (state = view('starter'), changes = {}, billing = {}) => ({
 });
 const active = (changes = {}) => managed(view('starter'), changes);
 const quote = (changes = {}) => ({
-  quoteId: 'opaque-quote', expiresAt: new Date(Date.now() + 300000).toISOString(), kind: 'deferred',
+  quoteId: 'opaque-quote', expiresAt: new Date(Date.now() + 300000).toISOString(), kind: 'immediate',
   from: view('starter'), to: view('starter', 'monthly', 2), effectiveAt: new Date().toISOString(),
-  amountDueNow: 0, deferredAmount: 100, currency: 'eur', lines: [],
+  amountDueNow: 100, currency: 'eur', lines: [],
   nextRenewal: { at: '2026-10-18T12:00:00.000Z', amount: 3200, estimated: true }, seats: { occupied: 2, reserved: 0 }, readOnlyAfter: 0,
   termsUrl: null, ...changes,
 });
@@ -254,7 +254,7 @@ test('cambiar de plan conserva las plazas elegidas si caben; el anual muestra el
 
 // ---------- Configurador: cambiar lo contratado ----------
 
-test('añadir plazas mensuales pide una propuesta, no cobra hoy y se confirma enviando solo el identificador', () => {
+test('añadir plazas mensuales pide una propuesta, se cobra al confirmar y se envía solo el identificador', () => {
   const h = harness({ entitlements: managed(), plans: catalog() });
   const mutation = new Subject();
   h.api.changePlan = (id) => { h.calls.change.push(id); return mutation; };
@@ -265,13 +265,13 @@ test('añadir plazas mensuales pide una propuesta, no cobra hoy y se confirma en
   h.page.submitSelection();
   assert.deepEqual(h.calls.preview, [{ tier: 'starter', interval: 'monthly', extraSeats: 2 }]);
   assert.equal(h.page.dialog, 'change');
-  assert.equal(h.page.confirmLabel, 'Añadir plazas');
+  assert.match(h.page.confirmLabel, /^Confirmar y pagar/);
   assert.equal(h.calls.change.length, 0, 'ver la propuesta no cambia nada');
   h.page.confirmPlanChange(); h.page.confirmPlanChange();
   assert.deepEqual(h.calls.change, ['opaque-quote']);
   mutation.next({ status: 'applied', entitlements: managed(view('starter', 'monthly', 2)) }); mutation.complete();
   assert.equal(h.page.dialog, null);
-  assert.match(h.page.feedback, /próxima factura/);
+  assert.match(h.page.feedback, /se ha confirmado/);
   assert.deepEqual(h.page.selection, { tier: 'starter', interval: 'monthly', extraSeats: 2 }, 'el configurador parte de lo nuevo');
   h.page.ngOnDestroy();
 });
