@@ -358,7 +358,7 @@ export class InvitesPage implements OnInit {
               this.translate.instant('INVITES.LIMITE_DE_TU_PLAN_ALCANZADO'),
               3500
             );
-            void this.router.navigate(['/tabs/subscription']);
+            void this.router.navigate(['/tabs/subscription'], { queryParams: { reason: 'seats' } });
             return;
           }
           // 400 con todos los ámbitos rechazados (ya invitado, ya es cliente

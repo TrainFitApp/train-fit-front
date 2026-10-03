@@ -6,12 +6,15 @@ export type AdminAction = 'resolve_case' | 'end_service_now' | 'cancel_renewal' 
 export type CaseKind = 'refund' | 'dispute' | 'early_fraud_warning';
 export type FundingRole = 'current_period' | 'current_upgrade' | 'past' | 'unknown';
 
+// Aceptación de las condiciones: al contratar (Checkout) o al confirmar un cambio en la app; la URL es la versión.
+export interface AdminTermsAcceptance { at: string; via: 'checkout' | 'change'; ref: string; termsUrl: string | null }
+// Plan, periodicidad y plazas adicionales que financiaba un pago.
+export interface AdminPlanState { tier: string; interval: string; extraSeats: number }
 export interface AdminFinanced {
   kind: 'period' | 'upgrade' | 'interval_change' | 'unknown';
   invoiceId: string | null;
-  tier: string | null;
-  interval: string | null;
-  fromTier: string | null;
+  state: AdminPlanState | null;
+  fromState: AdminPlanState | null;
   periodStart: number;
   periodEnd: number;
   amountPaid: number;
@@ -76,6 +79,7 @@ export interface AdminTrainerDetail {
     status: string;
     tier: string | null;
     interval: string | null;
+    extraSeats: number;
     paidUntil: string | null;
     currentPeriodEnd: string | null;
     cancelAtPeriodEnd: boolean;
@@ -85,17 +89,19 @@ export interface AdminTrainerDetail {
     hold: { kind: 'dispute' | 'admin'; since: string; caseIds: string[] } | null;
     adjustments: AdminAdjustment[];
     renewal: { at: string; amount: number } | null;
-    change: { status: string; from: { tier: string; interval: string }; to: { tier: string; interval: string }; effectiveAt: string } | null;
-    termsAcceptance: { at: string; sessionId: string; termsUrl: string | null } | null;
+    change: { status: string; from: AdminPlanState; to: AdminPlanState; effectiveAt: string } | null;
+    termsAcceptance: AdminTermsAcceptance | null;
+    termsHistory?: AdminTermsAcceptance[];
     deletedAt: string | null;
   } | null;
-  access: { entitled: boolean; tier: string | null; interval: string | null; expiresAt: string | null; basis: 'payment' | 'exception' | 'none'; revokedUntil: string | null } | null;
+  access: { entitled: boolean; tier: string | null; interval: string | null; seats?: number; expiresAt: string | null; basis: 'payment' | 'exception' | 'none'; revokedUntil: string | null } | null;
   cases: AdminCase[];
   interventions: AdminIntervention[];
   links: { customer: string; subscription: string | null } | null;
 }
 
-export const PLAN_NAMES: Record<string, string> = { trainer_pro: 'Pro', trainer_growth: 'Growth', trainer_scale: 'Scale' };
+// Planes que se pueden conceder como excepción (Free no se concede: es lo que queda sin pago).
+export const PLAN_NAMES: Record<string, string> = { starter: 'Inicio', professional: 'Profesional', scale: 'Escala' };
 export const INTERVAL_NAMES: Record<string, string> = { monthly: 'mensual', annual: 'anual' };
 export const KIND_LABELS: Record<CaseKind, string> = { refund: 'Reembolso', dispute: 'Disputa', early_fraud_warning: 'Aviso de fraude' };
 export const DISPUTE_STATUS: Record<string, string> = {
@@ -162,12 +168,18 @@ export function planLabel(tier: string | null | undefined, interval?: string | n
   const name = PLAN_NAMES[tier] || tier;
   return interval ? `${name} ${INTERVAL_NAMES[interval] || interval}` : name;
 }
+// "Inicio mensual + 5 plazas".
+export function stateLabel(state: AdminPlanState | null | undefined): string {
+  if (!state) return '—';
+  const extras = state.extraSeats ? ` + ${state.extraSeats} plazas` : '';
+  return `${state.tier === 'free' ? 'Free' : planLabel(state.tier, state.interval)}${extras}`;
+}
 export function financedLabel(financed: AdminFinanced | null | undefined): string {
   if (!financed || financed.kind === 'unknown') return 'No identificado: revísalo en Stripe';
   const period = `${formatDate(financed.periodStart)} – ${formatDate(financed.periodEnd)}`;
-  if (financed.kind === 'upgrade') return `Subida ${planLabel(financed.fromTier)} → ${planLabel(financed.tier, financed.interval)} · ${period}`;
-  if (financed.kind === 'interval_change') return `Paso a anual: ${planLabel(financed.fromTier)} → ${planLabel(financed.tier, financed.interval)} · ${period}`;
-  return `Periodo ${planLabel(financed.tier, financed.interval)} · ${period}`;
+  if (financed.kind === 'upgrade') return `Subida ${stateLabel(financed.fromState)} → ${stateLabel(financed.state)} · ${period}`;
+  if (financed.kind === 'interval_change') return `Paso a anual: ${stateLabel(financed.fromState)} → ${stateLabel(financed.state)} · ${period}`;
+  return `Periodo ${stateLabel(financed.state)} · ${period}`;
 }
 
 // Acciones con sentido para el estado actual (el backend vuelve a comprobarlo todo).

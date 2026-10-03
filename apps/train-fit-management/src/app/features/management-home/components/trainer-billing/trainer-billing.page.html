@@ -61,19 +61,19 @@
       <div class="section-header"><ion-icon name="card-outline"></ion-icon><span>Suscripción y acceso</span></div>
       <div class="billing-card">
         <ng-container *ngIf="detail.account as account; else noAccount">
-          <div class="fact"><span>Plan pagado</span><strong>{{ planLabel(account.tier, account.interval) }}</strong></div>
+          <div class="fact"><span>Plan pagado</span><strong>{{ account.tier ? stateLabel({ tier: account.tier, interval: account.interval || 'monthly', extraSeats: account.extraSeats || 0 }) : 'Free' }}</strong></div>
           <div class="fact"><span>Estado en Stripe</span><strong>{{ account.status }}{{ account.cancelAtPeriodEnd ? ' · no se renovará' : '' }}</strong></div>
           <div class="fact"><span>Pagado hasta</span><strong>{{ formatDate(account.paidUntil) }}</strong></div>
           <div class="fact" *ngIf="account.renewal"><span>Próxima renovación</span><strong>{{ formatDate(account.renewal.at) }} · {{ formatAmount(account.renewal.amount) }}</strong></div>
           <div class="fact" *ngIf="account.hold || account.collectionPaused"><span>Cobros</span><strong class="warn">En pausa desde {{ formatDate(account.hold?.since || null) }}{{ account.hold?.kind === 'dispute' ? ' (disputa)' : '' }}</strong></div>
-          <div class="fact" *ngIf="account.change"><span>Último cambio</span><strong>{{ planLabel(account.change.from.tier, account.change.from.interval) }} → {{ planLabel(account.change.to.tier, account.change.to.interval) }} · {{ account.change.status }}</strong></div>
-          <div class="fact" *ngIf="account.termsAcceptance"><span>Condiciones aceptadas</span><strong>{{ formatDate(account.termsAcceptance.at, true) }}</strong></div>
+          <div class="fact" *ngIf="account.change"><span>Último cambio</span><strong>{{ stateLabel(account.change.from) }} → {{ stateLabel(account.change.to) }} · {{ account.change.status }}</strong></div>
+          <div class="fact" *ngIf="account.termsAcceptance as terms"><span>Condiciones aceptadas</span><strong>{{ formatDate(terms.at, true) }} · {{ terms.via === 'change' ? 'al confirmar un cambio' : 'al contratar' }}<ng-container *ngIf="terms.termsUrl"> · {{ terms.termsUrl }}</ng-container></strong></div>
           <div class="fact" *ngIf="account.deletedAt"><span>Cuenta</span><strong class="warn">En eliminación</strong></div>
         </ng-container>
         <ng-template #noAccount><p class="state-line">Sin cuenta de facturación: no ha contratado nunca.</p></ng-template>
         <div class="fact" *ngIf="detail.access as access">
           <span>Acceso ahora</span>
-          <strong [class.warn]="!access.entitled">{{ access.entitled ? planLabel(access.tier, access.interval) : 'Free' }}{{ access.basis === 'exception' ? ' · por excepción' : '' }}{{ access.expiresAt ? ' hasta ' + formatDate(access.expiresAt) : '' }}{{ access.revokedUntil ? ' · periodo retirado hasta ' + formatDate(access.revokedUntil) : '' }}</strong>
+          <strong [class.warn]="!access.entitled">{{ access.entitled ? planLabel(access.tier, access.interval) : 'Free' }}{{ access.seats ? ' · ' + access.seats + ' plazas' : '' }}{{ access.basis === 'exception' ? ' · por excepción' : '' }}{{ access.expiresAt ? ' hasta ' + formatDate(access.expiresAt) : '' }}{{ access.revokedUntil ? ' · periodo retirado hasta ' + formatDate(access.revokedUntil) : '' }}</strong>
         </div>
         <div class="links" *ngIf="detail.links as links">
           <a [href]="links.customer" target="_blank" rel="noopener noreferrer">Cliente en Stripe</a>

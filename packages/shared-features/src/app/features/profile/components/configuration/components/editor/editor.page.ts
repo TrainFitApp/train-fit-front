@@ -616,9 +616,9 @@ export class EditorPage implements OnInit {
 
   public getMaxDate(): string {
     if (!this._maxDate) {
-      // Máximo: hace 13 años (edad mínima)
+      // Máximo: hace 14 años (edad mínima, la misma que en el registro)
       const maxDate = new Date();
-      maxDate.setFullYear(maxDate.getFullYear() - 13);
+      maxDate.setFullYear(maxDate.getFullYear() - 14);
       this._maxDate = maxDate.toISOString();
     }
     return this._maxDate;

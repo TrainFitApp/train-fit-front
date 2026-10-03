@@ -9,7 +9,7 @@ import { AdminInterventionRequest, TrainerBillingAdminApiService } from './servi
 import {
   ACTION_HELP, ACTION_LABELS, AdminAction, AdminAdjustment, AdminCase, AdminTrainerDetail, DISPUTE_STATUS, KIND_LABELS,
   PLAN_NAMES, REFUND_STATUS, ROLE_LABELS, SUGGESTED_ACTION, SUGGESTIONS, availableActions, financedLabel, formatAmount,
-  formatDate, interventionProblem, planLabel,
+  formatDate, interventionProblem, planLabel, stateLabel,
 } from './trainer-billing-view.util';
 
 interface InterventionForm {
@@ -22,7 +22,7 @@ interface InterventionForm {
   tier: string;
   adjustmentId: string;
 }
-const emptyForm = (): InterventionForm => ({ action: '', reason: '', note: '', caseId: '', resolveCase: true, until: '', tier: 'trainer_pro', adjustmentId: '' });
+const emptyForm = (): InterventionForm => ({ action: '', reason: '', note: '', caseId: '', resolveCase: true, until: '', tier: 'starter', adjustmentId: '' });
 
 // Facturación de Trainers en Gestión: casos de dinero (reembolsos, disputas, avisos de fraude)
 // y ficha del entrenador con sus intervenciones. Sin ruta de entrenador muestra la bandeja de casos.
@@ -65,6 +65,7 @@ export class TrainerBillingPage implements OnInit, OnDestroy {
   public readonly formatAmount = formatAmount;
   public readonly formatDate = formatDate;
   public readonly planLabel = planLabel;
+  public readonly stateLabel = stateLabel;
   public readonly financedLabel = financedLabel;
 
   public get actions(): AdminAction[] { return availableActions(this.detail); }

@@ -1,17 +1,33 @@
-export type PurchasableTrainerTier = 'trainer_pro' | 'trainer_growth' | 'trainer_scale';
-export type TrainerTier = 'free' | PurchasableTrainerTier | 'trainer_unlimited';
+// Suscripción del entrenador a TrainFit (Stripe). Se paga por plazas de clientes contratadas:
+// las incluidas en el plan más las adicionales (catálogo en train-fit-back/components/trainerBilling/src/catalog.ts).
+export type TrainerTier = 'free' | 'starter' | 'professional' | 'scale';
 export type TrainerBillingInterval = 'monthly' | 'annual';
-export type TrainerTaxPolicy = 'test_no_tax' | 'stripe_tax' | 'managed_payments' | 'pending';
 
-export interface TrainerBillingPrice {
-  amount: number;
+// Lo que se contrata: plan, periodicidad y plazas adicionales.
+export interface TrainerPlanState {
+  tier: TrainerTier;
   interval: TrainerBillingInterval;
+  extraSeats: number;
+}
+
+// Estado con su capacidad total e importe recurrente en céntimos, sin IVA.
+export interface TrainerStateView extends TrainerPlanState {
+  seats: number;
+  amount: number;
+}
+
+// Cuota del plan y precio de cada plaza adicional (null: el plan no vende plazas) en céntimos, sin IVA.
+export interface TrainerPlanPrice {
+  base: number;
+  seat: number | null;
 }
 
 export interface TrainerPlan {
-  tier: PurchasableTrainerTier;
-  clientLimit: number;
-  prices: Record<TrainerBillingInterval, TrainerBillingPrice>;
+  tier: TrainerTier;
+  includedSeats: number;
+  maxSeats: number;
+  // Solo las periodicidades a la venta (Free: solo mensual).
+  prices: Partial<Record<TrainerBillingInterval, TrainerPlanPrice>>;
 }
 
 // Buzón de facturación y condiciones de contratación (vacíos si no están configurados).
@@ -24,9 +40,7 @@ export interface TrainerPlanCatalog {
   enabled: boolean;
   mode: 'test' | 'live';
   currency: 'EUR';
-  // stripe_tax y managed_payments: los precios del catálogo son sin IVA; Stripe lo añade al cobrar.
-  // managed_payments: además, Stripe (a través de Link) es el vendedor que factura (decisión 2026-10-01).
-  taxPolicy: TrainerTaxPolicy;
+  freeSeats: number;
   plans: TrainerPlan[];
   capabilities: { checkout: boolean; portal: boolean; planChanges: boolean };
   support?: TrainerBillingSupport;
@@ -42,17 +56,12 @@ export interface TrainerPortalSession {
   url: string;
 }
 
-export interface TrainerSubscriptionPrice {
-  tier: PurchasableTrainerTier;
-  interval: TrainerBillingInterval;
-  amount: number;
-  clientLimit: number;
-}
-
 export interface TrainerQuoteLine {
   kind: 'credit' | 'charge' | 'recurring';
-  tier: PurchasableTrainerTier;
+  item: 'base' | 'seat';
+  tier: TrainerTier;
   interval: TrainerBillingInterval;
+  quantity: number;
   amount: number;
   periodStart: string;
   periodEnd: string;
@@ -92,21 +101,31 @@ export interface TrainerBillingDetails {
   paymentMethod: TrainerPaymentMethod | null;
 }
 
+// immediate: se cobra ahora y se aplica al pagar. deferred: plazas adicionales mensuales, se
+// aplican ya y la prorrata va a la siguiente factura. scheduled: se aplica en la renovación.
+export type TrainerChangeKind = 'immediate' | 'deferred' | 'scheduled';
+
 export interface TrainerChangeQuote {
   lines?: TrainerQuoteLine[];
   quoteId: string;
   expiresAt: string;
-  kind: 'immediate' | 'scheduled';
-  from: TrainerSubscriptionPrice;
-  to: TrainerSubscriptionPrice;
+  kind: TrainerChangeKind;
+  from: TrainerStateView;
+  to: TrainerStateView;
   effectiveAt: string;
   amountDueNow: number;
+  // Prorrata que se suma a la próxima factura (solo deferred).
+  deferredAmount: number;
   creditBalance?: number;
-  // IVA incluido en amountDueNow (0 sin Stripe Tax).
+  // IVA incluido en amountDueNow.
   taxAmount?: number;
   currency: string;
   nextRenewal: { at: string; amount: number; estimated?: boolean; excludesTax?: boolean };
-  usage: { clients: number; limit?: number };
+  seats: { occupied: number; reserved: number };
+  // Clientes que quedarán en solo lectura cuando se aplique (bajadas por debajo de la cartera).
+  readOnlyAfter: number;
+  // Condiciones de contratación que se aceptan al confirmar (null si no hay condiciones publicadas).
+  termsUrl: string | null;
 }
 
 export interface TrainerPlanChangeResult {
@@ -122,30 +141,32 @@ export interface TrainerBillingActions {
   canDiscardChange: boolean;
 }
 
+// Plazas: contratadas, ocupadas (clientes que aceptaron), reservadas (invitaciones pendientes)
+// y libres. admission: plazas para altas nuevas (con una bajada programada, las del destino).
+export interface TrainerSeatSummary {
+  capacity: number;
+  occupied: number;
+  reserved: number;
+  available: number;
+  admission: number;
+}
+
 export interface TrainerEntitlements {
   isPremium: boolean;
   tier: TrainerTier;
-  plan: string | null;
+  interval: TrainerBillingInterval | null;
   expiresAt: string | null;
-  limits: { clients: number | null };
-  usage: { clients: number };
-  remaining: { clients: number | null };
-  // Opcionales durante el despliegue: los backends anteriores siguen
-  // entregando los derechos existentes, pero no habilitan compras nuevas.
-  provider?: 'stripe' | 'revenuecat' | 'manual' | null;
-  // Plan de pago no gestionado por Stripe (Pro de 15 clientes, Unlimited).
-  legacy?: boolean;
+  seats: TrainerSeatSummary;
   status?: string | null;
   cancelAtPeriodEnd?: boolean;
   currentPeriodEnd?: string | null;
   billing?: {
     enabled: boolean;
     mode: 'test' | 'live';
-    taxPolicy?: TrainerTaxPolicy;
     // Cobros en pausa por una incidencia con un pago (el acceso pagado se mantiene).
     hold?: { since: string } | null;
     // Acceso concedido por TrainFit hasta una fecha (no es un cobro).
-    accessException?: { until: string; tier: PurchasableTrainerTier } | null;
+    accessException?: { until: string; tier: TrainerTier } | null;
     // El pago de este periodo se perdió en una disputa: sin acceso de pago hasta esa fecha.
     accessRevokedUntil?: string | null;
     // Renovación anual en los próximos 30 días.
@@ -154,14 +175,12 @@ export interface TrainerEntitlements {
     portalAvailable: boolean;
     planChanges: boolean;
     actions?: TrainerBillingActions;
-    pendingChange?: { tier: PurchasableTrainerTier; interval: TrainerBillingInterval; effectiveAt: string; clientLimit?: number } | null;
-    admissionClientLimit?: number | null;
+    // Lo contratado y pagado en Stripe; null en Free sin plazas adicionales.
+    current?: TrainerStateView | null;
+    pendingChange?: (TrainerStateView & { effectiveAt: string }) | null;
     pendingPayment?: { url?: string | null; expiresAt?: string | null } | null;
-    currentPrice?: TrainerSubscriptionPrice | null;
-    // Próximo cargo tal como lo calcula Stripe (descuentos y saldo incluidos).
-    // tier/interval: plan que cobrará Stripe (incluye un cambio programado); discounted: lleva descuento o saldo.
-    renewal?: { at: string; amount: number; source: 'stripe'; tier?: PurchasableTrainerTier | null;
-      interval?: TrainerBillingInterval | null; discounted?: boolean } | null;
+    // Próximo cargo tal como lo calcula Stripe (descuentos y saldo incluidos); state: lo que cobrará.
+    renewal?: { at: string; amount: number; source: 'stripe'; state?: TrainerStateView | null; discounted?: boolean } | null;
     // Renovación impagada mientras Stripe reintenta el cobro.
     renewalPayment?: { url?: string | null; amount: number; graceUntil?: string | null } | null;
     paidUntil?: string | null;

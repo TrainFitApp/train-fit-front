@@ -37,7 +37,7 @@ TrainFit conecta al profesional con sus clientes en la misma plataforma: lo que 
 
 ## Capabilities and Constraints
 
-- Planes del profesional por número de clientes (Pro 20, Growth 50, Scale 150) con Stripe; ver `train-fit-back/components/trainerBilling/README.md`.
+- Planes del profesional por plazas de clientes contratadas (Free 3, Inicio 20, Profesional 50, Escala 150, con plazas adicionales hasta 12, 40 y 125) con Stripe; ver `train-fit-back/components/trainerBilling/README.md`.
 - Fotos y vídeos: el profesional ve las fotos del cliente desde que empezó la relación, salvo los días que el cliente oculte; lo anterior solo si el cliente lo comparte. Las revisiones de técnica duran 90 días salvo «Conservar». Detalle en `docs/plan-medidas-multimedia.md`.
 - Se empaqueta con Capacitor para iOS y Android con un diseño propio común; no sigue las convenciones visuales nativas de cada sistema.
 

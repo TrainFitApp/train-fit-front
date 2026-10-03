@@ -23,12 +23,12 @@
 }
 
 // ---------- Botones ----------
-.primary-button, .plan-button {
+.primary-button {
   @include tf-gradient-button;
   min-height: var(--tf-touch-min);
   padding: var(--tf-space-3) var(--tf-space-4);
 }
-.secondary-button, .plan-button.secondary {
+.secondary-button {
   @include tf-secondary-button;
   min-height: var(--tf-touch-min);
   padding: var(--tf-space-3) var(--tf-space-4);
@@ -91,6 +91,7 @@
   p { margin-block-start: var(--tf-space-2); max-width: 72ch; }
   button { margin-block-start: var(--tf-space-3); }
   ion-spinner { width: 24px; height: 24px; flex-shrink: 0; }
+  &.notice-accent { border-color: var(--tf-accent-soft-border); background: var(--tf-accent-soft); strong ion-icon { color: var(--tf-accent-text); } }
 }
 
 .feedback, .error-message { margin-block: var(--tf-space-4); }
@@ -213,16 +214,41 @@
 .fact-note { color: var(--tf-text-muted); font-size: 0.8125rem; &.warning { color: var(--tf-accent-text); } }
 .fact-action { min-height: 32px; padding-block: 0; font-size: 0.875rem; }
 .card-value { display: inline-flex; align-items: center; gap: var(--tf-space-2); font-size: var(--tf-font-size-md); ion-icon { color: var(--tf-text-muted); font-size: 1.125rem; } }
-.usage-bar {
+// Plazas: ocupadas (sólido) y reservadas por invitaciones (el mismo tono, más claro) sobre las libres.
+.seat-bar {
+  display: flex;
   align-self: stretch;
-  height: 6px;
+  height: 8px;
   margin-block: var(--tf-space-2) var(--tf-space-1);
   border-radius: var(--tf-radius-pill);
   background: var(--tf-surface-5);
   overflow: hidden;
 }
-.usage-bar-fill { height: 100%; background: var(--tf-accent); transform-origin: left center; transition: transform var(--tf-duration-base) var(--tf-ease-out); }
-.usage-bar.full .usage-bar-fill { background: var(--tf-danger); }
+.seat-bar-occupied, .seat-bar-reserved { height: 100%; }
+.seat-bar-occupied { background: var(--tf-accent); }
+.seat-bar-reserved { background: var(--tf-accent); opacity: 0.4; }
+.seat-bar.full .seat-bar-occupied { background: var(--tf-danger); }
+.seat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-1) var(--tf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--tf-text-secondary);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  li { display: inline-flex; align-items: center; gap: 6px; }
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tf-surface-5);
+  box-shadow: inset 0 0 0 1px var(--tf-border-strong);
+  &.occupied { background: var(--tf-accent); box-shadow: none; }
+  &.reserved { background: var(--tf-accent); opacity: 0.4; box-shadow: none; }
+}
 
 .plan-actions {
   display: flex;
@@ -283,19 +309,30 @@
 }
 .interval-saving { color: var(--tf-success); font-size: 0.75rem; font-weight: 600; }
 
+// Planes como opciones de una sola elección: el elegido lleva el acento; el contratado, su etiqueta.
 .plans-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--tf-space-3); margin-block-start: var(--tf-space-5); }
 .plan-option {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   min-width: 0;
   padding: var(--tf-space-5);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
   background: var(--tf-surface-1);
-  &.current { border-color: var(--tf-accent-soft-border); background: var(--tf-accent-tint, var(--tf-surface-1)); }
+  color: var(--tf-text);
+  text-align: start;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out), box-shadow var(--tf-duration-fast) var(--tf-ease-out);
   &.scheduled { border-style: dashed; border-color: var(--tf-border-strongest); }
+  &.selected { border-color: var(--tf-accent); box-shadow: inset 0 0 0 1px var(--tf-accent); }
+  &.unavailable { color: var(--tf-text-secondary); .plan-capacity, .plan-price { color: var(--tf-text-muted); } }
+  &:disabled { cursor: default; }
+  &:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 3px; }
 }
 .plan-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--tf-space-2); min-height: 28px; }
+.plan-name { font-size: var(--tf-font-size-md); font-weight: 600; }
+.plan-seat-note { margin-block-start: var(--tf-space-4); padding-block-start: var(--tf-space-3); border-block-start: 1px solid var(--tf-border); color: var(--tf-text-secondary); font-size: 0.8125rem; }
 .plan-chip {
   padding: 2px var(--tf-space-3);
   border-radius: var(--tf-radius-pill);
@@ -312,10 +349,88 @@
 .plan-price span { color: var(--tf-text-muted); font-size: 0.875rem; font-weight: 400; }
 .plan-note { margin-block-start: var(--tf-space-1); color: var(--tf-text-muted); font-size: 0.8125rem; }
 .plan-saving { color: var(--tf-success); font-weight: 600; }
-.plan-restriction { margin-block-start: var(--tf-space-3); color: var(--tf-accent-text); font-size: 0.8125rem; }
-// El botón se alinea al pie de cada tarjeta aunque tengan distinto texto.
-.plan-button { width: 100%; margin-block-start: auto; font-size: 0.875rem; }
-.plan-option > :nth-last-child(2) { margin-block-end: var(--tf-space-5); }
+.plan-option .plan-seat-note { margin-block-start: auto; }
+.plan-option .plan-note + .plan-seat-note, .plan-option .plan-price + .plan-seat-note { margin-block-start: var(--tf-space-4); }
+
+// Configurador: plazas a la izquierda, importe y acción a la derecha (apilado en móvil).
+.config-panel {
+  display: grid;
+  gap: var(--tf-space-6);
+  margin-block-start: var(--tf-space-4);
+  padding: var(--tf-space-6) var(--tf-space-5);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-1);
+}
+.config-seats { display: flex; flex-direction: column; align-items: flex-start; gap: var(--tf-space-2); min-width: 0; }
+.config-label { color: var(--tf-text-secondary); font-size: 0.8125rem; font-weight: 600; }
+.seat-stepper { display: inline-flex; align-items: center; gap: var(--tf-space-2); }
+.stepper-button {
+  @include tf-icon-button;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  ion-icon { font-size: 1.25rem; }
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+.stepper-value, .stepper-fixed {
+  width: 5.5rem;
+  min-height: var(--tf-touch-min);
+  margin: 0;
+  color: var(--tf-text);
+  font: inherit;
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.stepper-value {
+  padding: 0;
+  border: 0;
+  border-block-end: 2px solid var(--tf-border-strong);
+  background: transparent;
+  caret-color: var(--tf-accent);
+  -moz-appearance: textfield;
+  &::-webkit-outer-spin-button, &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  &:focus-visible { outline: none; border-block-end-color: var(--tf-accent); }
+  &:disabled { color: var(--tf-text-muted); }
+}
+.stepper-fixed { width: auto; display: flex; align-items: center; }
+.config-hint { color: var(--tf-text-muted); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+
+.config-summary { display: flex; flex-direction: column; gap: var(--tf-space-4); min-width: 0; }
+.config-breakdown { margin: 0; }
+.config-breakdown > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--tf-space-4); padding-block: var(--tf-space-2); }
+.config-breakdown dt { color: var(--tf-text-secondary); font-size: 0.875rem; }
+.config-breakdown dd { margin: 0; text-align: end; font-variant-numeric: tabular-nums; color: var(--tf-text-secondary); }
+.config-breakdown .config-total { margin-block-start: var(--tf-space-1); padding-block-start: var(--tf-space-3); border-block-start: 1px solid var(--tf-border); }
+.config-total dt { color: var(--tf-text); font-weight: 600; }
+.config-total dt span { display: block; margin-block-start: 2px; color: var(--tf-text-muted); font-size: 0.8125rem; font-weight: 400; }
+.config-total dd { color: var(--tf-text); font-size: 1.375rem; font-weight: 700; letter-spacing: -0.01em; }
+
+.config-advice {
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-accent-soft);
+  color: var(--tf-text);
+  font-size: 0.875rem;
+  .text-button { min-height: 36px; padding-block: var(--tf-space-1) 0; color: var(--tf-accent-text); font-weight: 600; }
+}
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  color: var(--tf-accent-text);
+  font-weight: 600;
+  text-underline-offset: 4px;
+  &:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; border-radius: var(--tf-radius-sm); }
+}
+.config-summary .consequences { margin: 0; }
+.config-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--tf-space-3) var(--tf-space-5); }
+.config-status { color: var(--tf-text-muted); font-size: 0.875rem; }
 
 // ---------- Facturas ----------
 .invoices { padding-block-start: var(--tf-space-10); }
@@ -404,6 +519,15 @@
 .consequences li { position: relative; padding-inline-start: var(--tf-space-4); color: var(--tf-text-secondary); font-size: 0.875rem; }
 .consequences li::before { content: ''; position: absolute; inset-inline-start: 2px; top: 0.6em; width: 5px; height: 5px; border-radius: 50%; background: var(--tf-text-muted); }
 .dialog-body > p + .consequences { margin-block-start: var(--tf-space-4); }
+.terms-note {
+  margin-block-start: var(--tf-space-5);
+  padding-block-start: var(--tf-space-4);
+  border-block-start: 1px solid var(--tf-border);
+  color: var(--tf-text-secondary);
+  font-size: 0.8125rem;
+  a { color: var(--tf-accent-text); font-weight: 600; text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; border-radius: var(--tf-radius-sm); }
+}
 
 .visually-hidden {
   position: absolute;
@@ -420,7 +544,9 @@
 // ---------- Responsive y preferencias ----------
 @media (hover: hover) and (pointer: fine) {
   .text-button:hover:not(:disabled) { color: var(--tf-text); }
-  .primary-button:hover:not(:disabled), .plan-button:not(.secondary):hover:not(:disabled) { opacity: 0.9; }
+  .primary-button:hover:not(:disabled) { opacity: 0.9; }
+  .plan-option:hover:not(:disabled):not(.selected) { border-color: var(--tf-border-strongest); }
+  .stepper-button:hover:not(:disabled) { border-color: var(--tf-border-strongest); }
   .billing-interval button:hover:not(:disabled):not(.selected) { color: var(--tf-text); }
 }
 
@@ -429,6 +555,7 @@
   .plan-hero { padding: var(--tf-space-8); }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--tf-space-8); }
   .plans-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .config-panel { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: var(--tf-space-8); padding: var(--tf-space-8); }
   .invoice-row { grid-template-columns: 9rem minmax(0, 1fr) 7rem 7rem auto; grid-template-areas: 'main main amount status links'; }
 
   // Línea temporal horizontal: fecha, punto y texto en columnas; conector entre puntos.
@@ -454,6 +581,8 @@
   .plan-hero { padding: var(--tf-space-5) var(--tf-space-4); }
   .plan-hero-title h2 { font-size: 1.5rem; }
   .plan-option { padding: var(--tf-space-4); }
+  .config-panel { padding: var(--tf-space-5) var(--tf-space-4); }
+  .config-actions .primary-button { width: 100%; }
   .change-route { grid-template-columns: minmax(0, 1fr); }
   .route-arrow { justify-self: center; transform: rotate(90deg); }
   .billing-dialog {
@@ -471,5 +600,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .usage-bar-fill, .billing-interval button { transition: none; }
+  .billing-interval button, .plan-option { transition: none; }
 }

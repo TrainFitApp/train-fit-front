@@ -139,11 +139,16 @@ export class AccountPage implements OnInit {
 
   public get billingSummary() { return trainerBillingSummary(this.entitlements); }
 
+  // Plazas en uso (ocupadas + reservadas por invitaciones) sobre las contratadas.
+  public get usedSeats(): number {
+    const seats = this.entitlements?.seats;
+    return seats ? seats.occupied + seats.reserved : 0;
+  }
+
   public get usagePercent(): number {
-    const limit = this.entitlements?.limits.clients;
-    const used = this.entitlements?.usage.clients || 0;
-    if (!limit) return 0;
-    return Math.min(100, Math.round((used / limit) * 100));
+    const capacity = this.entitlements?.seats.capacity;
+    if (!capacity) return 0;
+    return Math.min(100, Math.round((this.usedSeats / capacity) * 100));
   }
 
   public ngOnInit(): void {

@@ -134,7 +134,7 @@ export class SignUpPage implements OnInit, OnDestroy {
   public TRAINING_TYPE_VALUES: TRAINING_TYPE[] = [];
   public LINKS = LINKS;
 
-  private readonly MIN_SIGN_UP_AGE = 13;
+  private readonly MIN_SIGN_UP_AGE = 14;
   private readonly MAX_SIGN_UP_AGE = 120;
   private _defaultBirthDate: string | null = null;
 

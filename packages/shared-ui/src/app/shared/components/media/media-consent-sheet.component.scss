@@ -49,6 +49,51 @@
   }
 }
 
+.consent-check {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 12px;
+  align-items: start;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1.5px solid $media-border;
+  border-radius: 14px;
+  background: $media-surface-2;
+  cursor: pointer;
+  transition: border-color 160ms ease, transform 120ms $media-ease;
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  &.is-checked {
+    border-color: rgba($media-accent, 0.55);
+  }
+}
+
+.consent-checkbox {
+  margin-top: 1px;
+  --size: 22px;
+  --border-radius: 7px;
+  --border-color: #5a5a5a;
+  --background-checked: #{$media-accent};
+  --border-color-checked: #{$media-accent};
+  --checkmark-color: #111;
+}
+
+.consent-check-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #e6e6e6;
+}
+
+.consent-link {
+  color: $media-accent;
+  text-decoration: none;
+  border-bottom: 1px solid rgba($media-accent, 0.4);
+  @include media-focus;
+}
+
 .consent-error {
   margin: 14px 0 0;
   font-size: 0.85rem;

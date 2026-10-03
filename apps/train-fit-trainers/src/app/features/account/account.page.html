@@ -103,14 +103,11 @@
       <div class="plan-card-usage" *ngIf="entitlements">
         <div class="usage-header">
           <span class="usage-title">{{ 'ACCOUNT.CLIENTES_QUE_OCUPAN_PLAZA' | translate }}</span>
-          <span class="usage-count">
-            {{ entitlements.usage.clients }}<span *ngIf="entitlements.limits.clients"> / {{ entitlements.limits.clients }}</span>
-          </span>
+          <span class="usage-count">{{ usedSeats }} / {{ entitlements.seats.capacity }}</span>
         </div>
-        <div class="usage-bar" *ngIf="entitlements.limits.clients">
+        <div class="usage-bar">
           <div class="usage-bar-fill" [style.width.%]="usagePercent"></div>
         </div>
-        <span class="usage-unlimited" *ngIf="!entitlements.limits.clients">{{ 'ACCOUNT.CLIENTES_ILIMITADOS' | translate }}</span>
       </div>
       </div>
     </section>

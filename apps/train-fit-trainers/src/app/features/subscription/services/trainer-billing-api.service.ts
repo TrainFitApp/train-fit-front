@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import {
-  PurchasableTrainerTier,
-  TrainerBillingInterval,
+  TrainerPlanState,
   TrainerCheckoutSession,
   TrainerEntitlements,
   TrainerPlanCatalog,
@@ -26,8 +25,8 @@ export class TrainerBillingApiService {
     return this.http.get<TrainerPlanCatalog>('billing/trainer/plans');
   }
 
-  public createCheckout(tier: PurchasableTrainerTier, interval: TrainerBillingInterval): Observable<TrainerCheckoutSession> {
-    return this.http.post<TrainerCheckoutSession>('billing/trainer/checkout', { tier, interval });
+  public createCheckout(target: TrainerPlanState): Observable<TrainerCheckoutSession> {
+    return this.http.post<TrainerCheckoutSession>('billing/trainer/checkout', target);
   }
 
   public createPortal(): Observable<TrainerPortalSession> {
@@ -38,12 +37,13 @@ export class TrainerBillingApiService {
     return this.http.post<TrainerEntitlements>('billing/trainer/sync', sessionId ? { sessionId } : {});
   }
 
-  public previewChange(tier: PurchasableTrainerTier, interval: TrainerBillingInterval): Observable<TrainerChangeQuote> {
-    return this.http.post<TrainerChangeQuote>('billing/trainer/change-preview', { tier, interval });
+  public previewChange(target: TrainerPlanState): Observable<TrainerChangeQuote> {
+    return this.http.post<TrainerChangeQuote>('billing/trainer/change-preview', target);
   }
 
-  public changePlan(quoteId: string): Observable<TrainerPlanChangeResult> {
-    return this.http.post<TrainerPlanChangeResult>('billing/trainer/change-plan', { quoteId });
+  // termsUrl: las condiciones que se mostraron al confirmar; el backend registra su aceptación.
+  public changePlan(quoteId: string, termsUrl: string | null): Observable<TrainerPlanChangeResult> {
+    return this.http.post<TrainerPlanChangeResult>('billing/trainer/change-plan', termsUrl ? { quoteId, termsUrl } : { quoteId });
   }
 
   public cancel(): Observable<TrainerEntitlements> {

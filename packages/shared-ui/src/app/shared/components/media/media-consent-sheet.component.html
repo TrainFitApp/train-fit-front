@@ -21,11 +21,31 @@
     </li>
   </ul>
 
+  <div
+    class="consent-check"
+    [class.is-checked]="agreed"
+    role="presentation"
+    (click)="toggleAgreed()"
+  >
+    <ion-checkbox
+      mode="ios"
+      class="consent-checkbox"
+      [checked]="agreed"
+      [attr.aria-label]="'MEDIA.CONSENT_CHECK' | translate"
+      (click)="$event.stopPropagation()"
+      (ionChange)="agreed = $event.detail.checked"
+    ></ion-checkbox>
+    <span class="consent-check-text">
+      {{ 'MEDIA.CONSENT_CHECK' | translate }}
+      <a class="consent-link" [href]="privacyUrl" (click)="openPrivacy($event)">{{ 'MEDIA.CONSENT_PRIVACY' | translate }}</a>
+    </span>
+  </div>
+
   <p class="consent-error" *ngIf="failed" role="alert">{{ 'MEDIA.ERRORS.GENERIC' | translate }}</p>
 
   <div class="consent-actions">
     <button type="button" class="consent-cancel" (click)="cancel()">{{ 'MEDIA.CONSENT_LATER' | translate }}</button>
-    <button type="button" class="consent-accept" (click)="accept()" [disabled]="saving">
+    <button type="button" class="consent-accept" (click)="accept()" [disabled]="saving || !agreed">
       <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
       <span>{{ 'MEDIA.CONSENT_ACCEPT' | translate }}</span>
     </button>
