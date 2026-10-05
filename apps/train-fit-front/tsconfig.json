@@ -82,7 +82,10 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   },
-  "exclude": ["node_modules", "www", "dist"]
+  // android/ e ios/ guardan copias compiladas de la web (app/build, App/public).
+  // typescript-eslint activa allowJs, y sin excluirlas el lint metía esos .js
+  // de varios MB en el programa y se quedaba sin memoria.
+  "exclude": ["node_modules", "www", "dist", "android", "ios"]
 }
 
 // MODO ESTRICTO
