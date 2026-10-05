@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { localizeList } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 interface ProjectedDay {
   isPlannedRestDay: boolean;
@@ -66,10 +67,6 @@ function isoDate(year: number, month: number, day: number): string {
 
 function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-}
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function buildMonthGrid(year: number, month: number): TrainingCalendarCell[] {
@@ -148,7 +145,7 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   public readonly weekdayLabels = WEEKDAY_LABELS;
   public monthDate = new Date();
   public cells: TrainingCalendarCell[] = [];
-  public readonly todayIso = todayIso();
+  public readonly todayIso = localIsoDate();
 
   public isRangeMode = false;
   public rangeStart: string | null = null;

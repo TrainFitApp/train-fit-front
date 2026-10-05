@@ -4,12 +4,9 @@ import { ModalController } from '@ionic/angular';
 import { DietTemplateApiService } from '../../../diet-templates/services/diet-template-api.service';
 import { DietTemplate } from '../../../diet-templates/models/diet-template.model';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type ViewState = 'loading' | 'error' | 'loaded' | 'applying';
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 // Auditoría de arquitectura (nutrición, Fase 8) — aplicar un plan ya
 // construido a ESTE cliente eligiendo cuándo EMPIEZA y cuánto se estima que
@@ -45,7 +42,7 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   // La fase empieza el día en que se aplica (docs/plan-semanas.md):
   // no hay fecha que elegir aquí. Si el cliente ya tiene una fase en curso,
   // el backend la cierra ayer; las fechas se corrigen luego desde la ficha.
-  public readonly startDate = todayIsoDate();
+  public readonly startDate = localIsoDate();
 
   constructor(
     private dietTemplateApi: DietTemplateApiService,

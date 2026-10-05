@@ -21,6 +21,7 @@ import {
   parseDose,
 } from './supplement-dose.util';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -200,7 +201,7 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
     this.formReason = supplement?.reason || '';
     this.formUrl = supplement?.purchaseUrl || '';
     this.formWeekdays = [...(supplement?.weekdays || [])];
-    this.formStartDate = supplement?.startDate || new Date().toISOString().slice(0, 10);
+    this.formStartDate = supplement?.startDate || localIsoDate();
     this.formEndDate = supplement?.endDate || '';
     this.showPanel = true;
   }

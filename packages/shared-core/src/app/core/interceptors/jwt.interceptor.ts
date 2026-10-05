@@ -17,6 +17,7 @@ import { AuthService } from '../services/auth/auth.service';
 import { MaintenanceModalService } from '../services/maintenance/maintenance-modal.service';
 import { RemoteConfigMaintenanceStatus } from '../models/remote-config-status';
 import { IonicUtilService } from '../services/util/ionic-util.service';
+import { deviceTimeZone } from '../utils/local-date.util';
 
 // 2026-09 — códigos de error que el backend ya devuelve con un mensaje
 // pensado para enseñárselo tal cual al usuario (ver
@@ -89,11 +90,15 @@ export class JWTInterceptor implements HttpInterceptor {
     request: HttpRequest<unknown>,
     next: HttpHandler,
   ): Observable<HttpEvent<unknown>> {
-    // Always attach platform headers.
+    // Always attach platform headers. The time zone is read on every request
+    // (it changes when travelling): the API works out the user's "today"
+    // from it, never from the server clock.
+    const timeZone = deviceTimeZone();
     const baseRequest = request.clone({
       setHeaders: {
         'x-client-platform': this.clientPlatform,
         'x-client-family': this.clientFamily,
+        ...(timeZone ? { 'x-timezone': timeZone } : {}),
       },
       withCredentials: true,
     });

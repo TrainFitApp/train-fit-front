@@ -33,10 +33,7 @@ import {
   ClientTrainingProgress,
   PlanChange,
 } from '../models/client-progress.model';
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 @Injectable({ providedIn: 'root' })
 export class ClientDetailApiService {
@@ -120,7 +117,7 @@ export class ClientDetailApiService {
     return this.http.delete(`tables/${clientId}/${tableId}`);
   }
 
-  public getDiet(clientId: string, date: string = todayIsoDate()): Observable<DietDaySummary | null> {
+  public getDiet(clientId: string, date: string = localIsoDate()): Observable<DietDaySummary | null> {
     return this.http.get<DietDaySummary | null>(
       `${this.base(clientId)}/diet?date=${encodeURIComponent(date)}`
     );

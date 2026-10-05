@@ -35,12 +35,9 @@ import { map, switchMap } from 'rxjs/operators';
 import { alternativeTotals, MacroTotals } from '../../utils/alternative-macros';
 import { computeItemMicros, TOTALS_NUTRIENT_FIELDS } from '../../utils/nutrient-fields';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 // De quién es la dieta que se está tocando, cuando se llega con un cliente
 // detrás:
@@ -317,7 +314,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     this.clientId = clientId;
     this.clientName = nav.clientName || this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
     this.name = nav.name || '';
-    this.phaseStartDate = nav.startDate || todayIsoDate();
+    this.phaseStartDate = nav.startDate || localIsoDate();
     if (nav.phase) {
       this.phaseProteinPerKg = nav.phase.proteinPerKg ?? null;
       this.phaseFatPerKg = nav.phase.fatPerKg ?? null;
@@ -1287,7 +1284,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // qué tirar. Se dice que quedó guardada y que solo faltan las fechas, que
   // se pueden reelegir desde "Siguiente fase".
   private saveForClient(menusToSave: DietTemplateMenuPayload[]): void {
-    const startDate = this.phaseStartDate || todayIsoDate();
+    const startDate = this.phaseStartDate || localIsoDate();
     // Toda dieta nueva arranca una FASE (phaseId propio) con el objetivo que
     // se ve arriba: el del cliente, o el que el entrenador haya tecleado.
     const target = this.clientTarget;

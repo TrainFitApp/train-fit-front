@@ -26,6 +26,7 @@ import {
   UserValidationErrors,
 } from '../../validators/user-validation-errors';
 import { IonicUtilService } from './ionic-util.service';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 @Injectable({
   providedIn: 'root',
@@ -217,10 +218,7 @@ export class UtilService {
   }
 
   public formatDateToYYYYMMDD(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return localIsoDate(date);
   }
 
   public parseYYYYMMDD(dateStr: string): Date {

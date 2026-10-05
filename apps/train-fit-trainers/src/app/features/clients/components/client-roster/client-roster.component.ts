@@ -27,6 +27,7 @@ import { TrainerInvitesApiService } from '../../../invites/services/trainer-invi
 import { ClientIntake, TrainerInvite } from '../../../invites/models/trainer-invite.model';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
 import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -542,7 +543,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   // sin responder. Sin programación no hay nada que incumplir.
   public isCheckinOverdue(row: RosterClient): boolean {
     if (!row.nextCheckinDate) return false;
-    return row.nextCheckinDate < new Date().toISOString().slice(0, 10);
+    return row.nextCheckinDate < localIsoDate();
   }
 
   public toggleRow(row: RosterClient): void {

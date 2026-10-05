@@ -21,6 +21,7 @@ import { DIETARY_FLAG_UI } from '../../../../shared/utils/dietary-flag-ui.util';
 import { DietCardModule } from '../../../../shared/components/diet-card/diet-card.module';
 import { MacroAdjustComponent } from '../../../../shared/components/macro-adjust/macro-adjust.component';
 import { nextSources } from './diet-source-filter.util';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 const DIETARY_FLAGS: { key: DietaryFlag; label: string; icon: string; colorClass: string }[] = (
   ['vegan', 'vegetarian', 'lactoseFree', 'glutenFree'] as DietaryFlag[]
@@ -106,7 +107,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   // --- Confirmación ---
   // La fase empieza el día en que se crea (docs/plan-semanas.md); las
   // fechas se editan después desde la ficha del cliente.
-  public readonly startDate = new Date().toISOString().slice(0, 10);
+  public readonly startDate = localIsoDate();
   public applying = false;
 
   // Reflejo local del estado compartido (para el template).

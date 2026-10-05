@@ -230,18 +230,20 @@ ion-popover {
 // ─── Premium upgrade banner ───────────────────────────────────────────────────
 
 // Ciclos por contenido §11 — chips de los menús de un plan "el cliente
-// elige cada día", encima de las comidas. Mismo tratamiento visual que
-// .premium-banner de abajo (tarjeta suave con el acento).
+// elige cada día", encima de las comidas. Son menús pautados por el
+// profesional, así que llevan el mismo azul `alternative` e icono que la
+// sección "Pautado" de las comidas (meal.component.scss). Bloque compacto:
+// cabecera de una línea y una sola fila de chips con scroll horizontal.
 .menu-chips {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   width: calc(100% - 14px);
   margin: var(--diets-gap) 7px 0;
-  padding: 12px 14px;
+  padding: 10px 14px;
   border-radius: 14px;
-  background: rgba(254, 144, 0, 0.08);
-  border: 1px solid rgba(254, 144, 0, 0.22);
+  background: rgba(var(--ion-color-alternative-rgb), 0.08);
+  border: 1px solid rgba(var(--ion-color-alternative-rgb), 0.22);
 }
 
 // Día saltado por el profesional: mismo bloque, en tono neutro — no es una
@@ -258,6 +260,30 @@ ion-popover {
   color: #9ca3af;
 }
 
+.menu-chips__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.menu-chips__heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--ion-color-alternative);
+
+  ion-icon {
+    flex: none;
+    font-size: 15px;
+  }
+
+  .menu-chips__title {
+    color: inherit;
+  }
+}
+
 .menu-chips__title {
   font-size: 0.8rem;
   font-weight: 700;
@@ -266,15 +292,33 @@ ion-popover {
   color: #9ca3af;
 }
 
+// Mismo gris y tamaño que `.section-subtitle` de las comidas.
+.menu-chips__subtitle {
+  margin: -4px 0 0;
+  font-size: 11px;
+  color: #8b8b8b;
+}
+
+// Una sola fila con scroll: el bloque no crece con el número de menús. El
+// margen negativo deja que los chips lleguen hasta el borde de la tarjeta.
 .menu-chips__row {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
   align-items: center;
+  margin: 0 -14px;
+  padding: 0 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .menu-chips__chip {
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: 4px;
   min-height: 36px;
@@ -286,6 +330,7 @@ ion-popover {
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
 
   ion-icon {
@@ -293,9 +338,9 @@ ion-popover {
   }
 
   &.is-selected {
-    border-color: #fe9000;
-    background: #392610;
-    color: #fe9000;
+    border-color: var(--ion-color-alternative);
+    background: rgba(var(--ion-color-alternative-rgb), 0.18);
+    color: var(--ion-color-alternative-tint);
   }
 
   &:disabled {
@@ -304,11 +349,13 @@ ion-popover {
   }
 }
 
+// El margen negativo amplía el área pulsable (44px) sin engordar la cabecera.
 .menu-chips__leave {
-  margin-left: auto;
+  flex: none;
+  margin: -12px -6px;
   background: none;
   border: none;
-  padding: 6px 4px;
+  padding: 12px 6px;
   font-family: inherit;
   font-size: 0.8rem;
   color: #9ca3af;
@@ -319,62 +366,6 @@ ion-popover {
   &:disabled {
     opacity: 0.6;
     cursor: default;
-  }
-}
-
-// Check-in abierto, encima del peso diario.
-.checkin-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: calc(100% - 14px);
-  margin: var(--diets-gap) 7px 0;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(254, 144, 0, 0.35);
-  background: rgba(254, 144, 0, 0.1);
-  color: #ffffff;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-
-  > ion-icon:first-child {
-    flex-shrink: 0;
-    font-size: 22px;
-    color: #fe9000;
-  }
-
-  > ion-icon:last-child {
-    flex-shrink: 0;
-    font-size: 16px;
-    color: #9ca3af;
-  }
-
-  &.is-done {
-    border-color: #2a2a2a;
-    background: #111111;
-
-    > ion-icon:first-child {
-      color: #5db530;
-    }
-  }
-}
-
-.checkin-card__text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
-  strong {
-    font-size: 0.9rem;
-    font-weight: 700;
-  }
-
-  small {
-    font-size: 0.75rem;
-    color: #9ca3af;
   }
 }
 
@@ -390,8 +381,7 @@ ion-popover {
   margin: var(--diets-gap) 7px 0;
 }
 
-// Hábitos del día: se marcan aquí mismo, bajo las comidas.
-.day-habits,
+// Suplementación vigente del día, bajo las comidas.
 .day-supplements {
   width: calc(100% - 14px);
   margin: var(--diets-gap) 7px 0;
@@ -401,7 +391,6 @@ ion-popover {
   background: #111111;
 }
 
-.day-habits__title,
 .day-supplements__title {
   margin: 0 0 8px;
   font-size: 0.8rem;
@@ -411,20 +400,16 @@ ion-popover {
   letter-spacing: 0.04em;
 }
 
-.day-habits__row,
 .day-supplements__row {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
   padding: 8px 0;
-  background: none;
-  border: none;
   color: #ffffff;
   font-family: inherit;
   text-align: left;
 
-  + .day-habits__row,
   + .day-supplements__row {
     border-top: 1px solid #1d1d1d;
   }
@@ -434,17 +419,8 @@ ion-popover {
     font-size: 20px;
     color: #9ca3af;
   }
-
-  &.is-done > .day-habits__check {
-    color: #5db530;
-  }
-
-  &[disabled] {
-    opacity: 0.6;
-  }
 }
 
-.day-habits__text,
 .day-supplements__text {
   flex: 1;
   min-width: 0;
@@ -461,22 +437,6 @@ ion-popover {
     font-size: 0.75rem;
     color: #9ca3af;
   }
-}
-
-// Icono del tipo de hábito (pasos, agua…): el mismo que ve el entrenador.
-.day-habits__row > .day-habits__type {
-  font-size: 22px;
-  color: var(--ion-color-primary);
-}
-
-.day-habits__row.is-done > .day-habits__check {
-  color: var(--ion-color-primary);
-}
-
-.day-habits__hint {
-  margin: 8px 0 0;
-  font-size: 0.72rem;
-  color: #9ca3af;
 }
 
 .premium-banner {

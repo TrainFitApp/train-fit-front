@@ -15,7 +15,7 @@ import {
 } from '../../../coach/models/coach-notification-view';
 import { CoachDashboardApiService } from '../../../coach/services/coach-dashboard-api.service';
 import { NotificationsApiService } from '../../../coach/services/notifications-api.service';
-import { TasksApiService } from '../../../coach/services/tasks-api.service';
+import { HabitsService } from '../../../coach/services/habits.service';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -59,7 +59,7 @@ export class ProfileCoachCardComponent implements OnInit {
     private translate: TranslateService,
     private coachDashboardApi: CoachDashboardApiService,
     private notificationsApi: NotificationsApiService,
-    private tasksApi: TasksApiService,
+    private habitsService: HabitsService,
     private notificationsService: NotificationsService
   ) {}
 
@@ -78,7 +78,7 @@ export class ProfileCoachCardComponent implements OnInit {
     forkJoin({
       dashboard: this.coachDashboardApi.getDashboard().pipe(catchError(() => of(null))),
       notifications: this.notificationsApi.getMine().pipe(catchError(() => of(null))),
-      tasks: this.tasksApi.getMine().pipe(catchError(() => of(null))),
+      tasks: this.habitsService.load().pipe(catchError(() => of(null))),
     }).subscribe(({ dashboard, notifications, tasks }) => {
       this.inFlight = false;
       if (!dashboard && !notifications && !tasks) {

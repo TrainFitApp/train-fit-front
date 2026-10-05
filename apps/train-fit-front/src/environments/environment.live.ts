@@ -5,7 +5,7 @@ const PORT = ':3000';
 // IP del Mac (ver ifconfig en0) — coincide con el --public-host de
 // npm run live:i / live:a. Si el router la reasigna, actualizar aqui
 // tambien (mismo IP en environment.live.ts de trainers/management).
-const API_URL_BASE = 'http://192.168.1.15' + PORT;
+const API_URL_BASE = 'http://192.168.1.14' + PORT;
 
 export const environment = {
   production: false,

@@ -10,7 +10,7 @@ def hasReleaseKeystore = releaseKeystorePath != null && !releaseKeystorePath.isE
 // versionCode/versionName stay checked in as the source of truth, but CI can
 // override them (-PversionCode=...) so every upload gets a fresh, monotonic
 // code without touching this file.
-def resolvedVersionCode = (project.findProperty("versionCode") ?: 101347) as Integer
+def resolvedVersionCode = (project.findProperty("versionCode") ?: 101348) as Integer
 def resolvedVersionName = (project.findProperty("versionName") ?: "101.3.48") as String
 
 android {

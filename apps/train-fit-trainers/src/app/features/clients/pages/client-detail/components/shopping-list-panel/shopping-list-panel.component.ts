@@ -14,6 +14,7 @@ import {
   unassignedDays,
 } from 'src/app/core/utils/shopping-list.util';
 import { localizeProp } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type ViewState = 'idle' | 'loading' | 'error' | 'loaded';
 
@@ -86,7 +87,7 @@ export class ShoppingListPanelComponent implements OnChanges {
     if (!this.clientId) return;
     this.state = 'loading';
 
-    const from = new Date().toISOString().slice(0, 10);
+    const from = localIsoDate();
     const to = new Date(Date.now() + (this.selectedDays - 1) * 86400000)
       .toISOString()
       .slice(0, 10);

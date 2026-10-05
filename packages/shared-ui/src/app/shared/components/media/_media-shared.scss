@@ -90,6 +90,8 @@ $media-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 // Cabecera de modal a pantalla completa: volver, título centrado, hueco.
+// Va dentro de un <ion-header>, que ya recibe el safe-area superior como
+// margen (global.scss): sumarlo aquí al padding duplicaba la cabecera.
 @mixin media-modal-header {
   .media-modal-header {
     display: grid;
@@ -97,7 +99,6 @@ $media-ease: cubic-bezier(0.16, 1, 0.3, 1);
     align-items: center;
     gap: 8px;
     padding: 12px 12px 10px;
-    padding-top: calc(12px + var(--ion-safe-area-top, 0px));
     background: $media-surface;
     border-bottom: 1px solid $media-border;
   }

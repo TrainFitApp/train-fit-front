@@ -6,12 +6,9 @@ import { ClientTable } from '../../pages/client-detail/models/client-detail.mode
 import { RoutineAssignmentApiService } from '../../../../shared/services/routine-assignment-api.service';
 import { RoutineAssignment } from '../../../../shared/models/routine-assignment.model';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type ViewState = 'loading' | 'error' | 'loaded' | 'applying';
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 // Tarea 4 (2026-09) — equivalente de ApplyDietTemplateModalComponent para
 // rutinas, simplificado: sin endMode/endDate (una rutina no "termina"), así
@@ -54,7 +51,7 @@ export class ApplyRoutineModalComponent implements OnInit {
   public state: ViewState = 'loading';
   public tables: ClientTable[] = [];
   public selectedTableId: string | null = null;
-  public startDate = todayIsoDate();
+  public startDate = localIsoDate();
 
   constructor(
     private clientDetailApi: ClientDetailApiService,

@@ -1,12 +1,14 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
-        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>{{ preview.name }}</ion-title>
-  </ion-toolbar>
+<ion-header class="modal-header" mode="ios">
+  <div class="modal-toolbar">
+    <h2 class="modal-title">{{ preview.name }}</h2>
+    <button
+      class="close-action-button ripple-effect"
+      [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
+      (click)="dismiss()"
+    >
+      <ion-icon name="close" color="primary"></ion-icon>
+    </button>
+  </div>
 </ion-header>
 
 <ion-content class="menu-preview">

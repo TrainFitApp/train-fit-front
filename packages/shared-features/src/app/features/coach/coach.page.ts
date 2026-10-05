@@ -34,7 +34,7 @@ import {
 import { CoachDashboardApiService } from './services/coach-dashboard-api.service';
 import { NotificationsApiService } from './services/notifications-api.service';
 import { ProfessionalsApiService } from './services/professionals-api.service';
-import { TasksApiService } from './services/tasks-api.service';
+import { HabitsService } from './services/habits.service';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
@@ -127,7 +127,13 @@ export class CoachPage implements OnInit {
 
   // coach-tab FASE4 — tareas/hábitos de hoy.
   public tasksState: ViewState = 'loading';
-  public tasks: CoachTask[] = [];
+  // Salen de HabitsService (el mismo estado que pinta Dieta) para el día
+  // que se cargó: si la app pasa la medianoche abierta, al volver a la
+  // pestaña se recarga con el día nuevo.
+  private tasksDate = '';
+  public get tasks(): CoachTask[] {
+    return this.habitsService.forDate(this.tasksDate);
+  }
   public togglingTaskId: string | null = null;
 
   // Sección a la que bajar al entrar (state.coachSection, p. ej. desde la
@@ -139,7 +145,7 @@ export class CoachPage implements OnInit {
     private professionalsApi: ProfessionalsApiService,
     private coachDashboardApi: CoachDashboardApiService,
     private notificationsApi: NotificationsApiService,
-    private tasksApi: TasksApiService,
+    private habitsService: HabitsService,
     private coachService: CoachService,
     private notificationsService: NotificationsService,
     public onboardingService: OnboardingService,
@@ -159,6 +165,7 @@ export class CoachPage implements OnInit {
   // enseñaría lo ya resuelto. La primera entrada ya la carga ngOnInit.
   public ionViewWillEnter(): void {
     if (this.dashboardState === 'loaded') this.loadDashboard(true);
+    if (this.tasksState === 'loaded') this.loadTasks(true);
   }
 
   // Se borra del history al leerla: volver atrás a Coach no debe repetir
@@ -449,15 +456,19 @@ export class CoachPage implements OnInit {
   }
 
   // --- Tareas de hoy (coach-tab FASE4) ---
-  public loadTasks(): void {
-    this.tasksState = 'loading';
-    this.tasksApi.getMine().subscribe({
-      next: (tasks) => {
-        this.tasks = tasks || [];
+  // silent: recarga al volver a la pestaña, sin esqueleto; si falla se
+  // queda lo que había.
+  public loadTasks(silent = false): void {
+    const date = this.habitsService.today();
+    if (!silent) this.tasksState = 'loading';
+    this.habitsService.load(date).subscribe({
+      next: () => {
+        this.tasksDate = date;
         this.tasksState = 'loaded';
         this.revealSection();
       },
       error: () => {
+        if (silent) return;
         this.tasksState = 'error';
         this.revealSection();
       },
@@ -470,12 +481,10 @@ export class CoachPage implements OnInit {
 
   public toggleTask(task: CoachTask): void {
     if (this.togglingTaskId) return;
-    const nextCompleted = !task.completedToday;
     this.togglingTaskId = task._id;
-    this.tasksApi.toggle(task._id, nextCompleted).subscribe({
+    this.habitsService.toggle(task, this.tasksDate).subscribe({
       next: () => {
         this.togglingTaskId = null;
-        task.completedToday = nextCompleted;
       },
       error: () => {
         this.togglingTaskId = null;

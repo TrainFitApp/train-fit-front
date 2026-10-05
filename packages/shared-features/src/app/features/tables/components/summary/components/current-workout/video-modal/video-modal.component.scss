@@ -1,3 +1,22 @@
+// Icono de cabecera de las tarjetas. Un solo tratamiento para toda la
+// pantalla, el mismo que config-exercise.page.scss: naranja de marca sobre
+// fondo tenue, sin degradado. Antes cada tarjeta traía su color y tamaño.
+@mixin card-icon-tile($size: 36px) {
+  width: $size;
+  height: $size;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 1.15rem;
+    color: var(--ion-color-primary);
+  }
+}
+
 // Header styles
 .minimal-header {
   --background: #0f0f0f;
@@ -96,18 +115,7 @@
       gap: 12px;
 
       .video-icon {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, var(--ion-color-success) 0%, var(--ion-color-success-shade) 100%);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        ion-icon {
-          font-size: 1.1rem;
-          color: white;
-        }
+        @include card-icon-tile;
       }
 
       .video-title {
@@ -155,18 +163,7 @@
       gap: 12px;
 
       .muscle-groups-icon {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, var(--ion-color-warning) 0%, var(--ion-color-warning-shade) 100%);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        ion-icon {
-          font-size: 1.1rem;
-          color: white;
-        }
+        @include card-icon-tile;
       }
 
       .muscle-groups-title {
@@ -202,18 +199,7 @@
       gap: 12px;
 
       .description-icon {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, var(--ion-color-tertiary) 0%, var(--ion-color-tertiary-shade) 100%);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        ion-icon {
-          font-size: 1.2rem;
-          color: white;
-        }
+        @include card-icon-tile;
       }
 
       .description-title {
@@ -234,19 +220,19 @@
 
     .description-step {
       display: grid;
-      grid-template-columns: 20px minmax(0, 1fr);
+      grid-template-columns: 28px minmax(0, 1fr);
       gap: 10px;
       align-items: flex-start;
     }
 
     .description-step-index {
-      width: 20px;
-      height: 20px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      background: var(--ion-color-tertiary);
-      color: white;
-      font-size: 0.75rem;
-      font-weight: 600;
+      background: rgba(var(--ion-color-primary-rgb), 0.12);
+      color: var(--ion-color-primary);
+      font-size: 0.78rem;
+      font-weight: 700;
       line-height: 1;
       display: inline-flex;
       align-items: center;
@@ -283,18 +269,7 @@
       gap: 12px;
 
       .historical-stats-icon {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        ion-icon {
-          font-size: 1.2rem;
-          color: white;
-        }
+        @include card-icon-tile;
       }
 
       .historical-stats-title {
@@ -350,15 +325,6 @@
 // Vídeo del entrenador y revisiones de técnica (docs/plan-medidas-multimedia.md).
 .trainer-video-card {
   border-color: rgba(254, 144, 0, 0.35) !important;
-}
-
-// Lo pautado por el entrenador: icono naranja sobre fondo tintado, no el verde del catálogo.
-.video-card .video-header .video-info .trainer-video-icon {
-  background: rgba(254, 144, 0, 0.16);
-
-  ion-icon {
-    color: #fe9000;
-  }
 }
 
 .trainer-video-heading {

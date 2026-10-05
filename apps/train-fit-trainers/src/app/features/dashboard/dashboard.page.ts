@@ -20,6 +20,7 @@ import { CoachTask } from './models/coach-task.model';
 import { ReviewQueueApiService } from '../review-queue/review-queue-api.service';
 import { ReviewCounts } from '../review-queue/review-queue.model';
 import { uiLocale, localizeRecord, localizeList } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 type AlertFilter = 'all' | 'high';
@@ -434,7 +435,7 @@ export class DashboardPage implements OnInit {
   // dejar una fecha suelta que hay que comparar mentalmente con hoy.
   public taskDueLabel(task: CoachTask): string | null {
     if (!task.dueDate) return null;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localIsoDate();
     if (task.dueDate < today) return this.translate.instant('DASHBOARD.VENCIDA');
     if (task.dueDate === today) return this.translate.instant('DASHBOARD.VENCE_HOY');
     return this.translate.instant('DASHBOARD.VENCE_EL', { p0: this.formatShortDate(task.dueDate) });
@@ -442,7 +443,7 @@ export class DashboardPage implements OnInit {
 
   public isTaskOverdue(task: CoachTask): boolean {
     if (!task.dueDate) return false;
-    return task.dueDate <= new Date().toISOString().slice(0, 10);
+    return task.dueDate <= localIsoDate();
   }
 
   private formatShortDate(isoDate: string): string {

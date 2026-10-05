@@ -1,16 +1,16 @@
 # Workflows
 
-| Workflow | Cuándo | Qué hace |
-| --- | --- | --- |
-| `web-ci.yml` | push a `main`, o a mano | lint + tests + build de las tres apps. **No despliega** |
+| Workflow             | Cuándo                                               | Qué hace                                                           |
+| -------------------- | ---------------------------------------------------- | ------------------------------------------------------------------ |
+| `web-ci.yml`         | push a `main`, o a mano                              | lint + tests + build de las tres apps. **No despliega**            |
 | `mobile-release.yml` | a mano (**Actions → Mobile release → Run workflow**) | construye y publica las apps Capacitor en Google Play y TestFlight |
 
 ## Quién despliega qué
 
-| Rama | Entorno | Web de trainers | Apps móviles |
-| --- | --- | --- | --- |
-| `develop` | PRE | app de Cloudflare `train-fit-trainers-pre`, automática en cada push | a mano (`build:i:pre` / `build:a:pre`) |
-| `main` | PRO | app de Cloudflare `train-fit-trainers`, automática en cada push | `mobile-release.yml` |
+| Rama      | Entorno | Web de trainers                                                     | Apps móviles                           |
+| --------- | ------- | ------------------------------------------------------------------- | -------------------------------------- |
+| `develop` | PRE     | app de Cloudflare `train-fit-trainers-pre`, automática en cada push | a mano (`build:i:pre` / `build:a:pre`) |
+| `main`    | PRO     | app de Cloudflare `train-fit-trainers`, automática en cada push     | `mobile-release.yml`                   |
 
 Cloudflare compila y publica por su cuenta, sin mirar el resultado de
 `web-ci.yml`. Lo que protege las dos ramas es el hook local `.githooks/pre-push`
@@ -65,23 +65,23 @@ Repositorio → Settings → Secrets and variables → Actions.
 
 ### Android
 
-| Secreto | Qué es |
-| --- | --- |
-| `ANDROID_KEYSTORE_BASE64` | El `.jks`/`.keystore` de release en base64: `base64 -i release.keystore \| pbcopy` |
-| `ANDROID_KEYSTORE_PASSWORD` | Contraseña del almacén |
-| `ANDROID_KEY_ALIAS` | Alias de la clave dentro del almacén |
-| `ANDROID_KEY_PASSWORD` | Contraseña de esa clave |
-| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | JSON completo de la cuenta de servicio con permiso de release en Play Console |
+| Secreto                            | Qué es                                                                             |
+| ---------------------------------- | ---------------------------------------------------------------------------------- |
+| `ANDROID_KEYSTORE_BASE64`          | El `.jks`/`.keystore` de release en base64: `base64 -i release.keystore \| pbcopy` |
+| `ANDROID_KEYSTORE_PASSWORD`        | Contraseña del almacén                                                             |
+| `ANDROID_KEY_ALIAS`                | Alias de la clave dentro del almacén                                               |
+| `ANDROID_KEY_PASSWORD`             | Contraseña de esa clave                                                            |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | JSON completo de la cuenta de servicio con permiso de release en Play Console      |
 
 ### iOS
 
-| Secreto | Qué es |
-| --- | --- |
-| `APPLE_CERTIFICATE_P12_BASE64` | Certificado *Apple Distribution* exportado con su clave privada, en base64 |
-| `APPLE_CERTIFICATE_PASSWORD` | Contraseña con la que se exportó el `.p12` |
-| `APP_STORE_CONNECT_KEY_ID` | Key ID de la clave de API de App Store Connect |
-| `APP_STORE_CONNECT_ISSUER_ID` | Issuer ID de esa clave |
-| `APP_STORE_CONNECT_PRIVATE_KEY` | Contenido íntegro del `.p8`, saltos de línea incluidos |
+| Secreto                         | Qué es                                                                     |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `APPLE_CERTIFICATE_P12_BASE64`  | Certificado _Apple Distribution_ exportado con su clave privada, en base64 |
+| `APPLE_CERTIFICATE_PASSWORD`    | Contraseña con la que se exportó el `.p12`                                 |
+| `APP_STORE_CONNECT_KEY_ID`      | Key ID de la clave de API de App Store Connect                             |
+| `APP_STORE_CONNECT_ISSUER_ID`   | Issuer ID de esa clave                                                     |
+| `APP_STORE_CONNECT_PRIVATE_KEY` | Contenido íntegro del `.p8`, saltos de línea incluidos                     |
 
 La clave de App Store Connect necesita rol **App Manager** o superior: con
 `-allowProvisioningUpdates` es ella la que crea y renueva los perfiles de los dos
@@ -89,14 +89,14 @@ bundle IDs (`com.trainfit.trainfit` y `com.trainfit.trainfit.TrainFitWidget`).
 
 ### Variables opcionales
 
-| Variable | Por defecto |
-| --- | --- |
-| `APPLE_TEAM_ID` | `4YRKMJXVS6` |
+| Variable               | Por defecto             |
+| ---------------------- | ----------------------- |
+| `APPLE_TEAM_ID`        | `4YRKMJXVS6`            |
 | `ANDROID_PACKAGE_NAME` | `com.trainfit.trainfit` |
 
 ## Numeración de versiones
 
-- **Android**: `versionCode` = `ANDROID_VERSION_CODE_BASE` (101347, definido en el
+- **Android**: `versionCode` = `ANDROID_VERSION_CODE_BASE` (101348, definido en el
   workflow) + número de ejecución. Google Play exige que sea estrictamente
   creciente; el contador de runs nunca retrocede.
 - **iOS**: `CURRENT_PROJECT_VERSION` = número de ejecución.

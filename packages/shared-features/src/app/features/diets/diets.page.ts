@@ -14,7 +14,6 @@ import {
   CUSTOM_PRODUCT_VALUES,
   CustomProduct,
 } from 'src/app/core/models/customProduct';
-import { HABIT_TYPE_ICONS } from 'src/app/core/constants/habit-icons';
 import { CustomRecipe } from 'src/app/core/models/customRecipe';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
@@ -44,12 +43,7 @@ import { MealProposalApiService } from './services/meal-proposal-api.service';
 import { DayMenuPreview, DayMenuStatus } from './models/day-menu.model';
 import { DayMenuApiService } from './services/day-menu-api.service';
 import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-preview-modal.component';
-import { MyCheckinsApiService } from '../checkins/my-checkins/services/my-checkins-api.service';
-import { CheckinWeek, MyCheckin } from '../checkins/my-checkins/models/my-checkin.model';
-import { CoachTask } from '../coach/models/coach-dashboard.model';
-import { TasksApiService } from '../coach/services/tasks-api.service';
 import { MySupplement, MySupplementsApiService } from '../supplements/services/my-supplements-api.service';
-import { Router } from '@angular/router';
 import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 @Component({
@@ -102,17 +96,6 @@ export class DietsPage implements OnInit {
   public isRefreshingTarget = false;
   private menuState$: Subscription;
 
-  // El check-in ABIERTO hoy, si lo hay (docs/plan-semanas.md): es el que
-  // abre la semana en la que está el cliente. null = ninguno abierto.
-  public openCheckin: MyCheckin | null = null;
-  public checkinWeek: CheckinWeek | null = null;
-
-  // Hábitos diarios pautados (pasos, agua…): se marcan bajo las comidas del
-  // día que se esté mirando (§12). Los pasos marcados son, además, lo que
-  // entra en el cálculo de kcal de la siguiente semana.
-  public habits: CoachTask[] = [];
-  public togglingHabitId: string | null = null;
-
   // Suplementación vigente ese día (§14): va por fechas, así que cambia
   // según el día que se mire. Se pinta al final, tras las comidas.
   public supplements: MySupplement[] = [];
@@ -140,10 +123,7 @@ export class DietsPage implements OnInit {
     private recipeService: RecipeService,
     private mealProposalApiService: MealProposalApiService,
     private dayMenuApiService: DayMenuApiService,
-    private myCheckinsApi: MyCheckinsApiService,
-    private tasksApi: TasksApiService,
     private mySupplementsApi: MySupplementsApiService,
-    private router: Router,
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef,
     private translate: TranslateService,
@@ -518,81 +498,7 @@ export class DietsPage implements OnInit {
       this.dayMenuStatus = status;
     });
 
-    this.loadOpenCheckin();
-    this.loadHabits(dateStr);
     this.loadSupplements(dateStr);
-  }
-
-  // ¿Hay un check-in abierto hoy? Solo tiene sentido mirando HOY: su ventana
-  // es la de la semana en curso, no la del día que se esté viendo. En
-  // silencio si falla.
-  private loadOpenCheckin(): void {
-    this.myCheckinsApi.getMine().subscribe({
-      next: (checkins: MyCheckin[]) => {
-        this.openCheckin = (checkins || [])[0] || null;
-        this.checkinWeek = this.openCheckin?.week || null;
-      },
-      error: () => {
-        this.openCheckin = null;
-        this.checkinWeek = null;
-      },
-    });
-  }
-
-  public goToCheckin(): void {
-    // returnUrl: el botón atrás de Mis check-ins vuelve aquí, no al tab Coach.
-    void this.router.navigate(['/my-checkins'], {
-      queryParams: {
-        returnUrl: '/tabs/diets',
-        ...(this.openCheckin ? { scheduleId: this.openCheckin.scheduleId } : {}),
-      },
-    });
-  }
-
-  // --- Hábitos del día (§12) ---
-
-  private loadHabits(date: string): void {
-    this.tasksApi.getMine(date).subscribe({
-      next: (habits) => (this.habits = habits || []),
-      error: () => (this.habits = []),
-    });
-  }
-
-  // Mismo icono por tipo de hábito que ve el entrenador al pautarlo.
-  public habitIcon(habit: CoachTask): string {
-    return HABIT_TYPE_ICONS[habit.type] || HABIT_TYPE_ICONS.custom;
-  }
-
-  // "10.000 a 15.000 pasos" / "2 L".
-  public habitTargetLabel(habit: CoachTask): string {
-    const rango = habit.targetMax ? ` ${this.translate.instant('COACH.RANGE_TO')} ${habit.targetMax}` : '';
-    return `${habit.target}${rango} ${habit.unit}`;
-  }
-
-  // Marcar un hábito del día que se está mirando. El futuro no se marca: el
-  // backend lo rechaza y aquí ni se ofrece.
-  public toggleHabit(habit: CoachTask): void {
-    if (this.togglingHabitId || this.selectedDate > this.todayIso) return;
-    this.togglingHabitId = habit._id;
-    const completed = !habit.completedToday;
-    this.tasksApi.toggle(habit._id, completed, this.selectedDate).subscribe({
-      next: () => {
-        habit.completedToday = completed;
-        this.togglingHabitId = null;
-      },
-      error: () => {
-        this.togglingHabitId = null;
-        this.ionicUtilService.showErrorToast(this.translate.instant('DIETS.HABIT_ERROR'), this.translate.instant('COMMON.ERROR'), 2500);
-      },
-    });
-  }
-
-  public get canToggleHabits(): boolean {
-    return this.selectedDate <= this.todayIso;
-  }
-
-  private get todayIso(): string {
-    return this.utilService.formatDateToYYYYMMDD(new Date());
   }
 
   // --- Suplementación del día (§14) ---

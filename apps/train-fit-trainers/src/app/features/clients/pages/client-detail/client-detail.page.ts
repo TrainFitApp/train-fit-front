@@ -138,6 +138,7 @@ import { ClientNote } from './models/client-notes.model';
 import { LedgerIntent } from '../../../payments/components/client-payments-ledger/client-payments-ledger.component';
 import { PaymentsCardRequest } from '../../../payments/components/client-payments-card/client-payments-card.component';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
@@ -329,7 +330,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   // --- Nutrición ---
   public nutritionState: SectionState = 'loading';
-  public nutritionDate: string = new Date().toISOString().slice(0, 10);
+  public nutritionDate: string = localIsoDate();
   public adherence: AdherenceSummary | null = null;
   // F20-bis — cumplimiento del plan (distinto de adherence, ver
   // client-detail.model.ts), ventana fija de 30 días terminando hoy
@@ -950,7 +951,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     const map = new Map<string, CompletedDay>();
     for (const workout of this.completedWorkouts) {
       if (!workout.date) continue;
-      const date = new Date(workout.date as Date).toISOString().slice(0, 10);
+      const date = localIsoDate(workout.date as Date);
       const sets = (workout.exercises || []).flatMap(
         (exercise) => exercise.sets || []
       );
@@ -981,7 +982,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // Rango por defecto: inicio de la fase de rutina vigente → hoy. Sin fase
   // vigente (ninguna o solo futuras), del día 1 del mes actual → hoy.
   private defaultTrainingRange(): { start: string; end: string } {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localIsoDate();
     const start =
       this.currentRoutinePhase?.startDate ?? `${today.slice(0, 8)}01`;
     return { start, end: today };
@@ -1027,7 +1028,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.trainingSelectedDay = date;
     this.trainingSelectedDayWorkouts = this.completedWorkouts.filter(
       (w) =>
-        w.date && new Date(w.date as Date).toISOString().slice(0, 10) === date
+        w.date && localIsoDate(w.date as Date) === date
     );
   }
 
@@ -1490,7 +1491,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // nunca por status — si no, la tarjeta "En uso" mostraría la rutina
   // programada antes de que empiece de verdad.
   public get currentRoutinePhase(): RoutineAssignment | null {
-    const hoy = new Date().toISOString().slice(0, 10);
+    const hoy = localIsoDate();
     const vigentes = this.routinePhases.filter((p) => p.startDate <= hoy);
     return vigentes[vigentes.length - 1] || null;
   }
@@ -1652,7 +1653,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       componentProps: {
         clientId: this.clientId,
         clientName: this.name,
-        suggestedStartDate: ultima ? manana.toISOString().slice(0, 10) : null,
+        suggestedStartDate: ultima ? localIsoDate(manana) : null,
         previousPhaseName: ultima?.tableName || '',
         phases: this.routinePhases,
       },
@@ -2133,21 +2134,14 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // de AYER en UTC. Una fase que empieza literalmente hoy comparaba
   // `startDate <= hoy` como false y no se reconocía como vigente ("EN
   // CURSO" no salía) hasta que UTC alcanzaba la fecha local.
-  private formatLocalIsoDate(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-
   private todayIsoDate(): string {
-    return this.formatLocalIsoDate(new Date());
+    return localIsoDate();
   }
 
   private isoDateDaysAgo(days: number): string {
     const date = new Date();
     date.setDate(date.getDate() - days);
-    return this.formatLocalIsoDate(date);
+    return localIsoDate(date);
   }
 
   private addDays(iso: string, days: number): string {
@@ -2962,7 +2956,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public get isNutritionDateToday(): boolean {
-    return this.nutritionDate === new Date().toISOString().slice(0, 10);
+    return this.nutritionDate === localIsoDate();
   }
 
   // --- Preferencias nutricionales (F29) ---

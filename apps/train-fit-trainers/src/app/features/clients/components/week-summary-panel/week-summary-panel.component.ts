@@ -17,6 +17,7 @@ import { DietSuggestionApiService } from '../../../diet-templates/services/diet-
 import { WeekNeedResponse } from '../../../diet-templates/models/diet-suggestion.model';
 import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type ViewState = 'loading' | 'ready' | 'error';
 
@@ -84,7 +85,7 @@ export class WeekSummaryPanelComponent implements OnInit {
   }
 
   private get todayIso(): string {
-    return new Date().toISOString().slice(0, 10);
+    return localIsoDate();
   }
 
   public get isRunning(): boolean {

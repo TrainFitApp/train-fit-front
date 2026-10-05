@@ -7,6 +7,7 @@ import { PlanAssignmentApiService } from '../../../../../../shared/services/plan
 import { PlanAssignment } from '../../../../../../shared/models/plan-assignment.model';
 import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
 import { uiLocale, localizeList } from 'src/app/core/i18n/localized-catalog';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 interface CalendarPhaseInfo {
   // Identidad de la FASE (phaseId, o el _id si no lo tiene), no del documento:
@@ -67,10 +68,6 @@ function isoDate(year: number, month: number, day: number): string {
 
 function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-}
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function buildMonthGrid(year: number, month: number): CalendarCell[] {
@@ -173,7 +170,7 @@ export class NutritionCalendarComponent implements OnChanges {
       month: 'short',
       timeZone: 'UTC',
     });
-    return this.selectedDate === todayIso() ? this.translate.instant('CLIENTS.HOY_2', { etiqueta }) : `el ${etiqueta}`;
+    return this.selectedDate === localIsoDate() ? this.translate.instant('CLIENTS.HOY_2', { etiqueta }) : `el ${etiqueta}`;
   }
   // F20-quinquies — click día inicio, click día fin: alimenta el rango de
   // <app-nutrition-tracking-chart> en el padre. Modo aparte del click de
@@ -191,7 +188,7 @@ export class NutritionCalendarComponent implements OnChanges {
   public monthDate = new Date();
   public cells: CalendarCell[] = [];
   public isLoading = false;
-  public readonly todayIso = todayIso();
+  public readonly todayIso = localIsoDate();
   public isRangeMode = false;
 
   // Modo "elegir un rango y nada más": lo usa el panel de aplicar plantilla,

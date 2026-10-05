@@ -1,9 +1,58 @@
 // Misma paleta oscura que el resto de la pantalla de dieta del cliente
 // (ver dates-slider.component.scss): superficie #111, borde #2a2a2a,
 // acento #FE9000.
-ion-toolbar {
-  --background: #1c1c1e;
-  --color: #ffffff;
+
+// Mismo header y botón de cierre que clipboard-meal-modal y pautado-item-view:
+// un solo lenguaje de modal en Diets. Nada de ion-toolbar: Ionic le suma el
+// safe-area superior y global.scss ya se lo da al ion-header, con lo que la
+// cabecera se duplicaba en móvil.
+.modal-header {
+  background: #101010;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-toolbar {
+  min-height: 60px;
+  padding: 10px 12px 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #ffffff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.close-action-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  ion-icon {
+    font-size: 20px;
+  }
 }
 
 .menu-preview {
