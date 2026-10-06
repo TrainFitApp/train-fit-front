@@ -4,9 +4,9 @@
 
 <ion-content class="invites-content" appScrollMemory="invites">
   <form class="invite-form" [formGroup]="form" (ngSubmit)="submit()" appSubmitOnEnter="sendInvite">
-    <h2 class="form-title">{{ 'INVITES.INVITA_UN_CLIENTE' | translate }}</h2>
+    <h2 class="form-title">{{ 'INVITES.INVITA_A_TUS_CLIENTES' | translate }}</h2>
     <p class="form-subtitle">
-      {{ 'INVITES.INTRODUCE_SU_EMAIL_ELIGE_QUE' | translate }}
+      {{ 'INVITES.ESCRIBE_O_PEGA_SUS_EMAILS' | translate }}
     </p>
 
     <div class="scope-options">
@@ -159,36 +159,112 @@
       </ng-container>
     </div>
 
+    <!-- Caja de destinatarios, como el "Para:" de un correo: cada email es
+         una chip y se pueden pegar varios de golpe. Al pulsar en cualquier
+         hueco de la caja se enfoca el campo (label for). -->
     <div class="input-group">
-      <div class="input-wrapper">
-        <ion-icon name="mail-outline" class="input-icon"></ion-icon>
-        <input
-          type="email"
-          formControlName="clientEmail"
-          class="input-field"
-          [placeholder]="'INVITES.EMAIL_DEL_CLIENTE' | translate"
-          (blur)="onEmailBlur()"
-        />
-        <ion-spinner name="dots" class="email-check-spinner" *ngIf="checkingEmail"></ion-spinner>
-      </div>
-      <div
-        class="validation-error"
-        *ngIf="form.get('clientEmail')?.invalid && form.get('clientEmail')?.touched"
-      >
-        <span *ngIf="form.get('clientEmail')?.errors?.['required']">{{ 'INVITES.EL_EMAIL_ES_OBLIGATORIO' | translate }}</span>
-        <span *ngIf="form.get('clientEmail')?.errors?.['email']">{{ 'INVITES.INTRODUCE_UN_EMAIL_VALIDO' | translate }}</span>
+      <label class="email-field" for="invite-emails" [class.email-field--error]="hasInvalidEmails">
+        <ion-icon name="mail-outline" class="input-icon" aria-hidden="true"></ion-icon>
+        <span class="email-field-body">
+          <span
+            class="email-chip"
+            *ngFor="let entry of emailEntries; trackBy: trackByEmail"
+            [attr.data-state]="entryState(entry)"
+          >
+            <ion-icon
+              *ngIf="entryState(entry) === 'invalid' || entryState(entry) === 'failed'"
+              name="alert-circle"
+              aria-hidden="true"
+            ></ion-icon>
+            <span class="email-chip-text">{{ entry.email }}</span>
+            <ion-spinner name="dots" *ngIf="entry.checking"></ion-spinner>
+            <button
+              type="button"
+              class="email-chip-remove"
+              [disabled]="isSending"
+              (click)="removeEmail(entry)"
+              [attr.aria-label]="'INVITES.QUITAR_EMAIL' | translate: { email: entry.email }"
+            >
+              <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </span>
+          <input
+            id="invite-emails"
+            type="text"
+            inputmode="email"
+            class="input-field email-field-input"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            [value]="emailDraft"
+            [readonly]="isSending"
+            [placeholder]="emailEntries.length ? '' : ('INVITES.EMAILS_DE_TUS_CLIENTES' | translate)"
+            [attr.aria-label]="'INVITES.EMAILS_DE_TUS_CLIENTES' | translate"
+            aria-describedby="invite-emails-hint"
+            (input)="onEmailInput($event)"
+            (keydown)="onEmailKeydown($event)"
+            (paste)="onEmailPaste($event)"
+            (blur)="commitDraft()"
+          />
+        </span>
+      </label>
+      <p class="email-field-hint" id="invite-emails-hint">{{ 'INVITES.EMAILS_HINT' | translate: { max: maxEmails } }}</p>
+
+      <ul class="email-notes" *ngIf="emailNotes.length">
+        <li *ngFor="let note of emailNotes">
+          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+          <span><span class="email-notes-email">{{ note.email }}</span> · {{ note.text }}</span>
+        </li>
+      </ul>
+
+      <div class="validation-error" *ngIf="hasInvalidEmails">{{ 'INVITES.EMAILS_NO_VALIDOS' | translate }}</div>
+      <div class="validation-error" *ngIf="emailsTouched && !emailEntries.length && !emailDraft.trim()">
+        {{ 'INVITES.EL_EMAIL_ES_OBLIGATORIO' | translate }}
       </div>
     </div>
 
     <button
       type="submit"
       class="submit-button"
-      [disabled]="form.invalid || !hasScopeSelected || isSending"
+      [disabled]="!hasScopeSelected || isSending || hasInvalidEmails || (!sendableCount && !emailDraft.trim())"
       data-enter-submit-action="sendInvite"
     >
-      <span *ngIf="!isSending">{{ 'INVITES.ENVIAR_INVITACION' | translate }}</span>
-      <ion-spinner name="dots" *ngIf="isSending"></ion-spinner>
+      <ng-container *ngIf="!isSending">
+        {{ sendableCount > 1 ? ('INVITES.ENVIAR_N_INVITACIONES' | translate: { count: sendableCount }) : ('INVITES.ENVIAR_INVITACION' | translate) }}
+      </ng-container>
+      <ng-container *ngIf="isSending">
+        <ion-spinner name="dots"></ion-spinner>
+        <span class="submit-progress" *ngIf="sendProgress.total > 1">
+          {{ 'INVITES.ENVIANDO_PROGRESO' | translate: sendProgress }}
+        </span>
+      </ng-container>
     </button>
+
+    <!-- Lo que no salió en el último envío: esos emails siguen arriba,
+         marcados en rojo, para corregirlos o reintentarlos. -->
+    <div class="send-report" *ngIf="sendReport as report" role="status">
+      <div class="send-report-head">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+        <span class="send-report-title">{{ 'INVITES.NO_SE_PUDO_INVITAR' | translate }}</span>
+        <button
+          type="button"
+          class="send-report-close"
+          (click)="sendReport = null"
+          [attr.aria-label]="'INVITES.CERRAR_RESUMEN' | translate"
+        >
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <ul class="send-report-list">
+        <li *ngFor="let failure of report.failures">
+          <span class="send-report-email">{{ failure.email }}</span>
+          <span class="send-report-reason">{{ failure.reason }}</span>
+        </li>
+      </ul>
+      <button type="button" class="send-report-action" *ngIf="report.seatsExhausted" (click)="goToSeats()">
+        {{ 'INVITES.AMPLIAR_PLAZAS' | translate }}
+      </button>
+    </div>
   </form>
 
   <div class="invites-list-section">

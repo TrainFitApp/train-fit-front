@@ -168,11 +168,280 @@
   }
 }
 
-.email-check-spinner {
+// --- Caja de destinatarios: chips de email + el campo donde se escribe ---
+.email-field {
+  @include tf-input-wrapper;
+  align-items: flex-start;
+  min-height: 52px;
+  cursor: text;
+
+  .input-icon {
+    font-size: 20px;
+    // Centrado con la primera fila de chips (52px de alto mínimo).
+    margin-top: 15px;
+  }
+
+  &--error {
+    border-color: var(--tf-danger-border);
+  }
+}
+
+.email-field-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0;
+}
+
+.email-field-input {
+  // Base de 10rem: con chips delante, el campo baja a su propia línea antes
+  // que quedarse en un hueco donde no cabe un email.
+  flex: 1 0 10rem;
+  height: 30px;
+  font-size: 1rem;
+}
+
+.email-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  height: 30px;
+  padding: 0 2px 0 10px;
+  border-radius: 999px;
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-border-strong);
+  color: var(--tf-text);
+  font-size: 0.84rem;
+  animation: chip-in 160ms var(--tf-ease-out);
+
+  > ion-icon {
+    flex-shrink: 0;
+    font-size: 15px;
+  }
+
+  ion-spinner {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--tf-text-muted);
+  }
+
+  // No es un email, o no salió en el último envío.
+  &[data-state='invalid'],
+  &[data-state='failed'] {
+    color: var(--tf-danger-text);
+    background: var(--tf-danger-soft);
+    border-color: var(--tf-danger-border);
+  }
+
+  // Ya tiene todos los ámbitos marcados: no se le enviará nada (el motivo
+  // sale debajo, en .email-notes).
+  &[data-state='skipped'] {
+    color: var(--tf-text-muted);
+    background: transparent;
+    border-style: dashed;
+  }
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .email-chip {
+    animation: none;
+  }
+}
+
+.email-chip-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email-chip-remove {
+  // 26px visibles; el expansor lo lleva a 44 de alto sin pisar la chip de
+  // al lado.
+  @include tf-touch-expander-y(9px);
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 160ms var(--tf-ease-out), background-color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--tf-border-focus);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover:not(:disabled) {
+      opacity: 1;
+      background: var(--tf-surface-5);
+    }
+  }
+}
+
+.email-field-hint {
+  margin: 6px 0 0;
+  padding-left: 2px;
+  font-size: 0.76rem;
+  line-height: 1.4;
   color: var(--tf-text-muted);
+}
+
+// Un aviso por email y ámbito que ya tiene: se invita al resto de ámbitos.
+.email-notes {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    font-size: 0.76rem;
+    line-height: 1.35;
+    color: var(--tf-text-muted);
+  }
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+    margin-top: 1px;
+    color: var(--tf-text-faint);
+  }
+}
+
+.email-notes-email {
+  color: var(--tf-text-secondary);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+// --- Resumen de lo que no salió en el último envío ---
+.send-report {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--tf-danger-soft);
+  border: 1px solid var(--tf-danger-border);
+  border-radius: var(--tf-radius-lg);
+}
+
+.send-report-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  > ion-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    color: var(--tf-danger-text);
+  }
+}
+
+.send-report-title {
+  flex: 1;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.send-report-close {
+  @include tf-touch-expander(5px);
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  margin: -6px -6px -6px 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-border-focus);
+  }
+}
+
+.send-report-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+}
+
+.send-report-email {
+  color: var(--tf-text);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.send-report-reason {
+  color: var(--tf-text-secondary);
+}
+
+.send-report-action {
+  @include tf-secondary-button;
+  margin-top: 12px;
+  height: 40px;
+  padding: 0 16px;
+  font-size: 0.85rem;
+}
+
+.submit-progress {
+  margin-left: 8px;
+  font-variant-numeric: tabular-nums;
 }
 
 // --- TASK-049: personalizar cuestionario inicial ---

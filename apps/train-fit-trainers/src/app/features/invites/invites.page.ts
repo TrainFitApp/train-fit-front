@@ -1,12 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
 import { TrainerInvitesApiService } from './services/trainer-invites-api.service';
 import {
+  ClientEmailScopeState,
   ClientEmailScopeStatus,
+  SendInviteResult,
   TrainerInvite,
   TrainerInviteScope,
   TrainerInviteStatus,
@@ -21,6 +24,47 @@ import {
 } from '../../shared/components/custom-question-editor/custom-question-editor.component';
 
 type ListState = 'loading' | 'error' | 'loaded';
+
+// Un envío no es una importación masiva: cada email sale en su propia
+// petición, bajo el bloqueo de altas del profesional, y con su correo.
+const MAX_EMAILS_PER_SEND = 20;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Lo que separa emails al escribir: comas, punto y coma, espacios y saltos
+// de línea.
+const EMAIL_SEPARATORS = /[\s,;]+/;
+// Al pegar se rescatan los emails de cualquier texto: una columna copiada de
+// una hoja de cálculo, "Ana <ana@x.com>, Luis <luis@y.com>" de un correo...
+const EMAIL_IN_TEXT = /[^\s<>()[\],;:"']+@[^\s<>()[\],;:"']+/g;
+
+// Un email de la caja de destinatarios. `status`: lo que ya hay con ESTE
+// profesional por ámbito, para avisar antes de enviar. `failure`: por qué no
+// salió en el último envío (se queda en la caja para corregirlo o reintentar).
+interface EmailEntry {
+  email: string;
+  valid: boolean;
+  checking: boolean;
+  status: ClientEmailScopeStatus | null;
+  failure: string | null;
+}
+
+// Aviso de un email que ya tiene alguno de los ámbitos marcados: a ese
+// ámbito no se le invita, al resto sí.
+interface EmailNote {
+  email: string;
+  text: string;
+}
+
+interface SendOutcome {
+  sentScopes: TrainerInviteScope[];
+  failure: string | null;
+  seatsExhausted: boolean;
+}
+
+// Lo que no salió en el último envío, con su motivo.
+interface SendReport {
+  failures: { email: string; reason: string }[];
+  seatsExhausted: boolean;
+}
 
 // Estado que se enseña de una invitación: el del back más "cancelled", que
 // el back guarda como declined con revokedBy "trainer" (la retiró el
@@ -204,31 +248,23 @@ export class InvitesPage implements OnInit {
     private router: Router
   ) {}
 
-  // Estado del email frente a ESTE trainer, comprobado al perder el foco
-  // del campo — evita que el trainer marque un ámbito que el backend va a
-  // rechazar igual al enviar (índice único trainerId+clientEmail+scope).
-  // Es solo un aviso: NO desactiva "Enviar". Pulsar el botón es lo que
-  // quita el foco del email, así que desactivarlo mientras se comprobaba
-  // se comía el primer clic (había que pulsar dos veces).
-  public emailScopeStatus: ClientEmailScopeStatus | null = null;
-  public checkingEmail = false;
-  private lastCheckedEmail: string | null = null;
+  // Varios clientes a la vez, como el "Para:" de un correo: cada email es una
+  // chip. Al entrar en la caja se comprueba su estado con ESTE profesional
+  // (GET /trainer/clients/check-email) para no mandarle un ámbito que el back
+  // va a rechazar igual (una invitación sin responder o una relación en curso
+  // por ámbito). Es solo un aviso: nunca bloquea el botón de enviar.
+  public emailEntries: EmailEntry[] = [];
+  public emailDraft = '';
+  public emailNotes: EmailNote[] = [];
+  public emailsTouched = false;
+  public readonly maxEmails = MAX_EMAILS_PER_SEND;
+  public sendProgress = { done: 0, total: 0 };
+  public sendReport: SendReport | null = null;
 
   public ngOnInit(): void {
     this.form = new FormGroup({
-      clientEmail: new FormControl(null, [
-        Validators.required,
-        Validators.email,
-      ]),
       training: new FormControl(false),
       nutrition: new FormControl(false),
-    });
-
-    // Cambiar el email invalida la comprobación anterior — nunca se deja un
-    // "ya lo llevas" de un email distinto pegado en pantalla.
-    this.form.get('clientEmail')?.valueChanges.subscribe(() => {
-      this.emailScopeStatus = null;
-      this.lastCheckedEmail = null;
     });
 
     this.loadInvites();
@@ -243,6 +279,7 @@ export class InvitesPage implements OnInit {
     const nextValue = !control?.value;
     control?.setValue(nextValue);
     this.syncIntakeFieldsForScope(controlName, nextValue);
+    this.refreshEmailNotes();
   }
 
   // En lugar de ocultar los checkboxes que no encajan con el ámbito
@@ -258,13 +295,22 @@ export class InvitesPage implements OnInit {
     });
   }
 
+  // Un ámbito se bloquea solo si TODOS los emails ya lo tienen (con uno solo,
+  // igual que antes). Si lo tiene una parte, se invita al resto y se avisa
+  // email por email (emailNotes).
   public isScopeBlocked(scope: TrainerInviteScope): boolean {
-    return !!this.emailScopeStatus?.[scope]?.blocked;
+    const valid = this.validEntries;
+    return valid.length > 0 && valid.every((entry) => !!entry.status?.[scope]?.blocked);
   }
 
   public emailScopeStatusMessage(scope: TrainerInviteScope): string | null {
-    const state = this.emailScopeStatus?.[scope];
-    if (!state?.blocked) return null;
+    if (!this.isScopeBlocked(scope)) return null;
+    const valid = this.validEntries;
+    if (valid.length > 1) return this.translate.instant('INVITES.TODOS_YA_TIENEN_ESTE_AMBITO');
+    return this.blockedReason(valid[0].status![scope]);
+  }
+
+  private blockedReason(state: ClientEmailScopeState): string {
     switch (state.status) {
       case 'active':
         return this.translate.instant('INVITES.YA_ES_TU_CLIENTE_EN');
@@ -275,40 +321,160 @@ export class InvitesPage implements OnInit {
     }
   }
 
-  private get typedEmail(): string {
-    return (this.form.value.clientEmail || '').trim().toLowerCase();
+  private get validEntries(): EmailEntry[] {
+    return this.emailEntries.filter((entry) => entry.valid);
   }
 
-  public onEmailBlur(): void {
-    const email = this.typedEmail;
-    if (!email || this.form.get('clientEmail')?.invalid || email === this.lastCheckedEmail) {
+  private get selectedScopes(): TrainerInviteScope[] {
+    return [
+      ...(this.form.value.training ? (['training'] as const) : []),
+      ...(this.form.value.nutrition ? (['nutrition'] as const) : []),
+    ];
+  }
+
+  // Lo que se le manda a un email: los ámbitos marcados que no tiene ya.
+  private scopesFor(entry: EmailEntry): TrainerInviteScope[] {
+    return this.selectedScopes.filter((scope) => !entry.status?.[scope]?.blocked);
+  }
+
+  private get sendableEntries(): EmailEntry[] {
+    return this.validEntries.filter((entry) => this.scopesFor(entry).length > 0);
+  }
+
+  public get sendableCount(): number {
+    return this.sendableEntries.length;
+  }
+
+  public get hasInvalidEmails(): boolean {
+    return this.emailEntries.some((entry) => !entry.valid);
+  }
+
+  public entryState(entry: EmailEntry): 'invalid' | 'failed' | 'checking' | 'skipped' | 'ok' {
+    if (!entry.valid) return 'invalid';
+    if (entry.failure) return 'failed';
+    if (entry.checking) return 'checking';
+    if (this.hasScopeSelected && !this.scopesFor(entry).length) return 'skipped';
+    return 'ok';
+  }
+
+  public trackByEmail(_index: number, entry: EmailEntry): string {
+    return entry.email;
+  }
+
+  // Un separador al escribir cierra el email que va delante; lo que queda
+  // detrás sigue en el campo.
+  public onEmailInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!EMAIL_SEPARATORS.test(input.value)) {
+      this.emailDraft = input.value;
       return;
     }
+    const parts = input.value.split(EMAIL_SEPARATORS);
+    const rest = parts.pop() ?? '';
+    this.addEmails(parts);
+    input.value = rest;
+    this.emailDraft = rest;
+  }
 
-    this.checkingEmail = true;
-    this.trainerInvitesApi.checkClientEmailStatus(email).subscribe({
+  // Enter con algo escrito lo convierte en chip; con el campo vacío sigue
+  // enviando (appSubmitOnEnter ignora un evento ya consumido). Borrar con el
+  // campo vacío quita la última chip, como en un correo.
+  public onEmailKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && this.emailDraft.trim()) {
+      event.preventDefault();
+      this.commitDraft();
+    } else if (event.key === 'Backspace' && !this.emailDraft && this.emailEntries.length && !this.isSending) {
+      this.removeEmail(this.emailEntries[this.emailEntries.length - 1]);
+    }
+  }
+
+  public onEmailPaste(event: ClipboardEvent): void {
+    const found = (event.clipboardData?.getData('text') || '').match(EMAIL_IN_TEXT);
+    if (!found) return;
+    event.preventDefault();
+    this.addEmails(found);
+  }
+
+  public commitDraft(): void {
+    if (!this.emailDraft.trim()) return;
+    this.addEmails(this.emailDraft.split(EMAIL_SEPARATORS));
+    this.emailDraft = '';
+  }
+
+  public removeEmail(entry: EmailEntry): void {
+    this.emailEntries = this.emailEntries.filter((candidate) => candidate !== entry);
+    this.refreshEmailNotes();
+  }
+
+  private addEmails(tokens: string[]): void {
+    const known = new Set(this.emailEntries.map((entry) => entry.email));
+    const added: EmailEntry[] = [];
+    let dropped = 0;
+    for (const token of tokens) {
+      // Sin el punto final de una frase pegada ("escribe a ana@x.com.").
+      const email = token.trim().toLowerCase().replace(/\.+$/, '');
+      if (!email || known.has(email)) continue;
+      if (this.emailEntries.length + added.length >= MAX_EMAILS_PER_SEND) {
+        dropped++;
+        continue;
+      }
+      known.add(email);
+      added.push({ email, valid: EMAIL_PATTERN.test(email), checking: false, status: null, failure: null });
+    }
+    if (dropped) {
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('INVITES.MAXIMO_EMAILS', { max: MAX_EMAILS_PER_SEND, count: dropped }),
+        duration: 3500,
+      });
+    }
+    if (!added.length) return;
+    this.emailEntries = [...this.emailEntries, ...added];
+    added.filter((entry) => entry.valid).forEach((entry) => this.checkEmail(entry));
+    this.refreshEmailNotes();
+  }
+
+  // Fallo silencioso: no bloquea al trainer, el back igual protege al enviar
+  // (mismo índice único); esto es solo el aviso anticipado.
+  private checkEmail(entry: EmailEntry): void {
+    entry.checking = true;
+    this.trainerInvitesApi.checkClientEmailStatus(entry.email).subscribe({
       next: (status) => {
-        this.checkingEmail = false;
-        // Llega tarde (la invitación ya se envió y el form se vació, o el
-        // email cambió): no pintar avisos de un email que ya no está.
-        if (this.typedEmail !== email) return;
-        this.lastCheckedEmail = email;
-        this.emailScopeStatus = status;
-        // Un ámbito que ya estaba marcado pero ahora resulta bloqueado no
-        // se manda igual — se desmarca solo, junto con el aviso.
-        (['training', 'nutrition'] as TrainerInviteScope[]).forEach((scope) => {
-          if (status[scope].blocked && this.form.get(scope)?.value) {
-            this.form.get(scope)?.setValue(false);
-            this.syncIntakeFieldsForScope(scope, false);
-          }
-        });
+        entry.checking = false;
+        // Quitado mientras tanto: no pinta avisos de un email que ya no está.
+        if (!this.emailEntries.includes(entry)) return;
+        entry.status = status;
+        this.uncheckBlockedScopes();
+        this.refreshEmailNotes();
       },
-      // Fallo silencioso — no bloquea al trainer, el backend igual protege
-      // al enviar (mismo índice único), esto es solo el aviso anticipado.
       error: () => {
-        this.checkingEmail = false;
+        entry.checking = false;
       },
     });
+  }
+
+  // Un ámbito marcado que ahora resulta bloqueado para todos no se manda
+  // igual: se desmarca solo, junto con el aviso.
+  private uncheckBlockedScopes(): void {
+    (['training', 'nutrition'] as TrainerInviteScope[]).forEach((scope) => {
+      if (this.isScopeBlocked(scope) && this.form.get(scope)?.value) {
+        this.form.get(scope)?.setValue(false);
+        this.syncIntakeFieldsForScope(scope, false);
+      }
+    });
+  }
+
+  // Calculado aquí (al cambiar emails o ámbitos), no en un getter de
+  // plantilla: ver groupedPendingInvites.
+  private refreshEmailNotes(): void {
+    const selected = this.selectedScopes;
+    this.emailNotes = this.emailEntries.flatMap((entry) =>
+      selected
+        .filter((scope) => entry.status?.[scope]?.blocked)
+        .map((scope) => ({
+          email: entry.email,
+          text: `${this.scopeLabel(scope)}: ${this.blockedReason(entry.status![scope])}`,
+        }))
+    );
   }
 
   public get hasScopeSelected(): boolean {
@@ -334,8 +500,12 @@ export class InvitesPage implements OnInit {
     });
   }
 
-  public submit(): void {
-    if (this.form.invalid || !this.hasScopeSelected || this.isSending) {
+  public async submit(): Promise<void> {
+    if (this.isSending) return;
+    this.commitDraft();
+    this.emailsTouched = true;
+    const entries = this.sendableEntries;
+    if (!this.hasScopeSelected || this.hasInvalidEmails || !entries.length) {
       this.form.markAllAsTouched();
       return;
     }
@@ -347,70 +517,81 @@ export class InvitesPage implements OnInit {
       this.saveIntakeConfig();
     }
 
-    const scopes: TrainerInviteScope[] = [
-      ...(this.form.value.training ? (['training'] as const) : []),
-      ...(this.form.value.nutrition ? (['nutrition'] as const) : []),
-    ];
-
     this.isSending = true;
-    this.trainerInvitesApi
-      .sendInvite(this.form.value.clientEmail.trim().toLowerCase(), scopes)
-      .subscribe({
-        next: (response) => {
-          this.isSending = false;
-          this.handleSendResults(response.results);
-        },
-        error: (err) => {
-          this.isSending = false;
-          // MVP-trainers F21 — límite de clientes del plan alcanzado: llevar
-          // al paywall (F02) en vez de un error genérico sin acción posible.
-          if (err?.error?.code === 'TRAINER_LIMIT_REACHED') {
-            this.ionicUtilService.showErrorToast(
-              err.error.message,
-              this.translate.instant('INVITES.LIMITE_DE_TU_PLAN_ALCANZADO'),
-              3500
-            );
-            void this.router.navigate(['/tabs/subscription'], { queryParams: { reason: 'seats' } });
-            return;
-          }
-          // 400 con todos los ámbitos rechazados (ya invitado, ya es cliente
-          // de otro profesional…): el motivo viene por ámbito, no en message.
-          if (Array.isArray(err?.results)) {
-            this.handleSendResults(err.results);
-            return;
-          }
-          this.ionicUtilService.showErrorToast(
-            err?.error?.message || this.translate.instant('INVITES.NO_SE_PUDO_ENVIAR_LA'),
-            this.translate.instant('COMMON.ERROR'),
-            3000
-          );
-        },
-      });
-  }
+    this.sendReport = null;
+    this.sendProgress = { done: 0, total: entries.length };
+    const report: SendReport = { failures: [], seatsExhausted: false };
+    const sent: { entry: EmailEntry; scopes: TrainerInviteScope[] }[] = [];
 
-  private handleSendResults(
-    results: { scope: TrainerInviteScope; success: boolean; error: string | null }[]
-  ): void {
-    const succeeded = results.filter((r) => r.success);
-    const failed = results.filter((r) => !r.success);
-
-    if (succeeded.length) {
-      const labels = succeeded.map((r) => this.scopeLabel(r.scope)).join(' y ');
-      this.ionicUtilService.showToast({
-        message: this.translate.instant('INVITES.INVITACION_DE_ENVIADA_CORRECTAMENTE', { labels }),
-        duration: 3500,
-      });
-      this.form.reset({ clientEmail: null, training: false, nutrition: false });
-      this.loadInvites();
+    // De uno en uno: cada alta pasa por el bloqueo de altas del profesional
+    // (en paralelo chocarían entre sí) y, en cuanto se acaban las plazas, no
+    // se intenta ninguno más.
+    for (const entry of entries) {
+      const outcome: SendOutcome = report.seatsExhausted
+        ? { sentScopes: [], failure: this.translate.instant('INVITES.SIN_PLAZAS_LIBRES'), seatsExhausted: true }
+        : await this.sendOne(entry);
+      if (outcome.seatsExhausted) report.seatsExhausted = true;
+      if (outcome.sentScopes.length) sent.push({ entry, scopes: outcome.sentScopes });
+      if (outcome.failure) report.failures.push({ email: entry.email, reason: outcome.failure });
+      entry.failure = outcome.sentScopes.length ? null : outcome.failure;
+      this.sendProgress = { ...this.sendProgress, done: this.sendProgress.done + 1 };
     }
 
-    failed.forEach((r) => {
-      this.ionicUtilService.showErrorToast(
-        `${this.scopeLabel(r.scope)}: ${r.error}`,
-        this.translate.instant('INVITES.NO_SE_PUDO_INVITAR'),
-        4000
-      );
-    });
+    this.isSending = false;
+    // Los que han salido (aunque sea en un solo ámbito) dejan la caja; los
+    // que no, se quedan marcados para corregirlos o reintentarlos.
+    const sentEntries = new Set(sent.map(({ entry }) => entry));
+    this.emailEntries = this.emailEntries.filter((entry) => !sentEntries.has(entry));
+    this.sendReport = report.failures.length ? report : null;
+    this.refreshEmailNotes();
+    if (!sent.length) return;
+
+    const message =
+      sent.length === 1
+        ? this.translate.instant('INVITES.INVITACION_DE_ENVIADA_CORRECTAMENTE', {
+            labels: sent[0].scopes.map((scope) => this.scopeLabel(scope)).join(this.translate.instant('COACH.AND')),
+          })
+        : this.translate.instant('INVITES.INVITACIONES_ENVIADAS_A', { count: sent.length });
+    this.ionicUtilService.showToast({ message, duration: 3500 });
+    if (!this.emailEntries.length) {
+      this.form.reset({ training: false, nutrition: false });
+      this.emailsTouched = false;
+    }
+    this.loadInvites();
+  }
+
+  private async sendOne(entry: EmailEntry): Promise<SendOutcome> {
+    try {
+      const response = await lastValueFrom(this.trainerInvitesApi.sendInvite(entry.email, this.scopesFor(entry)));
+      return this.outcomeOf(response.results);
+    } catch (err: any) {
+      // MVP-trainers F21 — límite de clientes del plan alcanzado: el resumen
+      // lleva a ampliar plazas en vez de un error sin acción posible.
+      if (err?.error?.code === 'TRAINER_LIMIT_REACHED') {
+        return { sentScopes: [], failure: this.translate.instant('INVITES.SIN_PLAZAS_LIBRES'), seatsExhausted: true };
+      }
+      // 400 con todos los ámbitos rechazados (ya es cliente de otro
+      // profesional…): el motivo viene por ámbito, no en message.
+      if (Array.isArray(err?.results)) return this.outcomeOf(err.results);
+      return {
+        sentScopes: [],
+        failure: err?.error?.message || this.translate.instant('INVITES.NO_SE_PUDO_ENVIAR_LA'),
+        seatsExhausted: false,
+      };
+    }
+  }
+
+  private outcomeOf(results: Pick<SendInviteResult, 'scope' | 'success' | 'error'>[]): SendOutcome {
+    const failed = results.filter((result) => !result.success);
+    return {
+      sentScopes: results.filter((result) => result.success).map((result) => result.scope),
+      failure: failed.length ? failed.map((result) => `${this.scopeLabel(result.scope)}: ${result.error}`).join(' · ') : null,
+      seatsExhausted: false,
+    };
+  }
+
+  public goToSeats(): void {
+    void this.router.navigate(['/tabs/subscription'], { queryParams: { reason: 'seats' } });
   }
 
   public async confirmCancel(invite: TrainerInvite): Promise<void> {
@@ -569,10 +750,7 @@ export class InvitesPage implements OnInit {
   public saveIntakeConfig(): void {
     if (this.savingIntakeConfig) return;
     this.savingIntakeConfig = true;
-    const lastScopes: TrainerInviteScope[] = [
-      ...(this.form.value.training ? (['training'] as const) : []),
-      ...(this.form.value.nutrition ? (['nutrition'] as const) : []),
-    ];
+    const lastScopes = this.selectedScopes;
     this.trainerInvitesApi
       .updateIntakeConfig([...this.selectedIntakeFields], this.customQuestions, lastScopes)
       .subscribe({
