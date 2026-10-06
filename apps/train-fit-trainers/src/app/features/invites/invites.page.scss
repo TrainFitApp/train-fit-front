@@ -575,27 +575,25 @@
   white-space: nowrap;
 }
 
-// Fila de detalle: ámbito(s) a la izquierda (1 o 2, según lo que tuviera
-// ese cliente) como chips, estado como pill pegada al borde derecho —
-// separada del header por un filete tenue en vez de una tarjeta anidada
-// (ver anti-referencia en PRODUCT.md: "no cards anidadas"). flex-wrap para
-// que en móvil, si dos chips + la pill de estado no caben en una línea, el
-// estado baje en vez de comprimirse o desbordar.
+// Una fila por invitación (un ámbito), separada del header por un filete
+// tenue en vez de una tarjeta anidada (ver anti-referencia en PRODUCT.md:
+// "no cards anidadas"): arriba ámbito y estado, debajo sus acciones.
 .history-card-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tf-border);
+}
+
+// flex-wrap para que en móvil, si el chip + la pill de estado + cancelar no
+// caben en una línea, el estado baje en vez de comprimirse o desbordar.
+.history-card-row-head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px 10px;
-  padding-top: 12px;
-  border-top: 1px solid var(--tf-border);
-}
-
-.history-scopes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-width: 0;
 }
 
 // Chip con tinte propio (no el .scope-chip gris plano que usa el resto de
@@ -653,8 +651,8 @@
   }
 }
 
-// Agrupa el estado + los botones de cancelar (Pendientes) al borde derecho
-// de la fila — Historial solo pone un .status-label ahí, sin este wrapper.
+// Agrupa el estado + el botón de cancelar (solo Pendientes) al borde
+// derecho de la fila.
 .history-card-row-right {
   display: flex;
   align-items: center;
@@ -687,11 +685,147 @@
     border-color: var(--tf-danger-border);
   }
 
-  &[data-status='revoked'] {
+  &[data-status='revoked'],
+  &[data-status='cancelled'] {
     color: var(--tf-text-muted);
     background: var(--tf-surface-4);
     border-color: var(--tf-border);
   }
+}
+
+// --- Qué significa cada estado: globo al pasar el ratón por la pill o al
+// enfocarla (teclado, o un toque en móvil, donde no hay hover). Alineado al
+// borde derecho porque la pill vive pegada a él. ---
+.status-tip {
+  position: relative;
+  display: inline-flex;
+  border-radius: 999px;
+  cursor: help;
+  outline: none;
+
+  &:focus-visible .status-label {
+    box-shadow: 0 0 0 2px var(--tf-bg), 0 0 0 4px var(--tf-border-focus);
+  }
+}
+
+.status-tip-bubble {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: var(--tf-z-dropdown);
+  width: max-content;
+  max-width: min(260px, 72vw);
+  padding: 8px 10px;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-5);
+  // Mismo globo que el del calendario de nutrición: el borde más marcado de
+  // la escala y sombra, para que se despegue de la card de debajo.
+  border: 1px solid var(--tf-border-strongest);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  color: var(--tf-text);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out),
+    transform var(--tf-duration-fast) var(--tf-ease-out), visibility 0s linear var(--tf-duration-fast);
+}
+
+// Con el ratón, una pausa corta antes de abrirse: cruzar la lista de camino
+// a otra cosa no va encendiendo globos. Al enfocar, al momento.
+.status-tip:hover .status-tip-bubble,
+.status-tip:focus .status-tip-bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out) 250ms,
+    transform var(--tf-duration-fast) var(--tf-ease-out) 250ms, visibility 0s linear 250ms;
+}
+
+.status-tip:focus .status-tip-bubble {
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-tip-bubble,
+  .status-tip:hover .status-tip-bubble {
+    transform: none;
+  }
+}
+
+// --- Acciones de la invitación, cada una con su fecha y hora: punto por
+// acción unido por un hilo fino a la siguiente. ---
+.invite-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.invite-event {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 12px;
+  padding-left: 18px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+
+  // Punto centrado en la primera línea (0.7em = mitad de line-height).
+  &::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: calc(0.7em - 3.5px);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tf-text-faint);
+  }
+
+  // Hilo hasta el punto siguiente, con 6px de aire a cada lado.
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: calc(0.7em + 6px);
+    bottom: -0.7em;
+    width: 1px;
+    background: var(--tf-border-strong);
+  }
+
+  &[data-event='accepted']::before {
+    background: var(--tf-success);
+  }
+
+  &[data-event='declined']::before {
+    background: var(--tf-danger);
+  }
+
+  &[data-event='cancelled']::before,
+  &[data-event^='ended']::before {
+    background: var(--tf-text-secondary);
+  }
+}
+
+.invite-event-label {
+  min-width: 0;
+  color: var(--tf-text-secondary);
+}
+
+.invite-event-time {
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 // --- Móvil: nombre y email ya no caben en la misma línea sin truncarse los
@@ -714,8 +848,12 @@
     font-size: 0.74rem;
   }
 
-  .history-card-row {
+  .history-card-row-head {
     gap: 8px;
+  }
+
+  .invite-event {
+    font-size: 0.76rem;
   }
 
   .history-scope-tag {

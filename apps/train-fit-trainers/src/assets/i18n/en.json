@@ -2902,9 +2902,30 @@
     "SEGURO_QUE_QUIERES_CANCELAR_LA": "Are you sure you want to cancel the {{p0}} invitation to {{clientEmail}}?",
     "INVITACION_CANCELADA": "Invitation cancelled",
     "NO_SE_PUDO_CANCELAR_LA": "Couldn't cancel the invitation",
-    "INVITACION_ENVIADA": "Invitation sent",
-    "ACEPTADA": "Accepted",
-    "NO_SE_PUDO_GUARDAR_LA": "Couldn't save the settings"
+    "NO_SE_PUDO_GUARDAR_LA": "Couldn't save the settings",
+    "STATUS": {
+      "pending": "No reply yet",
+      "active": "Active",
+      "declined": "Declined",
+      "cancelled": "Cancelled",
+      "revoked": "Ended"
+    },
+    "STATUS_HINT": {
+      "pending": "They haven't replied yet. Meanwhile, the invitation holds a seat on your plan.",
+      "active": "They're your client for this service and take up a seat on your plan.",
+      "declined": "The client declined the invitation. You can invite them again whenever you like.",
+      "cancelled": "You withdrew the invitation before they replied. You can invite them again whenever you like.",
+      "revoked": "The relationship for this service has ended and no longer takes a seat. To work with them again, invite them again."
+    },
+    "EVENT": {
+      "sent": "Invitation sent",
+      "accepted": "Accepted by the client",
+      "declined": "Declined by the client",
+      "cancelled": "Cancelled by you",
+      "ended_by_trainer": "Ended by you",
+      "ended_by_client": "Ended by the client",
+      "ended": "Ended"
+    }
   },
   "ACCOUNT": {
     "EDITAR_PERFIL": "Edit profile",

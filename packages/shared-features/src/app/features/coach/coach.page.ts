@@ -197,6 +197,10 @@ export class CoachPage implements OnInit {
       .then(([invites, professionals]) => {
         this.pendingInvites = invites || [];
         this.activeProfessionals = professionals || [];
+        // Mismas dos listas que decide el tab Coach: tras rechazar la última
+        // invitación o desvincularse, el tab desaparece en el acto (y
+        // TabsPage saca al cliente de aquí).
+        this.coachService.setRelations(this.activeProfessionals, this.pendingInvites);
         this.state = 'loaded';
         this.professionalsResolved = true;
         this.revealSection();
@@ -619,7 +623,6 @@ export class CoachPage implements OnInit {
 
       this.load();
       this.loadDashboard();
-      this.coachService.refresh().subscribe();
 
       // Aceptar ya le hace cliente activo, pero deja el cuestionario inicial
       // pendiente: se le abre al momento (puede volver sin rellenarlo; el
@@ -692,7 +695,6 @@ export class CoachPage implements OnInit {
         this.unlinkingScope = null;
         this.load();
         this.loadDashboard();
-        this.coachService.refresh().subscribe();
       },
       error: () => {
         this.unlinkingScope = null;

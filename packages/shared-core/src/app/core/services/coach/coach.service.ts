@@ -1,6 +1,6 @@
 import { Injectable, WritableSignal, computed, signal } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { HttpService } from '../http/http.service';
 
 interface ActiveProfessionalSummary {
@@ -40,6 +40,18 @@ export class CoachService {
 
   constructor(private http: HttpService) {}
 
+  // Lo llama quien ya tiene en la mano las dos listas (refresh, y la página
+  // Coach cada vez que las recarga): así el tab y los permisos cambian en el
+  // acto tras aceptar, rechazar o desvincularse, sin otra petición aparte.
+  public setRelations(active: ActiveProfessionalSummary[] | null, pending: PendingInviteSummary[] | null): boolean {
+    const hasActive = (active || []).length > 0;
+    const hasCoachRelation = hasActive || (pending || []).length > 0;
+    this._hasActiveTrainer.set(hasActive);
+    this._hasNutritionCoach.set((active || []).some((p) => p.scopes?.includes('nutrition')));
+    this._hasCoachRelation.set(hasCoachRelation);
+    return hasCoachRelation;
+  }
+
   // Nunca debe romper el flujo que la llama (arranque de la app, respuesta a
   // una invitación, desvinculación) — cualquier fallo se traduce en "sin
   // relación" en vez de propagar el error.
@@ -48,12 +60,7 @@ export class CoachService {
       active: this.http.get<ActiveProfessionalSummary[]>('trainer/info'),
       pending: this.http.get<PendingInviteSummary[]>('trainer/invites/mine'),
     }).pipe(
-      map(({ active, pending }) => {
-        this._hasActiveTrainer.set((active || []).length > 0);
-        this._hasNutritionCoach.set((active || []).some((p) => p.scopes?.includes('nutrition')));
-        return (active || []).length > 0 || (pending || []).length > 0;
-      }),
-      tap((hasCoachRelation) => this._hasCoachRelation.set(hasCoachRelation)),
+      map(({ active, pending }) => this.setRelations(active, pending)),
       catchError(() => {
         this._hasCoachRelation.set(false);
         this._hasActiveTrainer.set(false);

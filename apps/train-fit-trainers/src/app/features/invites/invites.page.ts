@@ -9,6 +9,7 @@ import {
   ClientEmailScopeStatus,
   TrainerInvite,
   TrainerInviteScope,
+  TrainerInviteStatus,
 } from './models/trainer-invite.model';
 import { CustomQuestion } from 'src/app/core/models/custom-question';
 import {
@@ -21,32 +22,43 @@ import {
 
 type ListState = 'loading' | 'error' | 'loaded';
 
-// Invitar entrenamiento+nutrición a la vez crea 2 TrainerClient por scope
-// (ver trainer-client-service.js#inviteClient) — sin agrupar, el listado
-// repetía el mismo email en 2 filas. Una fila por CLIENTE, con un chip por
-// scope, en vez de una fila por invitación.
+// Estado que se enseña de una invitación: el del back más "cancelled", que
+// el back guarda como declined con revokedBy "trainer" (la retiró el
+// profesional antes de que el cliente respondiera; no la rechazó nadie).
+type InviteDisplayStatus = TrainerInviteStatus | 'cancelled';
+
+// Cada acción de una invitación con su fecha y hora, en orden: enviada →
+// aceptada | rechazada | cancelada, y aceptada → finalizada.
+type InviteEventKind =
+  | 'sent'
+  | 'accepted'
+  | 'declined'
+  | 'cancelled'
+  | 'ended_by_trainer'
+  | 'ended_by_client'
+  | 'ended';
+
+interface InviteEvent {
+  kind: InviteEventKind;
+  at: string;
+}
+
+// Una fila por invitación, es decir, por ámbito: entrenamiento y nutrición
+// nunca comparten fila aunque se enviaran juntas, porque cada una tiene su
+// propia respuesta y su propio final.
+interface InviteRow {
+  invite: TrainerInvite;
+  status: InviteDisplayStatus;
+  events: InviteEvent[];
+}
+
+// Invitar entrenamiento+nutrición a la vez crea una invitación por ámbito
+// — sin agrupar, el listado repetía el mismo email. Una card por CLIENTE,
+// con una fila por invitación dentro.
 interface GroupedInvite {
   clientEmail: string;
-  clientId: string | null;
-  invites: TrainerInvite[];
-}
-
-// Historial: un cliente con 2 ámbitos puede tener estados distintos por
-// ámbito (p. ej. entrenamiento rechazado, nutrición finalizada más tarde) —
-// agrupar por estado en vez de asumir uno solo evita mentir emparejando un
-// estado con un ámbito al que no corresponde. En el caso normal (mismo
-// estado en ambos, o un solo ámbito) esto da un único grupo.
-interface HistoryStatusGroup {
-  status: TrainerInvite['status'];
-  scopes: TrainerInviteScope[];
-  // Las invitaciones de este grupo (no solo su scope) — hace falta el _id
-  // de cada una para poder cancelarlas individualmente en "Pendientes"
-  // (ver confirmCancel en el template), que reutiliza esta misma card.
-  invites: TrainerInvite[];
-}
-
-interface HistoryGroup extends GroupedInvite {
-  statusGroups: HistoryStatusGroup[];
+  clientName: string | null;
+  rows: InviteRow[];
 }
 
 @Component({
@@ -71,60 +83,64 @@ export class InvitesPage implements OnInit {
   // nuevos cada vez, lo que hace que *ngFor destruya y recree todas las
   // filas sin parar y deja la pantalla colgada en cuanto hay invitaciones
   // reales que listar (mismo bug ya visto y corregido en clients.page.ts).
-  // Pendientes va por INVITACIÓN, no por grupo de estado — cada fila tiene
-  // un único chip de ámbito y un único botón de cancelar, sin ambigüedad de
-  // cuál cancela cuál cuando el cliente tiene los dos ámbitos a la vez.
   public groupedPendingInvites: GroupedInvite[] = [];
-  public groupedHistoryInvites: HistoryGroup[] = [];
+  public groupedHistoryInvites: GroupedInvite[] = [];
 
+  // Conserva el orden del back (invitación más reciente primero): el
+  // cliente con la última invitación va arriba y, dentro de su card, la
+  // invitación más reciente también.
   private groupByClient(invites: TrainerInvite[]): GroupedInvite[] {
     const groups = new Map<string, GroupedInvite>();
     for (const invite of invites) {
       const key = invite.clientEmail.toLowerCase();
       if (!groups.has(key)) {
-        groups.set(key, { clientEmail: invite.clientEmail, clientId: invite.clientId, invites: [] });
+        groups.set(key, { clientEmail: invite.clientEmail, clientName: null, rows: [] });
       }
-      groups.get(key)!.invites.push(invite);
+      const group = groups.get(key)!;
+      group.clientName = group.clientName || this.clientName(invite);
+      group.rows.push({ invite, status: this.displayStatus(invite), events: this.inviteEvents(invite) });
     }
     return [...groups.values()];
+  }
+
+  private clientName(invite: TrainerInvite): string | null {
+    const client = invite.client;
+    if (!client?.name && !client?.lastname) return null;
+    return `${client.name || ''} ${client.lastname || ''}`.trim();
+  }
+
+  private displayStatus(invite: TrainerInvite): InviteDisplayStatus {
+    return invite.status === 'declined' && invite.revokedBy === 'trainer' ? 'cancelled' : invite.status;
+  }
+
+  // Las fechas salen tal cual las guarda el back (ver ScopeLinkSchema):
+  // respondedAt es la respuesta del cliente (aceptar o rechazar) y revokedAt
+  // el final, sea porque el profesional cancela una invitación sin responder
+  // o porque alguien termina la relación. Una fecha que falte (datos
+  // antiguos) no se inventa: esa acción simplemente no se lista.
+  private inviteEvents(invite: TrainerInvite): InviteEvent[] {
+    const events: InviteEvent[] = [{ kind: 'sent', at: invite.invitedAt }];
+    if (this.displayStatus(invite) === 'cancelled') {
+      if (invite.revokedAt) events.push({ kind: 'cancelled', at: invite.revokedAt });
+      return events;
+    }
+    if (invite.respondedAt) {
+      events.push({ kind: invite.status === 'declined' ? 'declined' : 'accepted', at: invite.respondedAt });
+    }
+    if (invite.status === 'revoked' && invite.revokedAt) {
+      const kind: InviteEventKind =
+        invite.revokedBy === 'trainer' ? 'ended_by_trainer' : invite.revokedBy === 'client' ? 'ended_by_client' : 'ended';
+      events.push({ kind, at: invite.revokedAt });
+    }
+    return events;
   }
 
   public trackByClientEmail(_index: number, group: GroupedInvite): string {
     return group.clientEmail;
   }
 
-  public trackByStatus(_index: number, statusGroup: HistoryStatusGroup): string {
-    return statusGroup.status;
-  }
-
-  public trackByInviteId(_index: number, invite: TrainerInvite): string {
-    return invite._id;
-  }
-
-  public clientDisplayName(group: GroupedInvite): string | null {
-    const client = group.invites.find((invite) => invite.client)?.client;
-    if (!client?.name && !client?.lastname) return null;
-    return `${client.name || ''} ${client.lastname || ''}`.trim();
-  }
-
-  private groupByStatus(invites: TrainerInvite[]): HistoryStatusGroup[] {
-    const groups = new Map<string, HistoryStatusGroup>();
-    for (const invite of invites) {
-      if (!groups.has(invite.status)) {
-        groups.set(invite.status, { status: invite.status, scopes: [], invites: [] });
-      }
-      const group = groups.get(invite.status)!;
-      group.scopes.push(invite.scope);
-      group.invites.push(invite);
-    }
-    return [...groups.values()];
-  }
-
-  private groupByClientWithStatus(invites: TrainerInvite[]): HistoryGroup[] {
-    return this.groupByClient(invites).map((group) => ({
-      ...group,
-      statusGroups: this.groupByStatus(group.invites),
-    }));
+  public trackByInviteId(_index: number, row: InviteRow): string {
+    return row.invite._id;
   }
 
   // TASK-049 (MASTER_BACKLOG.md) — personalización del cuestionario inicial.
@@ -308,7 +324,7 @@ export class InvitesPage implements OnInit {
         this.historyInvites = (invites || []).filter((invite) => invite.status !== 'pending');
 
         this.groupedPendingInvites = this.groupByClient(this.pendingInvites);
-        this.groupedHistoryInvites = this.groupByClientWithStatus(this.historyInvites);
+        this.groupedHistoryInvites = this.groupByClient(this.historyInvites);
 
         this.listState = 'loaded';
       },
@@ -437,21 +453,6 @@ export class InvitesPage implements OnInit {
 
   public scopeLabel(scope: TrainerInviteScope): string {
     return scope === 'training' ? this.translate.instant('TRAINER_COMMON.TRAINING') : this.translate.instant('TRAINER_COMMON.NUTRITION');
-  }
-
-  public statusLabel(status: TrainerInvite['status']): string {
-    switch (status) {
-      case 'pending':
-        return this.translate.instant('INVITES.INVITACION_ENVIADA');
-      case 'active':
-        return this.translate.instant('INVITES.ACEPTADA');
-      case 'declined':
-        return this.translate.instant('COACH.HISTORY_DECLINED');
-      case 'revoked':
-        return this.translate.instant('CLIENT_DETAIL.PHASE_ENDED');
-      default:
-        return status;
-    }
   }
 
   // --- TASK-049: personalizar cuestionario inicial ---

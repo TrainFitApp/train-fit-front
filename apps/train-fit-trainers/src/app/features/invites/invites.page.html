@@ -211,42 +211,12 @@
         {{ 'INVITES.NO_TIENES_INVITACIONES_PENDIENTES' | translate }}
       </p>
 
-      <!-- Misma card que "Historial" (ver más abajo) — la diferencia es
-           únicamente el botón de cancelar por invitación, que aquí sí tiene
-           sentido (todavía no se ha resuelto) y en historial no. -->
       <div class="history-list">
         <div class="history-card" *ngFor="let group of groupedPendingInvites; trackBy: trackByClientEmail">
-          <div class="history-card-header">
-            <span class="history-card-name">{{ clientDisplayName(group) || ('TRAINER_COMMON.CLIENT' | translate) }}</span>
-            <span class="history-card-email">{{ group.clientEmail }}</span>
-          </div>
-
-          <!-- Una fila por INVITACIÓN (no por grupo de estado, a diferencia
-               de Historial) — un chip, una pill de estado y un botón de
-               cancelar en línea, sin ambigüedad de a cuál corresponde cada
-               botón cuando el cliente tiene entrenamiento y nutrición a la
-               vez. -->
-          <div class="history-card-row" *ngFor="let inv of group.invites; trackBy: trackByInviteId">
-            <div class="history-scopes">
-              <span class="history-scope-tag">
-                <ion-icon [name]="inv.scope === 'training' ? 'barbell-outline' : 'nutrition-outline'"></ion-icon>
-                {{ scopeLabel(inv.scope) }}
-              </span>
-            </div>
-            <div class="history-card-row-right">
-              <span class="status-label" [attr.data-status]="inv.status">{{ statusLabel(inv.status) }}</span>
-              <button
-                class="cancel-button"
-                (click)="confirmCancel(inv)"
-                [disabled]="cancellingId === inv._id"
-                [title]="('INVITES.CANCELAR_INVITACION_DE' | translate) + scopeLabel(inv.scope)"
-                [attr.aria-label]="('INVITES.CANCELAR_INVITACION_DE' | translate) + scopeLabel(inv.scope)"
-              >
-                <ion-spinner name="dots" *ngIf="cancellingId === inv._id"></ion-spinner>
-                <ion-icon name="close-outline" *ngIf="cancellingId !== inv._id"></ion-icon>
-              </button>
-            </div>
-          </div>
+          <ng-container *ngTemplateOutlet="cardHeader; context: { $implicit: group }"></ng-container>
+          <ng-container *ngFor="let row of group.rows; trackBy: trackByInviteId">
+            <ng-container *ngTemplateOutlet="inviteRow; context: { $implicit: row }"></ng-container>
+          </ng-container>
         </div>
       </div>
 
@@ -254,26 +224,60 @@
         <h2 class="section-heading section-heading--secondary">{{ 'COACH.HISTORY' | translate }}</h2>
         <div class="history-list">
           <div class="history-card" *ngFor="let group of groupedHistoryInvites; trackBy: trackByClientEmail">
-            <div class="history-card-header">
-              <span class="history-card-name">{{ clientDisplayName(group) || ('TRAINER_COMMON.CLIENT' | translate) }}</span>
-              <span class="history-card-email">{{ group.clientEmail }}</span>
-            </div>
-
-            <div
-              class="history-card-row"
-              *ngFor="let statusGroup of group.statusGroups; trackBy: trackByStatus"
-            >
-              <div class="history-scopes">
-                <span class="history-scope-tag" *ngFor="let scope of statusGroup.scopes">
-                  <ion-icon [name]="scope === 'training' ? 'barbell-outline' : 'nutrition-outline'"></ion-icon>
-                  {{ scopeLabel(scope) }}
-                </span>
-              </div>
-              <span class="status-label" [attr.data-status]="statusGroup.status">{{ statusLabel(statusGroup.status) }}</span>
-            </div>
+            <ng-container *ngTemplateOutlet="cardHeader; context: { $implicit: group }"></ng-container>
+            <ng-container *ngFor="let row of group.rows; trackBy: trackByInviteId">
+              <ng-container *ngTemplateOutlet="inviteRow; context: { $implicit: row }"></ng-container>
+            </ng-container>
           </div>
         </div>
       </ng-container>
     </ng-container>
   </div>
+
+  <ng-template #cardHeader let-group>
+    <div class="history-card-header">
+      <span class="history-card-name">{{ group.clientName || ('TRAINER_COMMON.CLIENT' | translate) }}</span>
+      <span class="history-card-email">{{ group.clientEmail }}</span>
+    </div>
+  </ng-template>
+
+  <!-- Una fila por invitación (un ámbito): su estado actual y, debajo, cada
+       acción con fecha y hora. Pendientes e Historial usan la misma fila;
+       solo una invitación sin responder se puede cancelar. -->
+  <ng-template #inviteRow let-row>
+    <div class="history-card-row">
+      <div class="history-card-row-head">
+        <span class="history-scope-tag">
+          <ion-icon [name]="row.invite.scope === 'training' ? 'barbell-outline' : 'nutrition-outline'" aria-hidden="true"></ion-icon>
+          {{ scopeLabel(row.invite.scope) }}
+        </span>
+        <div class="history-card-row-right">
+          <span class="status-tip" tabindex="0" [attr.aria-describedby]="'invite-status-' + row.invite._id">
+            <span class="status-label" [attr.data-status]="row.status">{{ ('INVITES.STATUS.' + row.status) | translate }}</span>
+            <span class="status-tip-bubble" role="tooltip" [id]="'invite-status-' + row.invite._id">
+              {{ ('INVITES.STATUS_HINT.' + row.status) | translate }}
+            </span>
+          </span>
+          <button
+            *ngIf="row.status === 'pending'"
+            class="cancel-button"
+            (click)="confirmCancel(row.invite)"
+            [disabled]="cancellingId === row.invite._id"
+            [title]="('INVITES.CANCELAR_INVITACION_DE' | translate) + scopeLabel(row.invite.scope)"
+            [attr.aria-label]="('INVITES.CANCELAR_INVITACION_DE' | translate) + scopeLabel(row.invite.scope)"
+          >
+            <ion-spinner name="dots" *ngIf="cancellingId === row.invite._id"></ion-spinner>
+            <ion-icon name="close-outline" *ngIf="cancellingId !== row.invite._id"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <ol class="invite-timeline">
+        <li class="invite-event" *ngFor="let event of row.events" [attr.data-event]="event.kind">
+          <span class="invite-event-label">{{ ('INVITES.EVENT.' + event.kind) | translate }}</span>
+          <time class="invite-event-time" [attr.datetime]="event.at">{{ event.at | localDate: 'd MMM y, HH:mm' }}</time>
+        </li>
+      </ol>
+    </div>
+  </ng-template>
 </ion-content>

@@ -151,12 +151,12 @@
 
     <div class="input-wrapper">
       <ion-icon name="person-outline" class="input-icon"></ion-icon>
-      <input type="text" class="input-field" [placeholder]="'TRAINER_COMMON.NAME' | translate" [(ngModel)]="formName" />
+      <input type="text" class="input-field" [placeholder]="'TRAINER_COMMON.NAME' | translate" [(ngModel)]="formName" autocomplete="given-name" />
     </div>
 
     <div class="input-wrapper">
       <ion-icon name="person-outline" class="input-icon"></ion-icon>
-      <input type="text" class="input-field" [placeholder]="'ACCOUNT.APELLIDOS' | translate" [(ngModel)]="formLastname" />
+      <input type="text" class="input-field" [placeholder]="'ACCOUNT.APELLIDOS' | translate" [(ngModel)]="formLastname" autocomplete="family-name" />
     </div>
 
     <div class="input-wrapper">

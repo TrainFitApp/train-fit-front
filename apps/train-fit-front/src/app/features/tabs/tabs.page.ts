@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, effect } from '@angular/core';
+import { Router } from '@angular/router';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
+import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { TABS } from 'src/app/shared/constants/tabs';
 import { TABLE_MODE_TYPES } from 'src/app/shared/constants/table-mode';
@@ -22,7 +24,19 @@ export class TabsPage {
 
   constructor(
     private utilService: UtilService,
+    private router: Router,
+    private navigationService: NavigationService,
     public coachService: CoachService,
     public notificationsService: NotificationsService
-  ) {}
+  ) {
+    // Sin profesional ni invitación el tab Coach desaparece en el acto. Si el
+    // cliente estaba dentro (acaba de rechazar su última invitación o de
+    // desvincularse), se le lleva al tab de inicio en vez de dejarle en una
+    // pantalla cuyo tab ya no existe.
+    effect(() => {
+      if (!this.coachService.hasCoachRelation() && this.router.url.startsWith(`/tabs/${TABS.coach}`)) {
+        this.navigationService.goToTabsPage();
+      }
+    });
+  }
 }

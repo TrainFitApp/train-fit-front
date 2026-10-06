@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 import {
   IntakeFieldKey,
   IntakeStatus,
@@ -79,6 +81,7 @@ export class OnboardingStatusPage {
   constructor(
     private router: Router,
     private onboardingService: OnboardingService,
+    private coachService: CoachService,
     private intakeApi: IntakeApiService,
     private nutritionPreferencesApi: NutritionPreferencesApiService,
     private professionalsApi: ProfessionalsApiService,
@@ -119,9 +122,10 @@ export class OnboardingStatusPage {
   }
 
   // Vuelve a Coach (no a /tabs en general) porque es de donde sale el aviso
-  // que trae de vuelta aquí (ver CoachPage#goToOnboardingStatus).
+  // que trae de vuelta aquí (ver CoachPage#goToOnboardingStatus). Si acaba
+  // de rechazar su última invitación, el tab Coach ya no existe: a /tabs.
   public goBack(): void {
-    void this.router.navigate(['/tabs/coach']);
+    void this.router.navigate([this.coachService.hasCoachRelation() ? '/tabs/coach' : '/tabs']);
   }
 
   public respondToInvite(invite: PendingInvite, decision: 'accept' | 'decline'): void {
@@ -131,7 +135,9 @@ export class OnboardingStatusPage {
       decision === 'accept'
         ? this.professionalsApi.acceptInvite(invite._id)
         : this.professionalsApi.declineInvite(invite._id);
-    request$.subscribe({
+    // El tab Coach (y sus permisos) se actualizan antes de recargar: load()
+    // puede volver atrás y tiene que saber si Coach sigue existiendo.
+    request$.pipe(switchMap(() => this.coachService.refresh())).subscribe({
       next: () => {
         this.respondingInviteId = null;
         this.load();

@@ -2902,9 +2902,30 @@
     "SEGURO_QUE_QUIERES_CANCELAR_LA": "¿Seguro que quieres cancelar la invitación de {{p0}} a {{clientEmail}}?",
     "INVITACION_CANCELADA": "Invitación cancelada",
     "NO_SE_PUDO_CANCELAR_LA": "No se pudo cancelar la invitación",
-    "INVITACION_ENVIADA": "Invitación enviada",
-    "ACEPTADA": "Aceptada",
-    "NO_SE_PUDO_GUARDAR_LA": "No se pudo guardar la configuración"
+    "NO_SE_PUDO_GUARDAR_LA": "No se pudo guardar la configuración",
+    "STATUS": {
+      "pending": "Sin responder",
+      "active": "En curso",
+      "declined": "Rechazada",
+      "cancelled": "Cancelada",
+      "revoked": "Finalizada"
+    },
+    "STATUS_HINT": {
+      "pending": "Todavía no ha respondido. Mientras tanto, la invitación reserva una plaza de tu plan.",
+      "active": "Es tu cliente en este ámbito y ocupa una plaza de tu plan.",
+      "declined": "El cliente rechazó la invitación. Puedes volver a invitarle cuando quieras.",
+      "cancelled": "Retiraste la invitación antes de que respondiera. Puedes volver a invitarle cuando quieras.",
+      "revoked": "La relación en este ámbito terminó y ya no ocupa plaza. Para volver a llevarle, invítale de nuevo."
+    },
+    "EVENT": {
+      "sent": "Invitación enviada",
+      "accepted": "Aceptada por el cliente",
+      "declined": "Rechazada por el cliente",
+      "cancelled": "Cancelada por ti",
+      "ended_by_trainer": "Finalizada por ti",
+      "ended_by_client": "Finalizada por el cliente",
+      "ended": "Finalizada"
+    }
   },
   "ACCOUNT": {
     "EDITAR_PERFIL": "Editar perfil",
