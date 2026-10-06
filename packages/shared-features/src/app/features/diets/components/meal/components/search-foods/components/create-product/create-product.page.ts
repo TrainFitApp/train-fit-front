@@ -306,7 +306,7 @@ export class CreateProductPage implements OnInit {
       });
 
       this.productByCodeSub = this.productService
-        .getProductByCode(idUser, scannedCode)
+        .getProductByCode(scannedCode)
         .subscribe({
           next: (resProduct: any) => {
             const product = resProduct?.product;

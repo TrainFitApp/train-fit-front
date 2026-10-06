@@ -132,14 +132,6 @@ export class RecipeService {
     return this.recipeApiService.getVerifiedRecipes(search, page, limit);
   }
 
-  public getArchivedRecipes(
-    search: string = '',
-    page: number = 0,
-    limit: number = 20
-  ): Observable<Recipe[]> {
-    return this.recipeApiService.getArchivedRecipes(search, page, limit);
-  }
-
   public create(recipe: Partial<Recipe>): Observable<Recipe> {
     return this.recipeApiService.create(recipe);
   }
@@ -154,21 +146,6 @@ export class RecipeService {
 
   public delete(id: string): Observable<void> {
     return this.recipeApiService.delete(id);
-  }
-
-  public toggleArchived(recipeId: string): Observable<{
-    isArchived: boolean;
-    isFavorite?: boolean;
-    message: string;
-  }> {
-    return this.recipeApiService.toggleArchived(recipeId);
-  }
-
-  public addCustomProduct(
-    recipeId: string,
-    customProductId: string
-  ): Observable<Recipe> {
-    return this.recipeApiService.addCustomProduct(recipeId, customProductId);
   }
 
   public removeCustomProduct(
@@ -321,7 +298,7 @@ export class RecipeService {
     const modifiedMap = new Map<string, ModifiedBaseCustomProduct>();
 
     (customRecipe.modifiedBaseCustomProducts || []).forEach((item: any) => {
-      const id = item?.baseCustomProductId?._id || item?.baseCustomProductId;
+      const id = item?.baseCustomProductId;
       if (id) {
         modifiedMap.set(id.toString(), item);
       }
@@ -434,10 +411,6 @@ export class RecipeService {
         name: cp.product?.name || this.translate.instant('RECIPE_CARD.INGREDIENT_FALLBACK'),
         quantity: cp.quantity || 0,
       }));
-  }
-
-  public isFavorite(recipe: Recipe, archivedRecipes: string[]): boolean {
-    return recipe._id ? archivedRecipes.includes(recipe._id) : false;
   }
 
   private areValuesEquivalent(left: any, right: any): boolean {

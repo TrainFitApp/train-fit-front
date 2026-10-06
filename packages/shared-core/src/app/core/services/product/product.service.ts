@@ -17,8 +17,8 @@ export class ProductService {
     return this.productAPIService.getProducts();
   }
 
-  public getProductByCode(idUser: string, code: string): Observable<IProduct> {
-    return this.productAPIService.getProductByCode(idUser, code);
+  public getProductByCode(code: string): Observable<IProduct> {
+    return this.productAPIService.getProductByCode(code);
   }
 
   public getProductsCount(): Observable<number> {
@@ -42,17 +42,6 @@ export class ProductService {
   /** Promover producto de usuario a producto global (ex: toProduct). */
   public promoteToGlobal(id: string): Observable<IProduct> {
     return this.productAPIService.promoteToGlobal(id);
-  }
-
-  /**
-   * Añadir/quitar de favoritos. Ya no requiere isOwn —
-   * todos los productos (incluidos los del usuario) van a archivedProducts.
-   */
-  public addFavoriteProduct(
-    idProduct: string,
-    idUser: string
-  ): Observable<{ isFavorite: boolean; message?: string }> {
-    return this.productAPIService.addFavoriteProduct(idProduct, idUser);
   }
 
   /**

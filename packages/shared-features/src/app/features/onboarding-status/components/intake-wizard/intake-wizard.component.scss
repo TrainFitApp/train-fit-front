@@ -265,6 +265,22 @@ input.field-input {
   }
 }
 
+// Escala 1-5: cinco opciones en una fila, cada una con su número.
+.options-list--scale {
+  flex-direction: row;
+  gap: 8px;
+
+  .option-card {
+    flex: 1;
+    justify-content: center;
+    padding: 15px 0;
+  }
+
+  .option-title {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 .option-icon {
   width: 40px;
   height: 40px;

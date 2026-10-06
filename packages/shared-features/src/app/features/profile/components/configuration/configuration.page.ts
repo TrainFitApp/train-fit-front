@@ -5,7 +5,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { User } from 'src/app/core/models/user';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
-import { DietService } from 'src/app/core/services/diet/diet.service';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
@@ -55,7 +54,6 @@ export class ConfigurationPage {
     private readonly authService: AuthService,
     public readonly coachService: CoachService,
     private readonly tableService: TableService,
-    private readonly dietService: DietService,
     private readonly workoutService: WorkoutService,
     private readonly navigationService: NavigationService,
     private readonly notificationService: NotificationService,
@@ -174,7 +172,6 @@ export class ConfigurationPage {
           handler: () => {
             this.userService.setLocalUser = null;
             this.workoutService.setCurrentWorkout = null;
-            this.dietService.setCurrentDiet = null;
             this.tableService.setCurrentTable = null;
             this.authService.logout();
           },
@@ -374,7 +371,6 @@ export class ConfigurationPage {
       next: () => {
         this.userService.setLocalUser = null;
         this.workoutService.setCurrentWorkout = null;
-        this.dietService.setCurrentDiet = null;
         this.tableService.setCurrentTable = null;
         this.authService.logout();
       },

@@ -7,10 +7,7 @@ import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 // tipo nuevo se añada una sola vez.
 
 const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
-  meal_proposal: 'restaurant-outline',
   payment_created: 'cash-outline',
-  // Histórico: ya no se crea (la solicitud sale en "Pendiente de ti"). Se
-  // mantiene para las que siguen en la bandeja.
   nutrition_preferences_requested: 'nutrition-outline',
   checkin_reviewed: 'checkmark-circle-outline',
   routine_assigned: 'barbell-outline',
@@ -18,10 +15,6 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   intake_submitted: 'document-text-outline',
   client_confirmed: 'checkmark-done-outline',
   meal_prescribed: 'restaurant-outline',
-  // Histórico: ya no se crea ninguna (las medidas se piden dentro de un
-  // check-in). Se mantiene para que las que siguen en la bandeja de un
-  // cliente se lean y se abran como siempre, no como "Nueva actividad".
-  anthropometry_requested: 'body-outline',
   payment_reminder: 'wallet-outline',
   form_check_reviewed: 'videocam-outline',
 };
@@ -76,10 +69,8 @@ export function notificationTrainerName(notification: CoachNotification, t: Tran
 export function notificationTitle(notification: CoachNotification, t: Translate): string {
   const p = notification.payload || {};
   switch (notification.type) {
-    case 'meal_proposal':
-      return t('COACH_NOTIFICATIONS.TITLES.MEAL_PROPOSAL', { meal: p['mealSlot'] || t('COACH_NOTIFICATIONS.TITLES.A_MEAL') });
     case 'payment_created':
-      return t('COACH_NOTIFICATIONS.TITLES.PAYMENT_CREATED', { amount: money(p['amount'], p['currency']) });
+      return t('COACH_NOTIFICATIONS.TITLES.PAYMENT_CREATED', { amount: money(Number(p['amountCents']) / 100, p['currency']) });
     case 'payment_reminder':
       return paymentReminderTitle(p, t);
     case 'nutrition_preferences_requested':
@@ -96,8 +87,6 @@ export function notificationTitle(notification: CoachNotification, t: Translate)
       return t('COACH_NOTIFICATIONS.TITLES.CLIENT_CONFIRMED');
     case 'meal_prescribed':
       return t('COACH_NOTIFICATIONS.TITLES.MEAL_PRESCRIBED', { name: p['mealName'] || '' });
-    case 'anthropometry_requested':
-      return t('COACH_NOTIFICATIONS.TITLES.ANTHROPOMETRY_REQUESTED');
     case 'form_check_reviewed':
       return p['exerciseName'] ? t('COACH_NOTIFICATIONS.TITLES.FORM_CHECK_REVIEWED_NAMED', { name: p['exerciseName'] }) : t('COACH_NOTIFICATIONS.TITLES.FORM_CHECK_REVIEWED');
     default:
@@ -111,7 +100,6 @@ export function notificationTitle(notification: CoachNotification, t: Translate)
 export function notificationRoute(notification: CoachNotification): CoachRoute | null {
   const p = notification.payload || {};
   switch (notification.type) {
-    case 'meal_proposal':
     case 'meal_prescribed':
       return { commands: ['/tabs/diets'], extras: { state: { selectedDate: p['date'] } } };
     case 'nutrition_preferences_requested':
@@ -120,8 +108,6 @@ export function notificationRoute(notification: CoachNotification): CoachRoute |
       return { commands: ['/my-checkins'] };
     case 'routine_assigned':
       return { commands: ['/tabs/summary'] };
-    case 'anthropometry_requested':
-      return { commands: ['/weight-info'] };
     case 'form_check_reviewed':
       return { commands: ['/my-form-checks'], extras: { queryParams: { id: p['formCheckId'] } } };
     default:

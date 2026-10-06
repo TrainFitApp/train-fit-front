@@ -29,79 +29,47 @@ export class MealAPIService {
       recentIds,
     };
 
-    return this.http.post<IProduct[]>(
-      `${MealAPIService.MEAL_ENDPOINT}/search/all`,
-      payload
-    );
+    return this.http.post<IProduct[]>(`${MealAPIService.MEAL_ENDPOINT}/search`, payload);
   }
 
+  // Pega el portapapeles en la comida destino (mealToPaste).
   public pasteMeal(clipboard: MealClipboard, merge?: boolean): Observable<Meal> {
-    const mealToSend = clipboard.getFilteredMeal();
-    return this.http.put<Meal>(`${MealAPIService.MEAL_ENDPOINT}/paste`, {
-      meals: {
-        mealClipboard: mealToSend,
-        mealToPaste: clipboard.mealToPaste,
-      },
+    return this.http.put<Meal>(`${MealAPIService.MEAL_ENDPOINT}/${clipboard.mealToPaste._id}/paste`, {
+      mealClipboard: clipboard.getFilteredMeal(),
       merge,
     });
   }
 
-  public updateMeal(meal: Meal): Observable<Meal> {
-    return this.http.put<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/update/all/meal/fields`,
-      meal
-    );
-  }
-
+  // Nombre y nota de la comida.
   public modifyMeal(meal: Meal): Observable<Meal> {
-    return this.http.put<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/modify/one/simple`,
-      meal
-    );
+    return this.http.put<Meal>(`${MealAPIService.MEAL_ENDPOINT}/${meal._id}`, {
+      name: meal.name,
+      notes: meal.notes,
+    });
   }
 
-  public deleteMealProduct(
-    idMeal: string,
-    idProduct: string
-  ): Observable<Meal> {
-    return this.http.delete<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/${idMeal}/${idProduct}`
-    );
+  // El cliente elige (o cambia) una de las opciones que pautó su profesional.
+  public chooseAlternative(mealId: string, chosenIndex: number): Observable<Meal> {
+    return this.http.put<Meal>(`${MealAPIService.MEAL_ENDPOINT}/${mealId}/alternative`, { chosenIndex });
   }
 
-  public deleteMealCustomProducts(id: string): Observable<Meal> {
-    return this.http.delete<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/all/customproducts/${id}`
-    );
+  public deleteMealProduct(mealId: string, customProductId: string): Observable<Meal> {
+    return this.http.delete<Meal>(`${MealAPIService.MEAL_ENDPOINT}/${mealId}/customproducts/${customProductId}`);
   }
 
-  public deleteMealRecipes(id: string): Observable<Meal> {
-    return this.http.delete<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/all/customrecipesref/${id}`
-    );
+  public deleteMealCustomProducts(mealId: string): Observable<Meal> {
+    return this.http.delete<Meal>(`${MealAPIService.MEAL_ENDPOINT}/${mealId}/customproducts`);
   }
 
-  public addCustomRecipe(
-    mealId: string,
-    customRecipeId: string
-  ): Observable<Meal> {
-    return this.http.post<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/${mealId}/customrecipes/${customRecipeId}`,
-      {}
-    );
+  public deleteMealRecipes(mealId: string): Observable<Meal> {
+    return this.http.delete<Meal>(`${MealAPIService.MEAL_ENDPOINT}/${mealId}/customrecipes`);
   }
 
-  public deleteMealCustomRecipe(
-    mealId: string,
-    customRecipeId: string
-  ): Observable<Meal> {
-    return this.http.delete<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/customrecipe/${mealId}/${customRecipeId}`
-    );
+  public deleteMealCustomRecipe(mealId: string, customRecipeId: string): Observable<Meal> {
+    return this.http.delete<Meal>(`${MealAPIService.MEAL_ENDPOINT}/${mealId}/customrecipes/${customRecipeId}`);
   }
 
-  // TAREA (meals pautados) — marcar/desmarcar consumido un producto/receta
-  // pautados (mismo patrón que setMealCompleted en la app de trainer).
+  // Marcar/desmarcar consumido un producto/receta pautados.
   public setCustomProductConsumed(
     mealId: string,
     customProductId: string,

@@ -140,93 +140,13 @@
         {{ 'CHECKIN_TEMPLATES.LO_QUE_EL_CATALOGO_DE' | translate }}
       </p>
 
-      <div class="custom-question" *ngFor="let question of formCustomQuestions; let i = index; trackBy: trackByIndex">
-        <div class="custom-question-head">
-          <input
-            class="custom-question-input"
-            type="text"
-            maxlength="200"
-            [placeholder]="'CHECKIN_TEMPLATES.COMO_HAS_DORMIDO_ESTA_SEMANA' | translate"
-            [(ngModel)]="question.label"
-            [attr.aria-label]="('CHECKIN_TEMPLATES.ENUNCIADO_DE_LA_PREGUNTA' | translate) + (i + 1)"
-          />
-          <button
-            type="button"
-            class="custom-question-remove"
-            (click)="removeCustomQuestion(i)"
-            [attr.aria-label]="('CHECKIN_TEMPLATES.QUITAR_LA_PREGUNTA' | translate) + (i + 1)"
-          >
-            <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
-          </button>
-        </div>
-
-        <div class="custom-question-row">
-          <ion-select
-            class="tf-select custom-question-select"
-            interface="popover"
-            toggleIcon="chevron-down-outline"
-            labelPlacement="stacked"
-            [(ngModel)]="question.type"
-            (ngModelChange)="onQuestionTypeChange(question)"
-            [attr.aria-label]="('CHECKIN_TEMPLATES.TIPO_DE_LA_PREGUNTA' | translate) + (i + 1)"
-          >
-            <ion-select-option *ngFor="let type of questionTypes" [value]="type.key">{{ type.label }}</ion-select-option>
-          </ion-select>
-
-          <input
-            *ngIf="question.type === 'number'"
-            class="custom-question-input custom-question-input--narrow"
-            type="text"
-            maxlength="20"
-            [placeholder]="'CHECKIN_TEMPLATES.UNIDAD' | translate"
-            [(ngModel)]="question.unit"
-            [attr.aria-label]="('CHECKIN_TEMPLATES.UNIDAD_DE_LA_PREGUNTA' | translate) + (i + 1)"
-          />
-
-          <button
-            type="button"
-            class="required-toggle"
-            [class.required-toggle--on]="question.required"
-            (click)="question.required = !question.required"
-            role="switch"
-            [attr.aria-checked]="!!question.required"
-          >
-            {{ 'CHECKIN_TEMPLATES.OBLIGATORIA' | translate }}
-          </button>
-        </div>
-
-        <p class="custom-question-hint">{{ hintFor(question) }}</p>
-
-        <!-- Opciones, solo para el tipo selector -->
-        <div class="option-editor" *ngIf="question.type === 'select'">
-          <div class="option-row" *ngFor="let option of question.options; let o = index; trackBy: trackByIndex">
-            <input
-              class="custom-question-input"
-              type="text"
-              maxlength="60"
-              [placeholder]="'CHECKIN_TEMPLATES.OPCION' | translate"
-              [(ngModel)]="question.options[o]"
-              [attr.aria-label]="('CHECKIN_TEMPLATES.OPCION_2' | translate) + (o + 1)"
-            />
-            <button
-              type="button"
-              class="custom-question-remove"
-              (click)="removeOption(question, o)"
-              [attr.aria-label]="('CHECKIN_TEMPLATES.QUITAR_LA_OPCION' | translate) + (o + 1)"
-            >
-              <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
-            </button>
-          </div>
-          <button
-            type="button"
-            class="add-option-button"
-            *ngIf="(question.options?.length || 0) < maxQuestionOptions"
-            (click)="addOption(question)"
-          >
-            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'CHECKIN_TEMPLATES.ANADIR_OPCION' | translate }}
-          </button>
-        </div>
-      </div>
+      <app-custom-question-editor
+        *ngFor="let question of formCustomQuestions; let i = index; trackBy: trackByIndex"
+        [question]="question"
+        [position]="i + 1"
+        [autofocus]="!question.label"
+        (remove)="removeCustomQuestion(i)"
+      ></app-custom-question-editor>
 
       <button
         type="button"

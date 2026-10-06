@@ -1,8 +1,7 @@
-import { CommonModule } from '@angular/common';
 import { Component, HostListener, Input, ViewChild, forwardRef, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonDatetime, IonicModule, ModalController } from '@ionic/angular';
+import { IonDatetime, ModalController } from '@ionic/angular';
 import { toDateValue, toTimeValue } from './date-field-value.util';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
@@ -26,8 +25,6 @@ const DATE_FORMAT = () => new Intl.DateTimeFormat(uiLocale(), {
  */
 @Component({
   selector: 'app-date-picker-sheet',
-  standalone: true,
-  imports: [CommonModule, IonicModule, TranslateModule],
   template: `
     <ion-datetime
       #datetime
@@ -92,8 +89,6 @@ export class DatePickerSheetComponent {
  */
 @Component({
   selector: 'app-date-field',
-  standalone: true,
-  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './date-field.component.html',
   styleUrls: ['./date-field.component.scss'],
   providers: [

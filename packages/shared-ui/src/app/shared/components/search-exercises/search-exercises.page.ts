@@ -28,7 +28,7 @@ import { ExerciseService } from 'src/app/core/services/exercise/exercise.service
 import { UserService } from 'src/app/core/services/user/user.service';
 import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
 import { ACTIONS_FAB_TYPES } from '../../constants/actions-fab';
-import { muscleGroupOf, muscleLabel, muscleNeedsGroup } from 'src/app/core/constants/muscle-catalog';
+import { muscleGroupOf, muscleLabel, muscleNeedsGroup, primaryMuscleLabels } from 'src/app/core/constants/muscle-catalog';
 
 @Component({
   selector: 'app-search-exercises',
@@ -469,23 +469,8 @@ export class SearchExercisesPage implements OnInit {
     this.searchByFilter();
   }
 
-  public spliceMuscleGroup1(muscle: string): void {
-    const indexCategory =
-      this.searchFilterGroupExercises.muscleGroups1.indexOf(muscle);
-    this.searchFilterGroupExercises.muscleGroups1.splice(indexCategory, 1);
-    this.searchByFilter();
-  }
-
-  public spliceMuscleGroup2(muscle: string): void {
-    const indexCategory =
-      this.searchFilterGroupExercises.muscleGroups2.indexOf(muscle);
-    this.searchFilterGroupExercises.muscleGroups2.splice(indexCategory, 1);
-    this.searchByFilter();
-  }
-
   public getValidMuscleGroups(exercise: Exercise): string[] {
-    if (!exercise || !exercise.muscleGroups1) return [];
-    return exercise.muscleGroups1.filter((g) => g && g.trim().length > 0);
+    return primaryMuscleLabels(exercise?.muscles);
   }
 
   public setFilterIconsValueBySelection(event: SearchFilterGroup): void {

@@ -7,10 +7,17 @@ import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.serv
 import { TrainerInvitesApiService } from './services/trainer-invites-api.service';
 import {
   ClientEmailScopeStatus,
-  CustomIntakeQuestion,
   TrainerInvite,
   TrainerInviteScope,
 } from './models/trainer-invite.model';
+import { CustomQuestion } from 'src/app/core/models/custom-question';
+import {
+  MAX_CUSTOM_QUESTIONS,
+  cleanCustomQuestion,
+  customQuestionTypeLabel,
+  customQuestionsError,
+  newCustomQuestion,
+} from '../../shared/components/custom-question-editor/custom-question-editor.component';
 
 type ListState = 'loading' | 'error' | 'loaded';
 
@@ -151,8 +158,10 @@ export class InvitesPage implements OnInit {
   // predefinidos — mismo documento (TrainerIntakeConfig), mismo botón
   // "Guardar". Un id temporal (client-side) hasta el primer guardado, para
   // que trackBy/borrar funcionen antes de tener el id real del backend.
-  public customQuestions: CustomIntakeQuestion[] = [];
-  public newQuestionLabel = '';
+  public customQuestions: CustomQuestion[] = [];
+  // Pregunta a medio escribir (null = solo se ve el botón de añadir).
+  public draftQuestion: CustomQuestion | null = null;
+  public readonly maxCustomQuestions = MAX_CUSTOM_QUESTIONS;
 
   // El panel de cuestionario es GLOBAL del trainer (no hay un enabledFields
   // por scope en el backend, ver train-fit-back/components/trainerIntakeConfig)
@@ -245,10 +254,6 @@ export class InvitesPage implements OnInit {
         return this.translate.instant('INVITES.YA_ES_TU_CLIENTE_EN');
       case 'pending':
         return this.translate.instant('INVITES.YA_TIENE_UNA_INVITACION_PENDIENTE');
-      case 'cuestionario_pendiente':
-        return this.translate.instant('INVITES.YA_ACEPTO_ESPERANDO_QUE_COMPLETE');
-      case 'en_revision':
-        return this.translate.instant('INVITES.CUESTIONARIO_RECIBIDO_PENDIENTE_DE_TU');
       default:
         return this.translate.instant('INVITES.YA_EXISTE_UNA_RELACION_EN');
     }
@@ -298,18 +303,9 @@ export class InvitesPage implements OnInit {
     this.listState = 'loading';
     this.trainerInvitesApi.getMyInvites().subscribe({
       next: (invites) => {
-        const sorted = [...(invites || [])].sort(
-          (a, b) => new Date(b.invitedAt).getTime() - new Date(a.invitedAt).getTime()
-        );
-        this.pendingInvites = sorted.filter(
-          (invite) => invite.status === 'pending' || invite.status === 'cuestionario_pendiente'
-        );
-        // en_revision ya no se lista aquí — el cliente ya aceptó y mandó el
-        // cuestionario, así que se revisa/confirma en "Clientes"
-        // (clients.page.ts), no en esta pantalla de invitaciones.
-        this.historyInvites = sorted.filter(
-          (invite) => !['pending', 'cuestionario_pendiente', 'en_revision'].includes(invite.status)
-        );
+        // El back las manda de la más reciente a la más antigua.
+        this.pendingInvites = (invites || []).filter((invite) => invite.status === 'pending');
+        this.historyInvites = (invites || []).filter((invite) => invite.status !== 'pending');
 
         this.groupedPendingInvites = this.groupByClient(this.pendingInvites);
         this.groupedHistoryInvites = this.groupByClientWithStatus(this.historyInvites);
@@ -447,10 +443,6 @@ export class InvitesPage implements OnInit {
     switch (status) {
       case 'pending':
         return this.translate.instant('INVITES.INVITACION_ENVIADA');
-      case 'cuestionario_pendiente':
-        return this.translate.instant('INVITES.ESPERANDO_CUESTIONARIO');
-      case 'en_revision':
-        return this.translate.instant('INVITES.CUESTIONARIO_RECIBIDO');
       case 'active':
         return this.translate.instant('INVITES.ACEPTADA');
       case 'declined':
@@ -524,35 +516,50 @@ export class InvitesPage implements OnInit {
     }
   }
 
-  public get canAddCustomQuestion(): boolean {
-    return this.newQuestionLabel.trim().length > 0;
+  public startCustomQuestion(): void {
+    this.draftQuestion = newCustomQuestion();
   }
 
+  public cancelCustomQuestion(): void {
+    this.draftQuestion = null;
+  }
+
+  // Sin enunciado no se avisa en rojo: el botón desactivado ya lo dice.
+  public get draftQuestionError(): string | null {
+    if (!this.draftQuestion?.label.trim()) return null;
+    const error = customQuestionsError([this.draftQuestion]);
+    return error ? this.translate.instant(error.key, error.params) : null;
+  }
+
+  public get canAddDraftQuestion(): boolean {
+    return !!this.draftQuestion?.label.trim() && !this.draftQuestionError;
+  }
+
+  // Una pregunta recién creada sale marcada: se envía en esta invitación.
   public addCustomQuestion(): void {
-    if (!this.canAddCustomQuestion) return;
-    this.customQuestions = [
-      ...this.customQuestions,
-      {
-        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        label: this.newQuestionLabel.trim(),
-        enabled: true,
-      },
-    ];
-    this.newQuestionLabel = '';
+    if (!this.draftQuestion || !this.canAddDraftQuestion) return;
+    this.customQuestions = [...this.customQuestions, { ...cleanCustomQuestion(this.draftQuestion), enabled: true }];
+    this.draftQuestion = null;
   }
 
-  public removeCustomQuestion(id: string): void {
-    this.customQuestions = this.customQuestions.filter((q) => q.id !== id);
+  public removeCustomQuestion(index: number): void {
+    this.customQuestions = this.customQuestions.filter((_, i) => i !== index);
   }
 
-  public toggleCustomQuestionEnabled(id: string): void {
-    this.customQuestions = this.customQuestions.map((q) =>
-      q.id === id ? { ...q, enabled: !q.enabled } : q
+  public toggleCustomQuestionEnabled(index: number): void {
+    this.customQuestions = this.customQuestions.map((q, i) =>
+      i === index ? { ...q, enabled: q.enabled === false } : q
     );
   }
 
-  public trackByQuestionId(_index: number, question: CustomIntakeQuestion): string {
-    return question.id;
+  public trackByIndex(index: number): number {
+    return index;
+  }
+
+  // "Sí / No · Obligatoria", "Número (h)"…
+  public questionMeta(question: CustomQuestion): string {
+    const type = customQuestionTypeLabel(question.type) + (question.type === 'number' && question.unit ? ` (${question.unit})` : '');
+    return question.required ? `${type} · ${this.translate.instant('CUSTOM_QUESTION.REQUIRED')}` : type;
   }
 
   // Ya no se guarda en cada click de checkbox — se manda una sola vez junto

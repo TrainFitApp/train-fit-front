@@ -1,8 +1,7 @@
-// Tarea 4 (2026-09) — espejo de components/routineAssignments/ (backend).
-// Equivalente de PlanAssignment (nutrición) para rutinas: a diferencia de
-// esa, sin endMode/endDate — una rutina no "termina", hay exactamente una
-// vigente hasta que se sustituye por la siguiente.
-export type RoutineAssignmentStatus = 'active' | 'superseded' | 'ended';
+// Espejo de components/routineAssignments/ (backend): las fases de rutina de
+// un cliente, el equivalente de las fases de dieta (DietPhase) para
+// entrenamiento.
+import { PhaseState } from './phase-state';
 
 export interface RoutineAssignment {
   _id: string;
@@ -10,9 +9,9 @@ export interface RoutineAssignment {
   clientId: string;
   trainerId: string;
   startDate: string;
-  status: RoutineAssignmentStatus;
-  supersededBy: string | null;
   createdAt: string;
+  // Solo en el historial (el backend conoce la cadena entera).
+  state?: PhaseState;
   tableName?: string | null;
   // 2026-09 — cuándo se completaría la rutina entera una vez, empezando en
   // startDate, si se entrena un día tras otro sin saltarse ninguno. Mismo

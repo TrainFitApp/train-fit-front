@@ -48,12 +48,12 @@
             fill="clear"
             class="action-btn favorite-button-card"
             [disabled]="addingFavProduct"
-            (click)="addFavoriteProduct()"
+            (click)="toggleFavorite()"
           >
             <ion-icon
               slot="icon-only"
-              [color]="isArchived ? 'tertiary' : 'medium'"
-              [name]="isArchived ? 'bookmark' : 'bookmark-outline'"
+              [color]="isFavorite ? 'tertiary' : 'medium'"
+              [name]="isFavorite ? 'bookmark' : 'bookmark-outline'"
               class="favorite-icon-card"
             ></ion-icon>
           </ion-button>

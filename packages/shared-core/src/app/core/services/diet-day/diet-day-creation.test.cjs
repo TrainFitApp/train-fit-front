@@ -40,13 +40,13 @@ const dayOf = (date, meals = []) => ({ _id: `day-${date}`, date, meals });
 function harness() {
   const calls = { createDietDay: [], createOnNewDay: [], addToMeal: [] };
   const api = {
-    createDietDay: (dietDay) => {
-      calls.createDietDay.push(dietDay.date);
-      return of(dayOf(dietDay.date));
+    getDay: (date) => {
+      calls.createDietDay.push(date);
+      return of({ dietDay: dayOf(date) });
     },
-    createCustomProductOnNewDietDay: (...args) => {
+    addCustomProductToDay: (...args) => {
       calls.createOnNewDay.push(args);
-      return of(dayOf(args[3]));
+      return of(dayOf(args[0]));
     },
   };
   const customProducts = {
@@ -136,8 +136,8 @@ test('createDietDay no manda una segunda creación para la misma fecha', () => {
   // La creación se deja EN VUELO para poder pedir la segunda mientras dura:
   // con un observable que se resuelve al instante no habría carrera que probar.
   const creation = new Subject();
-  api.createDietDay = (dietDay) => {
-    calls.createDietDay.push(dietDay.date);
+  api.getDay = (date) => {
+    calls.createDietDay.push(date);
     return creation;
   };
 
@@ -149,7 +149,7 @@ test('createDietDay no manda una segunda creación para la misma fecha', () => {
   // Al resolverse, las dos reciben el MISMO día.
   const received = [];
   service.createDietDay({ date: DATE, meals: [] }).subscribe((day) => received.push(day));
-  creation.next(dayOf(DATE));
+  creation.next({ dietDay: dayOf(DATE) });
   creation.complete();
   assert.deepEqual(calls.createDietDay, [DATE]);
   assert.equal(received.length, 1);
@@ -162,12 +162,12 @@ test('createDietDay vuelve a mandar la creación una vez cerrada la anterior', (
   // es idempotente y devuelve el que ya hay).
   const { service, calls, api } = harness();
   const first = new Subject();
-  api.createDietDay = (dietDay) => {
-    calls.createDietDay.push(dietDay.date);
-    return calls.createDietDay.length === 1 ? first : of(dayOf(dietDay.date));
+  api.getDay = (date) => {
+    calls.createDietDay.push(date);
+    return calls.createDietDay.length === 1 ? first : of({ dietDay: dayOf(date) });
   };
   service.createDietDay({ date: DATE, meals: [] }).subscribe();
-  first.next(dayOf(DATE));
+  first.next({ dietDay: dayOf(DATE) });
   first.complete();
   service.createDietDay({ date: DATE, meals: [] }).subscribe();
   assert.deepEqual(calls.createDietDay, [DATE, DATE]);
@@ -175,8 +175,8 @@ test('createDietDay vuelve a mandar la creación una vez cerrada la anterior', (
 
 test('createDietDay sí manda la creación de OTRA fecha en paralelo', () => {
   const { service, calls, api } = harness();
-  api.createDietDay = (dietDay) => {
-    calls.createDietDay.push(dietDay.date);
+  api.getDay = (date) => {
+    calls.createDietDay.push(date);
     return new Subject();
   };
   service.createDietDay({ date: DATE, meals: [] }).subscribe();
@@ -207,19 +207,18 @@ test('sin día, la primera escritura lo estrena en UNA sola llamada', () => {
   const { service, calls } = harness();
   const dietDay = { date: DATE, meals: [meal('Desayuno', undefined), meal('Comida', undefined)] };
   service
-    .createCustomProductOnDietDayMeal({ quantity: 100 }, dietDay.meals[1], dietDay, 'diet-1')
+    .createCustomProductOnDietDayMeal({ quantity: 100 }, dietDay.meals[1], dietDay)
     .subscribe();
   assert.equal(calls.createOnNewDay.length, 1);
-  const [, indexMeal, dietInUse, date] = calls.createOnNewDay[0];
+  const [date, indexMeal] = calls.createOnNewDay[0];
   assert.equal(indexMeal, 1, 'la comida se identifica por su posición en el día');
-  assert.equal(dietInUse, 'diet-1');
   assert.equal(date, DATE);
 });
 
 test('la segunda escritura de la misma fecha espera y escribe sobre el día creado', () => {
   const { service, api, calls } = harness();
   const creation = new Subject();
-  api.createCustomProductOnNewDietDay = (...args) => {
+  api.addCustomProductToDay = (...args) => {
     calls.createOnNewDay.push(args);
     return creation;
   };
@@ -255,7 +254,7 @@ test('si la creación en vuelo no deja día, la segunda reintenta por la vía de
   const { service, api, calls } = harness();
   const creation = new Subject();
   let firstCall = true;
-  api.createCustomProductOnNewDietDay = (...args) => {
+  api.addCustomProductToDay = (...args) => {
     calls.createOnNewDay.push(args);
     if (firstCall) {
       firstCall = false;

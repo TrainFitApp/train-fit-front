@@ -15,9 +15,10 @@ import {
   CHECKIN_FIELDS_BY_KEY,
   scaleLevelsFor,
 } from 'src/app/core/constants/checkin-fields';
-import { CustomCheckinQuestion } from 'src/app/features/checkin-templates/models/checkin-template.model';
+
 import { CheckinResponseEntry } from '../../models/client-detail.model';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { CustomQuestion } from 'src/app/core/models/custom-question';
 
 interface SerieOption {
   key: string;
@@ -48,7 +49,7 @@ export class CheckinHistoryChartComponent implements AfterViewInit, OnChanges, O
   private readonly translate = inject(TranslateService);
 
   @Input() public responses: CheckinResponseEntry[] = [];
-  @Input() public customQuestions: CustomCheckinQuestion[] = [];
+  @Input() public customQuestions: CustomQuestion[] = [];
 
   @ViewChild('chartCanvas', { static: true }) private chartCanvas?: ElementRef<HTMLCanvasElement>;
 

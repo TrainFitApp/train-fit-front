@@ -185,7 +185,7 @@
     <div
       class="section-card"
       id="section-pending"
-      *ngIf="d.pendingCheckins.length || d.pendingMealProposals.length || d.nutritionPreferences?.pending || d.pendingPayments.length"
+      *ngIf="d.pendingCheckins.length || d.nutritionPreferences?.pending || d.pendingPayments.length"
     >
       <h2 class="section-heading">{{ 'COACH.PENDING_TITLE' | translate }}</h2>
 
@@ -198,19 +198,6 @@
         <div class="action-info">
           <span class="action-title">{{ item.name || ('COACH.PENDING_CHECKIN' | translate) }}</span>
           <span class="action-subtitle">{{ checkinPeriodLabel(item) }}</span>
-        </div>
-        <ion-icon name="chevron-forward-outline" class="action-chevron"></ion-icon>
-      </button>
-
-      <button
-        class="action-card"
-        *ngFor="let item of d.pendingMealProposals; trackBy: trackByProposalId"
-        (click)="goToMealProposal(item.date)"
-      >
-        <ion-icon name="restaurant-outline" class="action-icon"></ion-icon>
-        <div class="action-info">
-          <span class="action-title">{{ 'COACH.CHOOSE_MEAL' | translate: { meal: (item.mealSlot | lowercase) } }}</span>
-          <span class="action-subtitle">{{ 'COACH.MEAL_OPTIONS' | translate: { count: item.alternativesCount, name: item.trainerName } }} · {{ item.date | localDate: 'd MMM' }}</span>
         </div>
         <ion-icon name="chevron-forward-outline" class="action-chevron"></ion-icon>
       </button>

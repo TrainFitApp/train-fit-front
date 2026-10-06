@@ -128,7 +128,7 @@
               <ion-icon name="fast-food-outline" class="detail-icon var-tertiary"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">{{ 'MANAGEMENT.USERS.DIET_DAYS' | translate }}</span>
-                <span class="detail-value">{{ (user.hasDietInUse || user.dietInUse) ? (user.dietDaysCount || ('MANAGEMENT.USERS.WORKOUT_YES' | translate)) : ('MANAGEMENT.USERS.WORKOUT_NO' | translate) }}</span>
+                <span class="detail-value">{{ user.hasDietDays ? (user.dietDaysCount || ('MANAGEMENT.USERS.WORKOUT_YES' | translate)) : ('MANAGEMENT.USERS.WORKOUT_NO' | translate) }}</span>
               </div>
             </div>
             <div class="detail-item">

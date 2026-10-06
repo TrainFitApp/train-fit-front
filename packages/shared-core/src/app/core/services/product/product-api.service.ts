@@ -15,11 +15,9 @@ export class ProductAPIService {
     return this.http.get<IProduct[]>(`${ProductAPIService.PRODUCTS_ENDPOINT}`);
   }
 
-  public getProductByCode(idUser: string, code: string): Observable<IProduct> {
+  public getProductByCode(code: string): Observable<IProduct> {
     return this.http
-      .get<IProduct>(
-        `${ProductAPIService.PRODUCTS_ENDPOINT}/code/${idUser}/${code}`
-      )
+      .get<IProduct>(`${ProductAPIService.PRODUCTS_ENDPOINT}/code/${code}`)
       .pipe(take(1));
   }
 
@@ -62,17 +60,6 @@ export class ProductAPIService {
     return this.http
       .put<IProduct>(`${ProductAPIService.PRODUCTS_ENDPOINT}/promote/${id}`, {})
       .pipe(take(1));
-  }
-
-  /** Añadir/quitar de favoritos. Ya no necesita isOwn — todo va a archivedProducts. */
-  public addFavoriteProduct(
-    idProduct: string,
-    idUser: string
-  ): Observable<{ isFavorite: boolean; message?: string }> {
-    return this.http.put<{ isFavorite: boolean; message?: string }>(
-      `${ProductAPIService.PRODUCTS_ENDPOINT}/favProduct`,
-      { idProduct, idUser }
-    );
   }
 
   /** Eliminar un producto (solo el creador puede borrar sus propios productos). */

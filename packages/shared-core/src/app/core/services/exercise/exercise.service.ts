@@ -29,21 +29,6 @@ export class ExerciseService {
     return this.exerciseAPIService.searchExercise(searchFilterGroupExercises);
   }
 
-  public archiveExercise(idExercise: string, idUser: string): Observable<any> {
-    return this.exerciseAPIService.archiveExercise(idExercise, idUser);
-  }
-
-  public addExerciseToFavorites(
-    idExercise: string,
-    idUser: string
-  ): Observable<{ isFavorite: boolean; message?: string }> {
-    return this.exerciseAPIService.addExerciseToFavorites(idExercise, idUser);
-  }
-
-  public getCombinedMuscularGroups(exercise: Exercise) {
-    return [...exercise.muscleGroups1, ...exercise.muscleGroups2];
-  }
-
   public createExercise(exerciseData: Partial<Exercise>): Observable<Exercise> {
     return this.exerciseAPIService.createExercise(exerciseData);
   }

@@ -27,7 +27,7 @@
   </div>
 
   <ng-container *ngIf="state === 'ready'">
-    <!-- 1. Qué se pautó. Todo esto ya viaja en la propia asignación -->
+    <!-- 1. Qué se pautó. Todo esto ya viaja en la propia fase -->
     <section class="summary-block">
       <p class="summary-block__title summary-block__title--planned">
         <span class="summary-block__icon"><ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon></span>
@@ -35,7 +35,7 @@
       </p>
       <p class="week-dates">
         {{ fmtDay(from) }} → {{ isRunning ? ('CLIENTS.EN_CURSO' | translate) : fmtDay(to, true) }}
-        <span class="week-days" *ngIf="assignment.menusCount">· {{ assignment.menusCount }} {{ (assignment.menusCount === 1 ? 'TRAINER_COMMON.PL_MENU_ONE' : 'TRAINER_COMMON.PL_MENU_MANY') | translate }}</span>
+        <span class="week-days" *ngIf="menusCount">· {{ menusCount }} {{ (menusCount === 1 ? 'TRAINER_COMMON.PL_MENU_ONE' : 'TRAINER_COMMON.PL_MENU_MANY') | translate }}</span>
       </p>
       <!-- Las kcal son la media diaria de lo pautado — no hay objetivo
            guardado aparte. Sale del mismo cruce de macros de abajo. -->

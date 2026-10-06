@@ -31,30 +31,6 @@ export class ExerciseAPIService {
     );
   }
 
-  public archiveExercise(idSplit: string, idUser: string): Observable<any> {
-    return this.http
-      .put<any>(`${ExerciseAPIService.EXERCISE_ENDPOINT}/archive`, {
-        idSplit,
-        idUser,
-      })
-      .pipe(take(1));
-  }
-
-  public addExerciseToFavorites(
-    idExercise: string,
-    idUser: string
-  ): Observable<{ isFavorite: boolean; message?: string }> {
-    return this.http
-      .put<{ isFavorite: boolean; message?: string }>(
-        `${ExerciseAPIService.EXERCISE_ENDPOINT}/favorite`,
-        {
-          idExercise,
-          idUser,
-        }
-      )
-      .pipe(take(1));
-  }
-
   public createExercise(exerciseData: Partial<Exercise>): Observable<Exercise> {
     return this.http.post<Exercise>(
       `${ExerciseAPIService.EXERCISE_ENDPOINT}`,

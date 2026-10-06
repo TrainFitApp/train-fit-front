@@ -128,7 +128,8 @@ export interface ClientSummary {
   latestWeightDate: string | null;
   lastCheckinAt: string | null;
   nextCheckinDate: string | null;
-  activePlan: { _id: string; name: string; startDate: string; endDate: string | null } | null;
+  // La fase de dieta que rige hoy (como `routine` para entrenamiento).
+  dietPhase: { _id: string; name: string; startDate: string; endDate: string | null } | null;
   routine: { _id: string; name: string } | null;
 }
 
@@ -388,7 +389,7 @@ export interface ClientTrainingProgress {
 
 // --- Historial de cambios (Fase 4) ---
 // Espejo de components/planChanges/. Responde "¿por qué está hoy en 2100
-// kcal?", que ni NutritionalGoal ni PlanAssignment guardan.
+// kcal?", que ni NutritionalGoal ni DietPhase guardan.
 export type PlanChangeEntity =
   | 'nutritional_goal'
   | 'diet_plan'

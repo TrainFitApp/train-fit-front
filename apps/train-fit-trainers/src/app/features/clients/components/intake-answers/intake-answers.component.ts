@@ -15,6 +15,7 @@ import {
   TrainingLocation,
 } from '../../../invites/models/trainer-invite.model';
 import { uiLocale, uiText, localizeRecord } from 'src/app/core/i18n/localized-catalog';
+import { CustomAnswer } from 'src/app/core/models/custom-question';
 
 const EXPERIENCE_LABELS: Record<NonNullable<ClientIntake['experienceLevel']>, string> = {
   none: 'Sin experiencia',
@@ -70,11 +71,17 @@ export class IntakeAnswersComponent implements OnChanges {
   // Calculadas una vez por intake, no en getters de plantilla.
   public profileRows: AnswerRow[] = [];
   public nutritionRows: AnswerRow[] = [];
+  public customRows: AnswerRow[] = [];
   public dietaryFlagLabels: string[] = [];
 
   public ngOnChanges(): void {
     this.profileRows = this.intake?.profile ? buildProfileRows(this.intake.profile) : [];
     this.nutritionRows = this.intake?.nutrition ? buildNutritionRows(this.intake.nutrition) : [];
+    this.customRows = (this.intake?.customAnswers || []).map((answer) => ({
+      label: answer.label,
+      value: customAnswerText(answer),
+      wide: answer.type === 'text',
+    }));
     this.dietaryFlagLabels = (this.intake?.nutrition?.dietaryFlags || []).map((f) => dietaryFlagUi(f).label);
   }
 
@@ -89,6 +96,17 @@ export class IntakeAnswersComponent implements OnChanges {
   public equipmentTagLabel(tag: EquipmentTag): string {
     return EQUIPMENT_TAG_LABELS[tag] || tag;
   }
+}
+
+// Respuesta a una pregunta propia según su tipo: "Sí", "7,5 h", "4/5"…
+function customAnswerText(answer: CustomAnswer): string {
+  if (answer.value === true) return uiText('COMMON.YES');
+  if (answer.value === false) return uiText('COMMON.NO');
+  if (typeof answer.value === 'number') {
+    if (answer.type === 'scale_1_5') return `${formatNumber(answer.value)}/5`;
+    return `${formatNumber(answer.value)}${answer.unit ? ' ' + answer.unit : ''}`;
+  }
+  return String(answer.value ?? '');
 }
 
 function toNumber(value: number | string | null): number | null {
@@ -113,7 +131,7 @@ function ageFrom(birth: string): number | null {
 // Mismo criterio que el formulario: objetive es el delta de kcal (0 =
 // mantener, >0 superávit, <0 déficit) que el cliente eligió con el deslizador.
 function objectiveLabel(kcal: number): string {
-  if (kcal === 0) return this.translate.instant('CLIENTS.MANTENER_PESO');
+  if (kcal === 0) return uiText('CLIENTS.MANTENER_PESO');
   const amount = uiText('CLIENTS.KCAL_AL_DIA', { p0: formatNumber(Math.abs(kcal)) });
   return kcal > 0 ? uiText('CLIENTS.GANAR_PESO', { amount }) : uiText('CLIENTS.PERDER_PESO', { amount });
 }
@@ -125,27 +143,27 @@ function buildProfileRows(profile: ClientIntakeProfile): AnswerRow[] {
   const weight = toNumber(profile.weight);
   const height = toNumber(profile.height);
   const steps = toNumber(profile.steps);
-  if (weight) rows.push({ label: this.translate.instant('TRAINER_COMMON.WEIGHT'), value: `${formatNumber(weight)} kg` });
-  if (height) rows.push({ label: this.translate.instant('CLIENTS.ALTURA'), value: `${formatNumber(height)} cm` });
+  if (weight) rows.push({ label: uiText('TRAINER_COMMON.WEIGHT'), value: `${formatNumber(weight)} kg` });
+  if (height) rows.push({ label: uiText('CLIENTS.ALTURA'), value: `${formatNumber(height)} cm` });
   if (profile.sex === SEX_TYPES.female || profile.sex === SEX_TYPES.male) {
-    rows.push({ label: this.translate.instant('CLIENTS.SEXO'), value: SEX[profile.sex as SEX_TYPES] });
+    rows.push({ label: uiText('CLIENTS.SEXO'), value: SEX[profile.sex as SEX_TYPES] });
   }
   const age = profile.birth ? ageFrom(profile.birth) : null;
-  if (age !== null) rows.push({ label: this.translate.instant('CLIENTS.EDAD'), value: uiText('CLIENTS.ANOS_2', { age }) });
+  if (age !== null) rows.push({ label: uiText('CLIENTS.EDAD'), value: uiText('CLIENTS.ANOS_2', { age }) });
   const stepsOption = STEPS_VALUES.find((s) => Number(s.value) === steps);
-  if (stepsOption) rows.push({ label: this.translate.instant('CLIENTS.PASOS_AL_DIA'), value: stepsOption.name, translate: true });
+  if (stepsOption) rows.push({ label: uiText('CLIENTS.PASOS_AL_DIA'), value: stepsOption.name, translate: true });
   // Como en el formulario: la actividad diaria solo cuenta sin pasos.
   const activityOption = steps === STEPS_NOT_COUNTED
     ? ACTIVITY_FACTOR_VALUES.find((a) => a.value === profile.activity)
     : undefined;
-  if (activityOption) rows.push({ label: this.translate.instant('CLIENTS.ACTIVIDAD_DIARIA'), value: activityOption.name, translate: true });
+  if (activityOption) rows.push({ label: uiText('CLIENTS.ACTIVIDAD_DIARIA'), value: activityOption.name, translate: true });
   const trainingOptions = steps !== null ? calculateTrainingValues(steps) : null;
   const trainingOption = trainingOptions
     ? Object.values(trainingOptions).find((t) => Number(t.value) === profile.training)
     : undefined;
-  if (trainingOption) rows.push({ label: this.translate.instant('CLIENTS.ENTRENAMIENTO_SEMANAL'), value: trainingOption.name, translate: true });
+  if (trainingOption) rows.push({ label: uiText('CLIENTS.ENTRENAMIENTO_SEMANAL'), value: trainingOption.name, translate: true });
   if (profile.objetive !== null && Number.isFinite(profile.objetive)) {
-    rows.push({ label: this.translate.instant('CLIENT_DETAIL.GOAL'), value: objectiveLabel(profile.objetive), span: true });
+    rows.push({ label: uiText('CLIENT_DETAIL.GOAL'), value: objectiveLabel(profile.objetive), span: true });
   }
   return rows;
 }
@@ -154,11 +172,11 @@ function buildNutritionRows(nutrition: ClientIntakeNutrition): AnswerRow[] {
   const rows: AnswerRow[] = [];
   // Mismas etiquetas que el entrenador ve al configurar su cuestionario
   // (invites.page.ts#intakeFieldLabels).
-  if (nutrition.allergies) rows.push({ label: this.translate.instant('INTAKE.ALLERGIES_TITLE'), value: nutrition.allergies, wide: true, critical: true });
-  if (nutrition.favoriteFoods) rows.push({ label: this.translate.instant('INTAKE.FAVORITES_TITLE'), value: nutrition.favoriteFoods, wide: true });
-  if (nutrition.dislikedFoods) rows.push({ label: this.translate.instant('CLIENTS.ALIMENTOS_QUE_NO_LE_GUSTAN'), value: nutrition.dislikedFoods, wide: true });
+  if (nutrition.allergies) rows.push({ label: uiText('INTAKE.ALLERGIES_TITLE'), value: nutrition.allergies, wide: true, critical: true });
+  if (nutrition.favoriteFoods) rows.push({ label: uiText('INTAKE.FAVORITES_TITLE'), value: nutrition.favoriteFoods, wide: true });
+  if (nutrition.dislikedFoods) rows.push({ label: uiText('CLIENTS.ALIMENTOS_QUE_NO_LE_GUSTAN'), value: nutrition.dislikedFoods, wide: true });
   if (nutrition.cooksAtHome) {
-    rows.push({ label: this.translate.instant('CLIENTS.COCINA_EN_CASA'), value: COOKS_AT_HOME_LABELS[nutrition.cooksAtHome] });
+    rows.push({ label: uiText('CLIENTS.COCINA_EN_CASA'), value: COOKS_AT_HOME_LABELS[nutrition.cooksAtHome] });
   }
   return rows;
 }

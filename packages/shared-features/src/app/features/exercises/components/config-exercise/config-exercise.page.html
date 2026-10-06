@@ -34,7 +34,7 @@
           class="action-button ripple-effect"
           *ngIf="!isCreateMode"
           [disabled]="isFavoritingExercise"
-          (click)="addExerciseToFavorites()"
+          (click)="toggleFavorite()"
         >
           <!-- Solo el guardado lleva color: es estado, no decoración. -->
           <ion-icon
@@ -278,19 +278,6 @@
         </div>
       </div>
     </div>
-    <!-- <ion-buttons slot="end">
-              <ion-button
-                [disabled]="isArchiving"
-                (click)="addExerciseToLibrary()"
-              >
-                <ion-icon
-                  slot="icon-only"
-                  [color]="exerciseArchived ? 'tertiary' : ''"
-                  [name]="exerciseArchived ? 'bookmark' : 'bookmark-outline'"
-                ></ion-icon>
-              </ion-button>
-            </ion-buttons> -->
-
     <!-- Notes Section -->
     <div class="pinned-note-container" *ngIf="pendingPinNoteText && !pinnedNote">
       <div class="pinned-note-card pending-pin" (click)="editPendingPin()">
@@ -542,7 +529,7 @@
             *ngFor="let mg of getExerciseMuscleGroups()"
           >
             <ion-icon name="barbell-outline"></ion-icon>
-                  <span class="label">{{ mg | translateDb }}</span>
+            <span class="label">{{ mg }}</span>
             <ion-ripple-effect></ion-ripple-effect>
           </button>
         </div>
@@ -584,7 +571,7 @@
     <!-- Detalles Section (both Create and Edit modes) -->
     <div
       class="elegant-card"
-      *ngIf="isCreateMode || isEditingOwnExercise || details.category?.length || details.muscleGroups1?.length || details.muscleGroups2?.length || details.equipment?.length"
+      *ngIf="isCreateMode || isEditingOwnExercise || details.category?.length || details.muscles.length || details.equipment?.length"
     >
       <div class="card-content">
         <!-- Header with Title. Al crear o editar, la propia cabecera
@@ -649,11 +636,11 @@
               <button
                 type="button"
                 class="modern-pill filter-chip"
-                *ngFor="let muscle of filterMuscleGroup1"
-                [class.is-active]="details.muscleGroups1.includes(muscle)"
-                (click)="selectMuscleGroup1(muscle)"
+                *ngFor="let group of muscleGroups"
+                [class.is-active]="isMuscleSelected(group.id, 'primary')"
+                (click)="toggleMuscle(group.id, 'primary')"
               >
-                <span class="label">{{ muscle | translateDb }}</span>
+                <span class="label">{{ group.label }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -669,11 +656,11 @@
               <button
                 type="button"
                 class="modern-pill filter-chip"
-                *ngFor="let muscle of filterMuscleGroup1"
-                [class.is-active]="details.muscleGroups2.includes(muscle)"
-                (click)="selectMuscleGroup2(muscle)"
+                *ngFor="let group of muscleGroups"
+                [class.is-active]="isMuscleSelected(group.id, 'secondary')"
+                (click)="toggleMuscle(group.id, 'secondary')"
               >
-                <span class="label">{{ muscle | translateDb }}</span>
+                <span class="label">{{ group.label }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -730,7 +717,7 @@
           <!-- Músculos Principales -->
           <div
             class="filter-section"
-            *ngIf="getValidDetails(details.muscleGroups1).length"
+            *ngIf="musclesWithRole('primary').length"
           >
             <div class="section-header">
               <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
@@ -739,9 +726,9 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let muscle of getValidDetails(details.muscleGroups1)"
+                *ngFor="let muscle of musclesWithRole('primary')"
               >
-                <span class="label">{{ muscle | translateDb }}</span>
+                <span class="label">{{ muscle }}</span>
               </div>
             </div>
           </div>
@@ -749,7 +736,7 @@
           <!-- Músculos Secundarios -->
           <div
             class="filter-section"
-            *ngIf="getValidDetails(details.muscleGroups2).length"
+            *ngIf="musclesWithRole('secondary').length"
           >
             <div class="section-header">
               <ion-icon name="body-outline" class="section-icon"></ion-icon>
@@ -758,9 +745,9 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let muscle of getValidDetails(details.muscleGroups2)"
+                *ngFor="let muscle of musclesWithRole('secondary')"
               >
-                <span class="label">{{ muscle | translateDb }}</span>
+                <span class="label">{{ muscle }}</span>
               </div>
             </div>
           </div>

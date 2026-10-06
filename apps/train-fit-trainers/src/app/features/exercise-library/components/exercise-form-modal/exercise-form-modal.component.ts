@@ -52,9 +52,8 @@ export class ExerciseFormModalComponent implements OnInit {
   private videoId = '';
   public mode: ExerciseMode = 'fuerza';
   public selectedCategories: string[] = [];
-  // Músculo → rol (ver constants/muscle-catalog.ts). Sustituye a las dos
-  // listas sueltas de principales/secundarios: ahora cada músculo lleva su
-  // énfasis, y el backend proyecta muscleGroups1/2 a partir de aquí.
+  // Músculo → rol (ver constants/muscle-catalog.ts): cada músculo lleva su
+  // énfasis.
   public muscleRoles: Record<string, MuscleRole> = {};
   public selectedEquipment: string[] = [];
   public saving = false;

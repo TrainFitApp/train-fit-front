@@ -12,7 +12,6 @@ import {
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { Subscription, forkJoin } from 'rxjs';
 import { CustomExercise } from 'src/app/core/models/customExercise';
-import { Diet } from 'src/app/core/models/diet';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
@@ -71,7 +70,6 @@ import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 export class ProfilePage implements OnInit {
   public readonly appShellConfig = APP_SHELL_CONFIG;
   public user: User;
-  public dietInUse: Diet;
   public tableInUse: Table;
   public workoutInUse: Workout;
   public dietDay: DietDay;
@@ -559,34 +557,6 @@ export class ProfilePage implements OnInit {
     this.themeService.toggleColorMode(event.detail.value);
   }
 
-  public async playStopDiet(diet: Diet) {
-    const buttons: AlertButton[] = [
-      {
-        text: this.translate.instant('COMMON.CANCEL').toUpperCase(),
-        role: 'cancel',
-      },
-      {
-        text: 'OK',
-        cssClass: 'alert-button-primary',
-        handler: () => {
-          this.activeDiet();
-        },
-      },
-    ];
-    const alertInput: AlertOptions = {
-      header: diet.name,
-      message: this.translate.instant('PROFILE.STOP_DIET'),
-      buttons: buttons,
-    };
-    await this.ionicUtilService.showAlert(alertInput);
-  }
-
-  public activeDiet() {
-    this.userService
-      .playStopDiet(this.user._id, this.user.dietInUse)
-      .subscribe((resUser) => (this.user = resUser));
-  }
-
   public edit(): void {
     const modal: ModalOptions = {
       component: EditorPage,
@@ -607,13 +577,13 @@ export class ProfilePage implements OnInit {
   }
 
   private getCurrentDietDay() {
-    if (this.user?.dietInUse) {
+    if (this.user) {
       const today = this.utilService.formatDateToYYYYMMDD(new Date());
 
       if (this.dietDay$) this.dietDay$.unsubscribe();
 
       this.dietDayService
-        .getDietDayByIdDietAndDate(this.user.dietInUse, today)
+        .getDay(today)
         .subscribe((resDietDay) => {
           if (resDietDay) this.dietDay = resDietDay;
           else this.dietDay = this.dietDayService.getStandardDietDay(today);

@@ -3,7 +3,7 @@ import { submitOnEnter } from './submit-on-enter.util';
 import type { EnterSubmitButton } from './submit-on-enter.util';
 
 /** Opt-in: reutiliza la acción y el estado disabled del botón indicado. */
-@Directive({ selector: '[appSubmitOnEnter]', standalone: true })
+@Directive({ selector: '[appSubmitOnEnter]' })
 export class SubmitOnEnterDirective {
   @Input() appSubmitOnEnter: EnterSubmitButton | string | null | undefined;
   @HostBinding('attr.data-enter-submit-scope') readonly scopeMarker = '';

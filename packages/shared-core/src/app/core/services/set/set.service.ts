@@ -8,14 +8,6 @@ import { SetAPIService } from './set-api.service';
 export class SetService {
   constructor(private setAPIService: SetAPIService) {}
 
-  public createSet(set: Set): Observable<Set> {
-    return this.setAPIService.createSet(set);
-  }
-
-  public createSets(sets: Set[]): Observable<Set[]> {
-    return this.setAPIService.createSets(sets);
-  }
-
   public updateSet(set: Set): Observable<Set> {
     return this.setAPIService.updateSet(set);
   }

@@ -155,14 +155,6 @@ export class UserService {
     );
   }
 
-  public playStopDiet(idUser: string, idDietInUse: string): Observable<any> {
-    return this.userAPIService.playStopDiet(idUser, idDietInUse);
-  }
-
-  public searchArchivedsByFilter(searchFilters: any): Observable<any> {
-    return this.userAPIService.searchArchivedsByFilter(searchFilters);
-  }
-
   public searchUsers(
     page: number,
     search: string,
@@ -177,13 +169,6 @@ export class UserService {
 
   public clearUserHash(id: string): Observable<void> {
     return this.userAPIService.clearUserHash(id).pipe(take(1));
-  }
-
-  public addFavoriteProduct(
-    idUser: string,
-    idProduct: string
-  ): Observable<{ isFavorite: boolean; message?: string }> {
-    return this.userAPIService.addFavoriteProduct(idUser, idProduct);
   }
 
   public sendSuggestions(email: string, suggestions: string) {

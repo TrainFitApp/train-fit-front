@@ -1,7 +1,8 @@
 import { CHECKIN_FIELDS, CHECKIN_FIELDS_BY_KEY, checkinAnchorFor, scaleLevelsFor } from 'src/app/core/constants/checkin-fields';
-import { CustomCheckinQuestion } from '../checkin-templates/models/checkin-template.model';
+
 import { checkinFieldLabel, checkinValueLabel, shortDayLabel } from './checkin-labels.util';
 import { uiLocale, uiText, localizeProp } from 'src/app/core/i18n/localized-catalog';
+import { CustomQuestion } from 'src/app/core/models/custom-question';
 
 // Cómo se pinta UNA respuesta de check-in en el panel de semana: el peso
 // arriba, los datos agrupados por tipo, la frase que eligió el cliente en cada
@@ -14,7 +15,7 @@ type CheckinValue = number | string | boolean;
 interface ResponseLike {
   respondedAt: string;
   values: Record<string, CheckinValue>;
-  customQuestions?: CustomCheckinQuestion[];
+  customQuestions?: CustomQuestion[];
 }
 
 export interface CheckinDisplayRow {
@@ -74,7 +75,7 @@ function groupOf(key: string): string {
 
 function fieldOf(
   key: string,
-  questions: CustomCheckinQuestion[]
+  questions: CustomQuestion[]
 ): { type?: string; unit: string; levels: number } {
   if (key.startsWith('custom:')) {
     const question = questions.find((q) => String(q._id) === key.slice('custom:'.length));
@@ -93,7 +94,7 @@ function deltaText(current: number, previous: number, unit: string): string {
 function rowFor(
   key: string,
   value: CheckinValue,
-  questions: CustomCheckinQuestion[],
+  questions: CustomQuestion[],
   previous: ResponseLike | null
 ): CheckinDisplayRow {
   const { type, unit, levels } = fieldOf(key, questions);

@@ -87,20 +87,6 @@ export class UserAPIService {
     );
   }
 
-  public playStopDiet(idUser: string, idDietInUse: string): Observable<any> {
-    return this.http.put<any>(
-      `${UserAPIService.USERS_ENDPOINT}/playstopdiet/${idUser}/${idDietInUse}`,
-      null
-    );
-  }
-
-  public searchArchivedsByFilter(searchFilters: any): Observable<any> {
-    return this.http.post<any>(
-      `${UserAPIService.USERS_ENDPOINT}/search/by`,
-      searchFilters
-    );
-  }
-
   public searchUsers(
     page: number,
     search: string,
@@ -124,19 +110,6 @@ export class UserAPIService {
 
   public clearUserHash(id: string): Observable<void> {
     return this.http.delete<void>(`${UserAPIService.USERS_ENDPOINT}/hash/${id}`);
-  }
-
-  public addFavoriteProduct(
-    idUser: string,
-    idProduct: string
-  ): Observable<{ isFavorite: boolean; message?: string }> {
-    return this.http.put<{ isFavorite: boolean; message?: string }>(
-      `${UserAPIService.USERS_ENDPOINT}/favProduct`,
-      {
-        idUser,
-        idProduct,
-      }
-    );
   }
 
   public sendMailCode(email: string): Observable<string> {

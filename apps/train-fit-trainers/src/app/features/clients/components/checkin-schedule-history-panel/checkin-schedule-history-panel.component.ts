@@ -1,6 +1,5 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
 import {
   CheckinEntry,
@@ -15,7 +14,6 @@ import {
   shortDayLabel,
 } from '../../checkin-labels.util';
 import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
-import { TranslateModule } from '@ngx-translate/core';
 
 type ViewState = 'loading' | 'ready' | 'error';
 
@@ -36,8 +34,6 @@ localizeRecord(STATUS_LABELS, 'CLIENTS.CHECKIN_STATUS');
 // viven en Medidas y check-ins, y el pie lleva ahí.
 @Component({
   selector: 'app-checkin-schedule-history-panel',
-  standalone: true,
-  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './checkin-schedule-history-panel.component.html',
   styleUrls: ['./checkin-schedule-history-panel.component.scss'],
 })

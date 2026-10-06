@@ -3,10 +3,9 @@ import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import {
-  IntakeCustomQuestion,
   IntakeFieldKey,
   IntakeStatus,
-  OnboardingRelation,
+  OnboardingProfessional,
   OnboardingService,
 } from 'src/app/core/services/onboarding/onboarding.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -16,6 +15,7 @@ import { PendingInvite } from '../coach/models/professional-relation.model';
 import { ProfessionalsApiService } from '../coach/services/professionals-api.service';
 import { IntakeApiService } from './services/intake-api.service';
 import { IntakeWizardPrefill, IntakeWizardResult } from './components/intake-wizard/intake-wizard.component';
+import { CustomAnswerValue, CustomQuestion } from 'src/app/core/models/custom-question';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -23,9 +23,9 @@ interface TrainerGroup {
   trainerId: string;
   trainerName: string;
   scopes: string[];
-  intakeStatus: IntakeStatus; // el mismo en todas sus relaciones: uno por profesional
-  enabledFields: Set<IntakeFieldKey>; // TASK-049 — campos activos del cuestionario de este trainer
-  customQuestions: IntakeCustomQuestion[]; // preguntas de texto libre añadidas por el trainer
+  intakeStatus: IntakeStatus; // uno por profesional, no por scope
+  enabledFields: Set<IntakeFieldKey>; // campos que pide este profesional
+  customQuestions: CustomQuestion[]; // sus preguntas propias
 }
 
 const EMPTY_INTAKE_PREFILL: IntakeWizardPrefill = {
@@ -102,14 +102,14 @@ export class OnboardingStatusPage {
     }).subscribe({
       next: ({ status, pendingInvites }) => {
         this.pendingInvites = pendingInvites || [];
-        const nothingToShow = !status.relations.length && !this.pendingInvites.length;
+        const nothingToShow = !status.professionals.length && !this.pendingInvites.length;
         const nothingToDo = !this.pendingInvites.length &&
-          !status.relations.some((relation) => relation.intakeStatus === 'pending');
+          !status.professionals.some((professional) => professional.intakeStatus === 'pending');
         if (nothingToShow || (afterSubmit && nothingToDo)) {
           this.goBack();
           return;
         }
-        this.groups = this.groupByTrainer(status.relations);
+        this.groups = status.professionals.map((professional) => this.toGroup(professional));
         this.state = 'loaded';
       },
       error: () => {
@@ -151,31 +151,19 @@ export class OnboardingStatusPage {
     return invite._id;
   }
 
-  private groupByTrainer(relations: OnboardingRelation[]): TrainerGroup[] {
-    const byTrainer = new Map<string, TrainerGroup>();
-    for (const relation of relations) {
-      if (!byTrainer.has(relation.trainerId)) {
-        byTrainer.set(relation.trainerId, {
-          trainerId: relation.trainerId,
-          trainerName: relation.trainer
-            ? `${relation.trainer.name} ${relation.trainer.lastname}`.trim()
-            : this.translate.instant('ONBOARDING.YOUR_PROFESSIONAL'),
-          scopes: [],
-          intakeStatus: relation.intakeStatus,
-          enabledFields: new Set(),
-          customQuestions: relation.intakeCustomQuestions,
-        });
-      }
-      const group = byTrainer.get(relation.trainerId)!;
-      // Unión entre las relaciones del mismo trainer: enabledFields es por
-      // trainer, PERO el backend fuerza `dietaryFlags` solo en la relación
-      // de scope nutrición, así que hay que juntar todas.
-      relation.intakeEnabledFields.forEach((f) => group.enabledFields.add(f));
-      group.scopes.push(
-        this.translate.instant(relation.scope === 'training' ? 'ONBOARDING.SCOPE_TRAINING' : 'ONBOARDING.SCOPE_NUTRITION')
-      );
-    }
-    return [...byTrainer.values()];
+  private toGroup(professional: OnboardingProfessional): TrainerGroup {
+    return {
+      trainerId: professional.trainerId,
+      trainerName: professional.trainer
+        ? `${professional.trainer.name} ${professional.trainer.lastname}`.trim()
+        : this.translate.instant('ONBOARDING.YOUR_PROFESSIONAL'),
+      scopes: professional.scopes.map((scope) =>
+        this.translate.instant(scope === 'training' ? 'ONBOARDING.SCOPE_TRAINING' : 'ONBOARDING.SCOPE_NUTRITION')
+      ),
+      intakeStatus: professional.intakeStatus,
+      enabledFields: new Set(professional.intakeEnabledFields),
+      customQuestions: professional.intakeCustomQuestions,
+    };
   }
 
   public get pendingCount(): number {
@@ -198,7 +186,7 @@ export class OnboardingStatusPage {
     // le había respondido antes (p. ej. rellenó nutrición y ahora también
     // hay que rellenar entrenamiento), se precarga en vez de partir de cero
     // y perder lo ya escrito. allergies/favoriteFoods/dislikedFoods/
-    // cooksAtHome no son por trainer (ClientNutritionPreferences, F29), se
+    // cooksAtHome no son por trainer (User.nutritionPreferences), se
     // precargan igual pero desde su propio endpoint.
     this.isLoadingIntake = true;
     forkJoin({
@@ -210,7 +198,7 @@ export class OnboardingStatusPage {
         // mientras la petición estaba en curso — no pisar lo que se esté
         // viendo ahora con una respuesta que ya no corresponde.
         if (this.fillingTrainerId !== group.trainerId) return;
-        const customAnswers: Record<string, string> = {};
+        const customAnswers: Record<string, CustomAnswerValue> = {};
         intake?.customAnswers.forEach((answer) => {
           customAnswers[answer.questionId] = answer.value;
         });

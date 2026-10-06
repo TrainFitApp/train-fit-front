@@ -15,17 +15,6 @@ export class SplitAPIService {
 
   constructor(private http: HttpService) {}
 
-  public createSplit(split: Split): Observable<Split> {
-    return this.http.post<Split>(`${SplitAPIService.SPLIT_ENDPOINT}`, split);
-  }
-
-  public createSplitAndAddToTable(tableInUseId: string): Observable<Table> {
-    return this.http.post<Table>(
-      `${SplitAPIService.SPLIT_ENDPOINT}/${tableInUseId}`,
-      null
-    );
-  }
-
   public addSplitToTable(
     idTable: string,
     idSplit?: string,
@@ -34,24 +23,6 @@ export class SplitAPIService {
     return this.http
       .put<Split>(`splits/add/to/table`, { idTable, idSplit, withSets })
       .pipe(take(1));
-  }
-
-  public addTableSplit(idTable: string, idSplit: string): Observable<any> {
-    return this.http.put<Table>(
-      `${SplitAPIService.SPLIT_ENDPOINT}/split/${idTable}/${idSplit}`,
-      null
-    );
-  }
-
-  // Planificador visual (Fase C) — engancha un Workout YA CREADO (standalone,
-  // vía WorkoutAPIService.createWorkout) a UN split concreto. Backend ya
-  // existía (addWorkoutsSplit, split-routes.js `PUT /:idSplit/:idWorkout`)
-  // pero no tenía wrapper en el frontend — nada lo llamaba hasta ahora.
-  public addWorkoutToSplit(idSplit: string, idWorkout: string): Observable<Split> {
-    return this.http.put<Split>(
-      `${SplitAPIService.SPLIT_ENDPOINT}/${idSplit}/${idWorkout}`,
-      null
-    );
   }
 
   // Bug preexistente arreglado: apuntaba a `splits` (sin :id) mientras el

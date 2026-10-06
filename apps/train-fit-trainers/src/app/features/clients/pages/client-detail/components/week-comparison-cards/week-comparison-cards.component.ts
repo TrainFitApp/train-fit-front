@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { PhaseWeeksResponse } from '../../../../../diet-templates/models/diet-suggestion.model';
+import { PhaseWeeksResponse } from '../../../../../../shared/models/diet-phase.model';
 import { uiLocale, localizeProp } from 'src/app/core/i18n/localized-catalog';
 
 type MetricKey = 'kcal' | 'protein' | 'carbs' | 'fat';
@@ -169,22 +169,22 @@ export class WeekComparisonCardsComponent implements OnChanges {
       status: 'past' as const,
     }));
     const current = phaseWeeks.current;
-    if (current?.override?.profile) {
+    if (current?.content?.profile) {
       weeks.push({
         number: current.number,
         start: current.start,
         end: current.end,
-        profile: current.override.profile,
+        profile: current.content.profile,
         status: 'current',
       });
     }
     const next = phaseWeeks.next;
-    if (next?.override?.profile) {
+    if (next?.content?.profile) {
       weeks.push({
         number: next.number,
         start: next.start,
         end: next.end,
-        profile: next.override.profile,
+        profile: next.content.profile,
         status: 'next',
       });
     }

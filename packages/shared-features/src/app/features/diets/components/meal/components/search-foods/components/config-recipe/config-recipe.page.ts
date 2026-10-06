@@ -18,6 +18,7 @@ import {
   RecipeService,
 } from "src/app/core/services/recipe/recipe.service";
 import { UserService } from "src/app/core/services/user/user.service";
+import { FavoritesService } from "src/app/core/services/favorites/favorites.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { fadeIn } from "src/app/shared/animations/fade";
@@ -105,7 +106,6 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public dietDay: DietDay | null = null;
   public user: User;
 
-  public isFavorite = false;
   public loading = false;
   public editInfoMode = false;
   public editingBaseRecipe = false;
@@ -168,6 +168,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     private recipeService: RecipeService,
     private recipeDraftService: RecipeDraftService,
     private userService: UserService,
+    private favoritesService: FavoritesService,
     private navigationService: NavigationService,
     private dietDayService: DietDayService,
     private ionicUtilService: IonicUtilService,
@@ -309,7 +310,6 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     this.persistSelectedIngredients();
 
-    this.checkFavorite();
     this.recalculateMacros();
     this.captureInitialSnapshot();
 
@@ -864,12 +864,13 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     };
   }
 
+  public get isFavorite(): boolean {
+    return this.favoritesService.isFavorite("recipes", this.recipe?._id);
+  }
+
   public toggleFavorite(): void {
     if (!this.recipe?._id) return;
-    this.recipeService.toggleArchived(this.recipe._id).subscribe({
-      next: (res) => {
-        this.isFavorite = res.isArchived;
-      },
+    this.favoritesService.toggle("recipes", this.recipe._id).subscribe({
       error: () => this.showToast(this.translate.instant('SEARCH_FOODS.FAV_UPDATE_ERROR'), "danger"),
     });
   }
@@ -1214,11 +1215,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     if (indexMeal === -1) return null;
 
-    return {
-      dietInUseId: this.user.dietInUse,
-      indexMeal,
-      currentDate: this.dietDay.date,
-    };
+    return { indexMeal, currentDate: this.dietDay.date };
   }
 
   private findMealIndexInDietDay(
@@ -1309,12 +1306,6 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     );
   }
 
-  private checkFavorite(): void {
-    this.isFavorite = !!(
-      this.recipe?._id && this.user?.archivedRecipes?.includes(this.recipe._id)
-    );
-  }
-
   private toPositiveNumber(value: any): number | null {
     if (value === null || value === undefined || value === "") return null;
     const parsed = Number(value);
@@ -1337,12 +1328,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   private removeDeletedRecipeLocally(recipeId: string): void {
-    if (this.user?.archivedRecipes?.includes(recipeId)) {
-      this.user.archivedRecipes = this.user.archivedRecipes.filter(
-        (id) => id !== recipeId,
-      );
-      this.userService.setLocalUser = this.user;
-    }
+    // El servidor ya la sacó de sus favoritas al borrarla.
+    this.favoritesService.forget("recipes", recipeId);
 
     const currentDietDay = this.dietDayService.currentDietDay;
     if (!currentDietDay?.meals?.length) return;

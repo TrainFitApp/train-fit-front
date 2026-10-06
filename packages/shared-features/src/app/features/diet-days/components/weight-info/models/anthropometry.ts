@@ -6,10 +6,6 @@ export interface Anthropometry {
   neck?: number;
   chest?: number;
   shoulders?: number;
-  // bicepsRelaxed/bicepsContracted/calf (sin L/R) — deprecados (MVP-trainers
-  // D8), se mantienen solo para poder seguir leyendo entradas antiguas.
-  bicepsRelaxed?: number;
-  bicepsContracted?: number;
   bicepsRelaxedL?: number;
   bicepsRelaxedR?: number;
   bicepsContractedL?: number;
@@ -19,7 +15,6 @@ export interface Anthropometry {
   hip?: number;
   thighContracted?: number;
   thighRelaxed?: number;
-  calf?: number;
   calfL?: number;
   calfR?: number;
   quadL?: number;

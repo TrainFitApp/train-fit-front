@@ -199,7 +199,6 @@ export function methodLabel(method: PaymentMethod): string {
 export function chargeTitle(charge: { concept: string | null; origin: ChargeOrigin }): string {
   if (charge.concept) return charge.concept;
   if (charge.origin === 'recurring') return uiText('PAYMENTS.CUOTA');
-  if (charge.origin === 'legacy') return uiText('PAYMENTS.COBRO');
   return uiText('PAYMENTS.COBRO_PUNTUAL');
 }
 

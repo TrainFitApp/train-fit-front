@@ -4,7 +4,6 @@
 // motivo redactado, contexto numérico, estado y desde cuándo está abierta.
 
 export type CoachAlertType =
-  | 'pending_review'
   | 'checkin_overdue'
   | 'plan_ending_soon'
   | 'stagnation'

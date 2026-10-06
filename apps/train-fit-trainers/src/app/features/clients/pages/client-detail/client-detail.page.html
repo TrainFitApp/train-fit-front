@@ -122,14 +122,11 @@
                loadNutrition(); cada trozo se omite si no existe. -->
           <div
             class="summary-header-program"
-            *ngIf="scopes.includes('nutrition') && (activePhase || nutritionalGoal?.goal)"
+            *ngIf="scopes.includes('nutrition') && (currentDietPhase || nutritionalGoal?.goal)"
           >
             <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
-            <ng-container *ngIf="activePhase as phase; else noDietAssigned">
-              <span *ngIf="phase.phaseName" [title]="'CLIENT_DETAIL.FASE_DE_NUTRICION' | translate"
-                >{{ phase.phaseName }} ·
-              </span>
-              <span [title]="'CLIENT_DETAIL.DIETA_ASIGNADA' | translate">{{ phase.planName || ('CLIENT_DETAIL.PLAN_APPLIED' | translate) }}</span>
+            <ng-container *ngIf="currentDietPhase as phase; else noDietAssigned">
+              <span [title]="'CLIENT_DETAIL.FASE_DE_NUTRICION' | translate">{{ phase.name }}</span>
               <span *ngIf="currentDietWeekLabel as weekLabel">
                 · {{ weekLabel }}</span
               >
@@ -612,7 +609,7 @@
                 >
                   <div
                     class="next-phase-card next-phase-card--routine"
-                    *ngIf="!isCurrentRoutinePhase(phase)"
+                    *ngIf="phase.state === 'scheduled'"
                     [style.--phase-color]="routinePhaseColor(phase)"
                   >
                     <h4 class="next-phase-card__name">{{ phase.tableName }}</h4>
@@ -1028,8 +1025,8 @@
                     >
                   </div>
                   <p class="history-subtitle">
-                    {{ (phase.status === 'active' ? 'CLIENT_DETAIL.PHASE_ACTIVE' : phase.status ===
-                    'superseded' ? 'CLIENT_DETAIL.PHASE_SUPERSEDED' : 'CLIENT_DETAIL.PHASE_ENDED') | translate }}
+                    {{ (phase.state === 'current' ? 'CLIENT_DETAIL.PHASE_ACTIVE' : phase.state ===
+                    'scheduled' ? 'CLIENT_DETAIL.PHASE_STATE_SCHEDULED' : 'CLIENT_DETAIL.PHASE_SUPERSEDED') | translate }}
                   </p>
                 </div>
               </ng-container>
@@ -1603,29 +1600,23 @@
                 </button>
               </div>
 
-              <!-- Auditoría de arquitectura (Fase 8) — qué plan hay vigente y hasta
-               cuándo, sin tener que ir día por día para averiguarlo. -->
-              <!-- Las fases del plan como SECUENCIA, en horizontal: TODAS
+              <!-- Las fases de dieta como SECUENCIA, en horizontal: TODAS
                (terminadas, la vigente y las programadas), de la más reciente
-               a la más antigua (phaseTimeline) — antes las terminadas se
-               escondían del todo salvo que se desplegara el historial de más
-               abajo, y crear una fase inmediatamente tras otra se veía como
-               si "desapareciera"/solapara en vez de quedar listada. Con
-               muchas, la fila desplaza dentro de su caja en vez de estirar
-               la página. -->
-              <div class="plan-track" *ngIf="activePlan">
+               a la más antigua (phaseTimeline). Con muchas, la fila desplaza
+               dentro de su caja en vez de estirar la página. -->
+              <div class="plan-track" *ngIf="hasDietPhases">
                 <ng-container
                   *ngFor="let phase of phaseTimeline; trackBy: trackByPhaseId"
                 >
                   <!-- ===== La vigente: card grande con todo el detalle ===== -->
                   <!-- Mismo color que este tramo pinta en el calendario de abajo
-               (phaseColor(), indexado sobre allPhasesHistory) — asocia de un
-               vistazo la tarjeta con su franja de días. -->
+               (phaseColor()): asocia de un vistazo la tarjeta con su franja
+               de días. -->
                   <div
                     class="active-plan-card"
-                    *ngIf="isCurrentPhaseGroup(phase)"
-                    [style.--phase-color]="phaseColor(activePlan)"
-                    [style.--phase-bg]="phaseSoftBackground(activePlan)"
+                    *ngIf="isCurrentPhase(phase)"
+                    [style.--phase-color]="phaseColor(phase)"
+                    [style.--phase-bg]="phaseSoftBackground(phase)"
                   >
                     <!-- El naranja de acento se queda solo para navegación/UI (hoy,
                  seleccionado...) — la fase vigente es un dato del cliente
@@ -1640,7 +1631,7 @@
                     <div class="active-plan-top-row">
                       <span class="plan-phase-order plan-phase-order--current">
                         <ion-icon name="flash" aria-hidden="true"></ion-icon>
-                        {{ 'CLIENT_DETAIL.PHASE_ORDER_CURRENT' | translate: { n: phaseOrder(activePlan) } }}
+                        {{ 'CLIENT_DETAIL.PHASE_ORDER_CURRENT' | translate: { n: phaseOrder(phase) } }}
                       </span>
                       <!-- Los check-ins del cliente, a un toque desde la fase: son
                    los que alimentan la sugerencia de la semana siguiente, así
@@ -1671,35 +1662,30 @@
                         {{ 'CLIENT_DETAIL.EDITAR_FECHAS' | translate }}
                       </button>
                     </div>
-                    <!-- F20-quinquies — la cabecera es ahora el punto de entrada para
-                 editar la plantilla aplicada, sin pasar por "Gestionar
-                 plantillas" y buscarla en la lista. Las acciones de abajo
-                 (día saltado / siguiente fase) se quedan como botones
-                 independientes, no forman parte de este click. -->
+                    <!-- La cabecera abre el contenido de la fase en el constructor.
+                 Las acciones de abajo (día saltado / siguiente semana) son
+                 botones independientes, no forman parte de este click. -->
                     <button
                       type="button"
                       class="active-plan-header"
-                      (click)="openActivePlanTemplate()"
+                      (click)="openPhaseContent(phase)"
                     >
                       <ion-icon name="calendar-number-outline"></ion-icon>
                       <div class="active-plan-info">
-                        <span class="active-plan-name"
-                          >{{ activePhase?.planName || activePlan.planName ||
-                          ('CLIENT_DETAIL.PLAN_APPLIED' | translate) }}</span
-                        >
+                        <span class="active-plan-name">{{ phase.name }}</span>
                         <span class="active-plan-range">
                           <ng-container
-                            *ngIf="!isSingleDayPhase(activePhase); else activePlanSingleDay"
+                            *ngIf="!isSingleDayPhase(phase); else activePlanSingleDay"
                           >
-                            {{ 'CLIENT_DETAIL.SINCE_LOWER' | translate: { date: activePhase?.startDate } }}
+                            {{ 'CLIENT_DETAIL.SINCE_LOWER' | translate: { date: phase.startDate } }}
                             <ng-container
-                              *ngIf="phaseEndLabel(activePhase) as endLabel"
+                              *ngIf="phaseEndLabel(phase) as endLabel"
                             >
                               · {{ endLabel }}</ng-container
                             >
                           </ng-container>
                           <ng-template #activePlanSingleDay
-                            >{{ activePhase?.startDate }}</ng-template
+                            >{{ phase.startDate }}</ng-template
                           >
                         </span>
                       </div>
@@ -1715,10 +1701,10 @@
                  tarjeta. -->
                     <p
                       class="stuck-days-hint"
-                      *ngIf="activePlan.stuckDaysCount"
+                      *ngIf="currentDietPhase?.stuckDaysCount as stuckDays"
                     >
                       <ion-icon name="alert-circle-outline"></ion-icon>
-                      {{ (activePlan.stuckDaysCount === 1 ? 'CLIENT_DETAIL.STUCK_DAYS_ONE' : 'CLIENT_DETAIL.STUCK_DAYS_MANY') | translate: { count: activePlan.stuckDaysCount } }}
+                      {{ (stuckDays === 1 ? 'CLIENT_DETAIL.STUCK_DAYS_ONE' : 'CLIENT_DETAIL.STUCK_DAYS_MANY') | translate: { count: stuckDays } }}
                     </p>
 
                     <div class="active-plan-actions">
@@ -1784,7 +1770,7 @@
                               >{{ weekDateRange(current) }}</span
                             >
                             <span class="week-tile__kcal"
-                              >{{ current.override.profile.kcal || '—' }}
+                              >{{ current.content.profile.kcal || '—' }}
                               kcal</span
                             >
                           </button>
@@ -1795,7 +1781,7 @@
                             class="week-tile week-tile--past"
                             *ngFor="let entry of pastWeeks; trackBy: trackByWeekNumber"
                             [attr.aria-label]="'CLIENT_DETAIL.VIEW_WEEK_SUMMARY' | translate: { n: entry.number }"
-                            (click)="openWeekSummary(entry)"
+                            (click)="openCurrentPhaseWeek(entry)"
                           >
                             <span class="week-tile__title-row">
                               <span class="week-tile__label"
@@ -1818,9 +1804,8 @@
                    icono danger compitiendo con "editar". Un segundo click
                    pide confirmación EN EL SITIO — dos botones pequeños en
                    vez de un ion-alert tapando la ficha entera. -->
-                      <!-- Se quita la FASE entera (el head, ver activePhase): el
-                   backend se lleva con él las semanas preparadas. -->
-                      <ng-container *ngIf="activePhase as fase">
+                      <!-- Se quita la FASE entera, con sus semanas preparadas. -->
+                      <ng-container *ngIf="phase as fase">
                         <ng-container
                           *ngIf="confirmingCancelPlanPhaseId !== fase._id; else confirmActivePlanRemove"
                         >
@@ -1880,20 +1865,20 @@
                toda la ficha. -->
                   <div
                     class="next-phase-card"
-                    *ngIf="!isCurrentPhaseGroup(phase)"
+                    *ngIf="!isCurrentPhase(phase)"
                     [class.next-phase-card--ended]="isPhaseEnded(phase)"
                     [style.--phase-color]="phaseColor(phase)"
                   >
                     <button
                       type="button"
                       class="next-phase-card__open"
-                      (click)="openPhaseTemplate(phase)"
+                      (click)="openPhaseContent(phase)"
                     >
                       <span class="plan-phase-order"
                         >{{ phaseCompactLabel(phase) }}</span
                       >
                       <h4 class="next-phase-card__name">
-                        {{ phase.planName || ('CLIENT_DETAIL.PLAN_APPLIED' | translate) }}
+                        {{ phase.name }}
                       </h4>
                       <p class="next-phase-card__range">
                         <ng-container
@@ -1986,7 +1971,7 @@
                       [clientId]="clientId"
                       [selectedDate]="nutritionDate"
                       [activeRange]="customTrackingRange"
-                      [canSkipDay]="!!activePlan"
+                      [canSkipDay]="!!currentDietPhase"
                       [isSkippingDay]="isSkippingDay"
                       (dateSelected)="onNutritionDateSelected($event)"
                       (rangeSelected)="onNutritionRangeSelected($event)"
@@ -2607,7 +2592,7 @@
             <div class="relation-text">
               <span class="relation-title">{{ 'TRAINER_COMMON.NUTRITION' | translate }}</span>
               <span class="relation-meta" *ngIf="nutritionState === 'loaded'">{{
-                activePhase?.phaseName || activePhase?.planName || ('CLIENT_DETAIL.NO_PHASE_IN_PROGRESS' | translate)
+                currentDietPhase?.name || ('CLIENT_DETAIL.NO_PHASE_IN_PROGRESS' | translate)
               }}</span>
             </div>
             <button
@@ -2939,18 +2924,63 @@
             </div>
           </div>
 
-          <label
-            class="intake-edit-label"
-            *ngFor="let answer of draft.customAnswers"
-          >
-            {{ answer.label }}
+          <!-- Respuestas propias: cada una con el control de su tipo. Un
+               selector no se puede corregir aquí (la copia guardada no lleva
+               sus opciones): se ve tal cual. -->
+          <div class="intake-edit-group" *ngFor="let answer of draft.customAnswers" [ngSwitch]="answer.type">
+            <span class="intake-edit-label">{{ answer.label }}</span>
             <textarea
+              *ngSwitchCase="'text'"
               class="textarea-field"
               [(ngModel)]="answer.value"
               rows="2"
               maxlength="1000"
+              [attr.aria-label]="answer.label"
             ></textarea>
-          </label>
+            <input
+              *ngSwitchCase="'number'"
+              type="number"
+              class="intake-edit-number"
+              inputmode="decimal"
+              appNumericKeypad
+              [(ngModel)]="answer.value"
+              [attr.aria-label]="answer.label"
+            />
+            <div class="cadence-options" *ngSwitchCase="'scale_1_5'">
+              <button
+                type="button"
+                class="cadence-option"
+                *ngFor="let value of [1, 2, 3, 4, 5]"
+                [class.cadence-option--active]="answer.value === value"
+                (click)="answer.value = value"
+              >
+                {{ value }}
+              </button>
+            </div>
+            <div class="cadence-options" *ngSwitchCase="'yes_no'">
+              <button
+                type="button"
+                class="cadence-option"
+                *ngFor="let option of [true, false]"
+                [class.cadence-option--active]="answer.value === option"
+                (click)="answer.value = option"
+              >
+                {{ (option ? 'COMMON.YES' : 'COMMON.NO') | translate }}
+              </button>
+            </div>
+            <div class="cadence-options" *ngSwitchCase="'frequency'">
+              <button
+                type="button"
+                class="cadence-option"
+                *ngFor="let option of frequencyOptions"
+                [class.cadence-option--active]="answer.value === option"
+                (click)="answer.value = option"
+              >
+                {{ option | translateDb }}
+              </button>
+            </div>
+            <p class="intake-edit-fixed" *ngSwitchDefault>{{ answer.value }}</p>
+          </div>
         </div>
       </ng-container>
     </div>

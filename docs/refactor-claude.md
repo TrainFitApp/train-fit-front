@@ -1,5 +1,10 @@
 # `refactor-claude` → `main` (front)
 
+> **Histórico.** El refactor del modelo de datos (rama `refactor/modelo-datos`,
+> 2026-10) cambió rutas y modelos de nutrición, fases, favoritos y relación
+> entrenador↔cliente; lo vigente está en `TrainFit/docs/frontend.md` y
+> `TrainFit/docs/refactor-modelo-datos-estado.md`.
+
 Qué trae la rama `refactor-claude` respecto a `main` en el monorepo del front.
 Estado a **2026-09-25**. El modelo de datos, la API y la migración de la BD están en `train-fit-back/docs/refactor-claude.md`.
 

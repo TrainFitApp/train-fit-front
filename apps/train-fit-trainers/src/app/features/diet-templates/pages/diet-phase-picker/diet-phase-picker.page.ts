@@ -120,7 +120,7 @@ export class DietPhasePickerPage {
       // precargado con el contenido de la plantilla elegida (nunca se toca
       // esa plantilla: el builder construye una NUEVA propia del cliente a
       // partir de este contenido, igual que si se hubiera tecleado a mano).
-      const template = await firstValueFrom(this.dietTemplateApi.getById(data.sourceTemplateId));
+      const template = await firstValueFrom(this.dietTemplateApi.getById(data.templateId));
       void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
         state: {
           clientName: this.clientName,

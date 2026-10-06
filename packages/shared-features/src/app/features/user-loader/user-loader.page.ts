@@ -9,7 +9,6 @@ import {
   switchMap,
   throwError,
 } from "rxjs";
-import { Diet } from "src/app/core/models/diet";
 import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
 import { Workout } from "src/app/core/models/workout";
@@ -17,7 +16,6 @@ import { I18nService } from "src/app/core/i18n/i18n.service";
 import { AuthService } from "src/app/core/services/auth/auth.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { CoachService } from "src/app/core/services/coach/coach.service";
-import { DietService } from "src/app/core/services/diet/diet.service";
 import { NotificationsService } from "src/app/core/services/notifications/notifications.service";
 import { OnboardingService } from "src/app/core/services/onboarding/onboarding.service";
 import { TableService } from "src/app/core/services/table/table.service";
@@ -60,7 +58,6 @@ export class UserLoaderPage implements OnInit {
   constructor(
     private readonly userService: UserService,
     private readonly tableService: TableService,
-    private readonly dietService: DietService,
     private readonly workoutService: WorkoutService,
     private readonly themeService: ThemeService,
     private readonly navigationService: NavigationService,
@@ -134,13 +131,6 @@ export class UserLoaderPage implements OnInit {
               )
             : of(null);
 
-          const dietObservable: Observable<Diet> = resUser.dietInUse
-            ? this.recoverFromStalePointer(
-                this.dietService.getDietById(resUser.dietInUse),
-                "dietInUse",
-              )
-            : of(null);
-
           const workoutInUseObservable: Observable<Workout> =
             resUser.workoutInUse
               ? this.recoverFromStalePointer(
@@ -150,32 +140,25 @@ export class UserLoaderPage implements OnInit {
               : of(null);
 
           // Lo que el splash espera: lo que ya debe estar en memoria cuando
-          // se pinta la primera pantalla (rutina/dieta/entreno en uso) más
+          // se pinta la primera pantalla (rutina y entreno en uso) más
           // CoachService, que decide si existe el tab Coach — resolverlo
           // después haría aparecer un tab sobre los tabs ya pintados. Las
-          // cuatro vuelan en paralelo, no en cadena.
+          // tres vuelan en paralelo, no en cadena.
           return forkJoin([
             tableObservable,
-            dietObservable,
             workoutInUseObservable,
             isClientAccount ? this.coachService.refresh() : of(false),
           ]);
         }),
       )
       .subscribe(
-        ([resTable, resDiet, resWorkoutInUse]: [
-          Table,
-          Diet,
-          Workout,
-          boolean,
-        ]) => {
+        ([resTable, resWorkoutInUse]: [Table, Workout, boolean]) => {
           this.initialLoadRetryCount = 0;
 
           // Always sync (not just when truthy) so a leftover signal from a
-          // previous session/account never survives into one with no table,
-          // diet, or workout in use.
+          // previous session/account never survives into one with no table
+          // or workout in use.
           this.tableService.setCurrentTable = resTable ?? null;
-          this.dietService.setCurrentDiet = resDiet ?? null;
           this.workoutService.setCurrentWorkout = resWorkoutInUse ?? null;
 
           // Los datos ya están en los servicios; lo único que espera es el
@@ -199,7 +182,6 @@ export class UserLoaderPage implements OnInit {
           if (this.requiresRelogin(err)) {
             this.userService.setLocalUser = null;
             this.workoutService.setCurrentWorkout = null;
-            this.dietService.setCurrentDiet = null;
             this.tableService.setCurrentTable = null;
             this.authService.logout();
             return;
@@ -252,13 +234,13 @@ export class UserLoaderPage implements OnInit {
     this.navigationService.goToTabsPage();
   }
 
-  // `tableInUse` / `dietInUse` / `workoutInUse` son punteros: guardan un id,
+  // `tableInUse` / `workoutInUse` son punteros: guardan un id,
   // no el documento. Si lo apuntado se borra (o deja de ser accesible), el id
   // se queda colgado en el usuario y este arranque pedía un documento que ya
   // no existe. Antes eso reventaba el forkJoin entero: reintento, reintento, y
   // la pantalla de carga se quedaba fija para siempre — con la app instalada,
   // sin forma de salir. Un puntero muerto degrada a "nada en uso" (la app
-  // arranca y el usuario elige otra rutina/dieta, lo que reescribe el
+  // arranca y el usuario elige otra rutina, lo que reescribe el
   // puntero); cualquier otro error sí sube, para no tapar un 401 que debe
   // acabar en re-login ni un backend caído que sí merece el reintento.
   private recoverFromStalePointer<T>(

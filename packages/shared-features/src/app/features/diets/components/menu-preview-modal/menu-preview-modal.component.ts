@@ -1,7 +1,5 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { IonicModule, ModalController } from '@ionic/angular';
-import { TranslateModule } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular';
 import { DayMenuPreview } from '../../models/day-menu.model';
 
 // docs/plan-semanas.md — preview de
@@ -10,8 +8,6 @@ import { DayMenuPreview } from '../../models/day-menu.model';
 // elige es diets.page (chooseMenu) al recibir el role 'choose'.
 @Component({
   selector: 'app-menu-preview-modal',
-  standalone: true,
-  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './menu-preview-modal.component.html',
   styleUrls: ['./menu-preview-modal.component.scss'],
 })

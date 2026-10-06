@@ -1,16 +1,4 @@
-import { CheckinFieldType } from 'src/app/core/constants/checkin-fields';
-
-// Fase 5 Coach Pro — pregunta propia del coach dentro de un check-in (§7).
-// Espejo de components/trainerCheckins/checkin-custom-question.js.
-export interface CustomCheckinQuestion {
-  _id: string;
-  label: string;
-  type: CheckinFieldType;
-  unit?: string;
-  options?: string[];
-  required?: boolean;
-  enabled?: boolean;
-}
+import { CustomQuestion } from 'src/app/core/models/custom-question';
 
 // Un check-in ABIERTO hoy (docs/plan-semanas.md): su ventana de fechas
 // incluye hoy, así que se puede responder y corregir hasta que cierre. Fuera
@@ -30,7 +18,7 @@ export interface MyCheckin {
   enabledFields: string[];
   // Subconjunto de enabledFields que hay que responder sí o sí.
   requiredFields?: string[];
-  customQuestions?: CustomCheckinQuestion[];
+  customQuestions?: CustomQuestion[];
   // Lo ya respondido (para corregirlo sin empezar de cero).
   values: Record<string, number | string | boolean> | null;
   respondedAt: string | null;
@@ -63,7 +51,7 @@ export interface CheckinHistoryEntry {
   name?: string;
   occurrenceDate?: string;
   week?: CheckinWeek | null;
-  customQuestions?: CustomCheckinQuestion[];
+  customQuestions?: CustomQuestion[];
   status?: 'responded' | 'reviewed';
   reviewedAt?: string | null;
   reviewComment?: string;
@@ -86,8 +74,3 @@ export function customQuestionKey(questionId: string): string {
 export function isCustomQuestionKey(key: string): boolean {
   return key.startsWith(CUSTOM_QUESTION_KEY_PREFIX);
 }
-
-// Escala fija de "frecuencia". Debe coincidir con FREQUENCY_OPTIONS del
-// backend: si divergieran, el cliente ofrecería opciones que el servidor
-// rechazaría al enviar.
-export const FREQUENCY_OPTIONS = ['Nunca', 'Rara vez', 'A veces', 'A menudo', 'Siempre'];

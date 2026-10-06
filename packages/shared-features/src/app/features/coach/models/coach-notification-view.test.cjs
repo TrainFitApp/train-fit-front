@@ -33,7 +33,7 @@ test('checkin_reviewed lleva a Mis check-ins (antes le faltaba el case y no nave
 });
 
 test('las comidas llevan a la dieta en su fecha', () => {
-  for (const type of ['meal_proposal', 'meal_prescribed']) {
+  for (const type of ['meal_prescribed']) {
     assert.deepEqual(notificationRoute(notification(type, { date: '2026-09-28' })), {
       commands: ['/tabs/diets'],
       extras: { state: { selectedDate: '2026-09-28' } },
@@ -90,7 +90,7 @@ test('recordatorio de un cobro ya cerrado: no reclama el importe antiguo', () =>
 });
 
 test('cobro nuevo: importe con dos decimales en euros', () => {
-  assert.equal(plain(notificationTitle(notification('payment_created', { amount: 45.5, currency: 'EUR' }))), 'Nuevo cobro: 45,50 €');
+  assert.equal(plain(notificationTitle(notification('payment_created', { amountCents: 4550, currency: 'EUR' }))), 'Nuevo cobro: 45,50 €');
   assert.equal(plain(money(10, 'EUR')), '10,00 €');
   assert.equal(shortDay('2026-09-01'), '1 sept');
 });

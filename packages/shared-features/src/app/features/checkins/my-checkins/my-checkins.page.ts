@@ -11,12 +11,12 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 import {
   CheckinHistoryEntry,
-  FREQUENCY_OPTIONS,
   MyCheckin,
   customQuestionKey,
   isCustomQuestionKey,
 } from './models/my-checkin.model';
 import { MyCheckinsApiService } from './services/my-checkins-api.service';
+import { FREQUENCY_OPTIONS } from 'src/app/core/models/custom-question';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';

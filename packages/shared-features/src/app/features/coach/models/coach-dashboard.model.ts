@@ -27,14 +27,6 @@ export interface CoachPendingCheckin {
   weekEnd?: string | null;
 }
 
-export interface CoachPendingMealProposal {
-  proposalId: string;
-  date: string;
-  mealSlot: string;
-  alternativesCount: number;
-  trainerName: string;
-}
-
 export interface CoachNutritionPreferencesStatus {
   requestedAt: string;
   respondedAt: string | null;
@@ -42,15 +34,14 @@ export interface CoachNutritionPreferencesStatus {
   requestedByName: string;
 }
 
-// `amount` es el SALDO RESTANTE (tras pagos parciales), no el importe original.
-// Solo informativo: el cliente no registra ni confirma pagos.
+// Lo que le queda por pagar de un cobro (saldo tras pagos parciales, en
+// céntimos). Solo informativo: el cliente no registra ni confirma pagos.
 export interface CoachPendingPayment {
-  paymentId: string;
-  amount: number;
+  chargeId: string;
+  balanceCents: number;
   currency: string;
-  dueDate: string;
-  dueDay?: string;
-  concept?: string | null;
+  dueDay: string;
+  concept: string | null;
   trainerName: string;
 }
 
@@ -73,7 +64,6 @@ export interface CoachCurrentPlans {
 
 // Tab Coach, Fase 3 — notificaciones in-app.
 export type CoachNotificationType =
-  | 'meal_proposal'
   | 'payment_created'
   | 'nutrition_preferences_requested'
   | 'checkin_reviewed'
@@ -82,8 +72,6 @@ export type CoachNotificationType =
   | 'intake_submitted'
   | 'client_confirmed'
   | 'meal_prescribed'
-  // Histórico, ya no se emite — ver ANTHROPOMETRY_REQUESTED en coach.page.ts.
-  | 'anthropometry_requested'
   // Recordatorio de un pago pendiente, solo si el entrenador lo activó.
   | 'payment_reminder'
   // El entrenador respondió a un vídeo de técnica (docs/plan-medidas-multimedia.md).
@@ -121,7 +109,6 @@ export interface CoachTask {
 export interface CoachDashboard {
   professionals: CoachProfessional[];
   pendingCheckins: CoachPendingCheckin[];
-  pendingMealProposals: CoachPendingMealProposal[];
   nutritionPreferences: CoachNutritionPreferencesStatus | null;
   pendingPayments: CoachPendingPayment[];
   currentPlans: CoachCurrentPlans;

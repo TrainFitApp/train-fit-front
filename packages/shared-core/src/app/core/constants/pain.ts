@@ -26,8 +26,8 @@ export interface PainEntry {
   note?: string;
 }
 
+// Uno por zona dentro del par profesional-cliente (sin id propio).
 export interface PainThreshold {
-  _id?: string;
   zone: string;
   // Hasta aquí se entrena con normalidad.
   workLevel: number;

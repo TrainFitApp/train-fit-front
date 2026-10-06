@@ -4,8 +4,8 @@ import { HttpService } from 'src/app/core/services/http/http.service';
 import {
   ApplyResult,
   CheckinTemplateDefinition,
-  CustomCheckinQuestion,
 } from '../models/checkin-template.model';
+import { CustomQuestion } from 'src/app/core/models/custom-question';
 
 @Injectable({ providedIn: 'root' })
 export class CheckinTemplatesApiService {
@@ -18,7 +18,7 @@ export class CheckinTemplatesApiService {
   public create(
     name: string,
     enabledFields: string[],
-    customQuestions: CustomCheckinQuestion[] = [],
+    customQuestions: CustomQuestion[] = [],
     requiredFields: string[] = []
   ): Observable<CheckinTemplateDefinition> {
     return this.http.post<CheckinTemplateDefinition>('trainer/checkin-templates', {
@@ -35,7 +35,7 @@ export class CheckinTemplatesApiService {
       name?: string;
       enabledFields?: string[];
       requiredFields?: string[];
-      customQuestions?: CustomCheckinQuestion[];
+      customQuestions?: CustomQuestion[];
     }
   ): Observable<CheckinTemplateDefinition> {
     return this.http.put<CheckinTemplateDefinition>(`trainer/checkin-templates/${id}`, updates);

@@ -1,7 +1,6 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
 import { CheckinSchedule } from '../../pages/client-detail/components/checkin-workspace/checkin-workspace.model';
 import { checkinCadenceLabel, shortDayLabel } from '../../checkin-labels.util';
@@ -18,8 +17,6 @@ type ViewState = 'loading' | 'ready' | 'error';
 // check-ins, y el pie lleva ahí (sin onGoToCheckins, no hay pie).
 @Component({
   selector: 'app-checkin-schedules-panel',
-  standalone: true,
-  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './checkin-schedules-panel.component.html',
   styleUrls: ['./checkin-schedules-panel.component.scss'],
 })

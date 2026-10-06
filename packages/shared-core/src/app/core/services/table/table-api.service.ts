@@ -63,7 +63,7 @@ export class TableAPIService {
     return this.http.put<Table>(`tables`, { _id: table._id, name: table.name });
   }
 
-  public deleteTableById(idUser: string, idTable: string): Observable<Table> {
-    return this.http.delete<Table>(`tables/${idUser}/${idTable}`);
+  public deleteTableById(idTable: string): Observable<Table> {
+    return this.http.delete<Table>(`tables/${idTable}`);
   }
 }

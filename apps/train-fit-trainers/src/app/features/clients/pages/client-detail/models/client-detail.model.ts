@@ -3,7 +3,7 @@ import { WeekNeed, StepsFromHabit } from '../../../../diet-templates/models/diet
 import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
-import { CustomCheckinQuestion } from '../../../../checkin-templates/models/checkin-template.model';
+import { CustomQuestion } from 'src/app/core/models/custom-question';
 
 export type ClientScope = 'training' | 'nutrition';
 export type ClientDetailTab =
@@ -185,7 +185,7 @@ export interface CheckinResponseEntry {
   // Copia de las preguntas tal y como estaban al responder: la programación
   // puede cambiar después y la respuesta tiene que seguir leyéndose (por eso
   // ya no hace falta pedir la "config" del cliente aparte).
-  customQuestions?: CustomCheckinQuestion[];
+  customQuestions?: CustomQuestion[];
   // A qué semana de la fase de dieta pertenece.
   week?: { phaseId: string; number: number; start: string; end: string | null } | null;
 }
@@ -317,10 +317,6 @@ export interface DietDaySummary {
   _id: string;
   date: string;
   meals: MealSummary[];
-  // TAREA5 — id de la Diet contenedora (User.dietInUse del cliente), no del
-  // propio DietDay. Necesario para pedir productos/recetas recientes de esta
-  // comida (GET /diets/:dietId/recent-products|recipes).
-  dietId?: string;
 }
 
 // TAREA1/TAREA5 (replanteamiento MVP nutrición) — un alimento dentro de una
@@ -381,7 +377,6 @@ export interface TrainerTask {
   createdAt: string;
 }
 
-
 // --- Objetivo nutricional del cliente, visto por su profesional ---
 // (docs/plan-semanas.md). `source` manual = alguien tecleó esas kcal
 // encima del cálculo, y recalcular el perfil ya no las pisa.
@@ -405,7 +400,7 @@ export interface ClientNutritionalGoalResponse {
     target: { kcal: number; protein: number; carbs: number; fat: number };
     inputs: WeekNeed['inputs'];
     breakdown: WeekNeed['breakdown'];
-    weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
+    weightSource: { weightKg: number; from: 'anthropometry'; date: string } | null;
     stepsFromHabit: StepsFromHabit | null;
   } | null;
   // Qué biométricos faltan cuando no se puede calcular.

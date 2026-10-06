@@ -235,10 +235,4 @@
     </div>
   </section>
 
-  <!-- Texto libre de cuestionarios anteriores a trainingLocation /
-       equipmentTags: ya no se escribe, pero hay clientes que solo tienen esto. -->
-  <section class="equipment-section" *ngIf="clientIntake.equipment?.trim()">
-    <h4 class="equipment-section-title">{{ 'PLANNER.EQUIPMENT_NOTES' | translate }}</h4>
-    <p class="equipment-notes">{{ clientIntake.equipment }}</p>
-  </section>
 </div>

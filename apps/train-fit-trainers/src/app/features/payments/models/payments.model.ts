@@ -2,7 +2,7 @@
 // src/dto.ts). Importes SIEMPRE en céntimos enteros; días como "YYYY-MM-DD"
 // civiles (nunca se convierten a Date para calcular: se pintan tal cual).
 
-export type ChargeOrigin = 'one_off' | 'recurring' | 'legacy';
+export type ChargeOrigin = 'one_off' | 'recurring';
 export type ChargeStatus = 'open' | 'settled' | 'cancelled' | 'void';
 export type TemporalState = 'overdue' | 'due_today' | 'upcoming' | 'closed';
 export type PaymentMethod = 'bizum' | 'transfer' | 'cash' | 'card_external' | 'other' | 'unknown';
@@ -43,11 +43,12 @@ export interface PaymentMovement {
   id: string;
   amountCents: number;
   receivedDay: string;
-  receivedDaySource: 'entered' | 'legacy_marked_paid';
+  // marked_paid: cobro anterior al libro de pagos; el día es cuándo se marcó pagado.
+  receivedDaySource: 'entered' | 'marked_paid';
   method: PaymentMethod;
   note: string | null;
   recordedAt: string | null;
-  source: 'app' | 'legacy_toggle' | 'migration';
+  source: 'app' | 'migration';
   status: 'valid' | 'voided';
   voidedAt: string | null;
   voidReason: string | null;
@@ -75,7 +76,6 @@ export interface PaymentAdjustment {
 export interface PaymentChargeDetail extends PaymentCharge {
   payments: PaymentMovement[];
   adjustments: PaymentAdjustment[];
-  legacyDueDaySource: string | null;
 }
 
 export interface FeePlanHistoryEntry {
@@ -202,7 +202,6 @@ export interface OverviewRow {
   temporal: TemporalState;
   forecast: boolean;
   anomalies: string[];
-  migrated: boolean;
 }
 
 export type OverviewState = 'pending' | 'overdue' | 'due_today' | 'upcoming' | 'settled' | 'cancelled' | 'all';

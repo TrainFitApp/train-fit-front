@@ -128,8 +128,6 @@ export class ChargeDetailPanelComponent implements OnInit, OnDestroy {
     switch (this.charge?.origin) {
       case 'recurring':
         return this.translate.instant('PAYMENTS.VENCIMIENTO_DE_LA_CUOTA');
-      case 'legacy':
-        return this.translate.instant('PAYMENTS.COBRO_ANOTADO_ANTES_DE_LA');
       default:
         return this.translate.instant('PAYMENTS.COBRO_PUNTUAL');
     }

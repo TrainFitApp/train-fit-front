@@ -4,14 +4,14 @@ import {
   NutritionWeekEvent,
   NutritionWeekStatus,
   NutritionHistoryEvent,
-} from '../../../../../../shared/models/plan-assignment.model';
+} from '../../../../../../shared/models/diet-phase.model';
 import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 
 export interface WeekOpenRequest {
+  phaseId: string;
   number: number;
   start: string;
   end: string;
-  overrideId: string;
 }
 
 const STATUS_LABELS: Record<NutritionWeekStatus, string> = {
@@ -60,6 +60,6 @@ export class NutritionHistoryFeedComponent {
   }
 
   public requestOpen(week: NutritionWeekEvent): void {
-    this.openWeek.emit({ number: week.number, start: week.start, end: week.end, overrideId: week.overrideId });
+    this.openWeek.emit({ phaseId: week.phaseId, number: week.number, start: week.start, end: week.end });
   }
 }

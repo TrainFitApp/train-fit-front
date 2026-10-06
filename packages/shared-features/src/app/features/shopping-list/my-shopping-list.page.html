@@ -51,7 +51,7 @@
     <!-- Menús y alternativas: solo si hay algo que elegir. Un menú a la vez
          (desplegable) para no apilar una tarjeta por menú. -->
     <section class="choices" *ngIf="hasChoices" [attr.aria-label]="'SHOPPING_LIST.CHOICES_ARIA' | translate">
-      <div class="segment" *ngFor="let segment of segments; trackBy: trackByPlan">
+      <div class="segment" *ngFor="let segment of segments; trackBy: trackBySegment">
         <p class="segment-label" *ngIf="segments.length > 1">
           {{ segmentLabel(segment) }} · {{ (segment.days === 1 ? 'SHOPPING_LIST.DAYS_ONE' : 'SHOPPING_LIST.DAYS_MANY') | translate: { count: segment.days } }}
         </p>

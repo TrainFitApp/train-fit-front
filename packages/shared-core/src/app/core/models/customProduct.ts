@@ -18,9 +18,8 @@ export class CustomProduct {
   // app al tocarla (la hoja de adición rápida, no AddProductPage).
   quickAdd?: boolean;
 
-  mealId?: string;
-  customRecipeId?: string;
-  baseCustomProductId?: string | CustomProduct;
+  // En una receta del plato: el ingrediente de la receta que cambia.
+  baseCustomProductId?: string;
 
   // Pautado por trainer (ver custom-product-schema.js backend) — presente
   // si un profesional pautó este producto. Protegido de borrado/edición

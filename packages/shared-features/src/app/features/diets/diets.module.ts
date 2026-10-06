@@ -13,6 +13,7 @@ import { ToolbarCalendarComponent } from './components/toolbar-calendar/toolbar-
 import { DietsPageRoutingModule } from './diets-routing.module';
 import { DietsPage } from './diets.page';
 import { MacrosBarsModule } from './components/macros-bars/macros-bars.module';
+import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-preview-modal.component';
 
 @NgModule({
   declarations: [
@@ -22,6 +23,7 @@ import { MacrosBarsModule } from './components/macros-bars/macros-bars.module';
     DailyWeightComponent,
     MealComponent,
     ClipboardMealModalComponent,
+    MenuPreviewModalComponent,
   ],
   imports: [
     SharedModule,

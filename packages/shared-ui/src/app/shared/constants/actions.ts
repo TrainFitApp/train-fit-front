@@ -1,11 +1,8 @@
 export enum ACTION_TYPES {
   edit = 0,
   copy = 1,
-  // share = 2,
   delete = 3,
   deselect = 4,
-  // paste = 5,
-  // archived = 6,
   moveExercises = 7,
   note = 8,
   duplicate = 9,
@@ -33,12 +30,6 @@ export type ACTION_TYPE = {
 export const ACTIONS: {
   [id: number]: ACTION_TYPE;
 } = {
-  // [ACTION_TYPES.archived]: {
-  //   id: ACTION_TYPES.archived,
-  //   value: 'Guardados',
-  //   icon: 'bookmark',
-  //   color: 'tertiary',
-  // },
   [ACTION_TYPES.edit]: {
     id: ACTION_TYPES.edit,
     value: "ACTIONS.EDIT",

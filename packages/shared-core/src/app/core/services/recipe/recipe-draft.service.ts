@@ -245,9 +245,7 @@ export class RecipeDraftService {
             modifiedBaseCustomProducts: (state.customRecipe.modifiedBaseCustomProducts || []).filter(
               (item) => {
                 const baseCustomProductId =
-                  typeof item?.baseCustomProductId === 'string'
-                    ? item.baseCustomProductId
-                    : item?.baseCustomProductId?._id;
+                  item?.baseCustomProductId;
                 return !removedBaseIds.has(
                   (baseCustomProductId || '').toString(),
                 );

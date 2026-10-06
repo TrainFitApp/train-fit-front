@@ -4,8 +4,8 @@ import { HttpService } from 'src/app/core/services/http/http.service';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DayMenuStatus } from '../models/day-menu.model';
 
-// Mismo patrón que meal-proposal-api.service.ts (F28): un servicio pequeño y
-// dedicado, sin lógica de negocio, junto al modelo que expone.
+// Un servicio pequeño y dedicado, sin lógica de negocio, junto al modelo que
+// expone.
 @Injectable({ providedIn: 'root' })
 export class DayMenuApiService {
   constructor(private http: HttpService) {}

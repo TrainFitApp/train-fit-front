@@ -39,7 +39,7 @@
         (click)="clearRange()"
       >
         <ion-icon name="close-circle-outline"></ion-icon>
-        {{ rangeStart }} → {{ openEnded ? 'indefinido' : rangeEnd }}
+        {{ rangeStart }} → {{ openEnded ? ('CLIENTS.OPEN_ENDED' | translate) : rangeEnd }}
       </button>
     </div>
   </div>

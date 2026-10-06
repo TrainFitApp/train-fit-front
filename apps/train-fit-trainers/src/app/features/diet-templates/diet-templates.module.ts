@@ -14,6 +14,9 @@ import { DietPhasePickerPage } from './pages/diet-phase-picker/diet-phase-picker
 import { DietSuggestionListComponent } from './components/diet-suggestion-list/diet-suggestion-list.component';
 import { DietTemplatePreviewPanelComponent } from './components/diet-template-preview-panel/diet-template-preview-panel.component';
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
+import { MacroAdjustModule } from '../../shared/components/macro-adjust/macro-adjust.module';
+import { DietSuggestionDrawerComponent } from './components/diet-suggestion-drawer/diet-suggestion-drawer.component';
+import { DayMealEditorModalComponent } from './pages/diet-template-builder/components/day-meal-editor-modal/day-meal-editor-modal.component';
 
 @NgModule({
   imports: [
@@ -27,8 +30,11 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     RecipeIngredientsEditorModalModule,
     ProductDetailPanelModule,
     DietCardModule,
+    MacroAdjustModule,
   ],
   declarations: [
+    DietSuggestionDrawerComponent,
+    DayMealEditorModalComponent,
     DietTemplatesListPage,
     DietTemplateBuilderPage,
     DietPhasePickerPage,

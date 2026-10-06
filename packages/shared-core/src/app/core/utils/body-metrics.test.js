@@ -179,34 +179,6 @@ test("totalEnergyExpenditure", async (t) => {
   });
 });
 
-test("proportionIndices", async (t) => {
-  await t.test("solo devuelve los índices que se pueden calcular", () => {
-    const indices = metrics.proportionIndices({ chest: 105, waist: 80 });
-    assert.equal(indices.length, 1);
-    assert.equal(indices[0].key, "chest_waist");
-    assert.equal(indices[0].value, 1.31);
-  });
-
-  await t.test("con todas las medidas salen los cuatro", () => {
-    const indices = metrics.proportionIndices({
-      chest: 105,
-      waist: 80,
-      hip: 98,
-      bicepsContracted: 38,
-      thighRelaxed: 58,
-    });
-    assert.deepEqual(
-      indices.map((index) => index.key),
-      ["chest_waist", "arm_waist", "waist_hip", "thigh_waist"]
-    );
-  });
-
-  await t.test("una medida a cero no genera índice (no es un 0, es 'no medido')", () => {
-    assert.deepEqual(metrics.proportionIndices({ chest: 105, waist: 0 }), []);
-    assert.deepEqual(metrics.proportionIndices({}), []);
-  });
-});
-
 test("ageFromBirthDate", async (t) => {
   await t.test("cuenta años cumplidos, no diferencia de años", () => {
     const today = new Date();

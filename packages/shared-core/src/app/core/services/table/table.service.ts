@@ -98,7 +98,7 @@ export class TableService {
     return this.tableAPIService.updateTableName(table).pipe(take(1));
   }
 
-  public deleteTableById(idUser: string, idTable: string): Observable<Table> {
-    return this.tableAPIService.deleteTableById(idUser, idTable).pipe(take(1));
+  public deleteTableById(idTable: string): Observable<Table> {
+    return this.tableAPIService.deleteTableById(idTable).pipe(take(1));
   }
 }

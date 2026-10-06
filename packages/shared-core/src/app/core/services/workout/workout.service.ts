@@ -82,10 +82,6 @@ export class WorkoutService {
     return tap<T>(() => this.pinnedExerciseNoteService.invalidateAll());
   }
 
-  public createWorkout(workout: Workout): Observable<Workout> {
-    return this.workoutAPIService.createWorkout(workout);
-  }
-
   public addWorkoutsToSplits(
     idTable: string,
     workouts: Workout | Workout[]
@@ -121,10 +117,6 @@ export class WorkoutService {
 
   public getWorkoutById(id: string): Observable<Workout> {
     return this.workoutAPIService.getWorkoutById(id).pipe(take(1));
-  }
-
-  public getWorkoutByIdAndDate(id: string, date: Date): Observable<Workout> {
-    return this.workoutAPIService.getWorkoutByIdAndDate(id, date);
   }
 
   public modifyWorkout(workout: Workout): Observable<Workout> {
@@ -234,10 +226,6 @@ export class WorkoutService {
       idWorkout,
       workoutsName
     );
-  }
-
-  public deleteWorkout(id: string): Observable<Workout> {
-    return this.workoutAPIService.deleteWorkout(id).pipe(this.invalidatePinnedNotes());
   }
 
   public deleteWorkoutCustomExercises(id: string): Observable<Workout> {

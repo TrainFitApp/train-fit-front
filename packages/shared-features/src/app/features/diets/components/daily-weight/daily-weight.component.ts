@@ -110,7 +110,7 @@ export class DailyWeightComponent implements OnInit, OnChanges {
   }
 
   private refreshWeekDataIfNeeded(): void {
-    if (!this.selectedDate || !this.user?.dietInUse) {
+    if (!this.selectedDate || !this.user) {
       return;
     }
 
@@ -345,10 +345,7 @@ export class DailyWeightComponent implements OnInit, OnChanges {
     this.lastWeekDay = this._utilService.parseYYYYMMDD(dateMax);
 
     this.dietDayService
-      .getDietDaysBetweenDatesByIdDiet(
-        this.user.dietInUse,
-        dateRange
-      )
+      .getDaysInRange(dateRange)
       .subscribe((resDietsDay) => {
         this.week = this.dietDayService.getWeek(this.firstWeekDay, resDietsDay);
         // TODO: refactor ya que se llama dos veces a esta función

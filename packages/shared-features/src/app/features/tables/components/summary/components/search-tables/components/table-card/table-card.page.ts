@@ -131,7 +131,7 @@ export class TableCardPage {
       next: async (fullTable) => {
         this.loadAction = true;
         this.loadingChange.emit(false);
-        const isOwned = this.user.tables?.includes(fullTable._id) || fullTable.userId === this.user._id;
+        const isOwned = fullTable.userId === this.user._id;
         const modal = await this.modalController.create({
           component: TablePreviewModalComponent,
           componentProps: {
@@ -317,8 +317,6 @@ export class TableCardPage {
                 .subscribe({
                   next: (resTable) => {
                     this.user.tableInUse = resTable._id;
-                    if (!this.user.tables) this.user.tables = [];
-                    this.user.tables.push(resTable._id);
                     this.tableService.setCurrentTable = resTable;
                     this.workoutService.setCurrentWorkout = undefined;
                     delete this.user.workoutInUse;
@@ -497,7 +495,7 @@ export class TableCardPage {
           handler: () => {
             this.loadAction = false;
             this.tableService
-              .deleteTableById(this.user._id, idTable)
+              .deleteTableById(idTable)
               .subscribe(() => {
                 this.deletedTable.emit(idTable);
                 void this.billingService.refreshBackendEntitlements();

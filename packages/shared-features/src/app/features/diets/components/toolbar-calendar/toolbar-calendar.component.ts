@@ -2,15 +2,12 @@ import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angu
 import { AlertButton, AlertInput, AlertOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
-import { DietService } from 'src/app/core/services/diet/diet.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { TableService } from 'src/app/core/services/table/table.service';
-import { UserService } from 'src/app/core/services/user/user.service';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
-import { ARCHIVED_TYPES } from 'src/app/features/profile/models/archives';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
   ACTIONS,
@@ -32,9 +29,6 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
 
   @Input()
   public dietDay!: DietDay;
-
-  @Input()
-  public dietId!: string;
 
   @Input()
   public pinnedNote!: string;
@@ -70,16 +64,13 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
   public ACTION_TYPES = ACTION_TYPES;
   public ACTION_VALUES = ACTION_VALUES;
   public ACTIONS = ACTIONS;
-  public ARCHIVED_TYPES = ARCHIVED_TYPES;
 
   constructor(
     private utilService: UtilService,
     private dietDayService: DietDayService,
-    private dietService: DietService,
     private tableService: TableService,
     private mealService: MealService,
     private workoutService: WorkoutService,
-    private userService: UserService,
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService
   ) {
@@ -192,30 +183,26 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
 
   private manageNote(): void {
     const t = this.translate.instant.bind(this.translate);
-    const showPinOption = !!this.dietId;
 
     let shouldPin = false;
 
     const confirmButtons: AlertButton[] = [
       {
         text: t('COMMON.SAVE'),
-        handler: (data) => {
+        handler: () => {
           shouldPin = false;
           return true;
         },
       },
-    ];
-
-    if (showPinOption) {
-      confirmButtons.push({
+      {
         text: t('NOTES.PIN_TO_POSITION'),
         cssClass: 'alert-button-pin',
-        handler: (data) => {
+        handler: () => {
           shouldPin = true;
           return true;
         },
-      });
-    }
+      },
+    ];
 
     const alertInputs: AlertInput[] = [
       {
@@ -254,10 +241,10 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
         return;
       }
 
-      if (shouldPin && this.dietId) {
-        this.dietService.updatePinnedNote(this.dietId, notesValue).subscribe({
-          next: (diet) => {
-            this.pinnedNoteChange.emit(diet.pinnedNote);
+      if (shouldPin) {
+        this.dietDayService.setPinnedNote(notesValue).subscribe({
+          next: (pinnedNote) => {
+            this.pinnedNoteChange.emit(pinnedNote);
             this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
           },
           error: (err) => console.error('[ToolbarCalendar] Failed to update pinned note', err),
@@ -311,9 +298,9 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
           text: t('COMMON.SAVE'),
           handler: (data) => {
             const newNotes = (data.notes || '').trim();
-            this.dietService.updatePinnedNote(this.dietId, newNotes).subscribe({
-              next: (diet) => {
-                this.pinnedNoteChange.emit(diet.pinnedNote);
+            this.dietDayService.setPinnedNote(newNotes).subscribe({
+              next: (pinnedNote) => {
+                this.pinnedNoteChange.emit(pinnedNote);
                 this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
               },
               error: (err) => console.error('[ToolbarCalendar] Failed to update pinned note', err),
@@ -325,7 +312,7 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
           text: t('NOTES.DELETE'),
           role: 'destructive',
           handler: () => {
-            this.dietService.updatePinnedNote(this.dietId, '').subscribe({
+            this.dietDayService.setPinnedNote('').subscribe({
               next: () => {
                 this.pinnedNoteChange.emit(null);
                 this.showToast(t('NOTES.DELETE_PINNED_TITLE'));
@@ -360,10 +347,7 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
           handler: () => {
             this.loadingChange.emit(true);
             (this._service as DietDayService)
-              .deleteDietDay(
-                this.userService.getLocalUser.dietInUse,
-                this.dietDay._id
-              )
+              .deleteDietDay(this.dietDay.date)
               .subscribe(() => {
                 this.selectCalendarDayEmit.emit(this.dietDay.date);
                 this.showToast(

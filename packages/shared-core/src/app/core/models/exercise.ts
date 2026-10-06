@@ -5,13 +5,9 @@ export class Exercise {
   name: string;
   description: string;
   videoUrl: string;
-  // Fuente de verdad desde 2026-09 (ver constants/muscle-catalog.ts).
-  // Ausente = ejercicio aún sin migrar.
+  // Músculos que trabaja, cada uno con su papel (ver
+  // constants/muscle-catalog.ts).
   muscles?: ExerciseMuscle[];
-  // Proyección para lo que aún lee el modelo antiguo: la calcula el backend
-  // a partir de `muscles`.
-  muscleGroups1: string[];
-  muscleGroups2: string[];
   category?: string[] | string;
   equipment: string[];
   gifUrl: string;

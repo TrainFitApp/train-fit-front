@@ -57,7 +57,7 @@
         <!-- Menús y alternativas: solo si hay algo que elegir. Un menú a la
              vez (desplegable) y una fila por comida con alternativas. -->
         <div class="choices" *ngIf="hasChoices">
-          <div class="segment" *ngFor="let segment of segments; trackBy: trackByPlan">
+          <div class="segment" *ngFor="let segment of segments; trackBy: trackBySegment">
             <p class="segment-label" *ngIf="segments.length > 1">
               {{ segmentLabel(segment) }} · {{ segment.days }} {{ (segment.days === 1 ? 'TRAINER_COMMON.PL_DAY_ONE' : 'TRAINER_COMMON.PL_DAY_MANY') | translate }}
             </p>

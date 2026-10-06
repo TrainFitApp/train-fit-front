@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import Swiper from 'swiper';
 import {
-  IntakeCustomQuestion,
   IntakeFieldKey,
 } from 'src/app/core/services/onboarding/onboarding.service';
 import {
@@ -27,6 +26,7 @@ import { ACTIVITY_FACTOR_VALUES } from 'src/app/shared/constants/activity-factor
 import { calculateTrainingValues } from 'src/app/shared/constants/training';
 import { SEX_TYPES } from 'src/app/shared/constants/sex';
 import { OBJETIVES_VALUES } from 'src/app/shared/constants/objetives';
+import { CustomAnswerValue, CustomQuestion, FREQUENCY_OPTIONS } from 'src/app/core/models/custom-question';
 
 const STEPS_NOT_COUNTED = STEPS[STEPS_TYPES.notCounted].value;
 
@@ -58,7 +58,7 @@ export interface IntakeWizardPrefill {
   activity: number | null; // ACTIVITY_FACTOR[x].value
   training: number | null; // valor resuelto de calculateTrainingValues
   objective: number | null; // User.objetive (delta kcal con signo)
-  customAnswers: Record<string, string>;
+  customAnswers: Record<string, CustomAnswerValue>;
 }
 
 const EXPERIENCE_OPTIONS: { value: IntakeSubmission['experienceLevel']; label: string }[] = [
@@ -101,12 +101,12 @@ const EQUIPMENT_TAG_OPTIONS: { value: EquipmentTag; label: string }[] = [
 
 // Cuestionario inicial del entrenador, como wizard paso a paso — mismo
 // patron que sign-up.page.ts (swiper + barra de progreso + auto-avance en
-// seleccion unica), pero SIN reactive form: estos campos son todos
-// opcionales (el backend no exige ninguno), asi que a diferencia de sign-up
-// no hace falta bloquear "Siguiente" por validacion.
+// seleccion unica), pero SIN reactive form: casi todo es opcional; solo
+// bloquean "Siguiente" la actividad sin pasos y las preguntas propias
+// obligatorias (ver isStepBlocked).
 //
 // Los pasos no son una lista fija: dependen de que campos activo el
-// entrenador (enabledFields) mas sus preguntas de texto libre
+// entrenador (enabledFields) mas sus preguntas propias con tipo
 // (customQuestions) — se recalculan en ngOnChanges cada vez que cambia el
 // grupo (el cliente puede cerrar este wizard y abrir el de otro entrenador).
 @Component({
@@ -117,7 +117,7 @@ const EQUIPMENT_TAG_OPTIONS: { value: EquipmentTag; label: string }[] = [
 export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   @Input() public trainerName = '';
   @Input() public enabledFields: Set<IntakeFieldKey> = new Set();
-  @Input() public customQuestions: IntakeCustomQuestion[] = [];
+  @Input() public customQuestions: CustomQuestion[] = [];
   @Input() public prefill: IntakeWizardPrefill | null = null;
   // El padre es quien hace la llamada HTTP real (mismo criterio que
   // isProcessing en sign-up.page.ts vive en el componente top-level): este
@@ -177,7 +177,8 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public activity: number | null = null;
   public training: number | null = null;
   public objective: number | null = null;
-  public customAnswers: Record<string, string> = {};
+  public customAnswers: Record<string, CustomAnswerValue> = {};
+  public readonly scaleValues = [1, 2, 3, 4, 5];
 
   private stepIds: string[] = [];
 
@@ -248,7 +249,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     if (this.enabledFields.has('dislikedFoods')) ids.push('dislikedFoods');
     if (this.enabledFields.has('cooksAtHome')) ids.push('cooksAtHome');
     if (this.enabledFields.has('dietaryFlags')) ids.push('dietaryFlags');
-    this.customQuestions.forEach((q) => ids.push(`custom:${q.id}`));
+    this.customQuestions.forEach((q) => ids.push(`custom:${q._id}`));
     return ids;
   }
 
@@ -265,26 +266,46 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     return this.currentStep >= this.stepCount - 1;
   }
 
-  // Como en el registro: sin contar pasos, la actividad es lo único que
-  // estima el gasto diario, así que no se puede saltar.
-  public get isActivityMissing(): boolean {
-    return !this.readonly && this.stepIds[this.currentStep] === 'activity' && this.activity === null;
+  // Pasos que no se pueden saltar: la actividad sin contar pasos (como en
+  // el registro, es lo único que estima el gasto diario) y las preguntas
+  // propias que el profesional marcó como obligatorias.
+  public get isStepBlocked(): boolean {
+    if (this.readonly) return false;
+    const stepId = this.stepIds[this.currentStep];
+    if (stepId === 'activity') return this.activity === null;
+    const question = this.customQuestions.find((q) => `custom:${q._id}` === stepId);
+    return !!question?.required && !this.hasCustomAnswer(question);
   }
 
   public trackByStepId(_index: number, id: string): string {
     return id;
   }
 
-  public trackByQuestionId(_index: number, question: IntakeCustomQuestion): string {
-    return question.id;
+  public trackByQuestionId(_index: number, question: CustomQuestion): string {
+    return question._id || question.label;
   }
 
-  public customAnswerFor(questionId: string): string {
-    return this.customAnswers[questionId] || '';
+  public customAnswerFor(question: CustomQuestion): CustomAnswerValue | null {
+    return this.customAnswers[question._id!] ?? null;
   }
 
-  public setCustomAnswer(questionId: string, value: string): void {
-    this.customAnswers[questionId] = value;
+  public setCustomAnswer(question: CustomQuestion, value: CustomAnswerValue | null): void {
+    if (value === null || value === '') delete this.customAnswers[question._id!];
+    else this.customAnswers[question._id!] = value;
+  }
+
+  // Escala, sí/no, selector y frecuencia: una sola opción, avanza sola.
+  public selectCustomAnswer(question: CustomQuestion, value: CustomAnswerValue): void {
+    this.selectSingleChip((v) => this.setCustomAnswer(question, v), value);
+  }
+
+  public optionsFor(question: CustomQuestion): string[] {
+    return question.type === 'frequency' ? FREQUENCY_OPTIONS : question.options || [];
+  }
+
+  private hasCustomAnswer(question: CustomQuestion): boolean {
+    const value = this.customAnswers[question._id!];
+    return value !== undefined && value !== null && String(value).trim() !== '';
   }
 
   private swiperReady(): void {
@@ -406,11 +427,13 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public submit(): void {
     if (this.isSubmitting) return;
 
-    const customAnswers = this.customQuestions.map((q) => ({
-      questionId: q.id,
-      label: q.label,
-      value: (this.customAnswers[q.id] || '').trim(),
-    }));
+    // Solo lo respondido; el back valida cada valor contra su pregunta.
+    const customAnswers = this.customQuestions
+      .filter((q) => this.hasCustomAnswer(q))
+      .map((q) => {
+        const value = this.customAnswers[q._id!];
+        return { questionId: q._id!, value: typeof value === 'string' ? value.trim() : value };
+      });
 
     this.submitted.emit({
       goals: this.goals.trim(),

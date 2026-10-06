@@ -74,10 +74,10 @@ export interface TemplateMenu {
   meals: TemplateMeal[];
 }
 
-// Forma real en la que el backend persiste cada comida (diet-template-schema.js)
-// — "clipboard" por alternativa (mismo formato que customProducts en
-// meal-schema.js), no TemplateFoodItem. TemplateDay/TemplateMeal son el
-// modelo EDITABLE en el constructor; este es el que viaja por la red.
+// Forma en la que viaja por la red cada comida de un menú (plantillas y fases,
+// diet-menu-schema.js en el backend): alimentos y recetas por alternativa, no
+// TemplateFoodItem. TemplateMenu/TemplateMeal son el modelo EDITABLE en el
+// constructor; este es el que viaja.
 export interface DietTemplateMealAlternativePayload {
   label: string;
   customProducts: Record<string, unknown>[];
@@ -98,10 +98,9 @@ export interface DietTemplate {
   _id: string;
   trainerId: string;
   // Puesto = dieta de biblioteca exclusiva de ese cliente; null = plantilla
-  // general, aplicable a cualquiera (ver diet-template-schema.js en el
-  // backend). No confundir con `clientId`, que allí marca una copia ya
-  // asignada como fase y nunca llega a estos listados.
-  ownerClientId?: string | null;
+  // general, aplicable a cualquiera. Aplicarla crea una fase (DietPhase) con
+  // su propia copia del contenido.
+  ownerClientId: string | null;
   name: string;
   menus: DietTemplateMenuPayload[];
   createdAt: string;

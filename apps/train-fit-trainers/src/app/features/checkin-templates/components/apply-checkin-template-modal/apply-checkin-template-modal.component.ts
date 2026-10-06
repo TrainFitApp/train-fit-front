@@ -1,14 +1,12 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular';
 import { TrainerClientSummary } from '../../../clients/models/trainer-client-summary.model';
 import { TrainerClientsApiService } from '../../../clients/services/trainer-clients-api.service';
 import { CheckinTemplateDefinition } from '../../models/checkin-template.model';
 
 // Extraído de checkin-templates.page.ts / templates.page.ts (duplicado en
-// ambas) a un modal standalone real. El panel "Aplicar" vivía como un
+// ambas) a un modal real (ion-modal). El panel "Aplicar" vivía como un
 // <div position:fixed> hecho a mano DENTRO de la página que lo abría —
 // Ionic marca `.ion-page` con `contain: layout`, que la convierte en
 // containing block de ese `fixed`: el panel dejaba de posicionarse contra
@@ -20,8 +18,6 @@ import { CheckinTemplateDefinition } from '../../models/checkin-template.model';
 // panel anclado a la derecha en escritorio que tenía el div original.
 @Component({
   selector: 'app-apply-checkin-template-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, TranslateModule],
   templateUrl: './apply-checkin-template-modal.component.html',
   styleUrls: ['./apply-checkin-template-modal.component.scss'],
 })

@@ -22,9 +22,9 @@ import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
 import { Workout } from "src/app/core/models/workout";
 import { CustomExerciseService } from "src/app/core/services/custom-exercise/custom-exercise.service";
-import { SetService } from "src/app/core/services/set/set.service";
 import { TableService } from "src/app/core/services/table/table.service";
 import { UserService } from "src/app/core/services/user/user.service";
+import { FavoritesService } from "src/app/core/services/favorites/favorites.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { UtilService } from "src/app/core/services/util/util.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
@@ -35,7 +35,15 @@ import { NavigationService } from "src/app/core/services/util/navigation.service
 import { ExerciseService } from "src/app/core/services/exercise/exercise.service";
 import { ExerciseScoreEditHandler } from "src/app/core/services/exercise/exercise-score-edit-handler";
 import { SearchExercisesPage } from "src/app/shared/components/search-exercises/search-exercises.page";
-import { SearchFilterGroupExercises } from "src/app/shared/models/filterGroup";
+import {
+  ExerciseMuscle,
+  MUSCLE_GROUPS,
+  MuscleGroup,
+  MuscleRole,
+  muscleFullLabel,
+  muscleGroupOf,
+  normalizeMuscles,
+} from "src/app/core/constants/muscle-catalog";
 import { FilterInputPage } from "src/app/shared/components/filter-input/filter-input.page";
 import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
 import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from "src/app/core/models/pinned-exercise-note";
@@ -64,15 +72,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     return this.customExercise?.exercise?._id || this.exercise?._id || null;
   }
   @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLElement>;
-  public muscleGroups: string[] = [
-    "Espalda",
-    "Pecho",
-    "Pierna",
-    "Hombros",
-    "Brazos",
-    "Abdominales",
-  ];
-
   public tableInUse: Table;
   public form: FormGroup;
   public exercise: Exercise;
@@ -82,7 +81,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public workoutIndex: number;
   public user: User;
   public notes: string;
-  public details: SearchFilterGroupExercises = new SearchFilterGroupExercises();
+  public details: ExerciseDetails = emptyDetails();
 
   public noteToCreate: boolean;
   public setList: ExerciseSet[] = [];
@@ -107,10 +106,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
   public originSetsOrdered: ExerciseSet[] = [];
 
-  public exerciseArchived: boolean;
-  public isArchiving: boolean;
 
-  public isExerciseFavorited: boolean = false;
   public isFavoritingExercise: boolean = false;
 
   public backButton$: Subscription;
@@ -132,12 +128,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
   private originalNotes: string;
   private originalExerciseMode: "fuerza" | "cardio" | "isometrico" = "fuerza";
-  private originalDetails: {
-    category: string[];
-    muscleGroups1: string[];
-    muscleGroups2: string[];
-    equipment: string[];
-  };
+  private originalDetails: ExerciseDetails;
 
   public pinnedNote: PinnedExerciseNote | null = null;
   private pinnedNoteCacheSub: Subscription | null = null;
@@ -250,31 +241,9 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     return targetExercise.description || "";
   }
 
-  public filterMuscleGroup1: string[] = [
-    "Brazos",
-    "Bíceps",
-    "Tríceps",
-    "Antebrazo",
-    "Hombro",
-    "Deltoides anterior",
-    "Deltoides lateral",
-    "Deltoides posterior",
-    "Pectoral",
-    "Pectoral superior",
-    "Pectoral inferior",
-    "Abdomen",
-    "Cuello",
-    "Espalda",
-    "Espalda alta",
-    "Espalda baja",
-    "Piernas",
-    "Cuádriceps",
-    "Aductor",
-    "Femoral",
-    "Glúteo",
-    "Gemelo",
-    "Sóleo",
-  ];
+  // Los chips de músculos son los grupos del catálogo (constants/
+  // muscle-catalog.ts); el ejercicio guarda cada uno con su papel.
+  public readonly muscleGroups: MuscleGroup[] = MUSCLE_GROUPS;
 
   public filterEquipment: string[] = [
     "Barra",
@@ -296,12 +265,12 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     private modalController: ModalController,
     private customExerciseService: CustomExerciseService,
     private workoutService: WorkoutService,
-    private setService: SetService,
     private tableService: TableService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private exerciseService: ExerciseService,
     private userService: UserService,
+    private favoritesService: FavoritesService,
     private platform: Platform,
     private sanitizer: DomSanitizer,
     private adMobService: AdMobService,
@@ -318,8 +287,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     }
     this.isCreateMode = !this.customExercise && !this.exercise;
     this.initForm();
-    this.isExerciseArchived();
-    this.checkIfExerciseIsFavorited();
 
     const currentExerciseObj = this.exercise || this.customExercise?.exercise;
     if (currentExerciseObj?.userId === this.user?._id) {
@@ -349,12 +316,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
       // Store original state for change detection
       this.originalNotes = this.notes;
-      this.originalDetails = {
-        category: [...this.details.category],
-        muscleGroups1: [...this.details.muscleGroups1],
-        muscleGroups2: [...this.details.muscleGroups2],
-        equipment: [...this.details.equipment],
-      };
+      this.originalDetails = copyDetails(this.details);
     }
     this.loadPinnedNote();
     this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
@@ -374,8 +336,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       : exercise.category
       ? [exercise.category]
       : [];
-    this.details.muscleGroups1 = [...(exercise.muscleGroups1 || [])];
-    this.details.muscleGroups2 = [...(exercise.muscleGroups2 || [])];
+    this.details.muscles = normalizeMuscles(exercise.muscles);
     this.details.equipment = [...(exercise.equipment || [])];
   }
 
@@ -574,8 +535,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         name: "",
         description: "",
         videoUrl: "",
-        muscleGroups1: [],
-        muscleGroups2: [],
+        muscles: [],
         category: [],
         equipment: [],
         gifUrl: "",
@@ -598,25 +558,12 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     this.syncDescriptionStepsFromForm();
   }
 
-  private isExerciseArchived(): void {
-    const idExercise = this.exercise
-      ? this.exercise._id
-      : this.customExercise.exercise._id;
-
-    this.exerciseArchived = this.user.archivedExercises.includes(idExercise);
-    this.isArchiving = false;
+  private get exerciseId(): string | undefined {
+    return this.exercise ? this.exercise._id : this.customExercise?.exercise?._id;
   }
 
-  private checkIfExerciseIsFavorited(): void {
-    const idExercise = this.exercise
-      ? this.exercise._id
-      : this.customExercise?.exercise?._id;
-
-    if (idExercise && this.user) {
-      this.isExerciseFavorited =
-        this.user.archivedExercises.includes(idExercise);
-    }
-    this.isFavoritingExercise = false;
+  public get isExerciseFavorited(): boolean {
+    return this.favoritesService.isFavorite("exercises", this.exerciseId);
   }
 
   public changeExercise(): void {
@@ -738,10 +685,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     this.syncDescriptionStepsFromForm();
 
     if (this.originalDetails) {
-      this.details.category = [...this.originalDetails.category];
-      this.details.muscleGroups1 = [...this.originalDetails.muscleGroups1];
-      this.details.muscleGroups2 = [...this.originalDetails.muscleGroups2];
-      this.details.equipment = [...this.originalDetails.equipment];
+      this.details = copyDetails(this.originalDetails);
     }
 
     this.applyExerciseMode(this.originalExerciseMode);
@@ -779,12 +723,9 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         : currentExercise.category
         ? [currentExercise.category]
         : [],
-      muscleGroups1: this.details.muscleGroups1?.length
-        ? this.details.muscleGroups1
-        : currentExercise.muscleGroups1 || [],
-      muscleGroups2: this.details.muscleGroups2?.length
-        ? this.details.muscleGroups2
-        : currentExercise.muscleGroups2 || [],
+      muscles: this.details.muscles.length
+        ? normalizeMuscles(this.details.muscles)
+        : currentExercise.muscles || [],
       equipment: this.details.equipment?.length
         ? this.details.equipment
         : currentExercise.equipment || [],
@@ -852,8 +793,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         : mergedExercise.category
         ? [mergedExercise.category]
         : [];
-      this.details.muscleGroups1 = mergedExercise.muscleGroups1 || [];
-      this.details.muscleGroups2 = mergedExercise.muscleGroups2 || [];
+      this.details.muscles = normalizeMuscles(mergedExercise.muscles);
       this.details.equipment = mergedExercise.equipment || [];
 
       this.isEditingOwnExercise = false;
@@ -1023,23 +963,19 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     // In create mode, use addDataExerciseToWorkout which handles exercise creation
     if (this.isCreateMode && this.exercise && !this.exercise._id) {
       try {
-        // Prepare sets
+        // Las series viajan dentro del ejercicio: el backend las guarda en la
+        // sesión al añadirlo (ya no se crean antes por separado).
         this.setList.forEach((setTemp) => delete setTemp._id);
-        const newSets = await this.setService
-          .createSets(this.setList)
-          .toPromise();
+        const newSets = this.setList;
 
         // Prepare exercise data (backend will create it)
         const exerciseData = {
           name: this.form.get("name")?.value?.trim(),
           description: this.form.get("description")?.value?.trim() || "",
           videoUrl: this.videoUrl || "",
-          muscleGroups1: this.details.muscleGroups1?.length
-            ? this.details.muscleGroups1
-            : this.exercise.muscleGroups1 || [],
-          muscleGroups2: this.details.muscleGroups2?.length
-            ? this.details.muscleGroups2
-            : this.exercise.muscleGroups2 || [],
+          muscles: this.details.muscles.length
+            ? normalizeMuscles(this.details.muscles)
+            : this.exercise.muscles || [],
           category: this.details.category?.length
             ? this.details.category
             : Array.isArray(this.exercise.category)
@@ -1063,7 +999,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         // Prepare dataExercise with embedded exercise
         const dataExerciseData = {
           notes: this.notes || null,
-          sets: newSets.map((s) => s._id),
+          sets: newSets,
           exercise: exerciseData, // Backend will create this and replace with ID
         };
 
@@ -1156,12 +1092,9 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
             : newCustomExercise.exercise.category
             ? [newCustomExercise.exercise.category]
             : [],
-          muscleGroups1: this.details.muscleGroups1?.length
-            ? this.details.muscleGroups1
-            : newCustomExercise.exercise.muscleGroups1 || [],
-          muscleGroups2: this.details.muscleGroups2?.length
-            ? this.details.muscleGroups2
-            : newCustomExercise.exercise.muscleGroups2 || [],
+          muscles: this.details.muscles.length
+            ? normalizeMuscles(this.details.muscles)
+            : newCustomExercise.exercise.muscles || [],
           equipment: this.details.equipment?.length
             ? this.details.equipment
             : newCustomExercise.exercise.equipment || [],
@@ -1296,8 +1229,9 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
           });
       });
     } else {
+      // Mismas series para el ejercicio nuevo, en línea (ver arriba).
       this.setList.forEach((setTemp) => delete setTemp._id);
-      let newSets = await this.setService.createSets(this.setList).toPromise();
+      const newSets = this.setList;
 
       if (this.isEditingOwnExercise && this.exercise) {
         this.exercise = {
@@ -1314,12 +1248,9 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
             : this.exercise.category
             ? [this.exercise.category]
             : [],
-          muscleGroups1: this.details.muscleGroups1?.length
-            ? this.details.muscleGroups1
-            : this.exercise.muscleGroups1 || [],
-          muscleGroups2: this.details.muscleGroups2?.length
-            ? this.details.muscleGroups2
-            : this.exercise.muscleGroups2 || [],
+          muscles: this.details.muscles.length
+            ? normalizeMuscles(this.details.muscles)
+            : this.exercise.muscles || [],
           equipment: this.details.equipment?.length
             ? this.details.equipment
             : this.exercise.equipment || [],
@@ -1394,22 +1325,28 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     }
   }
 
-  public selectMuscleGroup1(muscle: string): void {
-    if (this.details.muscleGroups1.includes(muscle)) {
-      const i = this.details.muscleGroups1.indexOf(muscle);
-      this.details.muscleGroups1.splice(i, 1);
+  // Un grupo está marcado con un papel si el ejercicio tiene ese grupo o
+  // alguna de sus porciones con ese papel.
+  public isMuscleSelected(groupId: string, role: MuscleRole): boolean {
+    return this.details.muscles.some(
+      (item) => item.role === role && muscleGroupOf(item.muscle)?.id === groupId
+    );
+  }
+
+  public toggleMuscle(groupId: string, role: MuscleRole): void {
+    if (this.isMuscleSelected(groupId, role)) {
+      this.details.muscles = this.details.muscles.filter(
+        (item) => !(item.role === role && muscleGroupOf(item.muscle)?.id === groupId)
+      );
     } else {
-      this.details.muscleGroups1.push(muscle);
+      this.details.muscles = [...this.details.muscles, { muscle: groupId, role }];
     }
   }
 
-  public selectMuscleGroup2(muscle: string): void {
-    if (this.details.muscleGroups2.includes(muscle)) {
-      const i = this.details.muscleGroups2.indexOf(muscle);
-      this.details.muscleGroups2.splice(i, 1);
-    } else {
-      this.details.muscleGroups2.push(muscle);
-    }
+  public musclesWithRole(role: MuscleRole): string[] {
+    return this.details.muscles
+      .filter((item) => item.role === role)
+      .map((item) => muscleFullLabel(item.muscle));
   }
 
   public selectEquipment(equipment: string): void {
@@ -1525,15 +1462,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     return array.filter((item) => item && item.trim().length > 0);
   }
 
-  public removeDetailMuscle1(m: string): void {
-    const i = this.details.muscleGroups1.indexOf(m);
-    if (i >= 0) this.details.muscleGroups1.splice(i, 1);
-  }
-
-  public removeDetailMuscle2(m: string): void {
-    const i = this.details.muscleGroups2.indexOf(m);
-    if (i >= 0) this.details.muscleGroups2.splice(i, 1);
-  }
 
   private handleExerciseLimitError(error: any): boolean {
     if (error?.error?.code !== "PREMIUM_LIMIT_EXERCISES") {
@@ -1600,40 +1528,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     }
   }
 
-  public async addExerciseToLibrary(): Promise<void> {
-    this.isArchiving = true;
-    // TODO: En el futuro habrá que tener en cuenta ownExercises cuando
-    // se puedan crear ejercicios propios
-    const idExercise = this.exercise
-      ? this.exercise._id
-      : this.customExercise.exercise._id;
-
-    this.exerciseService
-      .archiveExercise(idExercise, this.user._id)
-      .subscribe(() => {
-        if (this.exerciseArchived)
-          this.user.archivedExercises.splice(
-            this.user.archivedExercises.findIndex(
-              (archivedExercisesTemp) => archivedExercisesTemp === idExercise,
-            ),
-            1,
-          );
-        else this.user.archivedExercises.push(idExercise);
-
-        this.userService.updateUser(this.user).subscribe((resUser) => {
-          this.user = resUser;
-          setTimeout(() => this.isExerciseArchived(), 1000);
-        });
-      });
-    const toastOptions: ToastOptions = {
-      message: this.exerciseArchived
-        ? this.translate.instant("EXERCISE_CONFIG.FAVORITE_REMOVED")
-        : this.translate.instant("EXERCISE_CONFIG.FAVORITE_ADDED"),
-      duration: 2000,
-    };
-    this.ionicUtilService.showToast(toastOptions);
-  }
-
   public deleteSet(set: ExerciseSet, setIndex: number) {
     this.setList.splice(setIndex, 1);
 
@@ -1666,14 +1560,12 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     this.normalizeSetOrder();
   }
 
+  // Músculos principales del ejercicio, para la cabecera.
   public getExerciseMuscleGroups(): string[] {
-    let groups: string[] = [];
-    if (this.exercise) {
-      groups = this.exercise.muscleGroups1;
-    } else if (this.customExercise) {
-      groups = this.customExercise.exercise.muscleGroups1;
-    }
-    return (groups || []).filter((g) => g && g.trim().length > 0);
+    const exercise = this.exercise || this.customExercise?.exercise;
+    return normalizeMuscles(exercise?.muscles)
+      .filter((item) => item.role === "primary")
+      .map((item) => muscleFullLabel(item.muscle));
   }
 
   public onNotesUpdate(notes: string | undefined): void {
@@ -1909,12 +1801,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     return (
       compareArrays(this.details.category, this.originalDetails.category) ||
       compareArrays(
-        this.details.muscleGroups1,
-        this.originalDetails.muscleGroups1,
-      ) ||
-      compareArrays(
-        this.details.muscleGroups2,
-        this.originalDetails.muscleGroups2,
+        normalizeMuscles(this.details.muscles).map((item) => `${item.muscle}:${item.role}`),
+        normalizeMuscles(this.originalDetails.muscles).map((item) => `${item.muscle}:${item.role}`),
       ) ||
       compareArrays(this.details.equipment, this.originalDetails.equipment)
     );
@@ -2003,60 +1891,27 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     this.checkChanges();
   }
 
-  public addExerciseToFavorites(): void {
-    if (!this.user || (!this.exercise && !this.customExercise)) {
-      return;
-    }
-
-    const idExercise = this.exercise
-      ? this.exercise._id
-      : this.customExercise.exercise._id;
-
-    if (!this.user.archivedExercises) {
-      this.user.archivedExercises = [];
-    }
-
+  public toggleFavorite(): void {
+    const idExercise = this.exerciseId;
+    if (!idExercise) return;
     this.isFavoritingExercise = true;
-
-    // Call API to persist changes
-    this.exerciseService
-      .addExerciseToFavorites(idExercise, this.user._id)
-      .subscribe({
-        next: (response: { isFavorite: boolean; message?: string }) => {
-          const isFavorite = !!response?.isFavorite;
-          const favoriteSet = new globalThis.Set<string>(
-            this.user.archivedExercises,
-          );
-
-          if (isFavorite) {
-            favoriteSet.add(idExercise);
-          } else {
-            favoriteSet.delete(idExercise);
-          }
-
-          this.user.archivedExercises = Array.from(favoriteSet);
-          this.isExerciseFavorited = isFavorite;
-          this.isFavoritingExercise = false;
-
-          // El icono solo cambia de relleno: el toast dice qué ha pasado.
-          this.ionicUtilService.showToast({
-            message: this.translate.instant(
-              isFavorite
-                ? "EXERCISE_CONFIG.FAVORITE_ADDED"
-                : "EXERCISE_CONFIG.FAVORITE_REMOVED",
-            ),
-            duration: 2000,
-          });
-        },
-        error: (err) => {
-          console.error("Error adding exercise to favorites:", err);
-          this.isFavoritingExercise = false;
-          this.ionicUtilService.showToast({
-            message: this.translate.instant("EXERCISE_CONFIG.FAVORITE_FAILED"),
-            duration: 3000,
-          });
-        },
-      });
+    this.favoritesService.toggle("exercises", idExercise).subscribe({
+      next: (isFavorite) => {
+        this.isFavoritingExercise = false;
+        // El icono solo cambia de relleno: el toast dice qué ha pasado.
+        this.ionicUtilService.showToast({
+          message: this.translate.instant(isFavorite ? "EXERCISE_CONFIG.FAVORITE_ADDED" : "EXERCISE_CONFIG.FAVORITE_REMOVED"),
+          duration: 2000,
+        });
+      },
+      error: () => {
+        this.isFavoritingExercise = false;
+        this.ionicUtilService.showToast({
+          message: this.translate.instant("EXERCISE_CONFIG.FAVORITE_FAILED"),
+          duration: 3000,
+        });
+      },
+    });
   }
 
   public async deleteOwnExercise() {
@@ -2098,12 +1953,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
               .deleteExercise(currentExerciseObj._id)
               .subscribe({
                 next: () => {
-                  if (this.user?.archivedExercises) {
-                    this.user.archivedExercises =
-                      this.user.archivedExercises.filter(
-                        (id) => id !== currentExerciseObj._id,
-                      );
-                  }
+                  this.favoritesService.forget("exercises", currentExerciseObj._id);
 
                   const tableInUseRef =
                     this.tableInUse || this.tableService.tableInUse;
@@ -2219,4 +2069,24 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       splits: splitIds.size,
     };
   }
+}
+
+// Ficha editable del ejercicio (categorías, músculos con su papel y
+// material).
+interface ExerciseDetails {
+  category: string[];
+  muscles: ExerciseMuscle[];
+  equipment: string[];
+}
+
+function emptyDetails(): ExerciseDetails {
+  return { category: [], muscles: [], equipment: [] };
+}
+
+function copyDetails(details: ExerciseDetails): ExerciseDetails {
+  return {
+    category: [...details.category],
+    muscles: details.muscles.map((item) => ({ ...item })),
+    equipment: [...details.equipment],
+  };
 }

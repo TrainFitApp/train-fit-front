@@ -39,10 +39,10 @@ export interface ShoppingMenu {
   meals: ShoppingMeal[];
 }
 
-// Un tramo por copia de dieta: una semana preparada o una fase nueva dentro
-// del rango cambian el contenido y abren tramo.
+// Un tramo por versión del contenido de una fase: una semana preparada o una
+// fase nueva dentro del rango cambian lo que se come y abren tramo.
 export interface ShoppingSegment {
-  planId: string;
+  id: string;
   name: string;
   from: string;
   to: string;
@@ -54,8 +54,7 @@ export interface ShoppingList {
   items: ShoppingListItem[];
   // Días del rango que REALMENTE tienen plan (sin saltados ni huecos).
   daysWithPlan: number;
-  // Ausente en un back anterior: entonces solo hay `items`.
-  segments?: ShoppingSegment[];
+  segments: ShoppingSegment[];
   period: { from: string; to: string } | null;
 }
 
@@ -76,14 +75,14 @@ export function defaultShoppingSelection(segments: ShoppingSegment[]): ShoppingS
   for (const segment of segments || []) {
     const menuDays: Record<string, number> = {};
     for (const menu of segment.menus) menuDays[menu.name] = menu.defaultDays || 0;
-    selection[segment.planId] = { menuDays, alternatives: {} };
+    selection[segment.id] = { menuDays, alternatives: {} };
   }
   return selection;
 }
 
 /** Días del tramo que quedan sin menú con este reparto. */
 export function unassignedDays(segment: ShoppingSegment, selection: ShoppingSelection): number {
-  const menuDays = selection[segment.planId]?.menuDays || {};
+  const menuDays = selection[segment.id]?.menuDays || {};
   const used = segment.menus.reduce((acc, menu) => acc + (menuDays[menu.name] || 0), 0);
   return segment.days - used;
 }
@@ -94,7 +93,7 @@ export function aggregateShopping(
 ): ShoppingListItem[] {
   const byKey = new Map<string, { name: string; quantity: number; dayCount: number; lastDays: string | null }>();
   for (const segment of segments || []) {
-    const chosen = selection[segment.planId];
+    const chosen = selection[segment.id];
     for (const menu of segment.menus || []) {
       const days = chosen?.menuDays?.[menu.name] ?? menu.defaultDays ?? 0;
       if (!(days > 0)) continue;
@@ -105,7 +104,7 @@ export function aggregateShopping(
           const current = byKey.get(item.key) || { name: item.name, quantity: 0, dayCount: 0, lastDays: null };
           current.quantity += item.quantity * days;
           // Un producto en dos comidas del mismo menú cuenta sus días una vez.
-          const dayKey = `${segment.planId}|${menu.name}`;
+          const dayKey = `${segment.id}|${menu.name}`;
           if (current.lastDays !== dayKey) current.dayCount += days;
           current.lastDays = dayKey;
           byKey.set(item.key, current);

@@ -17,8 +17,6 @@ import { CustomProductAPIService } from './services/custom-product/custom-produc
 import { CustomProductService } from './services/custom-product/custom-product.service';
 import { DietDayAPIService } from './services/diet-day/diet-day-api.service';
 import { DietDayService } from './services/diet-day/diet-day.service';
-import { DietAPIService } from './services/diet/diet-api.service';
-import { DietService } from './services/diet/diet.service';
 import { ExerciseAPIService } from './services/exercise/exercise-api.service';
 import { ExerciseService } from './services/exercise/exercise.service';
 import { RmCalculatorService } from './services/rm-calculator/rm-calculator.service';
@@ -81,8 +79,6 @@ import { MatchPasswords } from './validators/matchPasswords';
     UserAPIService,
     UserLocalstorageService,
     AnthropometryService,
-    DietService,
-    DietAPIService,
     DietDayService,
     DietDayAPIService,
     MealService,

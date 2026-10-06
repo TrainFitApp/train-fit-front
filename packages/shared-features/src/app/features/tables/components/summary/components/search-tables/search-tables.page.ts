@@ -180,13 +180,6 @@ export class SearchTablesPage implements OnInit {
       return;
     }
 
-    if (!this.user.tables) this.user.tables = [];
-    if (!this.user.tables.includes(copiedTable._id)) {
-      this.user.tables.push(copiedTable._id);
-    }
-
-    this.userService.setLocalUser = this.user;
-
     const existsInList = this.tableList?.some(
       (table) => table._id === copiedTable._id
     );
@@ -207,17 +200,6 @@ export class SearchTablesPage implements OnInit {
     );
 
     if (indexToDelete !== -1) this.tableList.splice(indexToDelete, 1);
-
-    if (this.user?.tables) {
-      this.user = {
-        ...this.user,
-        tables: this.user.tables.filter(
-          (tableId) => tableId?.toString() !== idTable
-        ),
-      };
-    }
-
-    this.userService.setLocalUser = this.user;
 
     if (idTable === this.tableService.getTableInUseId(this.user?.tableInUse)) {
       this.workoutService.setCurrentWorkout = undefined;

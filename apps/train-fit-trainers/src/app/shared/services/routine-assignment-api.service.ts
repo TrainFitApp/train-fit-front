@@ -19,21 +19,15 @@ export class RoutineAssignmentApiService {
     );
   }
 
-  public getActive(clientId: string): Observable<RoutineAssignment | null> {
-    return this.http.get<RoutineAssignment | null>(
-      `trainer/clients/${clientId}/routine-assignments/active`
-    );
-  }
-
   public getHistory(clientId: string): Observable<RoutineAssignment[]> {
     return this.http.get<RoutineAssignment[]>(
       `trainer/clients/${clientId}/routine-assignments/history`
     );
   }
 
-  public getActiveSchedule(clientId: string, from: string, to: string): Observable<RoutineScheduleDay[]> {
+  public getSchedule(clientId: string, from: string, to: string): Observable<RoutineScheduleDay[]> {
     return this.http.get<RoutineScheduleDay[]>(
-      `trainer/clients/${clientId}/routine-assignments/active/schedule?from=${from}&to=${to}`
+      `trainer/clients/${clientId}/routine-assignments/schedule?from=${from}&to=${to}`
     );
   }
 

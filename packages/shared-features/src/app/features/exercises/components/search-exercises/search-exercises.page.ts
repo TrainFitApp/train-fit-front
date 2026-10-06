@@ -17,7 +17,7 @@ import { FilterInputPage } from 'src/app/shared/components/filter-input/filter-i
 import { SearchFilterGroupExercises } from 'src/app/shared/models/filterGroup';
 import { ExerciseService } from 'src/app/core/services/exercise/exercise.service';
 import { ConfigExercisePage } from '../config-exercise/config-exercise.page';
-import { muscleGroupOf, muscleLabel, muscleNeedsGroup } from 'src/app/core/constants/muscle-catalog';
+import { muscleGroupOf, muscleLabel, muscleNeedsGroup, primaryMuscleLabels } from 'src/app/core/constants/muscle-catalog';
 
 @Component({
   selector: 'app-exercises',
@@ -201,23 +201,8 @@ export class SearchExercisesPageComponent {
     this.searchByFilter();
   }
 
-  public spliceMuscleGroup1(muscle: string): void {
-    const indexCategory =
-      this.searchFilterGroupExercises.muscleGroups1.indexOf(muscle);
-    this.searchFilterGroupExercises.muscleGroups1.splice(indexCategory, 1);
-    this.searchByFilter();
-  }
-
-  public spliceMuscleGroup2(muscle: string): void {
-    const indexCategory =
-      this.searchFilterGroupExercises.muscleGroups2.indexOf(muscle);
-    this.searchFilterGroupExercises.muscleGroups2.splice(indexCategory, 1);
-    this.searchByFilter();
-  }
-
   public getValidMuscleGroups(exercise: Exercise): string[] {
-    if (!exercise || !exercise.muscleGroups1) return [];
-    return exercise.muscleGroups1.filter((g) => g && g.trim().length > 0);
+    return primaryMuscleLabels(exercise?.muscles);
   }
 
   public setCardioMode(mode: 'all' | 'cardio'): void {

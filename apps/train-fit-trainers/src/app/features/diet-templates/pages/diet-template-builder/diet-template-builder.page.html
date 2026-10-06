@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <app-page-header
-    [title]="isPreparingNextWeek ? (('DIET_TEMPLATES.PREPARAR' | translate) + nextWeekNumber) : (isCreatingForClient ? ('DIET_TEMPLATES.CREAR_DIETA' | translate) : (isEditingAssignedCopy ? ('DIET_TEMPLATES.EDITAR_DIETA' | translate) : ('DIET_TEMPLATES.EDITAR_PLANTILLA' | translate)))"
+    [title]="isPreparingNextWeek ? (('DIET_TEMPLATES.PREPARAR' | translate) + nextWeekNumber) : (isCreatingForClient ? ('DIET_TEMPLATES.CREAR_DIETA' | translate) : (isEditingPhaseContent ? ('DIET_TEMPLATES.EDITAR_DIETA' | translate) : ('DIET_TEMPLATES.EDITAR_PLANTILLA' | translate)))"
   ></app-page-header>
 </ion-header>
 
@@ -10,14 +10,14 @@
     <div class="skeleton-block" style="height: 60px;"></div>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy && !isPreparingNextWeek">
+  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingPhaseContent && !isPreparingNextWeek">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>{{ 'DIET_TEMPLATES.NO_SE_PUDO_CARGAR_LA' | translate }}</h2>
     <p>{{ 'DIET_TEMPLATES.COMPRUEBA_TU_CONEXION_INTENTALO_DE' | translate }}</p>
     <button class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && (isEditingAssignedCopy || isPreparingNextWeek)">
+  <div class="state-message" *ngIf="state === 'error' && (isEditingPhaseContent || isPreparingNextWeek)">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>{{ 'DIET_TEMPLATES.NO_SE_PUDO_CARGAR_LA_2' | translate }}</h2>
     <p>{{ 'DIET_TEMPLATES.COMPRUEBA_TU_CONEXION_INTENTALO_DE_2' | translate }}</p>
@@ -438,7 +438,7 @@
     </button>
 
     <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()" data-enter-submit-action="saveDiet">
-      <span *ngIf="!isSaving">{{ isPreparingNextWeek ? (('DIET_TEMPLATES.PREPARAR' | translate) + nextWeekNumber) : (isCreatingForClient ? ('DIET_TEMPLATES.CREAR_ASIGNAR' | translate) : (isEditingAssignedCopy ? ('DIET_TEMPLATES.GUARDAR_CAMBIOS' | translate) : ('DIET_TEMPLATES.GUARDAR_PLANTILLA' | translate))) }}</span>
+      <span *ngIf="!isSaving">{{ isPreparingNextWeek ? (('DIET_TEMPLATES.PREPARAR' | translate) + nextWeekNumber) : (isCreatingForClient ? ('DIET_TEMPLATES.CREAR_ASIGNAR' | translate) : (isEditingPhaseContent ? ('DIET_TEMPLATES.GUARDAR_CAMBIOS' | translate) : ('DIET_TEMPLATES.GUARDAR_PLANTILLA' | translate))) }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </ng-container>

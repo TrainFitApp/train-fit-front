@@ -323,20 +323,85 @@
       </div>
     </swiper-slide>
 
+    <!-- Preguntas propias del profesional, cada una con su control según el tipo -->
     <swiper-slide *ngFor="let question of customQuestions; trackBy: trackByQuestionId">
       <div class="form-section">
         <h2 class="section-title">{{ question.label }}</h2>
-        <p class="section-subtitle">{{ 'INTAKE.CUSTOM_QUESTION_FROM' | translate: { name: trainerName } }}</p>
-        <div class="field">
-          <textarea
-            class="field-input field-textarea"
-            rows="4"
-            placeholder=" "
-            [ngModel]="customAnswerFor(question.id)"
-            (ngModelChange)="setCustomAnswer(question.id, $event)"
-          ></textarea>
-          <label class="field-label">{{ 'INTAKE.YOUR_ANSWER' | translate }}</label>
-        </div>
+        <p class="section-subtitle">
+          {{ 'INTAKE.CUSTOM_QUESTION_FROM' | translate: { name: trainerName } }}
+          <ng-container *ngIf="question.required">{{ 'INTAKE.REQUIRED_ANSWER' | translate }}</ng-container>
+        </p>
+
+        <ng-container [ngSwitch]="question.type">
+          <div class="field" *ngSwitchCase="'number'">
+            <input
+              type="number"
+              class="field-input"
+              inputmode="decimal"
+              appNumericKeypad
+              placeholder=" "
+              [ngModel]="customAnswerFor(question)"
+              (ngModelChange)="setCustomAnswer(question, $event)"
+            />
+            <label class="field-label">
+              {{ 'INTAKE.YOUR_ANSWER' | translate }}<ng-container *ngIf="question.unit"> ({{ question.unit }})</ng-container>
+            </label>
+          </div>
+
+          <div class="options-list options-list--scale" *ngSwitchCase="'scale_1_5'">
+            <div
+              class="option-card"
+              *ngFor="let value of scaleValues"
+              [class.is-selected]="customAnswerFor(question) === value"
+              (click)="selectCustomAnswer(question, value)"
+            >
+              <div class="option-title">{{ value }}</div>
+            </div>
+          </div>
+
+          <div class="options-list" *ngSwitchCase="'yes_no'">
+            <div
+              class="option-card"
+              *ngFor="let option of [true, false]"
+              [class.is-selected]="customAnswerFor(question) === option"
+              (click)="selectCustomAnswer(question, option)"
+            >
+              <div class="option-text">
+                <div class="option-title">{{ (option ? 'COMMON.YES' : 'COMMON.NO') | translate }}</div>
+              </div>
+              <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+            </div>
+          </div>
+
+          <ng-container *ngSwitchCase="'text'">
+            <div class="field">
+              <textarea
+                class="field-input field-textarea"
+                rows="4"
+                placeholder=" "
+                maxlength="1000"
+                [ngModel]="customAnswerFor(question)"
+                (ngModelChange)="setCustomAnswer(question, $event)"
+              ></textarea>
+              <label class="field-label">{{ 'INTAKE.YOUR_ANSWER' | translate }}</label>
+            </div>
+          </ng-container>
+
+          <!-- Selector y frecuencia -->
+          <div class="options-list" *ngSwitchDefault>
+            <div
+              class="option-card"
+              *ngFor="let option of optionsFor(question)"
+              [class.is-selected]="customAnswerFor(question) === option"
+              (click)="selectCustomAnswer(question, option)"
+            >
+              <div class="option-text">
+                <div class="option-title">{{ option | translateDb }}</div>
+              </div>
+              <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+            </div>
+          </div>
+        </ng-container>
       </div>
     </swiper-slide>
   </swiper-container>
@@ -352,7 +417,7 @@
     fill="clear"
     (click)="nextStep()"
     *ngIf="!isLastStep"
-    [disabled]="isActivityMissing"
+    [disabled]="isStepBlocked"
   >
     <strong>{{ 'INTAKE.NEXT' | translate }}</strong>
     <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
@@ -372,7 +437,7 @@
     fill="clear"
     (click)="submit()"
     *ngIf="isLastStep && !readonly"
-    [disabled]="isSubmitting"
+    [disabled]="isSubmitting || isStepBlocked"
   >
     <span *ngIf="!isSubmitting"><strong>{{ 'INTAKE.SUBMIT' | translate }}</strong></span>
     <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>

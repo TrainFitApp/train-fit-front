@@ -1,7 +1,5 @@
-import { CommonModule } from '@angular/common';
 import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { IonicModule } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { MacroSet } from '../../../features/diet-templates/models/diet-suggestion.model';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
@@ -32,8 +30,6 @@ export const MACRO_KCAL_TOLERANCE = 25;
 // kcal sale un aviso, y el padre no deja guardar (ver `validate`).
 @Component({
   selector: 'app-macro-adjust',
-  standalone: true,
-  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './macro-adjust.component.html',
   styleUrls: ['./macro-adjust.component.scss'],
 })

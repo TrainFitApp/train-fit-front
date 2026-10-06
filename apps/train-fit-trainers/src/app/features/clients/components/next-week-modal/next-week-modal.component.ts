@@ -1,13 +1,10 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, ViewChild, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { FormsModule } from '@angular/forms';
-import { SubmitOnEnterDirective } from 'src/app/shared/directives/submit-on-enter.directive';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
-import { DailyDeviation, MacroSet, PhaseWeeksResponse } from '../../../diet-templates/models/diet-suggestion.model';
-import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
+import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.service';
+import { MacroSet } from '../../../diet-templates/models/diet-suggestion.model';
+import { DailyDeviation, PhaseWeeksResponse } from '../../../../shared/models/diet-phase.model';
 import { KCAL_PER_G, MacroAdjustComponent, MacroKey } from '../../../../shared/components/macro-adjust/macro-adjust.component';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
@@ -26,8 +23,6 @@ const MACRO_KEYS: MacroKey[] = ['protein', 'carbs', 'fat'];
 // por fila) — el escalado de alimentos sigue siendo por kcal.
 @Component({
   selector: 'app-next-week-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, NeedBreakdownComponent, MacroAdjustComponent, SubmitOnEnterDirective, TranslateModule],
   templateUrl: './next-week-modal.component.html',
   styleUrls: ['./next-week-modal.component.scss'],
 })
@@ -56,14 +51,14 @@ export class NextWeekModalComponent implements OnInit {
 
   constructor(
     private modalController: ModalController,
-    private api: DietSuggestionApiService,
+    private api: DietPhaseApiService,
     private ionicUtil: IonicUtilService
   ) {}
 
   public ngOnInit(): void {
     const next = this.next;
     this.targetKcal =
-      next?.override?.profile.kcal ??
+      next?.content?.profile.kcal ??
       (next?.suggestion?.hasData ? next.suggestion.nextKcal : next?.inherits?.profile.kcal ?? 0);
     this.onKcalChange();
   }
@@ -86,12 +81,12 @@ export class NextWeekModalComponent implements OnInit {
   }
 
   public get alreadyPrepared(): boolean {
-    return !!this.next.override;
+    return !!this.next.content;
   }
 
   // Contra qué se compara el cambio: lo que rige en la semana en curso.
   public get base(): MacroSet & { kcal: number } {
-    return this.weeks.current?.override.profile || { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    return this.weeks.current?.content.profile || { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   }
 
   public get baseKcal(): number {
@@ -117,9 +112,7 @@ export class NextWeekModalComponent implements OnInit {
   }
 
   public get periodLabel(): string {
-    return this.next.end
-      ? this.translate.instant('CLIENTS.DEL_AL', { p0: this.fmt(this.next.start), p1: this.fmt(this.next.end) })
-      : this.translate.instant('CLIENTS.DESDE_EL_2', { p0: this.fmt(this.next.start) });
+    return this.translate.instant('CLIENTS.DEL_AL', { p0: this.fmt(this.next.start), p1: this.fmt(this.next.end) });
   }
 
   public get deviations(): DailyDeviation[] {

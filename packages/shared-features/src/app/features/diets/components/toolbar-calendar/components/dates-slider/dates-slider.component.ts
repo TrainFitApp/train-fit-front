@@ -47,7 +47,6 @@ interface PhaseSegment {
   selector: 'app-dates-slider',
   templateUrl: './dates-slider.component.html',
   styleUrls: ['./dates-slider.component.scss'],
-  standalone: false,
 })
 export class DatesSliderComponent implements AfterViewInit, OnDestroy {
   @Output()

@@ -19,6 +19,8 @@ import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
+import { UserService } from 'src/app/core/services/user/user.service';
+import { FavoritesService } from 'src/app/core/services/favorites/favorites.service';
 import { PautadoItemViewComponent } from '../../../../../pautado-item-view/pautado-item-view.component';
 import { MEASURE_FILTER_TYPES } from 'src/app/shared/constants/measureFilter';
 
@@ -74,7 +76,6 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
 
   public macros: { kcal: number; protein: number; carbs: number; fat: number };
   public topIngredients: string;
-  public isFavorite: boolean = false;
   public isChecked: boolean = false;
   public displayQuantity: number | null = null;
   public measureFilter: MEASURE_FILTER_TYPES = MEASURE_FILTER_TYPES.auto;
@@ -94,6 +95,8 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
     private translate: TranslateService,
     private utilService: UtilService,
     private dietDayService: DietDayService,
+    private userService: UserService,
+    private favoritesService: FavoritesService,
     private modalController: ModalController
   ) {}
 
@@ -115,7 +118,6 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
 
   public ngOnInit(): void {
     this.setTopIngredients();
-    this.checkFavorite();
     this.checkIsChecked();
     this.measureFilterSub = this.utilService.getMeasureFilter.subscribe(
       (filter) => {
@@ -199,9 +201,14 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
     this.topIngredients = this.recipeService.getTopIngredients(this.recipe, 3);
   }
 
-  private checkFavorite(): void {
-    this.isFavorite =
-      this.user?.archivedRecipes?.includes(this.recipe._id) ?? false;
+  // Favorita para el usuario cuya dieta se mira: el de la sesión, o el
+  // cliente que recibe la tarjeta (su profesional busca por él).
+  public get isFavorite(): boolean {
+    const sessionUserId = this.userService.getLocalUser?._id;
+    if (this.user && this.user._id !== sessionUserId) {
+      return !!this.recipe?._id && !!this.user.favorites?.recipes?.includes(this.recipe._id);
+    }
+    return this.favoritesService.isFavorite('recipes', this.recipe?._id);
   }
 
   public onCardClick(): void {

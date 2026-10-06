@@ -83,23 +83,6 @@ export class RecipeApiService {
   }
 
   /**
-   * Get user's archived recipes
-   */
-  public getArchivedRecipes(
-    search: string = '',
-    page: number = 0,
-    limit: number = 10
-  ): Observable<Recipe[]> {
-    return this.http.get<Recipe[]>(
-      `${
-        RecipeApiService.RECIPES_ENDPOINT
-      }/archived?search=${encodeURIComponent(
-        search
-      )}&page=${page}&limit=${limit}`
-    );
-  }
-
-  /**
    * Create a new Recipe
    */
   public create(recipe: Partial<Recipe>): Observable<Recipe> {
@@ -137,33 +120,8 @@ export class RecipeApiService {
   }
 
   /**
-   * Toggle archived status for a recipe
-   */
-  public toggleArchived(recipeId: string): Observable<{
-    isArchived: boolean;
-    isFavorite?: boolean;
-    message: string;
-  }> {
-    return this.http.post<{
-      isArchived: boolean;
-      isFavorite?: boolean;
-      message: string;
-    }>(`${RecipeApiService.RECIPES_ENDPOINT}/${recipeId}/archive`, {});
-  }
-
-  /**
    * Add customProduct to Recipe
    */
-  public addCustomProduct(
-    recipeId: string,
-    customProductId: string
-  ): Observable<Recipe> {
-    return this.http.post<Recipe>(
-      `${RecipeApiService.RECIPES_ENDPOINT}/${recipeId}/customproducts/${customProductId}`,
-      {}
-    );
-  }
-
   /**
    * Remove customProduct from Recipe
    */

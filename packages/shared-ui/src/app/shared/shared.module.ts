@@ -16,7 +16,6 @@ import { ActionsSheetComponent } from './components/actions-sheet/actions-sheet.
 import { ConfirmSheetComponent } from './components/confirm-sheet/confirm-sheet.component';
 import { TrainerNoteSheetComponent } from './components/trainer-note-sheet/trainer-note-sheet.component';
 import { TrainerNoteDotComponent } from './components/trainer-note-dot/trainer-note-dot.component';
-import { AnthropometryCardComponent } from './components/anthropometry/anthropometry-card.component';
 import { AnthropometryModalComponent } from './components/anthropometry/anthropometry-modal.component';
 import { AnthropometryChartComponent } from './components/anthropometry/anthropometry-chart.component';
 import { DisconnectedComponent } from './components/disconnected/disconnected.component';
@@ -60,6 +59,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
 
 @NgModule({
   declarations: [
+    SubmitOnEnterDirective,
     PopoverActionsComponent,
     ActionsSheetComponent,
     ConfirmSheetComponent,
@@ -92,7 +92,6 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     DecimalInputDirective,
     HideKeyboardOnScrollDirective,
     LowercaseEmailInputDirective,
-    AnthropometryCardComponent,
     AnthropometryModalComponent,
     AnthropometryChartComponent,
     GlossaryInfoComponent,
@@ -114,7 +113,6 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     ClientTechniqueVideoPickerComponent,
   ],
   imports: [
-    SubmitOnEnterDirective,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -159,7 +157,6 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     DecimalInputDirective,
     HideKeyboardOnScrollDirective,
     LowercaseEmailInputDirective,
-    AnthropometryCardComponent,
     AnthropometryModalComponent,
     AnthropometryChartComponent,
     GlossaryInfoComponent,

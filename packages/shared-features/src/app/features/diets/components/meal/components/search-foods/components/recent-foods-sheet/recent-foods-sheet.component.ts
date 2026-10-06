@@ -3,9 +3,9 @@ import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs/operators';
 import {
-  DietService,
   RecentFoodKind,
-} from 'src/app/core/services/diet/diet.service';
+  RecentFoodsService,
+} from 'src/app/core/services/recent-foods/recent-foods.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 
@@ -53,7 +53,7 @@ export class RecentFoodsSheetComponent {
 
   constructor(
     private modalController: ModalController,
-    private dietService: DietService,
+    private recentFoodsService: RecentFoodsService,
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService,
   ) {}
@@ -72,8 +72,8 @@ export class RecentFoodsSheetComponent {
     const restoring = this.hiddenIds.has(item.id);
     const body = { mealIndex: this.mealIndex, kind: this.kind, ids: [item.id] };
     const request$ = restoring
-      ? this.dietService.restoreRecentFoods(body)
-      : this.dietService.hideRecentFoods(body);
+      ? this.recentFoodsService.restoreRecentFoods(body)
+      : this.recentFoodsService.hideRecentFoods(body);
 
     // Optimista: la fila cambia al tocar y se revierte si falla.
     this.setHidden(item.id, !restoring);
@@ -111,7 +111,7 @@ export class RecentFoodsSheetComponent {
     if (data !== true) return;
 
     this.clearingAll = true;
-    this.dietService
+    this.recentFoodsService
       .hideRecentFoods({ mealIndex: this.mealIndex, kind: this.kind, all: true })
       .pipe(finalize(() => (this.clearingAll = false)))
       .subscribe({

@@ -4,20 +4,18 @@ import { Router } from '@angular/router';
 import { CHECKIN_FIELDS, CheckinField, CheckinFieldGroup } from 'src/app/core/constants/checkin-fields';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ApplyCheckinTemplateModalComponent } from './components/apply-checkin-template-modal/apply-checkin-template-modal.component';
+import { CheckinTemplateDefinition } from './models/checkin-template.model';
 import {
-  CUSTOM_QUESTION_TYPES,
-  CheckinTemplateDefinition,
-  CustomCheckinQuestion,
-} from './models/checkin-template.model';
+  MAX_CUSTOM_QUESTIONS,
+  cleanCustomQuestion,
+  customQuestionsError,
+  newCustomQuestion,
+} from '../../shared/components/custom-question-editor/custom-question-editor.component';
 import { CheckinTemplatesApiService } from './services/checkin-templates-api.service';
 import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
+import { CustomQuestion } from 'src/app/core/models/custom-question';
 
 type ViewState = 'loading' | 'error' | 'loaded';
-
-// Mismos topes que valida el backend (checkin-controller.js): decirlos aquí
-// evita ofrecer un botón "añadir" que siempre acabaría en un 400.
-const MAX_CUSTOM_QUESTIONS = 20;
-const MAX_QUESTION_OPTIONS = 10;
 
 const GROUP_LABELS: Record<CheckinFieldGroup, string> = {
   composicion_corporal: 'Composición corporal',
@@ -68,13 +66,11 @@ export class CheckinTemplatesPage implements OnInit {
   public isSaving = false;
   // Fase 5 Coach Pro — preguntas propias del coach (§7). Conviven con
   // formFields, que sigue siendo el catálogo cerrado.
-  public formCustomQuestions: CustomCheckinQuestion[] = [];
+  public formCustomQuestions: CustomQuestion[] = [];
   // Plegada por defecto al crear; abierta al editar una plantilla que ya
   // tiene preguntas propias, que es lo que se viene a revisar.
   public showCustomQuestions = false;
-  public readonly questionTypes = CUSTOM_QUESTION_TYPES;
   public readonly maxCustomQuestions = MAX_CUSTOM_QUESTIONS;
-  public readonly maxQuestionOptions = MAX_QUESTION_OPTIONS;
 
   // Desglose por grupo ("3 composición corporal", "5 perímetros"...) para
   // que la card muestre de un vistazo QUÉ tiene activado la plantilla, no
@@ -164,67 +160,32 @@ export class CheckinTemplatesPage implements OnInit {
     this.showEditPanel = true;
   }
 
-  // --- Preguntas propias (Fase 5, §7) ---
+  // --- Preguntas propias ---
 
   public addCustomQuestion(): void {
     if (this.formCustomQuestions.length >= MAX_CUSTOM_QUESTIONS) return;
-    this.formCustomQuestions = [
-      ...this.formCustomQuestions,
-      { label: '', type: 'scale_1_5', unit: '', options: [], required: false, enabled: true },
-    ];
+    this.formCustomQuestions = [...this.formCustomQuestions, newCustomQuestion()];
   }
 
   public removeCustomQuestion(index: number): void {
     this.formCustomQuestions = this.formCustomQuestions.filter((_, i) => i !== index);
   }
 
-  // Al cambiar de tipo se limpia lo que ya no aplica: una pregunta que era
-  // "selector" y pasa a "número" arrastraría opciones invisibles que el
-  // backend seguiría guardando.
-  public onQuestionTypeChange(question: CustomCheckinQuestion): void {
-    if (question.type !== 'select') question.options = [];
-    if (question.type !== 'number') question.unit = '';
-  }
-
-  public addOption(question: CustomCheckinQuestion): void {
-    if ((question.options?.length || 0) >= MAX_QUESTION_OPTIONS) return;
-    question.options = [...(question.options || []), ''];
-  }
-
-  public removeOption(question: CustomCheckinQuestion, index: number): void {
-    question.options = (question.options || []).filter((_, i) => i !== index);
-  }
-
   public trackByIndex(index: number): number {
     return index;
-  }
-
-  // Qué significa el tipo elegido, dicho debajo del selector: "frecuencia"
-  // no dice por sí solo que su escala sea fija y cuál es.
-  public hintFor(question: CustomCheckinQuestion): string {
-    return this.questionTypes.find((t) => t.key === question.type)?.hint || '';
   }
 
   // Por qué no se puede guardar, dicho siempre en vez de dejar el botón
   // desactivado sin explicación.
   public get customQuestionsError(): string | null {
-    for (const question of this.formCustomQuestions) {
-      if (!question.label.trim()) return this.translate.instant('CHECKIN_TEMPLATES.TODAS_LAS_PREGUNTAS_NECESITAN_UN');
-      if (question.type === 'select') {
-        const options = (question.options || []).filter((o) => o.trim());
-        if (options.length < 2) {
-          return this.translate.instant('CHECKIN_TEMPLATES.NECESITA_AL_MENOS_2_OPCIONES', { p0: question.label || 'Sin título' });
-        }
-      }
-    }
-    return null;
+    const error = customQuestionsError(this.formCustomQuestions);
+    return error ? this.translate.instant(error.key, error.params) : null;
   }
 
   public closeEditPanel(): void {
     this.showEditPanel = false;
     this.editingTemplate = null;
   }
-
 
   public requiredCount(template: CheckinTemplateDefinition): number {
     return (template.requiredFields || []).length +
@@ -243,13 +204,7 @@ export class CheckinTemplatesPage implements OnInit {
 
     const enabledFields = [...this.formFields];
     const requiredFields = enabledFields.filter((key) => this.formRequired.includes(key));
-    // Se limpian antes de enviar: las opciones en blanco de un selector a
-    // medio escribir no deben llegar a la plantilla que verá el cliente.
-    const customQuestions = this.formCustomQuestions.map((q) => ({
-      ...q,
-      label: q.label.trim(),
-      options: (q.options || []).map((o) => o.trim()).filter(Boolean),
-    }));
+    const customQuestions = this.formCustomQuestions.map(cleanCustomQuestion);
     this.isSaving = true;
 
     const request$ = this.editingId

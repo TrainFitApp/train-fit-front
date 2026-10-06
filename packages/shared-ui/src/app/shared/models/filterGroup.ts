@@ -21,10 +21,6 @@ export class SearchFilterGroupExercises {
   // un grupo o una porción. El backend busca ejercicios en los que es el
   // músculo PRINCIPAL; un grupo incluye sus porciones.
   public muscles?: string[] = [];
-  // Modelo antiguo: ya no lo ofrece el filtro, pero se sigue mandando vacío
-  // y el backend lo atiende para las versiones de la app ya publicadas.
-  public muscleGroups1: string[] = [];
-  public muscleGroups2: string[] = [];
   public category: string[] = [];
   public equipment: string[] = [];
   public isCardio?: boolean;

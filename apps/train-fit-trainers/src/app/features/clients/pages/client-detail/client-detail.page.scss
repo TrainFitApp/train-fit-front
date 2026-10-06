@@ -1634,6 +1634,13 @@
   color: var(--tf-text-secondary);
 }
 
+// Respuesta que no se corrige desde aquí (selector): se ve como texto.
+.intake-edit-fixed {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+}
+
 // Misma pareja que el resto de hojas (Cancelar antes de Guardar, a partes
 // iguales), en un pie fijo bajo el cuerpo que desplaza.
 .intake-edit-actions {
@@ -1670,6 +1677,16 @@
 
 .textarea-field {
   resize: vertical;
+}
+
+// Respuesta numérica de una pregunta propia: misma caja que el texto.
+.intake-edit-number {
+  max-width: 160px;
+  min-height: var(--tf-touch-min);
+}
+
+.textarea-field,
+.intake-edit-number {
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border-strong);
   border-radius: var(--tf-radius-sm);

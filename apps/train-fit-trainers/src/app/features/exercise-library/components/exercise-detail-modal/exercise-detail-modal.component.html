@@ -34,7 +34,7 @@
 
   <p class="exercise-description" *ngIf="exercise?.description">{{ exercise.description }}</p>
 
-  <div class="taxonomy-section" *ngIf="muscleRoles.length; else legacyMuscles">
+  <div class="taxonomy-section" *ngIf="muscleRoles.length">
     <h3>{{ 'EXERCISE_LIBRARY.MUSCULOS' | translate }}</h3>
     <div class="muscle-role-row" *ngFor="let row of muscleRoles">
       <span class="muscle-role-label muscle-role-label--{{ row.role }}">{{ row.label }}</span>
@@ -45,14 +45,6 @@
       </div>
     </div>
   </div>
-  <ng-template #legacyMuscles>
-    <div class="taxonomy-section" *ngIf="muscleGroups.length">
-      <h3>{{ 'EXERCISE_LIBRARY.GRUPOS_MUSCULARES' | translate }}</h3>
-      <div class="chip-row">
-        <span class="chip" *ngFor="let m of muscleGroups">{{ m }}</span>
-      </div>
-    </div>
-  </ng-template>
 
   <div class="taxonomy-section" *ngIf="categories.length">
     <h3>{{ 'EXERCISE_LIBRARY.CATEGORIAS' | translate }}</h3>

@@ -3,6 +3,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { ModalController } from '@ionic/angular';
 import { take } from 'rxjs/operators';
 import { Exercise } from 'src/app/core/models/exercise';
+import { primaryMuscleLabels } from 'src/app/core/constants/muscle-catalog';
 import {
   ExerciseHistoryService,
   ExerciseHistoryStats,
@@ -106,8 +107,7 @@ export class VideoModalComponent implements OnInit {
   }
 
   public getValidMuscleGroups(): string[] {
-    if (!this.exercise || !this.exercise.muscleGroups1) return [];
-    return this.exercise.muscleGroups1.filter((g) => g && g.trim().length > 0);
+    return primaryMuscleLabels(this.exercise?.muscles);
   }
 
   public formatSeconds(seconds: number): string {

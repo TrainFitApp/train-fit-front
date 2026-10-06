@@ -107,42 +107,54 @@
         <h4 class="intake-config-subheading">{{ 'INVITES.PREGUNTAS_PERSONALIZADAS' | translate }}</h4>
 
         <div class="custom-question-list" *ngIf="customQuestions.length">
-          <div class="custom-question-row" *ngFor="let question of customQuestions; trackBy: trackByQuestionId">
-            <button type="button" class="custom-question-toggle" (click)="toggleCustomQuestionEnabled(question.id)">
+          <div class="custom-question-row" *ngFor="let question of customQuestions; let i = index; trackBy: trackByIndex">
+            <button
+              type="button"
+              class="custom-question-toggle"
+              role="checkbox"
+              [attr.aria-checked]="question.enabled !== false"
+              (click)="toggleCustomQuestionEnabled(i)"
+            >
               <ion-icon
-                [name]="question.enabled ? 'checkbox' : 'square-outline'"
-                [class.field-toggle-icon--active]="question.enabled"
+                [name]="question.enabled !== false ? 'checkbox' : 'square-outline'"
+                [class.field-toggle-icon--active]="question.enabled !== false"
+                aria-hidden="true"
               ></ion-icon>
-              <span class="custom-question-label">{{ question.label }}</span>
+              <span class="custom-question-text">
+                <span class="custom-question-label">{{ question.label }}</span>
+                <span class="custom-question-meta">{{ questionMeta(question) }}</span>
+              </span>
             </button>
-            <button type="button" class="custom-question-remove" (click)="removeCustomQuestion(question.id)" [attr.aria-label]="'INVITES.BORRAR_PREGUNTA' | translate">
-              <ion-icon name="trash-outline"></ion-icon>
+            <button type="button" class="custom-question-remove" (click)="removeCustomQuestion(i)" [attr.aria-label]="'INVITES.BORRAR_PREGUNTA' | translate">
+              <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
             </button>
           </div>
         </div>
 
-        <div class="add-question-row" appSubmitOnEnter="addQuestion">
-          <div class="input-wrapper">
-            <ion-icon name="help-circle-outline" class="input-icon"></ion-icon>
-            <input
-              type="text"
-              class="input-field"
-              [placeholder]="'INVITES.EJ_ALGUNA_CIRUGIA_RECIENTE' | translate"
-              [(ngModel)]="newQuestionLabel"
-              [ngModelOptions]="{standalone: true}"
-            />
-            <button
-              type="button"
-              class="add-question-submit"
-              [disabled]="!canAddCustomQuestion"
-              (click)="addCustomQuestion()"
-              data-enter-submit-action="addQuestion"
-              [attr.aria-label]="'INVITES.ANADIR_PREGUNTA' | translate"
-            >
-              <ion-icon name="return-down-back-outline"></ion-icon>
-            </button>
-          </div>
+        <!-- Alta de una pregunta: el mismo editor que en las plantillas de
+             check-in (enunciado, tipo, unidad, obligatoria y opciones). -->
+        <div class="custom-question-draft" *ngIf="draftQuestion as draft; else addQuestionButton">
+          <app-custom-question-editor
+            [question]="draft"
+            [position]="customQuestions.length + 1"
+            [autofocus]="true"
+            (remove)="cancelCustomQuestion()"
+          ></app-custom-question-editor>
+          <p class="draft-error" *ngIf="draftQuestionError">{{ draftQuestionError }}</p>
+          <button type="button" class="add-question-confirm" [disabled]="!canAddDraftQuestion" (click)="addCustomQuestion()">
+            {{ 'CUSTOM_QUESTION.ADD' | translate }}
+          </button>
         </div>
+        <ng-template #addQuestionButton>
+          <button
+            type="button"
+            class="add-question-button"
+            *ngIf="customQuestions.length < maxCustomQuestions"
+            (click)="startCustomQuestion()"
+          >
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'INVITES.ANADIR_PREGUNTA' | translate }}
+          </button>
+        </ng-template>
 
       </ng-container>
     </div>

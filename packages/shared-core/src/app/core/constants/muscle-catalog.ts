@@ -220,3 +220,10 @@ export function normalizeMuscles(input: ExerciseMuscle[] | null | undefined): Ex
         (CATALOG_ORDER.get(a.muscle) || 0) - (CATALOG_ORDER.get(b.muscle) || 0)
     );
 }
+
+/** Nombres de los músculos principales de un ejercicio (chips de las fichas). */
+export function primaryMuscleLabels(muscles: ExerciseMuscle[] | null | undefined): string[] {
+  return normalizeMuscles(muscles)
+    .filter((item) => item.role === 'primary')
+    .map((item) => muscleFullLabel(item.muscle));
+}

@@ -27,13 +27,6 @@ export class WorkoutAPIService {
 
   constructor(private http: HttpService) {}
 
-  public createWorkout(workout: Workout): Observable<Workout> {
-    return this.http.post<Workout>(
-      `${WorkoutAPIService.WORKOUT_ENDPOINT}`,
-      workout
-    );
-  }
-
   public addWorkoutsToSplits(
     idTable: string,
     workouts: Workout | Workout[]
@@ -79,13 +72,6 @@ export class WorkoutAPIService {
   public getWorkoutById(id: string): Observable<Workout> {
     return this.http.get<Workout>(
       `${WorkoutAPIService.WORKOUT_ENDPOINT}/${id}`
-    );
-  }
-
-  public getWorkoutByIdAndDate(id: string, date: Date): Observable<Workout> {
-    return this.http.post<Workout>(
-      `${WorkoutAPIService.WORKOUT_ENDPOINT}/date/${id}`,
-      { date }
     );
   }
 
@@ -195,10 +181,6 @@ export class WorkoutAPIService {
       `${WorkoutAPIService.WORKOUT_ENDPOINT}/names/${idTable}/${idWorkout}`,
       { workoutsName: workoutsName }
     );
-  }
-
-  public deleteWorkout(id: string): Observable<Workout> {
-    return this.http.delete<Workout>(`workouts/delete/${id}`);
   }
 
   public deleteWorkoutCustomExercises(id: string): Observable<Workout> {

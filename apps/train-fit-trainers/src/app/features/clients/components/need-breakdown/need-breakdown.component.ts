@@ -1,7 +1,5 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { IonicModule } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { WeekNeed } from '../../../diet-templates/models/diet-suggestion.model';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
@@ -13,8 +11,6 @@ import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 // hoy", en el modal de siguiente semana.
 @Component({
   selector: 'app-need-breakdown',
-  standalone: true,
-  imports: [CommonModule, IonicModule, TranslateModule],
   templateUrl: './need-breakdown.component.html',
   styleUrls: ['./need-breakdown.component.scss'],
 })
@@ -59,12 +55,7 @@ export class NeedBreakdownComponent implements OnInit {
   public get weightLine(): string {
     const i = this.inputs;
     if (!i || i.weightKg === null) return '—';
-    const origen =
-      i.weightFrom === 'anthropometry'
-        ? this.translate.instant('CLIENTS.ANTROPOMETRIA_DEL', { p0: this.fmtDate(i.weightDate) })
-        : i.weightFrom === 'signup'
-        ? this.translate.instant('CLIENTS.DEL_REGISTRO_DEL_CLIENTE')
-        : '';
+    const origen = i.weightDate ? this.translate.instant('CLIENTS.ANTROPOMETRIA_DEL', { p0: this.fmtDate(i.weightDate) }) : '';
     return `${this.n(i.weightKg, 1)} kg${origen ? ` · ${origen}` : ''}`;
   }
 

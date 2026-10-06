@@ -2,7 +2,7 @@ import { CustomProduct } from './customProduct';
 import { Recipe } from './recipe';
 
 export interface ModifiedBaseCustomProduct extends Partial<CustomProduct> {
-  baseCustomProductId: string | CustomProduct;
+  baseCustomProductId: string;
   quantity: number;
 }
 
@@ -23,21 +23,4 @@ export interface CustomRecipe {
   // CustomProduct.assignedQuantity (ver ese comentario).
   assignedQuantity?: number | null;
   consumed?: boolean;
-}
-
-export interface CreateCustomRecipeDTO {
-  recipe: string;
-  quantity?: number;
-  quantityCooked?: number;
-  addedCustomProducts?: CustomProduct[];
-  modifiedBaseCustomProducts?: ModifiedBaseCustomProduct[];
-  removedBaseCustomProductIds?: string[];
-}
-
-export interface UpdateCustomRecipeDTO {
-  quantity?: number;
-  quantityCooked?: number;
-  addedCustomProducts?: CustomProduct[];
-  modifiedBaseCustomProducts?: ModifiedBaseCustomProduct[];
-  removedBaseCustomProductIds?: string[];
 }

@@ -1,9 +1,6 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { FormsModule } from '@angular/forms';
-import { SubmitOnEnterDirective } from 'src/app/shared/directives/submit-on-enter.directive';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { CustomRecipe } from 'src/app/core/models/customRecipe';
@@ -44,9 +41,8 @@ import {
   macroDeviation,
 } from '../../../../utils/alternative-macros';
 import { computeItemMicros } from '../../../../utils/nutrient-fields';
-import { SharedModule } from 'src/app/shared/shared.module';
 
-// Extraído de diet-template-builder.page.ts a un modal standalone real —
+// Extraído de diet-template-builder.page.ts a un modal real (ion-modal) —
 // mismo motivo y mismo arreglo que ApplyCheckinTemplateModalComponent
 // (ver comentario ahí): el panel "editor de celda" vivía como un
 // <div position:fixed> hecho a mano DENTRO de la página que lo abría, y
@@ -66,8 +62,6 @@ import { SharedModule } from 'src/app/shared/shared.module';
 // el tablero al cerrar, sin eventos de salida ni copia de datos.
 @Component({
   selector: 'app-day-meal-editor-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, SubmitOnEnterDirective, TranslateModule, SharedModule],
   templateUrl: './day-meal-editor-modal.component.html',
   styleUrls: ['./day-meal-editor-modal.component.scss'],
 })

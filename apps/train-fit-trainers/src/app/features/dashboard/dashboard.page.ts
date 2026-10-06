@@ -6,7 +6,7 @@ import { TrainerClientsApiService } from '../clients/services/trainer-clients-ap
 import { TrainerNotificationsApiService } from './services/trainer-notifications-api.service';
 import { TrainerNotification, TrainerNotificationType } from './models/trainer-notification.model';
 import { TrainerPaymentsApiService } from './services/trainer-payments-api.service';
-import { PaymentsSummary } from './models/payments-summary.model';
+import { PaymentsMonthPoint, PaymentsSummary } from './models/payments-summary.model';
 import {
   PaymentNoticePayload,
   formatCents,
@@ -39,7 +39,6 @@ const NOTIFICATION_ICONS: Record<TrainerNotificationType, string> = {
 // el chip de al lado, y repetirla en el icono gastaría el único canal que
 // distingue "peso" de "check-in" de un vistazo.
 const ALERT_ICONS: Record<CoachAlertType, string> = {
-  pending_review: 'document-text-outline',
   checkin_overdue: 'clipboard-outline',
   plan_ending_soon: 'hourglass-outline',
   stagnation: 'remove-outline',
@@ -61,7 +60,6 @@ localizeRecord(PRIORITY_LABELS, 'CLIENT_SUMMARY.PRIORITY');
 // cambiarlo antes de guardar — esto solo evita empezar con un campo vacío
 // cuando el siguiente paso es evidente por el tipo de problema.
 const TASK_TITLE_BY_ALERT: Record<CoachAlertType, string> = {
-  pending_review: 'Revisar cuestionario inicial',
   checkin_overdue: 'Recordar el check-in',
   plan_ending_soon: 'Renovar el plan de nutrición',
   stagnation: 'Revisar estrategia nutricional',
@@ -598,18 +596,17 @@ export class DashboardPage implements OnInit {
 
   // Recibido por fecha real de recepción (último punto de receivedSeries).
   public receivedThisMonth(summary: PaymentsSummary): string | null {
-    const points = summary.receivedSeries;
-    const current = points?.[points.length - 1];
-    return current ? formatCents(Math.round(current.totalAmount * 100)) : null;
+    const current = summary.receivedSeries[summary.receivedSeries.length - 1];
+    return current ? formatCents(current.cents) : null;
   }
 
-  public euros(amount: number): string {
-    return formatCents(Math.round(amount * 100));
+  public cents(value: number): string {
+    return formatCents(value);
   }
 
   // Etiqueta corta de barra: sin decimales para que quepa en la columna.
-  public eurosCompact(amount: number): string {
-    return EUROS_COMPACT().format(amount);
+  public centsCompact(value: number): string {
+    return EUROS_COMPACT().format(value / 100);
   }
 
   public goToPayments(): void {
@@ -624,9 +621,9 @@ export class DashboardPage implements OnInit {
   // Fracción 0..1 para transform: scaleY() — nunca height (layout thrash).
   // Barra a 0 = sin cobros ese mes (visible como línea base, no ausente) —
   // normalizado contra el máximo de la propia serie, no una escala fija.
-  public monthBarScale(point: { totalAmount: number }, series: { totalAmount: number }[]): number {
-    const max = Math.max(...series.map((p) => p.totalAmount), 1);
-    const pct = Math.max((point.totalAmount / max) * 100, point.totalAmount > 0 ? 6 : 2);
+  public monthBarScale(point: PaymentsMonthPoint, series: PaymentsMonthPoint[]): number {
+    const max = Math.max(...series.map((p) => p.cents), 1);
+    const pct = Math.max((point.cents / max) * 100, point.cents > 0 ? 6 : 2);
     return Number((pct / 100).toFixed(4));
   }
 }

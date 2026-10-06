@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
+import { DateFieldModule } from '../../shared/components/date-field/date-field.module';
 import { ChargeDetailPanelComponent } from './components/charge-detail-panel/charge-detail-panel.component';
 import { ChargeFormPanelComponent } from './components/charge-form-panel/charge-form-panel.component';
 import { ClientPaymentsCardComponent } from './components/client-payments-card/client-payments-card.component';
@@ -14,7 +14,7 @@ import { PaymentsSheetComponent } from './components/payments-sheet/payments-she
 // Piezas de Cobros compartidas por la ficha del cliente (Gestión > Cobros y
 // la tarjeta del Resumen) y por Configuración > Cobros.
 @NgModule({
-  imports: [SharedModule, DateFieldComponent],
+  imports: [SharedModule, DateFieldModule],
   declarations: [
     PaymentsSheetComponent,
     PaymentBalanceBarComponent,

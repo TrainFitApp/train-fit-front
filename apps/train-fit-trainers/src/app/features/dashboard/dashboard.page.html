@@ -272,7 +272,7 @@
       <div class="panel-card-header payments-header">
         <h2 class="panel-card-title">{{ 'TRAINER_COMMON.CHARGES' | translate }}</h2>
         <span class="payments-pending" [class.payments-pending--overdue]="payments.overdueCount > 0">
-          {{ euros(payments.pendingAmount) }} {{ 'DASHBOARD.PENDIENTE' | translate }}<ng-container *ngIf="payments.overdueCount > 0">, {{ payments.overdueCount }} {{ (payments.overdueCount === 1 ? 'DASHBOARD.OVERDUE_ONE' : 'DASHBOARD.OVERDUE_MANY') | translate }}</ng-container>
+          {{ cents(payments.pendingCents) }} {{ 'DASHBOARD.PENDIENTE' | translate }}<ng-container *ngIf="payments.overdueCount > 0">, {{ payments.overdueCount }} {{ (payments.overdueCount === 1 ? 'DASHBOARD.OVERDUE_ONE' : 'DASHBOARD.OVERDUE_MANY') | translate }}</ng-container>
         </span>
       </div>
       <!-- Cobros 2026-09 — las barras suman lo que VENCE cada mes (previsto), no
@@ -282,15 +282,15 @@
         · <button type="button" class="link-button" (click)="goToPayments()">{{ 'DASHBOARD.VER_COBROS' | translate }}</button>
       </p>
       <div class="payments-chart">
-        <div class="payments-bar-col" *ngFor="let point of payments.monthlySeries; last as isLast">
+        <div class="payments-bar-col" *ngFor="let point of payments.dueSeries; last as isLast">
           <span class="payments-bar-value">
-            {{ point.totalAmount > 0 ? eurosCompact(point.totalAmount) : '' }}
+            {{ point.cents > 0 ? centsCompact(point.cents) : '' }}
           </span>
           <div class="payments-bar-track">
             <div
               class="payments-bar"
               [class.payments-bar--current]="isLast"
-              [style.transform]="'scaleY(' + monthBarScale(point, payments.monthlySeries) + ')'"
+              [style.transform]="'scaleY(' + monthBarScale(point, payments.dueSeries) + ')'"
             ></div>
           </div>
           <span class="payments-bar-label">{{ monthLabel(point.month) }}</span>

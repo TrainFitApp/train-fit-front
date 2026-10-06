@@ -18,7 +18,7 @@ const ARROZ = { key: "id:p2", name: "Arroz", quantity: 80 };
 function segments() {
   return [
     {
-      planId: "A",
+      id: "A",
       name: "Plan A",
       from: "2026-09-28",
       to: "2026-10-04",

@@ -248,7 +248,6 @@ export class CoachPage implements OnInit {
     if (!this.dashboard) return 0;
     return (
       this.dashboard.pendingCheckins.length +
-      this.dashboard.pendingMealProposals.length +
       (this.dashboard.nutritionPreferences?.pending ? 1 : 0) +
       this.dashboard.pendingPayments.length
     );
@@ -775,30 +774,22 @@ export class CoachPage implements OnInit {
     void this.router.navigate(['/my-shopping-list']);
   }
 
-  public goToMealProposal(proposalDate: string): void {
-    void this.router.navigate(['/tabs/diets'], { state: { selectedDate: proposalDate } });
-  }
-
   public trackByTrainerId(_index: number, item: { trainerId: string }): string {
     return item.trainerId;
-  }
-
-  public trackByProposalId(_index: number, item: { proposalId: string }): string {
-    return item.proposalId;
   }
 
   // Saldo restante en euros con formato español ("40,00 €"), igual que la
   // tarjeta "Tu coach" del perfil; el pipe currency seguiría la locale en-US.
   public paymentAmount(item: CoachPendingPayment): string {
-    return formatPaymentMoney(item.amount, item.currency);
+    return formatPaymentMoney(item.balanceCents / 100, item.currency);
   }
 
   // Día civil del vencimiento: nunca se corre por la zona del dispositivo.
   public paymentDue(item: CoachPendingPayment): string {
-    return shortDay(item.dueDay || String(item.dueDate || '').slice(0, 10));
+    return shortDay(item.dueDay);
   }
 
-  public trackByPaymentId(_index: number, item: { paymentId: string }): string {
-    return item.paymentId;
+  public trackByPaymentId(_index: number, item: CoachPendingPayment): string {
+    return item.chargeId;
   }
 }

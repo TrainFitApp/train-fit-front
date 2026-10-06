@@ -82,14 +82,6 @@ export class ExerciseDetailModalComponent implements OnInit {
     })).filter((row) => row.muscles.length > 0);
   }
 
-  // Solo para ejercicios aún sin migrar a `muscles`.
-  public get muscleGroups(): string[] {
-    return [
-      ...(this.exercise?.muscleGroups1 || []),
-      ...(this.exercise?.muscleGroups2 || []),
-    ].filter((g) => g && g.trim().length > 0);
-  }
-
   public get categories(): string[] {
     const category = this.exercise?.category;
     if (!category) return [];

@@ -80,15 +80,15 @@
   </div>
 </section>
 
-<section class="intake-section" *ngIf="intake.customAnswers?.length">
+<section class="intake-section" *ngIf="customRows.length">
   <h5 class="intake-section-title">
     <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
     {{ 'CLIENTS.TUS_PREGUNTAS' | translate }}
   </h5>
   <div class="intake-section-fields">
-    <div class="intake-field intake-field--wide intake-field--question" *ngFor="let answer of intake.customAnswers">
-      <span class="intake-field-question">{{ answer.label }}</span>
-      <p class="intake-field-value" [class.is-empty]="!answer.value">{{ answer.value || ('CLIENTS.SIN_RESPONDER' | translate) }}</p>
+    <div class="intake-field intake-field--question" [class.intake-field--wide]="row.wide" *ngFor="let row of customRows">
+      <span class="intake-field-question">{{ row.label }}</span>
+      <p class="intake-field-value">{{ row.value | translateDb }}</p>
     </div>
   </div>
 </section>

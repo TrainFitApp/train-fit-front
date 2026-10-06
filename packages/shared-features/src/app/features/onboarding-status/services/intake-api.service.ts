@@ -1,15 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
+import { CustomAnswer, CustomAnswerValue } from 'src/app/core/models/custom-question';
 
-export interface IntakeCustomAnswer {
+// Respuesta a una pregunta propia tal como se envía: el back la valida contra
+// la pregunta y le copia enunciado, tipo y unidad.
+export interface IntakeCustomAnswerInput {
   questionId: string;
-  label: string;
-  value: string;
+  value: CustomAnswerValue;
 }
 
-// Tarea 3 (Trainers, 2026-08) — catálogo cerrado, debe coincidir con
-// train-fit-back/components/clientIntake/client-intake-schema.js
+// Catálogo cerrado, debe coincidir con
+// train-fit-back/components/trainerClients/client-intake-schema.js
 // (TRAINING_LOCATIONS / EQUIPMENT_TAGS) — mismo criterio que IntakeFieldKey
 // más abajo en onboarding.service.ts.
 export type TrainingLocation = 'gym' | 'home' | 'outdoor' | 'mixed';
@@ -49,7 +51,7 @@ export interface IntakeSubmission {
   training: number | null;
   // `objetive` (sic) — mismo nombre que el campo de `User`. Delta kcal.
   objetive: number | null;
-  customAnswers: IntakeCustomAnswer[];
+  customAnswers: IntakeCustomAnswerInput[];
 }
 
 export type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
@@ -57,21 +59,18 @@ export type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
 // Lo que ya se le respondió a este trainer, si algo — para precargar el
 // formulario cuando el mismo trainer añade un scope nuevo más tarde en vez
 // de partir de cero. No incluye allergies/favoriteFoods/dislikedFoods/
-// cooksAtHome: esos viven en ClientNutritionPreferences (F29), no aquí (ver
+// cooksAtHome: esos viven en User.nutritionPreferences, no aquí (ver
 // NutritionPreferencesApiService.getMine()).
 export interface StoredIntake {
   goals: string;
   healthConditions: string;
   experienceLevel: 'none' | 'beginner' | 'intermediate' | 'advanced' | null;
   availability: string;
-  // DEPRECATED — dato legado de cuestionarios enviados antes de Tarea 3.
-  // Ya no se escribe desde este formulario; se sigue leyendo aquí solo para
-  // no perder lo que un cliente ya había respondido.
-  equipment: string;
   trainingLocation: TrainingLocation | null;
   equipmentTags: EquipmentTag[];
-  customAnswers: IntakeCustomAnswer[];
-  submittedAt: string;
+  customAnswers: CustomAnswer[];
+  // null si lo rellenó el profesional y el cliente aún no lo ha enviado.
+  submittedAt: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

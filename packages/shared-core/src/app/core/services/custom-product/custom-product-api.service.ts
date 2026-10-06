@@ -4,11 +4,13 @@ import {
   CustomProduct,
   CUSTOM_PRODUCT_NUTRITION_FIELDS,
 } from '../../models/customProduct';
+import { Meal } from '../../models/meal';
 import { HttpService } from '../http/http.service';
 
+// Los alimentos del diario viven dentro de su comida: se direccionan por ella
+// (/meals/:id/customproducts/:itemId).
 @Injectable()
 export class CustomProductAPIService {
-  public static readonly CUSTOM_PRODUCTS_ENDPOINT = 'customproducts';
   private static readonly CUSTOM_PRODUCT_EXTRA_FIELDS = [
     'ingredients',
     'allergens',
@@ -22,34 +24,26 @@ export class CustomProductAPIService {
   constructor(private http: HttpService) {}
 
   public createCustomProductAndAddToMeal(
-    idMeal: string,
-    customProduct: CustomProduct,
-    idUser?: string
+    mealId: string,
+    customProduct: CustomProduct
   ): Observable<CustomProduct> {
-    const payload = {
-      idMeal,
+    return this.http.post<CustomProduct>(`meals/${mealId}/customproducts`, {
       customProduct: this.serializeCustomProduct(customProduct),
-      idUser,
-    };
-    return this.http.post<CustomProduct>(
-      `${CustomProductAPIService.CUSTOM_PRODUCTS_ENDPOINT}`,
-      this.removeUndefinedFields(payload)
-    );
+    });
   }
 
   public updateCustomProduct(
+    mealId: string,
     customProduct: CustomProduct
   ): Observable<CustomProduct> {
     return this.http.put<CustomProduct>(
-      `${CustomProductAPIService.CUSTOM_PRODUCTS_ENDPOINT}`,
+      `meals/${mealId}/customproducts/${customProduct._id}`,
       this.serializeCustomProduct(customProduct)
     );
   }
 
-  public deleteCustomProduct(id: string): Observable<CustomProduct> {
-    return this.http.delete<CustomProduct>(
-      `${CustomProductAPIService.CUSTOM_PRODUCTS_ENDPOINT}/${id}`
-    );
+  public deleteCustomProduct(mealId: string, id: string): Observable<Meal> {
+    return this.http.delete<Meal>(`meals/${mealId}/customproducts/${id}`);
   }
 
   public getCustomProductInfo(customProduct: CustomProduct, key: string) {
@@ -69,10 +63,6 @@ export class CustomProductAPIService {
 
     if (Object.prototype.hasOwnProperty.call(customProduct, 'order')) {
       payload.order = customProduct.order;
-    }
-
-    if (Object.prototype.hasOwnProperty.call(customProduct, 'mealId')) {
-      payload.mealId = customProduct.mealId;
     }
 
     if (Object.prototype.hasOwnProperty.call(customProduct, 'product')) {

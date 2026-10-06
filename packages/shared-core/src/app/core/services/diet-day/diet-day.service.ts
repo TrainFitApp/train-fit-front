@@ -69,13 +69,10 @@ export class DietDayService {
     private recipeService: RecipeService
   ) {}
 
-  public getDietDayByIdDietAndDate(
-    id: string,
-    date: string
-  ): Observable<DietDay> {
-    return this.dietDayAPIService.getDietDayByIdDietAndDate(id, date).pipe(
+  public getDay(date: string): Observable<DietDay> {
+    return this.dietDayAPIService.getDay(date).pipe(
       map((response) => {
-        // If anthropometry has weight, set it on the dietDay for backwards compatibility
+        // El peso del día viaja con el día para pintarlo sin otra petición.
         if (response?.dietDay && response?.anthropometry?.weight !== undefined) {
           response.dietDay.weight = response.anthropometry.weight;
         }
@@ -95,11 +92,8 @@ export class DietDayService {
     return this.dietDayAPIService.getTimeline(from, to);
   }
 
-  public getDietDaysBetweenDatesByIdDiet(
-    id: string,
-    dateRage: DateRange
-  ): Observable<DietDay[]> {
-    return this.dietDayAPIService.getDietDaysBetweenDatesByIdDiet(id, dateRage);
+  public getDaysInRange(dateRange: DateRange): Observable<DietDay[]> {
+    return this.dietDayAPIService.getDaysInRange(dateRange);
   }
 
   // "Asegúrame el día de esta fecha". El backend es idempotente (nunca crea un
@@ -111,7 +105,7 @@ export class DietDayService {
       this.pendingDietDayCreation(dietDay.date) ||
       this.trackDietDayCreation(
         dietDay.date,
-        this.dietDayAPIService.createDietDay(dietDay)
+        this.dietDayAPIService.getDay(dietDay.date).pipe(map((response) => response.dietDay))
       )
     );
   }
@@ -120,9 +114,7 @@ export class DietDayService {
     loading: any,
     dietDay: DietDay,
     customProduct: CustomProduct,
-    meal: Meal,
-    idDietInUse?: string,
-    idUser?: string
+    meal: Meal
   ): Observable<CustomProduct | DietDay> {
     loading.value = true;
 
@@ -130,13 +122,7 @@ export class DietDayService {
       this.utilService.setLoading = true;
     }
 
-    return this.createCustomProductOnDietDayMeal(
-      customProduct,
-      meal,
-      dietDay,
-      idDietInUse,
-      idUser
-    ).pipe(
+    return this.createCustomProductOnDietDayMeal(customProduct, meal, dietDay).pipe(
       take(1),
       tap((response) => {
         this.applyCustomProductResponseToLocalState(response, dietDay, meal);
@@ -204,7 +190,7 @@ export class DietDayService {
     dietDay: DietDay
   ) {
     this.customProductService
-      .updateCustomProduct(customProduct)
+      .updateCustomProduct(meal._id, customProduct)
       .pipe(take(1))
       .subscribe((resCustomProduct) => {
         const indexMeal = dietDay.meals.findIndex(
@@ -221,20 +207,8 @@ export class DietDayService {
       });
   }
 
-  public createCustomProductOnNewDietDay(
-    customProduct: CustomProduct,
-    indexMeal: number,
-    dietInUseId: string,
-    currentDate: string,
-    idUser?: string
-  ) {
-    return this.dietDayAPIService.createCustomProductOnNewDietDay(
-      customProduct,
-      indexMeal,
-      dietInUseId,
-      currentDate,
-      idUser
-    );
+  public addCustomProductToDay(date: string, mealIndex: number, customProduct: CustomProduct) {
+    return this.dietDayAPIService.addCustomProductToDay(date, mealIndex, customProduct);
   }
 
   // La nota del día. Va por fecha, no por _id: así funciona igual sobre un día
@@ -249,18 +223,17 @@ export class DietDayService {
     ).pipe(tap((updated) => (this.setCurrentDietDay = updated)));
   }
 
-  public pasteDietDay(
-    id: string,
-    dietDayClipboard: DietDay,
-    dietDayToPaste: DietDay
-  ): Observable<DietDay> {
-    return this.dietDayAPIService
-      .pasteDietDay(id, dietDayClipboard, dietDayToPaste)
-      .pipe(take(1));
+  public pasteDietDay(dietDayClipboard: DietDay, dietDayToPaste: DietDay): Observable<DietDay> {
+    return this.dietDayAPIService.pasteDay(dietDayToPaste.date, dietDayClipboard).pipe(take(1));
   }
 
-  public deleteDietDay(idDiet: string, idDietDay: string): Observable<DietDay> {
-    return this.dietDayAPIService.deleteDietDay(idDiet, idDietDay).pipe(
+  // Nota fijada de la pantalla de dieta (la guarda el usuario).
+  public setPinnedNote(notes: string): Observable<string> {
+    return this.dietDayAPIService.setPinnedNote(notes).pipe(map((response) => response.pinnedNote || ''));
+  }
+
+  public deleteDietDay(date: string): Observable<void> {
+    return this.dietDayAPIService.deleteDay(date).pipe(
       take(1),
       tap(() => {
         const dateStr: string = this.currentDietDay?.date || this.utilService.formatDateToYYYYMMDD(new Date());
@@ -274,16 +247,10 @@ export class DietDayService {
   public createCustomProductOnDietDayMeal(
     customProduct: CustomProduct,
     meal: Meal,
-    dietDay: DietDay,
-    idDietInUse?: string,
-    idUser?: string
+    dietDay: DietDay
   ): Observable<CustomProduct | DietDay> {
     if (dietDay._id) {
-      return this.customProductService.createCustomProductAndAddToMeal(
-        meal._id,
-        customProduct,
-        idUser
-      );
+      return this.customProductService.createCustomProductAndAddToMeal(meal._id, customProduct);
     }
 
     const indexMeal = dietDay.meals.findIndex(
@@ -301,21 +268,11 @@ export class DietDayService {
           if (!createdMeal?._id) {
             // El día no llegó: se reintenta por la vía de una sola llamada,
             // que es idempotente en el backend y no puede duplicar la fecha.
-            return this.createCustomProductOnNewDietDay(
-              customProduct,
-              indexMeal,
-              idDietInUse,
-              dietDay.date,
-              idUser
-            );
+            return this.addCustomProductToDay(dietDay.date, indexMeal, customProduct);
           }
 
           return this.customProductService
-            .createCustomProductAndAddToMeal(
-              createdMeal._id,
-              customProduct,
-              idUser
-            )
+            .createCustomProductAndAddToMeal(createdMeal._id, customProduct)
             // Se devuelve el DÍA ya creado con el producto dentro, no el
             // producto suelto: el `dietDay` con el que entró esta llamada es
             // el de antes de la creación (sin _id) y publicarlo como día
@@ -335,13 +292,7 @@ export class DietDayService {
 
     return this.trackDietDayCreation(
       dietDay.date,
-      this.createCustomProductOnNewDietDay(
-        customProduct,
-        indexMeal,
-        idDietInUse,
-        dietDay.date,
-        idUser
-      )
+      this.addCustomProductToDay(dietDay.date, indexMeal, customProduct)
     );
   }
 

@@ -1,6 +1,14 @@
 import { CustomProduct } from './customProduct';
 import { CustomRecipe } from './customRecipe';
 
+// Una opción para un hueco de comida, pautada por el profesional en su
+// plan: misma forma que lo que se pauta.
+export interface MealAlternative {
+  label: string;
+  customProducts: CustomProduct[];
+  customRecipes: CustomRecipe[];
+}
+
 export class Meal {
   _id: string;
   name: string;
@@ -11,6 +19,14 @@ export class Meal {
   notes?: string;
   customProducts: CustomProduct[];
   customRecipes?: CustomRecipe[];
+  // Presente si el profesional pautó la comida entera (no se puede
+  // recomponer, solo registrar lo que se tomó).
+  assignedByTrainerId?: string | null;
+  // Opciones del plan para este hueco (vacío = nada que elegir) y la que
+  // está aplicada.
+  alternatives?: MealAlternative[];
+  chosenAlternativeIndex?: number | null;
+  alternativesTrainerId?: string | null;
 }
 
 export enum MEAL_TYPES {

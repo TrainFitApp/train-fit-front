@@ -191,12 +191,7 @@ export class AuthErrorService {
   }
 
   private getCode(error: any): string | undefined {
-    const candidates = [
-      error?.error?.error,
-      error?.error?.code,
-      error?.error,
-      error?.code,
-    ];
+    const candidates = [error?.error?.code, error?.code];
 
     return candidates.find(
       (candidate) => typeof candidate === 'string' && candidate.length > 0

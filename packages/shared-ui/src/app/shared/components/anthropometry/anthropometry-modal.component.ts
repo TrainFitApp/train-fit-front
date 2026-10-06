@@ -19,8 +19,9 @@ export class AnthropometryModalComponent implements OnInit {
   isLoading = false;
   maxDate = new Date().toISOString();
   // Solo las medidas que apunta el cliente por su cuenta. El resto del
-  // catálogo (masas, hombros, izq./der., tobillos…) es de los check-ins que
-  // pide el entrenador y no se ofrece aquí.
+  // catálogo (masas, hombros, cuádriceps, tobillos…) es de los check-ins que
+  // pide el entrenador. Brazo y gemelo van por lado, con los mismos campos
+  // que los check-ins: así el entrenador ve también lo que apunta el cliente.
   measurementFields = [
     { key: 'weight', label: 'ANTHROPOMETRY.WEIGHT', unit: 'kg', step: 0.1 },
     { key: 'neck', label: 'ANTHROPOMETRY.NECK', unit: 'cm', step: 0.1 },
@@ -28,11 +29,14 @@ export class AnthropometryModalComponent implements OnInit {
     { key: 'waist', label: 'ANTHROPOMETRY.WAIST', unit: 'cm', step: 0.1 },
     { key: 'abdomen', label: 'ANTHROPOMETRY.ABDOMEN', unit: 'cm', step: 0.1 },
     { key: 'hip', label: 'ANTHROPOMETRY.HIP', unit: 'cm', step: 0.1 },
-    { key: 'bicepsRelaxed', label: 'ANTHROPOMETRY.BICEPS_RELAXED', unit: 'cm', step: 0.1 },
-    { key: 'bicepsContracted', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED', unit: 'cm', step: 0.1 },
+    { key: 'bicepsRelaxedL', label: 'ANTHROPOMETRY.BICEPS_RELAXED_L', unit: 'cm', step: 0.1 },
+    { key: 'bicepsRelaxedR', label: 'ANTHROPOMETRY.BICEPS_RELAXED_R', unit: 'cm', step: 0.1 },
+    { key: 'bicepsContractedL', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED_L', unit: 'cm', step: 0.1 },
+    { key: 'bicepsContractedR', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED_R', unit: 'cm', step: 0.1 },
     { key: 'thighRelaxed', label: 'ANTHROPOMETRY.THIGH_RELAXED', unit: 'cm', step: 0.1 },
     { key: 'thighContracted', label: 'ANTHROPOMETRY.THIGH_CONTRACTED', unit: 'cm', step: 0.1 },
-    { key: 'calf', label: 'ANTHROPOMETRY.CALF', unit: 'cm', step: 0.1 },
+    { key: 'calfL', label: 'ANTHROPOMETRY.CALF_L', unit: 'cm', step: 0.1 },
+    { key: 'calfR', label: 'ANTHROPOMETRY.CALF_R', unit: 'cm', step: 0.1 },
   ];
 
   // Solo presentación: las mismas medidas agrupadas por zona del cuerpo.
@@ -40,8 +44,9 @@ export class AnthropometryModalComponent implements OnInit {
   readonly heroField = 'weight';
   readonly groups: MeasurementGroup[] = [
     { title: 'ANTHROPOMETRY.GROUP_TORSO', icon: 'body-outline', fields: ['neck', 'chest', 'waist', 'abdomen', 'hip'] },
-    { title: 'ANTHROPOMETRY.GROUP_ARMS', icon: 'barbell-outline', fields: ['bicepsRelaxed', 'bicepsContracted'] },
-    { title: 'ANTHROPOMETRY.GROUP_LEGS', icon: 'walk-outline', fields: ['thighRelaxed', 'thighContracted', 'calf'] },
+    // Izquierdo y derecho uno junto al otro (la rejilla va a dos columnas).
+    { title: 'ANTHROPOMETRY.GROUP_ARMS', icon: 'barbell-outline', fields: ['bicepsRelaxedL', 'bicepsRelaxedR', 'bicepsContractedL', 'bicepsContractedR'] },
+    { title: 'ANTHROPOMETRY.GROUP_LEGS', icon: 'walk-outline', fields: ['thighRelaxed', 'thighContracted', 'calfL', 'calfR'] },
   ];
 
   async openDatePicker(): Promise<void> {

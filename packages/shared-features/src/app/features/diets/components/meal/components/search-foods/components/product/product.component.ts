@@ -333,15 +333,8 @@ export class ProductComponent implements OnInit, OnChanges {
           MEASURE_FILTER[MEASURE_FILTER_TYPES.racion].id !== this.measureFilter)
       ) {
         this.actionLoading = true;
-        const idDietInUse = this.userService.getLocalUser.dietInUse;
         this.dietDayService
-          .createCustomProduct(
-            this.loading,
-            this.dietDay,
-            newCustomProduct,
-            this.meal,
-            idDietInUse
-          )
+          .createCustomProduct(this.loading, this.dietDay, newCustomProduct, this.meal)
           .subscribe({
             next: () => {
               this.isChecked = true;
@@ -378,7 +371,7 @@ export class ProductComponent implements OnInit, OnChanges {
       }
 
       this.customProductService
-        .deleteCustomProduct(customProductToDelete._id)
+        .deleteCustomProduct(this.meal._id, customProductToDelete._id)
         .pipe(take(1))
         .subscribe({
           next: () => {
@@ -561,8 +554,6 @@ export class ProductComponent implements OnInit, OnChanges {
         lastUsedAt?: string;
       };
       delete recentPayload._id;
-      delete recentPayload.mealId;
-      delete recentPayload.customRecipeId;
       delete recentPayload.baseCustomProductId;
       delete recentPayload.lastUsedAt;
 

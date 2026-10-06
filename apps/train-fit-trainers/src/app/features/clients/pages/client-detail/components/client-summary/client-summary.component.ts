@@ -98,7 +98,6 @@ localizeRecord(PRIORITY_LABELS, 'CLIENT_SUMMARY.PRIORITY');
 // distinguir "peso" de "check-in" de un vistazo. Duplicado a propósito
 // (mismo criterio que PRIORITY_LABELS de arriba): consolidarlo es aparte.
 const ALERT_ICONS: Record<CoachAlertType, string> = {
-  pending_review: 'document-text-outline',
   checkin_overdue: 'clipboard-outline',
   plan_ending_soon: 'hourglass-outline',
   stagnation: 'remove-outline',
@@ -113,7 +112,6 @@ const ALERT_ICONS: Record<CoachAlertType, string> = {
 // modela un campo "owner" propio; esto es una categoría puramente derivada
 // del `type` ya real, no un dato nuevo inventado.
 const OWNER_BY_TYPE: Record<CoachAlertType, string> = {
-  pending_review: 'Tú revisas',
   checkin_overdue: 'Pendiente del cliente',
   plan_ending_soon: 'Tú decides',
   stagnation: 'Tú decides',

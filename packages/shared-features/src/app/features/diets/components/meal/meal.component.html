@@ -74,21 +74,21 @@
        acordeón. -->
   <div
     class="meal-proposal-banner"
-    *ngIf="load && proposals?.length"
+    *ngIf="load && meal?.alternatives?.length"
     (click)="$event.stopPropagation()"
   >
-    <div class="meal-proposal-item" *ngFor="let proposal of proposals">
+    <div class="meal-proposal-item">
       <span class="meal-proposal-label">
         <ion-icon name="restaurant-outline"></ion-icon>
         {{ "MEAL.ALTERNATIVES_LABEL" | translate }}
       </span>
       <div class="meal-proposal-chips" role="group" [attr.aria-label]="'MEAL.ALTERNATIVES_LABEL' | translate">
         <ion-chip
-          *ngFor="let alt of proposal.alternatives; let i = index"
-          [class.meal-proposal-chip--active]="proposal.chosenIndex === i"
-          [attr.aria-pressed]="proposal.chosenIndex === i"
-          [disabled]="isChoosingProposal"
-          (click)="chooseAlternative(proposal, i)"
+          *ngFor="let alt of meal.alternatives; let i = index"
+          [class.meal-proposal-chip--active]="meal.chosenAlternativeIndex === i"
+          [attr.aria-pressed]="meal.chosenAlternativeIndex === i"
+          [disabled]="isChoosingAlternative"
+          (click)="chooseAlternative(i)"
         >
           {{ alt.label || ("MEAL.ALTERNATIVE_DEFAULT_LABEL" | translate : { n: i + 1 }) }}
         </ion-chip>

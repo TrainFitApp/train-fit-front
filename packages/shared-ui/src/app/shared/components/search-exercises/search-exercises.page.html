@@ -101,59 +101,6 @@
       </div>
     </div>
   </div>
-
-  <div
-    class="filters-section"
-    *ngIf="searchFilterGroupExercises?.muscleGroups1.length > 0"
-  >
-    <div class="filter-group">
-      <div class="filter-header">
-        <ion-icon name="barbell-outline" class="filter-icon"></ion-icon>
-        <span class="filter-title">{{ 'SEARCH_EXERCISES.MAIN_MUSCLES' | translate }}</span>
-      </div>
-      <div class="chips-container">
-        <ion-chip
-          *ngFor="let muscle of searchFilterGroupExercises.muscleGroups1"
-          class="modern-chip"
-          [outline]="searchFilterGroupExercises.muscleGroups1.includes(muscle)"
-          color="primary"
-        >
-          <ion-label>{{ muscle | translateDb }}</ion-label>
-          <ion-icon
-            name="close-circle"
-            (click)="spliceMuscleGroup1(muscle)"
-          ></ion-icon>
-        </ion-chip>
-      </div>
-    </div>
-  </div>
-
-  <div
-    class="filters-section"
-    *ngIf="searchFilterGroupExercises.muscleGroups2.length > 0"
-  >
-    <div class="filter-group">
-      <div class="filter-header">
-        <ion-icon name="fitness-outline" class="filter-icon"></ion-icon>
-        <span class="filter-title">{{ 'SEARCH_EXERCISES.SECONDARY_MUSCLES' | translate }}</span>
-      </div>
-      <div class="chips-container">
-        <ion-chip
-          *ngFor="let muscle of searchFilterGroupExercises.muscleGroups2"
-          class="modern-chip"
-          [outline]="searchFilterGroupExercises.muscleGroups2.includes(muscle)"
-          color="primary"
-          (click)="spliceMuscleGroup2(muscle)"
-        >
-          <ion-label>{{ muscle | translateDb }}</ion-label>
-          <ion-icon
-            name="close-circle"
-            (click)="spliceMuscleGroup2(muscle)"
-          ></ion-icon>
-        </ion-chip>
-      </div>
-    </div>
-  </div>
 </ion-header>
 
 <ion-content class="exercises-content">
@@ -209,7 +156,7 @@
             *ngFor="let mg of getValidMuscleGroups(exercise)"
           >
             <ion-icon name="barbell-outline"></ion-icon>
-            <span class="label">{{ mg | translateDb }}</span>
+            <span class="label">{{ mg }}</span>
             <ion-ripple-effect></ion-ripple-effect>
           </button>
         </div>

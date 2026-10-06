@@ -1,4 +1,5 @@
-import { CustomCheckinQuestion, CheckinTemplateDefinition } from '../../../../../checkin-templates/models/checkin-template.model';
+import { CheckinTemplateDefinition } from '../../../../../checkin-templates/models/checkin-template.model';
+import { CustomQuestion } from 'src/app/core/models/custom-question';
 
 // Estados de una solicitud de check-in (docs/plan-semanas.md). No hay
 // colección de solicitudes: son fechas calculadas a partir de la
@@ -35,7 +36,7 @@ export interface CheckinSchedule extends CheckinScheduleDraft {
   active: boolean;
   enabledFields: string[];
   requiredFields?: string[];
-  customQuestions: CustomCheckinQuestion[];
+  customQuestions: CustomQuestion[];
   // Próxima fecha posterior a hoy (calculada en el back); null si está
   // pausada o ya no tiene más.
   nextDate?: string | null;
@@ -61,7 +62,7 @@ export interface CheckinEntry {
   status: CheckinStatus;
   enabledFields: string[];
   requiredFields: string[];
-  customQuestions: CustomCheckinQuestion[];
+  customQuestions: CustomQuestion[];
   values: Record<string, number | string | boolean> | null;
   respondedAt: string | null;
   updatedAt: string | null;

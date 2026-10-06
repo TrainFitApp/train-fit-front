@@ -1,7 +1,6 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
@@ -11,11 +10,9 @@ import {
   NutritionMacroTotals,
   NutritionTrackingDay,
 } from '../../pages/client-detail/models/client-detail.model';
-import { PlanAssignment } from '../../../../shared/models/plan-assignment.model';
+import { DietPhase, WeekNeedResponse } from '../../../../shared/models/diet-phase.model';
 import { buildCheckinDisplay, CheckinDisplay } from '../../checkin-display.util';
-import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
-import { WeekNeedResponse } from '../../../diet-templates/models/diet-suggestion.model';
-import { NeedBreakdownComponent } from '../need-breakdown/need-breakdown.component';
+import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.service';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
@@ -31,8 +28,6 @@ type ViewState = 'loading' | 'ready' | 'error';
 // los check-ins que el cliente respondió dentro de ese rango.
 @Component({
   selector: 'app-week-summary-panel',
-  standalone: true,
-  imports: [CommonModule, IonicModule, NeedBreakdownComponent, TranslateModule],
   templateUrl: './week-summary-panel.component.html',
   styleUrls: ['./week-summary-panel.component.scss'],
 })
@@ -40,13 +35,11 @@ export class WeekSummaryPanelComponent implements OnInit {
   private readonly translate = inject(TranslateService);
 
   @Input() public clientId!: string;
-  @Input() public assignment!: PlanAssignment;
+  @Input() public phase!: DietPhase;
   @Input() public weekNumber = 1;
   @Input() public clientName = this.translate.instant('CLIENTS.ESTE_CLIENTE');
-  // La ventana de la semana (la marcan los check-ins, ver
-  // week-window.js), que no coincide con el rango del doc persistido —
-  // un contenido puede cubrir varias semanas. `end` null = sigue abierta.
-  @Input() public window: { start: string; end: string | null } | null = null;
+  // La semana natural (lunes a domingo, recortada al inicio y fin de la fase).
+  @Input() public window!: { start: string; end: string };
 
   public state: ViewState = 'loading';
 
@@ -69,19 +62,22 @@ export class WeekSummaryPanelComponent implements OnInit {
   constructor(
     private modalController: ModalController,
     private api: ClientDetailApiService,
-    private suggestionApi: DietSuggestionApiService
+    private dietPhaseApi: DietPhaseApiService
   ) {}
 
-  // Una semana en curso no tiene fin: se mira hasta hoy. El backend vuelve a
-  // acotarlo por su cuenta (nunca el futuro), esto es solo para no pedir un
-  // rango absurdo.
   public get from(): string {
-    return this.window?.start || this.assignment?.startDate || this.todayIso;
+    return this.window.start;
   }
 
+  // Una semana en curso se mira hasta hoy (nunca el futuro).
   public get to(): string {
-    const fin = this.window?.end || this.assignment?.endDate || this.todayIso;
-    return fin > this.todayIso ? this.todayIso : fin;
+    return this.window.end > this.todayIso ? this.todayIso : this.window.end;
+  }
+
+  // Menús de la versión del contenido que regía esa semana.
+  public get menusCount(): number {
+    const content = [...this.phase.contents].reverse().find((c) => c.startDate <= this.window.start);
+    return content?.menusCount || 0;
   }
 
   private get todayIso(): string {
@@ -89,8 +85,7 @@ export class WeekSummaryPanelComponent implements OnInit {
   }
 
   public get isRunning(): boolean {
-    if (this.window) return !this.window.end || this.window.end >= this.todayIso;
-    return !this.assignment?.endDate;
+    return this.window.end >= this.todayIso;
   }
 
   public ngOnInit(): void {
@@ -124,12 +119,7 @@ export class WeekSummaryPanelComponent implements OnInit {
   // Aparte del resto: si falla, la semana se sigue viendo y solo este
   // bloque dice que no cargó.
   private loadNeed(): void {
-    const phaseId = this.assignment?.phaseId;
-    if (!phaseId) {
-      this.needState = 'error';
-      return;
-    }
-    this.suggestionApi.getWeekNeed(this.clientId, phaseId, this.weekNumber).subscribe({
+    this.dietPhaseApi.getWeekNeed(this.clientId, this.phase._id, this.weekNumber).subscribe({
       next: (need) => {
         this.weekNeed = need;
         this.needState = 'ready';

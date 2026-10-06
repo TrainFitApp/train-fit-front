@@ -1,6 +1,7 @@
-// Sugerencias de dieta — tipos de los endpoints del cajón lateral
-// (train-fit-back/components/dietTemplates/diet-suggestion-controller.js) y
-// de las semanas de una fase (plan-assignment-controller.js).
+// Sugerencias de dieta: tipos del cajón lateral "Empezar fase"
+// (train-fit-back/components/dietTemplates/diet-suggestion-service.js) y de la
+// necesidad calculada del cliente, que comparten las semanas de una fase
+// (shared/models/diet-phase.model.ts).
 
 export type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
 export type TargetSource = 'calculated' | 'manual';
@@ -55,9 +56,8 @@ export interface DietSuggestionResponse {
   stepsFromHabit: StepsFromHabit | null;
   // Inputs y cuenta paso a paso, para el bloque "cómo se ha calculado".
   needBreakdown: { inputs: WeekNeed['inputs']; breakdown: WeekNeed['breakdown'] };
-  // `from: 'anthropometry'` trae `date`; `from: 'signup'` no (viene del
-  // registro del cliente, sin fecha).
-  weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
+  // El último peso de sus medidas (el del registro también es una medida).
+  weightSource: { weightKg: number; from: 'anthropometry'; date: string } | null;
   // Peso sobre el que se aplican los g/kg (el ajustado si IMC ≥ 30).
   macroWeightKg?: number | null;
   // Objetivo del cliente al registrarse (delta kcal con signo). El cajón lo
@@ -91,54 +91,6 @@ export interface DietSuggestionRequest {
   fatPerKg?: number;
 }
 
-// Bloque que viaja con apply / createDirect cuando se EMPIEZA una fase: su
-// nombre y con qué números se pauta. Ya no hay enfoque ni ajuste de kcal ni
-// ritmo por semana — lo que importa es el objetivo con el que se pauta.
-export interface PhasePayload {
-  name: string;
-  target: (MacroSet & { kcal: number; source: TargetSource }) | null;
-  proteinPerKg?: number | null;
-  fatPerKg?: number | null;
-}
-
-// --- Semanas (docs/plan-semanas.md) ---
-
-// Desvío de un día de la semana actual: lo que comió fuera de pauta y las
-// comidas pautadas que no marcó. hasPlan false = ese día no tenía nada
-// pautado (p. ej. `choice` sin menú elegido).
-export interface DailyDeviation {
-  date: string;
-  hasPlan: boolean;
-  unplanned: { meal: string; name: string; quantity: number }[];
-  unchecked: string[];
-}
-
-export interface NextWeekSuggestion {
-  hasData: boolean;
-  deltaKcal: number;
-  nextKcal: number;
-  actualWeeklyRateKg: number | null;
-  expectedWeeklyRateKg: number;
-  flag: string | null;
-  reason: string;
-  weightStartKg: number | null;
-  weightEndKg: number | null;
-  // Con qué semana anterior se comparó el peso (la última que tenía peso).
-  comparedToWeek: number | null;
-  adherencePct: number | null;
-  adherenceDays: number;
-  deviations: DailyDeviation[];
-}
-
-// Un contenido persistido (doc DietTemplate) resumido. `profile` = media
-// diaria de kcal/macros — no hay objetivo guardado aparte.
-export interface WeekOverrideSummary {
-  id: string;
-  startDate: string;
-  menusCount: number;
-  profile: MacroSet & { kcal: number };
-}
-
 // Pasos que entraron en el cálculo: los que pauta el HÁBITO de pasos del
 // cliente y los días que lo marcó dentro de la semana mirada
 // (docs/plan-semanas.md). null = sin hábito, o marcado menos de la
@@ -160,7 +112,7 @@ export interface WeekNeed {
   missing?: string[] | null;
   inputs: {
     weightKg: number | null;
-    weightFrom: 'anthropometry' | 'signup' | null;
+    weightFrom: 'anthropometry' | null;
     weightDate: string | null;
     heightCm: number | null;
     age: number | null;
@@ -196,68 +148,4 @@ export interface WeekNeed {
   } | null;
   target: (MacroSet & { kcal: number }) | null;
   stepsFromHabit?: StepsFromHabit | null;
-}
-
-export interface WeekNeedResponse {
-  weekNumber: number;
-  start: string;
-  end: string | null;
-  isCurrent: boolean;
-  // snapshot = guardado al empezar la fase; computed = al vuelo.
-  source: 'snapshot' | 'computed' | null;
-  need: WeekNeed | null;
-  checkin: { values: Record<string, unknown>; respondedAt: string; updatedAt: string } | null;
-  plannedKcal: number | null;
-  phaseTarget: (MacroSet & { kcal: number; source: TargetSource }) | null;
-}
-
-export interface WeekWindow {
-  number: number;
-  start: string;
-  // null solo en la última cuando la fase sigue abierta y no hay otro
-  // check-in programado por delante.
-  end: string | null;
-}
-
-export interface PhaseWeeksResponse {
-  phaseId: string;
-  phaseName: string | null;
-  phaseStart: string;
-  phaseEnd: string | null;
-  phaseTarget: (MacroSet & { kcal: number; source: TargetSource }) | null;
-  weeks: WeekWindow[];
-  current: (WeekWindow & { override: WeekOverrideSummary }) | null;
-  // null solo cuando la fase termina dentro de la semana en curso: no hay
-  // una semana siguiente que preparar.
-  next:
-    | (WeekWindow & {
-        // Ya preparada por el entrenador, o null.
-        override: WeekOverrideSummary | null;
-        // Lo que heredará si nadie toca nada (null si hay override).
-        inherits: WeekOverrideSummary | null;
-        suggestion: NextWeekSuggestion | null;
-        // Necesidad con los datos de HOY — referencia, no cambia la sugerencia.
-        needNow: WeekNeed | null;
-      })
-    | null;
-  past: (WeekWindow & { profile: MacroSet & { kcal: number }; overrideId: string })[];
-}
-
-// Contenido vigente escalado a unas kcal — para abrir el builder precargado
-// al preparar la semana siguiente.
-export interface ScaledNextWeek {
-  weekNumber: number;
-  start: string;
-  end: string | null;
-  baseKcal: number;
-  targetKcal: number;
-  factor: number;
-  currentWeekNumber: number | null;
-  content: {
-    menus: unknown[];
-  };
-}
-
-export interface PrepareNextWeekRequest {
-  menus: unknown[];
 }

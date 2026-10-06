@@ -3,25 +3,23 @@ import { TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import { NutritionComplianceDay } from '../../models/client-detail.model';
-import { PlanAssignmentApiService } from '../../../../../../shared/services/plan-assignment-api.service';
-import { PlanAssignment } from '../../../../../../shared/models/plan-assignment.model';
+import { DietPhaseApiService } from '../../../../../../shared/services/diet-phase-api.service';
+import { DietPhase } from '../../../../../../shared/models/diet-phase.model';
+import { compareChain } from '../../../../../../shared/models/phase-state';
 import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
 import { uiLocale, localizeList } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 interface CalendarPhaseInfo {
-  // Identidad de la FASE (phaseId, o el _id si no lo tiene), no del documento:
-  // una fase se parte en un documento por semana con contenido distinto, y
-  // todos comparten color y nombre. Es la clave del color y de la leyenda.
+  // Id de la fase: la clave del color y de la leyenda.
   key: string;
   color: string;
-  planName: string | null;
-  // Semana de la fase en la que cae este día ("R3"), o null si ese día no
-  // cae en ninguna. Las ventanas las marcan los check-ins programados: las
-  // calcula el backend (diet-timeline), no se deducen aquí.
+  name: string;
+  // Semana de la fase en la que cae este día ("S3"), o null si ese día no
+  // cae en ninguna. Las calcula el backend (diet-timeline).
   weekLabel: string | null;
   // ¿Impide que una fase nueva empiece en este día? Misma regla que el
-  // backend (plan-assignment-service.js#blocksNewPhase): una fase con
+  // backend (diet-phase-service.js#blocksNewPhase): una fase con
   // fecha de fin cerrada bloquea; una INDEFINIDA ya en curso no, porque
   // "le cambio el plan a partir de hoy" es el caso normal y se resuelve
   // cortándola. Sin esta distinción el selector se quedaría muerto para
@@ -255,7 +253,7 @@ export class NutritionCalendarComponent implements OnChanges {
   // Historial completo de fases (todas, no solo la activa) — se pide una
   // vez por cliente, no por mes: son pocos documentos y así un tramo que
   // cruza dos meses se pinta igual en ambos sin refetch.
-  private planPhases: PlanAssignment[] = [];
+  private planPhases: DietPhase[] = [];
   // Ventanas de semana del rango visible, tal y como las calcula el
   // backend a partir de los check-ins programados del cliente.
   private weekWindows: { phaseId: string; number: number; start: string; end: string }[] = [];
@@ -275,7 +273,7 @@ export class NutritionCalendarComponent implements OnChanges {
 
   constructor(
     private clientDetailApi: ClientDetailApiService,
-    private planAssignmentApi: PlanAssignmentApiService
+    private dietPhaseApi: DietPhaseApiService
   ) {
     // El panel de suplementación está en la misma pantalla: sin esto, lo
     // que se añade o se quita allí no aparecía aquí hasta recargar.
@@ -381,7 +379,7 @@ export class NutritionCalendarComponent implements OnChanges {
       const choque = this.findBlockingPhaseInRange(start, end);
       if (choque) {
         this.rangeError =
-          this.translate.instant('CLIENTS.ESE_TRAMO_CAE_DENTRO_DE', { p0: choque.planName || 'otra fase', startDate: choque.startDate }) + ' ' +
+          this.translate.instant('CLIENTS.ESE_TRAMO_CAE_DENTRO_DE', { p0: choque.name, startDate: choque.startDate }) + ' ' +
           this.translate.instant('CLIENTS.EMPIEZALA_HOY_PARA_CORTARLA_ELIGE', { p0: this.phaseEndLabel(choque) });
         this.rangeStart = null;
         this.rangeEnd = null;
@@ -428,7 +426,7 @@ export class NutritionCalendarComponent implements OnChanges {
       return;
     }
 
-    const nombre = cell.phase.planName || 'otra fase';
+    const nombre = cell.phase.name;
     this.occupiedTooltip = {
       text: cell.phase.blocksNewPhase
         ? this.translate.instant('CLIENTS.OCUPADO_POR_NO_PUEDES_EMPEZAR', { nombre })
@@ -505,7 +503,7 @@ export class NutritionCalendarComponent implements OnChanges {
 
     // Semanas del mes visible: es la única fuente de los badges R1/R2 —
     // las ventanas dependen de los check-ins programados del cliente.
-    this.planAssignmentApi.getDietTimeline(this.clientId, from, to).subscribe({
+    this.dietPhaseApi.getTimeline(this.clientId, from, to).subscribe({
       next: (timeline) => {
         this.weekWindows = timeline?.weeks || [];
         this.cells = this.withPhases(this.cells);
@@ -555,20 +553,12 @@ export class NutritionCalendarComponent implements OnChanges {
   }
 
   private loadPlanPhases(): void {
-    this.planAssignmentApi.getHistory(this.clientId).subscribe({
+    this.dietPhaseApi.list(this.clientId).subscribe({
       next: (phases) => {
-        // Orden estable por fecha de inicio — así el color de cada fase no
+        // Orden estable por fecha de inicio: así el color de cada fase no
         // cambia de un mes a otro dentro de la misma sesión.
-        this.planPhases = (phases || []).slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
-        // Sugerencias de dieta — las semanas de una misma fase comparten
-        // color (banda de fase). Se colorea por phaseId; una semana sin
-        // phaseId (fases anteriores a la feature) usa su propio _id.
-        const phaseKeys: string[] = [];
-        for (const p of this.planPhases) {
-          const key = p.phaseId || p._id;
-          if (!phaseKeys.includes(key)) phaseKeys.push(key);
-        }
-        this.phaseColorMap = buildPhaseColorMap(phaseKeys);
+        this.planPhases = (phases || []).slice().sort(compareChain);
+        this.phaseColorMap = buildPhaseColorMap(this.planPhases.map((p) => p._id));
         this.cells = this.withPhases(this.cells);
       },
       error: () => {
@@ -611,29 +601,28 @@ export class NutritionCalendarComponent implements OnChanges {
       legend.push({
         id: cell.phase.key,
         color: cell.phase.color,
-        label: cell.phase.planName || this.translate.instant('CLIENT_DETAIL.PLAN_APPLIED'),
+        label: cell.phase.name,
       });
     }
     return legend;
   }
 
-  // Un plan vigente ('active') gana sobre cualquier fase pasada que, por
-  // algún dato inconsistente, también cubriese la misma fecha — en el caso
-  // normal (fases consecutivas sin solape) esto no hace ninguna diferencia.
+  // Con dos fases que cubren la fecha (se sustituyó una el mismo día en que
+  // empezó), manda la más reciente: planPhases va en el orden de la cadena.
   private findPhaseForDate(date: string): CalendarPhaseInfo | null {
     const matches = this.planPhases.filter((p) => p.startDate <= date && (!p.endDate || p.endDate >= date));
     if (!matches.length) return null;
 
-    const phase = matches.find((p) => p.status === 'active') || matches[matches.length - 1];
-    const phaseKey = phase.phaseId || phase._id;
+    const phase = matches[matches.length - 1];
+    const phaseKey = phase._id;
     return {
       key: phaseKey,
       color: this.phaseColorMap.get(phaseKey) ?? PHASE_COLORS[0],
-      planName: phase.planName || null,
+      name: phase.name,
       // Solo las semanas de ESTA fase: la numeración se reinicia en cada
       // fase nueva.
       weekLabel: this.weekLabelFor(date, phaseKey),
-      // Misma regla que el backend (plan-assignment-service.js#blocksNewPhase):
+      // Misma regla que el backend (diet-phase-service.js#blocksNewPhase):
       // cambiar el plan "a partir de ya" siempre se puede; lo que no se puede
       // es PROGRAMAR una fase futura dentro de un tramo ya reservado, sea por
       // su fin real o por su duración estimada.
@@ -659,7 +648,7 @@ export class NutritionCalendarComponent implements OnChanges {
   // Se comprueba contra planPhases (el historial ENTERO), no contra las
   // celdas del mes: un rango puede cruzar de un mes a otro y tragarse una
   // fase que ni siquiera se ve en la cuadrícula actual.
-  private findBlockingPhaseInRange(start: string, end: string): PlanAssignment | null {
+  private findBlockingPhaseInRange(start: string, end: string): DietPhase | null {
     return (
       this.planPhases.find((phase) => {
         const finEfectivo = phase.endDate || null;
@@ -673,9 +662,8 @@ export class NutritionCalendarComponent implements OnChanges {
 
   // Hasta cuándo tiene reservado el tramo una fase, para los mensajes de
   // solape: el fin real si ya se cortó, "indefinido" si sigue corriendo.
-  private phaseEndLabel(phase: PlanAssignment): string {
-    if (phase.endDate) return phase.endDate;
-    return 'indefinido';
+  private phaseEndLabel(phase: DietPhase): string {
+    return phase.endDate || this.translate.instant('CLIENTS.OPEN_ENDED');
   }
 
   // impeccable/quieter — antes llegaba a 1.0 (naranja SÓLIDO) al 100% de

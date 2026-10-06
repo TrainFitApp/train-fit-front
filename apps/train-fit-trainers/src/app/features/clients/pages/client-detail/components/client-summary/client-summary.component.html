@@ -137,20 +137,18 @@
             <span class="tracking-sparkline-fill" [style.height.%]="bar.height ?? 6" [class.tracking-sparkline-fill--empty]="bar.height === null"></span>
           </span>
         </div>
-        <!-- Plan activo — ya viaja en getSummary() (data.activePlan) y hoy
-             solo se veía más abajo, en el contexto de Adherencia. Dentro de
-             la rama aplicable a propósito (auditoría 2026-09): un plan
-             "activo" en BD puede estar programado para el futuro y no tener
-             aún ningún día registrado — mostrarlo suelto junto a "sin datos
+        <!-- La fase de dieta que rige hoy (data.dietPhase). Dentro de la
+             rama aplicable a propósito: una fase recién empezada aún no tiene
+             días registrados, y mostrarla suelta junto a "sin datos
              suficientes" leía como contradicción. -->
-        <div class="tracking-sub" *ngIf="data.activePlan">
-          {{ 'CLIENTS.PLAN' | translate }}: {{ data.activePlan.name }}
+        <div class="tracking-sub" *ngIf="data.dietPhase">
+          {{ 'CLIENTS.PLAN' | translate }}: {{ data.dietPhase.name }}
         </div>
       </ng-container>
       <ng-template #trackingNutritionEmpty>
         <p class="tracking-empty">
           {{ unavailableLabel(data.adherence.dimensions.nutrition) }}
-          <ng-container *ngIf="data.activePlan"> — {{ 'CLIENTS.PLAN_ASIGNADO' | translate }}: {{ data.activePlan.name }}</ng-container>
+          <ng-container *ngIf="data.dietPhase"> — {{ 'CLIENTS.PLAN_ASIGNADO' | translate }}: {{ data.dietPhase.name }}</ng-container>
         </p>
       </ng-template>
       <button type="button" class="tracking-link" (click)="openTab.emit('nutrition')">{{ 'CLIENTS.VER_NUTRICION' | translate }}</button>
@@ -326,8 +324,8 @@
 
       <button type="button" class="context-item" (click)="openTab.emit('nutrition')">
         <span class="context-label">{{ 'CLIENTS.DIETA' | translate }}</span>
-        <span class="context-value context-value--text">{{ data.activePlan?.name || '—' }}</span>
-        <span class="context-sub">{{ data.activePlan ? ('CLIENTS.DESDE_2' | translate) + (data.activePlan.startDate | localDate: 'd MMM') : ('COACH.PLANS_NONE' | translate) }}</span>
+        <span class="context-value context-value--text">{{ data.dietPhase?.name || '—' }}</span>
+        <span class="context-sub">{{ data.dietPhase ? ('CLIENTS.DESDE_2' | translate) + (data.dietPhase.startDate | localDate: 'd MMM') : ('COACH.PLANS_NONE' | translate) }}</span>
       </button>
 
       <button type="button" class="context-item" (click)="openTab.emit('training')">

@@ -19,6 +19,7 @@ import {
   ToastOptions,
 } from "@ionic/angular";
 import { CustomExercise } from "src/app/core/models/customExercise";
+import { primaryMuscleLabels } from "src/app/core/constants/muscle-catalog";
 import { formatRirValue, isRirFail } from "src/app/core/models/rir";
 // Alias: el archivo ya usa el Set global de JS (selectedExerciseIndices,
 // muscleGroupsSet...) — mismo alias que config-exercise.page.ts ya usa para
@@ -1919,19 +1920,11 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public getWorkoutMuscleGroups(): string[] {
-    const muscleGroupsSet = new Set<string>();
-
+    const labels = new Set<string>();
     this.workout.exercises.forEach((exerciseTemp) => {
-      exerciseTemp.exercise.muscleGroups1.forEach((group) => {
-        muscleGroupsSet.add(group);
-      });
-
-      // exerciseTemp.exercise.muscleGroups2.forEach((group) => {
-      //   muscleGroupsSet.add(group);
-      // });
+      primaryMuscleLabels(exerciseTemp.exercise?.muscles).forEach((label) => labels.add(label));
     });
-
-    return Array.from(muscleGroupsSet);
+    return Array.from(labels);
   }
 
   public isCustomExerciseCompleted(customExercise: CustomExercise): boolean {

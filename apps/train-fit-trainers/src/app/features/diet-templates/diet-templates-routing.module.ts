@@ -30,12 +30,11 @@ const routes: Routes = [
     data: { parent: '/tabs/clients/:clientId' },
     canDeactivate: [pendingChangesGuard],
   },
-  // Editar la dieta YA ASIGNADA a un cliente (cualquier semana, con o sin
-  // sourceTemplateId) — mismo builder, en modo "copia asignada": lee/escribe
-  // el _id de esa copia directamente, nunca una plantilla de biblioteca (ver
-  // diet-template-builder.page.ts#startForAssignedCopy).
+  // Editar una versión del contenido de una fase de un cliente (la primera o
+  // una semana preparada): mismo builder, nunca una plantilla de biblioteca
+  // (ver diet-template-builder.page.ts#startForPhaseContent).
   {
-    path: 'edit-assignment/:clientId/:planId',
+    path: 'phase/:clientId/:phaseId/:contentId',
     canActivate: [intakeReviewedGuard],
     component: DietTemplateBuilderPage,
     data: { parent: '/tabs/clients/:clientId' },

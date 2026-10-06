@@ -725,8 +725,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
 
 // --- helpers de módulo ---
 
-// Solo las 'pending': cuestionario_pendiente/en_revision son datos antiguos
-// de clientes que ya aceptaron (salen en la Cartera).
+// Solo las invitaciones sin responder: quien aceptó ya sale en la Cartera.
 function groupPendingInvites(invites: TrainerInvite[]): PendingInviteGroup[] {
   const groups = new Map<string, PendingInviteGroup>();
   for (const invite of invites) {

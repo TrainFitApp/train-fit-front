@@ -32,15 +32,16 @@ import { DietDay } from "src/app/core/models/dietDay";
 import { Meal } from "src/app/core/models/meal";
 import { IProduct } from "src/app/core/models/product";
 import { Recipe } from "src/app/core/models/recipe";
-import { User } from "src/app/core/models/user";
+import { FavoriteKind, User } from "src/app/core/models/user";
 import { DietDayService } from "src/app/core/services/diet-day/diet-day.service";
-import { DietService } from "src/app/core/services/diet/diet.service";
+import { RecentFoodsService } from "src/app/core/services/recent-foods/recent-foods.service";
 import { MealService } from "src/app/core/services/meal/meal.service";
 import { ProductService } from "src/app/core/services/product/product.service";
 import { CustomProductService } from "src/app/core/services/custom-product/custom-product.service";
 import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
 import { RecipeApiService } from "src/app/core/services/recipe/recipe-api.service";
 import { UserService } from "src/app/core/services/user/user.service";
+import { FavoritesService } from "src/app/core/services/favorites/favorites.service";
 import { BarCodeScannerService } from "src/app/core/services/util/bar-code-scanner.service";
 import { TranslateService } from "@ngx-translate/core";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
@@ -178,12 +179,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   // sobrevivir a cambios de modo (Productos ↔ Recetas) y a la paginación de
   // resultados sin perder lo ya marcado.
   public trainerSelection: TrainerFoodSelection[] = [];
-  // TAREA5 (auditoría UX, Fase B) — favoritos son la biblioteca PERSONAL del
-  // entrenador (lo que suele recomendar a cualquier cliente), no del cliente
-  // que esté viendo — por eso se leen/escriben contra el entrenador logueado
-  // (this.userService.getLocalUser), nunca contra trainerContext.clientUser.
-  public trainerFavoriteProductIds = new Set<string>();
-  public trainerFavoriteRecipeIds = new Set<string>();
   public hasStartedFoodSearch: boolean = false;
   public loadingRecipeIds = new Set<string>();
   public idUser: string;
@@ -292,7 +287,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   constructor(
     private dietDayService: DietDayService,
-    private dietService: DietService,
+    private recentFoodsService: RecentFoodsService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
@@ -301,6 +296,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     private recipeDraftService: RecipeDraftService,
     private customProductService: CustomProductService,
     private userService: UserService,
+    private favoritesService: FavoritesService,
     private activatedRoute: ActivatedRoute,
     private navigationService: NavigationService,
     private barCodeScannerService: BarCodeScannerService,
@@ -334,9 +330,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.hasStartedFoodSearch = false;
       this.recentProductsPrefetched = false;
       this.trainerSelection = [];
-      const trainerUser = this.userService.getLocalUser;
-      this.trainerFavoriteProductIds = new Set(trainerUser?.archivedProducts || []);
-      this.trainerFavoriteRecipeIds = new Set(trainerUser?.archivedRecipes || []);
       this.currentMode = "products";
       this.trainerContext.registerSelectionApi?.({
         setSelected: (item, quantity) => this.setTrainerItemSelected(item, quantity),
@@ -344,7 +337,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       // Mismo camino que un arranque en frío normal (ver search()/onModeChange
       // más abajo): con hasStartedFoodSearch=false, carga los productos
       // recientes de ESTA comida antes de que el entrenador escriba nada. Se
-      // queda vacío sin romper nada si el cliente no tiene dietId todavía
+      // queda vacío sin romper nada si el cliente aún no tiene historial
       // (loadRecentProductsForMeal ya contempla ese caso).
       this.loadRecentProductsForMeal();
       return;
@@ -1143,7 +1136,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     });
 
     this.productByCodeSub = this.productService
-      .getProductByCode(this.user._id, scannedCode)
+      .getProductByCode(scannedCode)
       .subscribe({
         next: (resProduct) => {
           const isScanned = true;
@@ -1301,13 +1294,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     const t = this.translate.instant.bind(this.translate);
     this.dietDayService
-      .createCustomProduct(
-        { value: false },
-        this.dietDay,
-        customProduct,
-        this.meal,
-        this.userService.getLocalUser?.dietInUse,
-      )
+      .createCustomProduct({ value: false }, this.dietDay, customProduct, this.meal)
       .subscribe({
         next: () => {
           this.ionicUtilService.showToast({
@@ -1477,9 +1464,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           savedInstance.modifiedBaseCustomProducts =
             savedInstance.modifiedBaseCustomProducts.filter((override: any) => {
               const overrideId =
-                typeof override?.baseCustomProductId === "string"
-                  ? override.baseCustomProductId
-                  : override?.baseCustomProductId?._id;
+                override?.baseCustomProductId;
               return !removedCustomProductIds.has(
                 (overrideId || "").toString(),
               );
@@ -1496,12 +1481,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.navigationService.setTempData("configRecipeInstance", savedInstance);
     }
 
-    if (this.user?.archivedProducts?.includes(productId)) {
-      this.user.archivedProducts = this.user.archivedProducts.filter(
-        (id) => id !== productId,
-      );
-      this.userService.setLocalUser = this.user;
-    }
+    // El servidor ya lo sacó de sus favoritos al borrarlo.
+    this.favoritesService.forget("products", productId);
 
     const currentDietDay = this.dietDayService.currentDietDay;
     if (!currentDietDay?.meals?.length) {
@@ -1570,9 +1551,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
               customRecipe.modifiedBaseCustomProducts =
                 customRecipe.modifiedBaseCustomProducts.filter((override: any) => {
                   const overrideId =
-                    typeof override?.baseCustomProductId === "string"
-                      ? override.baseCustomProductId
-                      : override?.baseCustomProductId?._id;
+                    override?.baseCustomProductId;
                   return !removedCustomProductIds.has(
                     (overrideId || "").toString(),
                   );
@@ -1604,12 +1583,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this.recipeDraftService.reset();
     this.recipes = (this.recipes || []).filter((recipe) => recipe?._id !== recipeId);
 
-    if (this.user?.archivedRecipes?.includes(recipeId)) {
-      this.user.archivedRecipes = this.user.archivedRecipes.filter(
-        (id) => id !== recipeId,
-      );
-      this.userService.setLocalUser = this.user;
-    }
+    this.favoritesService.forget("recipes", recipeId);
 
     if (this.meal?.customRecipes?.length) {
       this.meal = {
@@ -2029,22 +2003,21 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const dietId =
-      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
-    if (!dietId) return;
+    const recentsUserId = this.recentFoodsUserId();
+    if (!recentsUserId) return;
 
     if (isRecipeMode) {
       this.recentRecipesSub?.unsubscribe();
-      this.recentRecipesSub = this.dietService
-        .getRecentMealRecipes(dietId, mealIndex, { limit: this.recentRecipesLimit })
+      this.recentRecipesSub = this.recentFoodsService
+        .getRecentMealRecipes(mealIndex, { limit: this.recentRecipesLimit, userId: recentsUserId })
         .subscribe({
           next: (customRecipes) => (this.recentCustomRecipes = customRecipes || []),
           error: () => undefined,
         });
     } else {
       this.recentProductsSub?.unsubscribe();
-      this.recentProductsSub = this.dietService
-        .getRecentMealProducts(dietId, mealIndex, { limit: this.recentProductsLimit })
+      this.recentProductsSub = this.recentFoodsService
+        .getRecentMealProducts(mealIndex, { limit: this.recentProductsLimit, userId: recentsUserId })
         .subscribe({
           next: (customProducts) => (this.recentCustomProducts = customProducts || []),
           error: () => undefined,
@@ -2237,20 +2210,17 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const dietId =
-      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
+    const recentsUserId = this.recentFoodsUserId();
     const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
 
-    if (!dietId || mealIndex === -1) {
+    if (!recentsUserId || mealIndex === -1) {
       return;
     }
 
     this.recentProductsPrefetched = true;
     this.recentProductsPrefetchSub?.unsubscribe();
-    this.recentProductsPrefetchSub = this.dietService
-      .getRecentMealProducts(dietId, mealIndex, {
-        limit: this.recentProductsLimit,
-      })
+    this.recentProductsPrefetchSub = this.recentFoodsService
+        .getRecentMealProducts(mealIndex, { limit: this.recentProductsLimit, userId: recentsUserId })
       .subscribe({
         next: (customProducts) => {
           this.recentCustomProducts = customProducts || [];
@@ -2259,6 +2229,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           this.recentCustomProducts = [];
         },
       });
+  }
+
+  // De quién son los recientes: el cliente cuando pauta su profesional
+  // (trainerContext.clientUser), si no el propio usuario.
+  private recentFoodsUserId(): string | undefined {
+    return this.user?._id || this.userService.getLocalUser?._id;
   }
 
   private getRecentProductIds(): string[] {
@@ -2279,11 +2255,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const dietId =
-      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
+    const recentsUserId = this.recentFoodsUserId();
     const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
 
-    if (!dietId || mealIndex === -1) {
+    if (!recentsUserId || mealIndex === -1) {
       this.recentCustomProducts = [];
       this.products = [];
       this.load = true;
@@ -2296,10 +2271,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     this.load = false;
     this.recentProductsSub?.unsubscribe();
-    this.recentProductsSub = this.dietService
-      .getRecentMealProducts(dietId, mealIndex, {
-        limit: this.recentProductsLimit,
-      })
+    this.recentProductsSub = this.recentFoodsService
+        .getRecentMealProducts(mealIndex, { limit: this.recentProductsLimit, userId: recentsUserId })
       .subscribe({
         next: (customProducts) => {
           if (this.hasStartedFoodSearch && !force) {
@@ -2340,11 +2313,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const dietId =
-      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
+    const recentsUserId = this.recentFoodsUserId();
     const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
 
-    if (!dietId || mealIndex === -1) {
+    if (!recentsUserId || mealIndex === -1) {
       this.recentCustomRecipes = [];
       this.recipes = [];
       this.load = true;
@@ -2353,10 +2325,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     this.load = false;
     this.recentRecipesSub?.unsubscribe();
-    this.recentRecipesSub = this.dietService
-      .getRecentMealRecipes(dietId, mealIndex, {
-        limit: this.recentRecipesLimit,
-      })
+    this.recentRecipesSub = this.recentFoodsService
+        .getRecentMealRecipes(mealIndex, { limit: this.recentRecipesLimit, userId: recentsUserId })
       .subscribe({
         next: (customRecipes) => {
           if (this.hasStartedFoodSearch && !force) {
@@ -2634,7 +2604,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         if (recipeTemp) {
           const idRecipe: string = recipeTemp._id;
           const verified: boolean = !!recipeTemp?.verified;
-          const fav: boolean = this.user?.archivedRecipes?.includes(idRecipe);
+          const fav: boolean = this.favoriteIds("recipes").includes(idRecipe);
 
           // Aplicar filtros activos
           if (this.searchFilterGroup.shieldFilter && !verified) return false;
@@ -3052,12 +3022,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       const indexMeal = this.findMealIndexInDietDay(this.dietDay, this.meal);
 
       if (indexMeal !== -1) {
-        return {
-          dietInUseId:
-            this.user?.dietInUse || this.userService.getLocalUser?.dietInUse,
-          indexMeal,
-          currentDate: this.dietDay.date,
-        };
+        return { indexMeal, currentDate: this.dietDay.date };
       }
     }
 
@@ -3121,19 +3086,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   public onRecipeFavoriteToggle(recipe: Recipe): void {
     const t = this.translate.instant.bind(this.translate);
-    this.recipeApiService.toggleArchived(recipe._id).subscribe({
-      next: (res) => {
-        if (res.isArchived) {
-          if (!this.user.archivedRecipes) this.user.archivedRecipes = [];
-          this.user.archivedRecipes.push(recipe._id);
-        } else {
-          const idx = this.user.archivedRecipes?.indexOf(recipe._id);
-          if (idx > -1) this.user.archivedRecipes.splice(idx, 1);
-        }
-        this.userService.setLocalUser = this.user;
-
+    this.favoritesService.toggle("recipes", recipe._id).subscribe({
+      next: (isFavorite) => {
         this.ionicUtilService.showToast({
-          message: res.isArchived
+          message: isFavorite
             ? t('SEARCH_FOODS.RECIPE_ADDED_FAV')
             : t('SEARCH_FOODS.RECIPE_REMOVED_FAV'),
           duration: 1500,
@@ -3169,8 +3125,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         // Apply active filters regardless of search
         const idProduct: string = productTemp._id;
         const verified: boolean = !!productTemp?.verified;
-        const fav: boolean =
-          this.user.archivedProducts?.includes(idProduct) || false;
+        const fav: boolean = this.favoriteIds("products").includes(idProduct);
 
         if (this.searchFilterGroup.favFilter && !fav) return false;
         if (this.searchFilterGroup.shieldFilter && !verified) return false;
@@ -3233,8 +3188,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         // Apply active filters regardless of search
         const idProduct: string = productTemp._id;
         const verified: boolean = !!productTemp?.verified;
-        const fav: boolean =
-          this.user.archivedProducts?.includes(idProduct) || false;
+        const fav: boolean = this.favoriteIds("products").includes(idProduct);
 
         if (this.searchFilterGroup.favFilter && !fav) return false;
         if (this.searchFilterGroup.shieldFilter && !verified) return false;
@@ -3606,52 +3560,33 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this.trainerContext?.onFocusItem?.(item);
   }
 
+  // Los favoritos del profesional son su biblioteca PERSONAL (lo que suele
+  // recomendar a cualquier cliente), no los del cliente que está viendo:
+  // siempre los de la sesión (FavoritesService), nunca los de clientUser.
   public isTrainerFavoriteProduct(product: IProduct): boolean {
-    return this.trainerFavoriteProductIds.has(product._id);
+    return this.favoritesService.isFavorite("products", product._id);
   }
 
   public isTrainerFavoriteRecipe(recipe: Recipe): boolean {
-    return this.trainerFavoriteRecipeIds.has(recipe._id);
+    return this.favoritesService.isFavorite("recipes", recipe._id);
   }
 
   public onTrainerFavoriteProductToggle(product: IProduct): void {
-    const trainerUserId = this.userService.getLocalUser?._id;
-    if (!trainerUserId) return;
-    const wasFavorite = this.trainerFavoriteProductIds.has(product._id);
-    // Optimista: refleja el cambio ya mismo, sin esperar la respuesta — es
-    // una preferencia personal de baja fricción, no una escritura crítica.
-    if (wasFavorite) {
-      this.trainerFavoriteProductIds.delete(product._id);
-    } else {
-      this.trainerFavoriteProductIds.add(product._id);
-    }
-    this.productService.addFavoriteProduct(product._id, trainerUserId).subscribe({
-      error: () => {
-        if (wasFavorite) {
-          this.trainerFavoriteProductIds.add(product._id);
-        } else {
-          this.trainerFavoriteProductIds.delete(product._id);
-        }
-      },
-    });
+    this.favoritesService.toggle("products", product._id).subscribe({ error: () => this.showFavoriteError() });
   }
 
   public onTrainerFavoriteRecipeToggle(recipe: Recipe): void {
-    const wasFavorite = this.trainerFavoriteRecipeIds.has(recipe._id);
-    if (wasFavorite) {
-      this.trainerFavoriteRecipeIds.delete(recipe._id);
-    } else {
-      this.trainerFavoriteRecipeIds.add(recipe._id);
-    }
-    this.recipeApiService.toggleArchived(recipe._id).subscribe({
-      error: () => {
-        if (wasFavorite) {
-          this.trainerFavoriteRecipeIds.add(recipe._id);
-        } else {
-          this.trainerFavoriteRecipeIds.delete(recipe._id);
-        }
-      },
-    });
+    this.favoritesService.toggle("recipes", recipe._id).subscribe({ error: () => this.showFavoriteError() });
+  }
+
+  private showFavoriteError(): void {
+    this.ionicUtilService.showToast({ message: this.translate.instant("SEARCH_FOODS.FAV_UPDATE_ERROR"), duration: 1500 });
+  }
+
+  // Favoritos con los que se filtra: los del usuario cuya dieta se mira (el
+  // cliente, si es su profesional quien busca; si no, los de la sesión).
+  private favoriteIds(kind: FavoriteKind): string[] {
+    return this.trainerContext ? this.user?.favorites?.[kind] || [] : this.favoritesService.ids(kind);
   }
 
   public removeTrainerSelectionItem(item: TrainerFoodSelection): void {

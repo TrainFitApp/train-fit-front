@@ -76,8 +76,8 @@ export class MealService {
     return this.mealAPIService.pasteMeal(mealClipboard, merge);
   }
 
-  public updateMeal(meal: Meal): Observable<Meal> {
-    return this.mealAPIService.updateMeal(meal).pipe(take(1));
+  public chooseAlternative(mealId: string, chosenIndex: number): Observable<Meal> {
+    return this.mealAPIService.chooseAlternative(mealId, chosenIndex).pipe(take(1));
   }
 
   public modifyMeal(meal: Meal): Observable<Meal> {
@@ -97,13 +97,6 @@ export class MealService {
 
   public deleteMealRecipes(id: string): Observable<Meal> {
     return this.mealAPIService.deleteMealRecipes(id);
-  }
-
-  public addCustomRecipe(
-    mealId: string,
-    customRecipeId: string
-  ): Observable<Meal> {
-    return this.mealAPIService.addCustomRecipe(mealId, customRecipeId);
   }
 
   public deleteMealCustomRecipe(

@@ -3,25 +3,15 @@ import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { DietTemplateApiService } from '../../../diet-templates/services/diet-template-api.service';
 import { DietTemplate } from '../../../diet-templates/models/diet-template.model';
-import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.service';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 type ViewState = 'loading' | 'error' | 'loaded' | 'applying';
 
-// Auditoría de arquitectura (nutrición, Fase 8) — aplicar un plan ya
-// construido a ESTE cliente eligiendo cuándo EMPIEZA y cuánto se estima que
-// dura. Antes solo se pedía la fecha de inicio y el backend materializaba
-// cada día de golpe; ahora se crea una única PlanAssignment (POST .../apply)
-// y los días se resuelven bajo demanda (ver diet-day-resolver.js).
-//
-// Semanas (2026-09): solo se elige CUÁNDO empieza. No hay
-// duración ni fin estimado — una fase acaba cuando empieza la siguiente.
-//
-// "Crear dieta" (ficha del cliente) usaba este mismo modal para pedir
-// nombre + fechas antes de pasar al builder; ya no — el nutricionista va
-// improvisando semana a semana y esa duración estimada no le servía de nada
-// (ver client-detail.page.ts#goToCreateDiet, que ahora navega directo al
-// builder). Este modal vuelve a ser solo "aplicar una plantilla concreta".
+// Aplicar una plantilla de la biblioteca a ESTE cliente: empieza una fase
+// (con su propia copia de los menús) el día que se elija. Solo se elige
+// CUÁNDO empieza: una fase acaba cuando empieza la siguiente. Los días se
+// pautan bajo demanda, cuando el cliente elige menú.
 @Component({
   selector: 'app-apply-diet-template-modal',
   templateUrl: 'apply-diet-template-modal.component.html',
@@ -46,7 +36,7 @@ export class ApplyDietTemplateModalComponent implements OnInit {
 
   constructor(
     private dietTemplateApi: DietTemplateApiService,
-    private planAssignmentApi: PlanAssignmentApiService,
+    private dietPhaseApi: DietPhaseApiService,
     private modalController: ModalController
   ) {}
 
@@ -112,8 +102,8 @@ export class ApplyDietTemplateModalComponent implements OnInit {
     if (!this.canConfirm || !this.selectedTemplateId) return;
     this.state = 'applying';
     this.overlapError = null;
-    this.planAssignmentApi
-      .apply(this.clientId, this.selectedTemplateId, { startDate: this.startDate })
+    this.dietPhaseApi
+      .create(this.clientId, { templateId: this.selectedTemplateId, startDate: this.startDate })
       .subscribe({
         next: (result) => void this.modalController.dismiss(result, 'confirm'),
         error: (err) => {

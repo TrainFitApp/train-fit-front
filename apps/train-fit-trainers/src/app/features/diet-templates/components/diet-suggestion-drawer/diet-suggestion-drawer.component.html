@@ -87,7 +87,7 @@
       </div>
       <p class="target-source" *ngIf="targetMode === 'calculated' && weightSource as w">
         {{ 'TRAINER_COMMON.WEIGHT' | translate }} {{ w.weightKg | number: '1.0-1' }} kg —
-        {{ w.from === 'anthropometry' ? ('DIET_TEMPLATES.DE_LA_ANTROPOMETRIA_DEL' | translate) + w.date : ('DIET_TEMPLATES.DEL_REGISTRO_DEL_CLIENTE' | translate) }}
+        {{ ('DIET_TEMPLATES.DE_LA_ANTROPOMETRIA_DEL' | translate) + w.date }}
       </p>
       <p class="target-source" *ngIf="targetMode === 'goal' && currentGoal as g">
         {{ 'TRAINER_MISC.OBJETIVO_QUE' | translate }} {{ clientName }} {{ 'TRAINER_MISC.TIENE_AHORA' | translate }}, {{ (g.source === 'manual' ? 'TRAINER_MISC.SET_MANUALLY' : 'TRAINER_MISC.CALCULATED') | translate

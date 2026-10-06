@@ -14,7 +14,6 @@ import { ModalController } from '@ionic/angular';
 import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
-import { UserService } from 'src/app/core/services/user/user.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 // Removed Swiper type import due to module resolution issues
 import { DateRange } from 'src/app/shared/models/dateRange';
@@ -38,7 +37,6 @@ export class CalendarComponent implements OnInit, AfterViewInit, OnDestroy {
   public swiperCalendar: ElementRef | undefined;
   public swiper: any;
 
-  public idDiet: string;
   public currentDate: Date = new Date();
   public selectedDate: Date = new Date();
   public today: Date = new Date();
@@ -62,11 +60,9 @@ export class CalendarComponent implements OnInit, AfterViewInit, OnDestroy {
     public modalController: ModalController,
     private translate: TranslateService,
     private dietDayService: DietDayService,
-    private userService: UserService,
     private utilService: UtilService,
     private cdRef: ChangeDetectorRef
   ) {
-    this.idDiet = this.userService.getLocalUser.dietInUse;
     this.updateCalendar();
     this.updateCurrentMonthYear();
   }
@@ -199,10 +195,7 @@ export class CalendarComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loading.emit(true);
 
     this.dietDayService
-      .getDietDaysBetweenDatesByIdDiet(
-        this.idDiet,
-        new DateRange(firstDayStr, lastDayStr)
-      )
+      .getDaysInRange(new DateRange(firstDayStr, lastDayStr))
       .subscribe({
         next: (dietDays) => {
           this.dietDays = dietDays;

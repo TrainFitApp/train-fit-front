@@ -19,6 +19,7 @@ import { DietDayService } from "src/app/core/services/diet-day/diet-day.service"
 import { ProductService } from "src/app/core/services/product/product.service";
 import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
 import { UserService } from "src/app/core/services/user/user.service";
+import { FavoritesService } from "src/app/core/services/favorites/favorites.service";
 import { TranslateService } from "@ngx-translate/core";
 import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
@@ -123,7 +124,6 @@ export class AddProductPage implements OnInit, OnDestroy {
   // (no cuando ya existía y se abrió desde una búsqueda/favoritos): controla
   // si al volver hay que resetear los filtros own/fav/shield en search-foods.
   public justCreated: boolean;
-  public isArchived: boolean;
   public isVerified: boolean;
   public selectedUnit: "g" | "portions" = "g";
   public hasPortions: boolean = false;
@@ -221,6 +221,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
   // Inyección de servicios con Signals
   private readonly userService = inject(UserService);
+  private readonly favoritesService = inject(FavoritesService);
   private readonly recipeDraftService = inject(RecipeDraftService);
 
   constructor(
@@ -238,7 +239,6 @@ export class AddProductPage implements OnInit, OnDestroy {
       const resUser = this.userService.localUser();
       if (resUser) {
         this.user = resUser;
-        this.checkIfArchived();
       }
     });
   }
@@ -376,7 +376,6 @@ export class AddProductPage implements OnInit, OnDestroy {
       this.initForm();
     }
 
-    this.checkIfArchived();
     this.checkVerified();
   }
 
@@ -443,7 +442,6 @@ export class AddProductPage implements OnInit, OnDestroy {
 
                 this.checkHasPortions();
                 this.initForm(); // Refrescar el formulario completo con los nuevos overrides y propiedades físicas
-                this.checkIfArchived();
                 this.checkVerified();
               },
             },
@@ -465,7 +463,6 @@ export class AddProductPage implements OnInit, OnDestroy {
 
                 this.checkHasPortions();
                 this.initForm();
-                this.checkIfArchived();
                 this.checkVerified();
               },
             },
@@ -478,7 +475,6 @@ export class AddProductPage implements OnInit, OnDestroy {
         if (this.meal) this.existCustomProduct();
         this.checkHasPortions();
         this.initForm();
-        this.checkIfArchived();
         this.checkVerified();
       }
     }
@@ -516,7 +512,6 @@ export class AddProductPage implements OnInit, OnDestroy {
 
                 this.checkHasPortions();
                 this.initForm();
-                this.checkIfArchived();
                 this.checkVerified();
               },
             },
@@ -539,7 +534,6 @@ export class AddProductPage implements OnInit, OnDestroy {
 
                 this.checkHasPortions();
                 this.initForm();
-                this.checkIfArchived();
                 this.checkVerified();
               },
             },
@@ -551,7 +545,6 @@ export class AddProductPage implements OnInit, OnDestroy {
         if (this.meal) this.existCustomProduct();
         this.checkHasPortions();
         this.initForm();
-        this.checkIfArchived();
         this.checkVerified();
       }
 
@@ -881,7 +874,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
           const resCustomProduct = await firstValueFrom(
             this.customProductService
-              .updateCustomProduct(this.customProduct)
+              .updateCustomProduct(this.meal._id, this.customProduct)
               .pipe(take(1)),
           );
 
@@ -912,16 +905,8 @@ export class AddProductPage implements OnInit, OnDestroy {
         );
 
         this.mapFormToProduct(formValues, newCustomProduct);
-        const idDietInUse = this.userService.getLocalUser.dietInUse;
-
         await firstValueFrom(
-          this.dietDayService.createCustomProduct(
-            this.loading,
-            this.dietDay,
-            newCustomProduct,
-            this.meal,
-            idDietInUse,
-          ),
+          this.dietDayService.createCustomProduct(this.loading, this.dietDay, newCustomProduct, this.meal),
         );
 
         this.syncInitialSnapshot();
@@ -1009,34 +994,24 @@ export class AddProductPage implements OnInit, OnDestroy {
     }
   }
 
-  public addFavoriteProduct(): void {
+  public get isFavorite(): boolean {
+    return this.favoritesService.isFavorite('products', this.product?._id);
+  }
+
+  public toggleFavorite(): void {
     this.addingFavProduct = true;
-    this.productService
-      .addFavoriteProduct(this.product._id, this.userService.getLocalUser._id)
-      .subscribe((res) => {
-        const isFavorite = !!res?.isFavorite;
-        const archivedProducts = this.user.archivedProducts || [];
-        const archivedIndex = archivedProducts.indexOf(this.product._id);
-
-        if (isFavorite && archivedIndex === -1) {
-          archivedProducts.push(this.product._id);
-          this.ionicUtilService.showToast({
-            message: this.translate.instant('ADD_PRODUCT.PRODUCT_ARCHIVED', { name: this.product.name }),
-            duration: 1000,
-          });
-        } else if (!isFavorite && archivedIndex > -1) {
-          archivedProducts.splice(archivedIndex, 1);
-          this.ionicUtilService.showToast({
-            message: this.translate.instant('ADD_PRODUCT.PRODUCT_UNARCHIVED', { name: this.product.name }),
-            duration: 1000,
-          });
-        }
-
-        this.user.archivedProducts = archivedProducts;
-        this.userService.setLocalUser = this.user;
+    this.favoritesService.toggle('products', this.product._id).subscribe({
+      next: (isFavorite) => {
         this.addingFavProduct = false;
-        this.checkIfArchived();
-      });
+        this.ionicUtilService.showToast({
+          message: this.translate.instant(isFavorite ? 'ADD_PRODUCT.PRODUCT_ARCHIVED' : 'ADD_PRODUCT.PRODUCT_UNARCHIVED', {
+            name: this.product.name,
+          }),
+          duration: 1000,
+        });
+      },
+      error: () => (this.addingFavProduct = false),
+    });
   }
 
   public async goBack(params?: {
@@ -1418,15 +1393,8 @@ export class AddProductPage implements OnInit, OnDestroy {
                     this.product._id,
                   );
 
-                  // Eliminar de archivedProducts si estaba
-                  const archivedIndex = this.user.archivedProducts.indexOf(
-                    this.product._id,
-                  );
-                  if (archivedIndex > -1) {
-                    this.user.archivedProducts.splice(archivedIndex, 1);
-                  }
-
-                  this.userService.setLocalUser = this.user;
+                  // El servidor ya lo sacó de sus favoritos al borrarlo.
+                  this.favoritesService.forget('products', this.product._id);
 
                   // Eliminar referencias locales en TODAS las meals/recetas del dietDay
                   if (this.dietDay && this.dietDay.meals) {
@@ -1515,10 +1483,7 @@ export class AddProductPage implements OnInit, OnDestroy {
                                 instance.modifiedBaseCustomProducts.filter(
                                   (override: any) => {
                                     const overrideId =
-                                      typeof override?.baseCustomProductId ===
-                                      "string"
-                                        ? override.baseCustomProductId
-                                        : override?.baseCustomProductId?._id;
+                                      override?.baseCustomProductId;
                                     return !removedCustomProductIds.has(
                                       (overrideId || "").toString(),
                                     );
@@ -1554,12 +1519,6 @@ export class AddProductPage implements OnInit, OnDestroy {
 
       this.ionicUtilService.showAlert(alertOptions);
     }
-  }
-
-  private checkIfArchived(): void {
-    if (!this.user || !this.product) return;
-    this.isArchived =
-      this.user.archivedProducts?.includes(this.product._id) || false;
   }
 
   private checkVerified(): void {

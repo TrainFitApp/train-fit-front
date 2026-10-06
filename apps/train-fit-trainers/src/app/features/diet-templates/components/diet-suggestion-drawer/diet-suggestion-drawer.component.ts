@@ -1,9 +1,6 @@
-import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { FormsModule } from '@angular/forms';
-import { SubmitOnEnterDirective } from 'src/app/shared/directives/submit-on-enter.directive';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -15,10 +12,10 @@ import {
   MacroSet,
   RankedTemplate,
 } from '../../models/diet-suggestion.model';
-import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.service';
+import { PhaseStartSettings } from '../../../../shared/models/diet-phase.model';
 import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
 import { DIETARY_FLAG_UI } from '../../../../shared/utils/dietary-flag-ui.util';
-import { DietCardModule } from '../../../../shared/components/diet-card/diet-card.module';
 import { MacroAdjustComponent } from '../../../../shared/components/macro-adjust/macro-adjust.component';
 import { nextSources } from './diet-source-filter.util';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
@@ -47,8 +44,6 @@ type TargetMode = 'calculated' | 'goal' | 'manual';
 // cliente). Estado compartido en DietSuggestionSessionService.
 @Component({
   selector: 'app-diet-suggestion-drawer',
-  standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, DietCardModule, MacroAdjustComponent, SubmitOnEnterDirective, TranslateModule],
   templateUrl: './diet-suggestion-drawer.component.html',
   styleUrls: ['./diet-suggestion-drawer.component.scss'],
 })
@@ -125,7 +120,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   constructor(
     private modalController: ModalController,
     private suggestionApi: DietSuggestionApiService,
-    private planApi: PlanAssignmentApiService,
+    private dietPhaseApi: DietPhaseApiService,
     private ionicUtil: IonicUtilService,
     private session: DietSuggestionSessionService
   ) {}
@@ -320,7 +315,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     return !!this.chosen && !!(this.targetDraft?.kcal || this.target?.kcal) && !this.applying;
   }
 
-  private phasePayload() {
+  private phasePayload(): { phase: PhaseStartSettings } {
     const t = this.targetDraft || this.target!;
     return {
       phase: {
@@ -350,20 +345,17 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     this.applying = true;
 
     // La fase empieza hoy: si ya había una corriendo, el backend la cierra
-    // ayer (chainIfNeeded). Eso se avisa antes de pulsar, en el pie.
-    this.planApi
-      .apply(this.clientId, this.chosen._id, {
-        startDate: this.startDate,
-        phase: this.phasePayload().phase,
-      })
+    // ayer. Eso se avisa antes de pulsar, en el pie.
+    this.dietPhaseApi
+      .create(this.clientId, { templateId: this.chosen._id, startDate: this.startDate, ...this.phasePayload().phase })
       .subscribe({
-        next: (assignment) => {
+        next: (phase) => {
           this.ionicUtil.showToast({
             message: this.translate.instant('DIET_TEMPLATES.FASE_APLICADA_DESDE_HOY', { phaseName: this.phaseName, clientName: this.clientName }),
             duration: 3000,
           });
           this.session.reset();
-          void this.modalController.dismiss({ assignment, phaseName: this.phaseName }, 'confirm');
+          void this.modalController.dismiss({ phase, phaseName: this.phaseName }, 'confirm');
         },
         error: (err) => {
           this.applying = false;
@@ -399,7 +391,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     // confirm() lee this.chosen._id antes de session.reset(): al revés
     // (como createFromScratch, que no necesita chosen), el reset deja
     // this.chosen a null y el dismiss de abajo revienta leyendo _id de null.
-    const payload = { sourceTemplateId: this.chosen._id, startDate: this.startDate, ...this.phasePayload() };
+    const payload = { templateId: this.chosen._id, startDate: this.startDate, ...this.phasePayload() };
     this.session.reset();
     void this.modalController.dismiss(payload, 'edit-before-apply');
   }

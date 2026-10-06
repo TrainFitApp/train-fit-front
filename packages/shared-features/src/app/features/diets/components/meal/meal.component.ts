@@ -24,7 +24,6 @@ import { User } from 'src/app/core/models/user';
 import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
-import { CustomRecipeApiService } from 'src/app/core/services/custom-recipe/custom-recipe-api.service';
 import { CustomRecipe } from 'src/app/core/models/customRecipe';
 import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -41,8 +40,6 @@ import {
 import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-meal-modal.component';
 import { PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view.component';
-import { MealProposal } from '../../models/meal-proposal.model';
-import { MealProposalApiService } from '../../services/meal-proposal-api.service';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 import {
   QUICK_ADD_SHEET_OPTIONS,
@@ -71,19 +68,15 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   public clipboardClearCounter = 0;
   @Input()
   public mealIndex!: number;
-  // F28 — alternativas nombradas para este hueco de comida en esta fecha
-  // (elegida o no: el cliente puede alternar libremente entre ellas, no es
-  // solo un banner de una sola vez).
-  @Input()
-  public proposals: MealProposal[] = [];
   @Output()
   public updateMacros = new EventEmitter();
   @Output()
   public pasteEvent = new EventEmitter();
   @Output()
   public copyEvent = new EventEmitter();
+  // La comida ha cambiado de opción (cambia lo pautado del día).
   @Output()
-  public proposalChosen = new EventEmitter<{ proposalId: string; chosenIndex: number }>();
+  public alternativeChosen = new EventEmitter<void>();
   // Avisa a la página para que bloquee la pantalla mientras cambia la opción.
   @Output()
   public choosingAlternative = new EventEmitter<boolean>();
@@ -107,7 +100,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   private clipboardSub = Subscription.EMPTY;
 
   // F28 — eligiendo una alternativa propuesta.
-  public isChoosingProposal = false;
+  public isChoosingAlternative = false;
 
   constructor(
     private utilService: UtilService,
@@ -115,9 +108,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     private mealService: MealService,
     private dietDayService: DietDayService,
     private customProductService: CustomProductService,
-    private customRecipeService: CustomRecipeApiService,
     private recipeService: RecipeService,
-    private mealProposalApiService: MealProposalApiService,
     private navigationService: NavigationService,
     private translate: TranslateService,
     private modalController: ModalController
@@ -327,8 +318,8 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
 
             this.dietDay.meals[indexMeal].customRecipes.splice(indexRecipe, 1);
 
-            this.customRecipeService
-              .delete(instance._id!)
+            this.mealService
+              .deleteMealCustomRecipe(meal._id, instance._id!)
               .subscribe(() => {
                 this.dietDayService.setCurrentDietDay = this.dietDay;
               });
@@ -1213,39 +1204,37 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   // SOLO lo pautado: lo que el cliente añadió por su cuenta se queda. Si
   // hay alimentos pautados ya marcados como consumidos, se pierden con el
   // cambio: se avisa antes con una hoja de confirmación.
-  public async chooseAlternative(proposal: MealProposal, index: number): Promise<void> {
-    if (this.isChoosingProposal || proposal.chosenIndex === index) return;
+  public async chooseAlternative(index: number): Promise<void> {
+    if (this.isChoosingAlternative || this.meal.chosenAlternativeIndex === index) return;
+    const label = this.meal.alternatives?.[index]?.label;
 
     if (this.hasConsumedPautado(this.meal)) {
-      const confirmed = await this.confirmSwitchAlternative(proposal.alternatives[index]?.label);
+      const confirmed = await this.confirmSwitchAlternative(label);
       if (!confirmed) return;
     }
 
-    this.isChoosingProposal = true;
+    this.isChoosingAlternative = true;
     this.choosingAlternative.emit(true);
-    this.mealProposalApiService.choose(this.dietDay.date, proposal._id, index).subscribe({
+    this.mealService.chooseAlternative(this.meal._id, index).subscribe({
       next: (updatedMeal) => {
-        this.isChoosingProposal = false;
+        this.isChoosingAlternative = false;
         this.meal = updatedMeal;
         const indexMeal = this.dietDay.meals.findIndex((m) => m._id === updatedMeal._id);
         if (indexMeal !== -1) this.dietDay.meals[indexMeal] = updatedMeal;
         this.dietDayService.setCurrentDietDay = this.dietDay;
         this.getMealInfo();
-        proposal.chosenIndex = index;
-        this.proposalChosen.emit({ proposalId: proposal._id, chosenIndex: index });
+        this.alternativeChosen.emit();
         this.choosingAlternative.emit(false);
         this.ionicUtilService.showToast({
           message: this.translate.instant('MEAL.ALTERNATIVE_CHANGED', {
-            label:
-              proposal.alternatives[index]?.label ||
-              this.translate.instant('MEAL.ALTERNATIVE_DEFAULT_LABEL', { n: index + 1 }),
+            label: label || this.translate.instant('MEAL.ALTERNATIVE_DEFAULT_LABEL', { n: index + 1 }),
             meal: this.meal.name,
           }),
           duration: 2500,
         });
       },
       error: (err) => {
-        this.isChoosingProposal = false;
+        this.isChoosingAlternative = false;
         this.choosingAlternative.emit(false);
         this.ionicUtilService.showErrorToast(
           err?.error?.message || this.translate.instant('MEAL.ALTERNATIVE_CHOOSE_ERROR'),

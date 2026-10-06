@@ -85,8 +85,7 @@
         </ion-row>
 
         <ion-row *ngIf="visibleMuscleGroups"><ion-col class="ion-no-padding header-detail">
-            <ion-chip color="secondary" *ngFor="let group of getWorkoutMuscleGroups()">{{ group | translateDb
-              }}</ion-chip>
+            <ion-chip color="secondary" *ngFor="let group of getWorkoutMuscleGroups()">{{ group }}</ion-chip>
           </ion-col></ion-row>
       </ion-col>
       <ion-col class="ion-no-padding" style="display: flex; justify-content: center; align-items: center" size="2.4">

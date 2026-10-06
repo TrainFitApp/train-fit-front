@@ -113,8 +113,8 @@ export class ClientDetailApiService {
   // relación activa (table-access.js#canAccessUserTable) — solo faltaba el
   // consumidor. Nota: la ruta vive bajo /tables, no bajo trainer/clients/,
   // por eso no usa this.base(clientId).
-  public deleteTable(clientId: string, tableId: string): Observable<unknown> {
-    return this.http.delete(`tables/${clientId}/${tableId}`);
+  public deleteTable(tableId: string): Observable<unknown> {
+    return this.http.delete(`tables/${tableId}`);
   }
 
   public getDiet(clientId: string, date: string = localIsoDate()): Observable<DietDaySummary | null> {
@@ -387,19 +387,6 @@ export class ClientDetailApiService {
     return this.http.post(
       `${this.base(clientId)}/diet-days/${date}/meals/${mealId}/prescribe`,
       body
-    );
-  }
-
-  // F28 — 2+ alternativas nombradas, aplicación diferida hasta que el cliente elija.
-  public proposeMealAlternatives(
-    clientId: string,
-    date: string,
-    mealSlot: string,
-    alternatives: { label: string; customProducts: unknown[]; customRecipes: unknown[] }[]
-  ): Observable<unknown> {
-    return this.http.post(
-      `${this.base(clientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/propose`,
-      { alternatives }
     );
   }
 

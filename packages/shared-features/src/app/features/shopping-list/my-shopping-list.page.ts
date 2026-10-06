@@ -64,7 +64,7 @@ export class MyShoppingListPage implements OnInit {
   public segments: ShoppingSegment[] = [];
   public items: ShoppingListItem[] = [];
   public selection: ShoppingSelection = {};
-  // Menú que se está repartiendo en cada tramo (planId → nombre).
+  // Menú que se está repartiendo en cada tramo (id del tramo → nombre).
   private activeMenus: Record<string, string> = {};
 
   private checked = new Set<string>();
@@ -102,10 +102,10 @@ export class MyShoppingListPage implements OnInit {
     this.myShoppingListApi.getMine(from, to).subscribe({
       next: (list) => {
         this.list = list;
-        this.segments = list?.segments || [];
+        this.segments = list.segments;
         this.selection = defaultShoppingSelection(this.segments);
         this.activeMenus = {};
-        this.items = list?.items || [];
+        this.items = list.items;
         this.state = 'loaded';
       },
       error: () => {
@@ -131,7 +131,7 @@ export class MyShoppingListPage implements OnInit {
   }
 
   public menuDays(segment: ShoppingSegment, menu: ShoppingMenu): number {
-    return this.selection[segment.planId]?.menuDays[menu.name] || 0;
+    return this.selection[segment.id]?.menuDays[menu.name] || 0;
   }
 
   public unassigned(segment: ShoppingSegment): number {
@@ -141,7 +141,7 @@ export class MyShoppingListPage implements OnInit {
   // El total del tramo no pasa de sus días: para dar un día a un menú hay
   // que quitárselo antes a otro.
   public changeMenuDays(segment: ShoppingSegment, menu: ShoppingMenu, delta: number): void {
-    const menuDays = this.selection[segment.planId]?.menuDays;
+    const menuDays = this.selection[segment.id]?.menuDays;
     if (!menuDays) return;
     const next = (menuDays[menu.name] || 0) + delta;
     if (next < 0 || (delta > 0 && this.unassigned(segment) <= 0)) return;
@@ -150,12 +150,12 @@ export class MyShoppingListPage implements OnInit {
   }
 
   public activeMenu(segment: ShoppingSegment): ShoppingMenu | null {
-    const name = this.activeMenus[segment.planId];
+    const name = this.activeMenus[segment.id];
     return segment.menus.find((menu) => menu.name === name) || segment.menus[0] || null;
   }
 
   public setActiveMenu(segment: ShoppingSegment, name: string): void {
-    this.activeMenus[segment.planId] = name;
+    this.activeMenus[segment.id] = name;
   }
 
   // "Menú A 4 d · Menú B 3 d": el reparto entero, ya que el desplegable
@@ -165,11 +165,11 @@ export class MyShoppingListPage implements OnInit {
   }
 
   public selectedAlternative(segment: ShoppingSegment, menu: ShoppingMenu, meal: ShoppingMeal): number {
-    return this.selection[segment.planId]?.alternatives[alternativeKey(menu, meal)] ?? 0;
+    return this.selection[segment.id]?.alternatives[alternativeKey(menu, meal)] ?? 0;
   }
 
   public selectAlternative(segment: ShoppingSegment, menu: ShoppingMenu, meal: ShoppingMeal, index: number): void {
-    const alternatives = this.selection[segment.planId]?.alternatives;
+    const alternatives = this.selection[segment.id]?.alternatives;
     if (!alternatives) return;
     alternatives[alternativeKey(menu, meal)] = index;
     this.recompute();
@@ -216,8 +216,8 @@ export class MyShoppingListPage implements OnInit {
     return item.name;
   }
 
-  public trackByPlan(_index: number, segment: ShoppingSegment): string {
-    return segment.planId;
+  public trackBySegment(_index: number, segment: ShoppingSegment): string {
+    return segment.id;
   }
 
   public trackByDays(_index: number, range: { days: number }): number {

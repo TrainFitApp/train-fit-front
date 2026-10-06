@@ -9,13 +9,6 @@ export class SetAPIService {
 
   constructor(private http: HttpService) {}
 
-  public createSet(set: Set): Observable<Set> {
-    return this.http.post<Set>(`${SetAPIService.SET_ENDPOINT}/one`, set);
-  }
-  public createSets(sets: Set[]): Observable<Set[]> {
-    return this.http.post<Set[]>(`${SetAPIService.SET_ENDPOINT}`, sets);
-  }
-
   public updateSet(set: Set): Observable<Set> {
     return this.http.put<Set>(`${SetAPIService.SET_ENDPOINT}`, set);
   }

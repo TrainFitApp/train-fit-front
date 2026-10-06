@@ -5,12 +5,12 @@ import { IntakeFieldKey, IntakeStatus } from 'src/app/core/services/onboarding/o
 import {
   ClientEmailScopeStatus,
   ClientIntake,
-  CustomIntakeQuestion,
   SendInviteResponse,
   TrainerInvite,
   TrainerInviteScope,
   TrainerIntakeConfig,
 } from '../models/trainer-invite.model';
+import { CustomQuestion } from 'src/app/core/models/custom-question';
 
 @Injectable({ providedIn: 'root' })
 export class TrainerInvitesApiService {
@@ -45,7 +45,7 @@ export class TrainerInvitesApiService {
 
   // El profesional corrige el cuestionario ya enviado por el cliente (ver
   // updateClientIntake en trainer-client-controller.js) — mismos campos que
-  // ClientIntake, sin trainerId/clientId/submittedAt (los pone el backend).
+  // ClientIntake, sin las fechas de envío y revisión (no cambian al corregir).
   public updateClientIntake(
     clientId: string,
     intake: Pick<
@@ -79,7 +79,7 @@ export class TrainerInvitesApiService {
 
   public updateIntakeConfig(
     enabledFields: IntakeFieldKey[],
-    customQuestions: CustomIntakeQuestion[],
+    customQuestions: CustomQuestion[],
     lastScopes: TrainerInviteScope[]
   ): Observable<TrainerIntakeConfig> {
     return this.http.put<TrainerIntakeConfig>('trainer/intake-config', {

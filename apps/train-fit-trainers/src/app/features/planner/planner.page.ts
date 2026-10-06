@@ -231,8 +231,7 @@ export class PlannerPage {
   public get hasEquipmentInfo(): boolean {
     return !!(
       this.clientIntake?.trainingLocation ||
-      this.clientIntake?.equipmentTags?.length ||
-      this.clientIntake?.equipment?.trim()
+      this.clientIntake?.equipmentTags?.length
     );
   }
 

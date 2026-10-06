@@ -27,9 +27,8 @@ import {
   ClientNutritionPreferences,
   Supplement,
 } from '../../../clients/pages/client-detail/models/client-detail.model';
-import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
-import { PhasePayload } from '../../../../shared/models/plan-assignment.model';
-import { DietSuggestionApiService } from '../../services/diet-suggestion-api.service';
+import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.service';
+import { PhaseStartSettings } from '../../../../shared/models/diet-phase.model';
 import { of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { alternativeTotals, MacroTotals } from '../../utils/alternative-macros';
@@ -71,7 +70,7 @@ interface ForClientNavigationState {
   clientName?: string;
   name?: string;
   startDate?: string;
-  phase?: PhasePayload;
+  phase?: PhaseStartSettings;
   // Sugerencias de dieta — "Editar antes de aplicar" (diet-suggestion-drawer):
   // contenido de la plantilla elegida, para precargar el tablero en vez de
   // arrancar en blanco. La plantilla elegida en sí nunca se toca.
@@ -167,11 +166,14 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   public isCreatingForClient = false;
   public clientId = '';
   public clientName = '';
-  // Editar la dieta YA ASIGNADA a un cliente (ver diet-templates-routing.module.ts,
-  // ruta edit-assignment/:clientId/:planId) — guardar hace PUT sobre esa
-  // copia por su propio _id, nunca crea ni aplica nada nuevo.
-  public isEditingAssignedCopy = false;
-  private assignedPlanId = '';
+  // Editar el contenido de una fase de un cliente (ruta
+  // phase/:clientId/:phaseId/:contentId): una versión concreta (la primera o
+  // una semana preparada). Guardar escribe esa versión; nunca crea ni aplica
+  // nada nuevo ni toca la plantilla de la que salió.
+  public isEditingPhaseContent = false;
+  private phaseId = '';
+  private contentId = '';
+  private phaseName = '';
   // Desde cuándo se aplica la fase al guardar — hoy por defecto (ver
   // startForClient), o lo que traiga la navegación (cajón de sugerencias).
   private phaseStartDate = '';
@@ -251,11 +253,10 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     private router: Router,
     private navigation: TrainerNavigationService,
     private dietTemplateApi: DietTemplateApiService,
-    private planAssignmentApi: PlanAssignmentApiService,
+    private dietPhaseApi: DietPhaseApiService,
     private ionicUtilService: IonicUtilService,
     private customProductService: CustomProductService,
     private recipeService: RecipeService,
-    private dietSuggestionApi: DietSuggestionApiService,
     private clientDetailApi: ClientDetailApiService
   ) {
     this.navigationState = (this.routerNavigationState() || {}) as Partial<ForClientNavigationState> & {
@@ -276,14 +277,14 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   public ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const clientId = params.get('clientId');
-      const planId = params.get('planId');
       const phaseId = params.get('phaseId');
-      if (clientId && phaseId) {
-        this.startForNextWeek(clientId, phaseId);
+      const contentId = params.get('contentId');
+      if (clientId && phaseId && contentId) {
+        this.startForPhaseContent(clientId, phaseId, contentId);
         return;
       }
-      if (clientId && planId) {
-        this.startForAssignedCopy(clientId, planId);
+      if (clientId && phaseId) {
+        this.startForNextWeek(clientId, phaseId);
         return;
       }
       if (clientId) {
@@ -344,21 +345,27 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     this.state = 'loaded';
   }
 
-  // Editar la copia YA ASIGNADA de un cliente — por su propio _id, nunca por
-  // sourceTemplateId (las semanas 2+ creadas con "Siguiente semana" no lo
-  // tienen). Nunca toca ninguna plantilla de biblioteca.
-  private startForAssignedCopy(clientId: string, planId: string): void {
-    this.isEditingAssignedCopy = true;
-    this.assignedPlanId = planId;
+  // Editar una versión del contenido de una fase de un cliente. El nombre que
+  // se edita arriba es el de la fase.
+  private startForPhaseContent(clientId: string, phaseId: string, contentId: string): void {
+    this.isEditingPhaseContent = true;
+    this.phaseId = phaseId;
+    this.contentId = contentId;
     this.clientId = clientId;
     this.clientName = this.route.snapshot.queryParamMap.get('name') || this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
     this.clientContextKind = 'assigned';
     this.clientContextName = this.clientName;
 
-    this.planAssignmentApi.getContent(clientId, planId).subscribe({
-      next: (plan) => {
-        this.loadClientTarget(clientId, plan.phaseId || plan._id, plan.startDate);
-        this.applyTemplate(plan as unknown as DietTemplate);
+    this.dietPhaseApi.get(clientId, phaseId).subscribe({
+      next: (phase) => {
+        const content = phase.contents.find((c) => c._id === contentId);
+        if (!content) {
+          this.state = 'error';
+          return;
+        }
+        this.phaseName = phase.name;
+        this.loadClientTarget(clientId, phaseId, content.startDate);
+        this.applyTemplate({ name: phase.name, menus: content.menus } as DietTemplate);
         this.savedSnapshot = this.snapshot();
         this.state = 'loaded';
       },
@@ -408,18 +415,16 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
 
   private loadScaledNextWeek(kcal: number): void {
     this.rescaling = true;
-    this.dietSuggestionApi.scaleNextWeek(this.clientId, this.nextWeekPhaseId, kcal || 1).subscribe({
+    this.dietPhaseApi.scaleNextWeek(this.clientId, this.nextWeekPhaseId, kcal || 1).subscribe({
       next: (scaled) => {
         this.nextWeekNumber = scaled.weekNumber;
-        this.nextWeekRange = scaled.end
-          ? `${this.fmtDay(scaled.start)} – ${this.fmtDay(scaled.end)}`
-          : `desde ${this.fmtDay(scaled.start)}`;
+        this.nextWeekRange = `${this.fmtDay(scaled.start)} – ${this.fmtDay(scaled.end)}`;
         this.nextWeekBaseKcal = scaled.baseKcal;
         this.nextWeekKcal = kcal || scaled.baseKcal;
         this.applyTemplate({
           name: `S${scaled.weekNumber}`,
-          menus: scaled.content.menus as DietTemplateMenuPayload[],
-        } as unknown as DietTemplate);
+          menus: scaled.menus as DietTemplateMenuPayload[],
+        } as DietTemplate);
         this.clientTarget = this.nextWeekTargetAt(this.nextWeekKcal);
         this.clientTargetLabel = this.translate.instant('DIET_TEMPLATES.OBJETIVO_DE', { weekNumber: scaled.weekNumber });
         this.rescaling = false;
@@ -523,24 +528,21 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
 
   // Referencia contra la que ajustar: la necesidad calculada de la semana
   // (misma cuenta que ve el entrenador en su resumen). Sin `phaseId`, la de
-  // la fase activa del cliente; `date` elige la semana que la contiene
-  // (una copia asignada), si no la que corre. Sin fase, no hay referencia.
+  // la fase que rige hoy; `date` elige la semana que la contiene (la versión
+  // que se edita), si no la que corre. Sin fase, no hay referencia.
   private loadClientTarget(clientId: string, phaseId?: string | null, date?: string | null): void {
     const phaseId$ = phaseId
       ? of(phaseId)
-      : this.planAssignmentApi.getActive(clientId).pipe(map((active) => (active ? active.phaseId || active._id : null)));
+      : this.dietPhaseApi.getCurrent(clientId).pipe(map((current) => current?._id ?? null));
     phaseId$
       .pipe(
         switchMap((id) => {
           if (!id) return of(null);
-          return this.dietSuggestionApi.getPhaseWeeks(clientId, id).pipe(
+          return this.dietPhaseApi.getWeeks(clientId, id).pipe(
             switchMap((weeks) => {
-              const windows = weeks.weeks || [];
               const number =
-                (date && windows.find((w) => w.start <= date && (!w.end || date <= w.end))?.number) ||
-                weeks.current?.number ||
-                1;
-              return this.dietSuggestionApi.getWeekNeed(clientId, id, number);
+                (date && weeks.weeks.find((w) => w.start <= date && date <= w.end)?.number) || weeks.current?.number || 1;
+              return this.dietPhaseApi.getWeekNeed(clientId, id, number);
             })
           );
         })
@@ -1244,8 +1246,8 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       return;
     }
 
-    if (this.isEditingAssignedCopy) {
-      this.saveAssignedCopy(menusToSave);
+    if (this.isEditingPhaseContent) {
+      this.savePhaseContent(menusToSave);
       return;
     }
 
@@ -1270,14 +1272,9 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   }
 
   // Dos pasos, en este orden:
-  //   1. Crear la dieta de BIBLIOTECA propia del cliente (ownerClientId) —
+  //   1. Crear la dieta de BIBLIOTECA propia del cliente (ownerClientId):
   //      queda reutilizable, se puede volver a aplicar más adelante.
-  //   2. Aplicarla como fase con las fechas que se eligieron en el modal.
-  //
-  // No se usa createDirect (plan-assignment-api.service.ts), que haría esto
-  // en una sola llamada, precisamente porque ese endpoint crea SOLO la copia
-  // congelada de la asignación: la dieta no quedaría en la biblioteca del
-  // cliente y "crear una dieta suya" no habría creado ninguna.
+  //   2. Empezar con ella una fase desde la fecha elegida.
   //
   // Si el paso 2 falla (lo normal: 409, las fechas pisan otra fase), el paso
   // 1 NO se deshace: la dieta ya construida es trabajo bueno que no hay por
@@ -1285,27 +1282,33 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // se pueden reelegir desde "Siguiente fase".
   private saveForClient(menusToSave: DietTemplateMenuPayload[]): void {
     const startDate = this.phaseStartDate || localIsoDate();
-    // Toda dieta nueva arranca una FASE (phaseId propio) con el objetivo que
-    // se ve arriba: el del cliente, o el que el entrenador haya tecleado.
+    const name = this.name.trim();
+    // La fase arranca con el objetivo que se ve arriba: el del cliente, o el
+    // que el profesional haya tecleado.
     const target = this.clientTarget;
-    const phase: PhasePayload = {
-      name: this.name.trim(),
-      target: target
-        ? {
-            kcal: Math.round(target.kcal),
-            protein: Math.round(target.protein),
-            carbs: Math.round(target.carbs),
-            fat: Math.round(target.fat),
-            source: this.clientTargetSource,
-          }
-        : null,
-      proteinPerKg: this.phaseProteinPerKg,
-      fatPerKg: this.phaseFatPerKg,
-    };
 
     this.dietTemplateApi
-      .create(this.name.trim(), menusToSave, this.clientId)
-      .pipe(switchMap((creada) => this.planAssignmentApi.apply(this.clientId, creada._id, { startDate, phase })))
+      .create(name, menusToSave, this.clientId)
+      .pipe(
+        switchMap((creada) =>
+          this.dietPhaseApi.create(this.clientId, {
+            templateId: creada._id,
+            startDate,
+            name,
+            target: target
+              ? {
+                  kcal: Math.round(target.kcal),
+                  protein: Math.round(target.protein),
+                  carbs: Math.round(target.carbs),
+                  fat: Math.round(target.fat),
+                  source: this.clientTargetSource,
+                }
+              : null,
+            proteinPerKg: this.phaseProteinPerKg,
+            fatPerKg: this.phaseFatPerKg,
+          })
+        )
+      )
       .subscribe({
         next: () => {
           this.isSaving = false;
@@ -1339,8 +1342,8 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // Persistir la siguiente semana. 204 (null) = el contenido es igual al que
   // heredaría: no se escribe nada y se dice.
   private saveNextWeek(menusToSave: DietTemplateMenuPayload[]): void {
-    this.dietSuggestionApi
-      .prepareNextWeek(this.clientId, this.nextWeekPhaseId, { menus: menusToSave })
+    this.dietPhaseApi
+      .prepareNextWeek(this.clientId, this.nextWeekPhaseId, menusToSave)
       .subscribe({
         next: (week) => {
           this.isSaving = false;
@@ -1360,11 +1363,14 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       });
   }
 
-  // PUT directo sobre la copia asignada (su propio _id) — nunca crea ni
-  // aplica nada, y nunca toca ninguna plantilla de biblioteca.
-  private saveAssignedCopy(menusToSave: DietTemplateMenuPayload[]): void {
-    this.planAssignmentApi
-      .updateContent(this.clientId, this.assignedPlanId, { name: this.name.trim(), menus: menusToSave })
+  // Guarda la versión del contenido que se edita (y el nombre de la fase, si
+  // se cambió). Nunca crea ni aplica nada ni toca ninguna plantilla.
+  private savePhaseContent(menusToSave: DietTemplateMenuPayload[]): void {
+    const name = this.name.trim();
+    const rename$ =
+      name && name !== this.phaseName ? this.dietPhaseApi.update(this.clientId, this.phaseId, { name }) : of(null);
+    rename$
+      .pipe(switchMap(() => this.dietPhaseApi.updateContent(this.clientId, this.phaseId, this.contentId, menusToSave)))
       .subscribe({
         next: () => {
           this.isSaving = false;

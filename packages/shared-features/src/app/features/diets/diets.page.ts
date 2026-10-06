@@ -21,7 +21,6 @@ import { User } from 'src/app/core/models/user';
 import { AnthropometryService } from 'src/app/core/services/anthropometry/anthropometry.service';
 import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
-import { DietService } from 'src/app/core/services/diet/diet.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import {
   RecipeMacros,
@@ -38,8 +37,6 @@ import { RemoteConfigGateService } from 'src/app/core/services/remote-config/rem
 import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { Anthropometry } from '../diet-days/components/weight-info/models/anthropometry';
 import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/clipboard-meal-modal.component';
-import { MealProposal } from './models/meal-proposal.model';
-import { MealProposalApiService } from './services/meal-proposal-api.service';
 import { DayMenuPreview, DayMenuStatus } from './models/day-menu.model';
 import { DayMenuApiService } from './services/day-menu-api.service';
 import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-preview-modal.component';
@@ -83,7 +80,6 @@ export class DietsPage implements OnInit {
   public load = false;
   public pinnedNote: string | null = null;
   public currentAnthropometry: Anthropometry | null = null;
-  public mealProposals: MealProposal[] = [];
   // Fase 9 — solo no-null cuando el plan activo tiene 2+ menús que el
   // cliente elige cada día; para el resto de usuarios se queda en null y no
   // se muestra ningún aviso.
@@ -114,14 +110,12 @@ export class DietsPage implements OnInit {
 
   constructor(
     private dietDayService: DietDayService,
-    private dietService: DietService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
     private anthropometryService: AnthropometryService,
     private customProductService: CustomProductService,
     private recipeService: RecipeService,
-    private mealProposalApiService: MealProposalApiService,
     private dayMenuApiService: DayMenuApiService,
     private mySupplementsApi: MySupplementsApiService,
     private navigationService: NavigationService,
@@ -133,9 +127,7 @@ export class DietsPage implements OnInit {
 
     effect(() => {
       this.user = this.userService.localUser();
-      if (this.user?.dietInUse) {
-        this.loadPinnedNote();
-      }
+      this.pinnedNote = this.user?.dietPinnedNote || null;
     });
 
     this.dietDayService.getCurrentDietDay.subscribe((resDietDay) => {
@@ -379,7 +371,7 @@ export class DietsPage implements OnInit {
   }
 
   public onPinnedNoteChange(pinnedNote: string | null): void {
-    this.pinnedNote = pinnedNote;
+    this.storePinnedNote(pinnedNote || '');
   }
 
   public editPinnedNote(): void {
@@ -404,10 +396,8 @@ export class DietsPage implements OnInit {
           text: t('COMMON.SAVE'),
           handler: (data) => {
             const newNotes = (data.notes || '').trim();
-            this.dietService.updatePinnedNote(this.user.dietInUse, newNotes).subscribe({
-              next: (diet) => {
-                this.pinnedNote = diet.pinnedNote || null;
-              },
+            this.dietDayService.setPinnedNote(newNotes).subscribe({
+              next: (pinnedNote) => this.storePinnedNote(pinnedNote),
               error: (err) => console.error('[DietsPage] Failed to update pinned note', err),
             });
             return true;
@@ -433,10 +423,8 @@ export class DietsPage implements OnInit {
           text: t('COMMON.DELETE'),
           role: 'destructive',
           handler: () => {
-            this.dietService.updatePinnedNote(this.user.dietInUse, '').subscribe({
-              next: () => {
-                this.pinnedNote = null;
-              },
+            this.dietDayService.setPinnedNote('').subscribe({
+              next: () => this.storePinnedNote(''),
               error: (err) => console.error('[DietsPage] Failed to delete pinned note', err),
             });
             return true;
@@ -448,15 +436,11 @@ export class DietsPage implements OnInit {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
-  private loadPinnedNote(): void {
-    if (this.user?.dietInUse) {
-      this.dietService.getDietById(this.user.dietInUse).subscribe({
-        next: (diet) => {
-          this.pinnedNote = diet.pinnedNote || null;
-        },
-        error: (err) => console.error('[DietsPage] Failed to load pinned note', err),
-      });
-    }
+  // La nota fijada vive en el usuario: se guarda también en local para que
+  // la pantalla (y la próxima apertura) la vean sin pedir nada.
+  private storePinnedNote(pinnedNote: string): void {
+    this.pinnedNote = pinnedNote || null;
+    this.userService.setLocalUser = { ...this.user, dietPinnedNote: pinnedNote };
   }
 
   public setDietDayByDate(dateStr: string): void {
@@ -467,10 +451,7 @@ export class DietsPage implements OnInit {
     this.utilService.setCurrentDate = this.selectedDate;
     if (this.dietDay$) this.dietDay$.unsubscribe();
     this.dietDay$ = forkJoin({
-      dietDay: this.dietDayService.getDietDayByIdDietAndDate(
-        this.user.dietInUse,
-        this.selectedDate
-      ),
+      dietDay: this.dietDayService.getDay(this.selectedDate),
       anthropometry: this.anthropometryService.getAnthropometryByDate(
         this.selectedDate
       ),
@@ -486,17 +467,13 @@ export class DietsPage implements OnInit {
         this.cdr.detectChanges();
       });
 
-    // F28 — alternativas del día y estado del menú (needsChoice:false para
-    // el 100% de los clientes sin plan). Si fallan no rompen la pantalla:
-    // se quedan vacías.
+    // Estado del menú del día (needsChoice:false para el 100% de los
+    // clientes sin plan). Si falla no rompe la pantalla.
     if (this.menuState$) this.menuState$.unsubscribe();
-    this.menuState$ = forkJoin({
-      proposals: this.mealProposalApiService.listForDate(dateStr).pipe(catchError(() => of([]))),
-      status: this.dayMenuApiService.getForDate(dateStr).pipe(catchError(() => of(null))),
-    }).subscribe(({ proposals, status }) => {
-      this.mealProposals = proposals || [];
-      this.dayMenuStatus = status;
-    });
+    this.menuState$ = this.dayMenuApiService
+      .getForDate(dateStr)
+      .pipe(catchError(() => of(null)))
+      .subscribe((status) => (this.dayMenuStatus = status));
 
     this.loadSupplements(dateStr);
   }
@@ -621,16 +598,8 @@ export class DietsPage implements OnInit {
     });
   }
 
-  // F28 — alternativas propuestas para un hueco de comida concreto, elegidas
-  // o no: el selector es persistente (el cliente puede alternar en
-  // cualquier momento), no un banner de una sola vez.
-  public proposalsForMeal(mealName: string): MealProposal[] {
-    return this.mealProposals.filter((p) => p.mealSlot === mealName);
-  }
-
-  public onProposalChosen(event: { proposalId: string; chosenIndex: number }): void {
-    const proposal = this.mealProposals.find((p) => p._id === event.proposalId);
-    if (proposal) proposal.chosenIndex = event.chosenIndex;
+  // Al cambiar de opción en una comida cambia lo pautado del día.
+  public onAlternativeChosen(): void {
     this.refreshPlannedTarget();
   }
 
@@ -641,7 +610,7 @@ export class DietsPage implements OnInit {
   private refreshPlannedTarget(): void {
     this.isRefreshingTarget = true;
     this.dietDayService
-      .getDietDayByIdDietAndDate(this.user.dietInUse, this.selectedDate)
+      .getDay(this.selectedDate)
       .subscribe({
         next: (fresh) => {
           this.isRefreshingTarget = false;
@@ -696,11 +665,7 @@ export class DietsPage implements OnInit {
     this.pasteDietDayMode = false;
 
     this.dietDayService
-      .pasteDietDay(
-        this.user.dietInUse,
-        this.dietDayService.getDietDayClipboard,
-        this.dietDay
-      )
+      .pasteDietDay(this.dietDayService.getDietDayClipboard, this.dietDay)
       .subscribe({
         next: (resDietDay) => {
           this.dietDay = resDietDay;

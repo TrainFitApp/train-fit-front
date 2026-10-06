@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { Split } from '../../models/split';
-import { Table } from '../../models/table';
 import {
   DeleteSplitsResponse,
   SplitAPIService,
@@ -13,28 +12,12 @@ export class SplitService {
 
   constructor(private splitAPIService: SplitAPIService) {}
 
-  public createSplit(split: Split): Observable<Split> {
-    return this.splitAPIService.createSplit(split);
-  }
-
-  public createSplitAndAddToTable(tableInUseId: string): Observable<Table> {
-    return this.splitAPIService.createSplitAndAddToTable(tableInUseId);
-  }
-
   public addSplitToTable(
     idTable: string,
     idSplit?: string,
     withSets?: boolean
   ): Observable<Split> {
     return this.splitAPIService.addSplitToTable(idTable, idSplit, withSets);
-  }
-
-  public addTableSplit(idTable: string, idSplit: string): Observable<any> {
-    return this.splitAPIService.addSplitToTable(idTable, idSplit);
-  }
-
-  public addWorkoutToSplit(idSplit: string, idWorkout: string): Observable<Split> {
-    return this.splitAPIService.addWorkoutToSplit(idSplit, idWorkout);
   }
 
   public updateSplit(id: string, patch: Partial<Split>): Observable<any> {

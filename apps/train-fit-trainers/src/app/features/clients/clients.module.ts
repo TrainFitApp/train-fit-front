@@ -4,7 +4,14 @@ import { NavigationModule } from '../../shared/navigation/navigation.module';
 import { ClientsPageRoutingModule } from './clients-routing.module';
 import { ClientsPage } from './clients.page';
 import { ClientDetailPage } from './pages/client-detail/client-detail.page';
-import { NeedBreakdownComponent } from './components/need-breakdown/need-breakdown.component';
+import { NeedBreakdownModule } from './components/need-breakdown/need-breakdown.module';
+import { WeekSummaryPanelComponent } from './components/week-summary-panel/week-summary-panel.component';
+import { ApplyRoutineTemplateModalComponent } from './components/apply-routine-template-modal/apply-routine-template-modal.component';
+import { NextWeekModalComponent } from './components/next-week-modal/next-week-modal.component';
+import { CheckinSchedulesPanelComponent } from './components/checkin-schedules-panel/checkin-schedules-panel.component';
+import { CheckinScheduleHistoryPanelComponent } from './components/checkin-schedule-history-panel/checkin-schedule-history-panel.component';
+import { TrainingFilterPanelComponent } from './pages/client-detail/components/training-filter-panel/training-filter-panel.component';
+import { PerimeterFilterPanelComponent } from './pages/client-detail/components/perimeter-filter-panel/perimeter-filter-panel.component';
 import { SelectClientsModalModule } from './components/select-clients-modal/select-clients-modal.module';
 import { ApplyDietTemplateModalComponent } from './components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineModalComponent } from './components/apply-routine-modal/apply-routine-modal.component';
@@ -31,10 +38,10 @@ import { TrainingComparisonChartComponent } from './pages/client-detail/componen
 import { TrainingDayDetailComponent } from './pages/client-detail/components/training-day-detail/training-day-detail.component';
 import { PhaseScheduleCalendarComponent } from './components/phase-schedule-calendar/phase-schedule-calendar.component';
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
-import { CheckinFieldSelectorComponent } from '../../shared/components/checkin-field-selector/checkin-field-selector.component';
-import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
+import { CheckinFieldSelectorModule } from '../../shared/components/checkin-field-selector/checkin-field-selector.module';
+import { DateFieldModule } from '../../shared/components/date-field/date-field.module';
 import { PaymentsSharedModule } from '../payments/payments-shared.module';
-import { MacroAdjustComponent } from '../../shared/components/macro-adjust/macro-adjust.component';
+import { MacroAdjustModule } from '../../shared/components/macro-adjust/macro-adjust.module';
 import { TrackingStatusComponent } from './pages/client-detail/components/tracking-status/tracking-status.component';
 
 @NgModule({
@@ -45,23 +52,29 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     ProductSearchModalModule,
     SelectClientsModalModule,
     DietCardModule,
-    // Standalone: el bloque "cómo se ha calculado" del objetivo nutricional
-    // del cliente, el mismo que usan el resumen de semana y el cajón.
-    NeedBreakdownComponent,
-    // Standalone: "Ajustar macros" al editar el objetivo nutricional.
-    MacroAdjustComponent,
-    // Standalone: campos sueltos al programar un check-in o pedir algo
-    // puntual (checkin-workspace).
-    CheckinFieldSelectorComponent,
-    // Standalone: selector de fecha/hora con ion-datetime (sustituye al
-    // <input type="date|time"> nativo).
-    DateFieldComponent,
+    // El bloque "cómo se ha calculado" del objetivo nutricional del cliente,
+    // el mismo que usan el resumen de semana y el cajón.
+    NeedBreakdownModule,
+    // "Ajustar macros" al editar el objetivo nutricional.
+    MacroAdjustModule,
+    // Campos sueltos al programar un check-in o pedir algo puntual
+    // (checkin-workspace).
+    CheckinFieldSelectorModule,
+    // Selector de fecha/hora con ion-datetime.
+    DateFieldModule,
     // Cobros: Gestión > Cobros y la tarjeta del Resumen (features/payments).
     PaymentsSharedModule,
   ],
   declarations: [
     ClientsPage,
     ClientDetailPage,
+    WeekSummaryPanelComponent,
+    ApplyRoutineTemplateModalComponent,
+    NextWeekModalComponent,
+    CheckinSchedulesPanelComponent,
+    CheckinScheduleHistoryPanelComponent,
+    TrainingFilterPanelComponent,
+    PerimeterFilterPanelComponent,
     ApplyDietTemplateModalComponent,
     ApplyRoutineModalComponent,
     NutritionCalendarComponent,

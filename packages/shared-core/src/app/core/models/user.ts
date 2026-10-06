@@ -1,7 +1,4 @@
-import { DayWeight } from 'src/app/features/diet-days/components/weight-info/models/dayWeight';
 import { ColorMode } from '../services/util/theme.service';
-import { Diet } from './diet';
-import { Table } from './table';
 
 export class User {
   _id: string;
@@ -12,6 +9,8 @@ export class User {
   roles: string[];
   status: string;
   height: number;
+  // Último peso de sus medidas (el usuario no lo guarda). Enviarlo al
+  // actualizar el perfil apunta el peso de hoy.
   weight: number;
   birth: Date;
   sex: number;
@@ -19,15 +18,13 @@ export class User {
   objetive: number;
   steps: number;
   training: number;
-  stepGoal: number;
-  dietInUse: any;
+  // Nota fijada de la pantalla de dieta.
+  dietPinnedNote?: string;
   tableInUse: any;
   workoutInUse: any;
-  diets: Diet[];
-  dayWeights: DayWeight[];
-  tables: string[];
   access_token?: string;
-  hash?: string;
+  // Solo en la lista del panel admin: cuenta pendiente de verificar.
+  pendingActivation?: boolean;
   theme?: ColorMode;
   lang?: 'es' | 'en';
   provider?: 'google' | 'apple';
@@ -42,8 +39,11 @@ export class User {
 
   goalInUse?: string;
 
-  archivedProducts?: string[];
-  archivedRecipes?: string[];
-  archivedExercises?: string[];
+  favorites?: UserFavorites;
   lastLogin?: string | Date;
 }
+
+export type FavoriteKind = 'products' | 'recipes' | 'exercises';
+
+// Lo que el usuario ha marcado como favorito (ids).
+export type UserFavorites = Record<FavoriteKind, string[]>;

@@ -1,8 +1,6 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ClientDetailApiService } from '../../pages/client-detail/services/client-detail-api.service';
 import { ClientTable } from '../../pages/client-detail/models/client-detail.model';
@@ -10,14 +8,12 @@ import { ClientTable } from '../../pages/client-detail/models/client-detail.mode
 // Rutinas -> Plantillas (rediseño 2026-08) — "Usar plantilla" del panel
 // "Asignar rutina" de client-detail.page.ts. Reactiva F11 (getAvailableTemplates/
 // assignTemplateRoutine en ClientDetailApiService), escrito hace tiempo pero
-// nunca consumido desde ningún componente. Mismo patrón de modal standalone
+// nunca consumido desde ningún componente. Mismo patrón de modal real (ion-modal)
 // que ApplyCheckinTemplateModalComponent (selección + confirmar + dismiss),
 // pero al revés: aquí se elige UNA plantilla para UN cliente ya conocido
 // (viene como @Input), no varios clientes para una plantilla ya conocida.
 @Component({
   selector: 'app-apply-routine-template-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, TranslateModule],
   templateUrl: './apply-routine-template-modal.component.html',
   styleUrls: ['./apply-routine-template-modal.component.scss'],
 })

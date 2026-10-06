@@ -4,6 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 import { CoachDashboard, CoachNotification, CoachTask } from '../../../coach/models/coach-dashboard.model';
 import {
   CoachRoute,
@@ -138,16 +139,6 @@ export class ProfileCoachCardComponent implements OnInit {
         route: { commands: ['/my-checkins'], extras: { queryParams: { scheduleId: c.scheduleId } } },
       });
     }
-    for (const p of dashboard?.pendingMealProposals || []) {
-      items.push({
-        id: `meal-${p.proposalId}`,
-        kind: 'action',
-        icon: 'restaurant-outline',
-        title: t('MEAL_PROPOSAL', { slot: (p.mealSlot || '').toLowerCase() }),
-        subtitle: `${p.trainerName} · ${this.shortDate(p.date)}`,
-        route: { commands: ['/tabs/diets'], extras: { state: { selectedDate: p.date } } },
-      });
-    }
     if (dashboard?.nutritionPreferences?.pending) {
       items.push({
         id: 'nutrition-preferences',
@@ -160,11 +151,11 @@ export class ProfileCoachCardComponent implements OnInit {
     }
     for (const p of dashboard?.pendingPayments || []) {
       items.push({
-        id: `payment-${p.paymentId}`,
+        id: `payment-${p.chargeId}`,
         kind: 'action',
         icon: 'cash-outline',
-        title: t('PAYMENT', { amount: money(p.amount, p.currency) }),
-        subtitle: `${p.trainerName} · ${t('DUE', { date: this.shortDate(p.dueDate) })}`,
+        title: t('PAYMENT', { amount: money(p.balanceCents / 100, p.currency) }),
+        subtitle: `${p.trainerName} · ${t('DUE', { date: this.shortDate(p.dueDay) })}`,
         route: null,
       });
     }
@@ -188,13 +179,14 @@ export class ProfileCoachCardComponent implements OnInit {
       kind: 'notification',
       icon: notificationIcon(notification),
       title: notificationTitle(notification, (key, params) => this.translate.instant(key, params)),
-      subtitle: `${notificationTrainerName(notification, (key, params) => this.translate.instant(key, params))} · ${this.shortDate(notification.createdAt)}`,
+      subtitle: `${notificationTrainerName(notification, (key, params) => this.translate.instant(key, params))} · ${this.shortDate(localIsoDate(notification.createdAt))}`,
       route: notificationRoute(notification),
       notification,
     };
   }
 
-  // "24 sept". La app no registra LOCALE_ID: el DatePipe saldría en inglés.
+  // Día civil "YYYY-MM-DD" → "24 sept" (un instante se pasa antes a su día
+  // local con localIsoDate). La app no registra LOCALE_ID: el DatePipe saldría en inglés.
   private shortDate(iso: string): string {
     if (!iso) return '';
     const locale = this.translate.currentLang === 'en' ? 'en-GB' : 'es-ES';

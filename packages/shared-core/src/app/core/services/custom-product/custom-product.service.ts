@@ -7,6 +7,7 @@ import {
   QUICK_ADD_QUANTITY,
   QuickAddMacros,
 } from '../../models/customProduct';
+import { Meal } from '../../models/meal';
 import { CustomProductAPIService } from './custom-product-api.service';
 
 @Injectable()
@@ -57,25 +58,21 @@ export class CustomProductService {
   }
 
   public createCustomProductAndAddToMeal(
-    idMeal: string,
-    customProduct: CustomProduct,
-    idUser?: string
+    mealId: string,
+    customProduct: CustomProduct
   ): Observable<CustomProduct> {
-    return this.customAPIService.createCustomProductAndAddToMeal(
-      idMeal,
-      customProduct,
-      idUser
-    );
+    return this.customAPIService.createCustomProductAndAddToMeal(mealId, customProduct);
   }
 
   public updateCustomProduct(
+    mealId: string,
     customProduct: CustomProduct
   ): Observable<CustomProduct> {
-    return this.customAPIService.updateCustomProduct(customProduct);
+    return this.customAPIService.updateCustomProduct(mealId, customProduct);
   }
 
-  public deleteCustomProduct(id: string): Observable<CustomProduct> {
-    return this.customAPIService.deleteCustomProduct(id).pipe(take(1));
+  public deleteCustomProduct(mealId: string, id: string): Observable<Meal> {
+    return this.customAPIService.deleteCustomProduct(mealId, id).pipe(take(1));
   }
 
   /**

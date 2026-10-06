@@ -28,7 +28,7 @@ export interface DashboardUser extends User {
   exercisesCount?: number;
   hasWorkoutInUse?: boolean;
   hasTableInUse?: boolean;
-  hasDietInUse?: boolean;
+  hasDietDays?: boolean;
   tableSplitsCount?: number;
   dietDaysCount?: number;
   matchCount?: number;
@@ -151,7 +151,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   }
 
   public hasUserHash(user: User): boolean {
-    return Boolean(user?.hash);
+    return Boolean(user?.pendingActivation);
   }
 
   public isRemovingUserHash(user: User): boolean {
@@ -749,7 +749,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     }
 
     if (this.filters.withHashOnly) {
-      filteredUsers = filteredUsers.filter((user) => Boolean(user?.hash));
+      filteredUsers = filteredUsers.filter((user) => Boolean(user?.pendingActivation));
     }
 
     if (this.filters.activitySort) {

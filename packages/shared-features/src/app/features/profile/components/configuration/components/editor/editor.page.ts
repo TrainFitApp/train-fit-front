@@ -461,9 +461,6 @@ export class EditorPage implements OnInit {
     if (this.user.tableInUse !== undefined) {
       userToUpdate.tableInUse = this.user.tableInUse;
     }
-    if (this.user.dietInUse !== undefined) {
-      userToUpdate.dietInUse = this.user.dietInUse;
-    }
     if (this.user.goalInUse !== undefined) {
       userToUpdate.goalInUse = this.user.goalInUse;
     }
