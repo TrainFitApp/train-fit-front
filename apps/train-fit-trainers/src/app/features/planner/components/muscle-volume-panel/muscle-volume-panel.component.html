@@ -44,5 +44,9 @@
         {{ previousSplit ? ('PLANNER.LA_FLECHA_COMPARA_CON_EL' | translate) : '' }}
       </p>
     </ng-container>
+
+    <!-- Lo que el padre añada a la pestaña (estrés articular): dentro del
+         cuerpo, con su mismo padding y su mismo scroll. -->
+    <ng-content></ng-content>
   </div>
 </aside>

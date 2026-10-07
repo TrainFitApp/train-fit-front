@@ -26,7 +26,11 @@ export interface SessionLoad {
   // dicen: un reparto que ignora media sesión en silencio parece completo.
   unscoredExercises: number;
   totalExercises: number;
-  estimatedSeconds: number;
+  // Ejercicios sin puntuación guardada que cuentan con la sugerencia por
+  // defecto (exercise-score-defaults.js en el back).
+  suggestedExercises?: number;
+  // Solo en la carga de UNA sesión (no en la del microciclo).
+  estimatedSeconds?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -83,6 +87,13 @@ export class ExerciseScoresApiService {
   public getSessionLoad(workoutId: string): Observable<SessionLoad> {
     return this.http.get<SessionLoad>(
       `${ExerciseScoresApiService.ENDPOINT}/session/${workoutId}`
+    );
+  }
+
+  // Lo mismo sumado sobre un microciclo entero (pestaña Semana).
+  public getSplitLoad(splitId: string): Observable<SessionLoad> {
+    return this.http.get<SessionLoad>(
+      `${ExerciseScoresApiService.ENDPOINT}/split/${splitId}`
     );
   }
 }

@@ -85,6 +85,9 @@ export class IonicUtilService {
   // izquierda como cualquier otro.
   private readonly sidePanelsOverParent = new Set<HTMLIonModalElement>();
   private sidePanelAccessibilityCleanup: (() => void) | null = null;
+  // Componentes con un panel en creación (entre create() y entrar en la
+  // pila): un doble clic rápido no debe abrir dos.
+  private readonly pendingSidePanelComponents = new Set<unknown>();
   private static readonly SIDE_PANEL_LEVELS = [
     'tf-panel-modal',
     'tf-panel-modal-left',
@@ -131,6 +134,7 @@ export class IonicUtilService {
       .flatMap((cls) => cls.split(' '))
       .filter((cls) => cls && !cls.startsWith('tf-panel-modal') && cls !== 'mini-modal');
 
+    this.pendingSidePanelComponents.add(modalOptions.component);
     const modal = await this.modalController.create({
       component: modalOptions.component,
       componentProps: modalOptions.componentProps,
@@ -138,7 +142,7 @@ export class IonicUtilService {
       animated: true,
       showBackdrop: false,
       backdropDismiss: false,
-    });
+    }).finally(() => this.pendingSidePanelComponents.delete(modalOptions.component));
 
     const scopedController: Pick<ModalController, 'create' | 'dismiss' | 'getTop'> = {
       create: (options) => this.modalController.create(options),
@@ -187,9 +191,52 @@ export class IonicUtilService {
     }
   }
 
+  // El panel abierto (o a punto de abrirse) con este componente, para no
+  // apilar dos iguales: p. ej. el buscador de ejercicios del Planner.
+  public isSidePanelOpening(component: unknown): boolean {
+    return this.pendingSidePanelComponents.has(component);
+  }
+
+  public findSidePanel(component: unknown): HTMLIonModalElement | undefined {
+    this.pruneSidePanels();
+    return this.sidePanelStack.find((panel) => panel.component === component);
+  }
+
+  // Pide a un panel que se cierre por su propia vía (p. ej. con su aviso de
+  // cambios sin guardar). El panel que lo gestione escucha "tfRequestClose",
+  // hace preventDefault() y llama a detail.cancel() si el usuario se queda.
+  // Si nadie lo gestiona, se cierra sin más. true = cerrado.
+  public requestSidePanelClose(panel: HTMLIonModalElement): Promise<boolean> {
+    return new Promise((resolve) => {
+      let settled = false;
+      const settle = (closed: boolean) => {
+        if (settled) return;
+        settled = true;
+        resolve(closed);
+      };
+      void panel.onDidDismiss().then(() => settle(true));
+      const request = new CustomEvent('tfRequestClose', {
+        cancelable: true,
+        detail: { cancel: () => settle(false) },
+      });
+      if (panel.dispatchEvent(request)) void panel.dismiss(undefined, 'cancel');
+    });
+  }
+
   public async closeSidePanels(): Promise<void> {
     for (const panel of [...this.sidePanelStack].reverse()) {
       await panel.dismiss(undefined, 'cancel');
+    }
+  }
+
+  // Cierra solo los paneles abiertos desde `origin` (p. ej. Filtros al abrir
+  // Configurar ejercicio desde el buscador): sin esto quedaban los dos a la
+  // vez, cada uno en su columna.
+  public async closeChildSidePanels(origin?: HTMLElement): Promise<void> {
+    const parent = origin?.closest('ion-modal');
+    if (!parent) return;
+    for (const panel of [...this.sidePanelStack].reverse()) {
+      if (this.sidePanelParents.get(panel) === parent) await panel.dismiss(undefined, 'cancel');
     }
   }
 

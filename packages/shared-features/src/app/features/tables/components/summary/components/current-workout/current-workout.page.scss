@@ -244,6 +244,83 @@ img {
 }
 
 // Premium Accordion Header Styles for Custom Exercises
+// --- Bloques (superserie, circuito…) — mismo lenguaje que el Planner:
+// contenedor tintado con borde izquierdo del color de su tipo (--block-rgb,
+// shared-theme/global.scss). Arriba, una franja que lo pliega.
+.workout-block {
+  margin: 12px 10px;
+  padding: 0 0 6px;
+  border-radius: 12px;
+  border-left: 3px solid rgb(var(--block-rgb));
+  background: rgba(var(--block-rgb), 0.08);
+
+  // Los ejercicios del bloque que aún no se han empezado toman su color;
+  // en curso y hecho conservan el suyo (naranja / verde).
+  .premium-accordion-header:not(.completed-exercise):not(.in-progress-exercise) {
+    --background: rgba(var(--block-rgb), 0.14);
+    --border-color: rgba(var(--block-rgb), 0.45);
+  }
+
+  // Reordenando las series de un ejercicio solo queda ese a la vista: sin
+  // marco de bloque.
+  &.workout-block-group--focused {
+    margin: 0;
+    padding: 0;
+    border-left: none;
+    background: transparent;
+  }
+}
+
+// Franja de plegar/desplegar: toda la anchura del bloque (área táctil ≥ 44px),
+// sin nombre ni tipo, solo chevron + ejercicios y series hechas.
+.block-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 12px 12px 0 0;
+  background: transparent;
+  color: var(--ion-color-medium);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: rgb(var(--block-rgb));
+  }
+
+  .block-toggle-summary {
+    flex-shrink: 0;
+  }
+
+  // El nombre cede si no cabe; el progreso no.
+  .block-toggle-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgb(var(--block-rgb));
+    outline-offset: -2px;
+  }
+}
+
+// Plegado: solo queda la franja.
+.workout-block:has(.block-exercises[hidden]) {
+  padding-bottom: 0;
+}
+
+
 .premium-accordion-header {
   --background: rgba(30, 30, 30, 0.95);
   --border-color: rgba(255, 255, 255, 0.1);

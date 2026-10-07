@@ -457,7 +457,7 @@
                entrenamiento" adicional. -->
               <div class="template-actions-row">
                 <div class="template-actions-row__primary">
-                  <!-- Misma acción que "Asignar rutina" en Rutinas, más abajo
+                  <!-- Misma acción que "Crear rutina" en Rutinas, más abajo
                    (openRoutinePanel) — atajo arriba para no tener que bajar
                    a por la más habitual cuando el cliente aún no tiene
                    ninguna rutina creada. -->
@@ -467,7 +467,7 @@
                     (click)="openRoutinePanel()"
                   >
                     <ion-icon name="add-outline"></ion-icon>
-                    {{ 'CLIENT_DETAIL.ASIGNAR_RUTINA' | translate }}
+                    {{ 'CLIENT_DETAIL.CREAR_RUTINA' | translate }}
                   </button>
                   <button
                     type="button"
@@ -857,7 +857,7 @@
                     <h2 class="section-heading">{{ 'CLIENT_DETAIL.RUTINAS' | translate }}</h2>
                     <button class="add-button" (click)="openRoutinePanel()">
                       <ion-icon name="add-outline"></ion-icon>
-                      {{ 'CLIENT_DETAIL.ASIGNAR_RUTINA' | translate }}
+                      {{ 'CLIENT_DETAIL.CREAR_RUTINA' | translate }}
                     </button>
                   </div>
 
@@ -882,11 +882,6 @@
                           <span class="routine-badges">
                             <span class="in-use-badge" *ngIf="table.isActive"
                               >{{ 'CLIENT_DETAIL.EN_USO' | translate }}</span
-                            >
-                            <span
-                              class="assigned-badge"
-                              *ngIf="table.assignedByTrainerId"
-                              >{{ 'CLIENT_DETAIL.ASIGNADA_POR_TI' | translate }}</span
                             >
                             <!-- Tarea 4bis (2026-09) — cuándo entra en marcha, sin tener
                              que mirar la columna de Fases: las dos vistas leen la
@@ -1034,7 +1029,7 @@
           </div>
         </ng-container>
 
-        <!-- Panel: Asignar rutina -->
+        <!-- Panel: Crear rutina -->
         <div
           class="panel-backdrop"
           *ngIf="showRoutinePanel"
@@ -1042,7 +1037,7 @@
         ></div>
         <div class="panel-sheet" *ngIf="showRoutinePanel">
           <div class="panel-handle"></div>
-          <h3 class="panel-title">{{ 'CLIENT_DETAIL.ASIGNAR_RUTINA' | translate }}</h3>
+          <h3 class="panel-title">{{ 'CLIENT_DETAIL.CREAR_RUTINA' | translate }}</h3>
 
           <form [formGroup]="routineForm" (ngSubmit)="submitNewRoutine()" appSubmitOnEnter="createRoutine">
             <div class="input-wrapper">
@@ -1060,7 +1055,7 @@
               [disabled]="!routineForm.value.name?.trim() || isAssigningRoutine"
               data-enter-submit-action="createRoutine"
             >
-              <span *ngIf="!isAssigningRoutine">{{ 'CLIENT_DETAIL.CREAR_ASIGNAR' | translate }}</span>
+              <span *ngIf="!isAssigningRoutine">{{ 'CLIENT_DETAIL.CREAR_RUTINA' | translate }}</span>
               <ion-spinner name="dots" *ngIf="isAssigningRoutine"></ion-spinner>
             </button>
           </form>

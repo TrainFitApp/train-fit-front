@@ -54,7 +54,9 @@
               }}</ion-label></ion-col>
         </ion-row>
 
-        <ion-row *ngIf="!plannerMode && !workout.date && workout.rest">
+        <!-- También en el Planner: el entrenador ya puede saltar un día y
+             sin esta etiqueta no vería que lo ha hecho. -->
+        <ion-row *ngIf="!workout.date && workout.rest">
           <ion-col class="ion-no-padding header-detail"><ion-label style="font-size: x-small" color="alternative">{{
               'TABLES.SKIPPED_DAY_LABEL' | translate }}</ion-label></ion-col>
         </ion-row>
@@ -156,6 +158,10 @@
     </div>
     <ng-container *ngIf="workout?.exercises.length !== 0; else emptyWorkout">
       <ng-container *ngFor="let group of exerciseGroupEntries; trackBy: trackByBlockGroup">
+        <!-- Un bloque es un contenedor del color de su tipo (cabecera +
+             ejercicios), para que se vea qué ejercicios van juntos. Mismo
+             componente en Planner y en la rutina del cliente. -->
+        <div class="workout-block-group" [ngClass]="group.block ? 'workout-block workout-block--' + group.block.type : ''">
         <div class="workout-block-header" *ngIf="group.block" (click)="editBlockAlert(group.block); $event.stopPropagation()">
           <div class="block-header-main">
             <ion-icon name="layers-outline"></ion-icon>
@@ -287,7 +293,10 @@
                     'drop-set-series': set.drop,
                     'rest-pause-series': set.restPause
                   }" *ngFor="let set of sortSets(entry.exercise?.sets); let j = index">
-                  <td>{{ j + 1 }}</td>
+                  <!-- Planner: el número abre "Serie objetivo" de ESTA serie, no el
+                       ejercicio entero (openSetPanel). -->
+                  <td [class.tf-set-index]="canInlineEditSet(entry.exercise, set)"
+                    (click)="openSetPanel(entry.exercise, set, $event)">{{ j + 1 }}</td>
 
                   <ng-container *ngIf="entry.exercise.exercise.isIsometric; else nonIsometric">
                     <td>
@@ -348,7 +357,10 @@
                     <td class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'rir')"
                       (click)="startEditCell(entry.exercise, set, 'rir', $event)">
                       <ng-container *ngIf="!isEditingCell(set, 'rir')">
-                        <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
+                        <!-- Planner: abreviado (F, DS, RP n s) para que quepa en la celda;
+                             el nombre completo va en el title. -->
+                        <span *ngIf="isFail(set)" class="fail-label" [attr.title]="'TABLES.FAIL' | translate">{{
+                          plannerMode ? 'F' : ('TABLES.FAIL' | translate) }}</span>
                         <!-- Mostrar RIR esperado si no está doned, RIR real si está doned -->
                         <span *ngIf="
                             !isFail(set) &&
@@ -361,9 +373,10 @@
                           set.doned
                           ? formatPerformedRir(set.rir)
                           : formatExpectedRir(set.expectedRir)
-                          }}</span><span *ngIf="set.drop">&nbsp;</span><span *ngIf="set.drop" class="intensity-drop">{{
-                          'TABLES.DROP_SET' | translate }}</span><span *ngIf="set.restPause">&nbsp;</span><span
-                          *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }} {{ 'TABLES.SEG' | translate
+                          }}</span><span *ngIf="set.drop">&nbsp;</span><span *ngIf="set.drop" class="intensity-drop"
+                          [attr.title]="'TABLES.DROP_SET' | translate">{{
+                          plannerMode ? 'DS' : ('TABLES.DROP_SET' | translate) }}</span><span *ngIf="set.restPause">&nbsp;</span><span
+                          *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }} {{ plannerMode ? 's' : ('TABLES.SEG' | translate)
                           }}</span>
                         <span *ngIf="
                             !isFail(set) &&
@@ -436,6 +449,7 @@
             <p class="client-note-body">{{ entry.exercise.clientNotes }}</p>
           </div>
           </div>
+        </div>
         </div>
       </ng-container>
     </ng-container>

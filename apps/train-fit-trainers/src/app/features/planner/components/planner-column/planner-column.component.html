@@ -79,9 +79,13 @@
     </div>
   </div>
 
+  <!-- cdkScrollable: la columna hace scroll propio. Sin registrarlo, CDK
+       calculaba el hueco del arrastre de ejercicios con las posiciones de
+       antes de hacer scroll y el ejercicio caía en otro sitio. -->
   <div
     class="planner-column-body"
     #columnBody
+    cdkScrollable
     (scroll)="onBodyScroll($event)"
   >
     <!-- Reordenar entrenamientos (2026-09) — ion-reorder nativo, solo con
@@ -119,6 +123,7 @@
           [exerciseCopyActive]="exerciseCopy.copyActive()"
           [exerciseOriginWorkoutId]="exerciseCopy.originWorkoutId()"
           (exerciseCopyEvent)="exerciseCopy.onCopyEvent($event)"
+          (workoutNameUpdatedEvent)="onWorkoutNameUpdated($event)"
         ></app-workout>
       </ion-accordion-group>
     </div>

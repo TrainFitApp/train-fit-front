@@ -3,8 +3,8 @@ import { Workout } from 'src/app/core/models/workout';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Set as ExerciseSet } from 'src/app/core/models/set';
 import { formatRirValue } from 'src/app/core/models/rir';
-import { MUSCLE_GROUPS } from 'src/app/core/constants/muscle-catalog';
-import { countMuscleTree, countSplitMuscleTree } from './planner-metrics';
+import { MUSCLE_GROUPS, MuscleGroup } from 'src/app/core/constants/muscle-catalog';
+import { MuscleTreeGroupCount, countMuscleTree, countSplitMuscleTree } from './planner-metrics';
 import { uiText } from 'src/app/core/i18n/localized-catalog';
 
 /**
@@ -65,11 +65,27 @@ export interface CompareWorkoutRow {
   hasChanges: boolean;
 }
 
+// Porción de un grupo (pectoral superior, medio…) o la fila "Todo el grupo"
+// (ejercicios etiquetados al grupo entero), con sus series fraccionales en A
+// y en B. Mismo desglose que la pestaña Análisis (planner-metrics.ts).
+export interface CompareMusclePortionRow {
+  id: string;
+  label: string;
+  isWholeGroup?: boolean;
+  a: number;
+  b: number;
+}
+
 export interface CompareMuscleRow {
+  groupId: string;
   name: string;
   a: number;
   b: number;
   delta: number;
+  // Vacío si ningún ejercicio del grupo precisa porción en A ni en B (igual
+  // que en Análisis: pintarlas a 0 diría "no lo trabajas" cuando es "no se
+  // sabe").
+  portions: CompareMusclePortionRow[];
   // Frecuencia: en cuántos DÍAS distintos se toca ese grupo. 12 series en un
   // día y 12 repartidas en dos no son la misma semana de entrenamiento, y el
   // conteo de series solo no distingue una de otra.
@@ -93,6 +109,9 @@ export interface CompareProgress {
 export interface CompareResult {
   workouts: CompareWorkoutRow[];
   muscles: CompareMuscleRow[];
+  // Series de fuerza cuyo ejercicio aún no tiene músculos: no cuentan en el
+  // volumen y se dice cuántas son, como en Análisis.
+  unclassifiedSets: { a: number; b: number };
   progress: CompareProgress;
   // Distinto número de entrenamientos: el emparejamiento por posición sigue
   // valiendo, pero hay filas sin pareja y hay que decirlo con los números
@@ -122,6 +141,10 @@ export function compareSplits(a: Split | null, b: Split | null): CompareResult {
   return {
     workouts: rows,
     muscles: buildMuscleRows(a, b),
+    unclassifiedSets: {
+      a: countSplitMuscleTree(a).unclassifiedSets,
+      b: countSplitMuscleTree(b).unclassifiedSets,
+    },
     progress: {
       progressed: allExercises.filter((e) => e.weightTrend > 0).length,
       regressed: allExercises.filter((e) => e.weightTrend < 0).length,
@@ -449,15 +472,52 @@ function buildMuscleRows(a: Split | null, b: Split | null): CompareMuscleRow[] {
       const countA = countsA[group.id]?.sets || 0;
       const countB = countsB[group.id]?.sets || 0;
       return {
+        groupId: group.id,
         name: group.label,
         a: countA,
         b: countB,
-        delta: countB - countA,
+        delta: roundSets(countB - countA),
+        portions: buildPortionRows(group, countsA[group.id], countsB[group.id]),
         daysA: daysA[group.id] || 0,
         daysB: daysB[group.id] || 0,
       };
     })
     .sort((x, y) => Math.abs(y.delta) - Math.abs(x.delta) || y.b - x.b);
+}
+
+// Porciones en orden anatómico fijo, también las que están a 0 en los dos
+// lados (no tocar una porción es justo lo que hay que ver), y "Todo el
+// grupo" solo si algún ejercicio está etiquetado al grupo entero.
+function buildPortionRows(
+  group: MuscleGroup,
+  countA: MuscleTreeGroupCount | undefined,
+  countB: MuscleTreeGroupCount | undefined
+): CompareMusclePortionRow[] {
+  const portions: CompareMusclePortionRow[] = group.muscles.map((muscle) => ({
+    id: muscle.id,
+    label: muscle.label,
+    a: countA?.portions[muscle.id] || 0,
+    b: countB?.portions[muscle.id] || 0,
+  }));
+  if (!portions.some((portion) => portion.a > 0 || portion.b > 0)) return [];
+
+  const generalA = countA?.general || 0;
+  const generalB = countB?.general || 0;
+  if (generalA > 0 || generalB > 0) {
+    portions.push({
+      id: `${group.id}__whole`,
+      label: uiText('PLANNER.TODO_EL_GRUPO'),
+      isWholeGroup: true,
+      a: generalA,
+      b: generalB,
+    });
+  }
+  return portions;
+}
+
+// Las series fraccionales (×0,5) restadas dan restos de coma flotante.
+function roundSets(value: number): number {
+  return Math.round(value * 10) / 10;
 }
 
 // Frecuencia: en cuántos entrenamientos DISTINTOS recibe series cada grupo

@@ -1607,6 +1607,12 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     });
     await modal.present();
     const { data, role } = await modal.onDidDismiss();
+    // Sin rutinas que programar, el modal ofrece crear una: mismo panel que
+    // el botón "Crear rutina" de la ficha.
+    if (role === 'create-routine') {
+      this.openRoutinePanel();
+      return;
+    }
     if (role !== 'confirm' || !data) return;
 
     this.ionicUtilService.showToast({

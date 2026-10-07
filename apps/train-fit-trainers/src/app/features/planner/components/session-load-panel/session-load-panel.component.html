@@ -116,6 +116,9 @@
              no se leía justo cuando más falta hacía. -->
         <p class="panel-hint">
           {{ 'PLANNER.CADA_NUMERO_ES_LA_PUNTUACION' | translate }}
+          <ng-container *ngIf="load.suggestedExercises">
+            {{ 'PLANNER.USAN_LA_PUNTUACION_SUGERIDA' | translate: { count: load.suggestedExercises } }}
+          </ng-container>
         </p>
       </ng-container>
     </ng-container>

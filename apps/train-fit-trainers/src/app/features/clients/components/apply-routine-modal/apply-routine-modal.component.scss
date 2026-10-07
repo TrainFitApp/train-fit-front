@@ -27,6 +27,52 @@
   text-align: center;
 }
 
+// Vacío: mismo patrón que checkin-templates.page (icono + título + texto + CTA).
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 48px 24px 0;
+  color: var(--tf-text-muted);
+
+  > ion-icon {
+    font-size: 40px;
+    color: var(--tf-text-faint);
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tf-text);
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 0 0 4px;
+  }
+}
+
+.create-cta {
+  @include tf-gradient-button(10px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  height: var(--tf-touch-min);
+  padding: 0 20px;
+  font-size: 0.9rem;
+
+  ion-icon {
+    font-size: 1.1rem;
+  }
+}
+
 .template-row {
   display: flex;
   align-items: center;
@@ -121,6 +167,20 @@
     color: var(--tf-text-muted);
     font-weight: 600;
   }
+}
+
+// Selector de rutina (ion-select.tf-select de tokens.scss): mismo patrón de
+// etiqueta que rule-builder.
+.field-label {
+  display: block;
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+ion-select.routine-select {
+  width: 100%;
 }
 
 // Fase A1 (2026-09) — envoltorio de <app-phase-schedule-calendar>: mismo

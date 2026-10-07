@@ -131,6 +131,18 @@
   color: #8b8b8b;
 }
 
+.onboarding-reminder-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: #8b8b8b;
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+}
+
 .onboarding-reminder-chevron {
   flex-shrink: 0;
   font-size: 18px;

@@ -1,0 +1,167 @@
+// Hoja inferior (ion-modal.intensity-sheet-modal, global.scss). Se abre solo
+// desde el Planner, pero vive en el paquete compartido: --tf-* con respaldo
+// oscuro, como la hoja de alerts (los tokens reales solo existen en Trainers).
+:host {
+  display: block;
+  padding: 20px 16px calc(env(safe-area-inset-bottom) + 14px);
+  color: var(--tf-text, #ffffff);
+  background: var(--tf-surface-1, #141414);
+}
+
+.sheet-title {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.sheet-section + .sheet-section {
+  margin-top: 16px;
+}
+
+.section-label {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted, #8b8b8b);
+}
+
+.option-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option {
+  flex: 1 1 0;
+  min-width: 96px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--tf-border-strong, #333333);
+  border-radius: 10px;
+  background: var(--tf-surface-2, #1a1a1a);
+  color: var(--tf-text-secondary, #c7c7c7);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms ease-out, background 160ms ease-out, color 160ms ease-out;
+
+  &--active {
+    border-color: var(--tf-accent, #fe9000);
+    background: var(--tf-accent-soft, rgba(254, 144, 0, 0.1));
+    color: var(--tf-accent-text, #fe9b1a);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent, #fe9000);
+    outline-offset: 2px;
+  }
+}
+
+.range-row,
+.preset-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.range-sep {
+  color: var(--tf-text-muted, #8b8b8b);
+}
+
+.sheet-input {
+  width: 72px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--tf-border-strong, #333333);
+  border-radius: 10px;
+  background: var(--tf-surface-2, #1a1a1a);
+  color: var(--tf-text, #ffffff);
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: center;
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--tf-accent, #fe9000);
+  }
+
+  &--seconds {
+    width: 64px;
+  }
+}
+
+.rest-pause-row {
+  margin-top: 10px;
+}
+
+.rest-pause-label {
+  font-size: 0.82rem;
+  color: var(--tf-text-secondary, #c7c7c7);
+}
+
+.preset-row {
+  flex-wrap: wrap;
+}
+
+.preset {
+  min-width: 52px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--tf-border-strong, #333333);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--tf-text-secondary, #c7c7c7);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+
+  &--active {
+    border-color: var(--tf-accent, #fe9000);
+    color: var(--tf-accent-text, #fe9b1a);
+  }
+}
+
+.field-error {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--tf-danger, #eb445a);
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.action {
+  flex: 1;
+  min-height: 48px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &--secondary {
+    border: 1px solid var(--tf-border-strong, #333333);
+    background: var(--tf-surface-2, #1a1a1a);
+    color: var(--tf-text, #ffffff);
+  }
+
+  &--primary {
+    border: none;
+    background: var(--tf-accent-gradient, var(--tf-accent, #fe9000));
+    color: var(--tf-accent-contrast, #0f0f0f);
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+  }
+}

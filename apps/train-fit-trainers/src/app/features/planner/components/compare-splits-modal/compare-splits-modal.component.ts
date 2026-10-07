@@ -45,11 +45,17 @@ export class CompareSplitsModalComponent implements OnInit {
   public metrics: MetricComparison[] = [];
   public workouts: WorkoutView[] = [];
   public visibleWorkouts: WorkoutView[] = [];
-  public muscles: (CompareResult['muscles'][number] & {
+  public muscles: (Omit<CompareResult['muscles'][number], 'portions'> & {
     metric: MetricComparison;
     widthA: number;
     widthB: number;
+    portions: (CompareResult['muscles'][number]['portions'][number] & {
+      widthA: number;
+      widthB: number;
+    })[];
   })[] = [];
+  // Grupos desplegados para ver sus porciones (como en Análisis).
+  public expandedGroups = new Set<string>();
   public completionA = completionSummary(null);
   public completionB = completionSummary(null);
   public visibleCount = 0;
@@ -108,17 +114,29 @@ export class CompareSplitsModalComponent implements OnInit {
       1,
       ...this.result.muscles.flatMap((muscle) => [muscle.a, muscle.b])
     );
+    // Misma escala para grupos y porciones: una porción nunca pasa de su
+    // grupo, así que el máximo de los grupos vale para las dos.
     this.muscles = this.result.muscles.map((muscle) => ({
       ...muscle,
       metric: metricComparison(muscle.name, muscle.name, muscle.a, muscle.b),
       widthA: (muscle.a / max) * 100,
       widthB: (muscle.b / max) * 100,
+      portions: muscle.portions.map((portion) => ({
+        ...portion,
+        widthA: (portion.a / max) * 100,
+        widthB: (portion.b / max) * 100,
+      })),
     }));
     this.totalCount = this.workouts.reduce(
       (sum, row) => sum + row.exercises.length,
       0
     );
     this.filterWorkouts();
+  }
+
+  public toggleGroup(groupId: string): void {
+    if (this.expandedGroups.has(groupId)) this.expandedGroups.delete(groupId);
+    else this.expandedGroups.add(groupId);
   }
 
   public filterWorkouts(): void {
@@ -170,7 +188,7 @@ export class CompareSplitsModalComponent implements OnInit {
   }
 
   public labelFor(index: number): string {
-    return this.translate.instant('TABLES.MICROCYCLE_N', { p0: index + 1 });
+    return this.translate.instant('TABLES.MICROCYCLE_N', { n: index + 1 });
   }
   public purposeLabel(split: Split | null): string {
     return (

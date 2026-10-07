@@ -81,28 +81,21 @@ export class OrderExercisesPage implements OnInit {
                   this.idTable,
                   this.initialCustomExercisesOrder
                 )
-                .subscribe(() => {
-                  let indexWorkout: number;
-
-                  // Obtener índice de Workout
+                .subscribe((res) => {
+                  // Esta sesión se reordena aquí; las de la misma fila en los
+                  // demás microciclos, con lo que devuelve el back (solo las
+                  // que tenían los mismos ejercicios en el mismo orden).
+                  const rowWorkouts = new Map(
+                    (res?.rowWorkouts || []).map((rowWorkout) => [rowWorkout._id, rowWorkout])
+                  );
                   this.tableService.tableInUse.splits.forEach((sTemp) => {
-                    sTemp.workouts.forEach((wTemp, iW) => {
+                    sTemp.workouts.forEach((wTemp) => {
                       if (wTemp._id.toString() === this.idWorkout) {
-                        indexWorkout = iW;
-                      }
-                    });
-                  });
-
-                  this.tableService.tableInUse.splits.forEach((sTemp) => {
-                    sTemp.workouts.forEach((wTemp, iW) => {
-                      if (iW === indexWorkout) {
-                        // Copiar el array de ejercicios y reorganizar según `newOrder`
-                        const newOrderedExercises =
-                          this.initialCustomExercisesOrder.map(
-                            (index) => wTemp.exercises[index]
-                          );
-
-                        wTemp.exercises = newOrderedExercises;
+                        wTemp.exercises = this.initialCustomExercisesOrder.map(
+                          (index) => wTemp.exercises[index]
+                        );
+                      } else if (rowWorkouts.has(wTemp._id)) {
+                        wTemp.exercises = rowWorkouts.get(wTemp._id).exercises;
                       }
 
                       if (

@@ -35,7 +35,12 @@
           [split]="split"
           [previousSplit]="previousSplit"
           [splitLabel]="splitLabel"
-        ></app-muscle-volume-panel>
+        >
+          <!-- Estrés articular del microciclo: la pestaña Sesión lo da de UNA
+               sesión; aquí, sumado sobre toda la semana. Proyectado dentro
+               del panel para compartir su padding y su scroll. -->
+          <app-joint-stress-panel [split]="split"></app-joint-stress-panel>
+        </app-muscle-volume-panel>
       </ng-container>
 
       <ng-container *ngIf="tab === 'session'">

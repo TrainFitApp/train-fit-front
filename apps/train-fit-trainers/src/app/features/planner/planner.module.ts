@@ -12,6 +12,7 @@ import { MuscleVolumePanelComponent } from './components/muscle-volume-panel/mus
 import { PlannerInsightsPanelComponent } from './components/planner-insights-panel/planner-insights-panel.component';
 import { CompareSplitsModalComponent } from './components/compare-splits-modal/compare-splits-modal.component';
 import { MuscleTreeComponent } from './components/muscle-tree/muscle-tree.component';
+import { JointStressPanelComponent } from './components/joint-stress-panel/joint-stress-panel.component';
 
 @NgModule({
   imports: [SharedModule, NavigationModule, PlannerPageRoutingModule, DragDropModule, WorkoutComponentModule],
@@ -24,6 +25,7 @@ import { MuscleTreeComponent } from './components/muscle-tree/muscle-tree.compon
     PlannerInsightsPanelComponent,
     CompareSplitsModalComponent,
     MuscleTreeComponent,
+    JointStressPanelComponent,
   ],
 })
 export class PlannerPageModule {}

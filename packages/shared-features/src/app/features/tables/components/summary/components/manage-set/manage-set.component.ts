@@ -24,6 +24,10 @@ export class ManageSetComponent implements OnInit, OnDestroy {
   // formulario, para ir añadiendo series seguidas. Si se abrió editando una
   // serie, el primer guardado la actualiza y los siguientes añaden nuevas.
   public onSetAdded?: (set: Set) => void;
+  // Planner: quien abre el panel recibe una función para cargar OTRA serie
+  // en este mismo panel (editar otra serie con "Serie objetivo" ya abierto
+  // cambia los valores en vez de apilar otro panel encima).
+  public registerLoader?: (load: (set?: Set) => void) => void;
   public addedCount = 0;
   public justAdded = false;
   public justUpdated = false;
@@ -40,6 +44,35 @@ export class ManageSetComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.initSetForm();
+    this.registerLoader?.((set) => this.loadSet(set));
+  }
+
+  // Carga otra serie (o una nueva, sin `set`) en el panel ya abierto. Si hay
+  // cambios sin guardar, pregunta antes de descartarlos.
+  public loadSet(set?: Set): void {
+    const apply = () => {
+      this.set = set;
+      this.justAdded = false;
+      this.justUpdated = false;
+      clearTimeout(this.justAddedTimer);
+      this.initSetForm();
+    };
+    if (!this.hasUnsavedChanges()) {
+      apply();
+      return;
+    }
+    this.ionicUtilService.showAlert({
+      header: this.translate.instant('COMMON.UNSAVED_CHANGES'),
+      message: this.translate.instant('TABLES.SWITCH_SET_UNSAVED'),
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          cssClass: 'alert-button-primary',
+          handler: () => apply(),
+        },
+      ],
+    });
   }
 
   public ionViewDidEnter(): void {

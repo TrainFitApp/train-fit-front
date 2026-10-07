@@ -272,7 +272,10 @@ export class SearchExercisesPage implements OnInit {
     };
 
     // Configurar ejercicio se abre ENCIMA del buscador (misma columna); lo que
-    // abra él (añadir series...) sale a su izquierda.
+    // abra él (añadir series...) sale a su izquierda. Filtros, si estaba
+    // abierto, se cierra: los filtros ya están aplicados (se editan por
+    // referencia).
+    void this.ionicUtilService.closeChildSidePanels(this.modal);
     this.ionicUtilService.showNestedModal(modalOptions, this.modal, { overParent: true }).then((res) => {
       if (res.data) this.modalController.dismiss(res.data);
     });
@@ -502,7 +505,10 @@ export class SearchExercisesPage implements OnInit {
     };
 
     // Configurar ejercicio se abre ENCIMA del buscador (misma columna); lo que
-    // abra él (añadir series...) sale a su izquierda.
+    // abra él (añadir series...) sale a su izquierda. Filtros, si estaba
+    // abierto, se cierra: los filtros ya están aplicados (se editan por
+    // referencia).
+    void this.ionicUtilService.closeChildSidePanels(this.modal);
     this.ionicUtilService.showNestedModal(modalOptions, this.modal, { overParent: true }).then((res) => {
       if (res.data) {
         this.searchByFilter(); // Refresh list after creation

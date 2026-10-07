@@ -823,7 +823,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
     this.ionicUtilService.showPopover(popoverOptions).then((res) => {
       if (!res?.data) return;
-      const customExerciseCmp = this.customExerciseComponents?.toArray()[index];
+      const customExerciseCmp = this.customExerciseComponentAt(index);
       if (!customExerciseCmp) return;
 
       switch (res.data.id) {
@@ -853,18 +853,26 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
       this.seriesReorderExerciseIndex = index;
       // Forzar abierto el accordion del ejercicio que está reordenando y
       // cerrar el resto (quedan ocultos por [hidden] en el template).
-      this.accordionGroups?.forEach((group, groupIndex) => {
-        group.value = groupIndex === index ? `exercise-${index}` : undefined;
+      // Por valor y no por posición: con bloques el orden del DOM ya no es
+      // el de currentWorkout.exercises. Cada grupo solo tiene un accordion,
+      // así que solo se abre el que se llama así.
+      this.accordionGroups?.forEach((group) => {
+        group.value = `exercise-${index}`;
       });
     } else if (this.seriesReorderExerciseIndex === index) {
       this.seriesReorderExerciseIndex = null;
     }
   }
 
+  // El de ese índice GLOBAL. QueryList va en orden del DOM, que con bloques
+  // (vista agrupada) no es el de currentWorkout.exercises.
+  private customExerciseComponentAt(index: number): CustomExerciseComponent | undefined {
+    return this.customExerciseComponents?.find((cmp) => cmp.indexCustomExercise === index);
+  }
+
   public cancelSeriesReorderMode(): void {
     if (this.seriesReorderExerciseIndex === null) return;
-    const cmp = this.customExerciseComponents
-      ?.toArray()[this.seriesReorderExerciseIndex];
+    const cmp = this.customExerciseComponentAt(this.seriesReorderExerciseIndex);
     cmp?.cancelReorder();
     this.seriesReorderExerciseIndex = null;
   }
@@ -1221,6 +1229,29 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
   public get showsBlocks(): boolean {
     return hasRenderableBlocks(this.currentWorkout);
+  }
+
+  // Bloques plegados en la vista agrupada (por _id). Abiertos por defecto.
+  // Objeto y no Set: en este fichero `Set` es el modelo de serie importado.
+  private readonly collapsedBlocks: Record<string, boolean> = {};
+
+  public isBlockCollapsed(blockId: string): boolean {
+    return !!this.collapsedBlocks[blockId];
+  }
+
+  public toggleBlock(blockId: string): void {
+    this.collapsedBlocks[blockId] = !this.collapsedBlocks[blockId];
+  }
+
+  // Series hechas / totales del bloque, para la franja que lo pliega.
+  public blockProgress(group: WorkoutExerciseGroup): { done: number; total: number } {
+    return group.exercises.reduce(
+      (acc, exercise) => ({
+        done: acc.done + this.getCustomExerciseSetsDoned(exercise),
+        total: acc.total + (exercise.sets?.length || 0),
+      }),
+      { done: 0, total: 0 }
+    );
   }
 
   public globalExerciseIndex(customExercise: CustomExercise): number {

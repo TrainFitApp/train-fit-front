@@ -166,12 +166,65 @@
   </ng-template>
 
   <ng-container *ngIf="currentWorkout">
-    <ion-reorder-group
-      [disabled]="!reorderExercisesMode"
-      (ionItemReorder)="handleExerciseReorder($event)"
-    >
+    <!-- Con bloques, los ejercicios van agrupados como en el Planner: cada
+         bloque en un contenedor del color de su tipo, con su nombre, tipo,
+         rondas y descansos. Para reordenar ejercicios (ion-reorder necesita
+         la lista plana) vuelve a la lista de siempre. `i` sigue siendo el
+         índice GLOBAL en currentWorkout.exercises (globalExerciseIndex). -->
+    <ng-container *ngIf="showsBlocks && !reorderExercisesMode; else flatExercises">
+      <ng-container *ngFor="let group of exerciseGroups; trackBy: trackByBlockGroup">
+        <div
+          class="workout-block-group"
+          *ngIf="group.exercises.length"
+          [ngClass]="group.block ? 'workout-block workout-block--' + group.block.type : ''"
+          [class.workout-block-group--focused]="seriesReorderExerciseIndex !== null"
+        >
+          <!-- Sin cabecera de nombre/tipo: el bloque se reconoce por su color.
+               Solo una franja que lo pliega y despliega, con el progreso. El
+               tipo y el nombre van en el aria-label. -->
+          <button
+            type="button"
+            class="block-toggle"
+            *ngIf="group.block && seriesReorderExerciseIndex === null"
+            [attr.aria-expanded]="!isBlockCollapsed(group.block._id)"
+            [attr.aria-label]="((isBlockCollapsed(group.block._id) ? 'TABLES.BLOCK_EXPAND' : 'TABLES.BLOCK_COLLAPSE') | translate) + ': ' + (group.block.name || blockTypeLabel(group.block.type))"
+            (click)="toggleBlock(group.block._id)"
+          >
+            <ion-icon [name]="isBlockCollapsed(group.block._id) ? 'chevron-forward-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+            <span class="block-toggle-summary" *ngIf="blockProgress(group) as progress">{{
+              (group.exercises.length === 1 ? 'TABLES.BLOCK_SUMMARY_ONE' : 'TABLES.BLOCK_SUMMARY_MANY')
+                | translate: { n: group.exercises.length, done: progress.done, total: progress.total }
+            }}</span>
+            <!-- Nombre del bloque junto a las series (sin nombre, su tipo). -->
+            <span class="block-toggle-name">· {{ group.block.name || blockTypeLabel(group.block.type) }}</span>
+          </button>
+          <!-- [hidden] y no *ngIf: plegar no debe destruir los ejercicios (y
+               con ellos su estado: series a medio editar, temporizador…). -->
+          <div class="block-exercises" [hidden]="group.block && isBlockCollapsed(group.block._id)">
+            <ng-container *ngFor="let exercise of group.exercises; trackBy: trackByCustomExercise">
+              <ng-container *ngTemplateOutlet="exerciseItem; context: { $implicit: exercise, i: globalExerciseIndex(exercise) }"></ng-container>
+            </ng-container>
+          </div>
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <ng-template #flatExercises>
+      <ion-reorder-group
+        [disabled]="!reorderExercisesMode"
+        (ionItemReorder)="handleExerciseReorder($event)"
+      >
+        <ng-container *ngFor="let exercise of currentWorkout.exercises; let i = index; trackBy: trackByCustomExercise">
+          <ng-container *ngTemplateOutlet="exerciseItem; context: { $implicit: exercise, i: i }"></ng-container>
+        </ng-container>
+      </ion-reorder-group>
+    </ng-template>
+  </ng-container>
+
+  <!-- Un ejercicio (cabecera + series). Lo pintan la vista por bloques y la
+       lista plana. -->
+  <ng-template #exerciseItem let-exercise let-i="i">
     <ion-accordion-group
-      *ngFor="let exercise of currentWorkout.exercises; let i = index; trackBy: trackByCustomExercise"
       expand="inset"
       [hidden]="seriesReorderExerciseIndex !== null && seriesReorderExerciseIndex !== i"
     >
@@ -301,8 +354,7 @@
         </ion-list>
       </ion-accordion>
     </ion-accordion-group>
-    </ion-reorder-group>
-  </ng-container>
+  </ng-template>
 </ion-content>
 
 <!-- Barra de descanso: fija en el borde inferior, nunca modal — no debe

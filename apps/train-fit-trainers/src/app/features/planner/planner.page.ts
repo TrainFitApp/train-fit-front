@@ -423,10 +423,15 @@ export class PlannerPage {
     if (!this.table) return;
     const lastSplit = this.table.splits[this.table.splits.length - 1];
 
+    // Qué se copia y de dónde, dicho antes de elegir: "Añadir" y "Duplicar"
+    // parecían lo mismo (los dos copian; cambian el origen y el sitio).
     const alertOptions: AlertOptions = {
       header: this.translate.instant('PLANNER.ADD_WEEK'),
       cssClass: 'alert-grid-buttons',
-      message: this.translate.instant('TABLES.DUPLICATE_MICROCYCLE_MSG_LAST'),
+      message: this.translate.instant('PLANNER.ADD_WEEK_EXPLAIN', {
+        source: this.splitLabel(lastSplit),
+        next: this.weekLabel(this.table.splits.length),
+      }),
       buttons: [
         { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
@@ -465,10 +470,36 @@ export class PlannerPage {
     });
   }
 
-  public duplicateSelectedWeek(): void {
+  public async duplicateSelectedWeek(): Promise<void> {
     if (!this.table || !this.selectedSplit || this.busy) return;
+    const source = this.selectedSplit;
+    const sourceIndex = this.table.splits.findIndex((s) => s._id === source._id);
+
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('PLANNER.DUPLICATE_WEEK'),
+      message: this.translate.instant('PLANNER.DUPLICATE_WEEK_EXPLAIN', {
+        source: this.splitLabel(source),
+        next: this.weekLabel(sourceIndex + 1),
+      }),
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('PLANNER.DUPLICATE_WEEK_CONFIRM'),
+          cssClass: 'alert-button-primary',
+          handler: () => this.duplicateWeek(source._id),
+        },
+      ],
+    });
+  }
+
+  // "Microciclo N" de la posición `index` (0 = el primero).
+  private weekLabel(index: number): string {
+    return `${this.translate.instant('PLANNER.WEEK_DEFAULT_PREFIX')} ${index + 1}`;
+  }
+
+  private duplicateWeek(sourceId: string): void {
+    if (!this.table || this.busy) return;
     this.busy = true;
-    const sourceId = this.selectedSplit._id;
 
     this.splitService.addSplitToTable(this.table._id, sourceId, true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (newSplit) => {

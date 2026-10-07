@@ -285,7 +285,16 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     @Optional() private scoreEditHandler: ExerciseScoreEditHandler | null
   ) {}
 
+  // Planner: tocar otro ejercicio con este panel abierto lo sustituye
+  // (IonicUtilService#requestSidePanelClose). Se cierra por la misma vía que
+  // la X, con su aviso si hay cambios sin guardar.
+  private readonly onRequestClose = (event: Event): void => {
+    event.preventDefault();
+    this.checkChanges(() => (event as CustomEvent).detail?.cancel?.());
+  };
+
   public ngOnInit(): void {
+    this.modal?.addEventListener("tfRequestClose", this.onRequestClose);
     if (!this.user) {
       this.user = this.userService.getLocalUser;
     }
@@ -329,6 +338,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
+    this.modal?.removeEventListener("tfRequestClose", this.onRequestClose);
     this.pinnedNoteCacheSub?.unsubscribe();
     this.pendingPinNoteText = null;
     clearTimeout(this.lastAddedSetTimer);
@@ -852,13 +862,28 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     this.exerciseChanged = true;
   }
 
+  // "Serie objetivo" abierta desde este panel: la serie que edita y cómo
+  // cargarle otra (ManageSetComponent#registerLoader).
+  private setPanelTarget?: ExerciseSet;
+  private setPanelLoader: ((set?: ExerciseSet) => void) | null = null;
+
   public configSets(set?: ExerciseSet): void {
+    // Planner: con "Serie objetivo" ya abierto, editar otra serie (o añadir
+    // una) cambia los valores de ese panel en vez de apilar otro encima.
+    if (this.setPanelLoader) {
+      this.setPanelTarget = set;
+      this.setPanelLoader(set);
+      return;
+    }
+    if (this.ionicUtilService.isSidePanelOpening(ManageSetComponent)) return;
+
     // Planificador de entrenadores (panel lateral): "Serie objetivo" no se
     // cierra al guardar. Cada guardado añade otra serie aquí y el panel
     // conserva los valores para la siguiente; si se abrió editando una serie,
     // el primer guardado la actualiza y los siguientes ya añaden.
     const continuousAdd =
       this.isTrainerApp && !!this.modal?.classList.contains("tf-planner-panel");
+    this.setPanelTarget = set;
     const modalOptions: ModalOptions = {
       component: ManageSetComponent,
       componentProps: {
@@ -866,14 +891,18 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         isCardio: this.isCurrentExerciseCardio,
         isIsometric: this.isCurrentExerciseIsometric,
         onSetAdded: continuousAdd
-          ? (setConfig: ExerciseSet) => this.applySetConfig(setConfig, set)
+          ? (setConfig: ExerciseSet) => this.applySetConfig(setConfig, this.setPanelTarget)
+          : undefined,
+        registerLoader: continuousAdd
+          ? (load: (set?: ExerciseSet) => void) => (this.setPanelLoader = load)
           : undefined,
       },
     };
 
     this.ionicUtilService.showNestedModal(modalOptions, this.modal).then((res) => {
+      this.setPanelLoader = null;
       // Se ha configurado serie
-      if (res.data) this.applySetConfig(res.data, set);
+      if (res.data) this.applySetConfig(res.data, this.setPanelTarget);
     });
   }
 
@@ -1812,7 +1841,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     );
   }
 
-  private checkChanges(): void {
+  private checkChanges(onCancel?: () => void): void {
     if (this.hasChanges()) {
       const alertOptions: AlertOptions = {
         header: this.translate.instant("COMMON.UNSAVED_CHANGES"),
@@ -1822,6 +1851,9 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
           {
             text: this.translate.instant("COMMON.CANCEL"),
             role: "cancel",
+            // Solo con onCancel: un Cancelar con handler deja de cerrarse
+            // tocando fuera (IonicUtilService#showAlert).
+            ...(onCancel ? { handler: () => onCancel() } : {}),
           },
           {
             text: this.translate.instant("ACTIONS.DISCARD"),

@@ -79,6 +79,16 @@ export class ApplyRoutineModalComponent implements OnInit {
     this.selectedTableId = table._id;
   }
 
+  public selectById(tableId: string | null | undefined): void {
+    const table = this.tables.find((item) => item._id === tableId);
+    if (table) this.select(table);
+  }
+
+  // Sin rutinas: la ficha cierra este modal y abre su panel "Crear rutina".
+  public createRoutine(): void {
+    void this.modalController.dismiss(null, 'create-routine');
+  }
+
   public get phasesForPicker(): RoutineAssignment[] {
     return this.mode === 'reschedule'
       ? this.phases.filter((phase) => phase._id !== this.assignmentId)

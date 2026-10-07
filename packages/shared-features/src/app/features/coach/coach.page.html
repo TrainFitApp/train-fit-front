@@ -39,6 +39,12 @@
           ? 'COACH.INTAKE_SUBMITTED'
           : 'ONBOARDING.REVIEWED') | translate
       }}</span>
+      <!-- Cuánto cuesta rellenarlo: sin el dato, "cuestionario" suena a
+           trámite largo y se deja para luego. -->
+      <span class="onboarding-reminder-time" *ngIf="intakeStatus === 'pending'">
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+        {{ 'ONBOARDING.TAKES_FEW_MINUTES' | translate }}
+      </span>
     </span>
     <ion-icon class="onboarding-reminder-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
   </button>

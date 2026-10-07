@@ -78,7 +78,6 @@ export class AccountPage implements OnInit {
   public isSavingProfile = false;
   public formName = '';
   public formLastname = '';
-  public formEmail = '';
 
   public showSuggestionPanel = false;
   public isSendingSuggestion = false;
@@ -189,7 +188,6 @@ export class AccountPage implements OnInit {
     const user = this.user();
     this.formName = user?.name || '';
     this.formLastname = user?.lastname || '';
-    this.formEmail = user?.email || '';
     this.showEditPanel = true;
   }
 
@@ -199,12 +197,11 @@ export class AccountPage implements OnInit {
 
   public saveProfile(): void {
     const user = this.user();
-    if (!user || !this.formName.trim() || !this.formLastname.trim() || !this.formEmail.trim()) return;
+    if (!user || !this.formName.trim() || !this.formLastname.trim()) return;
 
     const userToUpdate: Partial<User> = { _id: user._id };
     if (this.formName.trim() !== user.name) userToUpdate.name = this.formName.trim();
     if (this.formLastname.trim() !== user.lastname) userToUpdate.lastname = this.formLastname.trim();
-    if (this.formEmail.trim() !== user.email) userToUpdate.email = this.formEmail.trim();
 
     if (Object.keys(userToUpdate).length === 1) {
       this.showEditPanel = false;

@@ -20,6 +20,12 @@ export interface SkipWorkoutResponse {
 // rowWorkouts: el mismo entrenamiento en los demás microciclos, ya con el
 // cambio de bloques aplicado (bloques por fila, 2026-09).
 export type WorkoutWithRow = Workout & { rowWorkouts?: Workout[] };
+// Reordenar ejercicios: rowWorkouts son SOLO las sesiones de la fila que el
+// back reordenó (las que tenían los mismos ejercicios en el mismo orden).
+export interface WorkoutsOrderResult {
+  modifiedCount: number;
+  rowWorkouts?: Workout[];
+}
 
 @Injectable()
 export class WorkoutAPIService {
@@ -165,8 +171,8 @@ export class WorkoutAPIService {
     idWorkout: string,
     idTable: string,
     indexReorderedCustomExercises: number[]
-  ): Observable<Table> {
-    return this.http.put<Workout>(
+  ): Observable<WorkoutsOrderResult> {
+    return this.http.put<WorkoutsOrderResult>(
       `workouts/${idWorkout}/${idTable}`,
       indexReorderedCustomExercises
     );

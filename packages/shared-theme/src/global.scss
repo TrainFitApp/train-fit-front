@@ -359,15 +359,16 @@ ion-modal.anthropometry-datetime-modal ion-button {
   --border-radius: 10px;
 }
 
-/* Resumen de entrenamiento finalizado */
-ion-modal.workout-summary-modal {
+/* Resumen de entrenamiento finalizado. Pantalla completa salvo como panel
+   lateral del Planner (.tf-planner-panel): ahí manda el marco del panel. */
+ion-modal.workout-summary-modal:not(.tf-planner-panel) {
   --width: 100%;
   --height: 100%;
   --border-radius: 0;
   --background: #121212;
 }
 
-ion-modal.workout-summary-modal::part(content) {
+ion-modal.workout-summary-modal:not(.tf-planner-panel)::part(content) {
   border-radius: 0;
 }
 
@@ -1121,6 +1122,49 @@ ion-modal.confirm-sheet-modal {
    crece con el texto y el scroll va dentro del componente (.tn-body). */
 ion-modal.trainer-note-sheet-modal {
   --height: auto;
+  --border-radius: 20px 20px 0 0;
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
+/* Color de cada TIPO de bloque (superserie, circuito…), compartido por el
+   Planner (workout.component) y el entrenamiento en curso del cliente
+   (current-workout.page): lo que pauta el entrenador se ve igual en los dos.
+   RGB literales: las tres apps lo usan y los --tf-* solo existen en Trainers.
+   Se evitan el naranja (acento), el verde (hecho) y el rojo (peligro). */
+.workout-block {
+  --block-rgb: var(--ion-color-secondary-rgb);
+}
+
+.workout-block--straight {
+  --block-rgb: 100, 149, 237;
+}
+
+.workout-block--superset {
+  --block-rgb: 151, 117, 250;
+}
+
+.workout-block--circuit {
+  --block-rgb: 20, 184, 166;
+}
+
+.workout-block--warmup {
+  --block-rgb: 234, 179, 8;
+}
+
+.workout-block--finisher {
+  --block-rgb: 236, 72, 153;
+}
+
+/* Intensidad de una serie en el Planner (IntensitySheetComponent): fallo,
+   drop set o rest-pause. Hoja de alto automático, como las de abajo. */
+ion-modal.intensity-sheet-modal {
+  --height: auto;
+  --width: min(520px, 100%);
   --border-radius: 20px 20px 0 0;
 
   .ion-page {

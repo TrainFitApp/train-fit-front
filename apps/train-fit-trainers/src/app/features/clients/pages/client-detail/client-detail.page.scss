@@ -1307,7 +1307,7 @@
 
   // impeccable/quieter — antes relleno SÓLIDO del color categórico + texto
   // negro encima (el único sitio de esta pestaña sin el idioma de "tinte +
-  // borde + texto del color" que ya usan .in-use-badge/.assigned-badge más
+  // borde + texto del color" que ya usan .in-use-badge más
   // abajo). --pill-bg es un rgba() al 16% precalculado en TS
   // (weekdayPatternSoftBackground) — un custom property no puede
   // descomponerse en sus canales dentro de un rgba() en CSS puro.
@@ -1391,18 +1391,7 @@
   color: var(--tf-text);
 }
 
-.assigned-badge {
-  flex-shrink: 0;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--tf-accent-text);
-  background: var(--tf-accent-soft);
-  border-radius: 6px;
-  padding: 2px 8px;
-}
-
-// Estado ACTUAL (table.isActive) — deliberadamente distinto en color de
-// "Asignada por ti" (quién la creó): son dos hechos independientes.
+// Estado ACTUAL (table.isActive).
 .in-use-badge {
   flex-shrink: 0;
   font-size: 0.68rem;
@@ -1415,7 +1404,7 @@
 }
 
 // Tarea 4bis (2026-09) — "va a entrar en marcha, todavía no" — deliberadamente
-// neutro (ni el verde de "en uso" ni el naranja de "asignada por ti"): es un
+// neutro (no el verde de "en uso"): es un
 // estado de espera, no un hecho consumado ni una acción del entrenador.
 .scheduled-badge {
   flex-shrink: 0;

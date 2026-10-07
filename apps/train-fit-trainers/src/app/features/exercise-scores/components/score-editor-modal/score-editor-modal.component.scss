@@ -302,7 +302,14 @@
   border-top: 1px solid var(--tf-border);
 }
 
+// El mixin no fija altura: sin ella el botón quedaba a la del texto (achatado).
+// Mismas medidas que el resto de .submit-button de Trainers.
 .submit-button {
   @include tf-gradient-button;
   flex: 1;
+  height: 50px;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

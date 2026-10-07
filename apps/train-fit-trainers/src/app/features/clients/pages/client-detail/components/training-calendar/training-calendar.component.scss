@@ -230,8 +230,11 @@
   letter-spacing: 0.02em;
   color: var(--tf-accent-text);
 
+  // Hecho: el verde ya lo pone el relleno de la celda. En verde sobre verde
+  // (relleno al 55 %) el monograma quedaba a ~2.4:1 y no se leía; en blanco
+  // pasa de 5:1 con cualquier relleno.
   &.is-done {
-    color: var(--tf-success);
+    color: var(--tf-text);
   }
 }
 
@@ -250,10 +253,21 @@
   pointer-events: none;
 }
 
-// Sobre inicio/fin de rango el fondo es acento: el gris se perdería.
+// Sobre un día hecho (relleno verde) el gris del badge se perdía (~1.6:1).
+.training-calendar__cell.has-session .training-calendar__microcycle-badge {
+  color: var(--tf-text-secondary);
+}
+
+// Sobre inicio/fin de rango el fondo es acento: el gris se perdería, y el
+// monograma naranja desaparecía sobre el naranja. Los dos toman el color de
+// texto de la celda (--tf-accent-contrast).
 .training-calendar__cell.is-range-endpoint .training-calendar__microcycle-badge {
   color: currentColor;
   opacity: 0.75;
+}
+
+.training-calendar__cell.is-range-endpoint .training-calendar__monogram {
+  color: currentColor;
 }
 
 // Mismo umbral que nutrition-grid: en rejillas estrechas el badge pisaría el

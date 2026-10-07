@@ -147,6 +147,28 @@ ion-grid {
   animation: highlightUpdatedSet 2s ease-in-out !important;
 }
 
+// Bloque = contenedor del color de su TIPO: cabecera y ejercicios comparten
+// fondo tintado y borde izquierdo, así se ve de un vistazo qué va junto (antes
+// solo la cabecera llevaba color y todos los tipos el mismo amarillo). El
+// color (--block-rgb por tipo) está en shared-theme/global.scss, compartido
+// con el entrenamiento en curso del cliente.
+.workout-block {
+  margin: 12px 0;
+  padding: 2px 10px 4px;
+  border-radius: 10px;
+  border-left: 3px solid rgb(var(--block-rgb));
+  background: rgba(var(--block-rgb), 0.08);
+
+  // Los ejercicios toman el fondo del bloque en vez del suyo propio.
+  .exercise-card {
+    background: transparent;
+  }
+
+  .exercise-card:last-child {
+    margin-bottom: 4px;
+  }
+}
+
 // Rediseño de entrenamiento Fase B — cabecera de bloque real en el editor
 // (nombre, tipo, rondas, descansos), tocable para renombrar/borrar.
 .workout-block-header {
@@ -157,6 +179,16 @@ ion-grid {
   border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.3);
   cursor: pointer;
 
+  // Dentro del contenedor del bloque: el fondo y el borde ya los pone él.
+  .workout-block & {
+    margin: 0 0 4px;
+    padding: 10px 4px 8px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(var(--block-rgb), 0.3);
+    border-radius: 0;
+  }
+
   .block-header-main {
     display: flex;
     align-items: center;
@@ -164,7 +196,7 @@ ion-grid {
 
     ion-icon {
       font-size: 14px;
-      color: var(--ion-color-secondary);
+      color: rgb(var(--block-rgb, var(--ion-color-secondary-rgb)));
     }
 
     .block-name {
@@ -174,13 +206,16 @@ ion-grid {
       color: var(--text-primary);
     }
 
+    // Texto en el color de texto normal y el tipo en borde/fondo: un texto
+    // amarillo o turquesa no se leería en el tema claro de la app cliente.
     .block-type-badge {
       font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.03em;
-      color: var(--ion-color-secondary);
-      background: rgba(var(--ion-color-secondary-rgb), 0.15);
+      color: var(--text-primary);
+      background: rgba(var(--block-rgb, var(--ion-color-secondary-rgb)), 0.18);
+      border: 1px solid rgba(var(--block-rgb, var(--ion-color-secondary-rgb)), 0.55);
       border-radius: 6px;
       padding: 2px 8px;
     }
@@ -1071,6 +1106,20 @@ ion-buttons ion-button {
 // plannerMode — ver planner-audit sección 04). Estas clases solo llegan a
 // existir en el DOM cuando plannerMode="true" (train-fit-trainers): no
 // afectan a train-fit-front ni train-fit-management.
+// Número de serie en el Planner: abre "Serie objetivo" de esa serie.
+.tf-set-index {
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(var(--ion-color-primary-rgb), 0.5);
+  text-underline-offset: 3px;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: rgba(var(--ion-color-primary-rgb), 0.08);
+  }
+}
+
 .tf-editable-cell {
   cursor: pointer;
   transition: background-color 0.15s ease;

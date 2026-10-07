@@ -5,7 +5,7 @@ import { CustomExercise } from '../../models/customExercise';
 import { Split } from '../../models/split';
 import { Workout, WorkoutBlock } from '../../models/workout';
 import { WorkoutAPIService } from './workout-api.service';
-import { FinishWorkoutResponse, SkipWorkoutResponse, WorkoutWithRow } from './workout-api.service';
+import { FinishWorkoutResponse, SkipWorkoutResponse, WorkoutWithRow, WorkoutsOrderResult } from './workout-api.service';
 import { Exercise } from '../../models/exercise';
 import { Table } from '../../models/table';
 import { ExerciseClipboard } from 'src/app/shared/models/exercise-clipboard';
@@ -210,7 +210,7 @@ export class WorkoutService {
     idWorkout: string,
     idTable: string,
     indexReorderedCustomExercises: number[]
-  ): Observable<Table> {
+  ): Observable<WorkoutsOrderResult> {
     return this.workoutAPIService
       .updateWorkoutsOrder(idWorkout, idTable, indexReorderedCustomExercises)
       .pipe(this.invalidatePinnedNotes());

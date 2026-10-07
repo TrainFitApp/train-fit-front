@@ -142,6 +142,16 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
     return !!workout?.date;
   }
 
+  // El back renombra la fila entera (ese índice en todos los microciclos):
+  // se refleja igual aquí, como hace mesocycle.page.ts#onWorkoutNameUpdated
+  // en la app de cliente. Sin esto el nombre nuevo solo salía al recargar.
+  public onWorkoutNameUpdated(event: { workoutIndex: number; newName: string }): void {
+    this.table.splits.forEach((splitTemp) => {
+      const workout = splitTemp.workouts?.[event.workoutIndex];
+      if (workout) workout.name = event.newName;
+    });
+  }
+
   // --- Fase D (planner-audit) — comparación contra el microciclo anterior ---
   //
   // Solo se calcula/pinta cuando la columna está SELECTED: veinte columnas

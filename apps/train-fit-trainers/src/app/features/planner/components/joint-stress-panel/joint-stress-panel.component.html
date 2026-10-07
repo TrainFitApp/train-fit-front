@@ -1,0 +1,41 @@
+<section class="joint-stress" *ngIf="split?._id">
+  <h4 class="group-title">
+    <span>{{ 'PLANNER.ARTICULACIONES' | translate }}</span>
+    <span class="group-unit">{{ 'PLANNER.PTS_SERIES' | translate }}</span>
+  </h4>
+
+  <div class="panel-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" *ngFor="let i of [1, 2, 3]"></div>
+  </div>
+
+  <div class="panel-error" *ngIf="state === 'error'">
+    <p>{{ 'PLANNER.NO_SE_PUDO_CALCULAR' | translate }}</p>
+    <button type="button" class="retry-button" (click)="reload()">{{ 'COMMON.RETRY' | translate }}</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded' && load">
+    <p class="panel-warning" *ngIf="load.unscoredExercises && load.joints.length">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      {{ load.unscoredExercises }} {{ 'PLANNER.DE' | translate }} {{ load.totalExercises }} {{ 'PLANNER.EJERCICIOS_SIN_PUNTUAR_NO_CUENTAN' | translate }}
+    </p>
+
+    <p class="panel-empty" *ngIf="!load.joints.length">
+      {{ 'PLANNER.ESTRES_ARTICULAR_SEMANA_VACIO' | translate }}
+    </p>
+
+    <div class="bar-row" *ngFor="let joint of load.joints; trackBy: trackByName">
+      <span class="bar-name">{{ joint.name | translateDb }}</span>
+      <span class="bar-track">
+        <span class="bar-fill" [style.width.%]="barWidth(joint.load)"></span>
+      </span>
+      <span class="bar-value">{{ joint.load }}</span>
+    </div>
+
+    <p class="panel-hint" *ngIf="load.joints.length">
+      {{ 'PLANNER.ESTRES_ARTICULAR_SEMANA_HINT' | translate }}
+      <ng-container *ngIf="load.suggestedExercises">
+        {{ 'PLANNER.USAN_LA_PUNTUACION_SUGERIDA' | translate: { count: load.suggestedExercises } }}
+      </ng-container>
+    </p>
+  </ng-container>
+</section>

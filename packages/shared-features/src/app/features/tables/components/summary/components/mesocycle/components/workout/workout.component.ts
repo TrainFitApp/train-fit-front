@@ -51,6 +51,11 @@ import { WorkoutTemplateApiService } from "src/app/core/services/workout-templat
 import { RestTimerService } from "src/app/core/services/rest-timer/rest-timer.service";
 import { ConfigExercisePage } from "src/app/features/exercises/components/config-exercise/config-exercise.page";
 import {
+  IntensityResult,
+  IntensitySheetComponent,
+} from "../intensity-sheet/intensity-sheet.component";
+import { ManageSetComponent } from "../../../manage-set/manage-set.component";
+import {
   SessionCheckinModalComponent,
   SessionCheckinResult,
 } from "src/app/features/tables/components/summary/components/current-workout/session-checkin-modal/session-checkin-modal.component";
@@ -563,8 +568,6 @@ export class WorkoutComponent implements OnDestroy {
             this.manageBlocksAlert();
             break;
 
-          case ACTIONS[this.ACTION_TYPES.copyToWeek].id:
-            this.copyToAnotherWeekAlert();
           case ACTIONS[this.ACTION_TYPES.stopWorkout].id:
             this.stopWorkout();
             break;
@@ -726,9 +729,13 @@ export class WorkoutComponent implements OnDestroy {
               workouts: [...splitTemp.workouts],
             }));
 
+            // La fila entera: el de esta posición en cada microciclo. Un
+            // microciclo más corto no tiene nada en ella (antes se mandaba
+            // un hueco y el back cancelaba todo el borrado). El back completa
+            // la fila por su cuenta si esta tabla estaba desfasada.
             this.tableInUse.splits.forEach((splitTemp) => {
               const workoutTemp = splitTemp.workouts[workoutIndex];
-              workoutsToDelete.push(workoutTemp);
+              if (workoutTemp) workoutsToDelete.push(workoutTemp);
 
               splitTemp.workouts = splitTemp.workouts.filter(
                 (_, index) => index !== workoutIndex,
@@ -918,37 +925,6 @@ export class WorkoutComponent implements OnDestroy {
           );
         },
       });
-  }
-
-  // Acción nueva del menú "⋮" en plannerMode — copiar a OTRA semana elegida
-  // por el trainer (a diferencia de "Duplicar", que copia a la misma).
-  public async copyToAnotherWeekAlert(): Promise<void> {
-    const siblingSplits = (this.tableInUse?.splits || []).filter(
-      (s) => s._id !== this.split?._id,
-    );
-    if (siblingSplits.length === 0) {
-      this.ionicUtilService.showToast({
-        message: this.translate.instant("PLANNER.NO_OTHER_WEEKS"),
-        duration: 2000,
-      });
-      return;
-    }
-
-    const buttons = siblingSplits.map((s) => ({
-      text: s.name || this.translate.instant("PLANNER.WEEK_DEFAULT_PREFIX"),
-      handler: () => {
-        this.copyToSplit(s._id);
-        return false;
-      },
-    }));
-
-    await this.ionicUtilService.showAlert({
-      header: this.translate.instant("PLANNER.COPY_TO_WEEK"),
-      buttons: [
-        ...buttons,
-        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
-      ],
-    });
   }
 
   // Rediseño de entrenamiento (Fase A) — guarda ESTE workout ya construido
@@ -1385,6 +1361,17 @@ export class WorkoutComponent implements OnDestroy {
 
   public async addExerciseModal(customExercise: CustomExercise) {
     if (this.guardReadonly()) return;
+    // Planner: un solo "Configurar ejercicio" a la vez. El mismo ejercicio
+    // no abre otro; uno distinto sustituye al abierto, que se cierra por su
+    // vía normal (avisa si tenía cambios sin guardar). Antes se apilaban.
+    if (this.plannerMode) {
+      if (this.ionicUtilService.isSidePanelOpening(ConfigExercisePage)) return;
+      const openConfig = this.ionicUtilService.findSidePanel(ConfigExercisePage);
+      if (openConfig) {
+        if (openConfig.componentProps?.["customExercise"]?._id === customExercise?._id) return;
+        if (!(await this.ionicUtilService.requestSidePanelClose(openConfig))) return;
+      }
+    }
     const modalOptions: ModalOptions = {
       component: ConfigExercisePage,
       componentProps: {
@@ -1499,6 +1486,15 @@ export class WorkoutComponent implements OnDestroy {
   // SearchExercisesPage#toggleExerciseSelection, igual que el resto de apps.
   public searchExercises(workout: Workout, currentSplit: Split) {
     if (this.guardReadonly()) return;
+    // Planner: un solo buscador a la vez. Pulsar + otra vez en el mismo
+    // workout no hace nada; en otro, sustituye al abierto (antes se apilaban
+    // sin límite).
+    if (this.plannerMode) {
+      if (this.ionicUtilService.isSidePanelOpening(SearchExercisesPage)) return;
+      const openSearch = this.ionicUtilService.findSidePanel(SearchExercisesPage);
+      if (openSearch?.componentProps?.["workout"]?._id === workout._id) return;
+      void openSearch?.dismiss(undefined, "cancel");
+    }
     this.workout = workout;
     const modalOptions: ModalOptions = {
       component: SearchExercisesPage,
@@ -1650,41 +1646,49 @@ export class WorkoutComponent implements OnDestroy {
       )
       .subscribe((res) => {
         if (res?.tableInUse) {
-          this.tableInUse = res.tableInUse;
-          this.tableService.setCurrentTable = res.tableInUse;
+          // El pegado llega a la misma fila de todos los microciclos. El
+          // Planner pinta table.splits del objeto que comparte con este
+          // componente: se sustituyen en sitio para que se repinten todos.
+          if (this.plannerMode) this.tableInUse.splits = res.tableInUse.splits;
+          else this.tableInUse = res.tableInUse;
+          this.tableService.setCurrentTable = this.tableInUse;
         }
         this.exerciseClipboardLoad = false;
 
-        const firstPastedIndex = prevExerciseCount;
-        this.utilService.requestScrollToExercise({
-          workoutIndex: this.workoutIndex,
-          exerciseIndex: firstPastedIndex,
-          highlightClass: "highlight-new-set",
-        });
+        if (this.plannerMode) {
+          this.highlightPastedInPlanner(prevExerciseCount, selected.length);
+        } else {
+          const firstPastedIndex = prevExerciseCount;
+          this.utilService.requestScrollToExercise({
+            workoutIndex: this.workoutIndex,
+            exerciseIndex: firstPastedIndex,
+            highlightClass: "highlight-new-set",
+          });
 
-        const highlighted = new Set<number>();
-        const highlightAllPasted = (attempt = 0) => {
-          if (attempt > 30) return;
-          let allFound = true;
-          for (let i = 0; i < selected.length; i++) {
-            if (highlighted.has(i)) continue;
-            const idx = firstPastedIndex + i;
-            const el = document.getElementById(
-              `exercise-${this.workoutIndex}-${idx}`,
-            );
-            if (el) {
-              highlighted.add(i);
-              el.classList.add("highlight-new-set");
-              setTimeout(() => el.classList.remove("highlight-new-set"), 2000);
-            } else {
-              allFound = false;
+          const highlighted = new Set<number>();
+          const highlightAllPasted = (attempt = 0) => {
+            if (attempt > 30) return;
+            let allFound = true;
+            for (let i = 0; i < selected.length; i++) {
+              if (highlighted.has(i)) continue;
+              const idx = firstPastedIndex + i;
+              const el = document.getElementById(
+                `exercise-${this.workoutIndex}-${idx}`,
+              );
+              if (el) {
+                highlighted.add(i);
+                el.classList.add("highlight-new-set");
+                setTimeout(() => el.classList.remove("highlight-new-set"), 2000);
+              } else {
+                allFound = false;
+              }
             }
-          }
-          if (!allFound) {
-            setTimeout(() => highlightAllPasted(attempt + 1), 200);
-          }
-        };
-        setTimeout(() => highlightAllPasted(), 600);
+            if (!allFound) {
+              setTimeout(() => highlightAllPasted(attempt + 1), 200);
+            }
+          };
+          setTimeout(() => highlightAllPasted(), 600);
+        }
         const toast: ToastOptions = {
           message: this.translate.instant("TABLES.EXERCISES_PASTED"),
           duration: 2000,
@@ -1698,6 +1702,39 @@ export class WorkoutComponent implements OnDestroy {
           selectedIndices: new Set(),
         });
       });
+  }
+
+  // Planner: los ids exercise-<workoutIndex>-<i> se repiten entre columnas
+  // (cada microciclo tiene su workoutIndex 0, 1…), así que se busca dentro de
+  // la tarjeta de cada sesión (#planner-workout-<id>, planner-column). Lleva
+  // a la vista lo pegado en esta sesión y lo resalta con el mismo verde que
+  // la app de cliente en todos los microciclos donde se ha pegado.
+  private highlightPastedInPlanner(previousCount: number, pastedCount: number): void {
+    const targetId = this.workout._id;
+    const rowIds = (this.tableInUse?.splits || [])
+      .map((splitTemp) => splitTemp.workouts?.[this.workoutIndex]?._id)
+      .filter(Boolean);
+    const lastCards = (workoutId: string): HTMLElement[] =>
+      Array.from(
+        document.getElementById(`planner-workout-${workoutId}`)?.querySelectorAll<HTMLElement>(".exercise-card") || [],
+      ).slice(-pastedCount);
+
+    const run = (attempt = 0) => {
+      const total =
+        document.getElementById(`planner-workout-${targetId}`)?.querySelectorAll(".exercise-card").length || 0;
+      if (total < previousCount + pastedCount) {
+        if (attempt < 15) setTimeout(() => run(attempt + 1), 200);
+        return;
+      }
+      lastCards(targetId)[0]?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      for (const id of rowIds) {
+        for (const card of lastCards(id)) {
+          card.classList.add("highlight-new-set");
+          setTimeout(() => card.classList.remove("highlight-new-set"), 2000);
+        }
+      }
+    };
+    setTimeout(() => run(), 300);
   }
 
   public exitExerciseSelectionMode(): void {
@@ -1743,12 +1780,6 @@ export class WorkoutComponent implements OnDestroy {
       // Solo en el panel del entrenador — ver comentario del @Input isModal.
       if (this.isModal) {
         actions.push(ACTIONS[this.ACTION_TYPES.saveAsTemplate]);
-      }
-
-      // Solo en el Planificador — "Copiar a otra semana" no tiene sentido
-      // fuera del tablero Kanban.
-      if (this.plannerMode) {
-        actions.push(ACTIONS[this.ACTION_TYPES.copyToWeek]);
       }
     }
 
@@ -1975,6 +2006,13 @@ export class WorkoutComponent implements OnDestroy {
     event.stopPropagation();
     if (this.editingCellKey === `${set._id}-${field}`) return;
 
+    // Fallo, drop set o rest-pause no son un rango RIR: en vez del editor en
+    // línea (que enseñaba el -1 del fallo) sale la hoja de intensidad.
+    if (field === "rir" && (this.isFail(set) || set.drop || set.restPause)) {
+      void this.openIntensitySheet(exercise, set);
+      return;
+    }
+
     // ion-accordion tiene delegatesFocus: pinchar otra celda de la MISMA
     // tarjeta no quita el foco al input abierto, así que su (blur) no llega
     // y el valor se perdía al cambiar de celda. Se confirma aquí.
@@ -2002,6 +2040,78 @@ export class WorkoutComponent implements OnDestroy {
       el?.focus();
       el?.select();
     });
+  }
+
+  private async openIntensitySheet(exercise: CustomExercise, set: ExerciseSet): Promise<void> {
+    const pending = this.editingCell;
+    if (pending && this.editingCellKey === `${pending.set._id}-${pending.field}`) {
+      this.commitEditCell(pending.exercise, pending.set, pending.field);
+    }
+
+    const res = await this.ionicUtilService.showModal({
+      component: IntensitySheetComponent,
+      componentProps: {
+        set,
+        setNumber: this.sortSets(exercise.sets).indexOf(set) + 1,
+      },
+      cssClass: "intensity-sheet-modal",
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+    });
+    if (res.role !== "confirm" || !res.data) return;
+
+    const intensity = res.data as IntensityResult;
+    this.persistSetUpdate(exercise, { ...set, ...intensity } as ExerciseSet);
+  }
+
+  // "Serie objetivo" abierta desde el índice de una serie (Planner). Es una
+  // sola para todo el tablero: tocar otra serie la carga en el mismo panel
+  // (ManageSetComponent#registerLoader) y al guardar se escribe la serie que
+  // tenga cargada en ese momento, sea de la tarjeta que sea.
+  private static setPanelLoader: ((set?: ExerciseSet) => void) | null = null;
+  private static setPanelTarget: {
+    owner: WorkoutComponent;
+    exercise: CustomExercise;
+    set: ExerciseSet;
+  } | null = null;
+
+  public async openSetPanel(exercise: CustomExercise, set: ExerciseSet, event: Event): Promise<void> {
+    // Fuera del Planner, o serie ya hecha / cardio / isométrico: la tarjeta
+    // sigue abriendo el ejercicio como siempre.
+    if (!this.canInlineEditSet(exercise, set)) return;
+    event.stopPropagation();
+
+    const pending = this.editingCell;
+    if (pending && this.editingCellKey === `${pending.set._id}-${pending.field}`) {
+      this.commitEditCell(pending.exercise, pending.set, pending.field);
+    }
+
+    WorkoutComponent.setPanelTarget = { owner: this, exercise, set };
+    if (WorkoutComponent.setPanelLoader) {
+      WorkoutComponent.setPanelLoader(set);
+      return;
+    }
+    if (this.ionicUtilService.isSidePanelOpening(ManageSetComponent)) return;
+
+    const res = await this.ionicUtilService.showSidePanel({
+      component: ManageSetComponent,
+      componentProps: {
+        set,
+        isCardio: false,
+        isIsometric: false,
+        registerLoader: (load: (set?: ExerciseSet) => void) => (WorkoutComponent.setPanelLoader = load),
+      },
+      cssClass: "tf-panel-modal",
+    });
+    WorkoutComponent.setPanelLoader = null;
+    const target = WorkoutComponent.setPanelTarget;
+    WorkoutComponent.setPanelTarget = null;
+    if (!res.data || !target) return;
+    target.owner.persistSetUpdate(target.exercise, {
+      ...target.set,
+      ...res.data,
+      _id: target.set._id,
+    } as ExerciseSet);
   }
 
   public cancelEditCell(): void {
@@ -2336,6 +2446,15 @@ export class WorkoutComponent implements OnDestroy {
     this.workoutService
       .updateWorkoutsOrder(this.workout._id, this.tableInUse._id, order)
       .subscribe({
+        // El back reordena también la misma fila de los demás microciclos y
+        // devuelve esas sesiones: se repintan sin recargar la tabla.
+        next: (res) => {
+          (res?.rowWorkouts || []).forEach((rowWorkout) => {
+            const local = this.findTableWorkout(rowWorkout._id);
+            if (local) local.exercises = rowWorkout.exercises;
+          });
+          this.tableService.setCurrentTable = this.tableInUse;
+        },
         error: () => {
           previous.forEach((exercise, i) => {
             this.workout.exercises[i] = exercise;

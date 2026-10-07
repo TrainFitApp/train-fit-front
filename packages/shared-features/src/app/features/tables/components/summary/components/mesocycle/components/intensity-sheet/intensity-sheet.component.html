@@ -1,0 +1,66 @@
+<div class="intensity-sheet">
+  <h2 class="sheet-title">{{ 'TABLES.INTENSITY_TITLE' | translate: { n: setNumber } }}</h2>
+
+  <section class="sheet-section" role="radiogroup" [attr.aria-label]="'TABLES.INTENSITY_EFFORT' | translate">
+    <h3 class="section-label">{{ 'TABLES.INTENSITY_EFFORT' | translate }}</h3>
+    <div class="option-row">
+      <button type="button" class="option" role="radio" [attr.aria-checked]="effort === 'rir'"
+        [class.option--active]="effort === 'rir'" (click)="setEffort('rir')">
+        {{ 'TABLES.INTENSITY_RIR_RANGE' | translate }}
+      </button>
+      <button type="button" class="option" role="radio" [attr.aria-checked]="effort === 'fail'"
+        [class.option--active]="effort === 'fail'" (click)="setEffort('fail')">
+        {{ 'TABLES.INTENSITY_FAIL' | translate }}
+      </button>
+    </div>
+
+    <div class="range-row" *ngIf="effort === 'rir'">
+      <input type="text" inputmode="numeric" class="sheet-input" [placeholder]="'TABLES.RANGE_MIN' | translate"
+        [attr.aria-label]="('TABLES.RIR' | translate) + ' ' + ('TABLES.RANGE_MIN' | translate)"
+        [(ngModel)]="rirMin" (ngModelChange)="sanitize('rirMin')" (keydown.enter)="save()" />
+      <span class="range-sep" aria-hidden="true">–</span>
+      <input type="text" inputmode="numeric" class="sheet-input" [placeholder]="'TABLES.RANGE_MAX' | translate"
+        [attr.aria-label]="('TABLES.RIR' | translate) + ' ' + ('TABLES.RANGE_MAX' | translate)"
+        [(ngModel)]="rirMax" (ngModelChange)="sanitize('rirMax')" (keydown.enter)="save()" />
+    </div>
+    <p class="field-error" *ngIf="rangeError" role="alert">{{ 'TABLES.RANGE_ERROR' | translate }}</p>
+  </section>
+
+  <section class="sheet-section" role="radiogroup" [attr.aria-label]="'TABLES.INTENSITY_TECHNIQUE' | translate">
+    <h3 class="section-label">{{ 'TABLES.INTENSITY_TECHNIQUE' | translate }}</h3>
+    <div class="option-row">
+      <button type="button" class="option" role="radio" [attr.aria-checked]="technique === 'none'"
+        [class.option--active]="technique === 'none'" (click)="setTechnique('none')">
+        {{ 'TABLES.INTENSITY_NONE' | translate }}
+      </button>
+      <button type="button" class="option" role="radio" [attr.aria-checked]="technique === 'drop'"
+        [class.option--active]="technique === 'drop'" (click)="setTechnique('drop')">
+        {{ 'TABLES.INTENSITY_DROP' | translate }}
+      </button>
+      <button type="button" class="option" role="radio" [attr.aria-checked]="technique === 'restPause'"
+        [class.option--active]="technique === 'restPause'" (click)="setTechnique('restPause')">
+        {{ 'TABLES.INTENSITY_REST_PAUSE' | translate }}
+      </button>
+    </div>
+
+    <div class="rest-pause-row" *ngIf="technique === 'restPause'">
+      <span class="rest-pause-label">{{ 'TABLES.INTENSITY_SECONDS' | translate }}</span>
+      <div class="preset-row">
+        <button type="button" class="preset" *ngFor="let seconds of REST_PAUSE_PRESETS"
+          [class.preset--active]="restPauseValue === seconds" [attr.aria-pressed]="restPauseValue === seconds"
+          (click)="pickRestPause(seconds)">
+          {{ seconds }} s
+        </button>
+        <input type="text" inputmode="numeric" class="sheet-input sheet-input--seconds" placeholder="s"
+          [attr.aria-label]="'TABLES.INTENSITY_SECONDS' | translate"
+          [(ngModel)]="restPauseSeconds" (ngModelChange)="sanitize('restPauseSeconds')" (keydown.enter)="save()" />
+      </div>
+      <p class="field-error" *ngIf="!canSave" role="alert">{{ 'TABLES.INTENSITY_RP_REQUIRED' | translate }}</p>
+    </div>
+  </section>
+
+  <div class="sheet-actions">
+    <button type="button" class="action action--secondary" (click)="cancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+    <button type="button" class="action action--primary" [disabled]="!canSave" (click)="save()">{{ 'COMMON.SAVE' | translate }}</button>
+  </div>
+</div>

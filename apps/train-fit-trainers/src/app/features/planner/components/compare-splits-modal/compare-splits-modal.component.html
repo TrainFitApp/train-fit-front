@@ -1,12 +1,23 @@
+<!-- Misma cabecera que el resto de paneles: X a la izquierda y título. -->
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>{{ 'PLANNER.COMPARAR_MICROCICLOS' | translate }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="close()" [attr.aria-label]="'PLANNER.CERRAR_COMPARACION' | translate">
-        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button
+          type="button"
+          class="tf-page-header__back-button"
+          (click)="close()"
+          [attr.aria-label]="'PLANNER.CERRAR_COMPARACION' | translate"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ 'PLANNER.COMPARAR_MICROCICLOS' | translate }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="compare-content">
@@ -122,15 +133,47 @@
       <p class="empty-state" *ngIf="!visibleWorkouts.length">{{ onlyChanges ? ('PLANNER.SIN_DIFERENCIAS_ENTRE_DESACTIVA_SOLO' | translate) : ('PLANNER.ESTOS_MICROCICLOS_NO_TIENEN_SESIONES' | translate) }}</p>
     </section>
 
+    <!-- Mismo modelo que la pestaña Análisis (planner-metrics.ts): series
+         fraccionales por GRUPO y, desplegando el grupo, por porción. -->
     <details class="muscle-section">
-      <summary>{{ 'PLANNER.VOLUMEN_POR_GRUPO_MUSCULAR' | translate }} <span>{{ muscles.length }} {{ muscles.length === 1 ? 'grupo' : 'grupos' }}</span></summary>
+      <summary>{{ 'PLANNER.VOLUMEN_POR_GRUPO_MUSCULAR' | translate }} <span>{{ (muscles.length === 1 ? 'PLANNER.N_GRUPO' : 'PLANNER.N_GRUPOS') | translate: { n: muscles.length } }}</span></summary>
       <p class="table-guide">{{ 'PLANNER.SERIES_POR_GRUPO_IGUAL_QUE' | translate }}</p>
-      <div class="muscle-row" *ngFor="let muscle of muscles">
-        <strong>{{ muscle.name | translateDb }}</strong>
-        <div class="muscle-bars" aria-hidden="true"><i [style.width.%]="muscle.widthA"></i><i [style.width.%]="muscle.widthB"></i></div>
-        <span>{{ muscle.metric.a }} → <b>{{ muscle.metric.b }}</b><small>{{ muscle.daysA }} → {{ muscle.daysB }} {{ 'PLANNER.SESIONES' | translate }}</small></span>
-        <ng-container *ngTemplateOutlet="delta; context: { $implicit: muscle.metric }"></ng-container>
-      </div>
+      <p class="notice" *ngIf="result?.unclassifiedSets?.a || result?.unclassifiedSets?.b">
+        {{ 'PLANNER.SERIES_SIN_MUSCULOS_AB' | translate: { a: result?.unclassifiedSets?.a || 0, b: result?.unclassifiedSets?.b || 0 } }}
+      </p>
+      <ng-container *ngFor="let muscle of muscles">
+        <div class="muscle-row">
+          <button
+            *ngIf="muscle.portions.length; else staticMuscleName"
+            type="button"
+            class="muscle-toggle"
+            [attr.aria-expanded]="expandedGroups.has(muscle.groupId)"
+            [attr.aria-label]="((expandedGroups.has(muscle.groupId) ? 'PLANNER.OCULTAR_PORCIONES_DE' : 'PLANNER.VER_PORCIONES_DE') | translate) + (muscle.name | translateDb)"
+            (click)="toggleGroup(muscle.groupId)"
+          >
+            <ion-icon [name]="expandedGroups.has(muscle.groupId) ? 'chevron-down-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
+            <strong>{{ muscle.name | translateDb }}</strong>
+          </button>
+          <ng-template #staticMuscleName>
+            <span class="muscle-toggle muscle-toggle--static"><span class="muscle-chevron" aria-hidden="true"></span><strong>{{ muscle.name | translateDb }}</strong></span>
+          </ng-template>
+          <div class="muscle-bars" aria-hidden="true"><i [style.width.%]="muscle.widthA"></i><i [style.width.%]="muscle.widthB"></i></div>
+          <span>{{ muscle.metric.a }} → <b>{{ muscle.metric.b }}</b><small>{{ muscle.daysA }} → {{ muscle.daysB }} {{ 'PLANNER.SESIONES' | translate }}</small></span>
+          <ng-container *ngTemplateOutlet="delta; context: { $implicit: muscle.metric }"></ng-container>
+        </div>
+        <ul class="portion-list" *ngIf="muscle.portions.length && expandedGroups.has(muscle.groupId)">
+          <li
+            class="portion-row"
+            *ngFor="let portion of muscle.portions"
+            [class.portion-row--empty]="!portion.a && !portion.b"
+            [class.portion-row--whole]="portion.isWholeGroup"
+          >
+            <span class="portion-name">{{ portion.label | translateDb }}</span>
+            <div class="muscle-bars" aria-hidden="true"><i [style.width.%]="portion.widthA"></i><i [style.width.%]="portion.widthB"></i></div>
+            <span class="portion-values">{{ portion.a | number: '1.0-1' }} → <b>{{ portion.b | number: '1.0-1' }}</b></span>
+          </li>
+        </ul>
+      </ng-container>
       <p class="empty-state" *ngIf="!muscles.length">{{ 'PLANNER.SIN_SERIES_ASIGNADAS_GRUPOS_MUSCULARES' | translate }}</p>
     </details>
     <details class="reading-notes">

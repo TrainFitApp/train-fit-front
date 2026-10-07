@@ -1,10 +1,24 @@
+<!-- Misma cabecera que el resto de paneles (apply-routine-template-modal…):
+     X a la izquierda y título. -->
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>{{ mode === 'reschedule' ? ('CLIENTS.CAMBIAR_FECHA' | translate) : ('CLIENTS.PROGRAMAR_RUTINA' | translate) }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">{{ 'COMMON.CLOSE_ARIA' | translate }}</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button
+          type="button"
+          class="tf-page-header__back-button"
+          (click)="dismiss()"
+          [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ mode === 'reschedule' ? ('CLIENTS.CAMBIAR_FECHA' | translate) : ('CLIENTS.PROGRAMAR_RUTINA' | translate) }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="apply-content">
@@ -42,24 +56,38 @@
     </p>
   </ng-container>
 
-  <ng-container *ngIf="mode === 'apply' && (state === 'loaded' || state === 'applying')">
-    <p class="empty-hint" *ngIf="!tables.length">
-      {{ 'CLIENTS.ESTE_CLIENTE_TODAVIA_NO_TIENE' | translate }}
-    </p>
+  <!-- Sin rutinas no hay nada que programar: en vez de un calendario que no
+       lleva a ningún sitio, el paso que falta (crearla). -->
+  <div class="state-message" *ngIf="mode === 'apply' && state === 'loaded' && !tables.length">
+    <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+    <h2>{{ 'CLIENTS.SIN_RUTINAS_CREADAS' | translate }}</h2>
+    <p>{{ 'CLIENTS.CREA_UNA_RUTINA_PARA_PROGRAMARLA' | translate }}</p>
+    <button type="button" class="create-cta" (click)="createRoutine()">
+      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+      {{ 'CLIENTS.CREAR_RUTINA' | translate }}
+    </button>
+  </div>
 
-    <div
-      class="template-row"
-      *ngFor="let table of tables; trackBy: trackByTableId"
-      [class.template-row--selected]="selectedTableId === table._id"
-      (click)="select(table)"
+  <ng-container *ngIf="mode === 'apply' && (state === 'loaded' || state === 'applying') && tables.length">
+
+    <!-- Desplegable en vez de una fila por rutina: con varias rutinas la
+         lista empujaba el calendario fuera de la vista. -->
+    <label class="field-label" for="apply-routine-select">{{ 'CLIENTS.RUTINA_A_PROGRAMAR' | translate }}</label>
+    <ion-select
+      id="apply-routine-select"
+      class="tf-select routine-select"
+      interface="popover"
+      toggleIcon="chevron-down-outline"
+      labelPlacement="stacked"
+      [placeholder]="'CLIENTS.ELIGE_UNA_RUTINA' | translate"
+      [value]="selectedTableId"
+      (ionChange)="selectById($any($event).detail?.value)"
+      [attr.aria-label]="'CLIENTS.RUTINA_A_PROGRAMAR' | translate"
     >
-      <ion-icon name="barbell-outline"></ion-icon>
-      <div class="template-info">
-        <span class="template-name">{{ table.name }}</span>
-        <span class="template-meta" *ngIf="table.isActive">{{ 'CLIENTS.EN_USO_AHORA' | translate }}</span>
-      </div>
-      <ion-icon class="selected-check" *ngIf="selectedTableId === table._id" name="checkmark-circle"></ion-icon>
-    </div>
+      <ion-select-option *ngFor="let table of tables; trackBy: trackByTableId" [value]="table._id">
+        {{ table.name }}{{ table.isActive ? ' · ' + ('CLIENTS.EN_USO_AHORA' | translate) : '' }}
+      </ion-select-option>
+    </ion-select>
 
     <div class="date-picker-block">
       <span class="date-picker-label">
@@ -82,7 +110,7 @@
   </ng-container>
 </ion-content>
 
-<ion-footer class="apply-modal-footer" *ngIf="state === 'loaded' || state === 'applying'">
+<ion-footer class="apply-modal-footer" *ngIf="(state === 'loaded' || state === 'applying') && (mode === 'reschedule' || tables.length)">
   <button class="submit-button" [disabled]="!canConfirm || state === 'applying'" (click)="confirm()">
     <span *ngIf="state !== 'applying'">{{ mode === 'reschedule' ? ('CLIENTS.GUARDAR_NUEVA_FECHA' | translate) : ('CLIENTS.APLICAR_2' | translate) + clientName }}</span>
     <ion-spinner name="dots" *ngIf="state === 'applying'"></ion-spinner>

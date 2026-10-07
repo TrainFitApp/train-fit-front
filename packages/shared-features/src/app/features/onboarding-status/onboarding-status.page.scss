@@ -132,6 +132,17 @@
   margin-top: 2px;
 }
 
+.trainer-row-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+}
+
 .trainer-row-actions {
   display: flex;
   gap: 8px;
