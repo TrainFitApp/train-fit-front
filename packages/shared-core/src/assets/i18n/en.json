@@ -1633,6 +1633,7 @@
     "NO_RESULTS": "No matches found",
     "NO_RESULTS_MSG": "Try adjusting the filters or searching with different terms",
     "ALL": "All",
+    "STRENGTH": "Strength",
     "CARDIO": "Cardio",
     "ISOMETRIC": "Isometric",
     "REPLACE_EXERCISE": "Replace exercise",
@@ -2391,7 +2392,13 @@
     "DELETE_PHOTO_TITLE": "Delete this photo?",
     "DELETE_PHOTO_MESSAGE": "The {{pose}} photo from this day will be deleted. This can't be undone.",
     "DELETE_VIDEO_TITLE": "Delete this video?",
-    "DELETE_VIDEO_MESSAGE": "It will be deleted for good, for your trainer too. This can't be undone."
+    "DELETE_VIDEO_MESSAGE": "It will be deleted for good, for your trainer too. This can't be undone.",
+    "INTAKE_SHARED_NOTE": "These photos go with your questionnaire: the professional who asked for them will see them.",
+    "SENT_IN_INTAKE": "In questionnaire",
+    "NO_PHOTOS_SENT": "You did not send photos.",
+    "NO_VIDEO_SENT": "You did not send this video.",
+    "INTAKE_VIDEO_READY": "Video ready to send · {{duration}}",
+    "INTAKE_VIDEO_RETAKE": "Record another"
   },
   "CHECKIN_FIELDS": {
     "weight": {
@@ -2821,7 +2828,18 @@
       "pullup_bar": "Pull-up bar",
       "none": "No equipment"
     },
-    "REQUIRED_ANSWER": "Required."
+    "REQUIRED_ANSWER": "Required.",
+    "REQUIRED": "Required",
+    "OPTIONAL": "Optional",
+    "MEASUREMENTS_TITLE": "Your measurements",
+    "MEASUREMENTS_SUBTITLE": "{{name}} asks for them as your starting point. Take each one as described so it can be compared with the next ones.",
+    "MEASUREMENT_OUT_OF_RANGE": "Check the value: it must be between {{min}} and {{max}} {{unit}}.",
+    "PHOTOS_TITLE": "Starting photos",
+    "PHOTOS_SUBTITLE_REQUIRED": "{{name}} asks for {{poses}} photos to see where you are starting from. They are required.",
+    "PHOTOS_SUBTITLE_OPTIONAL": "{{name}} asks for {{poses}} photos to see where you are starting from. You can send the questionnaire without them.",
+    "VIDEO_SUBTITLE": "A video {{name}} asks for. Record it or choose one from your gallery.",
+    "VIDEO_REQUIRED": "Required.",
+    "MEDIA_PRIVACY": "It is saved in your progress, and {{name}} will see it even if you hide that day later."
   },
   "ONBOARDING": {
     "TITLE": "Intake questionnaire",
@@ -2898,9 +2916,11 @@
     "AND": " and ",
     "ACCEPTED": "{{name}} now handles your {{scopes}}",
     "ACCEPT_ERROR": "Couldn't accept",
+    "ACCEPT_TAKEN": "You already have another coach for your {{scopes}}: that part is still pending",
+    "INVITE_ONE_INTAKE": "You accept both at once and fill in a single questionnaire.",
     "DECLINE_HEADER": "Decline invitation",
     "DECLINE_MSG": "Are you sure you want to decline the invitation from {{name}} ({{scopes}})?",
-    "DECLINE_ERROR": "Some invitations couldn't be declined",
+    "DECLINE_ERROR": "Couldn't decline the invitation",
     "UNLINK": "Unlink",
     "UNLINK_MSG": "Are you sure you want to unlink from {{name}} for {{scope}}?",
     "UNLINK_ERROR": "Couldn't unlink",

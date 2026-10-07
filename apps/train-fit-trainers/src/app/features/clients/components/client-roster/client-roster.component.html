@@ -135,6 +135,12 @@
     <ion-icon name="people-outline"></ion-icon>
     <h2>{{ 'CLIENTS.TODAVIA_NO_HAY_NADA_QUE' | translate }}</h2>
     <p>{{ 'CLIENTS.CUANDO_TENGAS_CLIENTES_ACTIVOS_VERAS' | translate }}</p>
+    <!-- La misma acción que "+ Cliente" de la cabecera, aquí donde mira
+         quien aún no tiene a nadie. -->
+    <button type="button" class="invite-cta" (click)="goToInvite()">
+      <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
+      {{ 'CLIENTS.INVITAR_CLIENTES' | translate }}
+    </button>
   </div>
 </ng-container>
 

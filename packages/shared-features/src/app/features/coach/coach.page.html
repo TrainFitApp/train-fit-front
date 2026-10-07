@@ -82,7 +82,7 @@
         <span class="coach-menu-stat" *ngIf="state === 'loaded'">
           {{ (activeProfessionals.length === 1 ? 'COACH.ACTIVE_ONE' : 'COACH.ACTIVE_MANY') | translate: { count: activeProfessionals.length } }}<ng-container
             *ngIf="pendingInvites.length"
-          > · {{ (groupedPendingInvites.length === 1 ? 'COACH.INVITES_ONE' : 'COACH.INVITES_MANY') | translate: { count: groupedPendingInvites.length } }}</ng-container>
+          > · {{ (pendingInvites.length === 1 ? 'COACH.INVITES_ONE' : 'COACH.INVITES_MANY') | translate: { count: pendingInvites.length } }}</ng-container>
         </span>
       </button>
     </div>
@@ -379,26 +379,29 @@
     <div class="section-card" *ngIf="pendingInvites.length">
       <h2 class="section-heading">{{ 'COACH.PENDING_INVITES' | translate }}</h2>
 
-      <article class="pro-card pro-card--invite" *ngFor="let group of groupedPendingInvites; trackBy: trackByPendingGroup">
+      <article class="pro-card pro-card--invite" *ngFor="let invite of pendingInvites; trackBy: trackByPendingInvite">
         <header class="pro-card-header">
-          <div class="pro-avatar">{{ getInitials(getTrainerName(group.invites[0])) }}</div>
-          <span class="pro-name">{{ getTrainerName(group.invites[0]) }}</span>
+          <div class="pro-avatar">{{ getInitials(getTrainerName(invite)) }}</div>
+          <span class="pro-name">{{ getTrainerName(invite) }}</span>
         </header>
 
         <div class="pro-scopes-row">
-          <span class="pro-scope" *ngFor="let invite of group.invites">
-            <ion-icon [name]="scopeIcon(invite.scope)" [ngClass]="'pro-scope-icon--' + invite.scope"></ion-icon>
-            {{ scopeLabel(invite.scope) }}
+          <span class="pro-scope" *ngFor="let scope of invite.scopes">
+            <ion-icon [name]="scopeIcon(scope)" [ngClass]="'pro-scope-icon--' + scope"></ion-icon>
+            {{ scopeLabel(scope) }}
           </span>
         </div>
 
+        <!-- Un solo aceptar para todo lo que lleva y un solo cuestionario. -->
+        <p class="pro-invite-hint" *ngIf="invite.scopes.length > 1">{{ 'COACH.INVITE_ONE_INTAKE' | translate }}</p>
+
         <div class="pro-invite-actions">
-          <button class="pro-link-button" (click)="confirmDeclineGroup(group)" [disabled]="respondingTrainerId === group.trainerId">
+          <button class="pro-link-button" (click)="confirmDeclineInvite(invite)" [disabled]="respondingTrainerId === invite.trainerId">
             {{ 'ONBOARDING.DECLINE' | translate }}
           </button>
-          <button class="pro-accept-button" (click)="acceptGroup(group)" [disabled]="respondingTrainerId === group.trainerId">
-            <ion-spinner name="dots" *ngIf="respondingTrainerId === group.trainerId"></ion-spinner>
-            <span *ngIf="respondingTrainerId !== group.trainerId">{{ 'ONBOARDING.ACCEPT' | translate }}</span>
+          <button class="pro-accept-button" (click)="acceptInvite(invite)" [disabled]="respondingTrainerId === invite.trainerId">
+            <ion-spinner name="dots" *ngIf="respondingTrainerId === invite.trainerId"></ion-spinner>
+            <span *ngIf="respondingTrainerId !== invite.trainerId">{{ 'ONBOARDING.ACCEPT' | translate }}</span>
           </button>
         </div>
       </article>

@@ -835,6 +835,15 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
+// Invita a los dos scopes: se acepta una vez y hay un solo cuestionario.
+.pro-invite-hint {
+  margin: 0;
+  padding-top: 10px;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #8b8b8b;
+}
+
 .pro-invite-actions {
   display: flex;
   align-items: center;

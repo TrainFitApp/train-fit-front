@@ -711,6 +711,24 @@ thead .col-name {
   }
 }
 
+// CTA del estado vacío: la única acción posible sin clientes.
+.invite-cta {
+  @include tf-gradient-button;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  min-height: 48px;
+  margin-top: var(--tf-space-3);
+  padding: 0 var(--tf-space-6);
+  font-size: var(--tf-font-size-base);
+
+  ion-icon {
+    font-size: 18px;
+    color: inherit;
+  }
+}
+
 // --- Barra sobre la tabla ---
 .roster-toolbar {
   display: flex;

@@ -10,6 +10,8 @@ import { NutritionalGoalService } from "src/app/core/services/nutritional-goal/n
 import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { ageFromBirthDate } from "src/app/core/utils/body-metrics.util";
+import { localIsoDate, parseLocalIsoDate } from "src/app/core/utils/local-date.util";
 import {
   ACTIVITY_FACTOR,
   ACTIVITY_FACTOR_TYPE,
@@ -567,19 +569,20 @@ export class EditorPage implements OnInit {
     }
   }
 
+  // ion-datetime puede entregar "YYYY-MM-DDTHH:mm:ss": solo vale el día,
+  // sin hora ni huso.
   public onDateChange(event: any): void {
-    const selectedDate = event.detail.value;
-    if (selectedDate) {
+    const selectedDate = String(event.detail.value || "").split("T")[0];
+    if (parseLocalIsoDate(selectedDate)) {
       this.userForm.get("birth")?.setValue(selectedDate);
       this.userForm.get("birth")?.markAsTouched();
     }
   }
 
   public getFormattedBirthDate(): string {
-    const birthValue = this.userForm.get("birth")?.value;
-    if (!birthValue) return "";
+    const date = parseLocalIsoDate(this.userForm.get("birth")?.value);
+    if (!date) return "";
 
-    const date = new Date(birthValue);
     const options: Intl.DateTimeFormatOptions = {
       day: "2-digit",
       month: "long",
@@ -590,22 +593,7 @@ export class EditorPage implements OnInit {
   }
 
   public calculateAge(): number {
-    const birthValue = this.userForm.get("birth")?.value;
-    if (!birthValue) return 0;
-
-    const birthDate = new Date(birthValue);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
+    return ageFromBirthDate(this.userForm.get("birth")?.value) ?? 0;
   }
 
   private _maxDate: string | null = null;
@@ -616,7 +604,7 @@ export class EditorPage implements OnInit {
       // Máximo: hace 14 años (edad mínima, la misma que en el registro)
       const maxDate = new Date();
       maxDate.setFullYear(maxDate.getFullYear() - 14);
-      this._maxDate = maxDate.toISOString();
+      this._maxDate = localIsoDate(maxDate);
     }
     return this._maxDate;
   }
@@ -626,7 +614,7 @@ export class EditorPage implements OnInit {
       // Mínimo: hace 120 años (edad máxima razonable)
       const minDate = new Date();
       minDate.setFullYear(minDate.getFullYear() - 120);
-      this._minDate = minDate.toISOString();
+      this._minDate = localIsoDate(minDate);
     }
     return this._minDate;
   }

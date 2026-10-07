@@ -154,6 +154,79 @@
   white-space: nowrap;
 }
 
+// Fecha de las medidas y de las fotos, junto al título de la sección.
+.intake-section-meta {
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-regular);
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+}
+
+// Fotos de inicio: miniaturas 3:4 en fila; cada una abre el visor.
+.intake-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 120px));
+  gap: var(--tf-space-3);
+}
+
+.intake-photo {
+  display: block;
+  padding: 0;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  overflow: hidden;
+  background: var(--tf-surface-2);
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
+
+  &:hover {
+    border-color: var(--tf-accent-soft-border);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.intake-photo-pose {
+  display: block;
+  padding: 6px 8px;
+  border-top: 1px solid var(--tf-border-subtle);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-label);
+  text-align: left;
+}
+
+.intake-media-note {
+  margin: var(--tf-space-3) 0 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+// Vídeos: lo que tenía que grabar encima de cada reproductor, a un ancho
+// cómodo de ver sin ocupar el panel entero.
+.intake-videos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--tf-space-5);
+}
+
+.intake-video {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  max-width: 420px;
+}
+
 // Rejilla ancha (fila desplegada de la Cartera): columnas más anchas y el
 // texto libre a doble columna cuando cabe, en vez de la fila entera.
 :host(.is-grid) {

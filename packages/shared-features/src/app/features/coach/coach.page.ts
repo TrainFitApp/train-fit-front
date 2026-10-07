@@ -3,11 +3,11 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { IonItemSliding } from '@ionic/angular';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
+import { finalize } from 'rxjs/operators';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
-import { OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
+import { OPEN_INTAKE_TRAINER_KEY, OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
+import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
   CoachCurrentPlan,
@@ -38,16 +38,6 @@ import { HabitsService } from './services/habits.service';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
-
-// Un trainer puede invitar/tener histórico de training+nutrition a la vez
-// (2 relaciones, mismo par) — sin agrupar, la tarjeta del profesional se
-// repetía una vez por scope. Una fila por PERSONA, igual que ya hace
-// activeProfessionals (agrupado server-side) y que se aplicó en la pantalla
-// de invitaciones del trainer.
-interface GroupedPendingInvite {
-  trainerId: string;
-  invites: PendingInvite[];
-}
 
 interface GroupedHistoryEntry {
   key: string;
@@ -92,9 +82,8 @@ export class CoachPage implements OnInit {
   // no se pinta el resto de Coach: quien solo tiene una invitación vería el
   // panel entero un instante y luego desaparecería.
   public professionalsResolved = false;
-  // Aceptar/rechazar actúa sobre TODAS las invitaciones del grupo (mismo
-  // trainer) a la vez, no por scope — de ahí que la clave sea trainerId, no
-  // el id de una invitación concreta.
+  // Aceptar/rechazar responde a la vez todos los scopes a los que invita un
+  // profesional (una invitación por profesional, ver PendingInvite).
   public respondingTrainerId: string | null = null;
   public unlinkingScope: ProfessionalScope | null = null;
 
@@ -149,6 +138,7 @@ export class CoachPage implements OnInit {
     private coachService: CoachService,
     private notificationsService: NotificationsService,
     public onboardingService: OnboardingService,
+    private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService
   ) {}
@@ -161,9 +151,11 @@ export class CoachPage implements OnInit {
   }
 
   // La página del tab sigue viva al abrir otra pantalla (preferencias,
-  // check-ins...), así que volver no repite ngOnInit y "Pendiente de ti"
-  // enseñaría lo ya resuelto. La primera entrada ya la carga ngOnInit.
+  // check-ins, cuestionario inicial...), así que volver no repite ngOnInit
+  // y "Pendiente de ti" enseñaría lo ya resuelto, o la invitación que ya
+  // aceptó desde el cuestionario. La primera entrada ya la carga ngOnInit.
   public ionViewWillEnter(): void {
+    if (this.state === 'loaded') this.load(true);
     if (this.dashboardState === 'loaded') this.loadDashboard(true);
     if (this.tasksState === 'loaded') this.loadTasks(true);
   }
@@ -188,8 +180,10 @@ export class CoachPage implements OnInit {
     setTimeout(() => this.scrollToSection(sectionId));
   }
 
-  public load(): void {
-    this.state = 'loading';
+  // silent: recarga al volver a la pestaña, sin esqueleto; si falla se
+  // queda lo que había.
+  public load(silent = false): void {
+    if (!silent) this.state = 'loading';
     Promise.all([
       this.professionalsApi.getPendingInvites().toPromise(),
       this.professionalsApi.getActiveProfessionals().toPromise(),
@@ -206,6 +200,7 @@ export class CoachPage implements OnInit {
         this.revealSection();
       })
       .catch(() => {
+        if (silent) return;
         this.state = 'error';
         this.professionalsResolved = true;
         this.revealSection();
@@ -214,7 +209,9 @@ export class CoachPage implements OnInit {
     // No bloquea el resto de la pantalla si falla, es una sección aparte.
     this.professionalsApi.getHistory().subscribe({
       next: (history) => (this.history = history || []),
-      error: () => (this.history = []),
+      error: () => {
+        if (!silent) this.history = [];
+      },
     });
   }
 
@@ -504,19 +501,8 @@ export class CoachPage implements OnInit {
     this.showHistory = !this.showHistory;
   }
 
-  // Getters (sin estado propio) — se recalculan solos cada vez que
-  // pendingInvites/history cambian (load()).
-  public get groupedPendingInvites(): GroupedPendingInvite[] {
-    const groups = new Map<string, GroupedPendingInvite>();
-    for (const invite of this.pendingInvites) {
-      if (!groups.has(invite.trainerId)) {
-        groups.set(invite.trainerId, { trainerId: invite.trainerId, invites: [] });
-      }
-      groups.get(invite.trainerId)!.invites.push(invite);
-    }
-    return [...groups.values()];
-  }
-
+  // Getter (sin estado propio) — se recalcula solo cada vez que history
+  // cambia (load()).
   // HistoryEntry no trae trainerId (solo el objeto trainer sin _id) — el
   // email es el identificador estable disponible; sin trainer (null,
   // cuenta borrada) cada entrada queda en su propio grupo por su propio id,
@@ -531,8 +517,8 @@ export class CoachPage implements OnInit {
     return [...groups.values()];
   }
 
-  public trackByPendingGroup(_index: number, group: GroupedPendingInvite): string {
-    return group.trainerId;
+  public trackByPendingInvite(_index: number, invite: PendingInvite): string {
+    return invite.trainerId;
   }
 
   public trackByHistoryGroup(_index: number, group: GroupedHistoryEntry): string {
@@ -583,91 +569,96 @@ export class CoachPage implements OnInit {
     );
   }
 
-  // Aceptar/rechazar es UNA sola acción para todo el grupo (mismo trainer,
-  // sus scopes a la vez) en vez de una por invitación — antes, un trainer
-  // que invitaba a entrenamiento+nutrición a la vez mostraba 2 botones
-  // Aceptar y 2 Rechazar repitiendo su nombre/avatar. Cada invitación sigue
-  // siendo su propia petición al backend (no hay endpoint bulk), pero
-  // encadenadas en paralelo y reportadas como un solo resultado.
-  public acceptGroup(group: GroupedPendingInvite): void {
-    this.respondingTrainerId = group.trainerId;
-    const requests = group.invites.map((invite) =>
-      this.professionalsApi.acceptInvite(invite._id).pipe(
-        map(() => ({ invite, success: true, error: null as string | null })),
-        catchError((err) =>
-          of({ invite, success: false, error: err?.error?.message || this.translate.instant('COACH.ACCEPT_ERROR') })
-        )
-      )
-    );
+  // «entrenamiento y nutrición»
+  private scopeList(scopes: ProfessionalScope[]): string {
+    return scopes.map((scope) => this.scopeLabel(scope).toLowerCase()).join(this.translate.instant('COACH.AND'));
+  }
 
-    forkJoin(requests).subscribe((results) => {
-      this.respondingTrainerId = null;
-
-      const succeeded = results.filter((r) => r.success);
-      if (succeeded.length) {
-        const scopes = succeeded.map((r) => this.scopeLabel(r.invite.scope).toLowerCase()).join(this.translate.instant('COACH.AND'));
-        this.ionicUtilService.showToast({
-          message: this.translate.instant('COACH.ACCEPTED', { name: this.getTrainerName(group.invites[0]), scopes }),
-          duration: 3500,
-        });
-      }
-      results
-        .filter((r) => !r.success)
-        .forEach((r) => {
+  // Aceptar es UNA petición por profesional: el back acepta a la vez todos
+  // los scopes a los que invita, y queda un solo cuestionario de alta para
+  // todo. (Antes era una petición por scope en paralelo, y el bloqueo de
+  // altas del profesional rechazaba la segunda.)
+  public acceptInvite(invite: PendingInvite): void {
+    this.respondingTrainerId = invite.trainerId;
+    this.professionalsApi
+      .acceptInvite(invite.trainerId)
+      .pipe(finalize(() => (this.respondingTrainerId = null)))
+      .subscribe({
+        next: (response) => {
+          if (response.scopes.length) {
+            this.ionicUtilService.showToast({
+              message: this.translate.instant('COACH.ACCEPTED', {
+                name: this.getTrainerName(invite),
+                scopes: this.scopeList(response.scopes),
+              }),
+              duration: 3500,
+            });
+          }
+          if (response.pending.length) {
+            this.ionicUtilService.showErrorToast(
+              this.translate.instant('COACH.ACCEPT_TAKEN', { scopes: this.scopeList(response.pending) }),
+              this.translate.instant('COACH.ACCEPT_ERROR'),
+              4000
+            );
+          }
+          this.load();
+          this.loadDashboard();
+          if (response.scopes.length) this.openIntakeIfPending(invite.trainerId);
+        },
+        error: (err) => {
           this.ionicUtilService.showErrorToast(
-            `${this.scopeLabel(r.invite.scope)}: ${r.error}`,
-            this.translate.instant('COACH.ACCEPT_ERROR'),
+            err?.error?.message || this.translate.instant('COACH.ACCEPT_ERROR'),
+            this.translate.instant('COMMON.ERROR'),
             4000
           );
-        });
-
-      this.load();
-      this.loadDashboard();
-
-      // Aceptar ya le hace cliente activo, pero deja el cuestionario inicial
-      // pendiente: se le abre al momento (puede volver sin rellenarlo; el
-      // aviso de arriba de Coach se queda hasta que lo envíe). El signal solo
-      // se rellenaba en el arranque (user-loader.page.ts), por eso se refresca.
-      this.onboardingService.refresh().subscribe(() => {
-        if (succeeded.length && this.onboardingService.pending()) {
-          void this.router.navigate(['/onboarding-status']);
-        }
+          this.load();
+        },
       });
+  }
+
+  // Aceptar ya le hace cliente activo, pero deja el cuestionario inicial
+  // pendiente: se le abre al momento, directo en el formulario de ese
+  // profesional (puede cerrarlo; el aviso de Coach se queda hasta que lo
+  // envíe). El signal solo se rellenaba en el arranque, por eso se refresca.
+  private openIntakeIfPending(trainerId: string): void {
+    this.onboardingService.refresh().subscribe((status) => {
+      const professional = status.professionals.find((p) => p.trainerId === trainerId);
+      if (professional?.intakeStatus !== 'pending') return;
+      this.navigationService.setTempData(OPEN_INTAKE_TRAINER_KEY, trainerId);
+      void this.router.navigate(['/onboarding-status']);
     });
   }
 
-  public async confirmDeclineGroup(group: GroupedPendingInvite): Promise<void> {
-    const scopes = group.invites.map((i) => this.scopeLabel(i.scope)).join(this.translate.instant('COACH.AND'));
+  public async confirmDeclineInvite(invite: PendingInvite): Promise<void> {
     await this.ionicUtilService.showAlert({
       header: this.translate.instant('COACH.DECLINE_HEADER'),
-      message: this.translate.instant('COACH.DECLINE_MSG', { name: this.getTrainerName(group.invites[0]), scopes }),
+      message: this.translate.instant('COACH.DECLINE_MSG', {
+        name: this.getTrainerName(invite),
+        scopes: invite.scopes.map((scope) => this.scopeLabel(scope)).join(this.translate.instant('COACH.AND')),
+      }),
       buttons: [
         { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {
           text: this.translate.instant('ONBOARDING.DECLINE'),
           cssClass: 'alert-button-danger',
-          handler: () => this.declineGroup(group),
+          handler: () => this.declineInvite(invite),
         },
       ],
     });
   }
 
-  private declineGroup(group: GroupedPendingInvite): void {
-    this.respondingTrainerId = group.trainerId;
-    const requests = group.invites.map((invite) =>
-      this.professionalsApi.declineInvite(invite._id).pipe(
-        map(() => true),
-        catchError(() => of(false))
-      )
-    );
-
-    forkJoin(requests).subscribe((results) => {
-      this.respondingTrainerId = null;
-      if (results.some((success) => !success)) {
-        this.ionicUtilService.showErrorToast(this.translate.instant('COACH.DECLINE_ERROR'), this.translate.instant('COMMON.ERROR'), 3000);
-      }
-      this.load();
-    });
+  private declineInvite(invite: PendingInvite): void {
+    this.respondingTrainerId = invite.trainerId;
+    this.professionalsApi
+      .declineInvite(invite.trainerId)
+      .pipe(finalize(() => (this.respondingTrainerId = null)))
+      .subscribe({
+        next: () => this.load(),
+        error: () => {
+          this.ionicUtilService.showErrorToast(this.translate.instant('COACH.DECLINE_ERROR'), this.translate.instant('COMMON.ERROR'), 3000);
+          this.load();
+        },
+      });
   }
 
   public async confirmUnlink(professional: ProfessionalSummary, scope: ProfessionalScope): Promise<void> {

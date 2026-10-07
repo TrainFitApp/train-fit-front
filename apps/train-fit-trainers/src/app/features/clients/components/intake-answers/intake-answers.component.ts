@@ -16,6 +16,11 @@ import {
 } from '../../../invites/models/trainer-invite.model';
 import { uiLocale, uiText, localizeRecord } from 'src/app/core/i18n/localized-catalog';
 import { CustomAnswer } from 'src/app/core/models/custom-question';
+import { ageFromBirthDate } from 'src/app/core/utils/body-metrics.util';
+import { INTAKE_MEASUREMENT_FIELDS } from 'src/app/core/models/intake-requests';
+import { MediaAssetView, ProgressPose } from 'src/app/core/models/media';
+import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { PhotoViewerModalComponent } from 'src/app/shared/components/media/photo-viewer-modal.component';
 
 const EXPERIENCE_LABELS: Record<NonNullable<ClientIntake['experienceLevel']>, string> = {
   none: 'Sin experiencia',
@@ -48,6 +53,23 @@ interface AnswerRow {
   critical?: boolean;
 }
 
+// Una medida que se le pidió: su valor, o null si era opcional y no la mandó.
+interface MeasurementRow {
+  key: string;
+  label: string;
+  value: string | null;
+  required: boolean;
+}
+
+// Un vídeo que se le pidió: el que mandó, o por qué no está.
+interface VideoRow {
+  label: string;
+  required: boolean;
+  asset: MediaAssetView | null;
+  // deleted = lo mandó y después lo borró de su progreso; missing = no lo mandó.
+  state: 'ready' | 'deleted' | 'missing';
+}
+
 // Respuestas del cuestionario inicial, en solo lectura. Lo pintan el panel
 // "Ver intake" de la ficha y la fila desplegada de la Cartera: el
 // entrenador lee lo mismo, con las mismas etiquetas, en los dos sitios.
@@ -58,6 +80,7 @@ interface AnswerRow {
 })
 export class IntakeAnswersComponent implements OnChanges {
   private readonly translate = inject(TranslateService);
+  private readonly ionicUtilService = inject(IonicUtilService);
 
   @Input() public intake!: ClientIntake;
   // list = una respuesta debajo de otra (panel de la ficha); grid = en
@@ -73,8 +96,17 @@ export class IntakeAnswersComponent implements OnChanges {
   public nutritionRows: AnswerRow[] = [];
   public customRows: AnswerRow[] = [];
   public dietaryFlagLabels: string[] = [];
+  public measurementRows: MeasurementRow[] = [];
+  public videoRows: VideoRow[] = [];
+  // Se pidieron fotos (aunque fueran opcionales y no las mandara).
+  public photosRequested = false;
+  public photoPoses: ProgressPose[] = [];
 
   public ngOnChanges(): void {
+    this.measurementRows = buildMeasurementRows(this.intake);
+    this.videoRows = buildVideoRows(this.intake);
+    this.photosRequested = !!this.intake?.requested?.photos || !!this.intake?.photos;
+    this.photoPoses = (this.intake?.requested?.photos?.poses || []) as ProgressPose[];
     this.profileRows = this.intake?.profile ? buildProfileRows(this.intake.profile) : [];
     this.nutritionRows = this.intake?.nutrition ? buildNutritionRows(this.intake.nutrition) : [];
     this.customRows = (this.intake?.customAnswers || []).map((answer) => ({
@@ -96,6 +128,69 @@ export class IntakeAnswersComponent implements OnChanges {
   public equipmentTagLabel(tag: EquipmentTag): string {
     return EQUIPMENT_TAG_LABELS[tag] || tag;
   }
+
+  /** Poses pedidas que no mandó (las fotos opcionales pueden venir a medias). */
+  public get missingPoses(): ProgressPose[] {
+    const sent = new Set((this.intake?.photos?.photos || []).map((photo) => photo.pose));
+    return this.photoPoses.filter((pose) => !sent.has(pose));
+  }
+
+  public get missingPoseNames(): string {
+    return this.missingPoses.map((pose) => this.poseLabel(pose).toLowerCase()).join(', ');
+  }
+
+  public poseLabel(pose: string): string {
+    return this.translate.instant('MEDIA.POSE_' + pose.toUpperCase());
+  }
+
+  public openPhoto(pose: ProgressPose): void {
+    if (!this.intake?.photos) return;
+    this.ionicUtilService.showModal({
+      component: PhotoViewerModalComponent,
+      componentProps: { day: this.intake.photos, pose },
+      cssClass: 'fullscreen-modal',
+    });
+  }
+
+  public trackByKey(_index: number, row: MeasurementRow): string {
+    return row.key;
+  }
+}
+
+// Lo pedido, en el orden del catálogo, con lo que mandó. Sin lo pedido
+// (cuestionarios anteriores), solo lo que mandó.
+function buildMeasurementRows(intake: ClientIntake | null | undefined): MeasurementRow[] {
+  const sent = new Map((intake?.measurements || []).map((item) => [item.key, item.value]));
+  const requested = new Map((intake?.requested?.measurements || []).map((item) => [item.key, item.required]));
+  return INTAKE_MEASUREMENT_FIELDS.filter((field) => requested.has(field.key) || sent.has(field.key)).map((field) => {
+    const value = sent.get(field.key);
+    return {
+      key: field.key,
+      label: field.label,
+      value: value == null ? null : `${formatNumber(value)} ${field.unit || ''}`.trim(),
+      required: requested.get(field.key) === true,
+    };
+  });
+}
+
+function buildVideoRows(intake: ClientIntake | null | undefined): VideoRow[] {
+  const sent = new Map((intake?.videos || []).map((video) => [video.requestId, video]));
+  const requested = intake?.requested?.videos || [];
+  const rows: VideoRow[] = requested.map((request) => {
+    const video = sent.get(String(request._id));
+    sent.delete(String(request._id));
+    return {
+      label: request.label,
+      required: request.required,
+      asset: video?.asset || null,
+      state: !video ? 'missing' : video.asset ? 'ready' : 'deleted',
+    };
+  });
+  // Lo que mandó a una petición que ya no está en su formulario.
+  for (const video of sent.values()) {
+    rows.push({ label: video.label, required: false, asset: video.asset, state: video.asset ? 'ready' : 'deleted' });
+  }
+  return rows;
 }
 
 // Respuesta a una pregunta propia según su tipo: "Sí", "7,5 h", "4/5"…
@@ -119,15 +214,6 @@ function formatNumber(value: number): string {
   return value.toLocaleString(uiLocale(), { maximumFractionDigits: 1 });
 }
 
-function ageFrom(birth: string): number | null {
-  const date = new Date(birth);
-  if (Number.isNaN(date.getTime())) return null;
-  const now = new Date();
-  let age = now.getFullYear() - date.getFullYear();
-  if (now < new Date(now.getFullYear(), date.getMonth(), date.getDate())) age--;
-  return age;
-}
-
 // Mismo criterio que el formulario: objetive es el delta de kcal (0 =
 // mantener, >0 superávit, <0 déficit) que el cliente eligió con el deslizador.
 function objectiveLabel(kcal: number): string {
@@ -148,7 +234,7 @@ function buildProfileRows(profile: ClientIntakeProfile): AnswerRow[] {
   if (profile.sex === SEX_TYPES.female || profile.sex === SEX_TYPES.male) {
     rows.push({ label: uiText('CLIENTS.SEXO'), value: SEX[profile.sex as SEX_TYPES] });
   }
-  const age = profile.birth ? ageFrom(profile.birth) : null;
+  const age = ageFromBirthDate(profile.birth);
   if (age !== null) rows.push({ label: uiText('CLIENTS.EDAD'), value: uiText('CLIENTS.ANOS_2', { age }) });
   const stepsOption = STEPS_VALUES.find((s) => Number(s.value) === steps);
   if (stepsOption) rows.push({ label: uiText('CLIENTS.PASOS_AL_DIA'), value: stepsOption.name, translate: true });

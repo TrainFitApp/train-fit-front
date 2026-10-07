@@ -11,13 +11,15 @@ import { mediaErrorKey } from 'src/app/core/services/media/media-errors';
 import { MediaUploadService } from 'src/app/core/services/media/media-upload.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { SearchFilterGroupExercises } from 'src/app/shared/models/filterGroup';
+import { VideoLink, parseVideoLink } from 'src/app/core/utils/video-link.util';
 
 type Source = 'upload' | 'youtube' | 'vimeo';
 
 /**
- * Alta y edición de un vídeo de la biblioteca (panel lateral). El origen solo
- * se elige al crearlo: cambiar un vídeo subido por un enlace es borrar uno y
- * crear otro.
+ * Alta y edición de un vídeo de la biblioteca (panel lateral). Subido o
+ * enlace se elige al crearlo: cambiar un vídeo subido por un enlace es borrar
+ * uno y crear otro. El enlace sí se puede cambiar después, también de YouTube
+ * a Vimeo: la plataforma sale del propio enlace.
  */
 @Component({
   selector: 'app-technique-video-editor',
@@ -26,6 +28,10 @@ type Source = 'upload' | 'youtube' | 'vimeo';
 })
 export class TechniqueVideoEditorComponent implements OnInit {
   @Input() public video: TechniqueVideoView | null = null;
+  /** Lo que enseña el reproductor: el vídeo con el último enlace válido escrito (también al crearlo). */
+  public preview: TechniqueVideoView | null = null;
+  /** Plataforma del enlace escrito; null si está vacío o no es de YouTube ni de Vimeo. */
+  public link: VideoLink | null = null;
 
   public title = '';
   public cues = '';
@@ -59,6 +65,8 @@ export class TechniqueVideoEditorComponent implements OnInit {
       this.source = this.video.source;
       this.externalUrl = this.video.externalUrl || '';
       this.exercises = [...this.video.exercises];
+      this.link = parseVideoLink(this.externalUrl);
+      this.preview = this.video;
     }
     this.search$
       .pipe(
@@ -100,17 +108,61 @@ export class TechniqueVideoEditorComponent implements OnInit {
 
   public get canSave(): boolean {
     if (!this.title.trim() || this.saving) return false;
-    if (this.isEdit) return true;
-    if (this.source === 'upload') return !!this.file;
-    return !!this.externalUrl.trim();
+    if (this.source === 'upload') return this.isEdit || !!this.file;
+    return !!this.link;
+  }
+
+  /** Hay algo escrito que no es un enlace de YouTube ni de Vimeo. */
+  public get linkInvalid(): boolean {
+    return this.source !== 'upload' && !!this.externalUrl.trim() && !this.link;
   }
 
   public setSource(source: Source): void {
-    if (!this.isEdit) this.source = source;
+    if (this.isEdit) return;
+    this.source = source;
+    if (source === 'upload') this.preview = null;
+    else this.refreshLink();
   }
 
-  public onInput(field: 'title' | 'cues' | 'externalUrl', event: Event): void {
+  public onInput(field: 'title' | 'cues', event: Event): void {
     this[field] = (event.target as HTMLInputElement | HTMLTextAreaElement).value;
+  }
+
+  /** Un enlace de la otra plataforma cambia el origen solo y refresca la vista previa. */
+  public onLinkInput(event: Event): void {
+    this.externalUrl = (event.target as HTMLInputElement).value;
+    this.refreshLink();
+  }
+
+  // La vista previa solo cambia cuando cambia el vídeo (no a cada tecla que
+  // deja el mismo id): recargar el iframe cortaría la reproducción.
+  private refreshLink(): void {
+    this.link = parseVideoLink(this.externalUrl);
+    if (!this.link) return;
+    this.source = this.link.source;
+    const current = this.preview;
+    if (current && current.source === this.link.source && current.youtubeId === this.link.youtubeId && current.vimeoId === this.link.vimeoId) {
+      return;
+    }
+    const base: TechniqueVideoView = this.video || {
+      id: '',
+      trainerId: '',
+      trainerName: '',
+      title: this.title,
+      cues: '',
+      source: this.link.source,
+      externalUrl: null,
+      youtubeId: null,
+      vimeoId: null,
+      video: null,
+      exercises: [],
+      updatedAt: '',
+    };
+    this.preview = { ...base, ...this.link, externalUrl: this.externalUrl.trim() };
+  }
+
+  public get platformName(): string {
+    return this.link?.source === 'vimeo' ? 'Vimeo' : 'YouTube';
   }
 
   public async onFile(event: Event): Promise<void> {
@@ -161,7 +213,14 @@ export class TechniqueVideoEditorComponent implements OnInit {
     const exerciseIds = this.exercises.map((item) => item.id);
     try {
       if (this.isEdit && this.video) {
-        await firstValueFrom(this.mediaApi.updateLibraryVideo(this.video.id, { title: this.title.trim(), cues: this.cues.trim(), exerciseIds }));
+        await firstValueFrom(
+          this.mediaApi.updateLibraryVideo(this.video.id, {
+            title: this.title.trim(),
+            cues: this.cues.trim(),
+            exerciseIds,
+            ...(this.source !== 'upload' ? { externalUrl: this.externalUrl.trim() } : {}),
+          })
+        );
       } else if (this.source === 'upload' && this.file) {
         const asset = await this.mediaUpload.uploadVideo(this.file, 'technique_video', (progress) => (this.progress = progress.fraction));
         await firstValueFrom(

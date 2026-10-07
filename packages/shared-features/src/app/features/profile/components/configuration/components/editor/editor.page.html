@@ -178,7 +178,7 @@
                         [preferWheel]="true"
                         [doneText]="'COMMON.OK' | translate"
                         [cancelText]="'COMMON.CANCEL' | translate"
-                        formControlName="birth"
+                        [value]="userForm.get('birth')?.value"
                         [max]="getMaxDate()"
                         [min]="getMinDate()"
                         [showDefaultButtons]="true"

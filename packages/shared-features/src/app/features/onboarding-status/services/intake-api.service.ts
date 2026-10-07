@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { CustomAnswer, CustomAnswerValue } from 'src/app/core/models/custom-question';
+import { IntakeMeasurementAnswer, IntakeVideoAnswer } from 'src/app/core/models/intake-requests';
 
 // Respuesta a una pregunta propia tal como se envía: el back la valida contra
 // la pregunta y le copia enunciado, tipo y unidad.
@@ -52,6 +53,12 @@ export interface IntakeSubmission {
   // `objetive` (sic) — mismo nombre que el campo de `User`. Delta kcal.
   objetive: number | null;
   customAnswers: IntakeCustomAnswerInput[];
+  // Lo que pidió el profesional además de preguntas (core/models/intake-requests.ts):
+  // las medidas van a sus medidas de hoy; las fotos y los vídeos ya están
+  // en su progreso y aquí solo se dice cuáles se le mandan.
+  measurements: IntakeMeasurementAnswer[];
+  photosDayId: string | null;
+  videos: IntakeVideoAnswer[];
 }
 
 export type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
@@ -69,6 +76,9 @@ export interface StoredIntake {
   trainingLocation: TrainingLocation | null;
   equipmentTags: EquipmentTag[];
   customAnswers: CustomAnswer[];
+  measurements?: IntakeMeasurementAnswer[];
+  photosDayId?: string | null;
+  videos?: (IntakeVideoAnswer & { label: string })[];
   // null si lo rellenó el profesional y el cliente aún no lo ha enviado.
   submittedAt: string | null;
 }

@@ -1323,50 +1323,6 @@
   }
 }
 
-.elegant-footer {
-  --background: rgba(20, 20, 20, 0.98);
-  --border-color: rgba(255, 255, 255, 0.1);
-  border-top: 1px solid var(--border-color);
-
-  .footer-content {
-    padding: 16px 24px;
-
-    .save-btn {
-      --background: var(--ion-color-primary);
-      --background-activated: var(--ion-color-primary-shade);
-      --color: white;
-      --border-radius: 16px;
-      border-radius: 16px;
-      --padding-top: 16px;
-      --padding-bottom: 16px;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      box-shadow: none;
-
-      ion-icon {
-        font-size: 1.2rem;
-        margin-right: 8px;
-      }
-    }
-
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      padding: 20px;
-
-      .loading-text {
-        margin: 0;
-        color: var(--ion-color-medium);
-        font-size: 0.9rem;
-        font-weight: 500;
-      }
-    }
-  }
-}
-
 .minimal-header {
   --background: rgba(20, 20, 20, 0.98);
   --border-color: rgba(255, 255, 255, 0.1);
@@ -1393,56 +1349,56 @@
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-.elegant-footer {
-  --background: rgba(20, 20, 20, 0.98);
-  --border-color: rgba(255, 255, 255, 0.1);
-}
+// Pie de la app de entrenadores: el mismo que «Serie objetivo»
+// (manage-set.component.scss, .manage-set-footer-trainer). Solo se pinta con
+// isTrainerApp, así que los tokens --tf-* existen.
+.config-exercise-footer-trainer {
+  padding: var(--tf-space-3) var(--tf-space-4) calc(var(--tf-space-4) + env(safe-area-inset-bottom));
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border);
 
-// Footer styles - Matching add-product design exactly
-.elegant-footer {
-  background: var(--ion-card-background);
-  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  .exercise-submit-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tf-space-2);
+    width: 100%;
+    min-height: 48px;
+    padding: 0 var(--tf-space-4);
+    border: none;
+    border-radius: var(--tf-radius-lg);
+    background: var(--tf-accent-gradient);
+    color: var(--tf-accent-contrast);
+    font-family: inherit;
+    font-size: var(--tf-font-size-md);
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      transform 160ms var(--tf-ease-out),
+      opacity 160ms var(--tf-ease-out);
 
-  &.dark-theme {
-    background: var(--ion-color-step-100) !important;
-    border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.3) !important;
-  }
+    ion-icon {
+      font-size: 1.2rem;
+    }
 
-  .footer-content {
-    padding: 16px;
+    ion-spinner {
+      width: 20px;
+      height: 20px;
+      color: currentColor;
+    }
 
-    ion-button {
-      --background: var(--ion-color-primary);
-      --color: var(--ion-color-primary-contrast);
-      font-weight: 600;
-      font-size: 1rem;
-      height: 48px;
-      margin: 0;
+    &:active:not(:disabled) {
+      transform: scale(0.97);
+    }
 
-      &.button-disabled {
-        --background: var(--ion-color-medium);
-        --color: var(--ion-color-medium-contrast);
-      }
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
 
-      .button-content {
-        font-weight: 600;
-
-        ion-icon {
-          font-size: 1.2rem;
-        }
-      }
-
-      .loading-content {
-        ion-spinner {
-          width: 20px;
-          height: 20px;
-          --color: var(--ion-color-primary-contrast);
-        }
-
-        .loading-text {
-          font-size: 0.9rem;
-        }
-      }
+    &:focus-visible {
+      outline: 2px solid var(--tf-text);
+      outline-offset: 2px;
     }
   }
 }

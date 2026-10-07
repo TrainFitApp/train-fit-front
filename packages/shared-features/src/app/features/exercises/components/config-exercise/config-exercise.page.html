@@ -779,43 +779,47 @@
   </form>
 </ion-content>
 
-<ion-footer class="elegant-footer">
-  <div class="footer-content">
-    <ion-button
-      *ngIf="load && isEditingOwnExercise; else defaultSaveTemplate"
-      expand="block"
-      size="large"
-      (click)="saveOwnExerciseOnly()"
-      #enterSubmitTarget
-      [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
-    >
-      <div class="button-content">
-        <span>{{ 'EXERCISE_CONFIG.SAVE_CHANGES' | translate }}</span>
-      </div>
-    </ion-button>
-
-    <ng-template #defaultSaveTemplate>
-      <ion-button
-        *ngIf="load; else loadingTemplate"
-        expand="block"
-        size="large"
-        (click)="addCustomExercise()"
-        #enterSubmitTarget
-        [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
-      >
-        <div class="button-content">
-          <span>{{ 'EXERCISE_CONFIG.SAVE_EXERCISE' | translate }}</span>
-        </div>
-      </ion-button>
-    </ng-template>
-
-    <ng-template #loadingTemplate>
-      <ion-button expand="block" size="large" disabled>
-        <div class="loading-content">
-          <ion-spinner name="crescent" color="light"></ion-spinner>
-          <span class="loading-text">{{ 'COMMON.PROCESSING' | translate }}</span>
-        </div>
-      </ion-button>
-    </ng-template>
-  </div>
+<!-- Mismo pie que «Serie objetivo» (manage-set): botón propio en trainers,
+     ion-button redondo en el resto de apps. -->
+<ion-footer *ngIf="isTrainerApp; else defaultFooter" class="config-exercise-footer-trainer">
+  <button
+    type="button"
+    class="exercise-submit-button"
+    [disabled]="!load || !canSaveExercise"
+    (click)="isEditingOwnExercise ? saveOwnExerciseOnly() : addCustomExercise()"
+    #enterSubmitTarget
+  >
+    <ion-spinner *ngIf="!load; else saveIcon" name="crescent" aria-hidden="true"></ion-spinner>
+    <ng-template #saveIcon><ion-icon name="checkmark" aria-hidden="true"></ion-icon></ng-template>
+    <span>
+      {{
+        (!load
+          ? 'COMMON.PROCESSING'
+          : isEditingOwnExercise
+            ? 'EXERCISE_CONFIG.SAVE_CHANGES'
+            : 'EXERCISE_CONFIG.SAVE_EXERCISE'
+        ) | translate
+      }}
+    </span>
+  </button>
 </ion-footer>
+
+<ng-template #defaultFooter>
+  <ion-footer>
+    <ion-button
+      expand="block"
+      shape="round"
+      class="ion-margin"
+      [disabled]="!load || !canSaveExercise"
+      (click)="isEditingOwnExercise ? saveOwnExerciseOnly() : addCustomExercise()"
+      #enterSubmitTarget
+    >
+      <ion-spinner *ngIf="!load; else saveLabel" name="crescent"></ion-spinner>
+      <ng-template #saveLabel>
+        <strong>
+          {{ (isEditingOwnExercise ? 'EXERCISE_CONFIG.SAVE_CHANGES' : 'EXERCISE_CONFIG.SAVE_EXERCISE') | translate }}
+        </strong>
+      </ng-template>
+    </ion-button>
+  </ion-footer>
+</ng-template>

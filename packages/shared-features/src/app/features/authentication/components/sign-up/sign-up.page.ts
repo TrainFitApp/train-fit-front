@@ -21,6 +21,7 @@ import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
+import { localIsoDate, parseLocalIsoDate } from 'src/app/core/utils/local-date.util';
 import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import {
   ACTIVITY_FACTOR,
@@ -223,7 +224,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       this.steps = res.steps;
       this.weight = res.weight;
       this.height = res.height;
-      this.dateValue = this.userService.getAge(new Date(res.birth));
+      this.dateValue = this.userService.getAge(res.birth);
       this.birth = this.dateValue;
       this.sex = res.sex;
     });
@@ -406,8 +407,9 @@ export class SignUpPage implements OnInit, OnDestroy {
   }
 
   private commitBirthDate(): void {
+    // Día de calendario tal cual lo eligió: sin hora ni huso.
     const date = new Date(this.birthYear, this.birthMonth, this.birthDay);
-    this.signUpForm.get('birth')?.setValue(date.toISOString());
+    this.signUpForm.get('birth')?.setValue(localIsoDate(date));
     this.signUpForm.get('birth')?.markAsTouched();
   }
 
@@ -1017,9 +1019,9 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.ionicUtilService.showToast(toast);
   }
 
-  public getAge(birth: any) {
+  public getAge(birth: string) {
     if (!birth) return 0;
-    return this.userService.getAge(new Date(birth));
+    return this.userService.getAge(birth);
   }
 
   private getDefaultBirthDate(): string {
@@ -1028,7 +1030,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       defaultBirthDate.setFullYear(
         defaultBirthDate.getFullYear() - this.MIN_SIGN_UP_AGE
       );
-      this._defaultBirthDate = defaultBirthDate.toISOString();
+      this._defaultBirthDate = localIsoDate(defaultBirthDate);
     }
     return this._defaultBirthDate;
   }
@@ -1071,13 +1073,8 @@ export class SignUpPage implements OnInit, OnDestroy {
     return new Date(today.getFullYear(), today.getMonth(), today.getDate());
   }
 
-  private toDateOnly(value: string | Date): Date | null {
-    const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return null;
-    }
-
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  private toDateOnly(value: string): Date | null {
+    return parseLocalIsoDate(value);
   }
 
   private getControlsForSlideIndex(index: number): string[] {
@@ -1159,10 +1156,6 @@ export class SignUpPage implements OnInit, OnDestroy {
 
     // Avanzar al slide de la ficha
     this.swiper.slideNext();
-  }
-
-  public calculateBirh(date): void {
-    this.dateValue = this.userService.getAge(new Date(date));
   }
 
   // public setActivityType(): void {

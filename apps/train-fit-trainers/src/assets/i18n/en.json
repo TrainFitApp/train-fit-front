@@ -247,6 +247,7 @@
       "PICK_FILE": "Choose the video",
       "PICK_FILE_HINT": "MP4 or MOV, up to 3 minutes.",
       "LINK": "Link",
+      "LINK_EDIT_HINT": "YouTube or Vimeo. The change reaches every exercise and client using this video.",
       "TITLE": "Title",
       "CUES": "Technique cues",
       "OPTIONAL": "(optional)",
@@ -258,7 +259,8 @@
       "SAVE": "Save changes",
       "ADD_TO_LIBRARY": "Add to library",
       "OPEN_MEDIA": "See photos and videos",
-      "PHOTOS_MOVED": "The client's progress photos and videos, with the comparison tool, have their own tab."
+      "PHOTOS_MOVED": "The client's progress photos and videos, with the comparison tool, have their own tab.",
+      "LINK_INVALID": "That link is not from YouTube or Vimeo. Paste the video link (the one from «Share»)."
     }
   },
   "REVIEW_QUEUE": {
@@ -1397,7 +1399,17 @@
       "readiness": "Readiness and perceived effort",
       "adherence": "Adherence to the prescription"
     },
-    "OPEN_ENDED": "open-ended"
+    "OPEN_ENDED": "open-ended",
+    "INVITAR_CLIENTES": "Invite clients",
+    "MEDIDAS_INICIALES": "Starting measurements",
+    "NO_LA_MANDO": "Not sent",
+    "FOTOS_DE_INICIO": "Starting photos",
+    "VER_FOTO": "View photo: {{pose}}",
+    "NO_MANDO_FOTOS": "No photos sent.",
+    "FALTAN_POSES": "No photo for: {{poses}}.",
+    "VIDEOS_PEDIDOS": "Videos",
+    "VIDEO_BORRADO": "Sent, then deleted from their progress.",
+    "NO_LO_MANDO": "Not sent."
   },
   "CLIENT_SUMMARY": {
     "DIMENSIONS": {
@@ -2871,7 +2883,7 @@
   "INVITES": {
     "ELIGE_UN_AMBITO": "Choose an area",
     "NO_SE_PUDO_CARGAR_LA": "We couldn't load the questionnaire settings.",
-    "ELIGE_QUE_LE_PREGUNTAS_UN": "Choose what you ask a new client. Fields you turn off won't appear in their questionnaire.",
+    "ELIGE_QUE_LE_PREGUNTAS_UN": "Choose what you ask the clients you invite now. It is saved for next time, and changing it later does not change the questionnaire of anyone you already invited.",
     "GUARDANDO": "Saving",
     "PREGUNTAS_PERSONALIZADAS": "Custom questions",
     "EL_EMAIL_ES_OBLIGATORIO": "Email is required",
@@ -2934,7 +2946,25 @@
     "INVITACIONES_ENVIADAS_A": "Invitations sent to {{count}} clients",
     "SIN_PLAZAS_LIBRES": "No free seats on your plan",
     "AMPLIAR_PLAZAS": "Add seats",
-    "CERRAR_RESUMEN": "Close summary"
+    "CERRAR_RESUMEN": "Close summary",
+    "MEDIDAS": "Measurements",
+    "MEDIDAS_HINT": "The ones you tick are asked with the same instructions as in check-ins. Tap «Optional» to make a measurement required: without it they cannot send the questionnaire.",
+    "FOTOS_DE_INICIO": "Starting photos",
+    "PEDIR_FOTOS_DE_INICIO": "Ask for starting photos",
+    "POSES": "Poses",
+    "VIDEOS": "Videos",
+    "VIDEOS_HINT": "Write what they have to record, in the words you would use in a message. Each video is a step of their questionnaire, up to 3 minutes long.",
+    "VIDEO_PLACEHOLDER": "E.g. Bodyweight squat, side view",
+    "QUE_TIENE_QUE_GRABAR": "What they have to record",
+    "ANADIR_VIDEO": "Ask for a video",
+    "ANADIR_VIDEO_CONFIRM": "Add video",
+    "BORRAR_VIDEO": "Delete video",
+    "OBLIGATORIA": "Required",
+    "OBLIGATORIAS": "Required",
+    "OBLIGATORIO": "Required",
+    "OPCIONAL": "Optional",
+    "OPCIONALES": "Optional",
+    "OBLIGATORIA_ARIA": "Required: {{label}}"
   },
   "ACCOUNT": {
     "EDITAR_PERFIL": "Edit profile",

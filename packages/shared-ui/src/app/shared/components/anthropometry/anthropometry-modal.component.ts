@@ -5,6 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Anthropometry, AnthropometryDTO } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 import { AnthropometryService } from 'src/app/core/services/anthropometry/anthropometry.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 @Component({
   selector: 'app-anthropometry-modal',
@@ -17,7 +18,9 @@ export class AnthropometryModalComponent implements OnInit {
   @Input() allAnthropometryData: Anthropometry[] = [];
   form: FormGroup;
   isLoading = false;
-  maxDate = new Date().toISOString();
+  // Hoy del dispositivo: en UTC, entre las 00:00 y las 02:00 en España
+  // ion-datetime no dejaba elegir hoy.
+  maxDate = localIsoDate();
   // Solo las medidas que apunta el cliente por su cuenta. El resto del
   // catálogo (masas, hombros, cuádriceps, tobillos…) es de los check-ins que
   // pide el entrenador. Brazo y gemelo van por lado, con los mismos campos

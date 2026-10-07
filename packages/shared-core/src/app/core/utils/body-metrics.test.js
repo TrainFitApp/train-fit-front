@@ -180,6 +180,10 @@ test("totalEnergyExpenditure", async (t) => {
 });
 
 test("ageFromBirthDate", async (t) => {
+  // La fecha de nacimiento es un día de calendario local ("YYYY-MM-DD").
+  const localDay = (date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
   await t.test("cuenta años cumplidos, no diferencia de años", () => {
     const today = new Date();
     // Cumple mañana: todavía tiene 29, no 30.
@@ -187,7 +191,7 @@ test("ageFromBirthDate", async (t) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const birth = new Date(tomorrow);
     birth.setFullYear(birth.getFullYear() - 30);
-    assert.equal(metrics.ageFromBirthDate(birth.toISOString()), 29);
+    assert.equal(metrics.ageFromBirthDate(localDay(birth)), 29);
   });
 
   await t.test("ya cumplido este año", () => {
@@ -196,7 +200,7 @@ test("ageFromBirthDate", async (t) => {
     yesterday.setDate(yesterday.getDate() - 1);
     const birth = new Date(yesterday);
     birth.setFullYear(birth.getFullYear() - 30);
-    assert.equal(metrics.ageFromBirthDate(birth.toISOString()), 30);
+    assert.equal(metrics.ageFromBirthDate(localDay(birth)), 30);
   });
 
   await t.test("sin fecha o con fecha inválida devuelve null", () => {

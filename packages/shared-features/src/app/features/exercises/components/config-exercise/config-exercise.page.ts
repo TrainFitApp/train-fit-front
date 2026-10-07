@@ -154,6 +154,10 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     return !this.isCreateMode && !!this.scoreEditHandler && !!this.scorableExercise?._id;
   }
 
+  public get canSaveExercise(): boolean {
+    return !this.form?.invalid && !!this.form?.get('name')?.value?.trim();
+  }
+
   public editScore(): void {
     if (!this.scorableExercise) return;
     this.scoreEditHandler?.editScore(this.scorableExercise, this.modal);

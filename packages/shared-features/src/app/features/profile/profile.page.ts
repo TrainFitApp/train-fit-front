@@ -60,6 +60,7 @@ import { TABLE_GROUPS, TABLE_GROUPS_VALUES } from './models/tableGroups';
 import { EditorPage } from './components/configuration/components/editor/editor.page';
 import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 import { ProfileCoachCardComponent } from './components/coach-card/profile-coach-card.component';
+import { ageFromBirthDate } from 'src/app/core/utils/body-metrics.util';
 import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 @Component({
@@ -280,21 +281,7 @@ export class ProfilePage implements OnInit {
   }
 
   public getUserAge(): number {
-    if (!this.user?.birth) return 0;
-
-    const birthDate = new Date(this.user.birth);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
+    return ageFromBirthDate(this.user?.birth) ?? 0;
   }
 
   public getStepsDescription(): string {
@@ -572,7 +559,7 @@ export class ProfilePage implements OnInit {
     this.navigationService.goToCalculatorList();
   }
 
-  public getAge(birth: Date) {
+  public getAge(birth: string) {
     return this.userService.getAge(birth);
   }
 

@@ -9,7 +9,7 @@ interface ActiveProfessionalSummary {
 }
 
 interface PendingInviteSummary {
-  _id: string;
+  trainerId: string;
 }
 
 // Tab Coach, Fase 1 — detecta si el usuario autenticado tiene algo que ver

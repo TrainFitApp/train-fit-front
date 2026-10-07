@@ -132,6 +132,9 @@
               <span class="chip chip--accent" *ngIf="day.answersCheckin">
                 <ion-icon name="clipboard-outline"></ion-icon>{{ 'MEDIA.SENT_IN_CHECKIN' | translate }}
               </span>
+              <span class="chip chip--accent" *ngIf="isClient ? day.answersIntake : day.answersIntakeFor">
+                <ion-icon name="document-text-outline"></ion-icon>{{ 'MEDIA.SENT_IN_INTAKE' | translate }}
+              </span>
               <span class="chip chip--muted" *ngIf="isClient && day.hiddenFromTrainers && status?.hasActiveTrainer">
                 <ion-icon name="eye-off-outline"></ion-icon>{{ 'MEDIA.HIDDEN_FROM_TRAINER' | translate }}
               </span>

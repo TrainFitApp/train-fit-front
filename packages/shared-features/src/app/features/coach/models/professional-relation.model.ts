@@ -10,18 +10,26 @@ export interface ProfessionalSummary {
   scopes: ProfessionalScope[];
 }
 
+// Invitación sin responder: UNA por profesional, con todos los scopes a los
+// que invita. Se acepta o rechaza entera, y aceptarla deja un solo
+// cuestionario de alta para todo lo que lleva.
 export interface PendingInvite {
-  _id: string;
   trainerId: string;
-  clientEmail: string;
-  scope: ProfessionalScope;
-  status: 'pending' | 'active' | 'declined' | 'revoked';
+  scopes: ProfessionalScope[];
   invitedAt: string;
   trainer: {
     name: string;
     lastname: string;
     email: string;
   } | null;
+}
+
+// Respuesta a aceptar/rechazar: los scopes respondidos ahora y los que
+// siguen pendientes (entretanto aceptó a otro profesional de ese scope).
+export interface InviteResponse {
+  trainerId: string;
+  scopes: ProfessionalScope[];
+  pending: ProfessionalScope[];
 }
 
 // F22 — relación pasada (ya no activa) con un profesional.

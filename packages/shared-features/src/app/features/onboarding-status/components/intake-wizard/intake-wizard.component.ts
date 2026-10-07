@@ -8,7 +8,9 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  inject,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import Swiper from 'swiper';
 import {
   IntakeFieldKey,
@@ -27,6 +29,13 @@ import { calculateTrainingValues } from 'src/app/shared/constants/training';
 import { SEX_TYPES } from 'src/app/shared/constants/sex';
 import { OBJETIVES_VALUES } from 'src/app/shared/constants/objetives';
 import { CustomAnswerValue, CustomQuestion, FREQUENCY_OPTIONS } from 'src/app/core/models/custom-question';
+import { CheckinField, isPlausibleValue } from 'src/app/core/constants/checkin-fields';
+import {
+  INTAKE_MEASUREMENT_FIELDS,
+  IntakeMeasurementRequest,
+  IntakePhotoRequest,
+  IntakeVideoRequest,
+} from 'src/app/core/models/intake-requests';
 
 const STEPS_NOT_COUNTED = STEPS[STEPS_TYPES.notCounted].value;
 
@@ -59,6 +68,18 @@ export interface IntakeWizardPrefill {
   training: number | null; // valor resuelto de calculateTrainingValues
   objective: number | null; // User.objetive (delta kcal con signo)
   customAnswers: Record<string, CustomAnswerValue>;
+  // Lo que ya mandó de lo que pide el profesional: medida por clave, su día
+  // de fotos y un vídeo de progreso por petición (requestId → assetId).
+  measurements: Record<string, number>;
+  photosDayId: string | null;
+  videos: Record<string, string>;
+}
+
+// Una medida que pide el profesional, con su campo del catálogo (etiqueta,
+// unidad, cómo tomarla y cotas).
+interface MeasurementItem {
+  field: CheckinField;
+  required: boolean;
 }
 
 const EXPERIENCE_OPTIONS: { value: IntakeSubmission['experienceLevel']; label: string }[] = [
@@ -106,18 +127,27 @@ const EQUIPMENT_TAG_OPTIONS: { value: EquipmentTag; label: string }[] = [
 // obligatorias (ver isStepBlocked).
 //
 // Los pasos no son una lista fija: dependen de que campos activo el
-// entrenador (enabledFields) mas sus preguntas propias con tipo
-// (customQuestions) — se recalculan en ngOnChanges cada vez que cambia el
-// grupo (el cliente puede cerrar este wizard y abrir el de otro entrenador).
+// entrenador (enabledFields), sus preguntas propias con tipo
+// (customQuestions) y lo que pide además (medidas, fotos y un paso por
+// vídeo) — se recalculan en ngOnChanges cada vez que cambia el grupo (el
+// cliente puede cerrar este wizard y abrir el de otro entrenador).
 @Component({
   selector: 'app-intake-wizard',
   templateUrl: 'intake-wizard.component.html',
   styleUrls: ['intake-wizard.component.scss'],
 })
 export class IntakeWizardComponent implements OnChanges, AfterViewInit {
+  private readonly translate = inject(TranslateService);
+
   @Input() public trainerName = '';
   @Input() public enabledFields: Set<IntakeFieldKey> = new Set();
   @Input() public customQuestions: CustomQuestion[] = [];
+  @Input() public measurementRequests: IntakeMeasurementRequest[] = [];
+  @Input() public photoRequest: IntakePhotoRequest | null = null;
+  @Input() public videoRequests: IntakeVideoRequest[] = [];
+  // Sin almacenamiento de archivos, los pasos de fotos y vídeos no salen
+  // (el back tampoco los exige).
+  @Input() public uploads: { images: boolean; videos: boolean } = { images: true, videos: true };
   @Input() public prefill: IntakeWizardPrefill | null = null;
   // El padre es quien hace la llamada HTTP real (mismo criterio que
   // isProcessing en sign-up.page.ts vive en el componente top-level): este
@@ -180,16 +210,53 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public customAnswers: Record<string, CustomAnswerValue> = {};
   public readonly scaleValues = [1, 2, 3, 4, 5];
 
+  // Lo que pide el profesional además de preguntas.
+  public measurementItems: MeasurementItem[] = [];
+  public measurements: Record<string, number | null> = {};
+  public photosDayId: string | null = null;
+  // Poses obligatorias que faltan (lo cuenta el campo de fotos al cargar).
+  public photosMissing = 0;
+  public videoAnswers: Record<string, string> = {};
+  private videosUploading = new Set<string>();
+
   private stepIds: string[] = [];
 
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes['prefill']) {
       this.applyPrefill();
     }
+    if (changes['measurementRequests']) {
+      // En el orden del catálogo (el mismo que ve el profesional al pedirlas).
+      const required = new Map((this.measurementRequests || []).map((request) => [request.key, request.required]));
+      this.measurementItems = INTAKE_MEASUREMENT_FIELDS.filter((field) => required.has(field.key)).map((field) => ({
+        field,
+        required: !!required.get(field.key),
+      }));
+    }
+    if (changes['photoRequest']) {
+      // Hasta que el campo de fotos cargue, lo obligatorio cuenta como pendiente.
+      this.photosMissing = this.photoRequest?.poses.length || 0;
+    }
     // Tras el prefill: los pasos que traiga deciden si hay paso de actividad.
-    if (changes['enabledFields'] || changes['customQuestions'] || changes['prefill']) {
+    if (
+      changes['enabledFields'] ||
+      changes['customQuestions'] ||
+      changes['prefill'] ||
+      changes['measurementRequests'] ||
+      changes['photoRequest'] ||
+      changes['videoRequests'] ||
+      changes['uploads']
+    ) {
       this.stepIds = this.buildStepOrder();
     }
+  }
+
+  public get showPhotosStep(): boolean {
+    return !!this.photoRequest?.poses?.length && this.uploads.images;
+  }
+
+  public get visibleVideoRequests(): IntakeVideoRequest[] {
+    return this.uploads.videos ? (this.videoRequests || []).filter((request) => !!request._id) : [];
   }
 
   public ngAfterViewInit(): void {
@@ -219,6 +286,10 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     this.objective = p?.objective ?? null;
     this.updateTrainingOptions();
     this.customAnswers = { ...(p?.customAnswers || {}) };
+    this.measurements = { ...(p?.measurements || {}) };
+    this.photosDayId = p?.photosDayId || null;
+    this.videoAnswers = { ...(p?.videos || {}) };
+    this.videosUploading.clear();
   }
 
   // Mismo orden que tenia el formulario de una sola pantalla (para no
@@ -250,6 +321,10 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     if (this.enabledFields.has('cooksAtHome')) ids.push('cooksAtHome');
     if (this.enabledFields.has('dietaryFlags')) ids.push('dietaryFlags');
     this.customQuestions.forEach((q) => ids.push(`custom:${q._id}`));
+    // Lo que pide además, al final: cinta métrica, espejo y cámara juntos.
+    if (this.measurementItems.length) ids.push('measurements');
+    if (this.showPhotosStep) ids.push('photos');
+    this.visibleVideoRequests.forEach((request) => ids.push(`video:${request._id}`));
     return ids;
   }
 
@@ -267,14 +342,66 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   }
 
   // Pasos que no se pueden saltar: la actividad sin contar pasos (como en
-  // el registro, es lo único que estima el gasto diario) y las preguntas
-  // propias que el profesional marcó como obligatorias.
+  // el registro, es lo único que estima el gasto diario), las preguntas
+  // propias, medidas, fotos y vídeos que el profesional marcó como
+  // obligatorios, una medida imposible y un vídeo que aún se está subiendo.
   public get isStepBlocked(): boolean {
     if (this.readonly) return false;
     const stepId = this.stepIds[this.currentStep];
     if (stepId === 'activity') return this.activity === null;
+    if (stepId === 'measurements') {
+      return this.measurementItems.some(
+        (item) => this.isMeasurementInvalid(item) || (item.required && this.measurements[item.field.key] == null)
+      );
+    }
+    if (stepId === 'photos') return !!this.photoRequest?.required && this.photosMissing > 0;
+    if (stepId?.startsWith('video:')) {
+      const requestId = stepId.slice('video:'.length);
+      if (this.videosUploading.has(requestId)) return true;
+      const request = this.visibleVideoRequests.find((item) => item._id === requestId);
+      return !!request?.required && !this.videoAnswers[requestId];
+    }
     const question = this.customQuestions.find((q) => `custom:${q._id}` === stepId);
     return !!question?.required && !this.hasCustomAnswer(question);
+  }
+
+  // --- Medidas, fotos y vídeos que pide el profesional ---
+
+  public setMeasurement(key: string, value: number | string | null): void {
+    const parsed = value === null || value === '' ? null : Number(String(value).replace(',', '.'));
+    this.measurements[key] = parsed !== null && Number.isFinite(parsed) ? parsed : null;
+  }
+
+  // Mismas cotas que los check-ins: cazan el dedo que resbala (44 por 84),
+  // no vigilan el físico de nadie.
+  public isMeasurementInvalid(item: MeasurementItem): boolean {
+    const value = this.measurements[item.field.key];
+    return value != null && !isPlausibleValue(item.field, value);
+  }
+
+  public trackByMeasurement(_index: number, item: MeasurementItem): string {
+    return item.field.key;
+  }
+
+  public setVideo(request: IntakeVideoRequest, assetId: string | null): void {
+    if (assetId) this.videoAnswers[request._id!] = assetId;
+    else delete this.videoAnswers[request._id!];
+  }
+
+  public setVideoUploading(request: IntakeVideoRequest, uploading: boolean): void {
+    if (uploading) this.videosUploading.add(request._id!);
+    else this.videosUploading.delete(request._id!);
+  }
+
+  public trackByVideoRequest(_index: number, request: IntakeVideoRequest): string {
+    return request._id || request.label;
+  }
+
+  /** "frente, perfil y espalda" en el idioma del cliente. */
+  public poseList(poses: string[]): string {
+    const names = poses.map((pose) => this.translate.instant('MEDIA.POSE_' + pose.toUpperCase()).toLowerCase());
+    if (names.length < 2) return names.join('');
+    return `${names.slice(0, -1).join(', ')} ${this.translate.instant('COACH.AND').trim()} ${names[names.length - 1]}`;
   }
 
   public trackByStepId(_index: number, id: string): string {
@@ -366,10 +493,16 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     this.selectSingleChip((v) => (this.cooksAtHome = v), value);
   }
 
+  // "Sin material" excluye al resto: marcarlo limpia lo demas y marcar
+  // cualquier otro material lo quita.
   public toggleEquipmentTag(tag: EquipmentTag): void {
-    this.equipmentTags = this.equipmentTags.includes(tag)
-      ? this.equipmentTags.filter((t) => t !== tag)
-      : [...this.equipmentTags, tag];
+    if (this.equipmentTags.includes(tag)) {
+      this.equipmentTags = this.equipmentTags.filter((t) => t !== tag);
+    } else if (tag === 'none') {
+      this.equipmentTags = ['none'];
+    } else {
+      this.equipmentTags = [...this.equipmentTags.filter((t) => t !== 'none'), tag];
+    }
   }
 
   public toggleDietaryFlag(flag: DietaryFlag): void {
@@ -456,6 +589,13 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
       training: this.training,
       objetive: this.objective,
       customAnswers,
+      measurements: this.measurementItems
+        .filter((item) => this.measurements[item.field.key] != null && !this.isMeasurementInvalid(item))
+        .map((item) => ({ key: item.field.key, value: this.measurements[item.field.key]! })),
+      photosDayId: this.showPhotosStep ? this.photosDayId : null,
+      videos: this.visibleVideoRequests
+        .filter((request) => this.videoAnswers[request._id!])
+        .map((request) => ({ requestId: request._id!, assetId: this.videoAnswers[request._id!] })),
     });
   }
 }

@@ -94,10 +94,12 @@ export class MyShoppingListPage implements OnInit {
 
   public load(): void {
     this.state = 'loading';
+    // Hoy y los días siguientes en el calendario del dispositivo (en UTC,
+    // de madrugada en España el rango se quedaba un día corto).
+    const last = new Date();
+    last.setDate(last.getDate() + this.selectedDays - 1);
     const from = localIsoDate();
-    const to = new Date(Date.now() + (this.selectedDays - 1) * 86400000)
-      .toISOString()
-      .slice(0, 10);
+    const to = localIsoDate(last);
 
     this.myShoppingListApi.getMine(from, to).subscribe({
       next: (list) => {

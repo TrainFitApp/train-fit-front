@@ -38,27 +38,27 @@
     </p>
 
     <!-- Invitaciones sin aceptar todavia -->
-    <div class="trainer-row trainer-row--invite" *ngFor="let invite of pendingInvites; trackBy: trackByInviteId">
+    <div class="trainer-row trainer-row--invite" *ngFor="let invite of pendingInvites; trackBy: trackByInviteTrainerId">
       <div class="trainer-row-icon"><ion-icon name="person-add-outline"></ion-icon></div>
       <div class="trainer-row-text">
         <div class="trainer-row-name">{{ invite.trainer ? (invite.trainer.name + ' ' + invite.trainer.lastname) : ('ONBOARDING.A_PROFESSIONAL' | translate) }}</div>
-        <div class="trainer-row-scope">{{ (invite.scope === 'training' ? 'ONBOARDING.SCOPE_TRAINING' : 'ONBOARDING.SCOPE_NUTRITION') | translate }} · {{ 'ONBOARDING.INVITED_YOU' | translate }}</div>
+        <div class="trainer-row-scope">{{ scopeList(invite.scopes) }} · {{ 'ONBOARDING.INVITED_YOU' | translate }}</div>
       </div>
       <div class="trainer-row-actions">
         <button
           class="row-btn row-btn--ghost"
-          [disabled]="respondingInviteId === invite._id"
+          [disabled]="respondingTrainerId === invite.trainerId"
           (click)="respondToInvite(invite, 'decline')"
         >
           {{ 'ONBOARDING.DECLINE' | translate }}
         </button>
         <button
           class="row-btn row-btn--accent"
-          [disabled]="respondingInviteId === invite._id"
+          [disabled]="respondingTrainerId === invite.trainerId"
           (click)="respondToInvite(invite, 'accept')"
         >
-          <span *ngIf="respondingInviteId !== invite._id">{{ 'ONBOARDING.ACCEPT' | translate }}</span>
-          <ion-spinner name="dots" *ngIf="respondingInviteId === invite._id"></ion-spinner>
+          <span *ngIf="respondingTrainerId !== invite.trainerId">{{ 'ONBOARDING.ACCEPT' | translate }}</span>
+          <ion-spinner name="dots" *ngIf="respondingTrainerId === invite.trainerId"></ion-spinner>
         </button>
       </div>
     </div>
@@ -95,6 +95,10 @@
   [trainerName]="fillingGroup?.trainerName || ''"
   [enabledFields]="fillingGroup?.enabledFields || emptyFieldSet"
   [customQuestions]="fillingGroup?.customQuestions || []"
+  [measurementRequests]="fillingGroup?.measurementRequests || []"
+  [photoRequest]="fillingGroup?.photoRequest || null"
+  [videoRequests]="fillingGroup?.videoRequests || []"
+  [uploads]="uploads"
   [prefill]="intakePrefill"
   [isSubmitting]="isSubmitting"
   [readonly]="fillingGroup?.intakeStatus === 'reviewed'"

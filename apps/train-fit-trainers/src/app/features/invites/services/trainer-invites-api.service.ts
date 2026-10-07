@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
-import { IntakeFieldKey, IntakeStatus } from 'src/app/core/services/onboarding/onboarding.service';
+import { IntakeStatus } from 'src/app/core/services/onboarding/onboarding.service';
 import {
   ClientEmailScopeStatus,
   ClientIntake,
@@ -10,7 +10,6 @@ import {
   TrainerInviteScope,
   TrainerIntakeConfig,
 } from '../models/trainer-invite.model';
-import { CustomQuestion } from 'src/app/core/models/custom-question';
 
 @Injectable({ providedIn: 'root' })
 export class TrainerInvitesApiService {
@@ -77,16 +76,9 @@ export class TrainerInvitesApiService {
     return this.http.get<TrainerIntakeConfig>('trainer/intake-config');
   }
 
-  public updateIntakeConfig(
-    enabledFields: IntakeFieldKey[],
-    customQuestions: CustomQuestion[],
-    lastScopes: TrainerInviteScope[]
-  ): Observable<TrainerIntakeConfig> {
-    return this.http.put<TrainerIntakeConfig>('trainer/intake-config', {
-      enabledFields,
-      customQuestions,
-      lastScopes,
-    });
+  // La configuración entera: lo que no se mande se queda vacío.
+  public updateIntakeConfig(config: Omit<TrainerIntakeConfig, 'trainerId' | 'catalog'>): Observable<TrainerIntakeConfig> {
+    return this.http.put<TrainerIntakeConfig>('trainer/intake-config', config);
   }
 
   // Estado por scope (training/nutrition) de este email con ESTE trainer —

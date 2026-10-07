@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,11 +10,23 @@ import {
   ClientEmailScopeState,
   ClientEmailScopeStatus,
   SendInviteResult,
+  TrainerIntakeConfig,
   TrainerInvite,
   TrainerInviteScope,
   TrainerInviteStatus,
 } from './models/trainer-invite.model';
 import { CustomQuestion } from 'src/app/core/models/custom-question';
+import { CheckinField } from 'src/app/core/constants/checkin-fields';
+import {
+  INTAKE_MEASUREMENT_FIELDS,
+  INTAKE_PHOTO_POSES,
+  INTAKE_VIDEO_LABEL_MAX,
+  IntakeMeasurementRequest,
+  IntakePhotoPose,
+  IntakePhotoRequest,
+  IntakeVideoRequest,
+  MAX_INTAKE_VIDEOS,
+} from 'src/app/core/models/intake-requests';
 import {
   MAX_CUSTOM_QUESTIONS,
   cleanCustomQuestion,
@@ -103,6 +115,13 @@ interface GroupedInvite {
   clientEmail: string;
   clientName: string | null;
   rows: InviteRow[];
+}
+
+// Medidas que se pueden pedir, por grupo del catálogo de check-in.
+interface MeasurementGroup {
+  key: string;
+  label: string;
+  fields: CheckinField[];
 }
 
 @Component({
@@ -209,10 +228,6 @@ export class InvitesPage implements OnInit {
   public readonly intakeConfigFields = Object.keys(this.intakeFieldLabels) as IntakeFieldKey[];
   public selectedIntakeFields = new Set<IntakeFieldKey>();
   public savingIntakeConfig = false;
-  // El panel ya no es un accordion manual — aparece solo en cuanto se marca
-  // Entrenamiento y/o Nutrición arriba (ver hasScopeSelected/template), y se
-  // pide la config la primera vez que eso ocurre.
-  private intakeConfigRequested = false;
 
   // Preguntas de texto libre que el trainer añade además de los 9 campos
   // predefinidos — mismo documento (TrainerIntakeConfig), mismo botón
@@ -241,6 +256,28 @@ export class InvitesPage implements OnInit {
     'dislikedFoods',
     'cooksAtHome',
   ];
+
+  // Lo que le pide además de preguntas (core/models/intake-requests.ts).
+  // Medidas y fotos se recuerdan entre visitas, como los campos; los vídeos
+  // son textos suyos, como las preguntas propias, y se marcan en cada tanda.
+  public readonly measurementGroups: MeasurementGroup[] = (['composicion_corporal', 'perimetros'] as const).map((key) => ({
+    key,
+    label: this.translate.instant(`CHECKIN_FIELD_GROUPS.${key}`),
+    fields: INTAKE_MEASUREMENT_FIELDS.filter((field) => field.group === key),
+  }));
+  // Clave de la medida → obligatoria.
+  public selectedMeasurements = new Map<string, boolean>();
+  public photoRequest: IntakePhotoRequest | null = null;
+  public readonly photoPoses = INTAKE_PHOTO_POSES;
+  public videoRequests: IntakeVideoRequest[] = [];
+  // Vídeo a medio escribir (null = solo se ve el botón de añadir).
+  public videoDraft: string | null = null;
+  public readonly maxVideos = MAX_INTAKE_VIDEOS;
+  public readonly videoLabelMax = INTAKE_VIDEO_LABEL_MAX;
+  // Al abrir el campo de un vídeo nuevo, el cursor va directo a él.
+  @ViewChild('videoDraftInput') public set videoDraftInput(input: ElementRef<HTMLInputElement> | undefined) {
+    input?.nativeElement.focus();
+  }
 
   constructor(
     private trainerInvitesApi: TrainerInvitesApiService,
@@ -510,14 +547,17 @@ export class InvitesPage implements OnInit {
       return;
     }
 
-    // El cuestionario (checkboxes + preguntas custom) ya no se guarda en
-    // cada click — se manda junto con la invitación, solo si el trainer
-    // llegó a abrir el panel (si no, no hay nada que guardar).
-    if (this.intakeConfigRequested) {
-      this.saveIntakeConfig();
+    // El cuestionario (campos, preguntas, medidas, fotos y vídeos) no se
+    // guarda en cada click: se guarda al enviar, y ANTES de enviar, porque
+    // cada invitación se lleva una copia de lo guardado. Si no se puede
+    // guardar, no sale ninguna invitación con un formulario que no es el
+    // que se ve en pantalla.
+    this.isSending = true;
+    if (!(await this.saveIntakeConfig())) {
+      this.isSending = false;
+      return;
     }
 
-    this.isSending = true;
     this.sendReport = null;
     this.sendProgress = { done: 0, total: entries.length };
     const report: SendReport = { failures: [], seatsExhausted: false };
@@ -660,7 +700,6 @@ export class InvitesPage implements OnInit {
   }
 
   public loadIntakeConfig(): void {
-    this.intakeConfigRequested = true;
     this.intakeConfigState = 'loading';
     this.trainerInvitesApi.getIntakeConfig().subscribe({
       next: (config) => {
@@ -682,6 +721,10 @@ export class InvitesPage implements OnInit {
         // addCustomQuestion, que se añade después de esta carga y por tanto
         // no pasa por aquí).
         this.customQuestions = (config.customQuestions || []).map((q) => ({ ...q, enabled: false }));
+        // Igual que las preguntas propias: los vídeos guardados aparecen sin
+        // marcar y se marcan para esta tanda.
+        this.applyRequests(config);
+        this.videoRequests = this.videoRequests.map((video) => ({ ...video, enabled: false }));
         this.intakeConfigState = 'loaded';
       },
       error: () => {
@@ -744,29 +787,136 @@ export class InvitesPage implements OnInit {
     return question.required ? `${type} · ${this.translate.instant('CUSTOM_QUESTION.REQUIRED')}` : type;
   }
 
-  // Ya no se guarda en cada click de checkbox — se manda una sola vez junto
-  // con el envío de la invitación (ver submit()), así que aquí solo hace
-  // falta la guarda normal contra doble-disparo.
-  public saveIntakeConfig(): void {
-    if (this.savingIntakeConfig) return;
+  // --- Medidas, fotos y vídeos que le pide ---
+
+  private applyRequests(config: TrainerIntakeConfig): void {
+    this.selectedMeasurements = new Map((config.measurements || []).map((m) => [m.key, m.required === true]));
+    this.photoRequest = config.photos ? { poses: [...config.photos.poses], required: config.photos.required === true } : null;
+    this.videoRequests = (config.videos || []).map((video) => ({ ...video }));
+  }
+
+  public isMeasurementSelected(key: string): boolean {
+    return this.selectedMeasurements.has(key);
+  }
+
+  public isMeasurementRequired(key: string): boolean {
+    return this.selectedMeasurements.get(key) === true;
+  }
+
+  // Marcar una medida la pide como opcional; obligatoria es un paso más.
+  public toggleMeasurement(key: string): void {
+    if (this.selectedMeasurements.has(key)) this.selectedMeasurements.delete(key);
+    else this.selectedMeasurements.set(key, false);
+  }
+
+  public toggleMeasurementRequired(key: string): void {
+    if (this.selectedMeasurements.has(key)) this.selectedMeasurements.set(key, !this.selectedMeasurements.get(key));
+  }
+
+  public get measurementCount(): number {
+    return this.selectedMeasurements.size;
+  }
+
+  public trackByMeasurementGroup(_index: number, group: MeasurementGroup): string {
+    return group.key;
+  }
+
+  public trackByField(_index: number, field: CheckinField): string {
+    return field.key;
+  }
+
+  public togglePhotos(): void {
+    this.photoRequest = this.photoRequest ? null : { poses: [...INTAKE_PHOTO_POSES], required: false };
+  }
+
+  // Siempre queda al menos una pose: quitar la última es no pedir fotos.
+  public togglePose(pose: IntakePhotoPose): void {
+    if (!this.photoRequest) return;
+    const poses = this.photoRequest.poses.includes(pose)
+      ? this.photoRequest.poses.filter((item) => item !== pose)
+      : INTAKE_PHOTO_POSES.filter((item) => item === pose || this.photoRequest!.poses.includes(item));
+    if (poses.length) this.photoRequest = { ...this.photoRequest, poses };
+  }
+
+  public togglePhotosRequired(): void {
+    if (this.photoRequest) this.photoRequest = { ...this.photoRequest, required: !this.photoRequest.required };
+  }
+
+  public startVideo(): void {
+    this.videoDraft = '';
+  }
+
+  public cancelVideo(): void {
+    this.videoDraft = null;
+  }
+
+  public onVideoDraft(event: Event): void {
+    this.videoDraft = (event.target as HTMLInputElement).value;
+  }
+
+  // Enter añade el vídeo en vez de enviar la invitación (appSubmitOnEnter
+  // ignora un evento ya consumido).
+  public onVideoDraftKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    this.addVideo();
+  }
+
+  // Uno recién creado sale marcado: se pide en esta invitación.
+  public addVideo(): void {
+    const label = (this.videoDraft || '').trim().slice(0, INTAKE_VIDEO_LABEL_MAX);
+    if (!label || this.videoRequests.length >= MAX_INTAKE_VIDEOS) return;
+    this.videoRequests = [...this.videoRequests, { label, required: false, enabled: true }];
+    this.videoDraft = null;
+  }
+
+  public removeVideo(index: number): void {
+    this.videoRequests = this.videoRequests.filter((_, i) => i !== index);
+  }
+
+  public toggleVideoEnabled(index: number): void {
+    this.videoRequests = this.videoRequests.map((video, i) => (i === index ? { ...video, enabled: video.enabled === false } : video));
+  }
+
+  public toggleVideoRequired(index: number): void {
+    this.videoRequests = this.videoRequests.map((video, i) => (i === index ? { ...video, required: !video.required } : video));
+  }
+
+  // Ya no se guarda en cada click: se guarda una sola vez al enviar las
+  // invitaciones (ver submit()), que se llevan una copia de lo guardado.
+  // Sin la configuración cargada no se guarda nada (se pisaría la que
+  // tiene con una vacía): las invitaciones copian la que ya estaba.
+  public async saveIntakeConfig(): Promise<boolean> {
+    if (this.intakeConfigState !== 'loaded') return true;
+    if (this.savingIntakeConfig) return false;
     this.savingIntakeConfig = true;
-    const lastScopes = this.selectedScopes;
-    this.trainerInvitesApi
-      .updateIntakeConfig([...this.selectedIntakeFields], this.customQuestions, lastScopes)
-      .subscribe({
-        next: (config) => {
-          this.savingIntakeConfig = false;
-          this.selectedIntakeFields = new Set(config.enabledFields);
-          this.customQuestions = config.customQuestions || [];
-        },
-        error: (err) => {
-          this.savingIntakeConfig = false;
-          this.ionicUtilService.showErrorToast(
-            err?.error?.message || this.translate.instant('INVITES.NO_SE_PUDO_GUARDAR_LA'),
-            this.translate.instant('COMMON.ERROR'),
-            3000
-          );
-        },
-      });
+    const measurements: IntakeMeasurementRequest[] = INTAKE_MEASUREMENT_FIELDS.filter((field) =>
+      this.selectedMeasurements.has(field.key)
+    ).map((field) => ({ key: field.key, required: this.selectedMeasurements.get(field.key) === true }));
+    try {
+      const config = await lastValueFrom(
+        this.trainerInvitesApi.updateIntakeConfig({
+          enabledFields: [...this.selectedIntakeFields],
+          customQuestions: this.customQuestions,
+          measurements,
+          photos: this.photoRequest,
+          videos: this.videoRequests,
+          lastScopes: this.selectedScopes,
+        })
+      );
+      this.selectedIntakeFields = new Set(config.enabledFields);
+      this.customQuestions = config.customQuestions || [];
+      this.applyRequests(config);
+      return true;
+    } catch (err: any) {
+      this.ionicUtilService.showErrorToast(
+        err?.error?.message || this.translate.instant('INVITES.NO_SE_PUDO_GUARDAR_LA'),
+        this.translate.instant('COMMON.ERROR'),
+        3000
+      );
+      return false;
+    } finally {
+      this.savingIntakeConfig = false;
+    }
   }
 }

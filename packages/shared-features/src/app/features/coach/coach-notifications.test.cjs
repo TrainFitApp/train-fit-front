@@ -4,6 +4,7 @@ const path = require('node:path');
 const Module = require('node:module');
 const { buildSync } = require('esbuild');
 const { of, Subject } = require('rxjs');
+const { angularCoreStub } = require('../../../../../../tests/support/ng-harness.cjs');
 
 // Ejecuta los métodos reales de CoachPage, con Angular/Ionic fuera del test.
 const bundled = buildSync({
@@ -17,7 +18,9 @@ const bundled = buildSync({
 });
 const compiled = new Module(__filename);
 compiled.require = (name) => {
-  if (name === '@angular/core') return { Component: () => (target) => target };
+  // Stub completo: coach.page importa valores de servicios con @Injectable
+  // (OPEN_INTAKE_TRAINER_KEY de onboarding.service).
+  if (name === '@angular/core') return angularCoreStub();
   if (name === '@angular/animations') {
     return Object.fromEntries(['animate', 'group', 'query', 'style', 'transition', 'trigger'].map((key) => [key, () => ({})]));
   }
@@ -58,12 +61,13 @@ function harness(items = [notification('one'), notification('two')]) {
   };
   // Las dependencias van por POSICIÓN: el orden es el del constructor de
   // CoachPage (router, professionalsApi, coachDashboardApi, notificationsApi,
-  // tasksApi, coachService, notificationsService, onboardingService,
-  // ionicUtilService, translate). Añadir una dependencia nueva en medio
-  // desplaza todo lo de abajo — ver el assert de más abajo, que lo detecta.
+  // habitsService, coachService, notificationsService, onboardingService,
+  // navigationService, ionicUtilService, translate). Añadir una dependencia
+  // nueva en medio desplaza todo lo de abajo — ver el assert de más abajo,
+  // que lo detecta.
   const page = new CoachPage(
     { navigate: (...args) => { calls.navigate.push(args); return Promise.resolve(true); } },
-    {}, {}, api, {}, {}, badge, {},
+    {}, {}, api, {}, {}, badge, {}, {},
     { showErrorToast: (...args) => { calls.errors.push(args); } },
     { instant: (key) => key }
   );
@@ -77,13 +81,13 @@ function harness(items = [notification('one'), notification('two')]) {
     typeof page.ionicUtilService?.showErrorToast,
     'function',
     'El constructor de CoachPage ha cambiado de orden: ionicUtilService ya no ' +
-      'cae en la posición 9. Reordena los dobles de arriba.'
+      'cae en la posición 10. Reordena los dobles de arriba.'
   );
   assert.equal(
     typeof page.translate?.instant,
     'function',
     'El constructor de CoachPage ha cambiado de orden: translate ya no cae en ' +
-      'la posición 10. Reordena los dobles de arriba.'
+      'la posición 11. Reordena los dobles de arriba.'
   );
   page.notificationsState = 'loaded';
   page.notifications = [...items];

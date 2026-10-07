@@ -8,9 +8,10 @@ import { MediaGateService } from './media-gate.service';
 import { PhotoSessionModalComponent } from './photo-session-modal.component';
 
 /**
- * Campo «Fotos de progreso» de un check-in. La respuesta es el día de
- * progreso (su id): el cliente hace las fotos con la misma captura guiada de
- * Medidas › Fotos y quedan enviadas al profesional que pidió el check-in.
+ * Campo «Fotos de progreso» de un check-in o del cuestionario de alta
+ * (`mode`). La respuesta es el día de progreso (su id): el cliente hace las
+ * fotos con la misma captura guiada de Medidas › Fotos y quedan enviadas al
+ * profesional que las pidió. `readonly`: enseña las fotos, sin cambiarlas.
  */
 @Component({
   selector: 'app-checkin-photos-field',
@@ -20,7 +21,12 @@ import { PhotoSessionModalComponent } from './photo-session-modal.component';
 export class CheckinPhotosFieldComponent implements OnInit {
   @Input() public value: unknown = null;
   @Input() public poses: ProgressPose[] | undefined = REQUIRED_POSES;
+  @Input() public mode: 'checkin' | 'intake' = 'checkin';
+  @Input() public readonly = false;
   @Output() public valueChange = new EventEmitter<string | null>();
+  // Las poses que faltan cada vez que cambian (para bloquear el paso en el
+  // cuestionario de alta mientras falten las obligatorias).
+  @Output() public missingChange = new EventEmitter<number>();
 
   public day: ProgressDayView | null = null;
   public previousDay: ProgressDayView | null = null;
@@ -39,17 +45,22 @@ export class CheckinPhotosFieldComponent implements OnInit {
 
   public async ngOnInit(): Promise<void> {
     try {
+      // Un check-in es de esta semana; el cuestionario de alta se puede
+      // reabrir meses después y su día de fotos tiene que seguir apareciendo.
       const from = this.utilService.formatDateToYYYYMMDD(new Date(Date.now() - 60 * 86400000));
-      const { days } = await firstValueFrom(this.mediaApi.listMyProgress({ from }));
+      const { days } = await firstValueFrom(this.mediaApi.listMyProgress(this.mode === 'intake' ? {} : { from }));
       const withPhotos = days.filter((day) => day.photos.length);
-      // Lo ya respondido manda; si no, las fotos de hoy si las hay.
-      this.day = withPhotos.find((day) => day.id === this.value) || withPhotos.find((day) => day.date === this.today) || null;
+      // Lo ya respondido manda; si no, las fotos de hoy si las hay (en solo
+      // lectura, solo lo respondido).
+      const answered = withPhotos.find((day) => day.id === this.value) || null;
+      this.day = this.readonly ? answered : answered || withPhotos.find((day) => day.date === this.today) || null;
       this.previousDay = withPhotos.find((day) => day.date < (this.day?.date || this.today)) || null;
-      if (this.day && this.day.id !== this.value) this.valueChange.emit(this.day.id);
+      if (!this.readonly && (this.day?.id || null) !== (this.value || null)) this.valueChange.emit(this.day?.id || null);
     } catch {
       this.day = null;
     } finally {
       this.loading = false;
+      this.missingChange.emit(this.missing);
     }
   }
 
@@ -62,6 +73,7 @@ export class CheckinPhotosFieldComponent implements OnInit {
   }
 
   public async open(): Promise<void> {
+    if (this.readonly) return;
     const gate = await this.mediaGate.ensureCanUpload();
     if (gate !== 'ok') return;
     const date = this.day?.date || this.today;
@@ -72,7 +84,7 @@ export class CheckinPhotosFieldComponent implements OnInit {
         day: this.day,
         previousDay: this.previousDay,
         hasTrainer: true,
-        mode: 'checkin',
+        mode: this.mode,
         poses: this.poses?.length ? this.poses : REQUIRED_POSES,
       },
       cssClass: 'fullscreen-modal',
@@ -82,5 +94,6 @@ export class CheckinPhotosFieldComponent implements OnInit {
     const updated = (result.data as ProgressDayView | null) || null;
     this.day = updated;
     this.valueChange.emit(updated?.photos?.length ? updated.id : null);
+    this.missingChange.emit(this.missing);
   }
 }

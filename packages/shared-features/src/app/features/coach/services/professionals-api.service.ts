@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import {
   HistoryEntry,
+  InviteResponse,
   PendingInvite,
   ProfessionalScope,
   ProfessionalSummary,
@@ -20,12 +21,13 @@ export class ProfessionalsApiService {
     return this.http.get<ProfessionalSummary[]>('trainer/info');
   }
 
-  public acceptInvite(id: string): Observable<unknown> {
-    return this.http.post(`trainer/invites/${id}/accept`, {});
+  // Se responde por profesional: todos sus scopes pendientes a la vez.
+  public acceptInvite(trainerId: string): Observable<InviteResponse> {
+    return this.http.post<InviteResponse>(`trainer/invites/${trainerId}/accept`, {});
   }
 
-  public declineInvite(id: string): Observable<unknown> {
-    return this.http.post(`trainer/invites/${id}/decline`, {});
+  public declineInvite(trainerId: string): Observable<InviteResponse> {
+    return this.http.post<InviteResponse>(`trainer/invites/${trainerId}/decline`, {});
   }
 
   public unlinkProfessional(scope: ProfessionalScope): Observable<unknown> {

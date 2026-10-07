@@ -404,6 +404,91 @@
         </ng-container>
       </div>
     </swiper-slide>
+
+    <!-- Medidas que pide el profesional: cada una con cómo tomarla (las
+         mismas instrucciones que en los check-ins, para que la primera
+         medida sea comparable con las siguientes). -->
+    <swiper-slide *ngIf="measurementItems.length">
+      <div class="form-section">
+        <h2 class="section-title">{{ 'INTAKE.MEASUREMENTS_TITLE' | translate }}</h2>
+        <p class="section-subtitle">{{ 'INTAKE.MEASUREMENTS_SUBTITLE' | translate: { name: trainerName } }}</p>
+        <ul class="measure-list">
+          <li class="measure" *ngFor="let item of measurementItems; trackBy: trackByMeasurement" [class.is-invalid]="isMeasurementInvalid(item)">
+            <label class="measure-text" [attr.for]="'measure-' + item.field.key">
+              <span class="measure-name">
+                {{ item.field.label }}
+                <span class="measure-tag" [class.measure-tag--required]="item.required">
+                  {{ (item.required ? 'INTAKE.REQUIRED' : 'INTAKE.OPTIONAL') | translate }}
+                </span>
+              </span>
+              <span class="measure-hint" *ngIf="item.field.hint">{{ item.field.hint }}</span>
+            </label>
+            <span class="measure-input">
+              <input
+                type="number"
+                inputmode="decimal"
+                appNumericKeypad
+                [id]="'measure-' + item.field.key"
+                [ngModel]="measurements[item.field.key]"
+                (ngModelChange)="setMeasurement(item.field.key, $event)"
+                [attr.aria-invalid]="isMeasurementInvalid(item)"
+                [attr.aria-describedby]="isMeasurementInvalid(item) ? 'measure-error-' + item.field.key : null"
+              />
+              <span class="measure-unit" aria-hidden="true">{{ item.field.unit }}</span>
+            </span>
+            <p class="measure-error" [id]="'measure-error-' + item.field.key" *ngIf="isMeasurementInvalid(item)" role="alert">
+              {{ 'INTAKE.MEASUREMENT_OUT_OF_RANGE' | translate: { min: item.field.min, max: item.field.max, unit: item.field.unit } }}
+            </p>
+          </li>
+        </ul>
+      </div>
+    </swiper-slide>
+
+    <!-- Fotos de inicio: la misma captura guiada de Medidas › Fotos -->
+    <swiper-slide *ngIf="showPhotosStep">
+      <div class="form-section">
+        <h2 class="section-title">{{ 'INTAKE.PHOTOS_TITLE' | translate }}</h2>
+        <p class="section-subtitle">
+          {{ (photoRequest!.required ? 'INTAKE.PHOTOS_SUBTITLE_REQUIRED' : 'INTAKE.PHOTOS_SUBTITLE_OPTIONAL') | translate: { name: trainerName, poses: poseList(photoRequest!.poses) } }}
+        </p>
+        <app-checkin-photos-field
+          class="media-step"
+          mode="intake"
+          [readonly]="readonly"
+          [poses]="photoRequest!.poses"
+          [value]="photosDayId"
+          (valueChange)="photosDayId = $event"
+          (missingChange)="photosMissing = $event"
+        ></app-checkin-photos-field>
+        <p class="media-privacy">
+          <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+          {{ 'INTAKE.MEDIA_PRIVACY' | translate: { name: trainerName } }}
+        </p>
+      </div>
+    </swiper-slide>
+
+    <!-- Un paso por vídeo pedido, con lo que tiene que grabar como título -->
+    <swiper-slide *ngFor="let request of visibleVideoRequests; trackBy: trackByVideoRequest">
+      <div class="form-section">
+        <h2 class="section-title">{{ request.label }}</h2>
+        <p class="section-subtitle">
+          {{ 'INTAKE.VIDEO_SUBTITLE' | translate: { name: trainerName } }}
+          <ng-container *ngIf="request.required">{{ 'INTAKE.VIDEO_REQUIRED' | translate }}</ng-container>
+        </p>
+        <app-intake-video-field
+          class="media-step"
+          [label]="request.label"
+          [assetId]="videoAnswers[request._id!] || null"
+          [readonly]="readonly"
+          (assetIdChange)="setVideo(request, $event)"
+          (uploadingChange)="setVideoUploading(request, $event)"
+        ></app-intake-video-field>
+        <p class="media-privacy">
+          <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+          {{ 'INTAKE.MEDIA_PRIVACY' | translate: { name: trainerName } }}
+        </p>
+      </div>
+    </swiper-slide>
   </swiper-container>
 </div>
 

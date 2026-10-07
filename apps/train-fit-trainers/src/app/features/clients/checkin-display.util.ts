@@ -3,6 +3,7 @@ import { CHECKIN_FIELDS, CHECKIN_FIELDS_BY_KEY, checkinAnchorFor, scaleLevelsFor
 import { checkinFieldLabel, checkinValueLabel, shortDayLabel } from './checkin-labels.util';
 import { uiLocale, uiText, localizeProp } from 'src/app/core/i18n/localized-catalog';
 import { CustomQuestion } from 'src/app/core/models/custom-question';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 // Cómo se pinta UNA respuesta de check-in en el panel de semana: el peso
 // arriba, los datos agrupados por tipo, la frase que eligió el cliente en cada
@@ -134,6 +135,6 @@ export function buildCheckinDisplay(response: ResponseLike, previous: ResponseLi
     groups: GROUPS.map((group) => ({ ...group, rows: rest.filter((row) => groupOf(row.key) === group.key) })).filter(
       (group) => group.rows.length
     ),
-    comparedTo: previous && rows.some((row) => row.delta) ? shortDayLabel(previous.respondedAt.slice(0, 10)) : null,
+    comparedTo: previous && rows.some((row) => row.delta) ? shortDayLabel(localIsoDate(previous.respondedAt)) : null,
   };
 }

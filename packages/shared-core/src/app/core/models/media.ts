@@ -74,6 +74,9 @@ export interface ProgressDayView {
   hiddenFromTrainers: boolean;
   answersCheckin: boolean;
   answersCheckinFor?: boolean;
+  // Enviado con el cuestionario de alta (fotos de inicio o vídeos pedidos).
+  answersIntake?: boolean;
+  answersIntakeFor?: boolean;
   photos: ProgressPhotoView[];
   videos: ProgressVideoView[];
   anthropometry: Record<string, any> | null;

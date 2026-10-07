@@ -49,6 +49,35 @@
   color: var(--tf-text-faint);
 }
 
+.field-label--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+// La plataforma que se ha reconocido en el enlace (cambia sola al pegar uno
+// de la otra).
+.link-platform {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    font-size: 15px;
+  }
+}
+
+.field-error {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-danger-text);
+}
+
 .field-hint {
   margin: 0;
   font-size: var(--tf-font-size-xs);
@@ -75,6 +104,14 @@
   &:focus-visible {
     outline: 2px solid var(--tf-accent);
     outline-offset: 1px;
+  }
+
+  &--invalid {
+    border-color: var(--tf-danger-border);
+
+    &:focus-visible {
+      outline-color: var(--tf-danger);
+    }
   }
 }
 

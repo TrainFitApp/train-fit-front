@@ -92,3 +92,70 @@
     </div>
   </div>
 </section>
+
+<!-- Medidas que le pidió: lo que mandó, y lo opcional que no. También están
+     en sus medidas de ese día (Progreso). -->
+<section class="intake-section" *ngIf="measurementRows.length">
+  <h5 class="intake-section-title">
+    <ion-icon name="resize-outline" aria-hidden="true"></ion-icon>
+    {{ 'CLIENTS.MEDIDAS_INICIALES' | translate }}
+    <span class="intake-section-meta" *ngIf="intake.measuredOn">{{ intake.measuredOn | localDate: 'd MMM y' }}</span>
+  </h5>
+  <div class="intake-section-fields">
+    <div class="intake-field" *ngFor="let row of measurementRows; trackBy: trackByKey">
+      <span class="intake-field-label">{{ row.label }}</span>
+      <p class="intake-field-value" [class.is-empty]="!row.value">{{ row.value || ('CLIENTS.NO_LA_MANDO' | translate) }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- Fotos de inicio: las ve siempre, aunque el cliente oculte ese día. -->
+<section class="intake-section" *ngIf="photosRequested">
+  <h5 class="intake-section-title">
+    <ion-icon name="camera-outline" aria-hidden="true"></ion-icon>
+    {{ 'CLIENTS.FOTOS_DE_INICIO' | translate }}
+    <span class="intake-section-meta" *ngIf="intake.photos?.date">{{ intake.photos!.date | localDate: 'd MMM y' }}</span>
+  </h5>
+  <div class="intake-photos" *ngIf="intake.photos?.photos?.length; else noPhotos">
+    <button
+      type="button"
+      class="intake-photo"
+      *ngFor="let photo of intake.photos!.photos"
+      (click)="openPhoto(photo.pose)"
+      [attr.aria-label]="'CLIENTS.VER_FOTO' | translate: { pose: poseLabel(photo.pose) }"
+    >
+      <img [src]="photo.asset.thumbUrl || photo.asset.url" [alt]="poseLabel(photo.pose)" loading="lazy" />
+      <span class="intake-photo-pose">{{ poseLabel(photo.pose) }}</span>
+    </button>
+  </div>
+  <ng-template #noPhotos>
+    <p class="intake-field-value is-empty">{{ 'CLIENTS.NO_MANDO_FOTOS' | translate }}</p>
+  </ng-template>
+  <p class="intake-media-note" *ngIf="intake.photos?.photos?.length && missingPoses.length">
+    {{ 'CLIENTS.FALTAN_POSES' | translate: { poses: missingPoseNames } }}
+  </p>
+</section>
+
+<!-- Vídeos que le pidió, cada uno con lo que tenía que grabar. -->
+<section class="intake-section" *ngIf="videoRows.length">
+  <h5 class="intake-section-title">
+    <ion-icon name="videocam-outline" aria-hidden="true"></ion-icon>
+    {{ 'CLIENTS.VIDEOS_PEDIDOS' | translate }}
+  </h5>
+  <div class="intake-videos">
+    <div class="intake-video" *ngFor="let row of videoRows">
+      <span class="intake-field-question">{{ row.label }}</span>
+      <app-media-video-player
+        *ngIf="row.asset"
+        [src]="row.asset.url"
+        [poster]="row.asset.thumbUrl"
+        [status]="row.asset.status"
+        [durationSec]="row.asset.durationSec"
+        [ariaLabel]="row.label"
+      ></app-media-video-player>
+      <p class="intake-field-value is-empty" *ngIf="!row.asset">
+        {{ (row.state === 'deleted' ? 'CLIENTS.VIDEO_BORRADO' : 'CLIENTS.NO_LO_MANDO') | translate }}
+      </p>
+    </div>
+  </div>
+</section>

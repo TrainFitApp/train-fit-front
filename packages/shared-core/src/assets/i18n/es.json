@@ -1633,6 +1633,7 @@
     "NO_RESULTS": "No hay coincidencias",
     "NO_RESULTS_MSG": "Intenta ajustar los filtros o buscar con otros términos",
     "ALL": "Todos",
+    "STRENGTH": "Fuerza",
     "CARDIO": "Cardio",
     "ISOMETRIC": "Isométrico",
     "REPLACE_EXERCISE": "Sustituir ejercicio",
@@ -2391,7 +2392,13 @@
     "DELETE_PHOTO_TITLE": "¿Borrar esta foto?",
     "DELETE_PHOTO_MESSAGE": "Se borrará la foto de {{pose}} de este día. No se puede deshacer.",
     "DELETE_VIDEO_TITLE": "¿Borrar este vídeo?",
-    "DELETE_VIDEO_MESSAGE": "Se borrará para siempre, también para tu entrenador. No se puede deshacer."
+    "DELETE_VIDEO_MESSAGE": "Se borrará para siempre, también para tu entrenador. No se puede deshacer.",
+    "INTAKE_SHARED_NOTE": "Estas fotos van con tu cuestionario: las verá el profesional que te las ha pedido.",
+    "SENT_IN_INTAKE": "En cuestionario",
+    "NO_PHOTOS_SENT": "No enviaste fotos.",
+    "NO_VIDEO_SENT": "No enviaste este vídeo.",
+    "INTAKE_VIDEO_READY": "Vídeo listo para enviar · {{duration}}",
+    "INTAKE_VIDEO_RETAKE": "Grabar otro"
   },
   "CHECKIN_FIELDS": {
     "weight": {
@@ -2821,7 +2828,18 @@
       "pullup_bar": "Barra de dominadas",
       "none": "Sin material"
     },
-    "REQUIRED_ANSWER": "Obligatoria."
+    "REQUIRED_ANSWER": "Obligatoria.",
+    "REQUIRED": "Obligatoria",
+    "OPTIONAL": "Opcional",
+    "MEASUREMENTS_TITLE": "Tus medidas",
+    "MEASUREMENTS_SUBTITLE": "{{name}} te las pide como punto de partida. Tómalas como se indica en cada una: así se podrán comparar con las siguientes.",
+    "MEASUREMENT_OUT_OF_RANGE": "Revisa el valor: tiene que estar entre {{min}} y {{max}} {{unit}}.",
+    "PHOTOS_TITLE": "Fotos de inicio",
+    "PHOTOS_SUBTITLE_REQUIRED": "{{name}} te pide fotos de {{poses}} para ver de dónde partes. Son obligatorias.",
+    "PHOTOS_SUBTITLE_OPTIONAL": "{{name}} te pide fotos de {{poses}} para ver de dónde partes. Puedes enviar el cuestionario sin ellas.",
+    "VIDEO_SUBTITLE": "Vídeo que te pide {{name}}. Grábalo o elige uno de tu galería.",
+    "VIDEO_REQUIRED": "Es obligatorio.",
+    "MEDIA_PRIVACY": "Se guarda en tu progreso, y {{name}} lo verá aunque después ocultes ese día."
   },
   "ONBOARDING": {
     "TITLE": "Cuestionario inicial",
@@ -2898,9 +2916,11 @@
     "AND": " y ",
     "ACCEPTED": "Ahora {{name}} lleva tu {{scopes}}",
     "ACCEPT_ERROR": "No se pudo aceptar",
+    "ACCEPT_TAKEN": "Ya tienes otro profesional que lleva tu {{scopes}}: esa parte sigue pendiente",
+    "INVITE_ONE_INTAKE": "Aceptas las dos cosas a la vez y rellenas un solo cuestionario.",
     "DECLINE_HEADER": "Rechazar invitación",
     "DECLINE_MSG": "¿Seguro que quieres rechazar la invitación de {{name}} ({{scopes}})?",
-    "DECLINE_ERROR": "No se pudo rechazar alguna invitación",
+    "DECLINE_ERROR": "No se pudo rechazar la invitación",
     "UNLINK": "Desvincular",
     "UNLINK_MSG": "¿Seguro que quieres desvincularte de {{name}} en {{scope}}?",
     "UNLINK_ERROR": "No se pudo desvincular",

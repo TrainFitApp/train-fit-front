@@ -37,22 +37,35 @@
       </label>
     </div>
 
-    <!-- Enlace -->
-    <label class="field" *ngIf="!isEdit && source !== 'upload'">
-      <span class="field-label">{{ 'MEDIA.TRAINER.LINK' | translate }}</span>
+    <!-- Enlace (también al editar: la plataforma sale del propio enlace) -->
+    <label class="field" *ngIf="source !== 'upload'">
+      <span class="field-label field-label--row">
+        {{ 'MEDIA.TRAINER.LINK' | translate }}
+        <span class="link-platform" *ngIf="link">
+          <ion-icon [name]="'logo-' + link.source" aria-hidden="true"></ion-icon>{{ platformName }}
+        </span>
+      </span>
       <input
         class="tf-input"
+        [class.tf-input--invalid]="linkInvalid"
         type="url"
         name="externalUrl"
+        maxlength="500"
         [value]="externalUrl"
-        (input)="onInput('externalUrl', $event)"
-        [placeholder]="source === 'youtube' ? 'https://youtu.be/…' : 'https://vimeo.com/…'"
+        (input)="onLinkInput($event)"
+        [placeholder]="source === 'vimeo' ? 'https://vimeo.com/…' : 'https://youtu.be/…'"
+        [attr.aria-invalid]="linkInvalid"
+        aria-describedby="link-help"
       />
+      <span class="field-error" id="link-help" *ngIf="linkInvalid; else linkHint" role="alert">{{ 'MEDIA.TRAINER.LINK_INVALID' | translate }}</span>
+      <ng-template #linkHint>
+        <span class="field-hint" id="link-help" *ngIf="isEdit">{{ 'MEDIA.TRAINER.LINK_EDIT_HINT' | translate }}</span>
+      </ng-template>
     </label>
 
-    <!-- Vídeo existente -->
-    <div class="field" *ngIf="isEdit && video">
-      <app-technique-video-player [video]="video"></app-technique-video-player>
+    <!-- Vista previa: el vídeo subido, o el del último enlace válido escrito -->
+    <div class="field" *ngIf="preview && (source !== 'upload' || isEdit)">
+      <app-technique-video-player [video]="preview"></app-technique-video-player>
     </div>
 
     <label class="field">

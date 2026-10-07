@@ -13,5 +13,6 @@ export * from './form-check-submit-modal.component';
 export * from './form-check-list.component';
 export * from './technique-video-player.component';
 export * from './checkin-photos-field.component';
+export * from './intake-video-field.component';
 export * from './set-summary.util';
 export * from './client-technique-video-picker.component';

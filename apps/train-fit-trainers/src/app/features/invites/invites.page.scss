@@ -711,6 +711,277 @@
   text-transform: uppercase;
 }
 
+// --- Lo que le pide además de preguntas: medidas, fotos y vídeos ---
+
+.intake-config-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  vertical-align: 1px;
+}
+
+.intake-config-hint--section {
+  margin: -2px 0 10px;
+  max-width: 62ch;
+}
+
+.measure-group + .measure-group {
+  margin-top: 12px;
+}
+
+.measure-group-title {
+  display: block;
+  margin: 0 0 6px 2px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
+// Misma retícula que los campos del cuestionario (.field-toggle-grid): 2
+// columnas, 3 con el ancho de escritorio, 1 en un móvil estrecho.
+.request-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+
+  @media (min-width: 840px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 400px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// Fila de una petición: el checkbox con su etiqueta y, si está marcada, la
+// píldora de obligatoria a la derecha. Mismo lenguaje que .field-toggle-row.
+.request-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: var(--tf-touch-min);
+  padding: 0 6px 0 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: var(--tf-radius-md);
+  transition: border-color 160ms var(--tf-ease-out);
+
+  &.is-selected {
+    border-color: var(--tf-accent-soft-border);
+  }
+}
+
+.request-row--block {
+  max-width: 420px;
+}
+
+.request-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tf-touch-min);
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: 0.86rem;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+    color: var(--tf-text-faint);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+    border-radius: var(--tf-radius-sm);
+  }
+
+  .is-selected & {
+    color: var(--tf-text);
+  }
+}
+
+.request-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &--wrap {
+    white-space: normal;
+  }
+}
+
+.request-unit {
+  flex-shrink: 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+// Obligatoria / opcional: enseña el estado y pulsarla lo cambia. Opcional
+// es neutra; obligatoria, en naranja (lo que bloquea el envío del cliente).
+.required-pill {
+  flex-shrink: 0;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: var(--tf-radius-pill);
+  border: 1px solid var(--tf-border-strong);
+  background: transparent;
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-text-secondary);
+  }
+
+  &--on {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-accent-text);
+
+    &:hover {
+      color: var(--tf-accent-text);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.pose-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+
+.pose-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 12px 0 10px;
+  border-radius: var(--tf-radius-pill);
+  border: 1px solid var(--tf-border);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 15px;
+  }
+
+  &.is-active {
+    border-color: var(--tf-accent-soft-border);
+    background: var(--tf-accent-soft);
+    color: var(--tf-text);
+
+    ion-icon {
+      color: var(--tf-accent);
+    }
+  }
+
+  // La última pose no se puede quitar (quitar las fotos es el checkbox).
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.request-kind-icon {
+  font-size: 16px !important;
+  color: var(--tf-text-muted) !important;
+}
+
+.video-draft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  max-width: 560px;
+}
+
+.video-draft-input {
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-border-focus);
+  }
+}
+
+.video-draft-actions {
+  display: flex;
+  gap: var(--tf-space-2);
+}
+
+.add-question-cancel {
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-4);
+  border: none;
+  border-radius: var(--tf-radius-md);
+  background: transparent;
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
 .submit-button {
   @include tf-gradient-button;
   width: 100%;

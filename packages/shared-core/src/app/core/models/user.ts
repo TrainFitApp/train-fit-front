@@ -12,7 +12,8 @@ export class User {
   // Último peso de sus medidas (el usuario no lo guarda). Enviarlo al
   // actualizar el perfil apunta el peso de hoy.
   weight: number;
-  birth: Date;
+  // Día de calendario "YYYY-MM-DD", sin hora ni huso.
+  birth: string;
   sex: number;
   activity: number;
   objetive: number;

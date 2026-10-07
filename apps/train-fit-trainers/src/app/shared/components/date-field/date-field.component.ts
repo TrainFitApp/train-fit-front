@@ -22,32 +22,36 @@ const DATE_FORMAT = () => new Intl.DateTimeFormat(uiLocale(), {
  * Botones propios en slot="buttons": sin botones, ion-datetime confirma solo
  * al tocar un día, pero también al girar la rueda de mes/año, y el modal se
  * cerraría a medio elegir.
+ *
+ * El título va fuera del ion-datetime: con slot="title", en modo md (la web)
+ * Ionic lo pinta en un bloque a todo color de primary con la fecha en grande.
  */
 @Component({
   selector: 'app-date-picker-sheet',
   template: `
+    <div class="tf-datetime-title" *ngIf="title">{{ title }}</div>
     <ion-datetime
       #datetime
       class="tf-datetime"
-      color="primary"
-      locale="es-ES"
       hourCycle="h23"
+      [locale]="locale"
       [firstDayOfWeek]="1"
       [presentation]="presentation"
       [value]="value || undefined"
       [min]="min || undefined"
       [max]="max || undefined"
     >
-      <span slot="title" *ngIf="title">{{ title }}</span>
       <ion-buttons slot="buttons">
-        <ion-button (click)="cancel()">Cancelar</ion-button>
-        <ion-button *ngIf="clearable" color="medium" (click)="clear()">Borrar</ion-button>
-        <ion-button class="tf-datetime-confirm" (click)="accept()">Aceptar</ion-button>
+        <ion-button (click)="cancel()">{{ 'COMMON.CANCEL' | translate }}</ion-button>
+        <ion-button *ngIf="clearable" (click)="clear()">{{ 'TRAINER_COMMON.ERASE' | translate }}</ion-button>
+        <ion-button class="datetime-confirm" (click)="accept()">{{ 'ACTIONS.ACCEPT' | translate }}</ion-button>
       </ion-buttons>
     </ion-datetime>
   `,
 })
 export class DatePickerSheetComponent {
+  public readonly locale = uiLocale();
+
   @Input() public presentation: DateFieldPresentation = 'date';
   @Input() public value = '';
   @Input() public min: string | null = null;

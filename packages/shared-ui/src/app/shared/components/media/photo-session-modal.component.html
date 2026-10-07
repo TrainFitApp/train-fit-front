@@ -27,7 +27,7 @@
   </section>
 
   <p class="session-count">
-    {{ 'MEDIA.SESSION_COUNT' | translate: { done: requiredDone, total: 3 } }}
+    {{ 'MEDIA.SESSION_COUNT' | translate: { done: requiredDone, total: requiredPoses.length } }}
   </p>
 
   <div class="pose-grid">
@@ -100,7 +100,9 @@
       [attr.aria-label]="'MEDIA.VISIBLE_TO_TRAINER' | translate"
     ></ion-toggle>
   </label>
-  <p class="checkin-note" *ngIf="mode === 'checkin'">{{ 'MEDIA.CHECKIN_SHARED_NOTE' | translate }}</p>
+  <p class="checkin-note" *ngIf="mode !== 'gallery'">
+    {{ (mode === 'intake' ? 'MEDIA.INTAKE_SHARED_NOTE' : 'MEDIA.CHECKIN_SHARED_NOTE') | translate }}
+  </p>
   <button type="button" class="session-done" (click)="close()" [disabled]="anyUploading">
     {{ (day?.photos?.length ? 'MEDIA.DONE' : 'MEDIA.CLOSE') | translate }}
   </button>

@@ -1,0 +1,89 @@
+@use './media-shared' as *;
+
+:host {
+  display: block;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field-loading {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  color: $media-muted;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.primary-button {
+  @include media-primary-button;
+}
+
+.ghost-button {
+  @include media-ghost-button;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.82rem;
+  color: $media-muted;
+  font-variant-numeric: tabular-nums;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 17px;
+
+    &.ok {
+      color: $media-success;
+    }
+  }
+}
+
+.note {
+  margin: -4px 2px 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: $media-muted;
+}
+
+.upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  background: $media-accent;
+  transform-origin: left center;
+  transition: transform 200ms linear;
+}

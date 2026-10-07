@@ -329,6 +329,149 @@ input.field-input {
   }
 }
 
+// ---------- Medidas que pide el profesional ----------
+// Una fila por medida: qué es y cómo tomarla a la izquierda, el número con
+// su unidad a la derecha. Más fácil de recorrer con la cinta en la mano
+// que una pila de campos a todo el ancho.
+.measure-list {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.measure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 14px 14px 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-tertiary);
+  border: 1.5px solid transparent;
+  transition: border-color 0.2s var(--ease);
+
+  &:focus-within {
+    border-color: var(--accent-primary);
+  }
+
+  &.is-invalid {
+    border-color: var(--danger, #ff6b6b);
+  }
+}
+
+.measure-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.measure-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.measure-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+
+  &--required {
+    color: var(--accent-primary);
+  }
+}
+
+.measure-hint {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.measure-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input {
+    width: 104px;
+    height: 48px;
+    padding: 0 38px 0 12px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-primary);
+    background: #000000;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    outline: none;
+    box-sizing: border-box;
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &:focus {
+      border-color: var(--accent-primary);
+    }
+  }
+}
+
+.measure-unit {
+  position: absolute;
+  right: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.measure-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--danger, #ff6b6b);
+}
+
+// Fotos y vídeos: el campo ocupa el ancho del paso, con aire bajo el
+// subtítulo, y una línea de privacidad al pie.
+.media-step {
+  margin-top: 24px;
+}
+
+.media-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 18px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  max-width: 340px;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--text-tertiary);
+  }
+}
+
 // ---------- Footer (circulo atras/cerrar + CTA pill) ----------
 .wizard-footer {
   flex-shrink: 0;

@@ -47,6 +47,7 @@ import { FormCheckSubmitModalComponent } from './components/media/form-check-sub
 import { FormCheckListComponent } from './components/media/form-check-list.component';
 import { TechniqueVideoPlayerComponent } from './components/media/technique-video-player.component';
 import { CheckinPhotosFieldComponent } from './components/media/checkin-photos-field.component';
+import { IntakeVideoFieldComponent } from './components/media/intake-video-field.component';
 import { ClientTechniqueVideoPickerComponent } from './components/media/client-technique-video-picker.component';
 import { CategoryPipe } from './pipes/category.pipe';
 import { ExpectedPipe } from './pipes/expected-reps.pipe';
@@ -110,6 +111,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     FormCheckListComponent,
     TechniqueVideoPlayerComponent,
     CheckinPhotosFieldComponent,
+    IntakeVideoFieldComponent,
     ClientTechniqueVideoPickerComponent,
   ],
   imports: [
@@ -175,6 +177,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
     FormCheckListComponent,
     TechniqueVideoPlayerComponent,
     CheckinPhotosFieldComponent,
+    IntakeVideoFieldComponent,
     ClientTechniqueVideoPickerComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

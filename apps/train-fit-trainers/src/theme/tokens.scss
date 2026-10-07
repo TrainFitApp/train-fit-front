@@ -529,9 +529,10 @@ ion-popover.select-popover {
 
 // --- Selector de fecha/hora: <app-date-field> → ion-modal.tf-datetime-modal ---
 // Sustituye al <input type="date|time"> nativo (calendario del sistema, en
-// claro). shared-theme/global.scss pinta todo ion-datetime en modal con
-// --ion-color-light y padding: el `.tf-datetime` extra sube la especificidad
-// para ganarle sin tocar ese fichero, común a las 3 apps.
+// claro). El calendario (días, hoy, día elegido) lo pinta
+// shared-theme/global.scss con sus variables --cal-*; aquí solo se le dan los
+// valores de esta app. El `.tf-datetime` sube la especificidad para ganar a
+// esas reglas comunes.
 ion-modal.tf-datetime-modal {
   --width: min(360px, calc(100vw - 32px));
   --height: auto;
@@ -544,7 +545,21 @@ ion-modal.tf-datetime-modal {
     border: 1px solid var(--tf-border-strong);
   }
 
+  .tf-datetime-title {
+    padding: var(--tf-space-4) var(--tf-space-4) var(--tf-space-2);
+    color: var(--tf-text-secondary);
+    font-size: var(--tf-font-size-sm);
+    font-weight: var(--tf-weight-label);
+  }
+
   ion-datetime.tf-datetime {
+    --cal-surface: var(--tf-surface-3);
+    --cal-surface-rgb: 30, 30, 30;
+    --cal-text: var(--tf-text);
+    --cal-muted: var(--tf-text-secondary);
+    --cal-hairline: var(--tf-border-subtle);
+    --cal-pressed: var(--tf-surface-5);
+    --cal-accent-text: var(--tf-accent-text);
     --background: transparent;
     --background-rgb: 30, 30, 30;
     --title-color: var(--tf-text-secondary);
@@ -552,19 +567,21 @@ ion-modal.tf-datetime-modal {
     --wheel-fade-background-rgb: 30, 30, 30;
     width: 100%;
     max-width: none;
-    padding: var(--tf-space-2);
+    padding: 0 var(--tf-space-2) var(--tf-space-2);
     border-radius: 0;
     box-shadow: none;
     color: var(--tf-text);
   }
 
+  // `color` y no --color: ion-buttons lo anula dentro de ion-datetime (ver
+  // shared-theme/global.scss).
   ion-button {
-    --color: var(--tf-text-secondary);
+    color: var(--tf-text-secondary);
     min-height: var(--tf-touch-min);
   }
 
-  ion-button.tf-datetime-confirm {
-    --color: var(--tf-accent-text);
+  ion-button.datetime-confirm {
+    color: var(--tf-accent-text);
     font-weight: var(--tf-weight-label);
   }
 }

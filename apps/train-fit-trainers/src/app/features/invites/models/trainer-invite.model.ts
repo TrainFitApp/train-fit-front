@@ -1,6 +1,14 @@
 import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
 import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
 import { CustomAnswer, CustomQuestion } from 'src/app/core/models/custom-question';
+import {
+  IntakeMeasurementAnswer,
+  IntakeMeasurementRequest,
+  IntakePhotoRequest,
+  IntakeRequested,
+  IntakeVideoRequest,
+} from 'src/app/core/models/intake-requests';
+import { MediaAssetView, ProgressDayView } from 'src/app/core/models/media';
 
 export type TrainerInviteScope = 'training' | 'nutrition';
 // Ciclo de una invitación (una entrada de scope del par entrenador ↔
@@ -90,6 +98,21 @@ export interface ClientIntake {
   // nutrición. Opcionales: solo los trae GET/PUT de /intake.
   profile?: ClientIntakeProfile | null;
   nutrition?: ClientIntakeNutrition | null;
+  // Lo que se le pidió además de preguntas y lo que mandó: medidas (también
+  // en sus medidas de `measuredOn`), su día de fotos de inicio (null si no
+  // mandó o las borró después) y un vídeo por petición (`asset` null si lo
+  // borró). Solo los trae GET/PUT de /intake.
+  measurements?: IntakeMeasurementAnswer[];
+  measuredOn?: string | null;
+  photos?: ProgressDayView | null;
+  videos?: ClientIntakeVideo[];
+  requested?: IntakeRequested;
+}
+
+export interface ClientIntakeVideo {
+  requestId: string;
+  label: string;
+  asset: MediaAssetView | null;
 }
 
 // Valores de User tal cual: steps/activity/training son los `.value`
@@ -115,13 +138,18 @@ export interface ClientIntakeNutrition {
   cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
 }
 
-// Cuestionario de alta del profesional: campos del catálogo que pide y sus
-// preguntas propias con tipo (las mismas que en los check-ins), para
-// cualquier cliente, lleve el scope que lleve.
+// Cuestionario de alta del profesional: campos del catálogo que pide, sus
+// preguntas propias con tipo (las mismas que en los check-ins) y lo que pide
+// además (medidas, fotos de inicio y vídeos), lleve el scope que lleve. Al
+// invitar se copia al cliente: cambiarlo después no cambia lo que se le pide
+// a quien ya estaba invitado.
 export interface TrainerIntakeConfig {
   trainerId: string;
   enabledFields: IntakeFieldKey[];
   customQuestions: CustomQuestion[];
+  measurements: IntakeMeasurementRequest[];
+  photos: IntakePhotoRequest | null;
+  videos: IntakeVideoRequest[];
   // Últimos checkboxes de ámbito marcados en la pantalla de invitar — se
   // recuerdan entre visitas, no es el scope de ninguna invitación concreta.
   lastScopes: TrainerInviteScope[];

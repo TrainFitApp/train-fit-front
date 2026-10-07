@@ -285,7 +285,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  public getAge(birth: Date) {
+  public getAge(birth: string) {
     return this.userService.getAge(birth);
   }
 

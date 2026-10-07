@@ -3,6 +3,7 @@ import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { HttpService } from '../http/http.service';
 import { CustomQuestion } from '../../models/custom-question';
+import { IntakeMeasurementRequest, IntakePhotoRequest, IntakeVideoRequest } from '../../models/intake-requests';
 
 // TASK-049 — catálogo cerrado de campos del cuestionario inicial. Debe
 // coincidir con train-fit-back/components/trainerIntakeConfig/intake-field-catalog.js.
@@ -41,13 +42,25 @@ export interface OnboardingProfessional {
   // preguntas propias.
   intakeEnabledFields: IntakeFieldKey[];
   intakeCustomQuestions: CustomQuestion[];
+  // Lo que pide además de preguntas: medidas, fotos de inicio y vídeos.
+  intakeMeasurements: IntakeMeasurementRequest[];
+  intakePhotos: IntakePhotoRequest | null;
+  intakeVideos: IntakeVideoRequest[];
 }
 
 export interface OnboardingStatus {
   professionals: OnboardingProfessional[];
+  // ¿Se pueden subir fotos y vídeos ahora mismo? Sin almacenamiento, esos
+  // pasos no se enseñan (y el back deja de exigirlos).
+  uploads?: { images: boolean; videos: boolean };
 }
 
 const EMPTY_STATUS: OnboardingStatus = { professionals: [] };
+
+// Temp data (NavigationService) con el trainerId cuyo cuestionario abre
+// onboarding-status nada más entrar: quien acaba de aceptar una invitación
+// pasa directo a rellenarlo.
+export const OPEN_INTAKE_TRAINER_KEY = 'openIntakeTrainerId';
 
 // Cuestionario inicial del cliente. Aceptar una invitación ya le hace
 // cliente activo: el cuestionario es un recordatorio, nunca bloquea la app.

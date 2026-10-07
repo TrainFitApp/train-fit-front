@@ -165,7 +165,9 @@ export class WeekSummaryPanelComponent implements OnInit {
 
   private checkinsInRange(all: CheckinResponseEntry[]): CheckinResponseEntry[] {
     return (all || []).filter((r) => {
-      const fecha = (r?.respondedAt || '').slice(0, 10);
+      // Día local del instante de respuesta: el día UTC cuenta un check-in
+      // de las 00:30 en el día anterior.
+      const fecha = r?.respondedAt ? localIsoDate(r.respondedAt) : '';
       return !!fecha && fecha >= this.from && fecha <= this.to;
     });
   }

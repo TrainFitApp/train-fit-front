@@ -156,6 +156,153 @@
           </button>
         </ng-template>
 
+        <!-- Medidas: marcar una la pide como opcional; la píldora la hace
+             obligatoria (sin ella no puede enviar el cuestionario). -->
+        <h4 class="intake-config-subheading">
+          {{ 'INVITES.MEDIDAS' | translate }}
+          <span class="intake-config-count" *ngIf="measurementCount">{{ measurementCount }}</span>
+        </h4>
+        <p class="intake-config-hint intake-config-hint--section">{{ 'INVITES.MEDIDAS_HINT' | translate }}</p>
+        <div class="measure-group" *ngFor="let group of measurementGroups; trackBy: trackByMeasurementGroup">
+          <span class="measure-group-title">{{ group.label }}</span>
+          <div class="request-grid">
+            <div
+              class="request-row"
+              *ngFor="let field of group.fields; trackBy: trackByField"
+              [class.is-selected]="isMeasurementSelected(field.key)"
+            >
+              <button
+                type="button"
+                class="request-toggle"
+                role="checkbox"
+                [attr.aria-checked]="isMeasurementSelected(field.key)"
+                (click)="toggleMeasurement(field.key)"
+              >
+                <ion-icon
+                  [name]="isMeasurementSelected(field.key) ? 'checkbox' : 'square-outline'"
+                  [class.field-toggle-icon--active]="isMeasurementSelected(field.key)"
+                  aria-hidden="true"
+                ></ion-icon>
+                <span class="request-label">{{ field.label }}</span>
+                <span class="request-unit">{{ field.unit }}</span>
+              </button>
+              <button
+                *ngIf="isMeasurementSelected(field.key)"
+                type="button"
+                class="required-pill"
+                [class.required-pill--on]="isMeasurementRequired(field.key)"
+                [attr.aria-pressed]="isMeasurementRequired(field.key)"
+                [attr.aria-label]="'INVITES.OBLIGATORIA_ARIA' | translate: { label: field.label }"
+                (click)="toggleMeasurementRequired(field.key)"
+              >
+                {{ (isMeasurementRequired(field.key) ? 'INVITES.OBLIGATORIA' : 'INVITES.OPCIONAL') | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fotos de inicio: las mismas poses que Medidas › Fotos del cliente -->
+        <h4 class="intake-config-subheading">{{ 'INVITES.FOTOS_DE_INICIO' | translate }}</h4>
+        <div class="request-row request-row--block" [class.is-selected]="photoRequest">
+          <button type="button" class="request-toggle" role="checkbox" [attr.aria-checked]="!!photoRequest" (click)="togglePhotos()">
+            <ion-icon
+              [name]="photoRequest ? 'checkbox' : 'square-outline'"
+              [class.field-toggle-icon--active]="photoRequest"
+              aria-hidden="true"
+            ></ion-icon>
+            <span class="request-label request-label--wrap">{{ 'INVITES.PEDIR_FOTOS_DE_INICIO' | translate }}</span>
+          </button>
+          <button
+            *ngIf="photoRequest"
+            type="button"
+            class="required-pill"
+            [class.required-pill--on]="photoRequest.required"
+            [attr.aria-pressed]="photoRequest.required"
+            [attr.aria-label]="'INVITES.OBLIGATORIA_ARIA' | translate: { label: ('INVITES.FOTOS_DE_INICIO' | translate) }"
+            (click)="togglePhotosRequired()"
+          >
+            {{ (photoRequest.required ? 'INVITES.OBLIGATORIAS' : 'INVITES.OPCIONALES') | translate }}
+          </button>
+        </div>
+        <div class="pose-chips" *ngIf="photoRequest" role="group" [attr.aria-label]="'INVITES.POSES' | translate">
+          <button
+            type="button"
+            class="pose-chip"
+            *ngFor="let pose of photoPoses"
+            [class.is-active]="photoRequest.poses.includes(pose)"
+            [attr.aria-pressed]="photoRequest.poses.includes(pose)"
+            [disabled]="photoRequest.poses.length === 1 && photoRequest.poses.includes(pose)"
+            (click)="togglePose(pose)"
+          >
+            <ion-icon [name]="photoRequest.poses.includes(pose) ? 'checkmark' : 'add'" aria-hidden="true"></ion-icon>
+            {{ ('MEDIA.POSE_' + pose.toUpperCase()) | translate }}
+          </button>
+        </div>
+
+        <!-- Vídeos: qué tiene que grabar, con sus palabras. Como las
+             preguntas propias: los guardados se marcan para cada tanda. -->
+        <h4 class="intake-config-subheading">{{ 'INVITES.VIDEOS' | translate }}</h4>
+        <p class="intake-config-hint intake-config-hint--section">{{ 'INVITES.VIDEOS_HINT' | translate }}</p>
+        <div class="custom-question-list" *ngIf="videoRequests.length">
+          <div class="custom-question-row" *ngFor="let video of videoRequests; let i = index; trackBy: trackByIndex">
+            <button
+              type="button"
+              class="custom-question-toggle"
+              role="checkbox"
+              [attr.aria-checked]="video.enabled !== false"
+              (click)="toggleVideoEnabled(i)"
+            >
+              <ion-icon
+                [name]="video.enabled !== false ? 'checkbox' : 'square-outline'"
+                [class.field-toggle-icon--active]="video.enabled !== false"
+                aria-hidden="true"
+              ></ion-icon>
+              <ion-icon name="videocam-outline" class="request-kind-icon" aria-hidden="true"></ion-icon>
+              <span class="custom-question-text">
+                <span class="custom-question-label">{{ video.label }}</span>
+              </span>
+            </button>
+            <button
+              *ngIf="video.enabled !== false"
+              type="button"
+              class="required-pill"
+              [class.required-pill--on]="video.required"
+              [attr.aria-pressed]="video.required"
+              [attr.aria-label]="'INVITES.OBLIGATORIA_ARIA' | translate: { label: video.label }"
+              (click)="toggleVideoRequired(i)"
+            >
+              {{ (video.required ? 'INVITES.OBLIGATORIO' : 'INVITES.OPCIONAL') | translate }}
+            </button>
+            <button type="button" class="custom-question-remove" (click)="removeVideo(i)" [attr.aria-label]="'INVITES.BORRAR_VIDEO' | translate">
+              <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+        </div>
+        <div class="video-draft" *ngIf="videoDraft !== null; else addVideoButton">
+          <input
+            class="video-draft-input"
+            type="text"
+            [attr.maxlength]="videoLabelMax"
+            [value]="videoDraft"
+            [placeholder]="'INVITES.VIDEO_PLACEHOLDER' | translate"
+            [attr.aria-label]="'INVITES.QUE_TIENE_QUE_GRABAR' | translate"
+            #videoDraftInput
+            (input)="onVideoDraft($event)"
+            (keydown)="onVideoDraftKeydown($event)"
+          />
+          <div class="video-draft-actions">
+            <button type="button" class="add-question-cancel" (click)="cancelVideo()">{{ 'COMMON.CANCEL' | translate }}</button>
+            <button type="button" class="add-question-confirm" [disabled]="!videoDraft.trim()" (click)="addVideo()">
+              {{ 'INVITES.ANADIR_VIDEO_CONFIRM' | translate }}
+            </button>
+          </div>
+        </div>
+        <ng-template #addVideoButton>
+          <button type="button" class="add-question-button" *ngIf="videoRequests.length < maxVideos" (click)="startVideo()">
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ 'INVITES.ANADIR_VIDEO' | translate }}
+          </button>
+        </ng-template>
+
       </ng-container>
     </div>
 

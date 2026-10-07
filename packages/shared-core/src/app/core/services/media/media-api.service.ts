@@ -195,7 +195,10 @@ export class MediaApiService {
     return this.http.post<{ video: TechniqueVideoView }>('trainer/technique-videos', body).pipe(take(1));
   }
 
-  updateLibraryVideo(id: string, body: { title?: string; cues?: string; exerciseIds?: string[] }): Observable<{ video: TechniqueVideoView }> {
+  updateLibraryVideo(
+    id: string,
+    body: { title?: string; cues?: string; exerciseIds?: string[]; externalUrl?: string }
+  ): Observable<{ video: TechniqueVideoView }> {
     return this.http.put<{ video: TechniqueVideoView }>(`trainer/technique-videos/${id}`, body).pipe(take(1));
   }
 

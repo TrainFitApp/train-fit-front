@@ -260,17 +260,14 @@ export function totalEnergyExpenditure(
 
 // Edad cumplida a día de hoy. Aparte porque las tres fórmulas de basal la
 // necesitan y un "años = hoy − nacimiento" ingenuo se equivoca en un año
-// para quien aún no ha cumplido este año.
-export function ageFromBirthDate(birth: string | Date | null | undefined): number | null {
-  if (!birth) return null;
-  const birthDate = new Date(birth);
-  if (Number.isNaN(birthDate.getTime())) return null;
-
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDelta = today.getMonth() - birthDate.getMonth();
-  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthDate.getDate())) {
-    age -= 1;
-  }
+// para quien aún no ha cumplido este año. `birth` es un día de calendario
+// ("YYYY-MM-DD", sin hora ni huso) y "hoy" el del dispositivo; se comparan
+// como texto ("MM-DD"), sin pasar por Date.
+export function ageFromBirthDate(birth: string | null | undefined): number | null {
+  if (!birth || !/^\d{4}-\d{2}-\d{2}$/.test(birth)) return null;
+  const now = new Date();
+  const todayMonthDay = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  let age = now.getFullYear() - Number(birth.slice(0, 4));
+  if (todayMonthDay < birth.slice(5)) age -= 1;
   return age >= 0 && age < 130 ? age : null;
 }

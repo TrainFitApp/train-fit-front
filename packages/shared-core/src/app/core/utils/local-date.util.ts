@@ -12,6 +12,16 @@ export function localIsoDate(date: Date | string | number = new Date()): string 
   return `${y}-${m}-${day}`;
 }
 
+// "YYYY-MM-DD" a medianoche del dispositivo, para pintarlo o moverlo en un
+// selector. `new Date("YYYY-MM-DD")` es medianoche UTC: en América cae en el
+// día anterior. Null si no es una fecha válida.
+export function parseLocalIsoDate(iso: string | null | undefined): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if (!match) return null;
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return localIsoDate(date) === iso ? date : null;
+}
+
 // Zona horaria IANA del dispositivo ("Europe/Madrid"). Viaja en la cabecera
 // X-Timezone de cada petición (jwt.interceptor.ts): con ella la API calcula
 // el "hoy" de cada usuario, también cuando lo mira su entrenador.

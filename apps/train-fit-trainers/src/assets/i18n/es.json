@@ -247,6 +247,7 @@
       "PICK_FILE": "Elige el vídeo",
       "PICK_FILE_HINT": "MP4 o MOV, hasta 3 minutos.",
       "LINK": "Enlace",
+      "LINK_EDIT_HINT": "YouTube o Vimeo. El cambio llega a todos los ejercicios y clientes que usan este vídeo.",
       "TITLE": "Título",
       "CUES": "Claves técnicas",
       "OPTIONAL": "(opcional)",
@@ -258,7 +259,8 @@
       "SAVE": "Guardar cambios",
       "ADD_TO_LIBRARY": "Añadir a la biblioteca",
       "OPEN_MEDIA": "Ver fotos y vídeos",
-      "PHOTOS_MOVED": "Las fotos y vídeos de progreso del cliente, con el comparador, están en su propia pestaña."
+      "PHOTOS_MOVED": "Las fotos y vídeos de progreso del cliente, con el comparador, están en su propia pestaña.",
+      "LINK_INVALID": "Ese enlace no es de YouTube ni de Vimeo. Pega el enlace del vídeo (el de «Compartir»)."
     }
   },
   "REVIEW_QUEUE": {
@@ -1397,7 +1399,17 @@
       "readiness": "Readiness y esfuerzo percibido",
       "adherence": "Adherencia a lo pautado"
     },
-    "OPEN_ENDED": "indefinido"
+    "OPEN_ENDED": "indefinido",
+    "INVITAR_CLIENTES": "Invitar clientes",
+    "MEDIDAS_INICIALES": "Medidas iniciales",
+    "NO_LA_MANDO": "No la mandó",
+    "FOTOS_DE_INICIO": "Fotos de inicio",
+    "VER_FOTO": "Ver foto: {{pose}}",
+    "NO_MANDO_FOTOS": "No mandó fotos.",
+    "FALTAN_POSES": "Sin foto de: {{poses}}.",
+    "VIDEOS_PEDIDOS": "Vídeos",
+    "VIDEO_BORRADO": "Lo mandó y después lo borró de su progreso.",
+    "NO_LO_MANDO": "No lo mandó."
   },
   "CLIENT_SUMMARY": {
     "DIMENSIONS": {
@@ -2871,7 +2883,7 @@
   "INVITES": {
     "ELIGE_UN_AMBITO": "Elige un ámbito",
     "NO_SE_PUDO_CARGAR_LA": "No se pudo cargar la configuración del cuestionario.",
-    "ELIGE_QUE_LE_PREGUNTAS_UN": "Elige qué le preguntas a un cliente nuevo. Los campos que desactives no aparecerán en su cuestionario.",
+    "ELIGE_QUE_LE_PREGUNTAS_UN": "Elige qué les pides a los clientes que invites ahora. Se guarda para la próxima vez, y cambiarlo después no cambia el cuestionario de quien ya invitaste.",
     "GUARDANDO": "Guardando",
     "PREGUNTAS_PERSONALIZADAS": "Preguntas personalizadas",
     "EL_EMAIL_ES_OBLIGATORIO": "El email es obligatorio",
@@ -2934,7 +2946,25 @@
     "INVITACIONES_ENVIADAS_A": "Invitaciones enviadas a {{count}} clientes",
     "SIN_PLAZAS_LIBRES": "Sin plazas libres en tu plan",
     "AMPLIAR_PLAZAS": "Ampliar plazas",
-    "CERRAR_RESUMEN": "Cerrar resumen"
+    "CERRAR_RESUMEN": "Cerrar resumen",
+    "MEDIDAS": "Medidas",
+    "MEDIDAS_HINT": "Las que marques se las pedirás con las mismas instrucciones que en los check-ins. Pulsa «Opcional» para hacer obligatoria una medida: sin ella no podrá enviar el cuestionario.",
+    "FOTOS_DE_INICIO": "Fotos de inicio",
+    "PEDIR_FOTOS_DE_INICIO": "Pedirle fotos de inicio",
+    "POSES": "Poses",
+    "VIDEOS": "Vídeos",
+    "VIDEOS_HINT": "Escribe qué tiene que grabar, con las palabras que usarías en un mensaje. Cada vídeo es un paso de su cuestionario, de hasta 3 minutos.",
+    "VIDEO_PLACEHOLDER": "Ej. Sentadilla sin peso, de perfil",
+    "QUE_TIENE_QUE_GRABAR": "Qué tiene que grabar",
+    "ANADIR_VIDEO": "Pedir un vídeo",
+    "ANADIR_VIDEO_CONFIRM": "Añadir vídeo",
+    "BORRAR_VIDEO": "Borrar vídeo",
+    "OBLIGATORIA": "Obligatoria",
+    "OBLIGATORIAS": "Obligatorias",
+    "OBLIGATORIO": "Obligatorio",
+    "OPCIONAL": "Opcional",
+    "OPCIONALES": "Opcionales",
+    "OBLIGATORIA_ARIA": "Obligatorio: {{label}}"
   },
   "ACCOUNT": {
     "EDITAR_PERFIL": "Editar perfil",

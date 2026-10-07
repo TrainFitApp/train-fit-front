@@ -14,6 +14,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Chart, registerables } from "chart.js";
 import { ActivatedRoute } from "@angular/router";
 import { AlertOptions } from "@ionic/angular";
+import { Capacitor } from "@capacitor/core";
 import { TranslateService } from "@ngx-translate/core";
 import { Table } from "src/app/core/models/table";
 import { Workout } from "src/app/core/models/workout";
@@ -159,6 +160,25 @@ export class StatisticsPage implements OnInit, OnDestroy {
   @Input() public clientId: string | null = null;
   @Input() public embedded = false;
   @Output() public closed = new EventEmitter<void>();
+
+  // Desplegables: en web abren la lista anclada al campo (popover), como el
+  // resto de la app de escritorio; en el móvil nativo, hoja inferior. Los
+  // ion-select llevan mode="ios" por la hoja, así que el popover se fuerza a
+  // md (sin flecha ni velo), el mismo de los .tf-select; labelPlacement
+  // "stacked" hace que Ionic lo abra con el ancho del campo.
+  private static readonly WEB_POPOVER = { mode: "md", showBackdrop: false };
+  public readonly selectInterface = Capacitor.isNativePlatform()
+    ? "action-sheet"
+    : "popover";
+  public readonly pickerOptions = Capacitor.isNativePlatform()
+    ? { cssClass: "no-cancel-action-sheet" }
+    : StatisticsPage.WEB_POPOVER;
+  public readonly microcyclePickerOptions = Capacitor.isNativePlatform()
+    ? { cssClass: "white-text-action-sheet" }
+    : StatisticsPage.WEB_POPOVER;
+  public readonly setPickerOptions = Capacitor.isNativePlatform()
+    ? {}
+    : StatisticsPage.WEB_POPOVER;
 
   public table: Table;
 

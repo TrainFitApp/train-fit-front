@@ -230,18 +230,20 @@
     </div>
   </div>
 
-  <ion-popover trigger="calendar-diets">
+  <ion-popover trigger="calendar-diets" class="calendar-popover">
     <ng-template>
       <ion-datetime
         first-day-of-week="1"
         [locale]="locale"
         #datetime
-        [showDefaultButtons]="true"
-        [doneText]="'COMMON.CONFIRM' | translate"
-        [cancelText]="'COMMON.CANCEL' | translate"
         presentation="date"
         (ionChange)="selectCalendarDay(datetime.value.toString())"
-      ></ion-datetime>
+      >
+        <ion-buttons slot="buttons">
+          <ion-button (click)="datetime.cancel(true)">{{ 'COMMON.CANCEL' | translate }}</ion-button>
+          <ion-button class="datetime-confirm" (click)="datetime.confirm(true)">{{ 'COMMON.CONFIRM' | translate }}</ion-button>
+        </ion-buttons>
+      </ion-datetime>
     </ng-template>
   </ion-popover>
 </ion-content>

@@ -70,12 +70,7 @@ ion-app.numeric-keypad-open {
   }
 }
 
-/*
- * Unificación de estilos para ion-datetime en popovers/modales (global)
- * - Evita contenido cortado estableciendo overflow visible en el contenedor
- * - Alinea dimensiones del popover con diets.page.scss
- * - Usa variables de Ionic para coherencia visual (tema claro/oscuro)
- */
+/* Popovers (todos): tamaño y fondo comunes. */
 ion-popover {
   --backdrop-opacity: 0.4;
   --border-radius: 16px;
@@ -83,48 +78,148 @@ ion-popover {
   --max-width: 90vw;
 }
 
-/* Asegura que el contenido del popover no recorte el ion-datetime */
+/* Que el contenido del popover no se recorte */
 ion-popover::part(content) {
   max-height: 90vh;
   overflow: auto;
 }
 
-/* Estilo base del ion-datetime (tema claro, excluye modales de nacimiento) */
-ion-popover ion-datetime,
-ion-modal:not(.birthdate-datetime-modal):not(.anthropometry-datetime-modal) ion-datetime {
-  --background: var(--ion-color-light);
-  --color: var(--ion-color-dark);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+/*
+ * Calendario: ion-datetime en cuadrícula (presentation="date" sin ruedas),
+ * común a las tres apps. Las ruedas (fecha de nacimiento, hora…) tienen su
+ * propio bloque más abajo.
+ *
+ * Ionic pinta casi todo el calendario con --ion-color-base (el `color` del
+ * componente, primary si no se pone): cabecera, flechas, hoy, día elegido y
+ * botones por defecto, y no se puede pisar desde fuera porque
+ * `.ion-color-primary` lo fija con !important. Lo que sí se alcanza son las
+ * partes (`calendar-day`, `month-year-button`, `wheel-item`) y las variables
+ * que hereda su shadow DOM; con eso el naranja queda solo para hoy y el día
+ * elegido, y el resto es texto y grises del tema.
+ *
+ * Lo que sigue saliendo en --ion-color-base, y cómo evitarlo:
+ * - Botones por defecto (showDefaultButtons): usar botones propios en
+ *   slot="buttons" (el de confirmar con la clase `datetime-confirm`).
+ * - Cabecera con slot="title" en modo md (web, Android): bloque naranja a
+ *   todo color. El título va fuera del ion-datetime.
+ * - Flechas de mes y chevron del mes en iOS: se quedan en naranja.
+ */
+ion-popover.calendar-popover,
+ion-datetime.datetime-grid {
+  --cal-surface: #ffffff;
+  --cal-surface-rgb: 255, 255, 255;
+  --cal-text: #1c1c1e;
+  --cal-muted: #6b6b70;
+  --cal-hairline: rgba(0, 0, 0, 0.08);
+  --cal-pressed: rgba(0, 0, 0, 0.06);
+  /* #fe9000 sobre blanco no llega a 3:1 como texto: naranja oscurecido. */
+  --cal-accent-text: #b35f00;
+  --cal-selected: var(--ion-color-primary, #fe9000);
+  --cal-selected-text: #121212;
 }
 
-/* Tema oscuro coherente (excluye modales de nacimiento) */
-body[color-theme="dark"] ion-popover ion-datetime,
-body[color-theme="dark"] ion-modal:not(.birthdate-datetime-modal):not(.anthropometry-datetime-modal) ion-datetime {
-  --background: var(--ion-color-dark);
-  --color: var(--ion-color-light);
+body[color-theme="dark"] ion-popover.calendar-popover,
+body[color-theme="dark"] ion-datetime.datetime-grid {
+  --cal-surface: #1c1c1e;
+  --cal-surface-rgb: 28, 28, 30;
+  --cal-text: #f4f4f5;
+  --cal-muted: #8e8e93;
+  --cal-hairline: rgba(255, 255, 255, 0.08);
+  --cal-pressed: rgba(255, 255, 255, 0.08);
+  --cal-accent-text: var(--ion-color-primary, #fe9000);
 }
 
-/* Estilo base de titulo para datetime normal (excluye modal birthdate) */
-ion-popover .datetime-title,
-ion-modal:not(.birthdate-datetime-modal):not(.anthropometry-datetime-modal) .datetime-title {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
+/* 350px es el ancho para el que Ionic dibuja el calendario: en los 320px
+   del resto de popovers las columnas no caben y se recortan. */
+ion-popover.calendar-popover {
+  --width: 350px;
+  --max-width: calc(100vw - 24px);
+  --background: var(--cal-surface);
+}
 
-  span {
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffffff;
-    letter-spacing: 0.35px;
-  }
+ion-popover.calendar-popover ion-datetime {
+  width: 100%;
+  max-width: none;
+}
 
-  ion-icon {
-    font-size: 22px;
-    color: #ffffff;
+ion-datetime.datetime-grid {
+  --background: var(--cal-surface);
+  --background-rgb: var(--cal-surface-rgb);
+  --title-color: var(--cal-muted);
+  --wheel-highlight-background: var(--cal-pressed);
+  --wheel-fade-background-rgb: var(--cal-surface-rgb);
+  /* Lo que el shadow DOM lee de la escala de grises de Ionic */
+  --ion-text-color: var(--cal-text);
+  --ion-color-step-200: var(--cal-hairline); /* iOS: separadores */
+  --ion-color-step-300: var(--cal-muted); /* iOS: días de la semana */
+  --ion-color-step-500: var(--cal-muted); /* md: días de la semana */
+  --ion-color-step-650: var(--cal-text); /* md: mes y flechas */
+  color: var(--cal-text);
+}
+
+ion-datetime.datetime-grid::part(month-year-button) {
+  --color: var(--cal-text);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+/* Rueda de mes y año que abre el botón del mes */
+ion-datetime.datetime-grid::part(wheel-item active) {
+  color: var(--cal-text);
+  font-weight: 600;
+}
+
+ion-datetime.datetime-grid::part(calendar-day) {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--cal-text);
+  font-size: 1rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+ion-datetime.datetime-grid::part(calendar-day):active {
+  background: var(--cal-pressed);
+}
+
+@media (hover: hover) {
+  ion-datetime.datetime-grid::part(calendar-day):hover {
+    background: var(--cal-pressed);
   }
+}
+
+ion-datetime.datetime-grid::part(calendar-day today) {
+  color: var(--cal-accent-text);
+  font-weight: 700;
+}
+
+ion-datetime.datetime-grid::part(calendar-day active),
+ion-datetime.datetime-grid::part(calendar-day active):active,
+ion-datetime.datetime-grid::part(calendar-day active):hover {
+  background: var(--cal-selected);
+  color: var(--cal-selected-text);
+  font-weight: 700;
+}
+
+ion-datetime.datetime-grid::part(calendar-day):focus-visible {
+  outline: 2px solid var(--cal-selected);
+  outline-offset: 2px;
+}
+
+/*
+ * Botones propios (slot="buttons"): cancelar neutro, confirmar en naranja.
+ * Va con `color` y no con --color: ion-buttons anula el --color de sus
+ * botones dentro de un componente con color (ion-datetime siempre lo tiene)
+ * y el botón se queda con el `color` heredado.
+ */
+ion-datetime.datetime-grid [slot="buttons"] ion-button {
+  color: var(--cal-muted);
+  font-weight: 600;
+}
+
+ion-datetime.datetime-grid [slot="buttons"] ion-button.datetime-confirm {
+  color: var(--cal-accent-text);
 }
 
 /* Tema unificado para selector de fecha de nacimiento (sign-up + editor) */

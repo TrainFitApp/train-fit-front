@@ -9,7 +9,7 @@ import {
 import { SEX_TYPES } from 'src/app/shared/constants/sex';
 import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
 import { STEPS, STEPS_TYPES } from 'src/app/shared/constants/steps';
-import { bmrMifflinStJeor, toBodyInput } from '../../utils/body-metrics.util';
+import { ageFromBirthDate, bmrMifflinStJeor, toBodyInput } from '../../utils/body-metrics.util';
 import { User } from '../../models/user';
 import { UserAPIService } from './user-api.service';
 
@@ -440,12 +440,10 @@ export class UserService {
     );
   }
 
-  public getAge(birthDate: Date): number {
-    return Math.floor(
-      Math.abs(Date.now() - new Date(birthDate).getTime()) /
-        (1000 * 3600 * 24) /
-        365.25
-    );
+  // Edad cumplida a día de hoy; NaN sin fecha válida (las fórmulas de
+  // basal no inventan un 0).
+  public getAge(birth: string): number {
+    return ageFromBirthDate(birth) ?? NaN;
   }
 
   public getActivityFactor(activityValue: number): ACTIVITY_FACTOR_TYPE {

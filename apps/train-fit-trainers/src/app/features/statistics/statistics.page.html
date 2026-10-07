@@ -99,8 +99,9 @@
           <div class="select-wrapper">
             <ion-select
               mode="ios"
-              interface="action-sheet"
-              [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
+              labelPlacement="stacked"
+              [interface]="selectInterface"
+              [interfaceOptions]="pickerOptions"
               [placeholder]="'TABLES.STATS_CHOOSE_WORKOUT' | translate"
               [value]="selectedWorkoutName"
               (ionChange)="onWorkoutChange($event)"
@@ -128,8 +129,9 @@
           <div class="select-wrapper">
             <ion-select
               mode="ios"
-              interface="action-sheet"
-              [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
+              labelPlacement="stacked"
+              [interface]="selectInterface"
+              [interfaceOptions]="pickerOptions"
               [placeholder]="'TABLES.STATS_CHOOSE_EXERCISE' | translate"
               [disabled]="!selectedWorkoutName"
               [value]="selectedExerciseId"
@@ -320,8 +322,9 @@
               <ion-select
                 class="micro-cycle-selector-hidden"
                 mode="ios"
-                interface="action-sheet"
-                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
+                labelPlacement="stacked"
+                [interface]="selectInterface"
+                [interfaceOptions]="microcyclePickerOptions"
                 [(ngModel)]="compareIndexA"
                 (ionChange)="onCompareChange()"
               >
@@ -342,8 +345,9 @@
               <ion-select
                 class="micro-cycle-selector-hidden"
                 mode="ios"
-                interface="action-sheet"
-                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
+                labelPlacement="stacked"
+                [interface]="selectInterface"
+                [interfaceOptions]="microcyclePickerOptions"
                 [(ngModel)]="compareIndexB"
                 (ionChange)="onCompareChange()"
               >
@@ -650,6 +654,8 @@
               class="micro-cycle-selector-hidden"
               mode="ios"
               interface="popover"
+              labelPlacement="stacked"
+              [interfaceOptions]="setPickerOptions"
               [value]="selectedSetIndex"
               (ionChange)="onSetTypeChange($event)"
             >

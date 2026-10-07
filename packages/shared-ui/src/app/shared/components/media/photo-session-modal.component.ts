@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import {
   PROGRESS_POSES,
   ProgressDayView,
@@ -41,13 +41,21 @@ export class PhotoSessionModalComponent implements OnInit {
   // Sesión anterior, para enseñar la foto de referencia de cada pose.
   @Input() public previousDay: ProgressDayView | null = null;
   @Input() public hasTrainer = false;
-  // checkin: la sesión responde a un check-in (siempre visible para quien lo pidió).
-  @Input() public mode: 'gallery' | 'checkin' = 'gallery';
+  // checkin / intake: la sesión responde a un check-in o al cuestionario de
+  // alta (siempre visible para quien lo pidió).
+  @Input() public mode: 'gallery' | 'checkin' | 'intake' = 'gallery';
   @Input() public poses: ProgressPose[] = PROGRESS_POSES;
 
   public slots: SlotState[] = [];
   public showGuide = true;
   public savingVisibility = false;
+
+  // Fotos que se están guardando en el día ahora mismo. Con varias a la vez
+  // (frente y perfil terminan de subir juntas) cada respuesta trae el día
+  // tal y como lo dejó su petición, y la que llega la última no tiene por
+  // qué ser la más reciente: al acabar todas se relee el día.
+  private pendingWrites = 0;
+  private writesOverlapped = false;
 
   constructor(
     private modalController: ModalController,
@@ -76,8 +84,14 @@ export class PhotoSessionModalComponent implements OnInit {
     });
   }
 
+  // Las poses que cuentan son las pedidas (un check-in o el cuestionario de
+  // alta pueden pedir solo algunas); la foto libre `extra` nunca cuenta.
+  public get requiredPoses(): ProgressPose[] {
+    return this.slots.map((slot) => slot.pose).filter((pose) => REQUIRED_POSES.includes(pose));
+  }
+
   public get requiredDone(): number {
-    return REQUIRED_POSES.filter((pose) => this.photoOf(pose)).length;
+    return this.requiredPoses.filter((pose) => this.photoOf(pose)).length;
   }
 
   public get anyUploading(): boolean {
@@ -124,8 +138,7 @@ export class PhotoSessionModalComponent implements OnInit {
       const asset = await this.mediaUpload.uploadPhoto(file, 'progress_photo', (progress) => {
         slot.progress = progress.fraction;
       });
-      const { day } = await firstValueFrom(this.mediaApi.setPhoto(this.date, slot.pose, asset.id));
-      this.day = day;
+      await this.writeDay(this.mediaApi.setPhoto(this.date, slot.pose, asset.id));
     } catch (error) {
       this.showError(error);
     } finally {
@@ -140,8 +153,7 @@ export class PhotoSessionModalComponent implements OnInit {
     slot.uploading = true;
     slot.progress = 0;
     try {
-      const { day } = await firstValueFrom(this.mediaApi.removePhoto(this.date, slot.pose));
-      this.day = day;
+      await this.writeDay(this.mediaApi.removePhoto(this.date, slot.pose));
     } catch (error) {
       this.showError(error);
     } finally {
@@ -160,6 +172,29 @@ export class PhotoSessionModalComponent implements OnInit {
       this.showError(error);
     } finally {
       this.savingVisibility = false;
+    }
+  }
+
+  private async writeDay(request: Observable<{ day: ProgressDayView | null }>): Promise<void> {
+    this.pendingWrites += 1;
+    if (this.pendingWrites > 1) this.writesOverlapped = true;
+    try {
+      this.day = (await firstValueFrom(request)).day;
+    } finally {
+      this.pendingWrites -= 1;
+      if (!this.pendingWrites && this.writesOverlapped) {
+        this.writesOverlapped = false;
+        await this.reloadDay();
+      }
+    }
+  }
+
+  private async reloadDay(): Promise<void> {
+    try {
+      const { days } = await firstValueFrom(this.mediaApi.listMyProgress({ from: this.date, to: this.date }));
+      this.day = days.find((day) => day.date === this.date) || null;
+    } catch {
+      // Se queda con lo último que llegó: el día del servidor ya es el bueno.
     }
   }
 

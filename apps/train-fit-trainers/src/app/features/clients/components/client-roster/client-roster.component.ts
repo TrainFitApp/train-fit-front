@@ -709,6 +709,10 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
+  public goToInvite(): void {
+    void this.router.navigate(['/tabs/invites']);
+  }
+
   public openPendingFormChecks(row: RosterClient, event: Event): void {
     event.stopPropagation();
     this.router.navigate(['/tabs/review'], { queryParams: { type: 'form_check', client: row.clientId } });
