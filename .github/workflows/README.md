@@ -96,7 +96,7 @@ bundle IDs (`com.trainfit.trainfit` y `com.trainfit.trainfit.TrainFitWidget`).
 
 ## Numeración de versiones
 
-- **Android**: `versionCode` = `ANDROID_VERSION_CODE_BASE` (101348, definido en el
+- **Android**: `versionCode` = `ANDROID_VERSION_CODE_BASE` (101349, definido en el
   workflow) + número de ejecución. Google Play exige que sea estrictamente
   creciente; el contador de runs nunca retrocede.
 - **iOS**: `CURRENT_PROJECT_VERSION` = número de ejecución.

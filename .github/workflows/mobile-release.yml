@@ -67,7 +67,7 @@ env:
   NODE_VERSION: "20"
   # Google Play exige versionCode estrictamente creciente EN TODAS LAS PISTAS A
   # LA VEZ (internal/alpha/beta/production comparten el mismo contador, no cada
-  # una el suyo). El build.gradle del repo usaba 101348, pero un CI antiguo con
+  # una el suyo). El build.gradle del repo usaba 101349, pero un CI antiguo con
   # fastlane dejó en la pista "internal" un release ya completado con
   # versionCode 94000561 (fastlane suele codificar MAJOR*1_000_000 + build, p.
   # ej. versión 94.0.0 build 561). Esa marca de agua histórica manda, no la del
