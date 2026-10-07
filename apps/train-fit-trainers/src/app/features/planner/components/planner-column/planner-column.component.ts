@@ -413,57 +413,40 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  // Multi-selección (2026-08), fan-out a todos los splits (2026-08) —
-  // applyToSplit() es por-plantilla Y por-split (no hay endpoint bulk en el
-  // backend), así que cada (plantilla × microciclo) se aplica EN SECUENCIA
-  // (una request tras otra, nunca en paralelo: cada respuesta trae
-  // table.splits completo y aplicarlas a la vez pisaría el resultado de las
-  // demás). Orden plantillas-fuera/splits-dentro a propósito: la plantilla A
-  // se añade a TODOS los splits (mismo índice final en cada uno) antes de
-  // empezar con la B — si fuera al revés, cada split acabaría con las
-  // plantillas en índices distintos entre sí. Mismo criterio de simetría que
-  // "En blanco" (addCard, ya hace fan-out) — necesario para que
-  // reorderWorkoutRows (mover un entrenamiento) siga funcionando después.
-  //
-  // Cada job SIGUE siendo una request real al backend (no hay endpoint bulk
-  // que las sustituya por una sola) — lo que cambia es que `this.table` NO
-  // se toca hasta que TERMINA el último job: antes, cada respuesta pisaba
-  // this.table.splits al vuelo y el tablero iba revelando el resultado
-  // microciclo a microciclo según llegaba cada respuesta. Ahora el padre
-  // (PlannerPage) tapa el tablero entero con un overlay durante toda la
-  // secuencia (templatesApplyStarted/Ended) y el resultado se aplica de una
-  // sola vez al final, como si fuera una única acción atómica.
+  // Multi-selección (2026-08) — cada plantilla entra como un entrenamiento
+  // nuevo en TODOS los microciclos (applyToTable: una fila, con los mismos
+  // bloques en todos). Las plantillas se aplican EN SECUENCIA, una request
+  // tras otra: cada respuesta trae table.splits completo y aplicarlas a la
+  // vez pisaría el resultado de las demás. `this.table` no se toca hasta que
+  // termina la última: el padre (PlannerPage) tapa el tablero con un overlay
+  // durante toda la secuencia (templatesApplyStarted/Ended) y el resultado se
+  // aplica de una sola vez al final.
   private applyTemplatesToAllSplits(templateIds: string[]): void {
     if (!this.table) return;
     this.addingCard = true;
     this.templatesApplyStarted.emit();
-    const jobs = templateIds.flatMap((templateId) =>
-      this.table.splits.map((split) => ({ templateId, splitId: split._id }))
-    );
-    this.runApplyTemplateJob(jobs, 0, null);
+    this.runApplyTemplateJob(templateIds, 0, null);
   }
 
   private runApplyTemplateJob(
-    jobs: Array<{ templateId: string; splitId: string }>,
+    templateIds: string[],
     index: number,
     latestSplits: Split[] | null
   ): void {
-    if (index >= jobs.length) {
+    if (index >= templateIds.length) {
       this.finishApplyTemplates(latestSplits);
       return;
     }
-    const job = jobs[index];
 
     this.workoutTemplateApi
-      .applyToSplit(this.table.userId, job.splitId, job.templateId)
+      .applyToTable(this.table.userId, this.table._id, templateIds[index])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (splits) => this.runApplyTemplateJob(jobs, index + 1, splits),
+        next: (splits) => this.runApplyTemplateJob(templateIds, index + 1, splits),
         error: () => {
-          // Los jobs anteriores YA se guardaron en el backend (cada uno es
-          // su propia request confirmada) — se aplica el último resultado
-          // conocido en vez de descartarlo, para no dejar la UI
-          // desincronizada de lo que el backend realmente tiene.
+          // Las plantillas anteriores YA se guardaron (cada una es su propia
+          // request confirmada): se aplica el último resultado conocido en
+          // vez de descartarlo, para no dejar la UI desincronizada.
           this.finishApplyTemplates(latestSplits);
           this.ionicUtilService.showToast({
             message: this.translate.instant('PLANNER.ADD_CARD_ERROR'),

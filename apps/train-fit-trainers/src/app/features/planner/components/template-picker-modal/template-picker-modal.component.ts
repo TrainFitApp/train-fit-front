@@ -20,8 +20,8 @@ localizeRecord(LEVEL_LABELS, 'PLANNER.TEMPLATE_LEVELS');
 // cerraba el modal de inmediato, obligando a reabrirlo una vez por cada
 // entrenamiento que se quisiera añadir. Ahora se marcan varias con checkbox
 // (o "Seleccionar todas") y se aplican todas de una vez al confirmar — el
-// llamante (planner-column.component.ts) las aplica en secuencia, ya que
-// applyToSplit() es por-plantilla, no existe un endpoint bulk.
+// llamante (planner-column.component.ts) las aplica en secuencia, una
+// request por plantilla (applyToTable).
 @Component({
   selector: 'app-template-picker-modal',
   templateUrl: './template-picker-modal.component.html',

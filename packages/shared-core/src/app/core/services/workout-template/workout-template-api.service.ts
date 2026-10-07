@@ -33,16 +33,17 @@ export class WorkoutTemplateApiService {
     return this.http.delete(`trainer/workout-templates/${id}`);
   }
 
-  // Aplicar plantilla real dentro de un split de un cliente concreto
-  // (materializa exercises/sets ya prescritos). Devuelve table.splits
-  // completo — mismo shape que workout.service.ts#addWorkoutsToSplits.
-  public applyToSplit(
+  // Aplica la plantilla a una rutina del cliente: un entrenamiento nuevo en
+  // TODOS sus microciclos (una fila), con los mismos bloques en todos, como
+  // crear uno a mano. Devuelve table.splits completo — mismo shape que
+  // workout.service.ts#addWorkoutsToSplits.
+  public applyToTable(
     clientId: string,
-    splitId: string,
+    tableId: string,
     templateId: string
   ): Observable<Split[]> {
     return this.http.post<Split[]>(
-      `trainer/clients/${clientId}/splits/${splitId}/workout-templates/${templateId}/apply`,
+      `trainer/clients/${clientId}/tables/${tableId}/workout-templates/${templateId}/apply`,
       {}
     );
   }

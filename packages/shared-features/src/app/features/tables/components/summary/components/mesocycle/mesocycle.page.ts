@@ -1784,12 +1784,14 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     });
   }
 
+  // La plantilla entra como un entrenamiento nuevo en TODOS los microciclos
+  // (applyToTable), igual que crear uno a mano: un entrenamiento de un solo
+  // microciclo descuadraría las filas.
   private applyTemplateToCurrentSplit(templateId: string): void {
     const clientId = this.tableInUse.userId;
-    const splitId = this.currentSplit._id;
 
     this.applyingTemplate = true;
-    this.workoutTemplateApi.applyToSplit(clientId, splitId, templateId).subscribe({
+    this.workoutTemplateApi.applyToTable(clientId, this.tableInUse._id, templateId).subscribe({
       next: (resSplits) => {
         this.applyingTemplate = false;
         this.tableInUse.splits = resSplits;

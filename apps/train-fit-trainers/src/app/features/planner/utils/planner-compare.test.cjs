@@ -134,3 +134,23 @@ test('el rótulo de "sin series" sale del catálogo, no es la clave en crudo', (
   assert.ok(en.PLANNER.SIN_SERIES.length > 0);
 });
 
+
+test('volumen por grupo con porciones A/B, como en Análisis, y series sin músculos aparte', () => {
+  const muscles = (...entries) => entries.map(([muscle, role]) => ({ muscle, role }));
+  const flat = exercise('press', [series(), series(), series(), series()], {
+    muscles: muscles(['chest_middle', 'primary'], ['chest_upper', 'secondary']),
+  });
+  const incline = exercise('inclinado', [series(), series()], { muscles: muscles(['chest_upper', 'primary']) });
+  const unknown = exercise('sin-musculos', [series(), series(), series()]);
+
+  const result = compareSplits(split([flat]), split([flat, incline, unknown]));
+  const chest = result.muscles.find((row) => row.groupId === 'chest');
+  assert.equal(chest.a, 4, 'el press cuenta una vez al grupo, con su mayor factor');
+  assert.equal(chest.b, 6);
+  assert.equal(chest.delta, 2);
+  const portion = (id) => chest.portions.find((item) => item.id === id);
+  assert.deepEqual([portion('chest_upper').a, portion('chest_upper').b], [2, 4], 'secundario ×0,5 + principal ×1');
+  assert.deepEqual([portion('chest_middle').a, portion('chest_middle').b], [4, 4]);
+  assert.ok(chest.portions.every((item) => !item.isWholeGroup), 'sin "Todo el grupo" si nadie lo etiqueta entero');
+  assert.deepEqual(result.unclassifiedSets, { a: 0, b: 3 });
+});
