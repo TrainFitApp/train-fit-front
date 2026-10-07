@@ -71,7 +71,7 @@ function harness() {
     getTop: async () => overlays.filter((modal) => modal.isConnected).at(-1),
   };
   Object.assign(service, {
-    sidePanelStack: [], sidePanelParents: new Map(), sidePanelsOverParent: new Set(), sidePanelAccessibilityCleanup: null,
+    sidePanelStack: [], sidePanelParents: new Map(), sidePanelsOverParent: new Set(), sidePanelAccessibilityCleanup: null, pendingSidePanelComponents: new Set(),
     modalController: controller,
     injector: { get: (value) => value === token.AngularDelegate ? { create: (_env, injector) => injector } : {} },
   });

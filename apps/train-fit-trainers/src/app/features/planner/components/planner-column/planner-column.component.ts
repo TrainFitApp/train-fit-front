@@ -571,12 +571,11 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   // primero se refleja el mismo movimiento fromIndex→toIndex en cada split en
   // memoria (para que el tablero entero se vea reordenado al instante, no
   // solo la columna arrastrada), y se persiste con una única llamada a
-  // workoutService.reorderWorkoutRows (por-tabla, ya usado y probado por la
-  // app de cliente) en vez de reorderWorkoutsInSplit (por-split, dejaba las
-  // demás columnas desalineadas). Exige que todos los splits tengan el MISMO
-  // número de entrenamientos — invariante que ya mantienen crear (addCard/
-  // plantillas, fan-out a todos) y borrar (mismo índice en todos, ver
-  // workout.component.ts#deleteWorkouts) en toda la app.
+  // workoutService.reorderWorkoutRows (por-tabla, el mismo que usa la app de
+  // cliente). Exige que todos los splits tengan el MISMO número de
+  // entrenamientos — invariante que mantienen crear (addCard/plantillas,
+  // fan-out a todos), duplicar (duplicateWorkoutRow) y borrar (la fila
+  // entera, ver workout.component.ts#deleteWorkouts) en toda la app.
   public onCardsReordered(event: CustomEvent<ItemReorderEventDetail>): void {
     const { from, to } = event.detail;
     // false: Ionic no mueve el DOM, solo quita sus transform; lo recoloca

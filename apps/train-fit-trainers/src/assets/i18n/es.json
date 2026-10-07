@@ -1,7 +1,5 @@
 {
   "PLANNER": {
-    "NO_OTHER_WEEKS": "No hay otros microciclos a los que copiar",
-    "COPY_TO_WEEK": "Copiar a otro microciclo",
     "ADD_WEEK": "Añadir microciclo",
     "WEEK_NAME_PLACEHOLDER": "Ej: Microciclo 1",
     "WEEK_DUPLICATED": "Microciclo duplicado",

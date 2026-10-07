@@ -1068,8 +1068,6 @@
     "SERVING_DESC": "Por ración"
   },
   "PLANNER": {
-    "NO_OTHER_WEEKS": "No hay otras semanas a las que copiar",
-    "COPY_TO_WEEK": "Copiar a otra semana",
     "PRESET_STRENGTH": "Fuerza",
     "PRESET_HYPERTROPHY": "Hipertrofia",
     "PRESET_ENDURANCE": "Resistencia",

@@ -1,7 +1,5 @@
 {
   "PLANNER": {
-    "NO_OTHER_WEEKS": "No other microcycles to copy to",
-    "COPY_TO_WEEK": "Copy to another microcycle",
     "ADD_WEEK": "Add microcycle",
     "WEEK_NAME_PLACEHOLDER": "E.g: Microcycle 1",
     "WEEK_DUPLICATED": "Microcycle duplicated",

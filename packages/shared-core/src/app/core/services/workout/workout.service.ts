@@ -123,16 +123,6 @@ export class WorkoutService {
     return this.workoutAPIService.modifyWorkout(workout).pipe(take(1));
   }
 
-  public copyWorkoutToSplit(idWorkout: string, idSplit: string): Observable<Split[]> {
-    return this.workoutAPIService.copyWorkoutToSplit(idWorkout, idSplit).pipe(take(1));
-  }
-
-  public reorderWorkoutsInSplit(idSplit: string, workoutIdsOrder: string[]): Observable<Split[]> {
-    return this.workoutAPIService
-      .reorderWorkoutsInSplit(idSplit, workoutIdsOrder)
-      .pipe(take(1), this.invalidatePinnedNotes());
-  }
-
   public updateWorkoutBlocks(
     workoutId: string,
     blocks: Partial<WorkoutBlock>[]

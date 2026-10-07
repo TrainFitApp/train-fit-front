@@ -1068,8 +1068,6 @@
     "SERVING_DESC": "Per serving"
   },
   "PLANNER": {
-    "NO_OTHER_WEEKS": "No other weeks to copy to",
-    "COPY_TO_WEEK": "Copy to another week",
     "PRESET_STRENGTH": "Strength",
     "PRESET_HYPERTROPHY": "Hypertrophy",
     "PRESET_ENDURANCE": "Endurance",

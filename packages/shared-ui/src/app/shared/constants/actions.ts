@@ -15,7 +15,6 @@ export enum ACTION_TYPES {
   addSet = 16,
   saveAsTemplate = 17,
   manageBlocks = 18,
-  copyToWeek = 19,
   stopWorkout = 20,
   manageRecents = 21,
 }
@@ -143,15 +142,6 @@ export const ACTIONS: {
     value: "ACTIONS.MANAGE_BLOCKS",
     icon: "layers-outline",
     color: "secondary",
-  },
-  // Planificador visual (Fase C) — solo se añade al menú en plannerMode (ver
-  // workout.component.ts#getActionsPopover); copia esta card a otra semana
-  // elegida por el trainer.
-  [ACTION_TYPES.copyToWeek]: {
-    id: ACTION_TYPES.copyToWeek,
-    value: "PLANNER.COPY_TO_WEEK",
-    icon: "arrow-redo-outline",
-    color: "tertiary",
   },
   [ACTION_TYPES.stopWorkout]: {
     id: ACTION_TYPES.stopWorkout,

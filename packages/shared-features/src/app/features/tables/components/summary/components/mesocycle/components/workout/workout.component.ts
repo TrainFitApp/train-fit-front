@@ -156,10 +156,9 @@ export class WorkoutComponent implements OnDestroy {
   // Planificador visual (Fase C) — <app-workout> reutilizado como card del
   // tablero Kanban. Oculta chrome irrelevante para planificar (play/fecha/
   // estado — "como mesocycle pero sin el botón de empezar entrenamiento",
-  // pedido explícito) y cambia "duplicar" para que copie solo dentro
-  // de/hacia una semana (copyToSplit) en vez de cruzar todos los splits de
-  // la tabla (duplicateWorkoutRow, el modelo viejo de "fila de workout
-  // compartida entre semanas" que el Planificador deja atrás).
+  // pedido explícito). Las operaciones sobre entrenamientos son por FILA,
+  // igual que en la app de cliente: duplicar, añadir, reordenar y borrar
+  // actúan en todos los microciclos (los bloques son de la fila).
   @Input()
   public plannerMode = false;
 
@@ -856,11 +855,6 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   private duplicateWorkoutRow(): void {
-    if (this.plannerMode) {
-      this.copyToSplit(this.split._id);
-      return;
-    }
-
     this.load = false;
 
     const nameSuffix = this.translate.instant("TABLES.WORKOUT_COPY_SUFFIX");
@@ -895,41 +889,9 @@ export class WorkoutComponent implements OnDestroy {
       });
   }
 
-  // Planificador visual (Fase C) — copia ESTA card a otra semana (o a la
-  // misma, como "duplicar en el sitio"). Sustituye a duplicateWorkoutRow en
-  // plannerMode: ese método cruza TODOS los splits de la tabla, incompatible
-  // con columnas independientes.
-  private copyToSplit(targetSplitId: string): void {
-    this.load = false;
-
-    this.workoutService
-      .copyWorkoutToSplit(this.workout._id, targetSplitId)
-      .subscribe({
-        next: (splits) => {
-          this.tableInUse.splits = splits;
-          this.tableService.setCurrentTable = this.tableInUse;
-
-          const toastOptions: ToastOptions = {
-            message: this.translate.instant("TABLES.WORKOUT_DUPLICATED"),
-            duration: 1000,
-            color: "success",
-          };
-          this.ionicUtilService.showToast(toastOptions);
-          this.load = true;
-        },
-        error: (error) => {
-          this.load = true;
-          this.ionicUtilService.showErrorToast(
-            error,
-            this.translate.instant("TABLES.WORKOUT_DUPLICATE_ERROR"),
-          );
-        },
-      });
-  }
-
   // Rediseño de entrenamiento (Fase A) — guarda ESTE workout ya construido
   // (con exercises/sets reales) como WorkoutTemplate reutilizable. Inverso de
-  // mesocycle.page.ts#applyTemplateToCurrentSplit — cierra el círculo
+  // mesocycle.page.ts#applyTemplateToTable — cierra el círculo
   // "constrúyelo una vez, reutilízalo" sin un editor de contenido aparte.
   private async saveAsTemplateAlert(): Promise<void> {
     const alertOptions: AlertOptions = {

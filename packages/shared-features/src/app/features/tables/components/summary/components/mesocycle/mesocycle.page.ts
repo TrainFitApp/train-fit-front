@@ -1777,7 +1777,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         {
           text: this.translate.instant('COMMON.CONFIRM'),
           handler: (templateId: string) => {
-            if (templateId) this.applyTemplateToCurrentSplit(templateId);
+            if (templateId) this.applyTemplateToTable(templateId);
           },
         },
       ],
@@ -1787,7 +1787,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   // La plantilla entra como un entrenamiento nuevo en TODOS los microciclos
   // (applyToTable), igual que crear uno a mano: un entrenamiento de un solo
   // microciclo descuadraría las filas.
-  private applyTemplateToCurrentSplit(templateId: string): void {
+  private applyTemplateToTable(templateId: string): void {
     const clientId = this.tableInUse.userId;
 
     this.applyingTemplate = true;
