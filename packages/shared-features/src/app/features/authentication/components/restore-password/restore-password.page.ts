@@ -5,7 +5,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
-import { UtilService } from 'src/app/core/services/util/util.service';
 import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import { PasswordComplexity } from 'src/app/core/validators/password-complexity';
 import { environment } from 'src/environments/environment';
@@ -54,7 +53,6 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
     private matchPasswords: MatchPasswords,
     public modalController: ModalController,
     private userService: UserService,
-    private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService
   ) {}

@@ -145,10 +145,6 @@ export class OrderSetsPage implements OnInit {
     } as ToastOptions);
   }
 
-  public getSetLabel(number: number): string {
-    return this.translate.instant('ORDER_SETS.SET_LABEL', { number });
-  }
-
   public formatExpectedReps(expectedReps: number[]): string {
     if (!expectedReps || expectedReps.length === 0) return '—';
 

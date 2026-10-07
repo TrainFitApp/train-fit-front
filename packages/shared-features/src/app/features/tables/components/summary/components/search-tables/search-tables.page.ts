@@ -10,7 +10,6 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
-import { TranslateService } from '@ngx-translate/core';
 import { APP_SHELL_CONFIG } from 'src/app/app-shell.config';
 
 export type TablesFilterMode = 'all' | 'mine';
@@ -47,7 +46,6 @@ export class SearchTablesPage implements OnInit {
   private readonly workoutService = inject(WorkoutService);
   private readonly adMobService = inject(AdMobService);
   private readonly billingService = inject(BillingService);
-  private readonly translate = inject(TranslateService);
 
   constructor(
     private utilService: UtilService,

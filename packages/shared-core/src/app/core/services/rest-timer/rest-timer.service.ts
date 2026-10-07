@@ -1,6 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { App as CapacitorApp } from '@capacitor/app';
-import { Capacitor, PluginListenerHandle } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 import { NotificationService } from '../util/notification.service';
 
 export interface ActiveRestTimer {
@@ -30,7 +30,6 @@ export class RestTimerService {
   private readonly _pausedRemainingMs = signal(0);
   private readonly _now = signal(Date.now());
   private tickHandle: ReturnType<typeof setInterval> | undefined;
-  private appStateListener: PluginListenerHandle | null = null;
 
   public readonly active = this._active.asReadonly();
   public readonly paused = this._paused.asReadonly();
@@ -183,8 +182,6 @@ export class RestTimerService {
       if (!isActive || !this._active()) return;
       this._now.set(Date.now());
       if (!this._paused() && this.remainingSeconds() === 0) this.stopTicker();
-    }).then((listener) => {
-      this.appStateListener = listener;
     });
   }
 }

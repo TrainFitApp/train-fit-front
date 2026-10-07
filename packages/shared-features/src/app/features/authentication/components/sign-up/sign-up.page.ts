@@ -44,7 +44,6 @@ import {
 import { TRAINING_TYPE } from 'src/app/shared/constants/training';
 
 import { Router } from '@angular/router';
-import { Keyboard } from '@capacitor/keyboard';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import {
@@ -86,9 +85,6 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public showPass: boolean;
   public showPassRep: boolean;
-
-  public notBegining = 0;
-  public isEnding: boolean;
 
   public user: User;
 
@@ -196,11 +192,6 @@ export class SignUpPage implements OnInit, OnDestroy {
    */
   private isUserRegistrationComplete(user: User): boolean {
     return !!(user?.name && user?.lastname && user?.weight && user?.height);
-  }
-
-  // Renombrando para mayor claridad interna si se desea, pero mantengo compatibilidad
-  public get isSocialRegistration(): boolean {
-    return !this.registerSocialPending;
   }
 
   public socialProvider: 'google' | 'apple' | null = null;
@@ -745,10 +736,6 @@ export class SignUpPage implements OnInit, OnDestroy {
       ? slides.length - 3
       : slides.length - 2;
     return this.swiper.activeIndex === formIndex;
-  }
-
-  public customFormatter(value: number): string {
-    return `${value} h`;
   }
 
   public nextSlide(): void {

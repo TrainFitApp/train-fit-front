@@ -1,10 +1,7 @@
 import { Component, OnInit, ViewChild, effect, inject } from '@angular/core';
-import { Browser } from '@capacitor/browser';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  AlertButton,
   AlertOptions,
-  ModalController,
   ModalOptions,
   Platform,
   ToastOptions,
@@ -37,7 +34,6 @@ import {
   CHART_RANGES_TYPES,
   CHART_RANGES_VALUES,
 } from 'src/app/features/diet-days/components/weight-info/constants/chartRanges';
-import { DayWeight } from 'src/app/features/diet-days/components/weight-info/models/dayWeight';
 import { CALCULATOR_VALUES } from 'src/app/shared/constants/calculators';
 import { INFO } from 'src/app/shared/constants/info';
 import { LINKS } from 'src/app/shared/constants/links';
@@ -60,7 +56,6 @@ import { TABLE_GROUPS, TABLE_GROUPS_VALUES } from './models/tableGroups';
 import { EditorPage } from './components/configuration/components/editor/editor.page';
 import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 import { ProfileCoachCardComponent } from './components/coach-card/profile-coach-card.component';
-import { ageFromBirthDate } from 'src/app/core/utils/body-metrics.util';
 import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 @Component({
@@ -77,8 +72,6 @@ export class ProfilePage implements OnInit {
 
   public kcalCirclePercentage: number;
 
-  public dailySteps: number;
-
   public isWorkoutInUseEnded: boolean;
   public completedExercises: number = 0;
 
@@ -93,7 +86,6 @@ export class ProfilePage implements OnInit {
   public dietDay$: Subscription;
 
   public dietDays: DietDay[] = [];
-  public daysWeight: DayWeight[] = [];
 
   public macrosData = new MacrosData();
   public macrosBars: MacrosBars;
@@ -102,7 +94,6 @@ export class ProfilePage implements OnInit {
   public labels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
   public chartRange: string;
-  public indexCurrentDate: number;
   public pointRadius: number;
   public prevWeekDateRange: DateRange;
   public currWeekDateRange: DateRange;
@@ -128,8 +119,6 @@ export class ProfilePage implements OnInit {
 
   public CHART_RANGES = CHART_RANGES;
   public CHART_RANGES_VALUES = CHART_RANGES_VALUES;
-
-  public selectedWorkoutGroup: string = TABLE_GROUPS.workout;
   public TABLE_GROUPS = TABLE_GROUPS;
   public TABLE_GROUPS_VALUES = TABLE_GROUPS_VALUES;
 
@@ -253,57 +242,12 @@ export class ProfilePage implements OnInit {
   public ionViewWillLeave(): void {
   }
 
-  public showAlertInfo(): void {
-    let message: string;
-
-    if (this.user.objetive !== 0)
-      message =
-        this.user.objetive > 0
-          ? this.translate.instant('PROFILE.WEIGHT_GOAL_SURPLUS', { kcal: this.user.objetive })
-          : this.translate.instant('PROFILE.WEIGHT_GOAL_DEFICIT', { kcal: Math.abs(this.user.objetive) });
-    else
-      message = this.translate.instant('PROFILE.WEIGHT_GOAL_KEEP');
-
-    const toastOptions: ToastOptions = {
-      message: message,
-      duration: 2000,
-    };
-
-    this.ionicUtilService.showToast(toastOptions);
-  }
-
   public showInfo(info: string): void {
     const toastOptions: ToastOptions = {
       message: this.translate.instant(info),
       duration: 1000,
     };
     this.ionicUtilService.showToast(toastOptions);
-  }
-
-  public getUserAge(): number {
-    return ageFromBirthDate(this.user?.birth) ?? 0;
-  }
-
-  public getStepsDescription(): string {
-    if (!this.user?.steps) return '';
-    const stepOption = STEPS_VALUES.find((s) => s.value === this.user.steps);
-    return stepOption ? stepOption.name : '';
-  }
-
-  public getTrainingDescription(): string {
-    const notConfigured = this.translate.instant('PROFILE.NOT_CONFIGURED');
-    if (!this.user) return notConfigured;
-
-    const steps = this.user.steps || 1.37;
-    const training = this.user.training || 1.0;
-
-    const trainingValues = calculateTrainingValues(steps);
-    if (!trainingValues) return notConfigured;
-
-    const trainingOption = Object.values(trainingValues).find(
-      (t) => t.value === training
-    );
-    return trainingOption ? trainingOption.name : notConfigured;
   }
 
   private initTrainingValues(): void {
@@ -339,7 +283,7 @@ export class ProfilePage implements OnInit {
     return '→ ';
   }
 
-  getWeightTrendClass(period: 'week' | 'month'): string {
+  getWeightTrendClass(): string {
     const current = this.currWeightAverage || 0;
     const previous = this.prevWeightAverage || 0;
 
@@ -685,10 +629,6 @@ export class ProfilePage implements OnInit {
       this.fatPercentage >= 100;
   }
 
-  public async openAboutUs(): Promise<void> {
-    await Browser.open({ url: 'https://trainfit.net/sobre-trainfit/' });
-  }
-
   public getISODate(workoutDate: Date): string {
     return workoutDate ? new Date(workoutDate).toISOString() : undefined;
   }
@@ -700,10 +640,6 @@ export class ProfilePage implements OnInit {
 
   public goToSummary(): void {
     this.navigationService.goToTabsSummaryPage();
-  }
-
-  public goToDiets(): void {
-    this.navigationService.goToTabsDietsPage();
   }
 
   private setWeekRanges(): void {
@@ -965,10 +901,6 @@ this._fatGTotal
         },
       });
     }
-  }
-
-  public get premiumPlanLabel(): string {
-    return this.translate.instant('PROFILE.PRO_LABEL');
   }
 
   private async refreshPremiumState(): Promise<void> {

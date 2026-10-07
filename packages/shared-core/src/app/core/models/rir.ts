@@ -146,10 +146,6 @@ export function isRirFail(value: unknown): boolean {
   return normalizeRirValue(value)?.[0] === RIR_FAIL_VALUE;
 }
 
-export function hasRirValue(value: unknown): boolean {
-  return normalizeRirValue(value) !== null;
-}
-
 export function formatRirValue(
   value: unknown,
   options: { includeUnit?: boolean; emptyLabel?: string } = {}

@@ -135,7 +135,6 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private _ingredients: CustomProduct[] = [];
   private returnUrl = "/search-foods";
-  private routeState: any = {};
   private shouldPropagateUpdatedRecipe = false;
   private updatedDietDayToPropagate: DietDay | null = null;
   private backButton$: any;
@@ -233,7 +232,6 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   private initFromRoute(): void {
     const state: any = window.history.state || {};
-    this.routeState = state;
     const savedMode = this.navigationService.getTempData<RecipeDraftMode>("configRecipeMode");
     const routeMode = (state.mode || savedMode || "create") as RecipeDraftMode;
     let routeRecipe = state.recipe || null;
@@ -573,12 +571,6 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.patchForm();
     this.ingredients = this.getCurrentIngredients();
     this.recalculateMacros();
-  }
-
-  public toggleEditInfo(): void {
-    if (this.canEditOriginalRecipe) {
-      this.startEditingOriginalRecipe();
-    }
   }
 
   public async confirmEditInfo(): Promise<void> {

@@ -37,7 +37,6 @@ import {
   ACTION_VALUES,
   ACTIONS,
 } from 'src/app/shared/constants/actions';
-import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-meal-modal.component';
 import { PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view.component';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
@@ -922,13 +921,6 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     this.meal.fat = this.mealFat;
   }
 
-  private initMeal(): void {
-    this.meal.kcal = 0;
-    this.meal.protein = 0;
-    this.meal.carbohydrate = 0;
-    this.meal.fat = 0;
-  }
-
   private getActionsPopover(): ACTION_TYPE[] {
     const actions: ACTION_TYPE[] = [];
     if (
@@ -1141,14 +1133,6 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
       this.selectedRecipeIds.size === recipeCount &&
       (productCount > 0 || recipeCount > 0)
     );
-  }
-
-  public isAnySelected(): boolean {
-    return this.selectedProductIds.size > 0 || this.selectedRecipeIds.size > 0;
-  }
-
-  public getSelectedCount(): number {
-    return this.selectedProductIds.size + this.selectedRecipeIds.size;
   }
 
   private get mealName(): string {

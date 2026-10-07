@@ -55,10 +55,9 @@ export interface NutritionPreferences {
   allergies: string;
   favoriteFoods: string;
   dislikedFoods: string;
-  dietaryFlags?: DietaryFlag[];
+  dietaryFlags: DietaryFlag[];
   cooksAtHome: CooksAtHome | null;
   disabledMealSlots: string[];
-  mealSlotLabels: Record<string, string>;
   requestedAt: string | null;
   requestedBy: string | null;
   respondedAt: string | null;

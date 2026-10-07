@@ -1,9 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
-import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Exercise } from 'src/app/core/models/exercise';
-import { Set } from 'src/app/core/models/set';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { SearchFilterGroupExercises } from 'src/app/shared/models/filterGroup';
 

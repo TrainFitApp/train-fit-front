@@ -227,13 +227,13 @@ export class MethodPage implements OnInit {
   // se cuenta lo que realmente trae, no las ranuras que existen.
   public protocolMeta(protocol: CoachProtocol): string {
     const pieces = [
-      protocol.checkinTemplateId ? 1 : 0,
+      protocol.checkins.length,
       protocol.dietTemplateId ? 1 : 0,
       protocol.routineTemplateId ? 1 : 0,
       (protocol.ruleIds || []).length,
       (protocol.dailyTasks || []).length,
     ].reduce((total, n) => total + n, 0);
-    return `${pieces} elemento${pieces === 1 ? '' : 's'}`;
+    return this.translate.instant(pieces === 1 ? 'METHOD.ITEMS_ONE' : 'METHOD.ITEMS_OTHER', { count: pieces });
   }
 
   // --- Automatizaciones ---

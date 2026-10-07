@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Exercise } from 'src/app/core/models/exercise';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { ExerciseScore, scoreFor } from 'src/app/core/constants/exercise-score';
+import { ExerciseScore } from 'src/app/core/constants/exercise-score';
 import { ExerciseScoresApiService, ScoreCatalog } from './services/exercise-scores-api.service';
 import { ScoreEditorModalComponent } from './components/score-editor-modal/score-editor-modal.component';
 
@@ -199,10 +199,6 @@ export class ExerciseScoresPage implements OnInit {
       error: () =>
         this.ionicUtilService.showErrorToast(this.translate.instant('EXERCISE_SCORES.NO_SE_PUDO_BORRAR_LA'), this.translate.instant('COMMON.ERROR'), 2500),
     });
-  }
-
-  public scoreOf(row: ScoredExerciseRow, muscle: string): number {
-    return scoreFor(row.score.muscleScores, muscle);
   }
 
   public trackByRow(_index: number, row: ScoredExerciseRow): string {

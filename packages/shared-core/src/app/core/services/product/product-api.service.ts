@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { IProduct } from '../../models/product';
-import { User } from '../../models/user';
 import { HttpService } from '../http/http.service';
 
 @Injectable()

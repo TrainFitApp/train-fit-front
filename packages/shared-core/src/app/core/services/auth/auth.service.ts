@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, from, Observable, of, throwError } from 'rxjs';
-import { catchError, filter, finalize, map, shareReplay, switchMap, take } from 'rxjs/operators';
+import { catchError, finalize, map, shareReplay, switchMap } from 'rxjs/operators';
 import { Token } from '../../models/token';
 import { User } from '../../models/user';
 import { UserLocalstorageService } from '../user/user-localstorage.service';
@@ -148,10 +148,6 @@ export class AuthService {
         return throwError(() => error);
       }),
     );
-  }
-
-  public revertImpersonationLocally(): void {
-    return;
   }
 
   public restoreSessionSilently(): Observable<boolean> {

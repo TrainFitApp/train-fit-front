@@ -11,7 +11,6 @@ import {
 import {
   ModalController,
   ToastOptions,
-  Platform,
   IonContent,
 } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
@@ -20,7 +19,6 @@ import { User } from "src/app/core/models/user";
 import { NutritionalGoal } from "src/app/core/models/nutritional-goal";
 import { NutritionalGoalService } from "src/app/core/services/nutritional-goal/nutritional-goal.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
-import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { isPremiumActive } from "src/app/core/utils/premium-status.util";
@@ -66,11 +64,9 @@ export class NutritionEditorPage implements OnInit {
   };
 
   constructor(
-    private navigationService: NavigationService,
     private userService: UserService,
     private nutritionalGoalService: NutritionalGoalService,
     private ionicUtilService: IonicUtilService,
-    private platform: Platform,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
     private adMobService: AdMobService,
@@ -278,19 +274,6 @@ export class NutritionEditorPage implements OnInit {
     );
 
     this.syncInputsFromState();
-    this.render();
-  }
-
-  public onSyncKcalChange(event: any): void {
-    this.state.syncKcal = event.target.checked;
-    if (this.state.syncKcal) {
-      this.state.targetKcal = this.kcalFromGrams();
-      const targetKcalInput = document.getElementById(
-        "targetKcal",
-      ) as HTMLInputElement;
-      if (targetKcalInput)
-        targetKcalInput.value = this.state.targetKcal.toString();
-    }
     this.render();
   }
 
@@ -690,7 +673,6 @@ export class NutritionEditorPage implements OnInit {
     if (handle2) handle2.style.left = p + c + "%";
   }
 
-
   // ---------- Presets ----------
   public applyPreset(p: number, c: number, f: number): void {
     this.setMode("%");
@@ -698,57 +680,6 @@ export class NutritionEditorPage implements OnInit {
     this.state.grams.p = this.gramsFromPct(p, this.state.kcalPerG.p);
     this.state.grams.c = this.gramsFromPct(c, this.state.kcalPerG.c);
     this.state.grams.f = this.gramsFromPct(f, this.state.kcalPerG.f);
-
-    const syncKcal = document.getElementById("syncKcal") as HTMLInputElement;
-    if (syncKcal?.checked) {
-      this.state.targetKcal = this.kcalFromGrams();
-    }
-
-    this.syncInputsFromState();
-    this.render();
-  }
-
-  public applyKgPreset(p: number, c: number, f: number): void {
-    const pPerKg = document.getElementById("pPerKg") as HTMLInputElement;
-    const cPerKg = document.getElementById("cPerKg") as HTMLInputElement;
-    const fPerKg = document.getElementById("fPerKg") as HTMLInputElement;
-
-    if (pPerKg) pPerKg.value = p.toString();
-    if (cPerKg) cPerKg.value = c.toString();
-    if (fPerKg) fPerKg.value = f.toString();
-
-    this.applyKg();
-  }
-
-  public applyKg(): void {
-    const weightKg = document.getElementById("weightKg") as HTMLInputElement;
-    const pPerKg = document.getElementById("pPerKg") as HTMLInputElement;
-    const cPerKg = document.getElementById("cPerKg") as HTMLInputElement;
-    const fPerKg = document.getElementById("fPerKg") as HTMLInputElement;
-
-    const w = +(weightKg?.value || 0);
-    if (w <= 0) return;
-
-    const p = +(pPerKg?.value || 0);
-    const c = +(cPerKg?.value || 0);
-    const f = +(fPerKg?.value || 0);
-
-    this.setMode("g");
-    this.state.grams.p = this.round1(p * w);
-    this.state.grams.c = this.round1(c * w);
-    this.state.grams.f = this.round1(f * w);
-    this.state.pct.p = this.pctFromGrams(
-      this.state.grams.p,
-      this.state.kcalPerG.p,
-    );
-    this.state.pct.c = this.pctFromGrams(
-      this.state.grams.c,
-      this.state.kcalPerG.c,
-    );
-    this.state.pct.f = this.pctFromGrams(
-      this.state.grams.f,
-      this.state.kcalPerG.f,
-    );
 
     const syncKcal = document.getElementById("syncKcal") as HTMLInputElement;
     if (syncKcal?.checked) {
@@ -820,13 +751,6 @@ export class NutritionEditorPage implements OnInit {
     if (fG) fG.value = this.state.grams.f.toFixed(0);
     if (fP) fP.value = this.state.pct.f.toFixed(1);
     if (kcal) kcal.value = this.state.targetKcal.toString();
-  }
-
-  private infoLine(k: "p" | "c" | "f"): string {
-    const g = this.state.grams[k] || 0;
-    const pct = this.state.pct[k] || 0;
-    const kcal = this.round1(g * this.state.kcalPerG[k]);
-    return `<b>${g || 0} g</b> • <b>${kcal} kcal</b> • <b>${pct || 0}%</b>`;
   }
 
   private render(): void {

@@ -63,10 +63,6 @@ export class DatesSliderComponent implements AfterViewInit, OnDestroy {
   public currentDate!: Date;
   public currentMonday!: Date;
 
-  public backgroundColorDateSelected: string = '';
-  public colorDateSelected: string = '';
-  public borderDateSelected: string = '';
-
   public today: Date = new Date();
 
   // Qué fase y qué semana cae en cada día visible
@@ -302,14 +298,6 @@ export class DatesSliderComponent implements AfterViewInit, OnDestroy {
 
   public sendSelectedDate(date: Date): void {
     this.selectedDateEvent.emit(this._utilService.formatDateToYYYYMMDD(date));
-  }
-
-  /**
-   * Resetea el slider a la semana actual
-   */
-  public resetToCurrentWeek(): void {
-    this.currentDate = new Date();
-    this.initSlides();
   }
 
   // Las tiras se identifican por posición y los días por fecha: así Angular

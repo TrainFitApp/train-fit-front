@@ -404,10 +404,6 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     return `${names.slice(0, -1).join(', ')} ${this.translate.instant('COACH.AND').trim()} ${names[names.length - 1]}`;
   }
 
-  public trackByStepId(_index: number, id: string): string {
-    return id;
-  }
-
   public trackByQuestionId(_index: number, question: CustomQuestion): string {
     return question._id || question.label;
   }

@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Exercise } from 'src/app/core/models/exercise';
-import { Set } from 'src/app/core/models/set';
 import { ExerciseAPIService } from './exercise-api.service';
 import { SearchFilterGroupExercises } from 'src/app/shared/models/filterGroup';
 

@@ -1,4 +1,4 @@
-import { Injector, Injectable, QueryList } from '@angular/core';
+import { Injector, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FormGroup, ValidationErrors } from '@angular/forms';
 import { Chart, ChartData, ChartOptions, ChartType } from 'chart.js';
@@ -47,7 +47,6 @@ export class UtilService {
     exerciseIndex: number;
     highlightClass: string;
   }>();
-  private imageCache: { [url: string]: HTMLImageElement } = {};
 
   private _translate: TranslateService | null = null;
 
@@ -56,16 +55,6 @@ export class UtilService {
       this._translate = this.injector.get(TranslateService);
     }
     return this._translate;
-  }
-
-  private _isTourInit: boolean;
-
-  public get isTourInit(): boolean {
-    return this._isTourInit;
-  }
-
-  public initTour(status: boolean): void {
-    this._isTourInit = status;
   }
 
   public get loading() {
@@ -116,10 +105,6 @@ export class UtilService {
     return this._refresh$.asObservable();
   }
 
-  public set setRefreshAfterDeleteOwn(boolean: boolean) {
-    this._refresh$.next(boolean);
-  }
-
   public get getScrollToExercise() {
     return this._scrollToExercise$.asObservable();
   }
@@ -166,44 +151,6 @@ export class UtilService {
     return { dateMin: dateMinStr, dateMax: dateMaxStr, dateRange, labels };
   }
 
-  public numberDaysBetween(dateMin: Date, dateMax: Date) {
-    const date1_ms = dateMin.getTime();
-    const date2_ms = dateMax.getTime();
-    const difference_ms = Math.abs(date2_ms - date1_ms);
-    return Math.round(difference_ms / (1000 * 60 * 60 * 24));
-  }
-
-  public getDatesInRange(startDate: Date, endDate: Date): Date[] {
-    const date = new Date(startDate.getTime());
-
-    const dates = [];
-
-    while (date <= endDate) {
-      dates.push(new Date(date));
-      date.setDate(date.getDate() + 1);
-    }
-
-    return dates;
-  }
-
-  public getWeekOfMonth(d: Date): number {
-    const date = new Date(d);
-    const dayOfWeek = (date.getDay() + 6) % 7;
-    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-    const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7;
-    const adjustedDay = date.getDate() + firstDayOfWeek - dayOfWeek;
-    return Math.ceil(adjustedDay / 7);
-  }
-
-  public sortListByDates(objs: any[]) {
-    return objs.sort((objA, objB) => {
-      if (typeof objA.date === 'string' && typeof objB.date === 'string') {
-        return objA.date.localeCompare(objB.date);
-      }
-      return new Date(objA.date).getTime() - new Date(objB.date).getTime();
-    });
-  }
-
   public average(numbers: number[]): number {
     const numbersTotal = numbers.filter((numberTemp) => !isNaN(numberTemp));
     if (numbersTotal.length === 0) {
@@ -239,10 +186,6 @@ export class UtilService {
     );
   }
 
-  public datesStrAreOnSameDay(first: string, second: string): boolean {
-    return first === second;
-  }
-
   public getFirstWeekDayStr(dateStr: string, dayIndex: number): string {
     const dateObj = this.parseYYYYMMDD(dateStr);
     const dayOfWeek = dateObj.getDay();
@@ -268,16 +211,6 @@ export class UtilService {
     return { dateMin, dateMax, dateRange, labels };
   }
 
-  public numberDaysBetweenStr(dateMin: string, dateMax: string): number {
-    const a = this.parseYYYYMMDD(dateMin);
-    const b = this.parseYYYYMMDD(dateMax);
-    return Math.round(Math.abs(b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
-  }
-
-  public getWeekOfMonthFromStr(dateStr: string): number {
-    return this.getWeekOfMonth(this.parseYYYYMMDD(dateStr));
-  }
-
   public initFakeModalState(): void {
     const modalState = {
       modal: true,
@@ -288,14 +221,6 @@ export class UtilService {
       // Notify globally that a modal is open
       this._modalOpen$.next(true);
     } catch {}
-  }
-
-  public numberArray(number: number) {
-    const res = [];
-    for (let i = 1; i <= number; i++) {
-      res.push(i);
-    }
-    return res;
   }
 
   public endFakeModalState() {
@@ -341,20 +266,6 @@ export class UtilService {
   private _modalOpen$ = new BehaviorSubject<boolean>(false);
   public get getModalOpen() {
     return this._modalOpen$.asObservable();
-  }
-  public set setModalOpen(isOpen: boolean) {
-    this._modalOpen$.next(isOpen);
-  }
-
-  public async closeSweetAlert(): Promise<void> {
-    await this.ionicUtilService.closeAlert();
-  }
-
-  public toggleDisableAllCheckboxes(
-    checkboxes: QueryList<any>,
-    disabled: boolean
-  ) {
-    checkboxes.toArray().forEach((cb) => (cb.disabled = disabled));
   }
 
   public deepClone(obj: any): any {
@@ -594,40 +505,6 @@ export class UtilService {
     }
     return undefined;
   }
-
-  /**
-   * Oculta el teclado automáticamente al hacer scroll hacia abajo.
-   * Usa directamente con el evento (ionScroll) de ion-content.
-   *
-   * @param allowHide - Si es false, solo actualiza la posición del scroll sin intentar cerrar el teclado (útil para scroll inercial)
-   */
-  public hideKeyboardOnScroll(
-    event: any,
-    threshold: number = 10,
-    allowHide: boolean = true
-  ): void {
-    const scrollTop = event?.detail?.scrollTop ?? 0;
-
-    // Inicializar si es la primera vez
-    if (UtilService.lastScrollTop === undefined) {
-      UtilService.lastScrollTop = scrollTop;
-      return;
-    }
-
-    const scrollDiff = scrollTop - UtilService.lastScrollTop;
-
-    // Solo si scroll hacia abajo, supera el umbral Y está permitido cerrar
-    if (allowHide && scrollDiff > threshold) {
-      // Llamar a hide() es seguro incluso si el teclado no está visible
-      Keyboard.hide().catch(() => {
-        // Silenciar errores (puede fallar en web o si ya está cerrado)
-      });
-    }
-
-    UtilService.lastScrollTop = scrollTop;
-  }
-
-  private static lastScrollTop: number;
 
   public hideKeyboardOnClick(event: Event): void {
     const composedPath = (event as any)?.composedPath?.() as

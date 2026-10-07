@@ -10,7 +10,6 @@ import {
 import { PickerController, ToastOptions, PickerOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { UtilService } from 'src/app/core/services/util/util.service';
 import { PRODUCT_FILTERS } from 'src/app/shared/constants/filters';
 import {
   MEASURE_FILTER,
@@ -75,7 +74,6 @@ export class FilterIconsComponent implements OnInit, OnChanges {
 
   constructor(
     private pickerCtrl: PickerController,
-    private _utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService
   ) { }

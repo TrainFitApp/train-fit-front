@@ -4,15 +4,11 @@ import {
   Input,
   OnDestroy,
   Output,
-  ViewChild,
-  OnInit,
-  OnChanges,
   SimpleChanges,
 } from "@angular/core";
 import { Subscription, forkJoin, tap } from "rxjs";
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import {
-  ActionSheetOptions,
   AlertOptions,
   ModalController,
   ModalOptions,
@@ -497,9 +493,7 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public workoutActions(
-    event,
     workoutIndex?: number,
-    customExercise?: CustomExercise,
   ): void {
     if (this.guardReadonly()) return;
     // Modal-hoja (sale desde abajo, con tirador) en vez del popover anclado
@@ -639,7 +633,7 @@ export class WorkoutComponent implements OnDestroy {
     else void this.ionicUtilService.showModal(modalOptions);
   }
 
-  public openOrderModal(workoutIndex?: number): void {
+  public openOrderModal(): void {
     const modalOptions: ModalOptions = {
       component: OrderExercisesPage,
       componentProps: {
@@ -652,55 +646,6 @@ export class WorkoutComponent implements OnDestroy {
 
     if (this.plannerMode) void this.ionicUtilService.showSidePanel(modalOptions);
     else void this.ionicUtilService.showModal(modalOptions);
-  }
-
-  private async presentActionSheet() {
-    const header = "SHARE";
-    const buttons = [
-      {
-        text: "WhatsApp",
-        role: "destructive",
-        icon: "logo-whatsapp",
-        id: "delete-button",
-        data: {
-          type: "delete",
-        },
-        handler: () => {
-          console.log("Delete clicked");
-        },
-      },
-      {
-        text: "Twitter",
-        icon: "logo-twitter",
-        data: 10,
-        handler: () => {
-          console.log("Share clicked");
-        },
-      },
-      {
-        text: "Instagram",
-        icon: "logo-instagram",
-        data: "Data value",
-        handler: () => {
-          console.log("Play clicked");
-        },
-      },
-      {
-        text: "CANCELAR",
-        icon: "close",
-        role: "cancel",
-        handler: () => {
-          console.log("Cancel clicked");
-        },
-      },
-    ];
-
-    const actionSheet: ActionSheetOptions = {
-      header: header,
-      buttons: buttons,
-    };
-
-    this.ionicUtilService.showActionSheet(actionSheet);
   }
 
   private deleteWorkouts(workoutIndex: number): void {
@@ -970,14 +915,12 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public trackByBlockGroup(
-    index: number,
     group: { block: WorkoutBlock | null },
   ): string {
     return group.block?._id || "ungrouped";
   }
 
   public trackByExerciseEntry(
-    index: number,
     entry: { exercise: CustomExercise },
   ): string {
     return entry.exercise._id;
@@ -2145,7 +2088,7 @@ export class WorkoutComponent implements OnDestroy {
   // silencio al confirmar. Se filtra aquí, tecla a tecla y también en
   // pegado (ngModelChange se dispara igual con paste): dígitos y coma/punto
   // decimal — weight/rest son un único número, sin guion de rango.
-  public sanitizeCellInput(field: "weight" | "rest"): void {
+  public sanitizeCellInput(): void {
     const cleaned = this.editingCellValue.replace(/[^0-9,.]/g, "");
     if (cleaned !== this.editingCellValue) this.editingCellValue = cleaned;
   }

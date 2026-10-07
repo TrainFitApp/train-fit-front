@@ -62,8 +62,3 @@ export interface IntakeRequested {
   photos: IntakePhotoRequest | null;
   videos: IntakeVideoRequest[];
 }
-
-/** ¿Se pide algo además de preguntas? */
-export function hasIntakeRequests(requested: Partial<IntakeRequested> | null | undefined): boolean {
-  return !!(requested?.measurements?.length || requested?.photos || requested?.videos?.length);
-}

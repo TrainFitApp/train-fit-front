@@ -1,18 +1,18 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
+  effect,
   EventEmitter,
+  inject,
   Input,
+  OnDestroy,
   OnInit,
   Output,
-  effect,
-  inject,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
 } from "@angular/core";
 import { AlertOptions, ModalController, Platform, ToastOptions } from "@ionic/angular";
 import { Split } from "src/app/core/models/split";
-import { Subject, Subscription } from "rxjs";
+import { Subject, takeUntil } from "rxjs";
 import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
 import { Workout } from "src/app/core/models/workout";
@@ -37,7 +37,6 @@ import {
 } from "src/app/shared/constants/actions-fab";
 import { STATES } from "src/app/shared/constants/states";
 import { TABLE_MODE_TYPES } from "src/app/shared/constants/table-mode";
-import { SplitMenuPopoverComponent } from "./components/split-menu-popover/split-menu-popover.component";
 import { DeleteSplitsModalComponent } from "./components/delete-splits-modal/delete-splits-modal.component";
 import { ClipboardExercisesModalComponent } from "./components/clipboard-exercises-modal/clipboard-exercises-modal.component";
 import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
@@ -112,7 +111,7 @@ const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
   templateUrl: "./mesocycle.page.html",
   styleUrls: ["./mesocycle.page.scss"],
 })
-export class MesocyclePage implements OnInit, AfterViewInit {
+export class MesocyclePage implements OnInit, AfterViewInit, OnDestroy {
   // TAREA5 — presentado como panel lateral (ModalController) desde
   // train-fit-trainers en vez de como ruta de nivel superior; sin esto,
   // close() navegaría a 'tabs/summary' (ruta del CONSUMIDOR que no existe en
@@ -151,7 +150,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public exerciseClipboard: ExerciseClipboard | null = null;
   public clipboardAnimateScale = 1;
   private clipboardPrevCount = 0;
-  private exerciseClipboardSub: Subscription;
+  private readonly destroy$ = new Subject<void>();
   public loadTable: boolean;
   public loadingFab: boolean;
   public loadingSplit: boolean = false;
@@ -234,9 +233,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   private readonly workoutTemplateApi = inject(WorkoutTemplateApiService);
   public applyingTemplate = false;
 
-  // Subject para gestionar el ciclo de vida de suscripciones
-  private destroy$ = new Subject<void>();
-
   constructor(
     public utilService: UtilService,
     public platform: Platform,
@@ -306,7 +302,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public ngOnInit(): void {
-    this.exerciseClipboardSub = this.workoutService.exerciseClipboard$.subscribe(
+    this.workoutService.exerciseClipboard$.pipe(takeUntil(this.destroy$)).subscribe(
       (clipboard) => {
         const prevCount = this.clipboardPrevCount;
         this.exerciseClipboard = clipboard;
@@ -320,6 +316,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         this.cdr.markForCheck();
       }
     );
+  }
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   public ngAfterViewInit(): void {
@@ -772,10 +772,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.currentIndex.emit(this.currentSplitIndex);
   }
 
-  public getSplitIndex(): void {
-    this.currentIndex.emit(this._currentSplitIndex);
-  }
-
   private initPaginatedSplit(): void {
     if (!this._currentSplitIndex) this._currentSplitIndex = 0;
     this.tableInUseAux.splits.forEach((sTemp, index) => {
@@ -847,34 +843,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
               this.ionicUtilService.showToast(toastOptions);
             });
             return true;
-          },
-        },
-      ],
-    };
-    this.ionicUtilService.showAlert(alertOptions);
-  }
-
-  public unlinkTable(): void {
-    const alertOptions = {
-      header: this.translate.instant('TABLES.UNLINK_ROUTINE', { name: this.tableInUse.name }),
-      message: this.translate.instant('TABLES.UNLINK_ROUTINE_MSG'),
-      buttons: [
-        {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: "cancel",
-        },
-        {
-          text: this.translate.instant('COMMON.CONFIRM'),
-          cssClass: "alert-button-primary",
-          handler: () => {
-            this.tableInUse = undefined;
-            this.user.tableInUse = this.tableInUse;
-            this.user.workoutInUse = undefined;
-            this.currentWorkout = undefined;
-            this.workoutService.setCurrentWorkout = this.currentWorkout;
-            this.tableService.setCurrentTable = this.tableInUse;
-            this.navigationService.goToTabsSummaryPage();
-            this.userService.updateUser(this.user).subscribe();
           },
         },
       ],
@@ -1980,22 +1948,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.workoutService.clearExerciseClipboard();
   }
 
-  public async showSplitMenu(event: Event): Promise<void> {
-    if (this.loadingSplit || this.isReadonly) return;
-
-    const popoverOptions = {
-      component: SplitMenuPopoverComponent,
-      event: event,
-      componentProps: {
-        onDuplicate: () => this.addSplitToTable(),
-        onDelete: () => this.deleteSplit(),
-        duplicateDisabled: this.loadingSplit || this.isCurrentSplitLocked(),
-      },
-    };
-
-    await this.ionicUtilService.showPopover(popoverOptions);
-  }
-
   public close(): void {
     if (this.isModal) {
       void this.modalController.dismiss();
@@ -2004,7 +1956,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.navigationService.goToTabsSummaryPage();
   }
 
-  public trackByWorkout(index: number, item: Workout): string {
+  public trackByWorkout(item: Workout): string {
     return item._id;
   }
 }

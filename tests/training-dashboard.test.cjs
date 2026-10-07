@@ -189,10 +189,10 @@ test('guard: error temporal conserva pantalla; terminal anidado cierra sesión',
     '../services/auth/auth-error.service': {},
     '../services/auth/pending-email-verification.service': { PendingEmailVerificationService: Pending },
   });
-  assert.equal(await rx.firstValueFrom(guard.authActivateGuard()), false);
+  assert.equal(await rx.firstValueFrom(guard.authMatchGuard()), false);
   assert.equal(redirects, 0);
   assert.equal(logouts, 0);
   error = { status: 401, error: { code: 'SESSION_REPLACED', requiresRelogin: true } };
-  assert.equal(await rx.firstValueFrom(guard.authActivateGuard()), false);
+  assert.equal(await rx.firstValueFrom(guard.authMatchGuard()), false);
   assert.equal(logouts, 1);
 });

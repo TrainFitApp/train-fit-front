@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, ViewChild, inject, OnDestroy } from '@angular/core';
-import { ModalController } from '@ionic/angular';
-import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { CHART_RANGES } from './constants/chartRanges';
@@ -57,7 +56,7 @@ export class WeightInfoPage implements OnDestroy {
     this.selectedDate = this.utilService.formatDateToYYYYMMDD(new Date());
 
     // Listen for language changes to update monthYear
-    this.langChangeSubscription = this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+    this.langChangeSubscription = this.translate.onLangChange.subscribe(() => {
       const d = this.utilService.parseYYYYMMDD(this.selectedDate);
       this.monthYear = `${this.months[d.getMonth()]} ${d.getFullYear()}`;
     });
@@ -143,7 +142,6 @@ export class WeightInfoPage implements OnDestroy {
   }
 
   public getChartConfigurationByRange(): void {
-    const parsed = this.utilService.parseYYYYMMDD(this.selectedDate);
     switch (this.chartRange) {
       case CHART_RANGES.week:
         this.getWeekRange();

@@ -15,7 +15,7 @@ export class TableService {
   // Signal de solo lectura (computed)
   public readonly currentTable = computed(() => this._currentTable());
 
-  // Observable para compatibilidad con código existente
+  // El mismo estado como Observable, para quien se suscribe con RxJS.
   public readonly getCurrentTable = toObservable(this._currentTable);
 
   // Getter sincrónico para acceso directo al valor
@@ -69,21 +69,6 @@ export class TableService {
         searchFilterGroup.defaultOnly
       )
       .pipe(distinctUntilChanged());
-  }
-
-  // Todas las rutinas propias del usuario, completamente pobladas
-  // (splits->workouts->exercises->sets), para agregaciones históricas
-  // (ej. ExerciseHistoryService). Distinto de getSearchTables(), que solo
-  // trae name/thumbnail para las tarjetas de búsqueda.
-  public getAllOwnTables(limit = 200): Observable<Table[]> {
-    return this.tableAPIService.getTables(0, limit, true).pipe(take(1));
-  }
-
-  public getStandarTable() {
-    const table = new Table();
-    table.name = 'Rutina predeterminada';
-    table.splits = [];
-    return table;
   }
 
   public createTableToUser(idUser: string, name: string): Observable<Table> {

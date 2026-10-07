@@ -73,7 +73,7 @@ export class TrainingDayDetailComponent implements OnChanges {
       .reduce((acc, set) => acc + (set.weight || 0) * (set.reps || 0), 0);
   }
 
-  public trackBySummary(index: number, summary: WorkoutDaySummary): string {
+  public trackBySummary(summary: WorkoutDaySummary): string {
     return summary.workout._id;
   }
 }

@@ -74,9 +74,7 @@ export class DietsPage implements OnInit {
   public pasteDietDayMode: boolean;
   public pasteMode: boolean;
   public isPasting: boolean;
-  public isDietDaySaved: boolean;
   public isNoteHidden: boolean;
-  public isArchivingDietDay = false;
   public load = false;
   public pinnedNote: string | null = null;
   public currentAnthropometry: Anthropometry | null = null;

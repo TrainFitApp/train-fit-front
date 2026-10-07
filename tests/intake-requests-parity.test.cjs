@@ -35,7 +35,6 @@ const front = loadFromSource(__filename, path.join(ROOT, 'packages/shared-core/s
   INTAKE_PHOTO_POSES: 'src/app/core/models/intake-requests',
   MAX_INTAKE_VIDEOS: 'src/app/core/models/intake-requests',
   INTAKE_VIDEO_LABEL_MAX: 'src/app/core/models/intake-requests',
-  hasIntakeRequests: 'src/app/core/models/intake-requests',
 });
 
 test('medidas que se pueden pedir: perímetros y composición del catálogo de check-in, sin el peso', () => {
@@ -46,14 +45,6 @@ test('medidas que se pueden pedir: perímetros y composición del catálogo de c
     assert.equal(field.storage, 'anthropometry', field.key);
     assert.ok(field.unit && field.min !== undefined && field.max !== undefined, `${field.key}: unidad y cotas`);
   }
-});
-
-test('¿se pide algo además de preguntas?', () => {
-  assert.equal(front.hasIntakeRequests(null), false);
-  assert.equal(front.hasIntakeRequests({ measurements: [], photos: null, videos: [] }), false);
-  assert.equal(front.hasIntakeRequests({ measurements: [{ key: 'perimeter_waist', required: false }] }), true);
-  assert.equal(front.hasIntakeRequests({ photos: { poses: ['front'], required: false } }), true);
-  assert.equal(front.hasIntakeRequests({ videos: [{ label: 'x', required: false }] }), true);
 });
 
 test('front y back ofrecen las mismas medidas, con las mismas cotas, poses y límites de vídeos', { skip: !back && 'sin el back' }, () => {

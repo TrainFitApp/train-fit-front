@@ -1,17 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Observable, take } from 'rxjs';
-import { CustomProduct } from '../../models/customProduct';
+import { Observable } from 'rxjs';
 import { IProduct } from '../../models/product';
-import { User } from '../../models/user';
 import { ProductAPIService } from './product-api.service';
 
 @Injectable()
 export class ProductService {
   constructor(private productAPIService: ProductAPIService) {}
-
-  public getProductKcal(customProduct: CustomProduct) {
-    return (customProduct.quantity * customProduct.energyKcal100g) / 100;
-  }
 
   public getProducts(): Observable<IProduct[]> {
     return this.productAPIService.getProducts();
@@ -50,6 +44,4 @@ export class ProductService {
   public deleteProduct(id: string): Observable<any> {
     return this.productAPIService.deleteProduct(id);
   }
-
-  public measureFilterHasChange(): void {}
 }

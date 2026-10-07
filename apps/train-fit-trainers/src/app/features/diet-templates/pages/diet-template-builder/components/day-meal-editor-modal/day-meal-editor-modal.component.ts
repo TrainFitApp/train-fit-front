@@ -252,8 +252,6 @@ export class DayMealEditorModalComponent {
       },
       cssClass: 'tf-panel-modal',
     });
-    this.pickerModal = outerModal;
-
     // El cerrojo se suelta EN CUANTO el modal está creado, no cuando el
     // buscador se cierra: solo existe para el doble tap durante el `await
     // create()` (ver isOpeningPicker). Manteniéndolo hasta onDidDismiss, un
@@ -270,7 +268,6 @@ export class DayMealEditorModalComponent {
       await outerModal.present();
       await outerModal.onDidDismiss();
     } finally {
-      this.pickerModal = null;
       await this.closeDetailPanel();
     }
   }
@@ -313,7 +310,6 @@ export class DayMealEditorModalComponent {
   // --- Panel de detalle (ProductDetailPanelComponent) ---
   // Siempre el más a la izquierda de los que estén abiertos: 1 panel de
   // 420px delante (el propio buscador) mientras esté abierto.
-  private pickerModal: HTMLIonModalElement | null = null;
   private detailModal: HTMLIonModalElement | null = null;
   private selectionApi: TrainerSelectionApi | null = null;
 

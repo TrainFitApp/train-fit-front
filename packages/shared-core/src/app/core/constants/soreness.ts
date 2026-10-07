@@ -57,10 +57,6 @@ export const SORENESS_ANCHORS: string[] = [
 
 localizeList(SORENESS_ANCHORS, 'SORENESS.ANCHORS');
 
-export function sorenessAnchorFor(level: number): string {
-  return SORENESS_ANCHORS[level - 1] || '';
-}
-
 // Resumen de una línea para el historial del entrenador: "Cuádriceps 4 ·
 // Glúteo 3". Sin esto, la ficha tendría que pintar dieciséis filas por
 // sesión para decir que a alguien le duelen dos músculos.

@@ -34,10 +34,6 @@ export function cleanObject(data: any, excludeFields: string[] = []): any {
   return cleaned;
 }
 
-export function preparePayload(data: any): any {
-  return cleanObject(data);
-}
-
 export function splitTextIntoSteps(text?: string | null): string[] {
   if (!text) return [];
 

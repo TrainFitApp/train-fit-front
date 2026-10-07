@@ -1,14 +1,12 @@
 import { Injectable } from '@angular/core';
 import { MonoTypeOperatorFunction, Observable, take, tap } from 'rxjs';
 import { CustomExercise } from '../../models/customExercise';
-import { HttpService } from '../http/http.service';
 import { CustomExerciseAPIService, CustomExerciseWithRow } from './custom-exercise-api.service';
 import { Set } from 'src/app/core/models/set';
 import { PinnedExerciseNoteService } from '../pinned-exercise-note/pinned-exercise-note.service';
 
 @Injectable()
 export class CustomExerciseService {
-  private customExerciseClipboard: CustomExercise;
 
   constructor(
     private customExerciseAPIService: CustomExerciseAPIService,
@@ -17,16 +15,6 @@ export class CustomExerciseService {
 
   private invalidatePinnedNotes<T>(): MonoTypeOperatorFunction<T> {
     return tap<T>(() => this.pinnedExerciseNoteService.invalidateAll());
-  }
-
-  public get getCustomExerciseClipboard() {
-    return this.customExerciseClipboard;
-  }
-
-  public set setCustomExerciseClipboard(
-    customExerciseClipboard: CustomExercise
-  ) {
-    this.customExerciseClipboard = customExerciseClipboard;
   }
 
   public updateCustomExercise(

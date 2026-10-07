@@ -13,10 +13,6 @@ export class TrainerNotificationsApiService {
     return this.http.get<TrainerNotification[]>(`${TrainerNotificationsApiService.ENDPOINT}/mine`);
   }
 
-  public getUnreadCount(): Observable<{ count: number }> {
-    return this.http.get<{ count: number }>(`${TrainerNotificationsApiService.ENDPOINT}/mine/unread-count`);
-  }
-
   public markRead(id: string): Observable<TrainerNotification> {
     return this.http.patch<TrainerNotification>(`${TrainerNotificationsApiService.ENDPOINT}/${id}/read`, {});
   }

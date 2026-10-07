@@ -68,9 +68,6 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
   constructor(
     private utilService: UtilService,
     private dietDayService: DietDayService,
-    private tableService: TableService,
-    private mealService: MealService,
-    private workoutService: WorkoutService,
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService
   ) {

@@ -10,8 +10,8 @@ import {
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, skip } from 'rxjs/operators';
-import { firstValueFrom, of, Subscription } from 'rxjs';
+import { skip } from 'rxjs/operators';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -46,7 +46,6 @@ Object.keys(TRAINING_GOAL_TYPE_LABELS).forEach((type) =>
   localizeProp(TRAINING_GOAL_TYPE_LABELS, type as TrainingGoalType, `CLIENT_DETAIL.TRAINING_GOAL_TYPES.${type}`)
 );
 import {
-  checkinAnchorFor,
   checkinScaleSuffix,
 } from 'src/app/core/constants/checkin-fields';
 import { HABIT_TYPE_ICONS } from 'src/app/core/constants/habit-icons';
@@ -57,7 +56,6 @@ import {
   BlockExerciseProgress,
   BlockMuscleGroup,
   BlockReadiness,
-  ClientTrainingProgress,
   SessionAdherence,
   SessionExerciseProgress,
   SessionMuscleGroup,
@@ -73,13 +71,12 @@ import {
   TrainingFilterResult,
 } from './components/training-filter-panel/training-filter-panel.component';
 import { CompletedDay } from './components/training-calendar/training-calendar.component';
-import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { NextWeekModalComponent } from '../../components/next-week-modal/next-week-modal.component';
 import { CheckinSchedulesPanelComponent } from '../../components/checkin-schedules-panel/checkin-schedules-panel.component';
 import { CheckinScheduleHistoryPanelComponent } from '../../components/checkin-schedule-history-panel/checkin-schedule-history-panel.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.service';
-import { PHASE_COLORS, buildPhaseColorMap } from './phase-color.util';
+import { buildPhaseColorMap } from './phase-color.util';
 import { RoutineAssignmentApiService } from '../../../../shared/services/routine-assignment-api.service';
 import {
   RoutineAssignment,
@@ -112,7 +109,6 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import {
   AdherenceSummary,
   AnthropometryEntry,
-  CheckinResponseEntry,
   ClientDetailSection,
   ClientDetailSectionDef,
   ClientDetailTab,
@@ -213,14 +209,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public notes: TrainerNote[] = [];
   public newNoteText = '';
   public isSavingNote = false;
-
-  // --- Check-ins (F17, transversal a los scopes) ---
-  public checkinsState: SectionState = 'loading';
   // Preguntas propias que aparecen en las respuestas cargadas: cada
   // respuesta viaja con la copia de las suyas, así que no hace falta pedir
   // ninguna "configuración" del cliente aparte.
   public checkinQuestions: CustomQuestion[] = [];
-  public checkinResponses: CheckinResponseEntry[] = [];
 
   // --- Cobros (F26, transversal a los scopes) ---
   // Cobros 2026-09 — Gestión > Cobros vive en features/payments. La ficha
@@ -1294,16 +1286,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   ).map((value) => ({ value, label: EQUIPMENT_TAG_LABELS[value] }));
 
   public readonly frequencyOptions = FREQUENCY_OPTIONS;
-
-  // El panel vive fuera de ion-content y se traslada al body al crear la
-  // página (mismo portal que nutrition-preferences-panel): así su
-  // position:fixed no lo captura el contain de ion-content y queda por
-  // encima de las gráficas. Se quita a mano al destruir la página.
-  @ViewChild('intakePanelHost', { static: true })
-  private set intakePanelHost(ref: ElementRef<HTMLElement>) {
-    document.body.appendChild(ref.nativeElement);
-    this.destroyRef.onDestroy(() => ref.nativeElement.remove());
-  }
 
   public openIntakePanel(): void {
     this.showIntakePanel = true;
@@ -2892,17 +2874,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // sugerencias.
   public readonly dietaryFlagUi = dietaryFlagUi;
 
-  // Replanteamiento MVP (nutrición) — aplicar una plantilla de dieta ya
-  // construida a este cliente, eligiendo solo la fecha de inicio.
-  // Suma días a una fecha ISO en UTC: hacerlo con el huso local desplaza
-  // el día cerca de medianoche y encadenaría la fase con un día de más o
-  // de menos.
-  private addDaysToIso(iso: string, days: number): string {
-    const fecha = new Date(iso + 'T00:00:00Z');
-    fecha.setUTCDate(fecha.getUTCDate() + days);
-    return fecha.toISOString().slice(0, 10);
-  }
-
   // Sugerencias de dieta — "empezar fase" lleva a la biblioteca de dietas
   // (/tabs/diet-templates/for-phase/:clientId), que las lista ordenadas por
   // lo cerca que quedan del objetivo de este cliente y abre ahí el panel de
@@ -2920,29 +2891,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         queryParams: { name: this.name },
       }
     );
-  }
-
-  // Aplicar UNA plantilla concreta sin pasar por el ranking. Empieza hoy,
-  // igual que el resto de formas de aplicar una fase.
-  public async openApplyExactTemplateModal(): Promise<void> {
-    const modal = await this.modalController.create({
-      component: ApplyDietTemplateModalComponent,
-      cssClass: 'tf-panel-modal',
-      componentProps: {
-        clientId: this.clientId,
-        clientName: this.name,
-      },
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss();
-    if (role !== 'confirm' || !data) return;
-
-    this.ionicUtilService.showToast({
-      message: this.translate.instant('CLIENT_DETAIL.PLAN_APPLIED_TO', { name: this.name }),
-      duration: 3000,
-    });
-    void this.loadDietPhases();
-    this.loadNutrition();
   }
 
   public goToDietTemplates(): void {
@@ -3345,35 +3293,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     return note._id;
   }
 
-  // --- Check-ins (F17) ---
-  public loadCheckins(): void {
-    this.checkinsState = 'loading';
-    this.clientDetailApi
-      .getCheckinResponses(this.clientId)
-      .toPromise()
-      .then((responses) => {
-        this.checkinResponses = responses || [];
-        this.checkinQuestions = this.questionsFrom(this.checkinResponses);
-        this.checkinsState = 'loaded';
-      })
-      .catch(() => {
-        this.checkinsState = 'error';
-      });
-  }
-
-  // Todas las preguntas propias que traen las respuestas, sin repetir: es
-  // con lo que se nombran las claves "custom:<id>".
-  private questionsFrom(
-    responses: CheckinResponseEntry[]
-  ): CustomQuestion[] {
-    const byId = new Map<string, CustomQuestion>();
-    for (const response of responses) {
-      for (const question of response.customQuestions || [])
-        byId.set(String(question._id), question);
-    }
-    return [...byId.values()];
-  }
-
   // La lógica vive en checkin-labels.util.ts — la comparte con el panel de
   // resumen de la semana, que enseña estas mismas respuestas.
   public checkinFieldLabel(key: string): string {
@@ -3382,19 +3301,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   public checkinValueLabel(value: number | string | boolean): string {
     return checkinValueLabel(value);
-  }
-
-  // `raw` además de `value`: el segundo ya viene formateado a texto (un
-  // booleano se lee "Sí"/"No"), y buscar el ancla de una escala necesita el
-  // número tal cual lo guardó el cliente.
-  public checkinValueEntries(
-    response: CheckinResponseEntry
-  ): { key: string; value: string; raw: number | string | boolean }[] {
-    return Object.entries(response.values).map(([key, value]) => ({
-      key,
-      value: this.checkinValueLabel(value),
-      raw: value,
-    }));
   }
 
   // Las entradas se formatean en cada detección de cambios. Su clave estable
@@ -3410,17 +3316,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // Bastante estrés, me cuesta desconectar" es lo que respondió el cliente.
   public checkinScaleSuffix(key: string): string {
     return checkinScaleSuffix(key);
-  }
-
-  public checkinAnchor(key: string, value: unknown): string | null {
-    return checkinAnchorFor(key, value);
-  }
-
-  public trackByResponseId(
-    _index: number,
-    response: CheckinResponseEntry
-  ): string {
-    return response._id;
   }
 
   // --- Cobros (features/payments) ---

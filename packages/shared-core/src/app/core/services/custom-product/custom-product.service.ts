@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { ModalController } from '@ionic/angular';
 import { Observable, take } from 'rxjs';
 import { IProduct } from 'src/app/core/models/product';
 import {
@@ -13,7 +12,6 @@ import { CustomProductAPIService } from './custom-product-api.service';
 @Injectable()
 export class CustomProductService {
   constructor(
-    private modalController: ModalController,
     private customAPIService: CustomProductAPIService
   ) {}
 

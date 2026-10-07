@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Network } from '@capacitor/network';
 import { ModalController, NavController } from '@ionic/angular';
-import { filter, map, Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { RemoteConfigGateService } from '../remote-config/remote-config-gate.service';
 import { Split } from '../../models/split';
 import { Table } from '../../models/table';
@@ -14,7 +14,6 @@ export class NavigationService {
   private readonly SIGN_IN_ROUTE = 'sign-in';
   private readonly USER_LOADER_ROUTE = 'user-loader';
   private readonly TABS_ROUTE = 'tabs';
-  private readonly TABS_DIETS_ROUTE = 'tabs/diets';
   private readonly WEIGHT_INFO_ROUTE = 'weight-info';
   private readonly TABS_SUMMARY_ROUTE = 'tabs/summary';
   private readonly MESOCYCLE_ROUTE = 'mesocycle';
@@ -31,7 +30,6 @@ export class NavigationService {
   private readonly CURRENT_WORKOUT_ROUTE = 'current-workout';
   private readonly RM_CALCULATOR_ROUTE = 'rm-calculator';
   private readonly SIGN_UP_ROUTE = 'sign-in/sign-up';
-  private readonly DATA_SHEET_ROUTE = 'sign-in/sign-up/data-sheet';
   private readonly RESTORE_PASSWORD_ROUTE = 'sign-in/restore-password';
   private readonly EXERCISES_ROUTE = 'exercises';
   private readonly NO_CONECTION_ROUTE = 'disconnected';
@@ -65,13 +63,6 @@ export class NavigationService {
     this.tempDataChanges$.next({ key, value: null });
   }
 
-  public watchTempData<T = any>(key: string): Observable<T | null> {
-    return this.tempDataChanges$.pipe(
-      filter((change) => change.key === key),
-      map((change) => (change.value as T) ?? null)
-    );
-  }
-
   public goToLoginPage(): void {
     this.navController.navigateRoot([this.SIGN_IN_ROUTE], { replaceUrl: true });
   }
@@ -83,12 +74,6 @@ export class NavigationService {
   public goToTabsPage(): void {
     this.navController.navigateRoot([this.TABS_ROUTE]);
   }
-
-  public goToTabsDietsPage(): void {
-    this.navController.navigateRoot([this.TABS_DIETS_ROUTE], {
-      replaceUrl: true,
-    });
-  }
   public goToTabsSummaryPage(): void {
     this.navController.navigateRoot([this.TABS_SUMMARY_ROUTE], {
       replaceUrl: true,
@@ -97,10 +82,6 @@ export class NavigationService {
 
   public goToSignUp(extras?: any): void {
     this.navController.navigateForward([this.SIGN_UP_ROUTE], extras);
-  }
-
-  public goToDataSheet(): void {
-    this.navController.navigateForward([this.DATA_SHEET_ROUTE]);
   }
 
   public goToInfo(): void {

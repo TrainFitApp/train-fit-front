@@ -299,7 +299,6 @@ export class ClientSummaryComponent implements OnInit {
     return weeks.find((w) => w.volume !== null) || null;
   }
 
-
   public loadChanges(): void {
     if (!this.clientId) return;
     this.changesState = 'loading';
@@ -325,12 +324,6 @@ export class ClientSummaryComponent implements OnInit {
   public changeTitle(change: PlanChange): string {
     const entityLabel = CHANGE_ENTITY_LABELS[change.entity] || this.translate.instant('CLIENTS.CAMBIO_2');
     return change.entityName ? `${entityLabel}: ${change.entityName}` : entityLabel;
-  }
-
-  // "2200 → 2100" es la forma en que un coach lee un cambio. Un valor vacío
-  // se dice con palabra ("sin definir"), no con una flecha desde la nada.
-  public changeDetail(field: PlanChangeField): string {
-    return `${this.changeValue(field.previousValue)} → ${this.changeValue(field.newValue)}`;
   }
 
   // Un valor del historial tal como se lee: fechas "26 sept" (con año si no

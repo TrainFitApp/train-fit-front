@@ -6,7 +6,6 @@ import { Split } from '../../models/split';
 import { Workout, WorkoutBlock } from '../../models/workout';
 import { WorkoutAPIService } from './workout-api.service';
 import { FinishWorkoutResponse, SkipWorkoutResponse, WorkoutWithRow, WorkoutsOrderResult } from './workout-api.service';
-import { Exercise } from '../../models/exercise';
 import { Table } from '../../models/table';
 import { ExerciseClipboard } from 'src/app/shared/models/exercise-clipboard';
 import { PinnedExerciseNoteService } from '../pinned-exercise-note/pinned-exercise-note.service';
@@ -56,7 +55,7 @@ export class WorkoutService {
   // Signal de solo lectura
   public readonly currentWorkoutSignal = computed(() => this._currentWorkout());
 
-  // Observable para compatibilidad con código existente
+  // El mismo estado como Observable, para quien se suscribe con RxJS.
   public readonly getCurrentWorkout = toObservable(this._currentWorkout);
 
   // Getter sincrónico para acceso directo al valor

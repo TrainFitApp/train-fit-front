@@ -1,15 +1,13 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
-import { IonContent, IonModal, Platform, ToastOptions } from "@ionic/angular";
+import { IonContent, IonModal, ToastOptions } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
 import { Subscription, merge } from "rxjs";
 import { User } from "src/app/core/models/user";
-import { NutritionalGoal } from "src/app/core/models/nutritional-goal";
 import { CoachService } from "src/app/core/services/coach/coach.service";
 import { NutritionalGoalService } from "src/app/core/services/nutritional-goal/nutritional-goal.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
-import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { ageFromBirthDate } from "src/app/core/utils/body-metrics.util";
 import { localIsoDate, parseLocalIsoDate } from "src/app/core/utils/local-date.util";
 import {
@@ -89,11 +87,9 @@ export class EditorPage implements OnInit {
   }
 
   constructor(
-    private navigationService: NavigationService,
     private userService: UserService,
     private nutritionalGoalService: NutritionalGoalService,
     private ionicUtilService: IonicUtilService,
-    private platform: Platform,
     private translate: TranslateService,
     private coachService: CoachService,
   ) {}
@@ -479,7 +475,7 @@ export class EditorPage implements OnInit {
         this.ionicUtilService.closeModal();
         this.loading = false;
       },
-      error: (error) => {
+      error: () => {
         this.ionicUtilService.showToast({
           message: this.translate.instant('EDITOR.UPDATE_ERROR'),
           color: "danger",

@@ -33,10 +33,7 @@ export interface CoachProtocol {
   _id: string;
   name: string;
   description: string;
-  // Solo en protocolos anteriores a `checkins`: se lee como uno semanal
-  // (ver protocolCheckins).
-  checkinTemplateId: string | null;
-  checkins?: ProtocolCheckin[];
+  checkins: ProtocolCheckin[];
   nutritionTarget?: ProtocolNutritionTarget | null;
   dietTemplateId: string | null;
   routineTemplateId: string | null;
@@ -71,15 +68,6 @@ export const PROTOCOL_TASK_PRESETS: { type: ProtocolTaskType; label: string; uni
 ];
 PROTOCOL_TASK_PRESETS.forEach((item) => localizeProp(item, 'unit', `PROTOCOLS.TASK_UNITS.${item.type}`));
 PROTOCOL_TASK_PRESETS.forEach((item) => localizeProp(item, 'label', `PROTOCOLS.TASK_PRESETS.${item.type}`));
-
-// Espejo de protocol-content.js#protocolCheckins (backend).
-export function protocolCheckins(protocol: Pick<CoachProtocol, 'checkins' | 'checkinTemplateId'>): ProtocolCheckin[] {
-  if (protocol.checkins?.length) return protocol.checkins;
-  if (protocol.checkinTemplateId) {
-    return [{ templateId: protocol.checkinTemplateId, frequency: 'weekly', interval: 1, time: '09:00' }];
-  }
-  return [];
-}
 
 // Cadencias de un toque. "Otra" abre intervalo y unidad a mano.
 export const CHECKIN_CADENCE_PRESETS: { key: string; label: string; frequency: ProtocolCheckinFrequency; interval: number }[] = [

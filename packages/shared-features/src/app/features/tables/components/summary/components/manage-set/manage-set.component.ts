@@ -215,10 +215,6 @@ export class ManageSetComponent implements OnInit, OnDestroy {
     return this.setForm.get('expectedTime') as FormControl;
   }
 
-  public get isRestPauseChecked(): boolean {
-    return this.setForm?.get('restPauseEnabled')?.value || false;
-  }
-
   public get isRepsRangeInvalid(): boolean {
     const start = this.setForm?.get('rangeREPStart')?.value;
     const end = this.setForm?.get('rangeREPEnd')?.value;
@@ -335,23 +331,6 @@ export class ManageSetComponent implements OnInit, OnDestroy {
     }
 
     endControl.setValue(newValue);
-  }
-
-  public decrementEndCounter(
-    startControlName: string,
-    endControlName: string
-  ): void {
-    const startControl = this.setForm.get(startControlName);
-    const endControl = this.setForm.get(endControlName);
-    if (!endControl || !startControl) return;
-
-    const currentValue = Number(endControl.value);
-    const startValue = Number(startControl.value) || 0;
-
-    // No permitir que el valor final sea menor que el valor inicial
-    if (currentValue > startValue) {
-      endControl.setValue(currentValue - 1);
-    }
   }
 
   public submit(): void {

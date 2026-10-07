@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Observable, forkJoin } from 'rxjs';
+import { Observable } from 'rxjs';
 import { take, tap } from 'rxjs/operators';
 import {
   ACTIVITY_FACTOR_TYPE,
@@ -22,7 +22,7 @@ export class UserService {
   // Signal de solo lectura
   public readonly localUser = computed(() => this._localUser());
 
-  // Observable para compatibilidad con código existente
+  // El mismo estado como Observable, para quien se suscribe con RxJS.
   public readonly getLocalUser$ = toObservable(this._localUser);
 
   public SEX_TYPES = SEX_TYPES;
@@ -283,11 +283,7 @@ export class UserService {
   /**
    * Metabolismo basal por Mifflin-St Jeor (1990).
    *
-   * Movimiento 3 Coach Pro — la fórmula ya no vive aquí: se movió a
-   * utils/body-metrics.util.ts al necesitarla también la calculadora del
-   * entrenador. Copiarla habría dejado dos versiones de la misma cuenta que
-   * se desincronizan a la primera corrección, y con ellas dos objetivos
-   * calóricos distintos para la misma persona según quién mire.
+   * La fórmula vive en utils/body-metrics.util.ts (pura, con sus tests).
    *
    * Este método se queda como adaptador: bmrMifflinStJeor devuelve null si
    * le faltan datos, y todo lo de aquí abajo espera un número (el flujo de
@@ -304,18 +300,17 @@ export class UserService {
   }
 
   /**
-   * Calcula el TDEE (Total Daily Energy Expenditure) usando el factor combinado
+   * Gasto diario total (TDEE).
    *
-   * IMPORTANTE: El parámetro 'training' ya incluye la combinación de:
-   * - NEAT (Non-Exercise Activity Thermogenesis) basado en pasos
-   * - TEA (Thermic Effect of Activity) basado en días de entrenamiento
+   * Si cuenta pasos, `training` ya combina NEAT (pasos) y TEA (días de
+   * entrenamiento): basal × training. Si no los cuenta
+   * (STEPS_TYPES.notCounted), el NEAT sale del factor de actividad:
+   * basal × actividad × training.
    *
-   * Por tanto, solo se multiplica BMR × training (no se usa 'activity' ni 'steps')
-   *
-   * @param bm - Metabolismo Basal (BMR)
-   * @param activity - Factor de actividad (NO USADO - mantener por compatibilidad)
-   * @param steps - Pasos diarios (NO USADO - mantener por compatibilidad)
-   * @param training - Factor pre-calculado que combina NEAT + TEA (1.0 - 1.9)
+   * @param bm - Metabolismo basal (BMR)
+   * @param activity - Factor de actividad (solo sin pasos)
+   * @param steps - Pasos diarios, o el valor de "no cuenta pasos"
+   * @param training - Factor de entrenamiento (con pasos, NEAT + TEA)
    * @returns TDEE en kcal/día
    */
   private energyExpenditure(
@@ -397,16 +392,16 @@ export class UserService {
   /**
    * Calcula grasa en gramos basado en evidencia científica
    *
-   * Rangos óptimos (unificados - independiente de sexo):
-   * - Ganancia: 1.0 g/kg (20-30% kcal, necesario para hormonas)
-   * - Mantenimiento: 0.9 g/kg (20-30% kcal)
-   * - Pérdida: 0.75 g/kg (20-30% kcal, mínimo para función hormonal)
+   * Rangos por objetivo (hombres | mujeres):
+   * - Ganancia: 1.0 | 1.1 g/kg
+   * - Mantenimiento: 0.9 | 1.0 g/kg
+   * - Pérdida: 0.75 | 0.9 g/kg (mínimo para la función hormonal)
    *
    * MÍNIMO CRÍTICO: 0.5 g/kg para evitar deficiencias de ácidos grasos esenciales
    *
    * @param objetive - Objetivo calórico (+superávit, 0=mant, -déficit)
    * @param weight - Peso en kilogramos
-   * @param sex - Sexo (parámetro mantenido por compatibilidad)
+   * @param sex - Sexo (las mujeres llevan un rango más alto)
    * @returns Gramos de grasa por día
    */
   private fatGTotal(objetive: number, weight: number, sex: number): number {

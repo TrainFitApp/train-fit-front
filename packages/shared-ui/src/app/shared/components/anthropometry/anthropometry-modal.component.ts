@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
-import { Anthropometry, AnthropometryDTO } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
+import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 import { AnthropometryService } from 'src/app/core/services/anthropometry/anthropometry.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';

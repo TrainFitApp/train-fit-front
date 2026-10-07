@@ -1,6 +1,6 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Observable, take, tap, map, of, defer, finalize, shareReplay, switchMap } from 'rxjs';
+import { Observable, take, tap, map, defer, finalize, shareReplay, switchMap } from 'rxjs';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { IProduct } from 'src/app/core/models/product';
 import { UtilService } from 'src/app/core/services/util/util.service';
@@ -582,28 +582,6 @@ export class DietDayService {
     }
 
     return week;
-  }
-
-  public getWeekWeightAverage(dietsDay: DietDay[]): number {
-    let sumWeights = 0;
-    let sumDaysWithWeight = 0;
-    dietsDay.forEach((dietDay) => {
-      if (dietDay.weight) {
-        sumWeights += dietDay.weight;
-        sumDaysWithWeight++;
-      }
-    });
-
-    return sumWeights / sumDaysWithWeight;
-  }
-
-  public getRecipeInstancePortionRatio(instance: any): number {
-    const recipe =
-      typeof instance.recipe === 'object' ? instance.recipe : null;
-    if (!recipe) return 0;
-
-    const totals = this.recipeService.calculateCustomRecipeTotals(recipe, instance);
-    return totals.portionRatio;
   }
 
   private calculateInstanceMacros(instance: any): {

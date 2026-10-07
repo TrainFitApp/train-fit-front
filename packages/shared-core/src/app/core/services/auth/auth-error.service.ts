@@ -123,10 +123,6 @@ export class AuthErrorService {
     };
   }
 
-  public isAccountNotVerifiedError(error: any): boolean {
-    return this.isAccountNotVerified(this.getStatus(error), this.getCode(error));
-  }
-
   private isInvalidCredentials(status?: number, code?: string): boolean {
     return (
       status === 401 ||

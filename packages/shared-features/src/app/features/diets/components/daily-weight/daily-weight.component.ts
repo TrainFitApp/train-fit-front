@@ -3,7 +3,6 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnDestroy,
   OnInit,
   Output,
   SimpleChanges,
@@ -20,7 +19,6 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WEEK_DAYS } from 'src/app/shared/constants/week-days';
-import { DateRange } from 'src/app/shared/models/dateRange';
 import { Anthropometry } from '../../../diet-days/components/weight-info/models/anthropometry';
 import { AnthropometryModalComponent } from 'src/app/shared/components/anthropometry';
 

@@ -398,21 +398,6 @@ export class RecipeService {
       .join(', ');
   }
 
-  public getIngredientsList(
-    recipe: Recipe
-  ): { name: string; quantity: number }[] {
-    if (!recipe.customProducts || recipe.customProducts.length === 0) {
-      return [];
-    }
-
-    return [...recipe.customProducts]
-      .sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
-      .map((cp) => ({
-        name: cp.product?.name || this.translate.instant('RECIPE_CARD.INGREDIENT_FALLBACK'),
-        quantity: cp.quantity || 0,
-      }));
-  }
-
   private areValuesEquivalent(left: any, right: any): boolean {
     if (Array.isArray(left) || Array.isArray(right)) {
       return JSON.stringify(left || []) === JSON.stringify(right || []);

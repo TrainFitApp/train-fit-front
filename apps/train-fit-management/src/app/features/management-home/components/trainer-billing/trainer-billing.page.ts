@@ -55,7 +55,6 @@ export class TrainerBillingPage implements OnInit, OnDestroy {
 
   public readonly actionLabels = ACTION_LABELS;
   public readonly actionHelp = ACTION_HELP;
-  public readonly kindLabels = KIND_LABELS;
   public readonly disputeStatus = DISPUTE_STATUS;
   public readonly refundStatus = REFUND_STATUS;
   public readonly roleLabels = ROLE_LABELS;

@@ -1,4 +1,4 @@
-import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
+import { Injectable, InjectionToken } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
 
@@ -26,9 +26,7 @@ export class I18nService {
   lang$ = this.currentLang.asObservable();
 
   constructor(
-    private translate: TranslateService,
-    @Optional() @Inject(DEFAULT_LANG) private defaultLang?: string
-  ) {
+    private translate: TranslateService  ) {
     const lang = resolveInitialLang();
     translate.use(lang);
     this.currentLang.next(lang);

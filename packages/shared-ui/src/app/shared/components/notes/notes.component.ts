@@ -7,7 +7,7 @@ import {
   EventEmitter,
 } from '@angular/core';
 import { ElementRef, ViewChild } from '@angular/core';
-import { AlertButton, AlertOptions, ToastOptions } from '@ionic/angular';
+import { AlertButton, AlertOptions } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { DietDay } from 'src/app/core/models/dietDay';
@@ -92,7 +92,7 @@ export class NotesComponent implements OnInit, OnChanges {
     const saveButtons: AlertButton[] = [
       {
         text: this.translate.instant('COMMON.SAVE'),
-        handler: (data) => {
+        handler: () => {
           shouldPin = false;
           return true;
         },
@@ -103,7 +103,7 @@ export class NotesComponent implements OnInit, OnChanges {
       saveButtons.push({
         text: this.translate.instant('NOTES.PIN_TO_POSITION'),
         cssClass: 'alert-button-pin',
-        handler: (data) => {
+        handler: () => {
           shouldPin = true;
           return true;
         },
@@ -299,23 +299,6 @@ export class NotesComponent implements OnInit, OnChanges {
       const el = this.noteRef?.nativeElement;
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch {}
-  }
-
-  public isWorkoutNote(): boolean {
-    return this.object && (this.object as Workout).exercises !== undefined;
-  }
-
-  public isExerciseNote(): boolean {
-    return this.object && (this.object as CustomExercise).sets !== undefined;
-  }
-
-  public getIconName(): string {
-    if (this.isWorkoutNote()) {
-      return 'document-text-outline';
-    } else if (this.isExerciseNote()) {
-      return 'document-text-outline';
-    }
-    return 'document-text-outline';
   }
 
   private handleUpdateServices(): void {

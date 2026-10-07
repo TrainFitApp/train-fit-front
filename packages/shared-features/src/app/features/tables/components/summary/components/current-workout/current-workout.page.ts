@@ -4,11 +4,9 @@ import {
   OnInit,
   effect,
   inject,
-  DestroyRef,
   QueryList,
   ViewChildren,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AlertOptions,
   IonAccordionGroup,
@@ -92,9 +90,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   public previousWorkoutDate: Date;
 
   public loading: boolean;
-
-  // Carousel properties
-  public selectedExerciseIndex: number = 0;
   public selectedExercise: CustomExercise;
 
   public theme: ColorMode;
@@ -103,7 +98,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   // Seguimiento de cambios en sets completadas (doned)
   private hasInitializedDoneTracking = false;
   private previousDoneSets = 0;
-  private previousTotalSets = 0;
   // Evitar alertes duplicados en ráfaga
   private autoEndScheduled = false;
   private autoEndTimeoutId: any;
@@ -151,7 +145,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly userService = inject(UserService);
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly adMobService = inject(AdMobService);
   private readonly exerciseHistoryService = inject(ExerciseHistoryService);
   public readonly restTimerService = inject(RestTimerService);
@@ -1075,13 +1068,8 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     this.restDeltaBadges = this.restDeltaBadges.filter((d) => d.id !== id);
   }
 
-  public trackByDeltaId(index: number, delta: { id: number; value: number }): number {
+  public trackByDeltaId(delta: { id: number; value: number }): number {
     return delta.id;
-  }
-
-  public selectExercise(index: number): void {
-    this.selectedExerciseIndex = index;
-    this.selectedExercise = this.currentWorkout?.exercises[index];
   }
 
   private initVariables(): void {
@@ -1180,7 +1168,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
     // Inicializar seguimiento sin disparar auto-fin
     if (!this.hasInitializedDoneTracking) {
-      this.previousTotalSets = totalSets;
       this.previousDoneSets = doneSets;
       this.hasInitializedDoneTracking = true;
       return;
@@ -1188,7 +1175,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
     // Sólo actuar si cambió el número de sets hechas (toggle de checkbox)
     const doneChanged = doneSets !== this.previousDoneSets;
-    this.previousTotalSets = totalSets;
     this.previousDoneSets = doneSets;
 
     if (!doneChanged) return;
@@ -1213,7 +1199,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   // Subject para gestionar el ciclo de vida de suscripciones
   private destroy$ = new Subject<void>();
 
-  public trackByCustomExercise(index: number, item: CustomExercise): string {
+  public trackByCustomExercise(item: CustomExercise): string {
     return item._id;
   }
 
@@ -1258,7 +1244,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     return this.currentWorkout?.exercises?.indexOf(customExercise) ?? -1;
   }
 
-  public trackByBlockGroup(index: number, group: WorkoutExerciseGroup): string {
+  public trackByBlockGroup(group: WorkoutExerciseGroup): string {
     return group.block?._id || 'ungrouped';
   }
 

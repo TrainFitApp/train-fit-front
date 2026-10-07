@@ -8,12 +8,6 @@ export enum STEPS_TYPES {
   moreThan19000 = 6,
 }
 
-export type STEP_TYPE = {
-  id: STEPS_TYPES;
-  name: string;
-  value: string;
-};
-
 // Cuando le da a ninguno
 export const STEPS = {
   [STEPS_TYPES.notCounted]: {

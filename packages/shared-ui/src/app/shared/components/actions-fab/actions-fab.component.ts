@@ -8,7 +8,6 @@ import { User } from 'src/app/core/models/user';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import {
-  ACTIONS_FAB,
   ACTIONS_FAB_TYPE,
   ACTIONS_FAB_TYPES,
   ACTIONS_FAB_VALUES,

@@ -11,7 +11,6 @@ import { TableService } from "src/app/core/services/table/table.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
-import { ThemeService } from "src/app/core/services/util/theme.service";
 import { UtilService } from "src/app/core/services/util/util.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
 import { TABLE_MODE_TYPES } from "src/app/shared/constants/table-mode";
@@ -44,7 +43,6 @@ export class SummaryPage {
 
   public searchFilterGroup: SearchFilterGroup;
   public shieldFilter: boolean;
-  public favouriteFilter: boolean;
   public load: boolean;
 
   public tableInUse: Table;
@@ -70,7 +68,6 @@ export class SummaryPage {
     private utilService: UtilService,
     private customExerciseService: CustomExerciseService,
     private navigationService: NavigationService,
-    private themeService: ThemeService,
     private ionicUtilService: IonicUtilService,
   ) {
     // Effect para el usuario
@@ -287,13 +284,6 @@ export class SummaryPage {
     }, 0);
   }
 
-  public getCompletedExercisesCount(): number {
-    if (!this.workout || !this.workout.exercises) return 0;
-    return this.workout.exercises.filter((ex) =>
-      this.isCustomExerciseCompleted(ex),
-    ).length;
-  }
-
   public isCustomExerciseCompleted(customExercise: CustomExercise): boolean {
     return this.customExerciseService.isCustomExerciseCompleted(customExercise);
   }
@@ -342,13 +332,6 @@ export class SummaryPage {
           ? totalDoneSplits + 1
           : totalDoneSplits;
       }, 0) - 1
-    );
-  }
-
-  public getRoutineProgressPercentage(): number {
-    if (!this.tableInUse || !this.tableInUse.splits.length) return 0;
-    return Math.round(
-      (this.countDoneSplits() / this.tableInUse.splits.length) * 100,
     );
   }
 
@@ -450,13 +433,6 @@ export class SummaryPage {
   public backgroundClass: string = "light-theme";
   public theme: Theme;
 
-  private initTheme(): void {
-    this.themeService.theme.subscribe((theme: string) => {
-      this.theme = theme as Theme;
-      this.backgroundClass = theme === "dark" ? "dark-theme" : "light-theme";
-    });
-  }
-
   public getWorkoutProgress(): number {
     if (!this.workout || !this.workout.exercises.length) return 0;
 
@@ -467,42 +443,12 @@ export class SummaryPage {
     return (completedExercises / this.workout.exercises.length) * 100;
   }
 
-  public getEstimatedTime(): number {
-    if (!this.workout || !this.workout.exercises.length) return 0;
-
-    // Estimación: 3-4 minutos por serie + tiempo de descanso
-    const totalSets = this.getWorkoutSets();
-    return Math.round(totalSets * 3.5);
-  }
-
   public getCompletedExercises(): number {
     if (!this.workout || !this.workout.exercises.length) return 0;
 
     return this.workout.exercises.filter((exercise) =>
       this.isCustomExerciseCompleted(exercise),
     ).length;
-  }
-
-  public getEstimatedCalories(): number {
-    if (!this.workout || !this.workout.exercises.length) return 0;
-
-    // Estimación: 8-12 calorías por minuto de entrenamiento
-    const estimatedTime = this.getEstimatedTime();
-    return Math.round(estimatedTime * 10);
-  }
-
-  public getCompletedSets(): number {
-    if (!this.workout) return 0;
-    return this.workout.exercises.reduce((count, exercise) => {
-      return count + exercise.sets.filter((set) => set.doned).length;
-    }, 0);
-  }
-
-  public getTotalSets(): number {
-    if (!this.workout) return 0;
-    return this.workout.exercises.reduce((count, exercise) => {
-      return count + exercise.sets.length;
-    }, 0);
   }
 
   public async showExerciseNoteAlert(exercise: CustomExercise): Promise<void> {

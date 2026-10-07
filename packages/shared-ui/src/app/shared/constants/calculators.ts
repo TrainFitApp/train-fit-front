@@ -1,4 +1,3 @@
-import { FormControl, FormControlName } from '@angular/forms';
 
 export enum CALCULATOR_TYPES {
   rm = 0,
@@ -41,30 +40,3 @@ export const CALCULATORS: {
 };
 
 export const CALCULATOR_VALUES = Object.values(CALCULATORS);
-
-export function evaluateEquation(
-  equation: string,
-  params: { [key: string]: number }
-): number {
-  // Reemplazar las variables en la ecuación con los valores de los parámetros
-  const formattedEquation = equation.replace(/\b(\w+)\b/g, (match) => {
-    return params[match] !== undefined ? params[match].toString() : match;
-  });
-
-  // Evaluar la ecuación de manera segura
-  try {
-    // Function() con una cadena es, en general, un agujero: aquí no lo es
-    // porque las únicas ecuaciones son las dos literales de CALCULATORS, en
-    // este mismo fichero, y nada del exterior llega a `equation`. La regla se
-    // acota en esta línea y no en la configuración, para que cualquier
-    // Function()/eval() NUEVO en el monorepo siga rompiendo el lint.
-    //
-    // Si algún día la ecuación pasa a venir de fuera (del backend o del
-    // usuario), esto hay que sustituirlo por un evaluador acotado.
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    return Function('"use strict";return (' + formattedEquation + ')')();
-  } catch (e) {
-    console.error('Error evaluating equation:', e);
-    return NaN;
-  }
-}

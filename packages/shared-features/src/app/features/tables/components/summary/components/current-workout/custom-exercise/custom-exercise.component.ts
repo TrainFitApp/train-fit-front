@@ -5,7 +5,6 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges,
-  ViewChild,
   Output,
   EventEmitter,
 } from '@angular/core';
@@ -18,7 +17,6 @@ import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
 import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
@@ -64,7 +62,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   public pendingCopyInsertIndex: number | null = null;
   public loadingHistorical: boolean = false;
   public historicalWorkout: Workout | null = null;
-  private pendingCopyKey: number = 0;
 
   public reorderMode: boolean = false;
   public hasReorderChanges: boolean = false;
@@ -76,7 +73,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(
     private customExerciseService: CustomExerciseService,
-    private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private workoutService: WorkoutService,
     private pinnedExerciseNoteService: PinnedExerciseNoteService,
@@ -302,11 +298,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  public isHistoricalSessionCompleted(): boolean {
-    const sets = this.previousWorkoutCustomExercise?.sets;
-    return sets?.length > 0 && sets.every((s) => s.doned);
-  }
-
   public getMicrocycleLabel(): string {
     return this.translate.instant('TABLES.MICROCYCLE_N', { n: this.historicalSplitIndex + 1 });
   }
@@ -379,7 +370,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     const confirmButtons: AlertButton[] = [
       {
         text: this.translate.instant('COMMON.SAVE'),
-        handler: (res) => {
+        handler: () => {
           shouldPin = false;
           return true;
         },
@@ -390,7 +381,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
       confirmButtons.push({
         text: this.translate.instant('NOTES.PIN_TO_POSITION'),
         cssClass: 'alert-button-pin',
-        handler: (res) => {
+        handler: () => {
           shouldPin = true;
           return true;
         },
@@ -642,7 +633,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     });
 
     this.pendingCopyInsertIndex = insertIndex;
-    this.pendingCopyKey++;
 
     this.customExerciseService
       .copySetOnCustomExercise(newSet.order, {
@@ -710,33 +700,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     return rows;
-  }
-
-  public toggleAllSeries(event: Event): void {
-    const checked = (<HTMLInputElement>event.target).checked;
-
-    this.customExercise.sets.forEach((set) => {
-      set.doned = checked;
-    });
-
-    // Update the workout in the service
-    if (this.currentWorkout) {
-      this.workoutService.setCurrentWorkout = this.currentWorkout;
-    }
-  }
-
-  public getSetTypeLabel(set: Set): string {
-    if (set.restPause) {
-      return 'RP';
-    } else if (set.drop) {
-      return 'DS';
-    } else {
-      return 'N';
-    }
-  }
-
-  public getRirDisplay(set: Set): string {
-    return formatRirValue(set.rir, { emptyLabel: ' - ' });
   }
 
   public formatPerformedRir(rir: unknown): string {
@@ -816,11 +779,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  public trackBySet(index: number, item: Set): string {
-    return item._id || `pending-${index}`;
-  }
-
-  public trackBySetRow(index: number, row: CurrentSetRow): string {
+  public trackBySetRow(row: CurrentSetRow): string {
     return row.key;
   }
 }

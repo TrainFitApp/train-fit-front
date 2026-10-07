@@ -11,7 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
@@ -73,7 +73,7 @@ export class CalendarComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Listen for language changes to update calendar
-    this.langChangeSubscription = this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+    this.langChangeSubscription = this.translate.onLangChange.subscribe(() => {
       this.updateCalendar();
       this.updateCurrentMonthYear();
       this.cdRef.detectChanges();

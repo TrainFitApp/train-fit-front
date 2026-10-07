@@ -5,14 +5,12 @@ import { HttpService } from 'src/app/core/services/http/http.service';
 import {
   AdherenceSummary,
   AnthropometryEntry,
-  BulkApplyResult,
   CheckinResponseEntry,
   ClientNutritionalGoal,
   ClientNutritionalGoalResponse,
   ClientNutritionPreferences,
   ClientScope,
   ClientTable,
-  DietDaySummary,
   NutritionComplianceSummary,
   NutritionFoodsSummary,
   NutritionTrackingSummary,
@@ -33,7 +31,6 @@ import {
   ClientTrainingProgress,
   PlanChange,
 } from '../models/client-progress.model';
-import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 @Injectable({ providedIn: 'root' })
 export class ClientDetailApiService {
@@ -79,7 +76,6 @@ export class ClientDetailApiService {
     return this.http.put<TrainingGoal>(`${this.base(clientId)}/training-goal`, goal);
   }
 
-
   public getAvailableTemplates(clientId: string): Observable<ClientTable[]> {
     return this.http.get<ClientTable[]>(
       `${this.base(clientId)}/tables/available-templates`
@@ -115,12 +111,6 @@ export class ClientDetailApiService {
   // por eso no usa this.base(clientId).
   public deleteTable(tableId: string): Observable<unknown> {
     return this.http.delete(`tables/${tableId}`);
-  }
-
-  public getDiet(clientId: string, date: string = localIsoDate()): Observable<DietDaySummary | null> {
-    return this.http.get<DietDaySummary | null>(
-      `${this.base(clientId)}/diet?date=${encodeURIComponent(date)}`
-    );
   }
 
   public revokeRelation(clientId: string, scope: ClientScope): Observable<unknown> {
@@ -360,7 +350,6 @@ export class ClientDetailApiService {
     );
   }
 
-
   // coach-tab FASE4 — tareas/hábitos.
   public getTasks(clientId: string): Observable<TrainerTask[]> {
     return this.http.get<TrainerTask[]>(`${this.base(clientId)}/tasks`);
@@ -375,19 +364,6 @@ export class ClientDetailApiService {
 
   public deactivateTask(clientId: string, taskId: string): Observable<unknown> {
     return this.http.delete(`${this.base(clientId)}/tasks/${taskId}`);
-  }
-
-  // F12 — pautar una única composición, aplicación inmediata sobre el hueco de comida.
-  public prescribeMeal(
-    clientId: string,
-    date: string,
-    mealId: string,
-    body: { customProducts: unknown[]; customRecipes: unknown[]; merge: boolean }
-  ): Observable<unknown> {
-    return this.http.post(
-      `${this.base(clientId)}/diet-days/${date}/meals/${mealId}/prescribe`,
-      body
-    );
   }
 
   // F29 — preferencias nutricionales del cliente.
@@ -417,37 +393,12 @@ export class ClientDetailApiService {
         | 'cooksAtHome'
         | 'dietaryFlags'
         | 'disabledMealSlots'
-        | 'mealSlotLabels'
       >
     >
   ): Observable<ClientNutritionPreferences> {
     return this.http.put<ClientNutritionPreferences>(
       `${this.base(clientId)}/nutrition-preferences`,
       payload
-    );
-  }
-
-  // --- F30: aplicar en bloque (reutiliza F11/F12/F13, una vez por cliente destino) ---
-  public applyRoutineToClients(
-    sourceTableId: string,
-    targetClientIds: string[]
-  ): Observable<BulkApplyResult[]> {
-    return this.http.post<BulkApplyResult[]>(
-      `trainer/routines/${sourceTableId}/apply-to-clients`,
-      { targetClientIds }
-    );
-  }
-
-  public applyMealToClients(
-    sourceClientId: string,
-    date: string,
-    mealSlot: string,
-    body: { customProducts: unknown[]; customRecipes: unknown[]; merge: boolean },
-    targetClientIds: string[]
-  ): Observable<BulkApplyResult[]> {
-    return this.http.post<BulkApplyResult[]>(
-      `${this.base(sourceClientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/apply-to-clients`,
-      { ...body, targetClientIds }
     );
   }
 }

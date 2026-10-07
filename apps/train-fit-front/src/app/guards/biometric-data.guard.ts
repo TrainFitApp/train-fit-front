@@ -13,12 +13,6 @@ import { EditorPage } from 'src/app/features/profile/components/configuration/co
 // modal y solo deja pasar la navegación si, al cerrarse, los datos ya están
 // completos.
 //
-// Nota de implementación: el documento original de F27 asumía reutilizar
-// `data-sheet.page.ts`, pero ese componente está acoplado al flujo de
-// registro (SignUpStateService, createUser/updateGoogleUser) — reusarlo para
-// un usuario YA logueado editando su perfil habría sido incorrecto. Se usa
-// en su lugar `EditorPage`, el editor de perfil genérico ya existente
-// (mismo componente que abre "Editar perfil" en Configuración, PUT /api/users).
 // Este guard vive en la app (no en shared-core) porque EditorPage está en
 // shared-features — shared-core no debe importar de shared-features.
 function hasCompleteBiometrics(user: User | null | undefined): boolean {

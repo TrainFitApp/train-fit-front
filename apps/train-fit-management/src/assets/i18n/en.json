@@ -185,9 +185,6 @@
       "MIN_VERSION_WEB_LABEL": "Minimum Web version",
       "FORCE_UPDATE_MESSAGE_LABEL": "Forced update message",
       "FORCE_UPDATE_MESSAGE_PLACEHOLDER": "You must update the app to continue",
-      "PREVIEW_NORMAL": "Right now: normal, nothing shown",
-      "PREVIEW_WARNING": "Right now: pre-warning (dismissable banner)",
-      "PREVIEW_ACTIVE": "Right now: maintenance active (full screen)",
       "SAVE_BTN": "SAVE",
       "SAVING": "SAVING...",
       "SAVED_SUCCESS": "Configuration saved",
@@ -206,18 +203,7 @@
       "ERROR_INVALID_VERSION_WEB": "The minimum Web version isn't a valid format (X.Y.Z)"
     }
   },
-  "ACTIONS_FAB": {
-    "CANCEL_COPY": "Cancel copy"
-  },
   "TABLES": {
-    "WORKOUT_PASTED": "Workout pasted",
-    "NAVIGATE_PASTE_MSG": "Navigate to other micro-cycles to paste the copied workout",
-    "COPY_MODE": "Copy mode activated",
-    "COPY_MODE_DESC": "Now you can navigate between micro-cycles and paste this workout for another day",
-    "COPIED": "COPIED",
     "MICROCYCLES": "Microcycles"
-  },
-  "NUTRITION_EDITOR": {
-    "NAME_PLACEHOLDER": "Goal name"
   }
 }

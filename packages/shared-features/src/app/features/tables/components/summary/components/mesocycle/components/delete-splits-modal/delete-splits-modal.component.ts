@@ -79,7 +79,7 @@ export class DeleteSplitsModalComponent implements OnInit {
     );
   }
 
-  public trackBySplit(index: number, split: Split): string {
+  public trackBySplit(split: Split): string {
     return split._id;
   }
 }

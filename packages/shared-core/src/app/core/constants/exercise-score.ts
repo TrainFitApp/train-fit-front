@@ -1,5 +1,4 @@
 import { localizeList } from '../i18n/localized-catalog';
-import { SORENESS_MUSCLES } from './soreness';
 
 // Movimiento 6 Coach Pro — el método del entrenador, en números.
 //
@@ -28,25 +27,6 @@ export interface ExerciseScore {
   // defecto al estimar la sesión.
   secondsPerSet: number | null;
 }
-
-// Los mismos 16 grupos que el registro de agujetas. Reutilizados a
-// propósito: es el mismo mapa del cuerpo, y dos listas distintas harían
-// imposible cruzar "qué le estimulo" con "qué le duele".
-export const SCORE_MUSCLES: string[] = SORENESS_MUSCLES;
-
-// Articulaciones que un entrenador vigila al programar. Lista cerrada por el
-// mismo motivo que las zonas de dolor: una serie temporal necesita que el
-// eje no cambie.
-export const SCORE_JOINTS: string[] = [
-  'Hombro',
-  'Codo',
-  'Muñeca',
-  'Columna cervical',
-  'Columna lumbar',
-  'Cadera',
-  'Rodilla',
-  'Tobillo',
-];
 
 // Escala 0-3 y no 0-10: puntuar 200 ejercicios × 16 músculos es un trabajo
 // enorme, y cuantos más niveles haya menos consistente será el criterio del

@@ -2,11 +2,8 @@ import { Component, ElementRef, effect, inject, OnDestroy, OnInit, ViewChild } f
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import {
-  AlertButton,
-  AlertInput,
   AlertOptions,
   Platform,
-  ToastOptions,
 } from "@ionic/angular";
 import { firstValueFrom, Subject, Subscription, take, takeUntil } from "rxjs";
 import { CustomProduct } from "src/app/core/models/customProduct";
@@ -1177,70 +1174,6 @@ export class AddProductPage implements OnInit, OnDestroy {
     this.navigationService.clearTempData("editingIngredientIndex");
   }
 
-  public changeAtributtes(name: PRODUCT_ATRR): void {
-    if (!this.meal) {
-      const t = this.translate.instant.bind(this.translate);
-      const isName = name === PRODUCT_ATRR.name;
-      const alertButtons: AlertButton[] = [
-        {
-          text: t('COMMON.CANCEL').toUpperCase(),
-          role: "cancel",
-        },
-        {
-          text: t('COMMON.CONFIRM'),
-          handler: (res) =>
-            this.addCustomProductForm.controls[
-              isName ? "name" : "brand"
-            ].setValue(res.attribute),
-        },
-      ];
-      const alertInputs: AlertInput[] = [
-        {
-          name: "attribute",
-          type: "textarea",
-          value: this.product[isName ? "name" : "brand"],
-          placeholder: isName ? t('ADD_PRODUCT.NAME_PLACEHOLDER') : t('ADD_PRODUCT.BRAND_PLACEHOLDER'),
-        },
-      ];
-
-      const alertOptions: AlertOptions = {
-        header: isName ? t('ADD_PRODUCT.NAME_PRODUCT') : t('ADD_PRODUCT.BRAND_PRODUCT'),
-        inputs: alertInputs,
-        buttons: alertButtons,
-      };
-
-      this.ionicUtilService.showAlert(alertOptions);
-
-      // NO FUNCIONA PORQUE ESTA SUPERPUESTA POR ENCIMA DE VARIOS MODALES
-      // const sweetAlertOptions = {
-      //   text: `${name === PRODUCT_ATRR.name ? 'Nombre' : 'Marca'} de producto`,
-      //   inputPlaceholder: `${name === PRODUCT_ATRR.name ? 'nombre' : 'marca'}`,
-      //   icon: 'question',
-      //   input: 'textarea',
-      //   inputValue:
-      //     name === PRODUCT_ATRR.name ? this.product.name : this.product.brand,
-      //   showCancelButton: true,
-      //   showConfirmButton: true,
-      //   confirmButtonText: 'GUARDAR',
-      //   confirmButtonColor: 'var(--ion-color-primary)',
-      //   cancelButtonText: 'CANCELAR',
-      // };
-      // this.utilService
-      //   .showSweetAlert(sweetAlertOptions)
-      //   .then((res) => {
-      //     if (res.isConfirmed) {
-      //       this.ownProductService
-      //         .updateOwnProduct({
-      //           ...this.product,
-      //           [res.value === PRODUCT_ATRR.name
-      //             ? 'nombre' : 'marca']: res.value,
-      //         })
-      //         .subscribe();
-      //     }
-      //   });
-    }
-  }
-
   private checkHasPortions(): void {
     const servingQuantity =
       this.product?.servingQuantity ??
@@ -1539,10 +1472,6 @@ export class AddProductPage implements OnInit, OnDestroy {
     );
   }
 
-  private initVariables(): void {
-    // Ya gestionado por effect en el constructor
-  }
-
   private initForm(): void {
     const quantity = this.customProduct
       ? this.customProduct.quantity
@@ -1778,36 +1707,6 @@ export class AddProductPage implements OnInit, OnDestroy {
     }
 
     this.syncInitialSnapshot();
-  }
-
-  public roundCalories(event: any): void {
-    const value = event.target.value;
-    if (value && !isNaN(value)) {
-      const roundedValue = Math.round(parseFloat(value));
-      this.addCustomProductForm.patchValue({
-        energyKcal100g: roundedValue,
-      });
-    }
-  }
-
-  public roundMicro(event: any, controlName: string): void {
-    const value = event.target.value;
-    if (value && !isNaN(value)) {
-      const roundedValue = Math.round(parseFloat(value) * 10) / 10;
-      this.addCustomProductForm.patchValue({
-        [controlName]: roundedValue,
-      });
-    }
-  }
-
-  public roundMicro1000(event: any, controlName: string): void {
-    const value = event.target.value;
-    if (value && !isNaN(value)) {
-      const roundedValue = Math.round(parseFloat(value) * 1000) / 1000;
-      this.addCustomProductForm.patchValue({
-        [controlName]: roundedValue,
-      });
-    }
   }
 
   public showOverrideMeta(field: string): boolean {

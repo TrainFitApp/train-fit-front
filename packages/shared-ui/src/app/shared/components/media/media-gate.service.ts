@@ -25,10 +25,6 @@ export class MediaGateService {
     return status;
   }
 
-  public invalidate(): void {
-    this.cached = null;
-  }
-
   public async ensureCanUpload(): Promise<MediaGateResult> {
     const status = await this.status();
     if (!status.enabled) return 'disabled';

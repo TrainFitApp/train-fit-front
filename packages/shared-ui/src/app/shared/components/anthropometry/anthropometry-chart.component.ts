@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
-import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 
 @Component({
@@ -44,7 +44,7 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
     this.initChart();
 
     // Listen for language changes to update chart
-    this.langChangeSubscription = this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+    this.langChangeSubscription = this.translate.onLangChange.subscribe(() => {
       if (this.chart) {
         this.updateChart();
       }
@@ -159,7 +159,7 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
             usePointStyle: true,
             pointStyle: 'circle',
           },
-          onClick: (e, legendItem, legend) => {
+          onClick: (e, legendItem) => {
             const index = legendItem.datasetIndex;
             const meta = this.chart!.getDatasetMeta(index);
             meta.hidden = !meta.hidden;

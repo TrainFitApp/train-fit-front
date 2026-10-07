@@ -82,11 +82,6 @@ export class PinnedExerciseNoteService {
     );
   }
 
-  public clearCache(tableId: string): void {
-    this.cache.delete(tableId);
-    this.cacheSubject.next(new Map(this.cache));
-  }
-
   // El backend recoloca las notas al mover/borrar ejercicios o filas; las
   // posiciones cacheadas dejan de valer.
   public invalidateAll(): void {

@@ -299,26 +299,6 @@ export interface NutritionFoodsSummary {
   to: string;
 }
 
-// F30 — resultado por cliente de una operación "aplicar en bloque" (rutina/objetivo).
-export interface BulkApplyResult {
-  clientId: string;
-  success: boolean;
-  error?: string;
-}
-
-export interface MealSummary {
-  _id: string;
-  name: string;
-  customProducts: unknown[];
-  customRecipes: unknown[];
-}
-
-export interface DietDaySummary {
-  _id: string;
-  date: string;
-  meals: MealSummary[];
-}
-
 // TAREA1/TAREA5 (replanteamiento MVP nutrición) — un alimento dentro de una
 // alternativa de composición. Siempre un producto real O una receta real de
 // la biblioteca (ProductSearchModalComponent, panel lateral) — ya no existe
@@ -350,10 +330,9 @@ export interface ClientNutritionPreferences {
   favoriteFoods: string;
   dislikedFoods: string;
   // Restricciones estructuradas — filtro duro del cajón de sugerencias.
-  dietaryFlags?: ('vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree')[];
+  dietaryFlags: ('vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree')[];
   cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
   disabledMealSlots: string[];
-  mealSlotLabels: Record<string, string>;
   requestedAt: string | null;
   requestedBy: string | null;
   respondedAt: string | null;

@@ -2,7 +2,6 @@ import { Component, OnInit } from "@angular/core";
 import { ModalController } from "@ionic/angular";
 import { Exercise } from "src/app/core/models/exercise";
 import { ExerciseService } from "src/app/core/services/exercise/exercise.service";
-import { UtilService } from "src/app/core/services/util/util.service";
 import { SearchFilterGroupExercises } from "../../models/filterGroup";
 import { MUSCLE_GROUPS, MuscleGroup } from "src/app/core/constants/muscle-catalog";
 
@@ -52,7 +51,6 @@ export class FilterInputPage implements OnInit {
   constructor(
     private exerciseService: ExerciseService,
     private modalController: ModalController,
-    private utilService: UtilService,
   ) {}
 
   public ngOnInit(): void {}

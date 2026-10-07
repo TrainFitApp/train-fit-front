@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertButton, AlertOptions, ModalOptions } from '@ionic/angular';
+import { AlertOptions, ModalOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { User } from 'src/app/core/models/user';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
@@ -15,7 +15,6 @@ import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { Theme } from 'src/app/shared/models/theme';
 import { AdPreferencesPage } from './components/ad-preferences/ad-preferences.page';
-import { NutritionEditorPage } from './components/editor/components/nutrition-editor/nutrition-editor.page';
 import { EditorPage } from './components/editor/editor.page';
 import { GoalListPage } from './components/goal-list/goal-list.page';
 import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
@@ -185,13 +184,6 @@ export class ConfigurationPage {
     this.navigationService.goToRestorePasswordPage();
   }
 
-  // Sin acceso propio en esta pantalla (quitados de "Opciones de perfil").
-  // Reubicados como tarjetas siempre visibles en el menú del tab Coach
-  // (CoachPage.goToCheckins()/goToNutritionPreferences(), mismas rutas).
-  public goToMyCheckins(): void {
-    void this.router.navigate(['/my-checkins']);
-  }
-
   public goToNutritionPreferences(): void {
     void this.router.navigate(['/nutrition-preferences']);
   }
@@ -234,24 +226,6 @@ export class ConfigurationPage {
         });
       },
     });
-  }
-
-  public openTrainers(): void {
-    const header = this.translate.instant('CONFIGURATION.TRAINER_MODE_HEADER');
-    const message = this.translate.instant('CONFIGURATION.TRAINER_MODE_MSG');
-    const buttons: AlertButton[] = [
-      {
-        text: 'OK',
-        cssClass: 'alert-button-primary',
-      },
-    ];
-
-    const alertOptions: AlertOptions = {
-      header: header,
-      message: message,
-      buttons: buttons,
-    };
-    this.ionicUtilService.showAlert(alertOptions);
   }
 
   public deleteAccount(): void {

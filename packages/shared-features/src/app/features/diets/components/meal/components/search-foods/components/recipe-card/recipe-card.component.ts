@@ -266,11 +266,6 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  public onEditClick(event: Event): void {
-    event.stopPropagation();
-    this.edit.emit(this.recipe);
-  }
-
   public onTrainerFavoriteClick(event: Event): void {
     event.stopPropagation();
     this.trainerFavoriteToggle.emit(this.recipe);

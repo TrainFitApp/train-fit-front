@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, take } from 'rxjs';
-import { DietDay } from 'src/app/core/models/dietDay';
 import { SearchFilterGroup } from 'src/app/shared/models/filterGroup';
 import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 import { Meal } from '../../models/meal';
@@ -10,17 +9,8 @@ import { MealAPIService } from './meal-api.service';
 @Injectable()
 export class MealService {
   private mealClipboardSubject = new BehaviorSubject<MealClipboard | null>(null);
-  private _currentMeal$ = new BehaviorSubject<Meal>(null);
 
   constructor(private mealAPIService: MealAPIService) {}
-
-  public get getCurrentMeal() {
-    return this._currentMeal$.value;
-  }
-
-  public set setCurrentMeal(meal: Meal) {
-    this._currentMeal$.next(meal);
-  }
 
   public get getMealClipboard(): MealClipboard | null {
     return this.mealClipboardSubject.value;
@@ -28,10 +18,6 @@ export class MealService {
 
   public get mealClipboard$(): Observable<MealClipboard | null> {
     return this.mealClipboardSubject.asObservable();
-  }
-
-  public set setMealClipboard(mealClipboard: Meal) {
-    this.mealClipboardSubject.next(new MealClipboard(mealClipboard, null));
   }
 
   public setFullMealClipboard(mealClipboard: Meal, mealToPaste: Meal): void {
@@ -107,10 +93,6 @@ export class MealService {
       mealId,
       customRecipeId
     );
-  }
-
-  public getMealIndex(meal: Meal, dietDay: DietDay) {
-    return dietDay.meals.findIndex((mTemp) => mTemp.name === meal.name);
   }
 
   public setCustomProductConsumed(

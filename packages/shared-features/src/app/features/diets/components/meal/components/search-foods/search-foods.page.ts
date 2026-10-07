@@ -20,9 +20,8 @@ import {
   ModalController,
   Platform,
   PopoverOptions,
-  ToastOptions,
 } from "@ionic/angular";
-import { forkJoin, map, Observable, shareReplay, Subscription, switchMap, take } from "rxjs";
+import { map, Observable, shareReplay, Subscription, switchMap } from "rxjs";
 import {
   CustomProduct,
   CUSTOM_PRODUCT_VALUES,
@@ -52,7 +51,6 @@ import { ACTIONS_FAB_TYPES } from "src/app/shared/constants/actions-fab";
 import { MEASURE_FILTER_TYPES } from "src/app/shared/constants/measureFilter";
 import { SearchFilterGroup } from "src/app/shared/models/filterGroup";
 import { FilterIconsComponent, FilterMode } from "src/app/shared/components/filter-icons/filter-icons.component";
-import { Theme, THEMES } from "src/app/shared/models/theme";
 import { PopoverActionsComponent } from "src/app/shared/components/popover-actions/popover-actions.component";
 import {
   ACTION_TYPE,
@@ -3029,17 +3027,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return null;
   }
 
-  private toPositiveNumber(value: any): number | null {
-    if (value === null || value === undefined || value === "") {
-      return null;
-    }
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      return null;
-    }
-    return parsed;
-  }
-
   public onRecipeEdit(recipe: Recipe): void {
     const existingInstance = this.findCustomRecipeForRecipe(recipe);
 
@@ -3082,26 +3069,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         return recipeRef?._id === recipe._id;
       }) || null
     );
-  }
-
-  public onRecipeFavoriteToggle(recipe: Recipe): void {
-    const t = this.translate.instant.bind(this.translate);
-    this.favoritesService.toggle("recipes", recipe._id).subscribe({
-      next: (isFavorite) => {
-        this.ionicUtilService.showToast({
-          message: isFavorite
-            ? t('SEARCH_FOODS.RECIPE_ADDED_FAV')
-            : t('SEARCH_FOODS.RECIPE_REMOVED_FAV'),
-          duration: 1500,
-        });
-      },
-      error: () => {
-        this.ionicUtilService.showToast({
-          message: t('SEARCH_FOODS.FAV_UPDATE_ERROR'),
-          duration: 1500,
-        });
-      },
-    });
   }
 
   private setCustomProductsFirst(): void {
@@ -3606,36 +3573,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     } else {
       void this.modalController.dismiss();
     }
-  }
-
-  /**
-   * Create a new recipe from selected ingredients in ingredient mode
-   */
-  public createRecipeFromIngredients(): void {
-    if (this.selectedIngredients.length < 2) {
-      this.ionicUtilService.showToast({
-        message: this.translate.instant('SEARCH_FOODS.MIN_INGREDIENTS'),
-        duration: 2000,
-        color: "warning",
-      });
-      return;
-    }
-
-    console.log(
-      "[DEBUG] Creating recipe from ingredients:",
-      this.selectedIngredients.length,
-    );
-
-    // Navigate to config-recipe in create mode with selected ingredients
-    this.navigationService.goToConfigRecipe({
-      state: {
-        mode: "create",
-        meal: this.meal,
-        dietDay: this.dietDay,
-        existingIngredients: this.selectedIngredients,
-        selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
-      },
-    });
   }
 
   /**

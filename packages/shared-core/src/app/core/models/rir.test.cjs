@@ -28,7 +28,6 @@ const rir = loadFromSource(__filename, __dirname, {
   normalizeRirValue: 'src/app/core/models/rir',
   parseRirSelection: 'src/app/core/models/rir',
   isRirFail: 'src/app/core/models/rir',
-  hasRirValue: 'src/app/core/models/rir',
   formatRirValue: 'src/app/core/models/rir',
   getRirNumberOptions: 'src/app/core/models/rir',
   isAllowedRirNumber: 'src/app/core/models/rir',
@@ -41,7 +40,6 @@ const {
   normalizeRirValue,
   parseRirSelection,
   isRirFail,
-  hasRirValue,
   formatRirValue,
   getRirNumberOptions,
   isAllowedRirNumber,
@@ -165,7 +163,7 @@ test('normalizeRirValue es idempotente', () => {
   }
 });
 
-// --- isRirFail / hasRirValue ------------------------------------------------
+// --- isRirFail ------------------------------------------------
 
 test('isRirFail detecta el fallo en cualquier formato', () => {
   for (const value of [FAIL, '-1', 'FALLO', [FAIL], [FAIL, 2], [2, FAIL]]) {
@@ -174,16 +172,6 @@ test('isRirFail detecta el fallo en cualquier formato', () => {
   for (const value of [0, 2, [1, 3], null, '', 'mucho']) {
     assert.equal(isRirFail(value), false, JSON.stringify(value));
   }
-});
-
-test('hasRirValue distingue "no hay RIR" de "RIR 0"', () => {
-  // Confundirlos haría que una serie al límite pareciera sin apuntar.
-  assert.equal(hasRirValue(0), true);
-  assert.equal(hasRirValue([0]), true);
-  assert.equal(hasRirValue(FAIL), true);
-  assert.equal(hasRirValue(null), false);
-  assert.equal(hasRirValue(''), false);
-  assert.equal(hasRirValue([]), false);
 });
 
 // --- parseRirSelection ------------------------------------------------------

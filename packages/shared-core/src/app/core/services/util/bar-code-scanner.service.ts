@@ -13,7 +13,6 @@ import { IonicUtilService } from './ionic-util.service';
 
 @Injectable()
 export class BarCodeScannerService {
-  private flashEnabled = false;
   private _translate: TranslateService | null = null;
 
   private get translate(): TranslateService {
@@ -90,59 +89,6 @@ export class BarCodeScannerService {
       await this.ionicUtilService.showAlert(alertOptions);
       return undefined;
     } 
-  }
-
-  public async toggleFlash(enabled: boolean): Promise<void> {
-    // El plugin @capacitor/barcode-scanner no expone control de flash de forma universal.
-    // Notificamos al usuario y mantenemos el estado local para el icono.
-    this.flashEnabled = enabled;
-    const alertOptions: AlertOptions = {
-      header: this.translate.instant('COMMON.INFORMATION'),
-      message: this.translate.instant('BARCODE.FLASH_UNAVAILABLE'),
-      buttons: [
-        {
-          text: this.translate.instant('ACTIONS.ACCEPT'),
-          cssClass: 'primary',
-        },
-      ],
-    };
-    await this.ionicUtilService.showAlert(alertOptions);
-  }
-
-  public getFlashStatus(): boolean {
-    return this.flashEnabled;
-  }
-
-  public async scanFromGallery(): Promise<string | null> {
-    try {
-      console.log('Función de galería no implementada en este plugin');
-      const alertOptions: AlertOptions = {
-        header: this.translate.instant('COMMON.INFORMATION'),
-        message: this.translate.instant('BARCODE.GALLERY_UNAVAILABLE'),
-        buttons: [
-          {
-            text: this.translate.instant('ACTIONS.ACCEPT'),
-            cssClass: 'primary',
-          },
-        ],
-      };
-      await this.ionicUtilService.showAlert(alertOptions);
-      return null;
-    } catch (error) {
-      console.error('Error al acceder a la galería:', error);
-      const alertOptions: AlertOptions = {
-        header: this.translate.instant('COMMON.ERROR'),
-        message: this.translate.instant('BARCODE.GALLERY_ERROR'),
-        buttons: [
-          {
-            text: this.translate.instant('ACTIONS.ACCEPT'),
-            cssClass: 'primary',
-          },
-        ],
-      };
-      await this.ionicUtilService.showAlert(alertOptions);
-      return null;
-    }
   }
 
   private isSecureOrigin(): boolean {

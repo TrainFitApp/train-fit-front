@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, CanMatchFn, Router, UrlTree } from '@angular/router';
+import { CanMatchFn, Router, UrlTree } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import {
@@ -83,6 +83,4 @@ const checkToken = (): boolean | UrlTree | Observable<boolean | UrlTree> => {
     })
   );
 };
-
-export const authActivateGuard: CanActivateFn = () => checkToken();
 export const authMatchGuard: CanMatchFn = () => checkToken();

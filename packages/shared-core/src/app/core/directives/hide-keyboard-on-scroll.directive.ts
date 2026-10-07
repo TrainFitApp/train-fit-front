@@ -1,5 +1,4 @@
-import { Directive, HostListener, OnInit, Self } from '@angular/core';
-import { IonContent } from '@ionic/angular';
+import { Directive, HostListener, OnInit } from '@angular/core';
 import { UtilService } from '../services/util/util.service';
 
 @Directive({
@@ -8,9 +7,7 @@ import { UtilService } from '../services/util/util.service';
 export class HideKeyboardOnScrollDirective implements OnInit {
 
     constructor(
-        private utilService: UtilService,
-        @Self() private ionContent: IonContent
-    ) { }
+        private utilService: UtilService    ) { }
 
     ngOnInit() {}
 

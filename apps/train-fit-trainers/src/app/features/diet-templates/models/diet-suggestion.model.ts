@@ -69,12 +69,6 @@ export interface DietSuggestionResponse {
   ranked: RankedTemplate[];
 }
 
-// 422 cuando faltan datos biométricos del cliente.
-export interface MissingBiometricsError {
-  code: 'MISSING_BIOMETRICS';
-  missing: string[];
-}
-
 export type DietSource = 'general' | 'client' | 'verified';
 
 export interface DietSuggestionRequest {

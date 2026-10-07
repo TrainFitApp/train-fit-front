@@ -12,7 +12,7 @@ import {
   TrainerStateView, TrainerTier,
 } from './models/trainer-entitlements.model';
 import {
-  TRAINER_INTERVAL_NAMES, TRAINER_PLAN_NAMES, TrainerSeatAdvice, TrainerStateTone, canStartTrainerCheckout,
+  TRAINER_PLAN_NAMES, TrainerSeatAdvice, TrainerStateTone, canStartTrainerCheckout,
   checkoutConfirmationState, formatTrainerAmount, formatTrainerDate, isBillingMode, isCheckoutSessionId, safeStripeRedirectUrl,
   trainerBillingState, trainerBillingSummary, trainerInvoiceAdjustment, trainerPaymentMethodLabel, trainerPlanLabel,
   trainerPlanName, trainerPlanOf, trainerSeatAdvice, trainerStateAmount, trainerStateLabel,
@@ -138,7 +138,6 @@ export class SubscriptionPage implements OnDestroy {
   public readonly reduceMotion = typeof window !== 'undefined' && typeof window.matchMedia === 'function' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   public readonly planNames = TRAINER_PLAN_NAMES;
-  public readonly intervalNames = TRAINER_INTERVAL_NAMES;
   public readonly formatDate = formatTrainerDate;
 
   private requests = new Subscription();
@@ -714,8 +713,6 @@ export class SubscriptionPage implements OnDestroy {
     if (this.billingEnabled) this.syncSubscription(0);
     else this.load();
   }
-
-  public goToAccount(): void { void this.router.navigate(['/tabs/account']); }
 
   private openChange(target: TrainerPlanState): void {
     if (!this.changesAvailable) return;

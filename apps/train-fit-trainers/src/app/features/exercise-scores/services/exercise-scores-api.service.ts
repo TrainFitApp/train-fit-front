@@ -12,13 +12,6 @@ export interface ScoreCatalog {
   jointAnchors: string[];
 }
 
-export interface BulkResult {
-  upserted: number;
-  modified: number;
-  saved: number;
-  skipped: { exerciseId: string | null; reason: string }[];
-}
-
 export interface SessionLoad {
   muscles: { name: string; load: number }[];
   joints: { name: string; load: number }[];
@@ -71,13 +64,6 @@ export class ExerciseScoresApiService {
     return this.http.get<Pick<ExerciseScore, 'muscleScores' | 'jointScores'> | null>(
       `${ExerciseScoresApiService.ENDPOINT}/default/${exerciseId}`
     );
-  }
-
-  // Puntuar 200 ejercicios de uno en uno es lo que hace que nadie lo haga
-  // nunca. Las filas mal formadas se descartan y se cuentan, no tumban la
-  // carga entera.
-  public bulkSave(entries: Partial<ExerciseScore>[]): Observable<BulkResult> {
-    return this.http.put<BulkResult>(`${ExerciseScoresApiService.ENDPOINT}/bulk`, { entries });
   }
 
   // El reparto de UNA sesión, para el panel del planificador. Se calcula en

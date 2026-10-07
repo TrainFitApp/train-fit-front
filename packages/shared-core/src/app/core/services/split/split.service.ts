@@ -42,11 +42,4 @@ export class SplitService {
   public reorderSplits(idTable: string, splitIdsOrder: string[]): Observable<Split[]> {
     return this.splitAPIService.reorderSplits(idTable, splitIdsOrder);
   }
-
-  public getStandarSplit(): Split {
-    const split = new Split();
-    split.name = 'Split';
-    split.workouts = [];
-    return split;
-  }
 }

@@ -1,8 +1,8 @@
 import { Component, DestroyRef, effect, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { AlertOptions, ToastOptions } from '@ionic/angular';
+import { AlertOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Split, SPLIT_PURPOSES, SplitPurpose } from 'src/app/core/models/split';
 import { Table } from 'src/app/core/models/table';
@@ -128,7 +128,6 @@ export class PlannerPage {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    private router: Router,
     private route: ActivatedRoute,
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService

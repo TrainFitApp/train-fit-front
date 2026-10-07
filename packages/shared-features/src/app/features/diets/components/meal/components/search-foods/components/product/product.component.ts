@@ -18,8 +18,6 @@ import { Meal } from 'src/app/core/models/meal';
 import { IProduct } from 'src/app/core/models/product';
 import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
-import { MealService } from 'src/app/core/services/meal/meal.service';
-import { UserService } from 'src/app/core/services/user/user.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -136,9 +134,7 @@ export class ProductComponent implements OnInit, OnChanges {
     private translate: TranslateService,
     private utilService: UtilService,
     private dietDayService: DietDayService,
-    private userService: UserService,
     private navigationService: NavigationService,
-    private mealService: MealService,
     private modalController: ModalController
   ) {}
 

@@ -1,20 +1,17 @@
-import { HttpClient, HttpHeaders, HttpRequest } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
-import { HTTP_HEADERS, HttpHeader } from '../../models/http-header';
-import { UtilService } from '../util/util.service';
+import { HttpHeader } from '../../models/http-header';
 
 @Injectable()
 export class HttpService {
-  private readonly BASIC_AUTHORIZATION = 'Basic';
-  private readonly BEARER_AUTHORIZATION = 'Bearer';
 
   private apiUrl = environment.API_URL;
 
-  constructor(private http: HttpClient, private utilService: UtilService) {}
+  constructor(private http: HttpClient) {}
 
   public get<T>(
     endpoint: string,
@@ -60,21 +57,6 @@ export class HttpService {
     return requestOptions;
   }
 
-  // TODO: No se si se usa
-  public postWithoutMessage<T>(
-    endpoint: string,
-    body: any,
-    headers?: HttpHeader,
-    withCredentials?: boolean
-  ): Observable<any> {
-    const requestOptions = this.getRequestOptions(headers, withCredentials);
-    return this.http
-      .post<T>(this.getEndpointUrl(endpoint), body, requestOptions)
-      .pipe(
-        catchError((exception) => this.handleErrorWithoutMessage(exception))
-      );
-  }
-
   public put<T>(endpoint: string, body: any, reqOpts?: any): Observable<any> {
     return this.http
       .put<T>(this.getEndpointUrl(endpoint), body, reqOpts)
@@ -91,44 +73,6 @@ export class HttpService {
     return this.http
       .delete<T>(this.getEndpointUrl(endpoint), reqOpts)
       .pipe(catchError((exception) => this.handleError(exception)));
-  }
-
-  public cloneRequestWithTokenAuthorization(
-    request: HttpRequest<any>,
-    token: string
-  ): HttpRequest<any> {
-    const headerValue = this.getAuthorization(token);
-    return request.clone({
-      headers: request.headers.set(
-        HTTP_HEADERS.auth.authorization.id,
-        headerValue
-      ),
-    });
-  }
-
-  public getLoginAuthorizationHeaders(
-    email: string,
-    password: string
-  ): HttpHeader {
-    const authorization = this.getLoginAuthorization(email, password);
-    const authorizationHeader = new HttpHeader(
-      HTTP_HEADERS.auth.authorization.id,
-      authorization
-    );
-    return {
-      ...authorizationHeader,
-      ...HTTP_HEADERS.login.disableBrowserPopup.header,
-      ...HTTP_HEADERS.login.contentType.header,
-    };
-  }
-
-  private getAuthorization(token: string): string {
-    return `${this.BEARER_AUTHORIZATION} ${token}`;
-  }
-
-  private getLoginAuthorization(email: string, password: string): string {
-    const credentials = btoa(`${email}:${password}`);
-    return `${this.BASIC_AUTHORIZATION} ${credentials}`;
   }
 
   private handleError(exception): Observable<any> {
@@ -175,15 +119,6 @@ export class HttpService {
     }
 
     return this.handlePropagationError(error);
-  }
-
-  // TODO: No se si se usa
-  private handleErrorWithoutMessage(exception): Observable<any> {
-    const error = !!exception?.error ? { ...exception?.error } : exception;
-    if (!!exception?.error) {
-      alert(error);
-    }
-    return throwError(exception);
   }
 
   private handlePropagationError(exception): Observable<any> {

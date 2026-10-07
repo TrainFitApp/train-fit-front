@@ -1,8 +1,6 @@
 import { Component, Input, OnDestroy, effect, inject } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { CustomProduct } from 'src/app/core/models/customProduct';
 import { DietDay } from 'src/app/core/models/dietDay';
-import { Meal } from 'src/app/core/models/meal';
 import { User } from 'src/app/core/models/user';
 import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
@@ -101,10 +99,6 @@ export class MacrosBarsComponent implements OnDestroy {
     }
   }
 
-  public calculateProgressBar(current: number, max: number) {
-    return (current * 100) / max / 100;
-  }
-
   public getDietInfo() {
     if (!this.dietDay) return;
 
@@ -124,34 +118,5 @@ export class MacrosBarsComponent implements OnDestroy {
     await this.navCtrl.navigateForward(['/tabs/diets/nutritional-objectives']);
   }
 
-  private calculateMacros100g(
-    mealTemp: Meal,
-    customProductTemp: CustomProduct
-  ) {
-    const energy100 =
-      customProductTemp.energyKcal100g ??
-      customProductTemp.product?.energyKcal100g ??
-      0;
-    const protein100 =
-      customProductTemp.protein100g ??
-      customProductTemp.product?.protein100g ??
-      0;
-    const carbs100 =
-      customProductTemp.carbohydrates100g ??
-      customProductTemp.product?.carbohydrates100g ??
-      0;
-    const fat100 =
-      customProductTemp.fat100g ?? customProductTemp.product?.fat100g ?? 0;
-
-    mealTemp.kcal +=
-      (energy100 * customProductTemp.quantity) / 100 || 0;
-
-    mealTemp.protein += (protein100 * customProductTemp.quantity) / 100 || 0;
-
-    mealTemp.carbohydrate +=
-      (carbs100 * customProductTemp.quantity) / 100 || 0;
-
-    mealTemp.fat += (fat100 * customProductTemp.quantity) / 100 || 0;
-  }
 }
 

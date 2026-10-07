@@ -41,7 +41,6 @@ export class PremiumPage {
   public isAnnualAvailable = false;
   public entitlements: BillingEntitlements | null = null;
   public selectedPlan: "annual" | "monthly" = "annual";
-  public showCompare = false;
 
   constructor(
     private readonly billingService: BillingService,
@@ -60,14 +59,6 @@ export class PremiumPage {
     this.navigationService.goBack();
   }
 
-  public async buyMonthly(): Promise<void> {
-    await this.purchasePlan("monthly");
-  }
-
-  public async buyAnnual(): Promise<void> {
-    await this.purchasePlan("annual");
-  }
-
   public selectPlan(plan: "annual" | "monthly"): void {
     if (plan === "annual" && !this.canSelectPlan("annual")) {
       return;
@@ -78,10 +69,6 @@ export class PremiumPage {
     }
 
     this.selectedPlan = plan;
-  }
-
-  public toggleCompare(): void {
-    this.showCompare = !this.showCompare;
   }
 
   public async purchaseSelected(): Promise<void> {

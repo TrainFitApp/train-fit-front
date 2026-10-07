@@ -8,17 +8,6 @@ export type AdminPremiumDuration =
   | { type: 'preset'; value: '1d' | '1w' | '1m' | '1y' }
   | { type: 'customDate'; expiresAt: string };
 
-export interface AdminSubscriptionStatus {
-  userId: string;
-  isPremium: boolean;
-  source: string | null;
-  plan: string | null;
-  expiresAt: string | null;
-  store: string | null;
-  productId: string | null;
-  willRenew: boolean;
-}
-
 @Injectable()
 export class BillingApiService {
   private static readonly BILLING_ENDPOINT = 'billing';
@@ -75,13 +64,5 @@ export class BillingApiService {
     return this.http.post<User>(`${BillingApiService.BILLING_ENDPOINT}/admin/revoke`, {
       userId,
     });
-  }
-
-  public getUserSubscriptionStatus(
-    userId: string
-  ): Observable<AdminSubscriptionStatus> {
-    return this.http.get<AdminSubscriptionStatus>(
-      `${BillingApiService.BILLING_ENDPOINT}/admin/status/${userId}`
-    );
   }
 }

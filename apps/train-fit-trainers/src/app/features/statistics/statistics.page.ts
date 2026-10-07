@@ -246,19 +246,6 @@ export class StatisticsPage implements OnInit, OnDestroy {
   private workoutColors: Map<string, string> = new Map();
   private langChangeSubscription: any;
 
-  private readonly SET_COLORS = [
-    "#fe9000",
-    "#d4af37",
-    "#3880ff",
-    "#2dd36f",
-    "#eb445a",
-    "#a78bfa",
-    "#ffc409",
-    "#00d98b",
-    "#4a9eff",
-    "#ffd359",
-  ];
-
   private availableColors = [
     "#fe9000",
     "#3880ff",

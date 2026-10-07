@@ -98,43 +98,6 @@ export function countDoneSets(split: Split | null): number {
   return done;
 }
 
-// Series al fallo: no entran en la media de RIR (ver averageRir), así que
-// se cuentan aparte o desaparecen del análisis sin dejar rastro.
-export function countFailureSets(split: Split | null): number {
-  if (!split) return 0;
-  let count = 0;
-  for (const workout of split.workouts || []) {
-    for (const exercise of workout.exercises || []) {
-      for (const set of exercise.sets || []) {
-        if (set.expectedRir?.[0] === -1) count += 1;
-      }
-    }
-  }
-  return count;
-}
-
-// Series sin peso comparable (cardio e isométrico): no se pueden leer como
-// progresión de carga, así que se cuentan aparte en vez de mezclarlas con
-// las de fuerza y hacer parecer que el trabajo bajó.
-export function countUnweightedSets(split: Split | null): number {
-  if (!split) return 0;
-  let count = 0;
-  for (const workout of split.workouts || []) {
-    for (const exercise of workout.exercises || []) {
-      if (!exercise.exercise?.isCardio && !exercise.exercise?.isIsometric) continue;
-      count += exercise.sets?.length || 0;
-    }
-  }
-  return count;
-}
-
-// Días con trabajo de verdad: los descansos pautados no cuentan como
-// entrenamiento aunque ocupen una fila del microciclo.
-export function countTrainableDays(split: Split | null): number {
-  if (!split) return 0;
-  return (split.workouts || []).filter((w) => !w.isPlannedRestDay).length;
-}
-
 export function topWeight(exercise: CustomExercise | null): number | null {
   if (!exercise) return null;
   let max: number | null = null;

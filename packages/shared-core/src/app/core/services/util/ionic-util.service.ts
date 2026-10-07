@@ -421,13 +421,6 @@ export class IonicUtilService {
     return res.role === 'backdrop' ? { ...res, role: 'cancel' } : res;
   }
 
-  public async closeAlert(): Promise<void> {
-    try {
-      const top = await this.alertController.getTop();
-      await top?.dismiss(undefined, 'cancel');
-    } catch {}
-  }
-
   public async showActionSheet(actionSheet: ActionSheetOptions) {
     const showActionSheet = await this.actionSheetController.create({
       header: actionSheet.header,
@@ -449,10 +442,6 @@ export class IonicUtilService {
     });
     showPopover.present();
     return showPopover.onDidDismiss();
-  }
-
-  public async closePopover(): Promise<void> {
-    await this.popoverController.dismiss();
   }
 
   public async showToast(toast: ToastOptions) {
@@ -636,21 +625,6 @@ export class IonicUtilService {
     if (content) {
       await content.scrollToBottom(300);
     }
-  }
-
-  public async showNotes(title: string, content: string): Promise<void> {
-    void this.showAlert({
-      header: title,
-      message: content || this.translate.instant('COMMON.NO_INFO'),
-      buttons: [
-        {
-          text: this.translate.instant('COMMON.CERRAR'),
-          role: 'cancel',
-          cssClass: 'alert-button-primary',
-        },
-      ],
-      cssClass: 'notes-alert',
-    });
   }
 
   private async configureStatusBar(): Promise<void> {

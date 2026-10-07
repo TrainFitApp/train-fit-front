@@ -50,7 +50,6 @@ export class RuleBuilderPage implements OnInit, PendingChangesComponent {
   public readonly triggers = RULE_TRIGGERS;
   public readonly groupLabels = RULE_GROUP_LABELS;
   public readonly maxConditions = MAX_CONDITIONS;
-  public readonly maxActions = MAX_ACTIONS;
 
   public state: ViewState = 'loading';
   public catalog: RuleCatalog | null = null;
@@ -68,7 +67,6 @@ export class RuleBuilderPage implements OnInit, PendingChangesComponent {
   public actions: RuleAction[] = [];
   public appliesTo: 'all_clients' | 'selected' = 'all_clients';
   public clientIds: string[] = [];
-  public selectedClientNames: string[] = [];
 
   // Índice por clave, para no recorrer el catálogo en cada consulta de la
   // plantilla (que se evalúa en cada ciclo de detección de cambios).

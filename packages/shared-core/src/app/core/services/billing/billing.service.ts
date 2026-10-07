@@ -526,17 +526,6 @@ export class BillingService {
     return this.cachedEntitlements;
   }
 
-  public hasActiveEntitlement(
-    customerInfo: CustomerInfo | null,
-    entitlementId: string = environment.revenueCat.entitlementId
-  ): boolean {
-    if (!customerInfo || !entitlementId) {
-      return false;
-    }
-
-    return !!customerInfo.entitlements?.active?.[entitlementId];
-  }
-
   private async doInitialize(): Promise<void> {
     const apiKey = this.getApiKeyForPlatform();
     if (!apiKey) {

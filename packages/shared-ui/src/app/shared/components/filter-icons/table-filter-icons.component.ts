@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
 import { SearchFilterGroup } from '../../models/filterGroup';
 
 @Component({
@@ -16,7 +15,7 @@ export class TableFilterIconsComponent implements OnInit {
 
   public ownFilter: boolean = false;
 
-  constructor(private translate: TranslateService) {}
+  constructor() {}
 
   public ngOnInit(): void {}
 

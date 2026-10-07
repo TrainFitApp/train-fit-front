@@ -89,10 +89,6 @@ export class MyPainPage implements OnInit {
     }));
   }
 
-  public get markedRows(): ZoneRow[] {
-    return this.rows.filter((row) => row.level !== null);
-  }
-
   public get hasAnyPain(): boolean {
     return this.rows.some((row) => (row.level || 0) >= this.limitingLevel);
   }

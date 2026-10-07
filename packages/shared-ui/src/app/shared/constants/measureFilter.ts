@@ -35,5 +35,3 @@ export const MEASURE_FILTER: {
     description: 'MEASURE_FILTER.SERVING_DESC',
   },
 };
-
-export const MEASURE_FILTER_VALUES = Object.values(MEASURE_FILTER_TYPES);

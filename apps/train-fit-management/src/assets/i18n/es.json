@@ -185,9 +185,6 @@
       "MIN_VERSION_WEB_LABEL": "Versión mínima Web",
       "FORCE_UPDATE_MESSAGE_LABEL": "Mensaje de actualización obligatoria",
       "FORCE_UPDATE_MESSAGE_PLACEHOLDER": "Debes actualizar la app para continuar",
-      "PREVIEW_NORMAL": "Ahora mismo: normal, no se muestra nada",
-      "PREVIEW_WARNING": "Ahora mismo: aviso previo (banner descartable)",
-      "PREVIEW_ACTIVE": "Ahora mismo: mantenimiento activo (pantalla completa)",
       "SAVE_BTN": "GUARDAR",
       "SAVING": "GUARDANDO...",
       "SAVED_SUCCESS": "Configuración guardada",
@@ -206,18 +203,7 @@
       "ERROR_INVALID_VERSION_WEB": "La versión mínima de Web no tiene un formato válido (X.Y.Z)"
     }
   },
-  "ACTIONS_FAB": {
-    "CANCEL_COPY": "Cancelar copia"
-  },
   "TABLES": {
-    "WORKOUT_PASTED": "Entrenamiento pegado",
-    "NAVIGATE_PASTE_MSG": "Navega a otros micro-ciclos para pegar el entrenamiento que tienes copiado",
-    "COPY_MODE": "Modo copia activado",
-    "COPY_MODE_DESC": "Ahora puedes navegar entre micro-ciclos y pegar este entrenamiento para otro día",
-    "COPIED": "COPIADO",
     "MICROCYCLES": "Microciclos"
-  },
-  "NUTRITION_EDITOR": {
-    "NAME_PLACEHOLDER": "Nombre del objetivo"
   }
 }

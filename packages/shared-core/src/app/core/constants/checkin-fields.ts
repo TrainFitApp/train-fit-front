@@ -309,8 +309,6 @@ for (const field of CHECKIN_FIELDS) {
   localizeProp(field, 'hint', `CHECKIN_FIELDS.${field.key}.HINT`);
   localizeProp(field, 'anchors', `CHECKIN_FIELDS.${field.key}.ANCHORS`);
 }
-
-export const CHECKIN_FIELD_KEYS = CHECKIN_FIELDS.map((f) => f.key);
 export const CHECKIN_FIELDS_BY_KEY = new Map(CHECKIN_FIELDS.map((f) => [f.key, f]));
 
 /**

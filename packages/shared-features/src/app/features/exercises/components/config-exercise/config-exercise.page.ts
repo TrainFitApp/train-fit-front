@@ -10,7 +10,6 @@ import {
   ModalController,
   ModalOptions,
   Platform,
-  ToastController,
   ToastOptions,
 } from "@ionic/angular";
 import { Subscription, lastValueFrom } from "rxjs";
@@ -44,7 +43,6 @@ import {
   muscleGroupOf,
   normalizeMuscles,
 } from "src/app/core/constants/muscle-catalog";
-import { FilterInputPage } from "src/app/shared/components/filter-input/filter-input.page";
 import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
 import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from "src/app/core/models/pinned-exercise-note";
 import { splitTextIntoSteps } from "src/app/shared/utils";
@@ -102,10 +100,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
   public setForm: FormGroup;
 
-  public currentSet: ExerciseSet;
-
   public originSetsOrdered: ExerciseSet[] = [];
-
 
   public isFavoritingExercise: boolean = false;
 
@@ -265,7 +260,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   private selectedExerciseToAdd?: Exercise;
 
   constructor(
-    private toastController: ToastController,
     private modalController: ModalController,
     private customExerciseService: CustomExerciseService,
     private workoutService: WorkoutService,
@@ -1466,35 +1460,10 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     this.setsToUpdate = [];
   }
 
-  public openDetailsModal(): void {
-    const modalOptions: ModalOptions = {
-      component: FilterInputPage,
-      cssClass: "mini-modal",
-      componentProps: {
-        searchFilterGroupExercises: this.details,
-        isCreateMode: this.isCreateMode,
-      },
-      animated: true,
-    };
-
-    this.ionicUtilService.showNestedModal(modalOptions, this.modal).then((res) => {
-      const data = res?.data;
-      if (data?.searchFilterGroupExercises) {
-        this.details = data.searchFilterGroupExercises;
-      }
-    });
-  }
-
-  public removeDetailCategory(category: string): void {
-    const i = this.details.category.indexOf(category);
-    if (i >= 0) this.details.category.splice(i, 1);
-  }
-
   public getValidDetails(array?: string[]): string[] {
     if (!array) return [];
     return array.filter((item) => item && item.trim().length > 0);
   }
-
 
   private handleExerciseLimitError(error: any): boolean {
     if (error?.error?.code !== "PREMIUM_LIMIT_EXERCISES") {
@@ -1699,10 +1668,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       color: 'warning',
     } as ToastOptions);
     return true;
-  }
-
-  public deleteNotes(): void {
-    this.notes = undefined;
   }
 
   public handleReorder(ev: CustomEvent<ItemReorderEventDetail>): void {

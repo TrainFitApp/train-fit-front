@@ -8,15 +8,13 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ModalController, PopoverOptions } from '@ionic/angular';
+import { PopoverOptions } from '@ionic/angular';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { Set } from 'src/app/core/models/set';
 import { RirValue } from 'src/app/core/models/rir';
 import { Workout } from 'src/app/core/models/workout';
-import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TranslateService } from '@ngx-translate/core';
-import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
@@ -65,19 +63,14 @@ export class SetComponent implements OnInit, OnChanges {
   // reguardar sin cambios) — dispara el arranque del RestTimerService.
   @Output()
   public setCompleted = new EventEmitter<Set>();
-
-  public isDeleting: boolean;
   public setForm: FormGroup = new FormGroup({});
 
   public ACTION_VALUES = ACTION_VALUES;
   public ACTION_TYPES = ACTION_TYPES;
 
   constructor(
-    private utilService: UtilService,
     private setService: SetService,
     private workoutService: WorkoutService,
-    private customExerciseService: CustomExerciseService,
-    private modalController: ModalController,
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService
   ) {}

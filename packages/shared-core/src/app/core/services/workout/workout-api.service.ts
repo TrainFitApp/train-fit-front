@@ -5,7 +5,6 @@ import { Split } from '../../models/split';
 import { Table } from '../../models/table';
 import { Workout, WorkoutBlock } from '../../models/workout';
 import { HttpService } from '../http/http.service';
-import { Exercise } from '../../models/exercise';
 
 export interface FinishWorkoutResponse {
   workout: Workout;

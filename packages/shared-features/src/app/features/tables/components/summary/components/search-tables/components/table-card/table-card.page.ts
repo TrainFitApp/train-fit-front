@@ -3,7 +3,6 @@ import {
   ElementRef,
   EventEmitter,
   Input,
-  OnInit,
   Output,
   ViewChild,
 } from '@angular/core';
@@ -90,15 +89,6 @@ export class TableCardPage {
     return this.tableCard?._id === this.tableService.getTableInUseId(this.user?.tableInUse);
   }
 
-  public get hasBackgroundImage(): boolean {
-    return this.getUsableBackgroundImageUrl() !== '';
-  }
-
-  public get backgroundImage(): string {
-    const imageUrl = this.getUsableBackgroundImageUrl();
-    return imageUrl ? `url(${imageUrl})` : 'none';
-  }
-
   constructor(
     private userService: UserService,
     private tableService: TableService,
@@ -111,16 +101,6 @@ export class TableCardPage {
     private adMobService: AdMobService,
     private billingService: BillingService
   ) { }
-
-  private getUsableBackgroundImageUrl(): string {
-    const imageUrl = this.tableCard?.urlImage?.trim() || '';
-    const normalizedImageUrl = imageUrl.replace(/^\/+/, '');
-
-    if (!normalizedImageUrl) return '';
-    if (normalizedImageUrl.startsWith('assets/img/tablas/')) return '';
-
-    return imageUrl;
-  }
 
   public async previewTable(): Promise<void> {
     if (!this.tableCard?._id) return;

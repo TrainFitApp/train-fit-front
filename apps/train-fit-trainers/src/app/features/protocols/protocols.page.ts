@@ -29,7 +29,6 @@ import {
   ProtocolTaskType,
   cadencePresetKey,
   protocolCadenceLabel,
-  protocolCheckins,
 } from './models/coach-protocol.model';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
@@ -201,7 +200,7 @@ export class ProtocolsPage {
   }
 
   public checkinsOf(protocol: CoachProtocol): ProtocolCheckin[] {
-    return protocolCheckins(protocol);
+    return protocol.checkins;
   }
 
   public cadenceLabel(checkin: ProtocolCheckin): string {
@@ -227,7 +226,7 @@ export class ProtocolsPage {
     this.editingId = protocol?._id || null;
     this.name = protocol?.name || '';
     this.description = protocol?.description || '';
-    this.checkins = (protocol ? protocolCheckins(protocol) : []).map((c) => ({ ...c }));
+    this.checkins = (protocol?.checkins || []).map((c) => ({ ...c }));
     this.customCadenceRows = new Set(
       this.checkins.map((c, i) => (cadencePresetKey(c) === 'custom' ? i : -1)).filter((i) => i >= 0)
     );
@@ -629,11 +628,14 @@ export class ProtocolsPage {
 
   public contentSummary(protocol: CoachProtocol): { icon: string; text: string }[] {
     const parts: { icon: string; text: string }[] = [];
-    const checkins = protocolCheckins(protocol);
+    const checkins = protocol.checkins;
     if (checkins.length === 1) {
-      parts.push({ icon: 'clipboard-outline', text: `Check-in ${protocolCadenceLabel(checkins[0]).toLowerCase()}` });
+      parts.push({
+        icon: 'clipboard-outline',
+        text: `${this.translate.instant('PROTOCOLS.CHECK_IN')} ${protocolCadenceLabel(checkins[0]).toLowerCase()}`,
+      });
     } else if (checkins.length > 1) {
-      parts.push({ icon: 'clipboard-outline', text: `${checkins.length} check-ins` });
+      parts.push({ icon: 'clipboard-outline', text: this.translate.instant('PROTOCOLS.CHECKINS_COUNT', { count: checkins.length }) });
     }
     if (protocol.dietTemplateId) {
       parts.push({ icon: 'restaurant-outline', text: this.dietTemplate(protocol.dietTemplateId)?.name || this.translate.instant('PROTOCOLS.PLAN_DE_DIETA') });
