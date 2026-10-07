@@ -65,6 +65,9 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   // Fix (ronda detalle) — resaltado naranja al previsualizar (ver
   // ProductComponent#isTrainerFocused, mismo criterio).
   @Input() isTrainerFocused = false;
+  // A qué se añade en modo entrenador (SearchFoodsTrainerContext#targetLabel):
+  // el constructor de dietas no tiene un Meal real y «Añadido a …» salía vacío.
+  @Input() targetLabel?: string;
 
   @Output() toggle = new EventEmitter<Recipe>();
   @Output() edit = new EventEmitter<Recipe>();
@@ -83,6 +86,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   private measureFilterSub?: Subscription;
 
   get mealNameTranslated(): string {
+    if (this.targetLabel) return this.targetLabel;
     const name = this.meal?.name || '';
     if (this.translate.currentLang === 'en') {
       return DB_ES_EN_MAP[name] || name;

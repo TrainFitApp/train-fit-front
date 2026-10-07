@@ -48,63 +48,67 @@
       <ng-container *ngIf="hasChoices">{{ 'SHOPPING_LIST.CHOICES_HINT' | translate }}</ng-container>
     </p>
 
-    <!-- Menús y alternativas: solo si hay algo que elegir. Un menú a la vez
-         (desplegable) para no apilar una tarjeta por menú. -->
+    <!-- Menús y alternativas: solo si hay algo que elegir. El desplegable
+         filtra la lista por menú («Todos» por defecto) y el stepper reparte
+         los días del menú elegido. -->
     <section class="choices" *ngIf="hasChoices" [attr.aria-label]="'SHOPPING_LIST.CHOICES_ARIA' | translate">
       <div class="segment" *ngFor="let segment of segments; trackBy: trackBySegment">
         <p class="segment-label" *ngIf="segments.length > 1">
           {{ segmentLabel(segment) }} · {{ (segment.days === 1 ? 'SHOPPING_LIST.DAYS_ONE' : 'SHOPPING_LIST.DAYS_MANY') | translate: { count: segment.days } }}
         </p>
 
-        <ng-container *ngIf="activeMenu(segment) as menu">
-          <div class="choice-row" *ngIf="segment.menus.length > 1">
-            <ion-select
-              class="choice-select"
-              interface="action-sheet"
-              mode="ios"
-              [cancelText]="'COMMON.CANCEL' | translate"
-              toggleIcon="chevron-down-outline"
-              [attr.aria-label]="'SHOPPING_LIST.MENU_ARIA' | translate"
-              [value]="menu.name"
-              (ionChange)="setActiveMenu(segment, $event.detail.value)"
+        <div class="choice-row" *ngIf="segment.menus.length > 1">
+          <ion-select
+            class="choice-select"
+            interface="action-sheet"
+            mode="ios"
+            [cancelText]="'COMMON.CANCEL' | translate"
+            toggleIcon="chevron-down-outline"
+            [attr.aria-label]="'SHOPPING_LIST.MENU_ARIA' | translate"
+            [value]="menuFilterValue(segment)"
+            (ionChange)="setMenuFilter(segment, $event.detail.value)"
+          >
+            <ion-select-option [value]="allMenus">{{ 'SHOPPING_LIST.ALL_MENUS' | translate }}</ion-select-option>
+            <ion-select-option *ngFor="let option of segment.menus" [value]="option.name">
+              {{ option.name }}
+            </ion-select-option>
+          </ion-select>
+
+          <div class="stepper" *ngIf="activeMenu(segment) as menu">
+            <button
+              type="button"
+              class="stepper-btn"
+              [disabled]="menuDays(segment, menu) <= 0"
+              (click)="changeMenuDays(segment, menu, -1)"
+              [attr.aria-label]="'SHOPPING_LIST.ONE_DAY_LESS' | translate: { name: menu.name }"
             >
-              <ion-select-option *ngFor="let option of segment.menus" [value]="option.name">
-                {{ option.name }}
-              </ion-select-option>
-            </ion-select>
-
-            <div class="stepper">
-              <button
-                type="button"
-                class="stepper-btn"
-                [disabled]="menuDays(segment, menu) <= 0"
-                (click)="changeMenuDays(segment, menu, -1)"
-                [attr.aria-label]="'SHOPPING_LIST.ONE_DAY_LESS' | translate: { name: menu.name }"
-              >
-                <ion-icon name="remove-outline" aria-hidden="true"></ion-icon>
-              </button>
-              <span class="stepper-value">{{ menuDays(segment, menu) }} d</span>
-              <button
-                type="button"
-                class="stepper-btn"
-                [disabled]="unassigned(segment) <= 0"
-                (click)="changeMenuDays(segment, menu, 1)"
-                [attr.aria-label]="'SHOPPING_LIST.ONE_DAY_MORE' | translate: { name: menu.name }"
-              >
-                <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-              </button>
-            </div>
+              <ion-icon name="remove-outline" aria-hidden="true"></ion-icon>
+            </button>
+            <span class="stepper-value">{{ menuDays(segment, menu) }} d</span>
+            <button
+              type="button"
+              class="stepper-btn"
+              [disabled]="unassigned(segment) <= 0"
+              (click)="changeMenuDays(segment, menu, 1)"
+              [attr.aria-label]="'SHOPPING_LIST.ONE_DAY_MORE' | translate: { name: menu.name }"
+            >
+              <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+            </button>
           </div>
+        </div>
 
-          <!-- El reparto entero de un vistazo, ya que el desplegable solo
-               enseña un menú. -->
-          <p class="menu-summary" *ngIf="segment.menus.length > 1">
-            {{ menuSummary(segment) }}
-            <span class="segment-warning" *ngIf="unassigned(segment) > 0">
-              · {{ 'SHOPPING_LIST.WITHOUT_MENU' | translate: { count: unassigned(segment) } }}
-            </span>
-          </p>
+        <!-- El reparto entero de un vistazo, ya que el desplegable solo
+             enseña un menú. -->
+        <p class="menu-summary" *ngIf="segment.menus.length > 1">
+          {{ menuSummary(segment) }}
+          <span class="segment-warning" *ngIf="unassigned(segment) > 0">
+            · {{ 'SHOPPING_LIST.WITHOUT_MENU' | translate: { count: unassigned(segment) } }}
+          </span>
+        </p>
 
+        <!-- Las alternativas son de un menú: con «Todos» se eligen entrando
+             en cada uno. -->
+        <ng-container *ngIf="activeMenu(segment) as menu">
           <div class="choice-row" *ngFor="let meal of mealsWithChoice(menu)">
             <span class="meal-slot">{{ meal.slot | translateDb }}</span>
             <ion-select

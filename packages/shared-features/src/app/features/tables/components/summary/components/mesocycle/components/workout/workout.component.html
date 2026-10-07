@@ -10,7 +10,7 @@
                   'workout-actions-button':
                     workoutIndex === 0 && splitIndex === 0
                 }" (click)="
-                  workoutActions($event, workoutIndex); $event.stopPropagation()
+                  workoutActions(workoutIndex); $event.stopPropagation()
                 " [disabled]="!load || exercisePasteMode || exerciseCopyActive || stateSelected !== STATES.static">
                 <ion-icon color="primary" name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>
               </ion-button>
@@ -324,7 +324,7 @@
                         }}</ng-container>
                       <input *ngIf="isEditingCell(set, 'weight')" type="text" inputmode="decimal" appNumericKeypad
                         class="tf-inline-input" [id]="'tf-cell-' + set._id + '-weight'"
-                        [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput('weight')"
+                        [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput()"
                         (click)="$event.stopPropagation()"
                         (keydown.enter)="commitEditCell(entry.exercise, set, 'weight')"
                         (keydown.escape)="cancelEditCell()"
@@ -411,7 +411,7 @@
                         "—" }}</ng-container>
                       <input *ngIf="isEditingCell(set, 'rest')" type="text" inputmode="numeric" appNumericKeypad
                         class="tf-inline-input" [id]="'tf-cell-' + set._id + '-rest'" placeholder="90"
-                        [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput('rest')"
+                        [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput()"
                         (click)="$event.stopPropagation()"
                         (keydown.enter)="commitEditCell(entry.exercise, set, 'rest')"
                         (keydown.escape)="cancelEditCell()"

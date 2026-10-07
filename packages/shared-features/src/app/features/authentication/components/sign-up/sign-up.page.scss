@@ -438,24 +438,12 @@
     }
   }
 
+  // Aspecto global (shared-theme/global.scss); el wizard es siempre oscuro,
+  // así que la tinta no sigue al tema de la app.
   ion-range {
-    --bar-background: var(--border-primary);
-    --bar-background-active: var(--accent-primary);
-    --bar-height: 6px;
-    --bar-border-radius: 3px;
-    --knob-background: var(--accent-primary);
-    --knob-size: 24px;
-    --pin-background: var(--accent-primary);
-    --pin-color: white;
-    margin: 20px 0;
-
-    &::part(tick) {
-      background: var(--border-primary);
-    }
-
-    &::part(tick-active) {
-      background: var(--accent-primary);
-    }
+    --range-ink-rgb: 255, 255, 255;
+    --range-surface: var(--bg-tertiary);
+    margin: 12px 0;
   }
 
   .calorie-description {

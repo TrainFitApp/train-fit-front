@@ -243,6 +243,22 @@
       background: rgba(var(--ion-color-secondary-rgb), 0.14);
     }
 
+    // Día de descanso pautado: gris, como el descanso en el mesociclo. Hoy
+    // no hay nada que empezar, así que no se tiñe del naranja de acción.
+    &--rest {
+      background: rgba(var(--ion-color-medium-rgb), 0.1);
+      border-color: rgba(var(--ion-color-medium-rgb), 0.28);
+
+      &:active {
+        background: rgba(var(--ion-color-medium-rgb), 0.18);
+      }
+
+      .continue-card__icon-badge {
+        background: rgba(var(--ion-color-medium-rgb), 0.18);
+        color: var(--text-secondary);
+      }
+    }
+
     &__icon-badge {
       display: flex;
       align-items: center;

@@ -12,13 +12,14 @@ function repoRoot(from) {
   return dir;
 }
 const { loadFromSource } = require(path.join(repoRoot(__dirname), 'tests/support/ng-harness.cjs'));
-const { alternativeTotals, macroDeviation, DEVIATION_PCT_TOLERANCE } = loadFromSource(
+const { alternativeTotals, macroDeviation, DEVIATION_PCT_TOLERANCE, sameMacros } = loadFromSource(
   __filename,
   __dirname,
   {
     alternativeTotals: 'src/app/features/diet-templates/utils/alternative-macros',
     macroDeviation: 'src/app/features/diet-templates/utils/alternative-macros',
     DEVIATION_PCT_TOLERANCE: 'src/app/features/diet-templates/utils/alternative-macros',
+    sameMacros: 'src/app/features/diet-templates/utils/alternative-macros',
   },
   { app: 'train-fit-trainers' },
 );
@@ -59,4 +60,23 @@ test('desviación: el suelo absoluto evita avisos por cantidades ridículas', ()
   assert.ok(Object.values(result).every((d) => !d.flagged), JSON.stringify(result));
   // Por encima del suelo, sí.
   assert.equal(macroDeviation({ kcal: 100, protein: 4, carbs: 9, fat: 11 }, { kcal: 100, protein: 4, carbs: 9, fat: 8 }).fat.flagged, true);
+});
+
+// "Recalcular" del objetivo en "Crear dieta": se habilita en cuanto las
+// cifras dejan de ser las iniciales.
+test('mismas cifras: compara redondeado, como se ven y se guardan', () => {
+  const initial = { kcal: 2400, protein: 160, carbs: 270, fat: 75 };
+  assert.equal(sameMacros(initial, { ...initial }), true);
+  assert.equal(sameMacros(initial, { kcal: 2400.4, protein: 159.6, carbs: 270, fat: 75 }), true);
+  assert.equal(sameMacros(initial, { ...initial, protein: 170 }), false);
+  assert.equal(sameMacros(initial, { ...initial, kcal: 2401 }), false);
+});
+
+test('mismas cifras: un campo vaciado no coincide; sin referencia, solo null con null', () => {
+  const initial = { kcal: 2400, protein: 160, carbs: 270, fat: 75 };
+  assert.equal(sameMacros(initial, { ...initial, fat: null }), false);
+  assert.equal(sameMacros(initial, { ...initial, fat: 0 }), false);
+  assert.equal(sameMacros(null, initial), false);
+  assert.equal(sameMacros(initial, null), false);
+  assert.equal(sameMacros(null, null), true);
 });

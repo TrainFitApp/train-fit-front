@@ -193,6 +193,13 @@
   color: var(--tf-text-muted);
 }
 
+// Pegado a la card de macros (que trae margin-bottom: 20px).
+.detail-caption {
+  margin: -12px 0 20px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
 .detail-macros {
   display: flex;
   justify-content: space-between;

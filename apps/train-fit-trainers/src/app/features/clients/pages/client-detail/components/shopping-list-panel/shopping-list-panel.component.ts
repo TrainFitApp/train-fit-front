@@ -2,12 +2,14 @@ import { Component, Input, OnChanges, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import {
+  ALL_SHOPPING_MENUS,
   ShoppingListItem,
   ShoppingMeal,
   ShoppingMenu,
+  ShoppingMenuFilter,
   ShoppingSegment,
   ShoppingSelection,
-  aggregateShopping,
+  aggregateShoppingView,
   alternativeKey,
   defaultShoppingSelection,
   shoppingQuantityLabel,
@@ -55,8 +57,10 @@ export class ShoppingListPanelComponent implements OnChanges {
   public items: ShoppingListItem[] = [];
   public segments: ShoppingSegment[] = [];
   public selection: ShoppingSelection = {};
-  // Menú que se está repartiendo en cada tramo (id del tramo → nombre).
-  private activeMenus: Record<string, string> = {};
+  public readonly allMenus = ALL_SHOPPING_MENUS;
+  // Menú elegido en el desplegable de cada tramo: filtra la lista y es el
+  // que se reparte con el stepper. Sin entrada, «Todos».
+  private menuFilter: ShoppingMenuFilter = {};
   public daysWithPlan = 0;
   public readonly ranges = RANGES;
   public selectedDays = 7;
@@ -99,7 +103,7 @@ export class ShoppingListPanelComponent implements OnChanges {
         this.items = list.items;
         this.segments = list.segments;
         this.selection = defaultShoppingSelection(this.segments);
-        this.activeMenus = {};
+        this.menuFilter = {};
         this.daysWithPlan = list?.daysWithPlan || 0;
         this.state = 'loaded';
       },
@@ -137,16 +141,24 @@ export class ShoppingListPanelComponent implements OnChanges {
     const next = (menuDays[menu.name] || 0) + delta;
     if (next < 0 || (delta > 0 && this.unassigned(segment) <= 0)) return;
     menuDays[menu.name] = next;
-    this.items = aggregateShopping(this.segments, this.selection);
+    this.recompute();
   }
 
+  // El menú que se mira en el tramo; null con «Todos». Un tramo de un solo
+  // menú no tiene desplegable y siempre es ese.
   public activeMenu(segment: ShoppingSegment): ShoppingMenu | null {
-    const name = this.activeMenus[segment.id];
-    return segment.menus.find((menu) => menu.name === name) || segment.menus[0] || null;
+    if (segment.menus.length === 1) return segment.menus[0];
+    const name = this.menuFilter[segment.id];
+    return segment.menus.find((menu) => menu.name === name) || null;
   }
 
-  public setActiveMenu(segment: ShoppingSegment, name: string): void {
-    this.activeMenus[segment.id] = name;
+  public menuFilterValue(segment: ShoppingSegment): string {
+    return this.menuFilter[segment.id] || ALL_SHOPPING_MENUS;
+  }
+
+  public setMenuFilter(segment: ShoppingSegment, name: string): void {
+    this.menuFilter[segment.id] = name;
+    this.recompute();
   }
 
   // "Menú A 4 d · Menú B 3 d": el reparto entero, ya que el desplegable
@@ -163,7 +175,11 @@ export class ShoppingListPanelComponent implements OnChanges {
     const alternatives = this.selection[segment.id]?.alternatives;
     if (!alternatives) return;
     alternatives[alternativeKey(menu, meal)] = index;
-    this.items = aggregateShopping(this.segments, this.selection);
+    this.recompute();
+  }
+
+  private recompute(): void {
+    this.items = aggregateShoppingView(this.segments, this.selection, this.menuFilter);
   }
 
   public alternativeLabel(label: string, index: number): string {

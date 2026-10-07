@@ -1,16 +1,19 @@
 import { Component, Injectable, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { NavController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import {
+  ALL_SHOPPING_MENUS,
   ShoppingList,
   ShoppingListItem,
   ShoppingMeal,
   ShoppingMenu,
+  ShoppingMenuFilter,
   ShoppingSegment,
   ShoppingSelection,
-  aggregateShopping,
+  aggregateShoppingView,
   alternativeKey,
   defaultShoppingSelection,
   shoppingQuantityLabel,
@@ -64,14 +67,17 @@ export class MyShoppingListPage implements OnInit {
   public segments: ShoppingSegment[] = [];
   public items: ShoppingListItem[] = [];
   public selection: ShoppingSelection = {};
-  // Menú que se está repartiendo en cada tramo (id del tramo → nombre).
-  private activeMenus: Record<string, string> = {};
+  public readonly allMenus = ALL_SHOPPING_MENUS;
+  // Menú elegido en el desplegable de cada tramo: filtra la lista y es el
+  // que se reparte con el stepper. Sin entrada, «Todos».
+  private menuFilter: ShoppingMenuFilter = {};
 
   private checked = new Set<string>();
 
   constructor(
     private myShoppingListApi: MyShoppingListApiService,
     private router: Router,
+    private navCtrl: NavController,
     private translate: TranslateService
   ) {}
 
@@ -79,7 +85,10 @@ export class MyShoppingListPage implements OnInit {
     this.load();
   }
 
-  public close(): void {
+  // Se abre desde Coach y desde la cabecera de Dietas: vuelve a donde
+  // estaba. Sin historial (entrada directa), a Coach.
+  public async close(): Promise<void> {
+    if (await this.navCtrl.pop()) return;
     void this.router.navigate(['/tabs/coach']);
   }
 
@@ -106,7 +115,7 @@ export class MyShoppingListPage implements OnInit {
         this.list = list;
         this.segments = list.segments;
         this.selection = defaultShoppingSelection(this.segments);
-        this.activeMenus = {};
+        this.menuFilter = {};
         this.items = list.items;
         this.state = 'loaded';
       },
@@ -151,13 +160,21 @@ export class MyShoppingListPage implements OnInit {
     this.recompute();
   }
 
+  // El menú que se mira en el tramo; null con «Todos». Un tramo de un solo
+  // menú no tiene desplegable y siempre es ese.
   public activeMenu(segment: ShoppingSegment): ShoppingMenu | null {
-    const name = this.activeMenus[segment.id];
-    return segment.menus.find((menu) => menu.name === name) || segment.menus[0] || null;
+    if (segment.menus.length === 1) return segment.menus[0];
+    const name = this.menuFilter[segment.id];
+    return segment.menus.find((menu) => menu.name === name) || null;
   }
 
-  public setActiveMenu(segment: ShoppingSegment, name: string): void {
-    this.activeMenus[segment.id] = name;
+  public menuFilterValue(segment: ShoppingSegment): string {
+    return this.menuFilter[segment.id] || ALL_SHOPPING_MENUS;
+  }
+
+  public setMenuFilter(segment: ShoppingSegment, name: string): void {
+    this.menuFilter[segment.id] = name;
+    this.recompute();
   }
 
   // "Menú A 4 d · Menú B 3 d": el reparto entero, ya que el desplegable
@@ -190,7 +207,7 @@ export class MyShoppingListPage implements OnInit {
   // Lo marcado en el carro se conserva: el producto es el mismo, solo cambia
   // cuánto.
   private recompute(): void {
-    this.items = aggregateShopping(this.segments, this.selection);
+    this.items = aggregateShoppingView(this.segments, this.selection, this.menuFilter);
   }
 
   public isChecked(item: ShoppingListItem): boolean {

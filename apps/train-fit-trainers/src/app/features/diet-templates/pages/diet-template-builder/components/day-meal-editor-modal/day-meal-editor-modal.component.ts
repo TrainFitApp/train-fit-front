@@ -11,10 +11,8 @@ import {
   TemplateMeal,
   TemplateMealAlternative,
 } from '../../../../models/diet-template.model';
-import {
-  ProductSearchModalComponent,
-  ProductSearchResult,
-} from '../../../../../../shared/components/product-search-modal/product-search-modal.component';
+import { Recipe } from 'src/app/core/models/recipe';
+import { TranslateDbPipe } from 'src/app/shared/pipes/translate-db.pipe';
 import { CreateProductPage } from 'src/app/features/diets/components/meal/components/search-foods/components/create-product/create-product.page';
 import {
   SearchFoodsPage,
@@ -92,6 +90,13 @@ export class DayMealEditorModalComponent {
 
   public dismiss(): void {
     this.modalController.dismiss();
+  }
+
+  // «Menú A · Desayuno», lo mismo que la cabecera: a qué se añade lo que se
+  // marca en el buscador («Añadido a …» de las cards y botones de añadir).
+  public get targetLabel(): string {
+    const slot = new TranslateDbPipe(this.translate).transform(this.meal.slot);
+    return this.menuName ? `${this.menuName} · ${slot}` : slot;
   }
 
   // Fase 9 — igual criterio que client-detail.page.ts#prescribeIsMultiple:
@@ -281,17 +286,14 @@ export class DayMealEditorModalComponent {
       clientUser: {} as any,
       dietDay: {} as any,
       meal: {} as any,
-      targetLabel: this.meal.slot,
+      targetLabel: this.targetLabel,
       confirmSelection: (items) => this.applyTrainerSelection(altIndex, itemIndex, items),
       closeSelf: closeOuter,
       registerSelectionApi: (api) => (this.selectionApi = api),
       // Fix5 — CreateProductPage es la pantalla real del cliente (macros/
-      // micros/alérgenos/vegano/escáner), no el form reducido de
-      // ProductSearchModalComponent. modalMode:true hace que, al guardar,
-      // se cierre con {kind:'product', product, quantity:100} — mismo shape
-      // que ProductSearchResult, sin importar ese tipo en shared-features.
-      pickCreateProduct: () =>
-        void this.pickFromModal(CreateProductPage, { modalMode: true }, altIndex, itemIndex, closeOuter),
+      // micros/alérgenos/vegano/escáner). modalMode:true hace que, al
+      // guardar, se cierre con {kind:'product', product, quantity:100}.
+      pickCreateProduct: () => void this.pickCreatedProduct(altIndex, itemIndex, closeOuter),
       pickCreateRecipe: () => void this.confirmPickedRecipe(altIndex, itemIndex, closeOuter),
       // Tocar una card en el buscador solo previsualiza (naranja + panel de
       // detalle aparte) — nunca añade directamente. Pulsar "Añadir a
@@ -317,7 +319,7 @@ export class DayMealEditorModalComponent {
   // (ver comentario largo en RecipeBuilderModalComponent#showDetailPanel):
   // tocar producto A y enseguida producto B debe reemplazar el detalle
   // directamente, sin tener que cerrar y volver a tocar B.
-  private async showDetailPanel(item: TrainerFoodSelection, onAdd: (quantity: number) => void): Promise<void> {
+  private async showDetailPanel(item: TrainerFoodSelection, onAdd: (quantity: number | null) => void): Promise<void> {
     const previous = this.detailModal;
     const modal = await this.modalController.create({
       component: ProductDetailPanelComponent,
@@ -326,7 +328,7 @@ export class DayMealEditorModalComponent {
         recipe: item.kind === 'recipe' ? item.recipe : undefined,
         quantity: item.quantity,
         onAdd,
-        addLabel: this.translate.instant('DIET_TEMPLATES.ANADIR', { slot: this.meal.slot }),
+        addLabel: this.translate.instant('DIET_TEMPLATES.ANADIR', { slot: this.targetLabel }),
       },
       // ion-disable-focus-trap: ver comentario largo en
       // RecipeBuilderModalComponent#openIngredientPicker — sin esto, el
@@ -451,9 +453,9 @@ export class DayMealEditorModalComponent {
     item.micros = computeItemMicros(this.customProductService, this.recipeService, item);
   }
 
-  // Fix7 — crear una receta nueva reutiliza el mismo paso de "confirmar
-  // cantidad" que ya existe para recetas EXISTENTES (ProductSearchModalComponent
-  // con preselectedRecipe salta directo a ese paso), en vez de duplicar esa UI.
+  // Fix7 — crear una receta nueva desde el buscador: tras guardarla en el
+  // constructor, el panel de detalle de siempre (ProductDetailPanelComponent)
+  // pide la cantidad (vacía = receta completa) y la pone en el hueco.
   private async confirmPickedRecipe(
     altIndex: number,
     itemIndex: number | null,
@@ -464,30 +466,47 @@ export class DayMealEditorModalComponent {
       cssClass: 'tf-panel-modal',
     });
     await builderModal.present();
-    const { data: recipe, role } = await builderModal.onDidDismiss();
+    const { data: recipe, role } = await builderModal.onDidDismiss<Recipe>();
     if (role !== 'confirm' || !recipe) return;
 
-    await this.pickFromModal(
-      ProductSearchModalComponent,
-      { preselectedRecipe: recipe },
-      altIndex,
-      itemIndex,
-      closeOuter
-    );
+    // Se aplica al cerrarse el panel, no dentro de onAdd: el panel se cierra
+    // solo tras llamarlo y el buscador no debe cerrarse antes que él.
+    let picked = null as TrainerFoodSelection | null;
+    const detailModal = await this.modalController.create({
+      component: ProductDetailPanelComponent,
+      componentProps: {
+        recipe,
+        quantity: null,
+        onAdd: (quantity: number | null) => (picked = { kind: 'recipe', recipe, quantity }),
+        addLabel: this.translate.instant('DIET_TEMPLATES.ANADIR', { slot: this.targetLabel }),
+      },
+      cssClass: 'tf-panel-modal',
+    });
+    await detailModal.present();
+    await detailModal.onDidDismiss();
+    if (picked) this.placeSelection(altIndex, itemIndex, picked, closeOuter);
   }
 
-  private async pickFromModal(
-    component: any,
-    componentProps: Record<string, unknown>,
+  private async pickCreatedProduct(altIndex: number, itemIndex: number | null, closeOuter: () => void): Promise<void> {
+    const modal = await this.modalController.create({
+      component: CreateProductPage,
+      componentProps: { modalMode: true },
+      cssClass: 'tf-panel-modal',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<TrainerFoodSelection>();
+    if (role !== 'confirm' || !data) return;
+    this.placeSelection(altIndex, itemIndex, data, closeOuter);
+  }
+
+  // Pone lo elegido en el hueco itemIndex (o en uno nuevo al final de la
+  // alternativa si es null) y cierra el buscador.
+  private placeSelection(
     altIndex: number,
     itemIndex: number | null,
+    selection: TrainerFoodSelection,
     closeOuter: () => void
-  ): Promise<void> {
-    const modal = await this.modalController.create({ component, componentProps, cssClass: 'tf-panel-modal' });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss<ProductSearchResult>();
-    if (role !== 'confirm' || !data) return;
-
+  ): void {
     const alt = this.meal.alternatives[altIndex];
     if (!alt) return;
 
@@ -500,7 +519,7 @@ export class DayMealEditorModalComponent {
     }
     if (!item) return;
 
-    this.assignSelectionToItem(item, data);
+    this.assignSelectionToItem(item, selection);
     closeOuter();
   }
 

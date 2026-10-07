@@ -41,6 +41,27 @@
         {{ 'CLIENTS.ADHERENCIA_DE_LA_SEMANA_EN' | translate }} <strong>{{ suggestion.adherencePct }} %</strong>
         <span class="muted-inline">({{ suggestion.adherenceDays }} {{ (suggestion.adherenceDays === 1 ? 'TRAINER_COMMON.PL_DAY_ONE' : 'TRAINER_COMMON.PL_DAY_MANY') | translate }} {{ 'CLIENTS.CON_PAUTA' | translate }})</span>
       </div>
+      <!-- Qué es "el ritmo" del que habla la sugerencia: kg/semana medidos
+           entre dos pesos, frente al que sale de la pauta. Plegado: es para
+           quien no conoce el cálculo, no lo primero que hay que leer. -->
+      <button
+        type="button"
+        class="rate-info-toggle"
+        [class.is-open]="showRateInfo"
+        [attr.aria-expanded]="showRateInfo"
+        aria-controls="rate-info"
+        (click)="showRateInfo = !showRateInfo"
+      >
+        {{ (showRateInfo ? 'CLIENTS.RITMO_INFO_MENOS' : 'CLIENTS.RITMO_INFO_MAS') | translate }}
+        <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
+      </button>
+      <div class="rate-info" id="rate-info" *ngIf="showRateInfo">
+        <p>{{ 'CLIENTS.RITMO_INFO_QUE_ES' | translate }}</p>
+        <p *ngIf="suggestion.expectedWeeklyRateKg !== 0">
+          {{ 'CLIENTS.RITMO_INFO_ESPERADO' | translate: { rate: rateLabel(suggestion.expectedWeeklyRateKg) } }}
+        </p>
+        <p>{{ 'CLIENTS.RITMO_INFO_AJUSTE' | translate }}</p>
+      </div>
     </div>
   </section>
 

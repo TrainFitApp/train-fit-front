@@ -38,6 +38,7 @@ export class NextWeekModalComponent implements OnInit {
   public discarding = false;
   public showDeviations = false;
   public showNeed = false;
+  public showRateInfo = false;
 
   // --- Ajustar macros ---
   // Reparto de lo pautado hoy escalado a las kcal elegidas (lo que hará el
@@ -131,6 +132,12 @@ export class NextWeekModalComponent implements OnInit {
 
   public deltaLabel(value: number): string {
     return (value > 0 ? '+' : '') + Math.round(value);
+  }
+
+  // Ritmo en kg/semana con signo y dos decimales, en el formato del idioma.
+  public rateLabel(value: number): string {
+    const formatted = value.toLocaleString(uiLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return value > 0 ? `+${formatted}` : formatted;
   }
 
   public pctLabel(value: number | null): string {

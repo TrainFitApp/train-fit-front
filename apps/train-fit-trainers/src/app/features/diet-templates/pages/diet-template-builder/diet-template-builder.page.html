@@ -100,9 +100,24 @@
             [class.is-manual]="clientTargetSource === 'manual'"
             *ngIf="kind === 'new'"
           >
-            {{ clientTargetSource === 'manual' ? 'manual' : 'calculado' }}
+            {{ (clientTargetSource === 'manual' ? 'DIET_TEMPLATES.FUENTE_MANUAL' : 'DIET_TEMPLATES.FUENTE_CALCULADO') | translate }}
           </span>
         </span>
+        <!-- Deshace lo tecleado: vuelve al objetivo con el que se abrió la
+             dieta. Visible siempre (se descubre antes de necesitarlo) y
+             apagado mientras no haya nada que deshacer, como "Recalcular"
+             en macro-adjust. -->
+        <button
+          type="button"
+          class="client-context__target-reset"
+          *ngIf="kind === 'new'"
+          [disabled]="!canResetClientTarget"
+          [title]="'DIET_TEMPLATES.VOLVER_AL_OBJETIVO_INICIAL' | translate"
+          (click)="resetClientTarget()"
+        >
+          <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+          {{ 'DIET_TEMPLATES.RECALCULAR' | translate }}
+        </button>
         <span class="client-context__target-values" *ngIf="kind !== 'new'">
           <span class="macro-tag macro-tag--kcal"><strong>{{ target.kcal | number: '1.0-0' }}</strong> kcal</span>
           <span class="macro-tag macro-tag--protein"><strong>{{ target.protein | number: '1.0-0' }}</strong> P</span>
@@ -216,6 +231,14 @@
     <p class="empty-hint duplicate-hint" *ngIf="duplicateMenuNamesWarning">
       <ion-icon name="alert-circle-outline"></ion-icon>
       {{ 'DIET_TEMPLATES.HAY_MENUS_CON_EL_MISMO' | translate }}: {{ duplicateMenuNamesWarning }}{{ 'DIET_TEMPLATES.EL_CLIENTE_LOS_ELIGE_POR' | translate }}
+    </p>
+
+    <!-- "Editar dieta": algún menú se sale de la necesidad de la semana
+         (±100 kcal / ±10 g). Avisa, no bloquea: qué macro se sale lo dicen
+         los chips de cada columna. -->
+    <p class="target-hint" role="status" *ngIf="offTargetMessage as message">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      <span>{{ message }}</span>
     </p>
 
     <!-- TAREA5 (auditoría UX, Fase C) — tablero: menús en columnas, comidas
@@ -402,13 +425,13 @@
               <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.kcal, 'kcal')">
                 {{ deviationLabel(dev.kcal) }} kcal
               </span>
-              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.protein, 'macro')">
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.protein, 'protein')">
                 P {{ deviationLabel(dev.protein) }}
               </span>
-              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.carbs, 'macro')">
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.carbs, 'carbs')">
                 C {{ deviationLabel(dev.carbs) }}
               </span>
-              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.fat, 'macro')">
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.fat, 'fat')">
                 G {{ deviationLabel(dev.fat) }}
               </span>
             </div>

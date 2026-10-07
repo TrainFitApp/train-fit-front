@@ -779,7 +779,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  public trackBySetRow(row: CurrentSetRow): string {
+  public trackBySetRow(_index: number, row: CurrentSetRow): string {
     return row.key;
   }
 }

@@ -483,29 +483,108 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+// ===== ION-RANGE =====
+// Un solo estilo para los sliders de las tres apps, igual en modo ios y md:
+// pista gruesa redondeada, puntos de parada dentro de la pista, mando blanco
+// con sombra y el valor siempre visible en una burbuja encima del mando.
+// Las pantallas solo cambian la tinta y la superficie si su fondo no sigue al
+// tema (el wizard de alta es siempre oscuro):
+//   --range-ink-rgb   color de pista inactiva, puntos y burbuja
+//   --range-surface   texto de la burbuja (el fondo sobre el que está)
+ion-range {
+  --range-ink-rgb: var(--ion-text-color-rgb, 0, 0, 0);
+  --range-surface: var(--ion-background-color, #ffffff);
+
+  --height: 44px;
+  --bar-height: 8px;
+  --bar-border-radius: 999px;
+  --bar-background: rgba(var(--range-ink-rgb), 0.12);
+  --bar-background-active: var(--ion-color-primary);
+  --knob-size: 28px;
+  --knob-border-radius: 50%;
+  --knob-background: #ffffff;
+  --knob-box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.24);
+}
+
+// Sitio para la burbuja del valor, que va por encima del mando.
+ion-range.range-has-pin {
+  padding-top: 28px;
+}
+
+ion-range.range-pressed {
+  --knob-box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+
+// La pista asoma 4px por cada lado para que el primer y el último punto
+// queden dentro de su extremo redondeado; el tramo activo arranca igual.
+ion-range::part(bar) {
+  inset-inline: -4px;
+  width: auto;
+}
+
+ion-range::part(bar-active) {
+  border-radius: var(--bar-border-radius);
+  margin-inline: -4px 0;
+}
+
+ion-range::part(tick),
+ion-range::part(tick-active) {
+  top: calc(50% - 2px);
+  width: 4px;
+  height: 4px;
+  margin-inline-start: -2px;
+  border-radius: 50%;
+  background: rgba(var(--range-ink-rgb), 0.32);
+  // Ionic los pinta antes que las barras; el mando (z-index 2) sigue encima.
+  z-index: 1;
+}
+
+ion-range::part(tick-active) {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+ion-range::part(knob) {
+  transform: none;
+  transition:
+    transform 160ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+ion-range.range-pressed::part(knob) {
+  transform: scale(1.1);
+}
+
+// Burbuja: tinta invertida (blanca en oscuro, negra en claro), 8px por
+// encima del mando, cifras tabulares para que no baile al arrastrar.
 ion-range::part(pin) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  background: var(--ion-color-primary);
-  color: var(--ion-color-light);
-  font-weight: bold;
-
-  border-radius: 50%;
-  transform: scale(1.01);
-
-  top: -20px;
-
-  min-width: 28px;
-  height: 28px;
-  transition:
-    transform 120ms ease,
-    background 120ms ease;
+  box-sizing: border-box;
+  top: calc(var(--knob-size) / 2 - 34px);
+  min-width: 36px;
+  height: 26px;
+  padding: 0 8px;
+  transform: none;
+  border-radius: 8px;
+  background: rgb(var(--range-ink-rgb));
+  color: var(--range-surface);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
+// La gota del pin de md.
 ion-range::part(pin)::before {
   content: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ion-range::part(knob) {
+    transition: none;
+  }
 }
 
 .input-big-display {

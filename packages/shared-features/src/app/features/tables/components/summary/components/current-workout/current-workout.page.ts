@@ -1068,7 +1068,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     this.restDeltaBadges = this.restDeltaBadges.filter((d) => d.id !== id);
   }
 
-  public trackByDeltaId(delta: { id: number; value: number }): number {
+  public trackByDeltaId(_index: number, delta: { id: number; value: number }): number {
     return delta.id;
   }
 
@@ -1199,7 +1199,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   // Subject para gestionar el ciclo de vida de suscripciones
   private destroy$ = new Subject<void>();
 
-  public trackByCustomExercise(item: CustomExercise): string {
+  public trackByCustomExercise(_index: number, item: CustomExercise): string {
     return item._id;
   }
 
@@ -1244,7 +1244,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     return this.currentWorkout?.exercises?.indexOf(customExercise) ?? -1;
   }
 
-  public trackByBlockGroup(group: WorkoutExerciseGroup): string {
+  public trackByBlockGroup(_index: number, group: WorkoutExerciseGroup): string {
     return group.block?._id || 'ungrouped';
   }
 

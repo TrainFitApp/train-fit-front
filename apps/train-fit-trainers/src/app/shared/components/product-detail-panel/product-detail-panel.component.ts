@@ -41,7 +41,8 @@ export class ProductDetailPanelComponent implements OnInit {
   // consumidores cuando el alimento previsualizado AÚN NO está añadido
   // (ver day-meal-editor-modal/RecipeBuilderModalComponent#showDetailPanel)
   // — al editar un ingrediente YA añadido no tiene sentido, no se pasa.
-  @Input() onAdd?: (quantity: number) => void;
+  // En una receta, null = receta completa (lo mismo que enseñan las macros).
+  @Input() onAdd?: (quantity: number | null) => void;
   @Input() addLabel = this.translate.instant('TRAINER_COMMON.ADD');
 
   private readonly modalController = inject(ModalController);
@@ -178,7 +179,10 @@ export class ProductDetailPanelComponent implements OnInit {
 
   public addToTarget(): void {
     if (!this.onAdd) return;
-    this.onAdd(this.quantity ?? 100);
+    // Una receta sin cantidad se añade entera: es lo que enseñan sus macros
+    // (computeMacros). Antes se mandaba 100 g y lo añadido no coincidía con
+    // lo que se veía en el panel.
+    this.onAdd(this.isRecipe ? this.quantity : this.quantity ?? 100);
     // Autodismiss: este botón vive DENTRO del propio panel, así que al
     // pulsarlo el panel siempre es el overlay más reciente (topmost) —
     // cerrar así nunca es ambiguo.

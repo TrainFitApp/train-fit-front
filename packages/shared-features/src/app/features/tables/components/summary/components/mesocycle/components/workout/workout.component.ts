@@ -915,12 +915,14 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public trackByBlockGroup(
+    _index: number,
     group: { block: WorkoutBlock | null },
   ): string {
     return group.block?._id || "ungrouped";
   }
 
   public trackByExerciseEntry(
+    _index: number,
     entry: { exercise: CustomExercise },
   ): string {
     return entry.exercise._id;
@@ -950,7 +952,11 @@ export class WorkoutComponent implements OnDestroy {
           this.workout.exercises = updatedWorkout.exercises;
           // Bloques por fila (2026-09): el back aplica el cambio al mismo
           // entrenamiento de los demás microciclos y los devuelve aquí.
-          (updatedWorkout.rowWorkouts || []).forEach((rowWorkout) => {
+          // Este también va a tableInUse: en el mesociclo `workout` es una
+          // copia (mesocycle.page.ts#updateCurrentSplit) y setCurrentTable
+          // repinta desde tableInUse, así que el bloque nuevo desaparecía de
+          // la pantalla del cliente hasta recargar.
+          [updatedWorkout, ...(updatedWorkout.rowWorkouts || [])].forEach((rowWorkout) => {
             const local = this.findTableWorkout(rowWorkout._id);
             if (!local) return;
             local.blocks = rowWorkout.blocks;

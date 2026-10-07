@@ -76,6 +76,10 @@ export class ProductComponent implements OnInit, OnChanges {
   // SearchFoodsPage#onFocusItem). No implica selección.
   @Input()
   public isTrainerFocused = false;
+  // A qué se añade en modo entrenador (SearchFoodsTrainerContext#targetLabel):
+  // el constructor de dietas no tiene un Meal real y «Añadido a …» salía vacío.
+  @Input()
+  public targetLabel?: string;
 
   @Output()
   public delete = new EventEmitter<string>();
@@ -122,6 +126,7 @@ export class ProductComponent implements OnInit, OnChanges {
     if (this.ingredientMode) {
       return this.translate.instant('FILTER.RECIPE');
     }
+    if (this.targetLabel) return this.targetLabel;
     const name = this.meal?.name || '';
     if (this.translate.currentLang === 'en') {
       return DB_ES_EN_MAP[name] || name;

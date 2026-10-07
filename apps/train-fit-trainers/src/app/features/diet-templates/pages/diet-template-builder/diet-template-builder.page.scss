@@ -220,6 +220,23 @@ $clipboard-panel-width: 320px;
     }
   }
 
+  // "Recalcular": secundario y compacto, a la derecha de la etiqueta, para
+  // no competir con los campos que deshace.
+  &__target-reset {
+    @include tf-secondary-button(var(--tf-radius-md));
+    min-height: 32px;
+    margin-left: auto;
+    padding: 0 var(--tf-space-3);
+    font: inherit;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+
   // Objetivo editable (solo al crear la dieta de un cliente): cada macro con
   // su etiqueta encima, en una fila que envuelve en pantallas estrechas.
   &__target-fields {
@@ -671,6 +688,29 @@ $clipboard-panel-width: 320px;
   ion-icon {
     flex-shrink: 0;
     font-size: 1rem;
+  }
+}
+
+// Menús que no cuadran con la necesidad de la semana ("Editar dieta"): aviso
+// en dorado, no en rojo como .duplicate-hint, porque no impide guardar.
+.target-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  margin: 0 0 var(--tf-space-3);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  background: var(--tf-warning-soft);
+  border: 1px solid var(--tf-warning-border);
+  border-radius: var(--tf-radius-md);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 1rem;
+    color: var(--tf-warning);
   }
 }
 

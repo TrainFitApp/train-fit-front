@@ -100,7 +100,7 @@ export interface TrainerFoodSelection {
 // consumidor guarda la función recibida y la usa dentro del onAdd que le
 // pasa a ProductDetailPanelComponent en vez de cerrar/confirmar directo.
 export interface TrainerSelectionApi {
-  setSelected: (item: TrainerFoodSelection, quantity: number) => void;
+  setSelected: (item: TrainerFoodSelection, quantity: number | null) => void;
 }
 
 export interface SearchFoodsTrainerContext {
@@ -3469,7 +3469,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   // producto/receta en la cesta con la cantidad que haya puesto ahí (como si
   // hubiese tocado el checkbox), sin cerrar este buscador. Si ya estaba en
   // la cesta, solo actualiza la cantidad en vez de duplicarlo.
-  public setTrainerItemSelected(item: TrainerFoodSelection, quantity: number): void {
+  public setTrainerItemSelected(item: TrainerFoodSelection, quantity: number | null): void {
     if (item.kind === "product" && item.product) {
       const product = item.product;
       const existing = this.trainerSelection.find(

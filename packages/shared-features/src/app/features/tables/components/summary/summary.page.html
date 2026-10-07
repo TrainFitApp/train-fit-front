@@ -146,20 +146,34 @@
            del todo sale cuál es el siguiente workout que le toca — mismo
            sitio y misma estructura que "Continuar" pero apuntando a
            openMesocycle() en vez de selectWorkout() (aun no hay
-           workoutInUse que reanudar). -->
-      <ng-container *ngIf="tableInUse && !user.workoutInUse && getNextWorkout() as nextWorkout">
+           workoutInUse que reanudar). Si lo siguiente es un descanso
+           pautado, la tarjeta lo dice en gris, como el descanso del
+           mesociclo. -->
+      <ng-container *ngIf="tableInUse && !user.workoutInUse && getNextTrainingDay() as nextWorkout">
         <div class="continue-card-group">
-        <button type="button" class="continue-card" (click)="openMesocycle()">
+        <button
+          type="button"
+          class="continue-card"
+          [class.continue-card--rest]="nextWorkout.isPlannedRestDay"
+          (click)="openMesocycle()"
+        >
           <span class="continue-card__icon-badge">
-            <ion-icon name="barbell-outline"></ion-icon>
+            <ion-icon [name]="nextWorkout.isPlannedRestDay ? 'bed-outline' : 'barbell-outline'"></ion-icon>
           </span>
-          <span class="continue-card__body">
+          <span class="continue-card__body" *ngIf="!nextWorkout.isPlannedRestDay; else restBody">
             <span class="continue-card__eyebrow">{{ 'TABLES.NEXT_WORKOUT_LABEL' | translate }}</span>
             <span class="continue-card__title">{{ 'TABLES.DAY' | translate }} {{ nextWorkout.name | translateDb }}</span>
             <span class="continue-card__subtitle">
               {{ nextWorkout.exercises.length }} {{ 'TABLES.EXERCISES' | translate }}
             </span>
           </span>
+          <ng-template #restBody>
+            <span class="continue-card__body">
+              <span class="continue-card__eyebrow">{{ 'TABLES.NEXT_LABEL' | translate }}</span>
+              <span class="continue-card__title">{{ nextWorkout.name | translateDb }}</span>
+              <span class="continue-card__subtitle">{{ 'TABLES.PLANNED_REST_DAY_LABEL' | translate }}</span>
+            </span>
+          </ng-template>
           <ion-icon name="chevron-forward-outline" class="continue-card__arrow"></ion-icon>
         </button>
         <app-trainer-note-dot

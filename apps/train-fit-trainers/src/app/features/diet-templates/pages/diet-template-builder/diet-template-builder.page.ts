@@ -31,7 +31,8 @@ import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.
 import { PhaseStartSettings } from '../../../../shared/models/diet-phase.model';
 import { of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { alternativeTotals, MacroTotals } from '../../utils/alternative-macros';
+import { alternativeTotals, MacroKey, MacroTotals, sameMacros } from '../../utils/alternative-macros';
+import { fitsTarget, isWithinTarget, targetDeviation } from '../../utils/menu-target-fit';
 import { computeItemMicros, TOTALS_NUTRIENT_FIELDS } from '../../utils/nutrient-fields';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
@@ -184,6 +185,8 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // El objetivo de la fase lo teclea el entrenador aquí (o llega ya decidido
   // del cajón): `clientTargetSource` dice si sigue siendo el calculado.
   public clientTargetSource: 'calculated' | 'manual' = 'calculated';
+  // Con lo que se abrió el objetivo editable, para "Recalcular".
+  private initialClientTarget: { target: MacroTarget; source: 'calculated' | 'manual' } | null = null;
 
   // Preparar la SIGUIENTE semana de una fase (ruta next-week/
   // :clientId/:phaseId?kcal=): entra con el contenido vigente escalado a
@@ -228,12 +231,6 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
     return (first + last).toUpperCase();
   }
-
-  // Margen con el que un día se da por bueno contra el objetivo. No hay un
-  // estándar: ±100 kcal es el escalón con el que ya trabaja el cajón de
-  // sugerencias (mueve el delta de 100 en 100) y ±10 g es el grano al que
-  // se pauta una comida.
-  private readonly targetTolerance = { kcal: 100, macro: 10 };
 
   private readonly destroyRef = inject(DestroyRef);
   // Solo fiable en el constructor (getCurrentNavigation() vuelve a null en
@@ -320,8 +317,8 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       this.phaseProteinPerKg = nav.phase.proteinPerKg ?? null;
       this.phaseFatPerKg = nav.phase.fatPerKg ?? null;
       if (nav.phase.target) {
-        this.clientTarget = { ...nav.phase.target };
-        this.clientTargetSource = nav.phase.target.source;
+        const { kcal, protein, carbs, fat, source } = nav.phase.target;
+        this.setInitialClientTarget({ kcal, protein, carbs, fat }, source);
       }
     }
     this.clientContextKind = 'new';
@@ -503,16 +500,13 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
         const goal = res?.goal;
         const calculated = res?.calculated?.target;
         if (goal) {
-          this.clientTarget = {
-            kcal: goal.kcalTotal,
-            protein: goal.proteinsGTotal,
-            carbs: goal.carbohydratesGTotal,
-            fat: goal.fatGTotal,
-          };
-          this.clientTargetSource = goal.source;
+          this.setInitialClientTarget(
+            { kcal: goal.kcalTotal, protein: goal.proteinsGTotal, carbs: goal.carbohydratesGTotal, fat: goal.fatGTotal },
+            goal.source
+          );
         } else if (calculated) {
-          this.clientTarget = { ...calculated };
-          this.clientTargetSource = 'calculated';
+          const { kcal, protein, carbs, fat } = calculated;
+          this.setInitialClientTarget({ kcal, protein, carbs, fat }, 'calculated');
         }
         this.clientTargetLabel = this.translate.instant('DIET_TEMPLATES.OBJETIVO_DE_LA_FASE');
       },
@@ -524,6 +518,24 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // calculado y es lo que se guardará como objetivo de la fase.
   public onClientTargetEdited(): void {
     this.clientTargetSource = 'manual';
+  }
+
+  private setInitialClientTarget(target: MacroTarget, source: 'calculated' | 'manual'): void {
+    this.initialClientTarget = { target: { ...target }, source };
+    this.clientTarget = { ...target };
+    this.clientTargetSource = source;
+  }
+
+  // "Recalcular": deshace lo tecleado y vuelve al objetivo con el que se
+  // abrió la dieta (el del cliente, o el que trajo el cajón de sugerencias).
+  public get canResetClientTarget(): boolean {
+    return !!this.initialClientTarget && !sameMacros(this.clientTarget, this.initialClientTarget.target);
+  }
+
+  public resetClientTarget(): void {
+    if (!this.initialClientTarget) return;
+    this.clientTarget = { ...this.initialClientTarget.target };
+    this.clientTargetSource = this.initialClientTarget.source;
   }
 
   // Referencia contra la que ajustar: la necesidad calculada de la semana
@@ -823,13 +835,23 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // "-2200 kcal" sobre un día sin alimentos no informa de nada.
   public targetDeviation(row: TemplateMenu): MacroTarget | null {
     if (!this.clientTarget || !this.hasAnyItems(row)) return null;
-    const totals = this.dayTotals(row);
-    return {
-      kcal: Math.round(totals.kcal - this.clientTarget.kcal),
-      protein: Math.round(totals.protein - this.clientTarget.protein),
-      carbs: Math.round(totals.carbs - this.clientTarget.carbs),
-      fat: Math.round(totals.fat - this.clientTarget.fat),
-    };
+    return targetDeviation(this.dayTotals(row), this.clientTarget);
+  }
+
+  // "Editar dieta": aviso cuando algún menú con alimentos no cuadra con la
+  // necesidad de la semana. Solo los nombra (qué macro se sale lo dicen los
+  // chips de su columna) y no bloquea guardar.
+  public get offTargetMessage(): string {
+    const target = this.clientTarget;
+    if (!this.isEditingPhaseContent || !target) return '';
+    // Sin nombre, el mismo que le pone el guardado ("Menú N").
+    const names = this.activeRows
+      .map((row, i) => ({ row, name: this.rowLabel(row).trim() || this.translate.instant('DIET_TEMPLATES.MENU', { p0: i + 1 }) }))
+      .filter(({ row }) => this.hasAnyItems(row) && !fitsTarget(this.dayTotals(row), target))
+      .map(({ name }) => name);
+    if (!names.length) return '';
+    const key = names.length === 1 ? 'DIET_TEMPLATES.MENU_NO_CUADRA' : 'DIET_TEMPLATES.MENUS_NO_CUADRAN';
+    return this.translate.instant(key, { menus: names.join(', ') });
   }
 
   public deviationLabel(value: number): string {
@@ -839,8 +861,8 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     return `${value > 0 ? '+' : '−'}${Math.abs(value)}`;
   }
 
-  public isOnTarget(value: number, kind: 'kcal' | 'macro'): boolean {
-    return Math.abs(value) <= this.targetTolerance[kind];
+  public isOnTarget(value: number, key: MacroKey): boolean {
+    return isWithinTarget(value, key);
   }
 
   // Proporción de cada macro sobre el total de KCAL del día (no de gramos:

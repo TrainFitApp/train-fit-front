@@ -162,7 +162,7 @@ export class RecipeIngredientsEditorModalComponent implements OnInit {
         // RecipeBuilderModalComponent#showDetailPanel.
         onAdd:
           ingredientIndex === null && item.kind === 'product' && item.product
-            ? (quantity: number) => this.selectionApi?.setSelected(item, quantity)
+            ? (quantity: number | null) => this.selectionApi?.setSelected(item, quantity)
             : undefined,
         addLabel: this.translate.instant('SHARED_COMPONENTS.ANADIR', { p0: this.recipe.name || 'la receta' }),
       },

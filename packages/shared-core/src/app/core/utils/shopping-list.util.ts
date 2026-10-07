@@ -117,6 +117,43 @@ export function aggregateShopping(
     .sort((a, b) => b.quantity - a.quantity || a.name.localeCompare(b.name, 'es'));
 }
 
+// Valor del desplegable de menús que no filtra. Los nombres de menú los pone
+// el profesional, pero este no lo va a escribir nadie.
+export const ALL_SHOPPING_MENUS = '__all__';
+
+// Menú que se mira en cada tramo (id del tramo → nombre). Sin entrada o con
+// ALL_SHOPPING_MENUS, todos.
+export type ShoppingMenuFilter = Record<string, string>;
+
+/**
+ * La lista que se enseña: en los tramos con un menú elegido en el
+ * desplegable, solo lo de ese menú con sus días; en el resto, todo. Recorta
+ * la VISTA, no el reparto: los días de los demás menús no se tocan y vuelven
+ * a contar al elegir «Todos». Solo existe en la app (el servidor manda la
+ * lista entera), así que no tiene espejo en el back.
+ */
+export function aggregateShoppingView(
+  segments: ShoppingSegment[],
+  selection: ShoppingSelection,
+  menuFilter: ShoppingMenuFilter
+): ShoppingListItem[] {
+  const view: ShoppingSelection = {};
+  for (const segment of segments || []) {
+    const chosen = selection[segment.id];
+    const only = menuFilter[segment.id];
+    if (!only || only === ALL_SHOPPING_MENUS) {
+      if (chosen) view[segment.id] = chosen;
+      continue;
+    }
+    const menuDays: Record<string, number> = {};
+    for (const menu of segment.menus) {
+      menuDays[menu.name] = menu.name === only ? chosen?.menuDays?.[menu.name] ?? menu.defaultDays ?? 0 : 0;
+    }
+    view[segment.id] = { menuDays, alternatives: chosen?.alternatives || {} };
+  }
+  return aggregateShopping(segments, view);
+}
+
 // Por encima del kilo en kg: "3400 g de pollo" obliga a dividir de cabeza.
 export function shoppingQuantityLabel(quantity: number): string {
   if (quantity >= 1000) return `${Math.round(quantity / 100) / 10} kg`;

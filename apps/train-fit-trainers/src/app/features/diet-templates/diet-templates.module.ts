@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { NavigationModule } from '../../shared/navigation/navigation.module';
 import { DietTemplatesPageRoutingModule } from './diet-templates-routing.module';
-import { ProductSearchModalModule } from '../../shared/components/product-search-modal/product-search-modal.module';
 import { MealSnippetPickerModule } from '../../shared/components/meal-snippet-picker/meal-snippet-picker.module';
 import { CreateProductPageModule } from 'src/app/features/diets/components/meal/components/search-foods/components/create-product/create-product.module';
 import { RecipeBuilderModalModule } from '../../shared/components/recipe-builder-modal/recipe-builder-modal.module';
@@ -23,7 +22,6 @@ import { DayMealEditorModalComponent } from './pages/diet-template-builder/compo
     SharedModule,
     NavigationModule,
     DietTemplatesPageRoutingModule,
-    ProductSearchModalModule,
     MealSnippetPickerModule,
     CreateProductPageModule,
     RecipeBuilderModalModule,

@@ -301,7 +301,7 @@ export interface NutritionFoodsSummary {
 
 // TAREA1/TAREA5 (replanteamiento MVP nutrición) — un alimento dentro de una
 // alternativa de composición. Siempre un producto real O una receta real de
-// la biblioteca (ProductSearchModalComponent, panel lateral) — ya no existe
+// la biblioteca (buscador SearchFoodsPage, panel lateral) — ya no existe
 // la opción de teclear macros a mano (no tenía sentido: un profesional pauta
 // comida real, no un número inventado).
 export interface MealFoodItemInput {

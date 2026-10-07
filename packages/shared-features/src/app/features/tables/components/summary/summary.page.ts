@@ -24,6 +24,7 @@ import { RemoteConfigGateService } from "src/app/core/services/remote-config/rem
 import { Subscription } from "rxjs";
 import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
 import { isPremiumActive } from "src/app/core/utils/premium-status.util";
+import { nextTrainingDay } from "src/app/core/utils/training-day.util";
 
 @Component({
   selector: "app-summary",
@@ -310,19 +311,10 @@ export class SummaryPage {
     this.navigationService.goToCurrentWorkout();
   }
 
-  // Primer workout sin fecha (no terminado), no rest, no descanso planeado,
-  // recorriendo splits/workouts en orden — mismo criterio que
-  // getCurrentPlayingSplit en UtilService, pero devuelve el workout, no el
-  // índice de split.
-  public getNextWorkout(): Workout | undefined {
-    if (!this.tableInUse?.splits) return undefined;
-    for (const split of this.tableInUse.splits) {
-      const next = split.workouts?.find(
-        (w) => !w.date && !w.rest && !w.isPlannedRestDay,
-      );
-      if (next) return next;
-    }
-    return undefined;
+  // Sin entreno en curso: lo siguiente que toca, un entreno o un descanso
+  // pautado (ver training-day.util).
+  public getNextTrainingDay(): Workout | null {
+    return nextTrainingDay(this.tableInUse?.splits);
   }
 
   public countDoneSplits(): number {

@@ -15,7 +15,6 @@ import { PerimeterFilterPanelComponent } from './pages/client-detail/components/
 import { SelectClientsModalModule } from './components/select-clients-modal/select-clients-modal.module';
 import { ApplyDietTemplateModalComponent } from './components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineModalComponent } from './components/apply-routine-modal/apply-routine-modal.component';
-import { ProductSearchModalModule } from '../../shared/components/product-search-modal/product-search-modal.module';
 import { NutritionCalendarComponent } from './pages/client-detail/components/nutrition-calendar/nutrition-calendar.component';
 import { CheckinHistoryChartComponent } from './pages/client-detail/components/checkin-history-chart/checkin-history-chart.component';
 import { CheckinWorkspaceComponent } from './pages/client-detail/components/checkin-workspace/checkin-workspace.component';
@@ -49,7 +48,6 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     SharedModule,
     NavigationModule,
     ClientsPageRoutingModule,
-    ProductSearchModalModule,
     SelectClientsModalModule,
     DietCardModule,
     // El bloque "cómo se ha calculado" del objetivo nutricional del cliente,

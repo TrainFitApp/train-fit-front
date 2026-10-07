@@ -52,3 +52,11 @@ export function macroDeviation(totals: MacroTotals, reference: MacroTotals): Alt
   }
   return result;
 }
+
+// Mismas cifras al redondear (lo que se ve y lo que se guarda). Un campo
+// vaciado mientras se teclea (null) cuenta como distinto de cualquier número.
+export function sameMacros(a: MacroTotals | null, b: MacroTotals | null): boolean {
+  if (!a || !b) return a === b;
+  const value = (n: number | null | undefined) => (typeof n === 'number' && Number.isFinite(n) ? Math.round(n) : null);
+  return MACRO_KEYS.every((key) => value(a[key]) === value(b[key]));
+}

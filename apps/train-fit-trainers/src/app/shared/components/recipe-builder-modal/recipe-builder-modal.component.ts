@@ -195,7 +195,7 @@ export class RecipeBuilderModalComponent {
         // verdad confirma y cierra todo.
         onAdd:
           ingredientIndex === null && item.kind === 'product' && item.product
-            ? (quantity: number) => this.selectionApi?.setSelected(item, quantity)
+            ? (quantity: number | null) => this.selectionApi?.setSelected(item, quantity)
             : undefined,
         addLabel: this.translate.instant('SHARED_COMPONENTS.ANADIR', { p0: this.name.trim() || 'la receta' }),
       },

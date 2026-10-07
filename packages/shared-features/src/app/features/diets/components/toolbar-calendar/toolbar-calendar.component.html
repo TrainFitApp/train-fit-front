@@ -13,6 +13,15 @@
 
       <!-- Sección de acciones -->
       <div class="actions-section">
+        <!-- La lista sale de las fases de dieta que pauta el profesional: sin
+             nutricionista activo no habría nada que comprar. A la izquierda
+             para que el resto de botones no cambie de sitio. -->
+        <ion-button mode="md" fill="clear" class="action-button shopping-button ripple-effect"
+          *ngIf="coachService.hasNutritionCoach()" (click)="openShoppingList()"
+          [attr.aria-label]="'COACH.SHOPPING_LIST' | translate">
+          <ion-icon name="cart-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+
         <ion-button mode="md" fill="clear" class="action-button macros-button ripple-effect" (click)="openMacrosOptions($event)"
           [attr.aria-label]="'TOOLBAR_CALENDAR.MACROS_OPTIONS_ARIA' | translate">
           <ion-icon name="ellipsis-horizontal-outline" slot="icon-only"></ion-icon>

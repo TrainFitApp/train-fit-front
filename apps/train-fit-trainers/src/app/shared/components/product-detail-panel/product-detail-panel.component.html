@@ -54,6 +54,7 @@
       <span class="macro-name">{{ 'TRAINER_COMMON.FAT' | translate }}</span>
     </div>
   </div>
+  <p class="detail-caption" *ngIf="isRecipe && !quantity">{{ 'SHARED_COMPONENTS.VALORES_RECETA_COMPLETA' | translate }}</p>
 
   <!-- Mismo diseño que AddProductPage (cliente) — reutilizado tal cual, ver
        add-product.page.html/scss. Debajo de la card de macros (a diferencia

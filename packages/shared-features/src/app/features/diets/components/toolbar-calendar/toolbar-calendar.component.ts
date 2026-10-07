@@ -1,6 +1,8 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { AlertButton, AlertInput, AlertOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
 import { DietDay } from 'src/app/core/models/dietDay';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { TableService } from 'src/app/core/services/table/table.service';
@@ -65,6 +67,9 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
   public ACTION_VALUES = ACTION_VALUES;
   public ACTIONS = ACTIONS;
 
+  public readonly coachService = inject(CoachService);
+  private readonly router = inject(Router);
+
   constructor(
     private utilService: UtilService,
     private dietDayService: DietDayService,
@@ -95,6 +100,10 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
 
   public onDateSelected(dateISO: string): void {
     this.selectCalendarDayEmit.emit(dateISO);
+  }
+
+  public openShoppingList(): void {
+    void this.router.navigate(['/my-shopping-list']);
   }
 
   public openMacrosOptions(event: Event): void {

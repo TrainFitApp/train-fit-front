@@ -1956,7 +1956,7 @@ export class MesocyclePage implements OnInit, AfterViewInit, OnDestroy {
     this.navigationService.goToTabsSummaryPage();
   }
 
-  public trackByWorkout(item: Workout): string {
+  public trackByWorkout(_index: number, item: Workout): string {
     return item._id;
   }
 }

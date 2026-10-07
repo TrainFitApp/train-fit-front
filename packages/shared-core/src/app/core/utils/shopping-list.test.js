@@ -77,6 +77,36 @@ test("defaultShoppingSelection y unassignedDays", async (t) => {
   });
 });
 
+test("aggregateShoppingView", async (t) => {
+  await t.test("sin filtro o con «Todos» es la lista entera", () => {
+    const selection = util.defaultShoppingSelection(segments());
+    const all = util.aggregateShopping(segments(), selection);
+    assert.deepEqual(util.aggregateShoppingView(segments(), selection, {}), all);
+    assert.deepEqual(util.aggregateShoppingView(segments(), selection, { A: util.ALL_SHOPPING_MENUS }), all);
+  });
+
+  await t.test("con un menú elegido solo cuenta ese menú y sus días", () => {
+    const selection = util.defaultShoppingSelection(segments());
+    assert.deepEqual(util.aggregateShoppingView(segments(), selection, { A: "M2" }), [
+      { name: "Arroz", quantity: 240, dayCount: 3 },
+    ]);
+  });
+
+  await t.test("respeta los días y la alternativa elegidos de ese menú", () => {
+    const selection = { A: { menuDays: { M1: 2, M2: 5 }, alternatives: { "M1|Comida": 1 } } };
+    assert.deepEqual(util.aggregateShoppingView(segments(), selection, { A: "M1" }), [
+      { name: "Pavo", quantity: 240, dayCount: 2 },
+      { name: "Pollo", quantity: 200, dayCount: 2 },
+    ]);
+  });
+
+  await t.test("no toca el reparto: los demás menús conservan sus días", () => {
+    const selection = util.defaultShoppingSelection(segments());
+    util.aggregateShoppingView(segments(), selection, { A: "M2" });
+    assert.deepEqual(selection.A.menuDays, { M1: 4, M2: 3 });
+  });
+});
+
 test("shoppingQuantityLabel", () => {
   assert.equal(util.shoppingQuantityLabel(950), "950 g");
   assert.equal(util.shoppingQuantityLabel(3420), "3.4 kg");

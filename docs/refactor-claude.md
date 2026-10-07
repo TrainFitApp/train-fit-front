@@ -48,7 +48,7 @@ La ficha del cliente incluye:
 - Resumen con dolor y perímetros, y adherencia. Tarjeta **Cobros** (vencido / vence hoy / próximo / pausada / sin cuota / sin pendientes).
 - **Gestión > Cobros**: cuota (configurar, precio con vigencia, pausar, reanudar, finalizar, avisos al cliente), cobros con pagos parciales, correcciones con motivo y anulación de saldo. `?tab=payments&charge=<id>` abre un cobro. Ya no programa avisos locales de Capacitor: `payments/services/legacy-payment-reminders.service.ts` cancela solo los antiguos de cobros ("Recuerda cobrar a …") al entrar en el panel.
 
-Piezas compartidas propias: `macro-adjust` (ajuste de macros con candados, en "Empezar fase" y "Siguiente semana"), `diet-card`, `product-search-modal`, `recipe-builder-modal`, etc. Los paneles laterales usan `tf-side-panel` (`_panel-sheet.scss`).
+Piezas compartidas propias: `macro-adjust` (ajuste de macros con candados, en "Empezar fase" y "Siguiente semana"), `diet-card`, `product-detail-panel`, `recipe-builder-modal`, etc. Los paneles laterales usan `tf-side-panel` (`_panel-sheet.scss`).
 
 ## App del cliente — `apps/train-fit-front` + `packages/shared-features`
 

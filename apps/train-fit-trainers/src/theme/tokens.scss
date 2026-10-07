@@ -194,7 +194,7 @@
 // tapar toda la pantalla, se ancla a la derecha como un panel persistente.
 // Este archivo es la ÚNICA hoja de estilos global propia de esta app (ver
 // angular.json > styles) — el componente del modal (p. ej.
-// ProductSearchModalComponent) no cambia, solo su "marco".
+// SearchFoodsPage) no cambia, solo su "marco".
 //
 // Por debajo de 768px no se aplica (el modal cae al comportamiento nativo de
 // pantalla completa, más usable en móvil que un panel de 420px).

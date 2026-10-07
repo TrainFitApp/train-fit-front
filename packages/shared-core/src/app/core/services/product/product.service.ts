@@ -19,10 +19,6 @@ export class ProductService {
     return this.productAPIService.getProductsCount();
   }
 
-  public searchProduct(page: number, search: string): Observable<IProduct[]> {
-    return this.productAPIService.searchProduct(page, search);
-  }
-
   /** Crear un producto. Si incluye userId, será un producto del usuario. */
   public saveProduct(product: IProduct): Observable<IProduct> {
     return this.productAPIService.saveProduct(product);

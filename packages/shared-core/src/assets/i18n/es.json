@@ -1034,6 +1034,7 @@
     "SERIES": "series",
     "WORKOUT_NOTE_TYPE": "Nota del entrenamiento",
     "NEXT_WORKOUT_LABEL": "Siguiente entrenamiento",
+    "NEXT_LABEL": "Siguiente",
     "NO_EXERCISES": "No hay ejercicios asignados",
     "BLOCK_TYPE_STRAIGHT": "Bloque",
     "BLOCK_TYPE_SUPERSET": "Superserie",
@@ -1665,7 +1666,6 @@
     "PROTEINS": "Proteínas",
     "CARBS": "Hidratos",
     "FATS": "Grasas",
-    "SAVE_CHANGES": "Guardar Cambios",
     "SAVE_HEADER": "Guardar antes de salir",
     "SAVE_MSG": "Tienes cambios sin guardar. ¿Qué deseas hacer?",
     "CANCEL_BTN": "CANCELAR",
@@ -1693,8 +1693,8 @@
     "LASTNAME_PLACEHOLDER": "Tu apellido",
     "WEIGHT_PLACEHOLDER": "70",
     "HEIGHT_PLACEHOLDER": "175",
-    "SELECT_SUPERAVIT": "Selecciona tu **superávit energético** (kcal)",
-    "SELECT_DEFICIT": "Selecciona tu **déficit energético** (kcal)"
+    "SELECT_SUPERAVIT": "Selecciona tu <strong>superávit energético</strong> (kcal)",
+    "SELECT_DEFICIT": "Selecciona tu <strong>déficit energético</strong> (kcal)"
   },
   "NUTRITION_EDITOR": {
     "TITLE": "Ajustar Objetivos",
@@ -2844,6 +2844,7 @@
     "DAYS_ONE": "{{count}} día",
     "DAYS_MANY": "{{count}} días",
     "MENU_ARIA": "Menú",
+    "ALL_MENUS": "Todos los menús",
     "ONE_DAY_LESS": "Un día menos de {{name}}",
     "ONE_DAY_MORE": "Un día más de {{name}}",
     "WITHOUT_MENU": "{{count}} sin menú",

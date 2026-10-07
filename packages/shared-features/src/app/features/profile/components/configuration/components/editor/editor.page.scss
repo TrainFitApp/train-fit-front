@@ -500,6 +500,13 @@ body[color-theme="dark"] .profile-card {
       [data-theme="dark"] & {
         color: var(--ion-color-medium-tint);
       }
+
+      // Las kcal llegan del i18n con <strong> (innerHTML): sin ::ng-deep no
+      // les llega el estilo del componente.
+      ::ng-deep strong {
+        color: var(--ion-color-primary);
+        font-weight: 700;
+      }
     }
   }
 
@@ -672,31 +679,9 @@ body[color-theme="dark"] .macro-summary {
   }
 }
 
-// Estilos para range slider
+// El aspecto del slider es el global (shared-theme/global.scss).
 ion-range {
-  --bar-background: var(--pe-border, var(--ion-color-light-shade));
-  --bar-background-active: var(--pe-accent, var(--ion-color-primary));
-  --knob-background: var(--pe-accent, var(--ion-color-primary));
-  --knob-size: 24px;
-  --bar-height: 6px;
-  --knob-box-shadow: none;
-  margin: 20px 0;
-}
-
-// Range slider tema claro
-:root ion-range {
-  --bar-background: var(--ion-color-light-shade);
-  --bar-background-active: var(--ion-color-primary);
-  --knob-background: var(--ion-color-primary);
-  --knob-box-shadow: none;
-}
-
-// Range slider tema oscuro
-body[color-theme="dark"] ion-range {
-  --bar-background: var(--pe-border, var(--ion-color-step-200));
-  --bar-background-active: var(--pe-accent, var(--ion-color-primary));
-  --knob-background: var(--pe-accent, var(--ion-color-primary));
-  --knob-box-shadow: none;
+  margin: 8px 0;
 }
 
 ion-modal.datetime-modal {
@@ -923,5 +908,50 @@ body[color-theme="dark"] .kpi {
   100% {
     background-color: #141414;
     border-color: #252525;
+  }
+}
+
+// --- Pie fijo: guardar siempre a mano, el formulario es largo ---
+// La transición de iOS anima los hijos del footer y no el ion-footer:
+// el fondo va en __content para que la barra salga con la página.
+.editor-footer {
+  --background: transparent;
+  background: transparent;
+}
+
+.editor-footer__content {
+  background: #141414;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px max(16px, calc((100% - 568px) / 2))
+    calc(12px + var(--ion-safe-area-bottom, 0px));
+}
+
+.editor-save-button {
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: var(--ion-color-primary);
+  color: #0f0f0f;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 160ms ease-out, opacity 160ms ease-out;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary-tint);
+    outline-offset: 2px;
   }
 }
