@@ -25,5 +25,7 @@ export class SearchFilterGroupExercises {
   public equipment: string[] = [];
   public isCardio?: boolean;
   public isIsometric?: boolean;
+  // Ni cardio ni isométrico.
+  public isStrength?: boolean;
   public userId?: string;
 }

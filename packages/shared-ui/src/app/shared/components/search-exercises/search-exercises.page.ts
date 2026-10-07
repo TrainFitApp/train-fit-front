@@ -135,7 +135,7 @@ export class SearchExercisesPage implements OnInit {
       } else if (this.sourceIsIsometric) {
         this.searchFilterGroupExercises.isIsometric = true;
       } else {
-        this.searchFilterGroupExercises.isCardio = undefined;
+        this.searchFilterGroupExercises.isStrength = true;
       }
     }
 
@@ -194,12 +194,7 @@ export class SearchExercisesPage implements OnInit {
     this.exerciseService
       .searchExercise(this.searchFilterGroupExercises)
       .subscribe((resExercises) => {
-        const filteredExercises =
-          this.isChangeMode && !this.sourceIsCardio && !this.sourceIsIsometric
-            ? (resExercises || []).filter(
-                (exercise) => !exercise?.isCardio && !exercise?.isIsometric
-              )
-            : resExercises;
+        const filteredExercises = resExercises || [];
 
         if (!this.isChangeMode && this.workout?.exercises) {
            const selectedIds = this.workout.exercises.map(ce => ce.exercise?._id);
@@ -226,12 +221,7 @@ export class SearchExercisesPage implements OnInit {
       this.exerciseService
         .searchExercise(this.searchFilterGroupExercises)
         .subscribe((resExercises) => {
-          const nextExercises =
-            this.isChangeMode && !this.sourceIsCardio && !this.sourceIsIsometric
-              ? (resExercises || []).filter(
-                  (exercise) => !exercise?.isCardio && !exercise?.isIsometric
-                )
-              : resExercises;
+          const nextExercises = resExercises || [];
 
           this.exercises = this.exercises.concat(nextExercises);
           this.exerciseService.setExercises = this.exercises;

@@ -34,6 +34,15 @@
         <button
           type="button"
           class="modern-pill filter-chip"
+          [class.is-active]="selectedExerciseType === 'strength'"
+          (click)="selectExerciseType('strength')"
+        >
+          <span class="label">{{ 'SEARCH_EXERCISES.STRENGTH' | translate }}</span>
+          <ion-ripple-effect></ion-ripple-effect>
+        </button>
+        <button
+          type="button"
+          class="modern-pill filter-chip"
           [class.is-active]="selectedExerciseType === 'cardio'"
           (click)="selectExerciseType('cardio')"
         >

@@ -6,6 +6,8 @@ import { UtilService } from "src/app/core/services/util/util.service";
 import { SearchFilterGroupExercises } from "../../models/filterGroup";
 import { MUSCLE_GROUPS, MuscleGroup } from "src/app/core/constants/muscle-catalog";
 
+type ExerciseTypeFilter = "all" | "strength" | "cardio" | "isometric";
+
 @Component({
   selector: "app-filter-input",
   templateUrl: "./filter-input.page.html",
@@ -55,15 +57,17 @@ export class FilterInputPage implements OnInit {
 
   public ngOnInit(): void {}
 
-  public get selectedExerciseType(): "all" | "cardio" | "isometric" {
+  public get selectedExerciseType(): ExerciseTypeFilter {
+    if (this.searchFilterGroupExercises.isStrength) return "strength";
     if (this.searchFilterGroupExercises.isCardio) return "cardio";
     if (this.searchFilterGroupExercises.isIsometric) return "isometric";
     return "all";
   }
 
-  public selectExerciseType(type: "all" | "cardio" | "isometric"): void {
+  public selectExerciseType(type: ExerciseTypeFilter): void {
     if (this.selectedExerciseType === type) return;
 
+    this.searchFilterGroupExercises.isStrength = type === "strength" ? true : undefined;
     this.searchFilterGroupExercises.isCardio = type === "cardio" ? true : undefined;
     this.searchFilterGroupExercises.isIsometric = type === "isometric" ? true : undefined;
     this.searchExercises();
