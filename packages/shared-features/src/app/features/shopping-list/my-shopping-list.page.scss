@@ -27,10 +27,12 @@
 }
 
 // --- Rango ---
+// A todo el ancho y en tercios iguales: en móvil la cápsula ajustada al
+// texto quedaba descolgada a la izquierda.
 .range-picker {
-  display: inline-flex;
+  display: flex;
   gap: 2px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   padding: 2px;
   background: #1a1a1a;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -39,8 +41,10 @@
 
 .range-option {
   @include hit-area(7px);
+  flex: 1;
+  min-width: 0;
   height: 30px;
-  padding: 0 12px;
+  padding: 0 8px;
   background: none;
   border: none;
   border-radius: 999px;
@@ -50,6 +54,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 160ms ease, color 160ms ease;
+
+  white-space: nowrap;
 
   &.selected {
     background: rgba(255, 255, 255, 0.08);
@@ -62,29 +68,44 @@
   }
 }
 
+// La explicación es secundaria: más pequeña que en el resto de pantallas
+// para no empujar la lista hacia abajo.
+.page-hint {
+  margin-bottom: 10px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
 // --- Menús y alternativas ---
 // Filas de desplegable en vez de tarjetas y chips: un menú a la vez y una
-// fila por comida con alternativas.
+// fila por comida con alternativas. Todo en un solo panel compacto, con
+// controles de 36 px (44 de zona pulsable), para que en el móvil el bloque
+// no se coma media pantalla antes de llegar a la lista.
 .choices {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
 }
 
 .segment {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .segment + .segment {
-  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .segment-label {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -98,9 +119,9 @@
 }
 
 .meal-slot {
-  flex: 0 0 34%;
+  flex: 0 0 30%;
   min-width: 0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #9a9a9a;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -110,28 +131,31 @@
 // Sobre el ion-select de global.scss (46px, icono oculto): más bajo, con el
 // chevron de vuelta, como .unit-select-elegant de add-product.
 ion-select.choice-select {
+  @include hit-area(4px);
   flex: 1;
   min-width: 0;
-  min-height: 44px;
-  --padding-start: 12px;
-  --padding-end: 34px;
-  font-size: 0.85rem;
+  height: 36px;
+  min-height: 36px;
+  border-radius: 10px;
+  --padding-start: 10px;
+  --padding-end: 30px;
+  font-size: 0.8rem;
   font-weight: 600;
 
   &::part(icon) {
     display: block;
     position: absolute;
-    right: 10px;
-    width: 16px;
-    height: 16px;
+    right: 9px;
+    width: 14px;
+    height: 14px;
     color: #9a9a9a;
     opacity: 1;
   }
 }
 
 .menu-summary {
-  margin: 0;
-  font-size: 0.72rem;
+  margin: -2px 0 0;
+  font-size: 0.7rem;
   color: #6b6b6b;
   font-variant-numeric: tabular-nums;
 }
@@ -140,24 +164,25 @@ ion-select.choice-select {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  height: 44px;
+  height: 36px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--ion-color-step-200, #252525);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .stepper-btn {
+  @include hit-area(4px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   background: none;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
 
   &:disabled {
@@ -172,9 +197,9 @@ ion-select.choice-select {
 }
 
 .stepper-value {
-  min-width: 34px;
+  min-width: 30px;
   text-align: center;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #ffffff;
