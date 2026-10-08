@@ -1,0 +1,85 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>
+      <span class="panel-title">{{ exerciseName | translateDb }}</span>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="panel-content">
+  <section class="panel-section">
+    <div class="section-heading">
+      <h3 class="section-title">{{ 'TRAINER_COMMON.SETS' | translate }}</h3>
+      <span class="section-count" *ngIf="items.length">{{ items.length }}</span>
+    </div>
+
+    <ion-reorder-group class="set-list" [disabled]="items.length < 2" (ionItemReorder)="onReorder($any($event))">
+      <div
+        class="set-row"
+        *ngFor="let item of items; let i = index; trackBy: trackById"
+        [class.set-row--highlight]="item.id === highlightedId"
+      >
+        <ion-reorder class="set-handle" *ngIf="items.length > 1">
+          <ion-icon name="reorder-two-outline" [attr.aria-label]="'ROUTINES.ARRASTRA_PARA_ORDENAR' | translate"></ion-icon>
+        </ion-reorder>
+        <button type="button" class="set-main" (click)="openSet(item)" [attr.aria-label]="('ROUTINES.EDITAR_SERIE' | translate: { n: i + 1 })">
+          <span class="set-number">{{ i + 1 }}</span>
+          <span class="set-values">
+            <ng-container *ngIf="kind === 'strength'">
+              <span class="set-value">{{ repsLabel(item.set) }} <small>{{ 'ROUTINES.REPS' | translate }}</small></span>
+              <span class="set-value" *ngIf="!isFailure(item.set)">{{ rirLabel(item.set) }} <small>RIR</small></span>
+              <span class="set-badge set-badge--failure" *ngIf="isFailure(item.set)">{{ 'TABLES.FAIL' | translate }}</span>
+            </ng-container>
+            <ng-container *ngIf="kind !== 'strength'">
+              <span class="set-value">{{ item.set.time || '—' }}</span>
+              <span class="set-value" *ngIf="kind === 'cardio' && item.set.distance">{{ item.set.distance }} <small>km</small></span>
+            </ng-container>
+          </span>
+          <span class="set-badges">
+            <span class="set-badge set-badge--drop" *ngIf="item.set.drop">DS</span>
+            <span class="set-badge set-badge--rp" *ngIf="item.set.restPause !== null">RP {{ item.set.restPause }} s</span>
+            <span class="set-rest" *ngIf="item.set.restSeconds !== null">
+              <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>{{ item.set.restSeconds }} s
+            </span>
+          </span>
+        </button>
+        <button type="button" class="icon-button" [attr.aria-label]="'ROUTINES.COPIAR_SERIE' | translate: { n: i + 1 }" (click)="copySet(item, $event)">
+          <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <button type="button" class="icon-button" [attr.aria-label]="'ROUTINES.QUITAR_SERIE_N' | translate: { n: i + 1 }" (click)="removeSet(item, $event)">
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </ion-reorder-group>
+
+    <p class="empty-sets" *ngIf="!items.length">{{ 'ROUTINES.SIN_SERIES' | translate }}</p>
+
+    <button type="button" class="add-set-button" (click)="openSet()">
+      <ion-icon name="add" aria-hidden="true"></ion-icon>
+      {{ 'ROUTINES.ANADIR_SERIE' | translate }}
+    </button>
+  </section>
+
+  <section class="panel-section">
+    <label class="section-title" for="template-exercise-note">{{ 'ROUTINES.NOTA_PARA_EL_CLIENTE' | translate }}</label>
+    <textarea
+      id="template-exercise-note"
+      class="note-field"
+      rows="3"
+      maxlength="500"
+      [placeholder]="'ROUTINES.NOTA_PARA_EL_CLIENTE_PLACEHOLDER' | translate"
+      [(ngModel)]="draftNotes"
+    ></textarea>
+  </section>
+</ion-content>
+
+<ion-footer class="panel-footer">
+  <button type="button" class="confirm-button" (click)="save()">
+    {{ 'COMMON.SAVE' | translate }}
+  </button>
+</ion-footer>

@@ -140,6 +140,7 @@
             <span class="added-label" *ngIf="!isChangeMode && !pickerMode && mode !== 'library' && isExerciseSelected(exercise)">
               ({{ 'SEARCH_EXERCISES.ADDED_TO' | translate : { workoutName: getWorkoutNameTranslated(workout) } }})
             </span>
+            <span class="added-label" *ngIf="pickerLive && pickerAddedLabel && isExerciseSelected(exercise)">({{ pickerAddedLabel }})</span>
           </h3>
           <span class="exercise-category">
             {{ exercise?.category | category }}
@@ -173,7 +174,7 @@
             mode="md"
             [checked]="isExerciseSelected(exercise)"
             [disabled]="!load"
-            (ionChange)="toggleExerciseSelection(exercise)"
+            (ionChange)="toggleExerciseSelection(exercise, $event)"
           ></ion-checkbox>
         </div>
       </div>
@@ -214,7 +215,7 @@
   </div>
 </ion-footer>
 
-<ion-footer *ngIf="pickerMode" class="picker-mode-footer">
+<ion-footer *ngIf="pickerMode && !pickerLive" class="picker-mode-footer">
   <button
     type="button"
     class="picker-confirm-button"

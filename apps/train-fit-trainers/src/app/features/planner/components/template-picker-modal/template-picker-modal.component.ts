@@ -1,14 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { WorkoutTemplate, WorkoutTemplateLevel } from 'src/app/core/models/workout-template';
-import { localizeRecord } from 'src/app/core/i18n/localized-catalog';
-
-const LEVEL_LABELS: Record<WorkoutTemplateLevel, string> = {
-  principiante: 'Principiante',
-  intermedio: 'Intermedio',
-  avanzado: 'Avanzado',
-};
-localizeRecord(LEVEL_LABELS, 'PLANNER.TEMPLATE_LEVELS');
+import { WorkoutTemplate } from 'src/app/core/models/workout-template';
 
 // TASK-043 (MASTER_BACKLOG.md) — sustituye el AlertOptions de texto plano de
 // planner-column.component.ts#applyTemplateAlert() (sin buscador ni preview,
@@ -33,8 +25,6 @@ export class TemplatePickerModalComponent implements OnInit {
   public search = '';
   public filteredTemplates: WorkoutTemplate[] = [];
   public selectedIds = new Set<string>();
-
-  public readonly levelLabels = LEVEL_LABELS;
 
   constructor(private modalController: ModalController) {}
 
@@ -61,8 +51,9 @@ export class TemplatePickerModalComponent implements OnInit {
     );
   }
 
+  // El grupo "Sin agrupar" no es un bloque.
   public blockCount(template: WorkoutTemplate): number {
-    return (template.blocks || []).length;
+    return (template.blocks || []).filter((block) => !block.ungrouped).length;
   }
 
   public trackByTemplateId(_index: number, template: WorkoutTemplate): string {

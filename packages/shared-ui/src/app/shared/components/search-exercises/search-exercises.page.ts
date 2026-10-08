@@ -59,6 +59,21 @@ export class SearchExercisesPage implements OnInit {
   // nada que sustituir, solo añadir.
   @Input() pickerMode = false;
 
+  // Plantillas de entrenamiento (routine-builder) — el mismo comportamiento
+  // que en el Planificador: el checkbox añade o quita el ejercicio al momento
+  // (sin series, el buscador sigue abierto) y tocar el resto de la tarjeta
+  // abre "Configurar ejercicio" encima del buscador; si se guarda, el
+  // buscador se cierra. Quien abre el picker da estas funciones; sin ellas,
+  // el picker es la selección múltiple con "Añadir" en el pie.
+  @Input() pickerIsAdded?: (exercise: Exercise) => boolean;
+  @Input() pickerToggle?: (exercise: Exercise) => void | Promise<void>;
+  @Input() pickerConfigure?: (exercise: Exercise, origin?: HTMLIonModalElement) => Promise<boolean>;
+  @Input() pickerAddedLabel = '';
+
+  public get pickerLive(): boolean {
+    return this.pickerMode && !!this.pickerToggle;
+  }
+
   // Biblioteca de ejercicios (TASK-042) — misma pantalla de picker
   // reutilizada como catálogo navegable de solo consulta: sin workout, sin
   // ConfigExercisePage. En 'library' el tap emite exerciseSelected en vez de
@@ -282,6 +297,7 @@ export class SearchExercisesPage implements OnInit {
   }
 
   public isExerciseSelected(exercise: Exercise): boolean {
+    if (this.pickerLive) return !!this.pickerIsAdded?.(exercise);
     if (this.pickerMode) {
       return this.pickerSelectedExercises.some((e) => e._id === exercise._id);
     }
@@ -311,6 +327,15 @@ export class SearchExercisesPage implements OnInit {
       return;
     }
 
+    // Como addExerciseModal: "Configurar ejercicio" encima del buscador.
+    if (this.pickerLive && this.pickerConfigure) {
+      void this.ionicUtilService.closeChildSidePanels(this.modal);
+      void this.pickerConfigure(exercise, this.modal).then((added) => {
+        if (added) void this.modalController.dismiss();
+      });
+      return;
+    }
+
     if (this.pickerMode) {
       this.togglePickerSelection(exercise);
       return;
@@ -330,7 +355,18 @@ export class SearchExercisesPage implements OnInit {
     this.addExerciseModal(exercise);
   }
 
-  public toggleExerciseSelection(exercise: Exercise): void {
+  public toggleExerciseSelection(exercise: Exercise, event?: Event): void {
+    if (this.pickerLive) {
+      // Quien abre el picker puede pedir confirmación (quitar un ejercicio ya
+      // pautado). Si se cancela, el checkbox ya cambió por dentro: se vuelve
+      // a poner como diga la plantilla.
+      const checkbox = event?.target as HTMLIonCheckboxElement | undefined;
+      void Promise.resolve(this.pickerToggle!(exercise)).then(() => {
+        if (checkbox) checkbox.checked = this.isExerciseSelected(exercise);
+      });
+      return;
+    }
+
     if (this.pickerMode) {
       this.togglePickerSelection(exercise);
       return;

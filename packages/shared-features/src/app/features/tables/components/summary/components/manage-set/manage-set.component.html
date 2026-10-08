@@ -30,7 +30,7 @@
           </div>
         </div>
 
-        <div class="field-section">
+        <div class="field-section" *ngIf="!templateMode">
           <div class="field-label">
             <span class="label-text">{{ 'TABLES.WEIGHT_LABEL' | translate }}</span>
           </div>
@@ -93,7 +93,7 @@
             </div>
           </div>
 
-          <div class="field-section">
+          <div class="field-section" *ngIf="!templateMode">
             <div class="field-label">
               <span class="label-text">{{ 'TABLES.VELOCITY' | translate }}</span>
             </div>
@@ -121,7 +121,7 @@
       </ng-template>
 
       <ng-template #notCardio>
-        <div class="field-section">
+        <div class="field-section" *ngIf="!templateMode">
           <div class="field-label">
             <span class="label-text">{{ 'TABLES.WEIGHT_LABEL' | translate }}</span>
           </div>

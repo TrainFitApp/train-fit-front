@@ -1,0 +1,39 @@
+<div class="chip-field" (click)="field.focus()">
+  <ion-icon [name]="icon" class="chip-field-icon" aria-hidden="true"></ion-icon>
+  <span class="chip" *ngFor="let value of values; trackBy: trackByValue">
+    {{ value }}
+    <button
+      type="button"
+      class="chip-remove"
+      [attr.aria-label]="removeLabel + ' ' + value"
+      (click)="remove(value); $event.stopPropagation()"
+    >
+      <ion-icon name="close" aria-hidden="true"></ion-icon>
+    </button>
+  </span>
+  <input
+    #field
+    type="text"
+    class="chip-input"
+    data-enter-submit-ignore
+    [id]="inputId"
+    [attr.maxlength]="maxLength"
+    [placeholder]="values.length ? '' : placeholder"
+    [disabled]="full"
+    [(ngModel)]="query"
+    (keydown)="onKeydown($event)"
+    (blur)="add(query)"
+  />
+</div>
+<div class="chip-suggestions" *ngIf="visibleSuggestions.length">
+  <button
+    type="button"
+    class="chip-suggestion"
+    *ngFor="let suggestion of visibleSuggestions; trackBy: trackByValue"
+    (mousedown)="$event.preventDefault()"
+    (click)="add(suggestion)"
+  >
+    <ion-icon name="add" aria-hidden="true"></ion-icon>
+    {{ suggestion }}
+  </button>
+</div>

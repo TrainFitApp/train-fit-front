@@ -8,76 +8,90 @@
       {{ 'ROUTINES.CREA_UNA_PLANTILLA_CON_SUS' | translate }}
     </p>
 
-    <div class="create-bar" appSubmitOnEnter="createRoutine">
-      <div class="input-wrapper">
-        <ion-icon name="albums-outline" class="input-icon"></ion-icon>
+    <div class="toolbar">
+      <div class="input-wrapper" *ngIf="cards.length > 0">
+        <ion-icon name="search-outline" class="input-icon" aria-hidden="true"></ion-icon>
         <input
-          type="text"
+          type="search"
           class="input-field"
-          [placeholder]="'ROUTINES.PLANTILLA_DIA_DE_EMPUJE' | translate"
-          [(ngModel)]="newName"
+          [attr.aria-label]="'ROUTINES.BUSCAR_PLANTILLAS' | translate"
+          [placeholder]="'ROUTINES.BUSCAR_PLANTILLAS_PLACEHOLDER' | translate"
+          [(ngModel)]="search"
         />
       </div>
-      <button
-        type="button"
-        class="submit-button"
-        [disabled]="!newName.trim() || isCreating"
-        (click)="createAndEdit()"
-        data-enter-submit-action="createRoutine"
-      >
-        <span *ngIf="!isCreating">{{ 'ROUTINES.CREAR_PLANTILLA' | translate }}</span>
-        <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
+      <button type="button" class="submit-button" (click)="createTemplate()">
+        <ion-icon name="add" aria-hidden="true"></ion-icon>
+        {{ 'ROUTINES.NUEVA_PLANTILLA' | translate }}
       </button>
     </div>
 
-    <!-- Carga: mismo esqueleto de la forma final (grid de cards), no un
-         spinner genérico — mismo criterio que dashboard.page.html -->
+    <!-- Carga: mismo esqueleto de la forma final (grid de cards) -->
     <div class="templates-skeleton" *ngIf="loading">
       <div class="skeleton-block template-card-skeleton" *ngFor="let i of [1, 2, 3]"></div>
     </div>
 
-    <!-- Vacío de página completa: mismo patrón que clients/dashboard
-         (icono + título + texto). Sin CTA propio: el formulario de crear ya
-         está justo encima. -->
-    <div class="state-message" *ngIf="!loading && templates.length === 0">
-      <ion-icon name="albums-outline"></ion-icon>
+    <div class="state-message" *ngIf="!loading && cards.length === 0">
+      <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
       <h2>{{ 'ROUTINES.TODAVIA_NO_TIENES_PLANTILLAS' | translate }}</h2>
-      <p>{{ 'ROUTINES.CREA_LA_PRIMERA_CON_EL' | translate }}</p>
+      <p>{{ 'ROUTINES.CREA_LA_PRIMERA_HINT' | translate }}</p>
+      <p class="state-tip">
+        <ion-icon name="bulb-outline" aria-hidden="true"></ion-icon>
+        {{ 'ROUTINES.TIP_GUARDAR_DESDE_PLANIFICADOR' | translate }}
+      </p>
     </div>
 
-    <div class="templates-grid" *ngIf="!loading && templates.length > 0">
-      <div
+    <div class="state-message state-message--compact" *ngIf="!loading && cards.length > 0 && filteredCards.length === 0">
+      <h2>{{ 'ROUTINES.NINGUNA_PLANTILLA_COINCIDE' | translate }}</h2>
+      <button type="button" class="text-action" (click)="clearFilters()">{{ 'ROUTINES.QUITAR_FILTROS' | translate }}</button>
+    </div>
+
+    <div class="templates-grid" *ngIf="!loading && filteredCards.length > 0">
+      <article
         class="template-card"
-        *ngFor="let template of templates; trackBy: trackByTemplateId"
-        (click)="openTemplate(template)"
+        *ngFor="let card of filteredCards; trackBy: trackByTemplateId"
       >
-        <div class="template-card-header">
-          <span class="template-name">{{ template.name }}</span>
-          <span class="template-level">{{ levelLabels[template.level] }}</span>
-        </div>
+        <button type="button" class="template-card-open" (click)="openTemplate(card.template)">
+          <span class="template-name">{{ card.template.name }}</span>
 
-        <p class="template-description" *ngIf="template.description">
-          {{ template.description }}
-        </p>
+          <span class="template-meta">
+            <span>{{ card.exerciseCount }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
+            <span>{{ card.setCount }} {{ 'ROUTINES.SERIES' | translate }}</span>
+            <span *ngIf="card.minutes">≈ {{ card.minutes }} min</span>
+          </span>
 
-        <div class="template-tags" *ngIf="template.tags?.length">
-          <span class="template-tag" *ngFor="let tag of template.tags">{{ tag }}</span>
-        </div>
+          <span class="template-preview" *ngIf="card.exerciseNames.length; else emptyTemplate">
+            <span class="template-preview-item" *ngFor="let name of card.exerciseNames">{{ name | translateDb }}</span>
+            <span class="template-preview-more" *ngIf="card.moreExercises">
+              {{ 'ROUTINES.Y_N_MAS' | translate: { n: card.moreExercises } }}
+            </span>
+          </span>
+          <ng-template #emptyTemplate>
+            <span class="template-preview template-preview--empty">{{ 'ROUTINES.SIN_EJERCICIOS_TODAVIA' | translate }}</span>
+          </ng-template>
 
-        <div class="template-meta">
-          <span>{{ blockCount(template) }} {{ 'ROUTINES.BLOQUES' | translate }}</span>
-          <span>{{ exerciseCount(template) }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
-        </div>
+          <span class="template-equipment" *ngIf="card.equipment.length">
+            <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+            <span><ng-container *ngFor="let item of card.equipment; let last = last">{{ item | translateDb }}<ng-container *ngIf="!last"> · </ng-container></ng-container></span>
+          </span>
+
+          <span class="template-description" *ngIf="card.template.description">{{ card.template.description }}</span>
+
+          <span class="template-tags" *ngIf="card.template.tags?.length">
+            <span class="template-tag" *ngFor="let tag of card.template.tags">{{ tag }}</span>
+          </span>
+        </button>
 
         <div class="template-card-actions">
-          <button type="button" class="secondary-button" [disabled]="isDuplicating" (click)="duplicateTemplate(template, $event)">
+          <button type="button" class="secondary-button" [disabled]="isDuplicating" (click)="duplicateTemplate(card.template, $event)">
+            <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
             {{ 'TRAINER_COMMON.DUPLICATE' | translate }}
           </button>
-          <button type="button" class="danger-button" (click)="confirmDelete(template, $event)">
+          <button type="button" class="danger-button" (click)="confirmDelete(card.template, $event)">
+            <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
             {{ 'TRAINER_COMMON.ERASE' | translate }}
           </button>
         </div>
-      </div>
+      </article>
     </div>
   </div>
 </ion-content>

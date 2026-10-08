@@ -264,7 +264,7 @@
           </div>
 
           <div *ngIf="entry.exercise?.sets.length > 0" class="table-container">
-            <table class="table previous-session-table">
+            <table class="table previous-session-table" [class.planner-set-table]="plannerMode">
               <thead>
                 <tr>
                   <th style="width: 60px; min-width: 60px">{{ 'TABLES.SERIES' | translate }}</th>

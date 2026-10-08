@@ -1,5 +1,7 @@
 <ion-header class="ion-no-border">
-  <app-page-header [title]="'ROUTINES.PLANTILLA_DE_ENTRENAMIENTO' | translate"></app-page-header>
+  <app-page-header
+    [title]="(isNew ? 'ROUTINES.NUEVA_PLANTILLA' : 'ROUTINES.PLANTILLA_DE_ENTRENAMIENTO') | translate"
+  ></app-page-header>
 </ion-header>
 
 <ion-content class="builder-content" appSubmitOnEnter="saveRoutine">
@@ -18,159 +20,402 @@
 
   <ng-container *ngIf="state === 'loaded'">
     <div class="builder-layout">
-      <!-- Metadata — panel fijo en desktop (ver @media en el scss), no hace
-           falta bajar hasta el final para guardar mientras se editan bloques. -->
-      <div class="builder-sidebar">
-        <div class="builder-section">
-          <label class="field-label">{{ 'TRAINER_COMMON.NAME' | translate }}</label>
-          <div class="input-wrapper">
-            <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
-            <input type="text" class="input-field" [placeholder]="'ROUTINES.EJ_EMPUJE_4_SERIES' | translate" [(ngModel)]="name" />
+      <!-- Ficha + resumen: panel fijo a la izquierda en escritorio. En móvil
+           solo el nombre queda a la vista; el resto de la ficha se pliega. -->
+      <aside class="builder-sidebar">
+        <section class="sheet">
+          <label class="field-label" for="template-name">{{ 'TRAINER_COMMON.NAME' | translate }}</label>
+          <div class="input-wrapper" [class.input-wrapper--error]="nameError">
+            <ion-icon name="pricetag-outline" class="input-icon" aria-hidden="true"></ion-icon>
+            <input
+              #nameInput
+              id="template-name"
+              type="text"
+              class="input-field"
+              maxlength="100"
+              [placeholder]="'ROUTINES.EJ_EMPUJE_4_SERIES' | translate"
+              [attr.aria-invalid]="nameError"
+              [attr.aria-describedby]="nameError ? 'template-name-error' : null"
+              [(ngModel)]="name"
+              (ngModelChange)="nameError = false"
+            />
           </div>
+          <p class="field-error" id="template-name-error" *ngIf="nameError">{{ 'ROUTINES.PONLE_UN_NOMBRE' | translate }}</p>
 
-          <label class="field-label">{{ 'ROUTINES.DESCRIPCION' | translate }}</label>
-          <textarea class="builder-textarea" rows="2" [placeholder]="'TABLES.TEMPLATE_DESCRIPTION_OPTIONAL' | translate" [(ngModel)]="description"></textarea>
+          <button
+            type="button"
+            class="details-toggle"
+            [attr.aria-expanded]="detailsOpen"
+            aria-controls="template-details"
+            (click)="detailsOpen = !detailsOpen"
+          >
+            <span class="details-toggle-title">{{ 'ROUTINES.FICHA_DE_BIBLIOTECA' | translate }}</span>
+            <span class="details-toggle-summary">{{ detailsSummary }}</span>
+            <ion-icon [name]="detailsOpen ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+          </button>
 
-          <label class="field-label">{{ 'ROUTINES.NIVEL' | translate }}</label>
-          <div class="level-picker">
-            <button
-              type="button"
-              class="level-option"
-              *ngFor="let lvl of levelKeys"
-              [class.selected]="level === lvl"
-              (click)="level = lvl"
-            >
-              {{ levels[lvl] }}
-            </button>
+          <div class="details-body" id="template-details" [class.details-body--open]="detailsOpen">
+            <label class="field-label" for="template-description">
+              {{ 'ROUTINES.DESCRIPCION' | translate }} <span class="field-label-note">{{ 'ROUTINES.SOLO_LA_VES_TU' | translate }}</span>
+            </label>
+            <textarea
+              id="template-description"
+              class="builder-textarea"
+              rows="2"
+              maxlength="500"
+              [placeholder]="'ROUTINES.DESCRIPCION_PLACEHOLDER' | translate"
+              [(ngModel)]="description"
+            ></textarea>
+
+            <label class="field-label" for="template-tags">{{ 'ROUTINES.ETIQUETAS' | translate }}</label>
+            <app-chip-input
+              inputId="template-tags"
+              icon="bookmarks-outline"
+              [values]="tags"
+              (valuesChange)="tags = $event"
+              [suggestions]="libraryTags"
+              [placeholder]="'ROUTINES.FUERZA_TREN_SUPERIOR' | translate"
+              [removeLabel]="'TRAINER_COMMON.REMOVE' | translate"
+            ></app-chip-input>
           </div>
+        </section>
 
-          <div class="field-pair">
-            <div class="field-pair-col">
-              <label class="field-label">{{ 'ROUTINES.ETIQUETAS' | translate }}</label>
-              <div class="input-wrapper">
-                <ion-icon name="bookmarks-outline" class="input-icon"></ion-icon>
-                <input type="text" class="input-field" [placeholder]="'ROUTINES.FUERZA_TREN_SUPERIOR' | translate" [(ngModel)]="tagsText" />
-              </div>
+        <section class="session-summary" *ngIf="exerciseCount > 0" [attr.aria-label]="'ROUTINES.RESUMEN_DE_LA_SESION' | translate">
+          <dl class="summary-stats">
+            <div>
+              <dt>{{ 'TRAINER_COMMON.EXERCISES' | translate }}</dt>
+              <dd>{{ exerciseCount }}</dd>
             </div>
-            <div class="field-pair-col">
-              <label class="field-label">{{ 'ROUTINES.EQUIPO' | translate }}</label>
-              <div class="input-wrapper">
-                <ion-icon name="barbell-outline" class="input-icon"></ion-icon>
-                <input type="text" class="input-field" [placeholder]="'ROUTINES.MANCUERNAS_BANCO' | translate" [(ngModel)]="equipmentText" />
-              </div>
+            <div>
+              <dt>{{ 'TRAINER_COMMON.SETS' | translate }}</dt>
+              <dd>{{ totalSets }}</dd>
             </div>
-          </div>
-        </div>
+            <div>
+              <dt>{{ 'ROUTINES.DURACION' | translate }}</dt>
+              <dd>≈ {{ estimatedMinutes }} <small>min</small></dd>
+            </div>
+          </dl>
 
-        <button type="button" class="submit-button" [disabled]="!canSave" (click)="save()" data-enter-submit-action="saveRoutine">
-          <span *ngIf="!isSaving">{{ 'COMMON.SAVE' | translate }}</span>
-          <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
-        </button>
-      </div>
-
-      <!-- Bloques -->
-      <div class="builder-main">
-        <div class="builder-section">
-          <div class="section-heading">
-            <span>{{ 'ROUTINES.CONTENIDO' | translate }}</span>
-          </div>
-
-          <p class="empty-hint" *ngIf="blocks.length === 0">
-            {{ 'ROUTINES.TODAVIA_NO_HAS_ANADIDO_NINGUN' | translate }}
+          <p class="summary-equipment" *ngIf="equipment.length">
+            <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+            <span class="visually-hidden">{{ 'ROUTINES.EQUIPO' | translate }}:</span>
+            <span>
+              <ng-container *ngFor="let item of equipment; let last = last">{{ item | translateDb }}<ng-container *ngIf="!last"> · </ng-container></ng-container>
+            </span>
           </p>
 
-          <div class="block-card" *ngFor="let block of blocks; trackBy: trackByIndex">
-            <button type="button" class="block-header" (click)="editBlockAlert(block)">
-              <div class="block-header-main">
-                <ion-icon name="layers-outline"></ion-icon>
-                <span class="block-name">{{ block.name || blockTypeLabels[block.type] }}</span>
-                <span class="block-type-badge">{{ blockTypeLabels[block.type] }}</span>
-                <ion-icon name="chevron-forward-outline" class="block-header-chevron"></ion-icon>
-              </div>
-              <div class="block-header-meta" *ngIf="block.rounds || block.restBetweenExercises || block.restBetweenRounds">
-                <span *ngIf="block.rounds">{{ block.rounds }} {{ 'ROUTINES.RONDAS' | translate }}</span>
-                <span *ngIf="block.restBetweenExercises">{{ 'ROUTINES.DESCANSO_EJERCICIOS' | translate }}: {{ block.restBetweenExercises }}s</span>
-                <span *ngIf="block.restBetweenRounds">{{ 'ROUTINES.DESCANSO_RONDAS' | translate }}: {{ block.restBetweenRounds }}s</span>
-              </div>
-            </button>
-
-            <div class="exercise-row" *ngFor="let ex of block.exercises; trackBy: trackByIndex">
-              <div class="exercise-row-header">
-                <span class="exercise-name">{{ ex.exercise?.name || ('TABLES.EXERCISE_DELETED' | translate) }}</span>
-                <button
-                  type="button"
-                  class="remove-exercise-btn"
-                  [attr.aria-label]="'ROUTINES.QUITAR_EJERCICIO' | translate"
-                  (click)="removeExercise(block, ex)"
-                >
-                  <ion-icon name="close-outline"></ion-icon>
-                </button>
-              </div>
-
-              <div class="scheme-fields" *ngIf="isSchemeNormal(ex.scheme)">
-                <label class="scheme-field">
-                  <span>{{ 'TRAINER_COMMON.SETS' | translate }}</span>
-                  <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
-                </label>
-                <label class="scheme-field">
-                  <span>{{ 'ROUTINES.REPS_MIN' | translate }}</span>
-                  <input type="number" min="0" [(ngModel)]="ex.scheme.repsMin" />
-                </label>
-                <label class="scheme-field">
-                  <span>{{ 'ROUTINES.REPS_MAX' | translate }}</span>
-                  <input type="number" min="0" [(ngModel)]="ex.scheme.repsMax" />
-                </label>
-                <label class="scheme-field">
-                  <span>{{ 'ROUTINES.RIR_MIN' | translate }}</span>
-                  <input type="number" min="-1" [(ngModel)]="ex.scheme.rirMin" />
-                </label>
-                <label class="scheme-field">
-                  <span>{{ 'ROUTINES.RIR_MAX' | translate }}</span>
-                  <input type="number" min="-1" [(ngModel)]="ex.scheme.rirMax" />
-                </label>
-              </div>
-
-              <div class="scheme-fields" *ngIf="isSchemeIsometric(ex.scheme)">
-                <label class="scheme-field">
-                  <span>{{ 'TRAINER_COMMON.SETS' | translate }}</span>
-                  <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
-                </label>
-                <label class="scheme-field scheme-field--wide">
-                  <span>{{ 'ROUTINES.TIEMPO' | translate }}</span>
-                  <input type="text" [placeholder]="'ROUTINES.EJ_30S' | translate" [(ngModel)]="ex.scheme.expectedTime" />
-                </label>
-              </div>
-
-              <div class="scheme-fields" *ngIf="isSchemeCardio(ex.scheme)">
-                <label class="scheme-field">
-                  <span>{{ 'TRAINER_COMMON.SETS' | translate }}</span>
-                  <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
-                </label>
-                <label class="scheme-field scheme-field--wide">
-                  <span>{{ 'ROUTINES.TIEMPO' | translate }}</span>
-                  <input type="text" [placeholder]="'ROUTINES.EJ_10MIN' | translate" [(ngModel)]="ex.scheme.expectedTime" />
-                </label>
-                <label class="scheme-field">
-                  <span>{{ 'ROUTINES.DISTANCIA_KM' | translate }}</span>
-                  <input type="number" min="0" [(ngModel)]="ex.scheme.expectedDistance" />
-                </label>
-              </div>
-
-              <p class="scheme-summary">{{ schemeSummary(ex.scheme) }}</p>
+          <ng-container *ngIf="muscleRows as rows">
+            <div class="summary-muscles" *ngIf="rows.length">
+              <span class="summary-label">{{ 'ROUTINES.SERIES_POR_GRUPO_MUSCULAR' | translate }}</span>
+              <ul>
+                <li *ngFor="let row of rows">
+                  <span class="muscle-name">{{ row.label }}</span>
+                  <span class="muscle-bar" aria-hidden="true"><span [style.width.%]="muscleBarWidth(row, rows)"></span></span>
+                  <span class="muscle-sets">{{ formatSets(row.sets) }}</span>
+                </li>
+              </ul>
             </div>
+          </ng-container>
+        </section>
 
-            <button type="button" class="add-exercise-btn" (click)="addExercise(block)">
-              <ion-icon name="add-outline"></ion-icon>
-              {{ 'ROUTINES.ANADIR_EJERCICIO' | translate }}
-            </button>
+        <button
+          type="button"
+          class="submit-button submit-button--sidebar"
+          [class.submit-button--clean]="!isNew && !isDirty && !isSaving"
+          [disabled]="isSaving || (!isNew && !isDirty)"
+          (click)="save()"
+          data-enter-submit-action="saveRoutine"
+        >
+          <ng-container *ngTemplateOutlet="saveLabel"></ng-container>
+        </button>
+      </aside>
+
+      <div class="builder-main">
+        <section class="session-notes">
+          <!-- Móvil: plegadas, para que los ejercicios queden a mano. -->
+          <button
+            type="button"
+            class="details-toggle notes-toggle"
+            [attr.aria-expanded]="notesOpen"
+            aria-controls="template-notes-body"
+            (click)="notesOpen = !notesOpen"
+          >
+            <span class="details-toggle-title">{{ 'ROUTINES.INDICACIONES_DE_LA_SESION' | translate }}</span>
+            <span class="details-toggle-summary">{{ notes || ('ROUTINES.SIN_INDICACIONES' | translate) }}</span>
+            <ion-icon [name]="notesOpen ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+          </button>
+          <div class="notes-body" id="template-notes-body" [class.notes-body--open]="notesOpen">
+            <label class="field-label" for="template-notes">
+              {{ 'ROUTINES.INDICACIONES_DE_LA_SESION' | translate }} <span class="field-label-note">{{ 'ROUTINES.LAS_VERA_EL_CLIENTE' | translate }}</span>
+            </label>
+            <textarea
+              id="template-notes"
+              class="builder-textarea"
+              rows="2"
+              maxlength="500"
+              [placeholder]="'ROUTINES.INDICACIONES_DE_LA_SESION_PLACEHOLDER' | translate"
+              [(ngModel)]="notes"
+            ></textarea>
           </div>
+        </section>
 
-          <button type="button" class="add-block-btn" (click)="addBlockAlert()">
-            <ion-icon name="add-circle-outline"></ion-icon>
-            {{ 'ROUTINES.ANADIR_BLOQUE' | translate }}
+        <div class="content-heading">
+          <h2>{{ 'TRAINER_COMMON.EXERCISES' | translate }}</h2>
+          <span *ngIf="exerciseCount > 0">{{ exerciseCount }} · {{ totalSets }} {{ 'ROUTINES.SERIES' | translate }}</span>
+          <button type="button" class="text-action toggle-all" *ngIf="canToggleAll" (click)="toggleAllSets()">
+            <ion-icon [name]="allCollapsed ? 'chevron-down-outline' : 'chevron-up-outline'" aria-hidden="true"></ion-icon>
+            {{ (allCollapsed ? 'ROUTINES.DESPLEGAR_TODO' : 'ROUTINES.PLEGAR_TODO') | translate }}
+          </button>
+        </div>
+
+        <div class="content-empty" *ngIf="exerciseCount === 0 && blocks.length === 0">
+          <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+          <h3>{{ 'ROUTINES.EMPIEZA_POR_LOS_EJERCICIOS' | translate }}</h3>
+          <p>{{ 'ROUTINES.EMPIEZA_POR_LOS_EJERCICIOS_HINT' | translate }}</p>
+          <button type="button" class="primary-action" (click)="addExercises()">
+            <ion-icon name="add" aria-hidden="true"></ion-icon>
+            {{ 'ROUTINES.ANADIR_EJERCICIOS' | translate }}
+          </button>
+          <button type="button" class="text-action" (click)="addBlock()">{{ 'ROUTINES.O_CREA_UN_BLOQUE' | translate }}</button>
+        </div>
+
+        <!-- Mismo orden que el Planificador (workout-blocks.util.ts): los
+             bloques, cada uno un contenedor del color de su tipo, y al final
+             los ejercicios sin agrupar. -->
+        <section
+          *ngFor="let block of blocks; trackBy: trackByUid"
+          class="workout-block workout-block--{{ block.type }}"
+          [attr.aria-label]="blockTitle(block)"
+        >
+          <button type="button" class="workout-block-header" (click)="editBlock(block)">
+            <span class="block-header-main">
+              <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+              <span class="block-name">{{ blockTitle(block) }}</span>
+              <span class="block-type-badge">{{ blockTypeLabels[block.type] }}</span>
+            </span>
+            <span class="block-header-meta" *ngIf="block.rounds || block.restBetweenExercises || block.restBetweenRounds">
+              <span *ngIf="block.rounds">{{ block.rounds }} {{ 'TABLES.BLOCK_ROUNDS' | translate }}</span>
+              <span *ngIf="block.restBetweenExercises">{{ 'TABLES.BLOCK_REST_BETWEEN_EXERCISES' | translate }}: {{ block.restBetweenExercises }}s</span>
+              <span *ngIf="block.restBetweenRounds">{{ 'TABLES.BLOCK_REST_BETWEEN_ROUNDS' | translate }}: {{ block.restBetweenRounds }}s</span>
+            </span>
+          </button>
+
+          <p class="block-empty" *ngIf="!block.exercises.length">{{ 'ROUTINES.BLOQUE_VACIO' | translate }}</p>
+
+          <ion-reorder-group
+            class="exercise-list"
+            [disabled]="block.exercises.length < 2"
+            (ionItemReorder)="onExercisesReordered(block, $any($event))"
+          >
+            <ng-container *ngFor="let ex of block.exercises; trackBy: trackByUid">
+              <ng-container *ngTemplateOutlet="exerciseCard; context: { $implicit: ex, list: block.exercises }"></ng-container>
+            </ng-container>
+          </ion-reorder-group>
+        </section>
+
+        <div class="ungrouped-header" *ngIf="blocks.length && ungrouped.length">{{ 'ROUTINES.SIN_AGRUPAR' | translate }}</div>
+        <ion-reorder-group
+          class="exercise-list"
+          [disabled]="ungrouped.length < 2"
+          (ionItemReorder)="onExercisesReordered('ungrouped', $any($event))"
+        >
+          <ng-container *ngFor="let ex of ungrouped; trackBy: trackByUid">
+            <ng-container *ngTemplateOutlet="exerciseCard; context: { $implicit: ex, list: ungrouped }"></ng-container>
+          </ng-container>
+        </ion-reorder-group>
+
+        <div class="content-actions" *ngIf="exerciseCount > 0 || blocks.length > 0">
+          <button type="button" class="add-exercise-button" (click)="addExercises()">
+            <ion-icon name="add" aria-hidden="true"></ion-icon>
+            {{ 'ROUTINES.ANADIR_EJERCICIOS' | translate }}
+          </button>
+          <button type="button" class="add-block-button" (click)="addBlock()">
+            <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+            {{ 'ROUTINES.NUEVO_BLOQUE' | translate }}
           </button>
         </div>
       </div>
     </div>
   </ng-container>
 </ion-content>
+
+<ion-footer class="builder-footer" *ngIf="state === 'loaded'">
+  <button
+    type="button"
+    class="submit-button"
+    [class.submit-button--clean]="!isNew && !isDirty && !isSaving"
+    [disabled]="isSaving || (!isNew && !isDirty)"
+    (click)="save()"
+  >
+    <ng-container *ngTemplateOutlet="saveLabel"></ng-container>
+  </button>
+</ion-footer>
+
+<ng-template #saveLabel>
+  <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+  <ng-container *ngIf="!isSaving">
+    <ng-container *ngIf="isNew">{{ 'ROUTINES.CREAR_PLANTILLA' | translate }}</ng-container>
+    <ng-container *ngIf="!isNew && isDirty">{{ 'ROUTINES.GUARDAR_CAMBIOS' | translate }}</ng-container>
+    <ng-container *ngIf="!isNew && !isDirty">
+      <ion-icon name="checkmark" aria-hidden="true"></ion-icon>
+      {{ 'ROUTINES.GUARDADO' | translate }}
+    </ng-container>
+  </ng-container>
+</ng-template>
+
+<!-- Tarjeta de ejercicio: la del Planificador (workout.component) sin peso,
+     que una plantilla no pauta. -->
+<ng-template #exerciseCard let-ex let-list="list">
+  <div class="exercise-card">
+    <div class="exercise-info" (click)="openExercisePanel(ex)">
+      <ion-reorder class="exercise-drag-handle" *ngIf="list.length > 1" (click)="$event.stopPropagation()">
+        <ion-icon name="reorder-two-outline" [attr.aria-label]="'ROUTINES.ARRASTRA_PARA_ORDENAR' | translate"></ion-icon>
+      </ion-reorder>
+      <button type="button" class="exercise-name" [class.exercise-name--missing]="!ex.exercise">
+        <span class="exercise-name-text">
+          {{ ex.exercise ? (ex.exercise.name | translateDb) : ('TABLES.EXERCISE_DELETED' | translate) }}
+          <span class="retired-tag" *ngIf="ex.exercise?.deletedAt">{{ 'ROUTINES.RETIRADO' | translate }}</span>
+        </span>
+        <ion-icon name="chevron-forward-outline" class="exercise-name-chevron" aria-hidden="true"></ion-icon>
+      </button>
+      <div class="exercise-icons" (click)="$event.stopPropagation()">
+        <button
+          type="button"
+          class="icon-button sets-toggle"
+          *ngIf="ex.sets.length"
+          [attr.aria-expanded]="!isCollapsed(ex)"
+          [attr.aria-controls]="'sets-' + ex.uid"
+          [attr.aria-label]="(isCollapsed(ex) ? 'ROUTINES.DESPLEGAR_SERIES' : 'ROUTINES.PLEGAR_SERIES') | translate"
+          (click)="toggleSets(ex)"
+        >
+          <ion-icon [name]="isCollapsed(ex) ? 'chevron-down-outline' : 'chevron-up-outline'" aria-hidden="true"></ion-icon>
+        </button>
+        <button
+          type="button"
+          class="icon-button"
+          *ngIf="blocks.length"
+          [attr.aria-label]="'ROUTINES.MOVER_A_BLOQUE' | translate"
+          (click)="moveToBlock(ex)"
+        >
+          <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <button
+          type="button"
+          class="icon-button"
+          [attr.aria-label]="'ROUTINES.QUITAR_EJERCICIO' | translate"
+          (click)="confirmRemoveExercise(ex)"
+        >
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="no-sets" *ngIf="!ex.sets.length">
+      <button type="button" class="add-sets-button" (click)="openExercisePanel(ex)">
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+        <span>{{ 'TABLES.ADD_SERIES' | translate }}</span>
+      </button>
+    </div>
+
+    <!-- Plegado: una línea con el resumen de sus series; tocarla las despliega. -->
+    <button type="button" class="sets-summary" *ngIf="ex.sets.length && isCollapsed(ex)" (click)="toggleSets(ex)">
+      <ng-container *ngIf="overview(ex) as o">
+        <span class="sets-summary-count">{{ ex.sets.length }} {{ (ex.sets.length === 1 ? 'TRAINER_COMMON.PL_SET_ONE' : 'TRAINER_COMMON.PL_SET_MANY') | translate }}</span>
+        <span *ngIf="o.reps">{{ o.reps }} {{ 'ROUTINES.REPS' | translate }}</span>
+        <span *ngIf="o.rir">RIR {{ o.rir }}</span>
+        <span *ngIf="o.time">{{ o.time }}</span>
+        <span class="fail-label" *ngIf="o.failure" [attr.title]="'TABLES.FAIL' | translate">F</span>
+        <span class="intensity-drop" *ngIf="o.drop" [attr.title]="'TABLES.DROP_SET' | translate">DS</span>
+        <span class="intensity-rp" *ngIf="o.restPause">RP</span>
+      </ng-container>
+    </button>
+
+    <div class="sets-body" [id]="'sets-' + ex.uid" [hidden]="isCollapsed(ex)">
+    <table class="set-table" *ngIf="ex.sets.length">
+      <thead>
+        <tr>
+          <th scope="col" class="col-set">{{ 'TABLES.SERIES' | translate }}</th>
+          <ng-container *ngIf="ex.kind === 'strength'">
+            <th scope="col">{{ 'TABLES.REPS' | translate }}</th>
+            <th scope="col">{{ 'TABLES.RIR' | translate }}</th>
+            <th scope="col">{{ 'TABLES.REST_LABEL' | translate }}</th>
+          </ng-container>
+          <ng-container *ngIf="ex.kind !== 'strength'">
+            <th scope="col">{{ 'TABLES.TIME_LABEL' | translate }}</th>
+            <th scope="col" *ngIf="ex.kind === 'cardio'">{{ 'TABLES.DISTANCE_LABEL' | translate }}</th>
+          </ng-container>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let set of ex.sets; let i = index; trackBy: trackByIndex">
+          <td class="col-set">
+            <button type="button" class="set-index" [attr.aria-label]="'ROUTINES.EDITAR_SERIE' | translate: { n: i + 1 }" (click)="openSetPanel(ex, i, $event)">
+              {{ i + 1 }}
+            </button>
+          </td>
+
+          <ng-container *ngIf="ex.kind === 'strength'">
+            <td class="editable-cell" [class.editing]="isEditing(ex, i, 'reps')" (click)="startEdit(ex, i, 'reps', $event)">
+              <ng-container *ngIf="!isEditing(ex, i, 'reps')">{{ formatRange(set.repsMin, set.repsMax) }}</ng-container>
+              <div class="inline-range" *ngIf="isEditing(ex, i, 'reps')" (click)="$event.stopPropagation()">
+                <input type="text" inputmode="numeric" class="inline-input" data-enter-submit-ignore [id]="cellId(ex, i, 'reps', 'min')"
+                  [attr.aria-label]="('TABLES.REPS' | translate) + ' ' + ('TABLES.RANGE_MIN' | translate)"
+                  [placeholder]="'TABLES.RANGE_MIN' | translate" [(ngModel)]="editMin"
+                  (keydown.enter)="commitEdit()" (keydown.escape)="cancelEdit()" (blur)="onRangeBlur(ex, i, 'reps')" />
+                <span class="inline-range-sep" aria-hidden="true">–</span>
+                <input type="text" inputmode="numeric" class="inline-input" data-enter-submit-ignore [id]="cellId(ex, i, 'reps', 'max')"
+                  [attr.aria-label]="('TABLES.REPS' | translate) + ' ' + ('TABLES.RANGE_MAX' | translate)"
+                  [placeholder]="'TABLES.RANGE_MAX' | translate" [(ngModel)]="editMax"
+                  (keydown.enter)="commitEdit()" (keydown.escape)="cancelEdit()" (blur)="onRangeBlur(ex, i, 'reps')" />
+              </div>
+            </td>
+
+            <td class="editable-cell" [class.editing]="isEditing(ex, i, 'rir')" (click)="startEdit(ex, i, 'rir', $event)">
+              <ng-container *ngIf="!isEditing(ex, i, 'rir')">
+                <span *ngIf="isFailure(set)" class="fail-label" [attr.title]="'TABLES.FAIL' | translate">F</span>
+                <span *ngIf="!isFailure(set) && (set.rirMin !== null || set.rirMax !== null)">{{ formatRange(set.rirMin, set.rirMax) }}</span>
+                <span *ngIf="set.drop" class="intensity-drop" [attr.title]="'TABLES.DROP_SET' | translate">DS</span>
+                <span *ngIf="set.restPause !== null" class="intensity-rp">RP {{ set.restPause }} s</span>
+                <span *ngIf="!isFailure(set) && set.rirMin === null && set.rirMax === null && !set.drop && set.restPause === null">—</span>
+              </ng-container>
+              <div class="inline-range" *ngIf="isEditing(ex, i, 'rir')" (click)="$event.stopPropagation()">
+                <input type="text" inputmode="numeric" class="inline-input" data-enter-submit-ignore [id]="cellId(ex, i, 'rir', 'min')"
+                  [attr.aria-label]="('TABLES.RIR' | translate) + ' ' + ('TABLES.RANGE_MIN' | translate)"
+                  [placeholder]="'TABLES.RANGE_MIN' | translate" [(ngModel)]="editMin"
+                  (keydown.enter)="commitEdit()" (keydown.escape)="cancelEdit()" (blur)="onRangeBlur(ex, i, 'rir')" />
+                <span class="inline-range-sep" aria-hidden="true">–</span>
+                <input type="text" inputmode="numeric" class="inline-input" data-enter-submit-ignore [id]="cellId(ex, i, 'rir', 'max')"
+                  [attr.aria-label]="('TABLES.RIR' | translate) + ' ' + ('TABLES.RANGE_MAX' | translate)"
+                  [placeholder]="'TABLES.RANGE_MAX' | translate" [(ngModel)]="editMax"
+                  (keydown.enter)="commitEdit()" (keydown.escape)="cancelEdit()" (blur)="onRangeBlur(ex, i, 'rir')" />
+              </div>
+            </td>
+
+            <td class="editable-cell" [class.editing]="isEditing(ex, i, 'rest')" (click)="startEdit(ex, i, 'rest', $event)">
+              <ng-container *ngIf="!isEditing(ex, i, 'rest')">{{ set.restSeconds !== null ? set.restSeconds + 's' : '—' }}</ng-container>
+              <input *ngIf="isEditing(ex, i, 'rest')" type="text" inputmode="numeric" class="inline-input" data-enter-submit-ignore placeholder="90"
+                [id]="cellId(ex, i, 'rest')" [attr.aria-label]="'TABLES.REST_LABEL' | translate" [(ngModel)]="editValue"
+                (click)="$event.stopPropagation()" (keydown.enter)="commitEdit()" (keydown.escape)="cancelEdit()" (blur)="commitEdit()" />
+            </td>
+          </ng-container>
+
+          <ng-container *ngIf="ex.kind !== 'strength'">
+            <td>{{ set.time || '—' }}</td>
+            <td *ngIf="ex.kind === 'cardio'">{{ set.distance ? set.distance + ' KM' : '—' }}</td>
+          </ng-container>
+        </tr>
+      </tbody>
+    </table>
+
+    <button type="button" class="quick-add-set-btn" *ngIf="ex.kind === 'strength' && ex.sets.length" (click)="quickAddSet(ex)">
+      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'TABLES.ADD_SET_QUICK' | translate }}</span>
+    </button>
+
+    <p class="exercise-note" *ngIf="ex.notes">
+      <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+      <span>{{ ex.notes }}</span>
+    </p>
+    </div>
+  </div>
+</ng-template>

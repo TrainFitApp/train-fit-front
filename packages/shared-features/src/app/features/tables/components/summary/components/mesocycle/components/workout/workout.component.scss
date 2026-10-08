@@ -1213,3 +1213,37 @@ ion-buttons ion-button {
     cursor: default;
   }
 }
+
+// Planificador (entrenadores, con una mano en el gimnasio): filas de al menos
+// 44 px y texto legible. Mismo tamaño que la tabla de las plantillas de
+// entrenamiento (routines/routine-builder). La rutina del cliente no cambia.
+.previous-session-table.planner-set-table {
+  font-size: 13px;
+
+  th {
+    font-size: 11px;
+  }
+
+  td,
+  .series-row td {
+    height: 44px;
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+
+  .tf-set-index {
+    min-width: 44px;
+  }
+
+  // Lo que se edita en la celda se ve tocable también sin ratón.
+  .tf-editable-cell:not(.tf-editing) {
+    text-decoration: underline dotted;
+    text-decoration-color: var(--ion-color-medium);
+    text-underline-offset: 4px;
+  }
+
+  .tf-inline-input {
+    min-height: 36px;
+    font-size: 13px;
+  }
+}

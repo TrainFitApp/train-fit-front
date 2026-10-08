@@ -20,16 +20,17 @@
   color: var(--tf-text-muted);
 }
 
-// --- Crear plantilla: input + CTA en una sola fila en pantallas anchas
-// (mismo criterio que .search-bar en clients.page.scss), apiladas en móvil ---
-.create-bar {
+// --- Buscar + crear: en una fila en pantallas anchas (mismo criterio que
+// .search-bar en clients.page.scss), apiladas en móvil ---
+.toolbar {
   display: flex;
   flex-direction: column;
   gap: var(--tf-space-3);
-  margin-bottom: var(--tf-space-5);
+  margin-bottom: var(--tf-space-3);
 
   @media (min-width: 640px) {
     flex-direction: row;
+    justify-content: flex-end;
   }
 }
 
@@ -57,7 +58,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   white-space: nowrap;
+
+  ion-icon {
+    font-size: 18px;
+  }
 
   @media (max-width: 639px) {
     width: 100%;
@@ -84,8 +90,8 @@
 }
 
 // --- Vacío de página completa — mismo patrón que clients/dashboard.page.scss
-// (icono + título + texto). Sin CTA propio aquí: el formulario de crear ya
-// está justo encima, así que un botón duplicado sería ruido. ---
+// (icono + título + texto). Sin CTA propio: "Nueva plantilla" está justo
+// encima. ---
 .state-message {
   display: flex;
   flex-direction: column;
@@ -111,8 +117,50 @@
   p {
     font-size: 0.9rem;
     line-height: 1.5;
-    max-width: 34ch;
+    max-width: 40ch;
     margin: 0;
+  }
+
+  .state-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: var(--tf-space-3);
+    padding: var(--tf-space-3) var(--tf-space-4);
+    max-width: 46ch;
+    background: var(--tf-surface-2);
+    border-radius: var(--tf-radius-md);
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+    text-align: left;
+
+    ion-icon {
+      flex-shrink: 0;
+      margin: 1px 0 0;
+      font-size: 18px;
+      color: var(--tf-accent);
+    }
+  }
+
+  &--compact {
+    padding-top: var(--tf-space-6);
+  }
+}
+
+.text-action {
+  min-height: var(--tf-touch-min);
+  padding: 0 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--tf-accent-soft);
   }
 }
 
@@ -126,38 +174,78 @@
   gap: var(--tf-space-4);
 }
 
-// Tarjeta clicable completa (abre el builder) — cursor, hover y feedback de
-// pulsación explícitos, más entrada escalonada (mismo patrón que
-// .client-card en clients.page.scss), respetando prefers-reduced-motion.
+// Tarjeta: la parte de arriba es un botón que abre el builder (hover y
+// pulsación explícitos, entrada escalonada como .client-card en
+// clients.page.scss); las acciones van aparte, sin botones anidados.
 .template-card {
-  flex: 1 1 260px;
+  flex: 1 1 280px;
   max-width: 420px;
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
   padding: var(--tf-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--tf-space-2);
+  gap: var(--tf-space-3);
   background: var(--tf-surface-2);
-  cursor: pointer;
-  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
-    transform var(--tf-duration-fast) var(--tf-ease-out);
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
   @include tf-card-in-stagger;
 
   &:hover {
     border-color: var(--tf-border-strong);
   }
+}
+
+.template-card-open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  flex: 1;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.99);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 4px;
+    border-radius: 6px;
   }
 }
 
-.template-card-header {
+.template-preview {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--tf-space-2);
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--tf-space-2) 0;
+  border-top: 1px solid var(--tf-border-subtle);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &--empty {
+    font-size: var(--tf-font-size-sm);
+    font-style: italic;
+    color: var(--tf-text-muted);
+  }
+}
+
+.template-preview-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+}
+
+.template-preview-more {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
 }
 
 .template-name {
@@ -166,23 +254,28 @@
   color: var(--tf-text);
 }
 
-.template-level {
-  flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--tf-accent-text);
-  background: var(--tf-accent-soft);
-  border: 1px solid var(--tf-accent-soft-border);
-  border-radius: var(--tf-radius-sm);
-  padding: 2px 8px;
+.template-equipment {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--tf-text-muted);
+  }
 }
 
 .template-description {
-  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   font-size: var(--tf-font-size-sm);
-  color: var(--tf-text-secondary);
+  color: var(--tf-text-muted);
 }
 
 .template-tags {
@@ -201,15 +294,16 @@
 
 .template-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--tf-space-3);
   font-size: var(--tf-font-size-sm);
   color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .template-card-actions {
   display: flex;
   gap: var(--tf-space-2);
-  margin-top: var(--tf-space-2);
 }
 
 // Alto/radio alineados con las acciones secundarias ya establecidas en
@@ -218,7 +312,7 @@
 .secondary-button,
 .danger-button {
   flex: 1;
-  height: 38px;
+  height: var(--tf-touch-min);
   border-radius: 10px;
   padding: 0 15px;
   font-size: var(--tf-font-size-sm);
@@ -227,7 +321,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  font-family: inherit;
   transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
 
   &:active {
     transform: scale(0.97);

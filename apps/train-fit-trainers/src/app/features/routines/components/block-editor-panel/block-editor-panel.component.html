@@ -1,0 +1,41 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ (isNew ? 'ROUTINES.NUEVO_BLOQUE' : 'ROUTINES.EDITAR_BLOQUE') | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="panel-content" [appSubmitOnEnter]="saveButton">
+  <span class="field-label" id="block-type-label">{{ 'ROUTINES.TIPO_DE_BLOQUE' | translate }}</span>
+  <div class="type-list" role="radiogroup" aria-labelledby="block-type-label">
+    <button
+      type="button"
+      role="radio"
+      class="type-option"
+      *ngFor="let type of types"
+      [class.type-option--selected]="draft.type === type"
+      [attr.aria-checked]="draft.type === type"
+      (click)="selectType(type)"
+    >
+      <span class="type-option-title">{{ labels[type] }}</span>
+      <span class="type-option-hint">{{ hints[type] }}</span>
+    </button>
+  </div>
+
+  <label class="field-label" for="block-name">{{ 'TRAINER_COMMON.NAME' | translate }} <span class="optional">{{ 'TRAINER_COMMON.OPTIONAL' | translate }}</span></label>
+  <input id="block-name" type="text" class="text-field" maxlength="100" [placeholder]="labels[draft.type]" [(ngModel)]="draft.name" />
+</ion-content>
+
+<ion-footer class="panel-footer">
+  <button type="button" class="delete-button" *ngIf="!isNew" (click)="remove()">
+    <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+    {{ 'ROUTINES.BORRAR_BLOQUE' | translate }}
+  </button>
+  <button #saveButton type="button" class="confirm-button" (click)="save()">
+    {{ (isNew ? 'ROUTINES.CREAR_BLOQUE' : 'COMMON.SAVE') | translate }}
+  </button>
+</ion-footer>

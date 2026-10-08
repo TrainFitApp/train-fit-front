@@ -28,6 +28,10 @@ export class ManageSetComponent implements OnInit, OnDestroy {
   // en este mismo panel (editar otra serie con "Serie objetivo" ya abierto
   // cambia los valores en vez de apilar otro panel encima).
   public registerLoader?: (load: (set?: Set) => void) => void;
+  // Plantillas de entrenamiento (routines/): la serie es una pauta para
+  // cualquier cliente, sin peso ni velocidad (WorkoutTemplateSet no los
+  // guarda). Se ocultan esos campos para no pedir algo que se perdería.
+  public templateMode = false;
   public addedCount = 0;
   public justAdded = false;
   public justUpdated = false;

@@ -1,0 +1,300 @@
+@import '../../../../../theme/buttons';
+
+ion-header ion-toolbar {
+  --background: var(--tf-bg);
+
+  ion-button {
+    @include tf-icon-button;
+  }
+}
+
+.panel-title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.panel-content {
+  --background: var(--tf-bg);
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-2);
+  --padding-bottom: var(--tf-space-6);
+}
+
+.panel-section {
+  margin-top: var(--tf-space-5);
+
+  &:first-child {
+    margin-top: var(--tf-space-2);
+  }
+}
+
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.section-title {
+  display: block;
+  margin: 0 0 var(--tf-space-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.section-count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+// --- Lista de series: filas separadas por una línea, como en "Configurar
+// ejercicio" del Planificador ---
+
+.set-list {
+  display: block;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  overflow: hidden;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 4px;
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
+  transition: background var(--tf-duration-slow) var(--tf-ease-out);
+
+  &:first-child {
+    border-top: none;
+  }
+
+  &--highlight {
+    background: var(--tf-accent-soft);
+  }
+}
+
+.set-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: var(--tf-touch-min);
+  color: var(--tf-text-faint);
+  font-size: 18px;
+  cursor: grab;
+}
+
+.set-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  padding: 8px 6px 8px 10px;
+  background: transparent;
+  border: none;
+  color: var(--tf-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  .set-handle + & {
+    padding-left: 0;
+  }
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+    border-radius: 8px;
+  }
+}
+
+.set-number {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--tf-surface-3);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--tf-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.set-values {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.set-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  small {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+  }
+}
+
+.set-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+// Mismos colores que el Planificador (workout.component.scss): fallo
+// naranja, drop set rojo y rest-pause azul.
+.set-badge {
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  &--failure {
+    color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+  }
+
+  &--drop {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  &--rp {
+    color: #2563eb;
+    background: rgba(59, 130, 246, 0.1);
+  }
+}
+
+.set-rest {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: var(--tf-touch-min);
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: var(--tf-text-muted);
+  font-size: 18px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-text);
+    background: var(--tf-surface-3);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+  }
+}
+
+.empty-sets {
+  margin: 0 0 var(--tf-space-2);
+  font-size: 0.84rem;
+  color: var(--tf-text-muted);
+}
+
+.add-set-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--tf-touch-min);
+  margin-top: var(--tf-space-2);
+  background: transparent;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: 10px;
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.note-field {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  resize: vertical;
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.panel-footer {
+  padding: 12px var(--tf-space-4);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border);
+}
+
+.confirm-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  font-size: 0.95rem;
+}
