@@ -193,17 +193,17 @@
   }
 }
 
+// Mismo fondo y texto que tf-gradient-button (theme/_buttons.scss): un solo
+// botón primario en toda la app, aunque este viva en el sistema de
+// jerarquía en vez del de componentes. Sin cambio de fondo al hover —
+// tf-btn-base ya da el feedback de pulsación con el transform.
 @mixin tf-btn-primary {
   @include tf-btn-base;
 
   border: 1px solid transparent;
-  background: var(--tf-accent);
-  color: var(--tf-accent-contrast);
+  background: var(--tf-cta-bg);
+  color: var(--tf-cta-contrast);
   font-weight: var(--tf-weight-value);
-
-  &:hover:not(:disabled) {
-    background: var(--tf-accent-text);
-  }
 }
 
 @mixin tf-btn-secondary {
