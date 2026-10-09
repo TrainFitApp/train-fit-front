@@ -340,6 +340,22 @@ test('una propuesta caducada o rechazada no cambia nada y exige revisarla de nue
   h.page.ngOnDestroy();
 });
 
+test('si el sistema de pagos rechaza un cambio o una cancelación se dice que no ha cambiado nada', () => {
+  const h = harness({ entitlements: managed(), plans: catalog() });
+  h.page.ionViewWillEnter(); h.page.selectTier('professional'); h.page.submitSelection();
+  h.api.changePlan = () => throwError(() => ({ status: 503, error: { code: 'CHANGE_REJECTED' } }));
+  h.page.confirmPlanChange();
+  assert.match(h.page.dialogError, /no ha aceptado el cambio.*no se ha cobrado nada/);
+  assert.equal(h.page.entitlements.tier, 'starter', 'no se presenta como aplicado');
+  assert.equal(h.page.feedback, '');
+  h.page.closeDialog();
+  h.api.cancel = () => throwError(() => ({ status: 503, error: { code: 'CONTROL_REJECTED' } }));
+  h.page.openManagementDialog('cancel'); h.page.confirmManagementAction();
+  assert.match(h.page.dialogError, /no ha aceptado la operación/);
+  assert.equal(h.page.entitlements.cancelAtPeriodEnd, false);
+  h.page.ngOnDestroy();
+});
+
 test('reducir por debajo de la cartera no se bloquea: avisa de cuántos quedarán en solo lectura', () => {
   const h = harness({ entitlements: managed(view('starter', 'monthly', 10), { seats: seatsOf(30, 28, 1) }), plans: catalog() });
   h.page.ionViewWillEnter();

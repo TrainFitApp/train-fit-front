@@ -91,6 +91,13 @@ const ERROR_MESSAGES: Record<string, string> = {
   SEAT_NOT_OWNED: 'Alguno de los clientes elegidos ya no está en tu cartera. Actualiza la página.',
   SEAT_CHANGE_LOCKED: 'Ya cambiaste tus clientes activos hace menos de 30 días.',
   CLIENT_READ_ONLY: 'Ese cliente está en solo lectura por el cupo de tu plan.',
+  // Stripe rechazó la operación sin aplicarla: nada ha cambiado y se puede volver a intentar.
+  CHECKOUT_REJECTED: 'No se ha podido abrir la página de pago. No se ha cobrado nada; inténtalo de nuevo o escríbenos.',
+  CUSTOMER_REJECTED: 'No se ha podido preparar tu cuenta de pago. No se ha cobrado nada; inténtalo de nuevo o escríbenos.',
+  CHANGE_REJECTED: 'El sistema de pagos no ha aceptado el cambio. Tu plan actual se mantiene y no se ha cobrado nada.',
+  CONTROL_REJECTED: 'El sistema de pagos no ha aceptado la operación. Tu suscripción no ha cambiado.',
+  CANCELLATION_SCHEDULED: 'Tu suscripción no se va a renovar. Mantenla antes de cambiar de plan.',
+  BILLING_UNAVAILABLE: 'No hemos podido contactar con el sistema de pagos. Inténtalo de nuevo en unos minutos.',
 };
 localizeRecord(ERROR_MESSAGES, 'SUBSCRIPTION.ERRORS');
 
