@@ -62,13 +62,14 @@ function harness(items = [notification('one'), notification('two')]) {
   // Las dependencias van por POSICIÓN: el orden es el del constructor de
   // CoachPage (router, professionalsApi, coachDashboardApi, notificationsApi,
   // habitsService, coachService, notificationsService, onboardingService,
-  // navigationService, ionicUtilService, translate). Añadir una dependencia
-  // nueva en medio desplaza todo lo de abajo — ver el assert de más abajo,
-  // que lo detecta.
+  // navigationService, ionicUtilService, modalController, translate). Añadir
+  // una dependencia nueva en medio desplaza todo lo de abajo — ver el assert
+  // de más abajo, que lo detecta.
   const page = new CoachPage(
     { navigate: (...args) => { calls.navigate.push(args); return Promise.resolve(true); } },
     {}, {}, api, {}, {}, badge, {}, {},
     { showErrorToast: (...args) => { calls.errors.push(args); } },
+    {},
     { instant: (key) => key }
   );
   // 2026-10 — CoachPage ganó `translate` como 10.º parámetro y este harness
@@ -87,7 +88,7 @@ function harness(items = [notification('one'), notification('two')]) {
     typeof page.translate?.instant,
     'function',
     'El constructor de CoachPage ha cambiado de orden: translate ya no cae en ' +
-      'la posición 11. Reordena los dobles de arriba.'
+      'la posición 12. Reordena los dobles de arriba.'
   );
   page.notificationsState = 'loaded';
   page.notifications = [...items];
