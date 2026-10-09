@@ -27,7 +27,10 @@
       "MEAL_PRESCRIBED": "New prescribed meal: {{name}}",
       "FORM_CHECK_REVIEWED": "Reviewed your video",
       "FORM_CHECK_REVIEWED_NAMED": "Reviewed your {{name}} video",
-      "DEFAULT": "New activity"
+      "DEFAULT": "New activity",
+      "ROUTINE_SCHEDULED": "Routine “{{name}}” from {{date}}",
+      "DIET_PHASE_ASSIGNED": "New diet plan “{{name}}” from {{date}}",
+      "SUPPLEMENT_ASSIGNED": "New supplement: {{name}}"
     }
   },
   "ACTIONS": {
@@ -2890,7 +2893,9 @@
     "OVERWRITE": "What you already sent will be updated. Save the changes?",
     "UPDATE": "Update",
     "SENT_TO": "Check-in sent to {{name}}",
-    "SUBMIT_ERROR": "The check-in could not be sent"
+    "SUBMIT_ERROR": "The check-in could not be sent",
+    "ANSWERED_READONLY": "Already sent. While it's open you can correct your answer.",
+    "EDIT_ANSWER": "Edit answer"
   },
   "NUTRITION_PREFERENCES": {
     "TITLE": "My preferences",

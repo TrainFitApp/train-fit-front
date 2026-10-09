@@ -371,6 +371,14 @@ export class ClientDetailApiService {
     return this.http.post<TrainerTask>(`${this.base(clientId)}/tasks`, task);
   }
 
+  public updateTask(
+    clientId: string,
+    taskId: string,
+    task: { label?: string; target: number; targetMax?: number | null; unit: string }
+  ): Observable<TrainerTask> {
+    return this.http.put<TrainerTask>(`${this.base(clientId)}/tasks/${taskId}`, task);
+  }
+
   public deactivateTask(clientId: string, taskId: string): Observable<unknown> {
     return this.http.delete(`${this.base(clientId)}/tasks/${taskId}`);
   }

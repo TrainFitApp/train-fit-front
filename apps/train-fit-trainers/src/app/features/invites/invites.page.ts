@@ -32,6 +32,7 @@ import {
   cleanCustomQuestion,
   customQuestionTypeLabel,
   customQuestionsError,
+  settleDraftQuestion,
   newCustomQuestion,
 } from '../../shared/components/custom-question-editor/custom-question-editor.component';
 
@@ -540,6 +541,7 @@ export class InvitesPage implements OnInit {
   public async submit(): Promise<void> {
     if (this.isSending) return;
     this.commitDraft();
+    if (!this.settlePendingQuestion()) return;
     this.emailsTouched = true;
     const entries = this.sendableEntries;
     if (!this.hasScopeSelected || this.hasInvalidEmails || !entries.length) {
@@ -758,6 +760,22 @@ export class InvitesPage implements OnInit {
 
   public get canAddDraftQuestion(): boolean {
     return !!this.draftQuestion?.label.trim() && !this.draftQuestionError;
+  }
+
+  // Pregunta redactada sin pulsar «AÑADIR»: se añade al enviar; si no es
+  // válida, se avisa y no sale ninguna invitación (antes se perdía).
+  private settlePendingQuestion(): boolean {
+    const settled = settleDraftQuestion(this.draftQuestion, this.customQuestions);
+    this.customQuestions = settled.questions;
+    this.draftQuestion = settled.draft;
+    if (!settled.error) return true;
+    this.ionicUtilService.showToast({
+      message: this.translate.instant('INVITES.PREGUNTA_SIN_ANADIR', {
+        error: this.translate.instant(settled.error.key, settled.error.params),
+      }),
+      duration: 4000,
+    });
+    return false;
   }
 
   // Una pregunta recién creada sale marcada: se envía en esta invitación.

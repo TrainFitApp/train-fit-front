@@ -9,6 +9,16 @@ import { MealService } from 'src/app/core/services/meal/meal.service';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 
+// Los nutrientes se guardan en gramos por 100 g (como en el formulario de
+// producto, add-product.page.ts#toDisplayNutritionValue): se pintan en su
+// unidad. Antes salían los gramos con la etiqueta «mg» (avena 30 g: «Calcio
+// 0,02 mg» en vez de 15 mg), distinto del constructor de dietas.
+const GRAMS_PER_UNIT: Record<string, number> = { g: 1, mg: 1000, µg: 1000000 };
+
+export function gramsToUnit(grams: number, unit: string): number {
+  return grams * (GRAMS_PER_UNIT[unit] ?? 1);
+}
+
 interface NutritionRow {
   label: string;
   value: number;
@@ -68,6 +78,9 @@ const EXTRA_NUTRITION_FIELDS: Array<[keyof CustomProduct, string, string]> = [
 // tiene cargado el CustomProduct/CustomRecipe y, para la cantidad, escribe
 // por la vía controlada del backend (setCustomProductQuantity /
 // setCustomRecipeQuantity, nunca assertMealEditable).
+// Rol con el que se cierra la vista tras guardar la cantidad consumida.
+export const PAUTADO_QUANTITY_SAVED = 'quantity-saved';
+
 @Component({
   selector: 'app-pautado-item-view',
   templateUrl: './pautado-item-view.component.html',
@@ -155,7 +168,7 @@ export class PautadoItemViewComponent implements OnInit {
   private buildProductExtraNutrition(product: CustomProduct): NutritionRow[] {
     const rows: NutritionRow[] = [];
     for (const [field, labelKey, unit] of EXTRA_NUTRITION_FIELDS) {
-      const value = this.customProductService.getCustomProductInfo(product, field as string);
+      const value = gramsToUnit(this.customProductService.getCustomProductInfo(product, field as string), unit);
       if (!value) continue;
       rows.push({ label: this.translate.instant(labelKey), value, unit });
     }
@@ -180,7 +193,7 @@ export class PautadoItemViewComponent implements OnInit {
           sum + this.customProductService.getCustomProductInfo(ingredient, field as string),
         0
       );
-      const value = rawTotal * portionRatio;
+      const value = gramsToUnit(rawTotal * portionRatio, unit);
       if (!value) continue;
       rows.push({ label: this.translate.instant(labelKey), value, unit });
     }
@@ -251,8 +264,9 @@ export class PautadoItemViewComponent implements OnInit {
         // vive fuera del modal.
         //
         // Por eso tampoco se recalculan aquí macros/extraNutrition: eran
-        // para repintar esta vista, que deja de estar delante.
-        this.dismiss();
+        // para repintar esta vista, que deja de estar delante. Quien la abrió
+        // sí recalcula los totales del día al ver PAUTADO_QUANTITY_SAVED.
+        this.modalController.dismiss(quantity, PAUTADO_QUANTITY_SAVED);
       },
       error: () => {
         this.saving = false;

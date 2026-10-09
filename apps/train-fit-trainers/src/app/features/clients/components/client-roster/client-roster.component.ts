@@ -519,17 +519,26 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
 
   // El peso se muestra con signo explícito: "-2 kg" y "+2 kg" son noticias
   // opuestas y el signo es lo primero que se lee.
+  // Con una sola medida no hay variación: se enseña el peso (sin signo).
   public weightLabel(row: RosterClient): string {
     if (!row.weightChange) return '—';
-    const { absolute } = row.weightChange;
+    const { absolute, to } = row.weightChange;
+    if (absolute === null) return `${formatEs(to.weight)} kg`;
     const sign = absolute > 0 ? '+' : '';
     return `${sign}${formatEs(absolute)} kg`;
   }
 
   public weightDetail(row: RosterClient): string {
     if (!row.weightChange) return this.translate.instant('CLIENTS.SIN_PESO_REGISTRADO_EN_DIAS', { periodDays: this.periodDays });
-    const { from, to, measurements } = row.weightChange;
-    return `${formatEs(from.weight)} → ${formatEs(to.weight)} kg · ${measurements} mediciones`;
+    const { from, to, measurements, absolute } = row.weightChange;
+    if (absolute === null) {
+      return this.translate.instant('CLIENTS.UNA_SOLA_MEDIDA_EN_DIAS', { weight: formatEs(to.weight), periodDays: this.periodDays });
+    }
+    return this.translate.instant('CLIENTS.VARIACION_DE_PESO_DETALLE', {
+      from: formatEs(from.weight),
+      to: formatEs(to.weight),
+      count: measurements,
+    });
   }
 
   public checkinLabel(row: RosterClient): string {

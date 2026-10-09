@@ -3897,3 +3897,11 @@
   font: inherit; font-weight: 600; cursor: pointer;
   &:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; }
 }
+
+// Por qué no se puede guardar el hábito (rango invertido…), encima del botón.
+.panel-sheet .form-error {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--ion-color-danger);
+}

@@ -67,7 +67,11 @@ export type CoachNotificationType =
   | 'payment_created'
   | 'nutrition_preferences_requested'
   | 'checkin_reviewed'
+  // Al programar una rutina y al empezar una fase de dieta (payload con
+  // startDate); un suplemento nuevo.
   | 'routine_assigned'
+  | 'diet_phase_assigned'
+  | 'supplement_assigned'
   | 'task_assigned'
   | 'intake_submitted'
   | 'client_confirmed'

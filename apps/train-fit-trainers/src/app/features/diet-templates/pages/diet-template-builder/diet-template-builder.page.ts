@@ -40,6 +40,7 @@ import { filledAlternatives, isMissingQuantity, pruneEmptyAlternatives } from '.
 import { computeItemMicros, TOTALS_NUTRIENT_FIELDS } from '../../utils/nutrient-fields';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
+import { dietaryFlagUi } from '../../../../shared/utils/dietary-flag-ui.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -217,6 +218,11 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // dieta para alguien concreto, lo que NO puede llevar pesa tanto como las
   // kcal (docs/plan-semanas.md/§6).
   public clientPreferences: ClientNutritionPreferences | null = null;
+
+  // «Sin lactosa, Vegana», no las claves («lactoseFree»).
+  public dietaryFlagLabels(flags: readonly string[] | null | undefined): string {
+    return (flags || []).map((flag) => dietaryFlagUi(flag).label).join(', ');
+  }
   public clientSupplements: Supplement[] = [];
   public clientContextName = '';
   public clientTarget: MacroTarget | null = null;

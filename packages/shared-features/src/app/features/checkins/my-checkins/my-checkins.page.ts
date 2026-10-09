@@ -42,6 +42,10 @@ export class MyCheckinsPage implements OnInit {
   public formValues: Record<string, number | string | boolean | null> = {};
   public isSubmitting = false;
   public submittedTrainerIds = new Set<string>();
+  // Check-in respondido que el cliente ha pedido corregir («EDITAR
+  // RESPUESTA»). Respondido y sin pedirlo se ve en solo lectura: antes seguía
+  // editable con «Enviar check-in» activo y parecía que no se había enviado.
+  public editingKey: string | null = null;
 
   // coach-tab FASE2 — "formularios completados".
   public history: CheckinHistoryEntry[] = [];
@@ -126,6 +130,23 @@ export class MyCheckinsPage implements OnInit {
 
   public isDone(checkin: MyCheckin): boolean {
     return this.submittedTrainerIds.has(this.checkinKey(checkin)) || !!checkin.respondedAt;
+  }
+
+  /** Se puede escribir: sin responder, o respondido y en corrección. */
+  public isEditable(checkin: MyCheckin): boolean {
+    return !this.isDone(checkin) || this.editingKey === this.checkinKey(checkin);
+  }
+
+  // Mientras el periodo siga abierto, la respuesta se puede corregir: volver
+  // a enviarla la sustituye (con aviso antes, confirmOverwrite).
+  public startEditing(checkin: MyCheckin): void {
+    this.editingKey = this.checkinKey(checkin);
+    this.formValues = this.valuesOf(checkin);
+  }
+
+  public cancelEditing(checkin: MyCheckin): void {
+    this.editingKey = null;
+    this.formValues = this.valuesOf(checkin);
   }
 
   // Por defecto vuelve a la tarjeta "Mis check-ins" del tab Coach (ver
@@ -351,6 +372,7 @@ export class MyCheckinsPage implements OnInit {
   }
 
   public toggleExpand(checkin: MyCheckin): void {
+    this.editingKey = null;
     if (this.expandedTrainerId === this.checkinKey(checkin)) {
       this.expandedTrainerId = null;
       return;
@@ -380,7 +402,7 @@ export class MyCheckinsPage implements OnInit {
   }
 
   public submitResponse(checkin: MyCheckin): void {
-    if (this.isSubmitting || !this.hasAnyValue()) return;
+    if (this.isSubmitting || !this.isEditable(checkin) || !this.hasAnyValue()) return;
 
     const missing = this.missingRequiredLabel(checkin);
     if (missing) {
@@ -452,6 +474,7 @@ export class MyCheckinsPage implements OnInit {
       next: () => {
         this.isSubmitting = false;
         this.expandedTrainerId = null;
+        this.editingKey = null;
         this.submittedTrainerIds.add(this.checkinKey(checkin));
         this.load();
         this.ionicUtilService.showToast({

@@ -11,6 +11,8 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   nutrition_preferences_requested: 'nutrition-outline',
   checkin_reviewed: 'checkmark-circle-outline',
   routine_assigned: 'barbell-outline',
+  diet_phase_assigned: 'leaf-outline',
+  supplement_assigned: 'medkit-outline',
   task_assigned: 'checkbox-outline',
   intake_submitted: 'document-text-outline',
   client_confirmed: 'checkmark-done-outline',
@@ -78,7 +80,13 @@ export function notificationTitle(notification: CoachNotification, t: Translate)
     case 'checkin_reviewed':
       return p['name'] ? t('COACH_NOTIFICATIONS.TITLES.CHECKIN_REVIEWED_NAMED', { name: p['name'] }) : t('COACH_NOTIFICATIONS.TITLES.CHECKIN_REVIEWED');
     case 'routine_assigned':
-      return t('COACH_NOTIFICATIONS.TITLES.ROUTINE_ASSIGNED', { name: p['routineName'] || '' });
+      return p['startDate']
+        ? t('COACH_NOTIFICATIONS.TITLES.ROUTINE_SCHEDULED', { name: p['routineName'] || '', date: shortDay(p['startDate']) })
+        : t('COACH_NOTIFICATIONS.TITLES.ROUTINE_ASSIGNED', { name: p['routineName'] || '' });
+    case 'diet_phase_assigned':
+      return t('COACH_NOTIFICATIONS.TITLES.DIET_PHASE_ASSIGNED', { name: p['planName'] || '', date: shortDay(p['startDate']) });
+    case 'supplement_assigned':
+      return t('COACH_NOTIFICATIONS.TITLES.SUPPLEMENT_ASSIGNED', { name: p['supplementName'] || '' });
     case 'task_assigned':
       return t('COACH_NOTIFICATIONS.TITLES.TASK_ASSIGNED', { name: p['taskLabel'] || '' });
     case 'intake_submitted':
@@ -108,6 +116,10 @@ export function notificationRoute(notification: CoachNotification): CoachRoute |
       return { commands: ['/my-checkins'] };
     case 'routine_assigned':
       return { commands: ['/tabs/summary'] };
+    case 'diet_phase_assigned':
+      return { commands: ['/tabs/diets'], extras: { state: { selectedDate: p['startDate'] } } };
+    case 'supplement_assigned':
+      return { commands: ['/my-supplements'] };
     case 'form_check_reviewed':
       return { commands: ['/my-form-checks'], extras: { queryParams: { id: p['formCheckId'] } } };
     default:

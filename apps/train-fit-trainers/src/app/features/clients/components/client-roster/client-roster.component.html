@@ -209,8 +209,8 @@
           </th>
           <th scope="col">{{ 'CLIENTS.PUNTO_DEBIL' | translate }}</th>
           <th scope="col" [attr.aria-sort]="ariaSort('weight')">
-            <button type="button" class="sort-button" (click)="toggleSort('weight')">
-              {{ 'TRAINER_COMMON.WEIGHT' | translate }}
+            <button type="button" class="sort-button" (click)="toggleSort('weight')" [title]="'CLIENTS.PESO_COLUMNA_DETALLE' | translate: { periodDays: periodDays }">
+              {{ 'CLIENTS.PESO_COLUMNA' | translate: { periodDays: periodDays } }}
               <ion-icon [name]="sortIcon('weight')" aria-hidden="true"></ion-icon>
             </button>
           </th>

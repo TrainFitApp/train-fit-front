@@ -265,6 +265,11 @@ const DYNAMIC_KEYS = [
   { prefix: 'CLIENT_DETAIL.DAY.ITEM_STATUS.', layer: 'train-fit-trainers', keys: () => ['eaten', 'unchecked', 'pending', 'extra'] },
   { prefix: 'CLIENT_DETAIL.DAY.MEAL_STATUS.', layer: 'train-fit-trainers', keys: () => ['done', 'partial', 'unchecked', 'pending', 'extra'] },
   { prefix: 'CHECKIN_FIELD_GROUPS.', layer: 'train-fit-trainers', keys: () => ['composicion_corporal', 'perimetros'] },
+  {
+    prefix: 'CLIENT_DETAIL.TASK_ERRORS.',
+    layer: 'train-fit-trainers',
+    keys: () => arrayLiteral('apps/train-fit-trainers/src/app/features/clients/habit-form.util.ts', 'TASK_ERROR_CODES'),
+  },
 ];
 
 /** Prefijos dinámicos que usa el código (concatenación o plantilla). */

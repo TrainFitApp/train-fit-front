@@ -16,7 +16,8 @@ export interface RosterDimension {
 }
 
 export interface RosterWeightChange {
-  absolute: number;
+  // null con una sola medida en la ventana: hay peso, no variación.
+  absolute: number | null;
   percentage: number | null;
   from: { date: string; weight: number };
   to: { date: string; weight: number };

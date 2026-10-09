@@ -39,7 +39,7 @@ import {
   ACTIONS,
 } from 'src/app/shared/constants/actions';
 import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-meal-modal.component';
-import { PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view.component';
+import { PAUTADO_QUANTITY_SAVED, PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view.component';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 import {
@@ -706,6 +706,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
       cssClass: 'auto-height-modal',
     });
     await modal.present();
+    await this.refreshTotalsAfter(modal);
   }
 
   public async viewPautadoRecipe(instance: CustomRecipe): Promise<void> {
@@ -719,6 +720,16 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
       cssClass: 'auto-height-modal',
     });
     await modal.present();
+    await this.refreshTotalsAfter(modal);
+  }
+
+  // La vista escribe la cantidad nueva en el mismo objeto de la fila; los
+  // totales del día (barra de macros) se calculan del día entero, así que
+  // hay que reemitirlo. Antes se quedaban con el valor viejo hasta salir y
+  // volver a Dietas.
+  private async refreshTotalsAfter(modal: HTMLIonModalElement): Promise<void> {
+    const { role } = await modal.onDidDismiss();
+    if (role === PAUTADO_QUANTITY_SAVED) this.emitDietDay();
   }
 
   // Marcar/desmarcar consumido — actualización optimista (mismo patrón que

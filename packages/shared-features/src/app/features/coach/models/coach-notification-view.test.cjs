@@ -94,3 +94,25 @@ test('cobro nuevo: importe con dos decimales en euros', () => {
   assert.equal(plain(money(10, 'EUR')), '10,00 €');
   assert.equal(shortDay('2026-09-01'), '1 sept');
 });
+
+// QA 2026-10-09 (M1): la rutina se anuncia al programarla (con su fecha), la
+// fase de dieta y los suplementos también avisan.
+test('rutina programada, fase de dieta y suplemento: título con fecha y destino', () => {
+  assert.equal(
+    notificationTitle(notification('routine_assigned', { routineName: 'Fuerza', startDate: '2026-10-12' })),
+    'Rutina «Fuerza» desde el 12 oct'
+  );
+  assert.equal(notificationTitle(notification('routine_assigned', { routineName: 'Fuerza' })), 'Nueva rutina asignada: Fuerza');
+  assert.equal(
+    notificationTitle(notification('diet_phase_assigned', { planName: 'Definición', startDate: '2026-10-12' })),
+    'Nuevo plan de dieta «Definición» desde el 12 oct'
+  );
+  assert.equal(notificationTitle(notification('supplement_assigned', { supplementName: 'Creatina' })), 'Nuevo suplemento: Creatina');
+  assert.deepEqual(notificationRoute(notification('diet_phase_assigned', { startDate: '2026-10-12' })), {
+    commands: ['/tabs/diets'],
+    extras: { state: { selectedDate: '2026-10-12' } },
+  });
+  assert.deepEqual(notificationRoute(notification('supplement_assigned')), { commands: ['/my-supplements'] });
+  assert.equal(notificationIcon(notification('diet_phase_assigned')), 'leaf-outline');
+  assert.equal(notificationIcon(notification('supplement_assigned')), 'medkit-outline');
+});

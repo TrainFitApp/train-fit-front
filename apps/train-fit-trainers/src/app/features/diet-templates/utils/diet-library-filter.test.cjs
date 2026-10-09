@@ -65,8 +65,10 @@ test("sin saber quién mira, 'Añadidas por mí' no casa con ninguna", () => {
 
 test("las restricciones exigen todas las marcadas, contando las forzadas a mano", () => {
   assert.deepEqual(ids(util.filterDietLibrary(DIETS, { flags: new Set(["vegetarian"]) })), ["mine", "forced"]);
-  assert.deepEqual(ids(util.filterDietLibrary(DIETS, { flags: new Set(["lactoseFree"]) })), ["forced"]);
-  assert.deepEqual(ids(util.filterDietLibrary(DIETS, { flags: new Set(["vegan", "lactoseFree"]) })), []);
+  // «mine» es vegana: también sin lactosa (deducido).
+  assert.deepEqual(ids(util.filterDietLibrary(DIETS, { flags: new Set(["lactoseFree"]) })), ["mine", "forced"]);
+  assert.deepEqual(ids(util.filterDietLibrary(DIETS, { flags: new Set(["vegan", "lactoseFree"]) })), ["mine"]);
+  assert.deepEqual(ids(util.filterDietLibrary(DIETS, { flags: new Set(["vegan", "glutenFree"]) })), []);
 });
 
 test("nombre, origen y restricciones se combinan", () => {
@@ -80,11 +82,21 @@ test("nombre, origen y restricciones se combinan", () => {
 });
 
 test("aptitud efectiva sin duplicados", () => {
-  assert.deepEqual(util.effectiveSuitableFor({ suitableFor: ["vegan"], suitableForOverride: ["vegan", "glutenFree"] }), [
-    "vegan",
+  assert.deepEqual(util.effectiveSuitableFor({ suitableFor: ["glutenFree"], suitableForOverride: ["glutenFree", "vegetarian"] }), [
     "glutenFree",
+    "vegetarian",
   ]);
   assert.deepEqual(util.effectiveSuitableFor({}), []);
+});
+
+// QA 2026-10-09 (M7): misma deducción que el back (diet-suitability.js).
+test("vegana ⇒ vegetariana y sin lactosa: el filtro «Sin lactosa» la encuentra", () => {
+  assert.deepEqual(util.effectiveSuitableFor({ suitableFor: ["vegan"] }).sort(), ["lactoseFree", "vegan", "vegetarian"]);
+  const diets = [
+    { _id: "vegana", name: "Vegana", suitableFor: ["vegan"] },
+    { _id: "carne", name: "Carne", suitableFor: ["glutenFree"] },
+  ];
+  assert.deepEqual(ids(util.filterDietLibrary(diets, { flags: new Set(["lactoseFree"]) })), ["vegana"]);
 });
 
 test("cuenta los filtros del panel, no el texto del buscador", () => {

@@ -52,19 +52,19 @@
 
   <div class="nutrition-info pautado-view-macros">
     <div class="nutrition-item calories">
-      <span class="nutrition-value">{{ macros.kcal | number : '1.0-0' }}</span>
+      <span class="nutrition-value">{{ macros.kcal | localNumber : 0 }}</span>
       <span class="nutrition-label">Kcal</span>
     </div>
     <div class="nutrition-item protein">
-      <span class="nutrition-value">{{ macros.protein | number : '1.1-1' }}</span>
+      <span class="nutrition-value">{{ macros.protein | localNumber : 1 : 1 }}</span>
       <span class="nutrition-label">{{ 'MEAL.PROTEIN_LABEL' | translate }}</span>
     </div>
     <div class="nutrition-item carbs">
-      <span class="nutrition-value">{{ macros.carbs | number : '1.1-1' }}</span>
+      <span class="nutrition-value">{{ macros.carbs | localNumber : 1 : 1 }}</span>
       <span class="nutrition-label">{{ 'MEAL.CARBS_LABEL' | translate }}</span>
     </div>
     <div class="nutrition-item fat">
-      <span class="nutrition-value">{{ macros.fat | number : '1.1-1' }}</span>
+      <span class="nutrition-value">{{ macros.fat | localNumber : 1 : 1 }}</span>
       <span class="nutrition-label">{{ 'MEAL.FAT_LABEL' | translate }}</span>
     </div>
   </div>
@@ -76,7 +76,7 @@
     <div class="extra-nutrition-list">
       <div class="extra-nutrition-row" *ngFor="let ingredient of ingredientRows">
         <span class="extra-nutrition-label">{{ ingredient.name }}</span>
-        <span class="extra-nutrition-value">{{ ingredient.quantity | number : '1.0-1' }} g</span>
+        <span class="extra-nutrition-value">{{ ingredient.quantity | localNumber : 1 }} g</span>
       </div>
     </div>
   </ng-container>
@@ -90,7 +90,7 @@
     <div class="extra-nutrition-list">
       <div class="extra-nutrition-row" *ngFor="let row of extraNutrition">
         <span class="extra-nutrition-label">{{ row.label }}</span>
-        <span class="extra-nutrition-value">{{ row.value | number : '1.0-2' }} {{ row.unit }}</span>
+        <span class="extra-nutrition-value">{{ row.value | localNumber : 2 }} {{ row.unit }}</span>
       </div>
     </div>
   </ng-container>

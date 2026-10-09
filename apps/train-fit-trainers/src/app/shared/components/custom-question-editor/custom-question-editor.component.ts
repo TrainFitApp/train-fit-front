@@ -51,6 +51,25 @@ export function cleanCustomQuestion(question: CustomQuestion): CustomQuestion {
 }
 
 /**
+ * Pregunta a medio añadir al guardar o enviar (redactada sin pulsar
+ * «AÑADIR»): completa, se añade (antes se descartaba en silencio); con
+ * enunciado pero no válida, devuelve su error para no seguir; sin enunciado,
+ * se descarta. `draft: null` = ya no queda nada pendiente.
+ */
+export function settleDraftQuestion(
+  draft: CustomQuestion | null,
+  questions: CustomQuestion[]
+): { questions: CustomQuestion[]; draft: CustomQuestion | null; error: { key: string; params?: Record<string, string> } | null } {
+  if (!draft || !draft.label.trim()) return { questions, draft: null, error: null };
+  const error = customQuestionsError([draft]);
+  if (error) return { questions, draft, error };
+  if (questions.length >= MAX_CUSTOM_QUESTIONS) {
+    return { questions, draft, error: { key: 'CUSTOM_QUESTION.ERROR_MAX', params: { max: String(MAX_CUSTOM_QUESTIONS) } } };
+  }
+  return { questions: [...questions, { ...cleanCustomQuestion(draft), enabled: true }], draft: null, error: null };
+}
+
+/**
  * Editor de UNA pregunta propia (enunciado, tipo, unidad, obligatoria y
  * opciones). Lo comparten las plantillas de check-in y el cuestionario de
  * alta: las dos guardan la misma pregunta con tipo. Edita `question` en el

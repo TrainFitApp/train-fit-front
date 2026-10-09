@@ -2354,6 +2354,12 @@
             </div>
             <button
               class="payment-status-btn"
+              (click)="openTaskPanel(task)"
+            >
+              {{ 'TRAINER_COMMON.EDIT' | translate }}
+            </button>
+            <button
+              class="payment-status-btn"
               (click)="confirmDeactivateTask(task)"
             >
               {{ 'TRAINER_COMMON.REMOVE' | translate }}
@@ -2369,9 +2375,9 @@
         ></div>
         <div class="panel-sheet" *ngIf="showTaskPanel" appSubmitOnEnter="submitTask">
           <div class="panel-handle"></div>
-          <h3 class="panel-title">{{ 'CLIENT_DETAIL.ANADIR_HABITO_DIARIO' | translate }}</h3>
+          <h3 class="panel-title">{{ (editingTaskId ? 'CLIENT_DETAIL.EDITAR_HABITO_DIARIO' : 'CLIENT_DETAIL.ANADIR_HABITO_DIARIO') | translate }}</h3>
 
-          <div class="cadence-options">
+          <div class="cadence-options" *ngIf="!editingTaskId">
             <button
               class="cadence-option"
               *ngFor="let option of taskTypeOptions"
@@ -2425,11 +2431,16 @@
             />
           </div>
 
+          <!-- Por qué no se puede guardar, en vez de un botón apagado sin más. -->
+          <p class="form-error" role="alert" *ngIf="taskFormError && (taskTarget !== null || taskTargetMax !== null)">
+            {{ taskFormError | translate }}
+          </p>
+
           <button
             class="submit-button"
             (click)="submitTask()"
             data-enter-submit-action="submitTask"
-            [disabled]="!taskTarget || taskTarget <= 0 || !taskUnit.trim() || (taskType === 'custom' && !taskLabel.trim()) || isSavingTask"
+            [disabled]="!!taskFormError || isSavingTask"
           >
             <span *ngIf="!isSavingTask">{{ 'CLIENT_DETAIL.GUARDAR_HABITO' | translate }}</span>
             <ion-spinner name="dots" *ngIf="isSavingTask"></ion-spinner>

@@ -135,6 +135,7 @@ import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 import { CustomAnswer, CustomQuestion, FREQUENCY_OPTIONS } from 'src/app/core/models/custom-question';
+import { HabitForm, habitErrorKey, habitFormError, habitPayload } from '../../habit-form.util';
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
@@ -244,6 +245,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   public taskTargetMax: number | null = null;
   public taskUnit = '';
   public isSavingTask = false;
+  // Hábito que se edita en el panel (null = alta).
+  public editingTaskId: string | null = null;
   public readonly taskTypeIcons: Record<TrainerTaskType, string> = HABIT_TYPE_ICONS;
   public readonly taskTypeOptions: {
     value: TrainerTaskType;
@@ -3377,13 +3380,24 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     });
   }
 
-  public openTaskPanel(): void {
+  // Con `task`, edita ese hábito (el tipo no cambia); sin él, uno nuevo.
+  public openTaskPanel(task?: TrainerTask): void {
     this.showTaskPanel = true;
-    this.taskType = 'steps';
-    this.taskLabel = '';
-    this.taskTarget = null;
-    this.taskTargetMax = null;
-    this.taskUnit = this.taskTypeOptions[0].defaultUnit;
+    this.editingTaskId = task?._id || null;
+    this.taskType = task?.type || 'steps';
+    this.taskLabel = task?.type === 'custom' ? task.label || '' : '';
+    this.taskTarget = task?.target ?? null;
+    this.taskTargetMax = task?.targetMax ?? null;
+    this.taskUnit = task?.unit || this.taskTypeOptions[0].defaultUnit;
+  }
+
+  private get habitForm(): HabitForm {
+    return { type: this.taskType, label: this.taskLabel, target: this.taskTarget, targetMax: this.taskTargetMax, unit: this.taskUnit };
+  }
+
+  // Lo que impide guardar, dicho debajo del formulario (rango invertido…).
+  public get taskFormError(): string | null {
+    return habitFormError(this.habitForm);
   }
 
   public closeTaskPanel(): void {
@@ -3392,8 +3406,8 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   // "10.000 a 15.000 pasos / día" cuando el hábito lleva rango.
   public taskTargetLabel(task: TrainerTask): string {
-    const rango = task.targetMax ? ` ${this.translate.instant('COACH.RANGE_TO')} ${task.targetMax}` : '';
-    return `${task.target}${rango} ${task.unit} ${this.translate.instant('CLIENT_DETAIL.PER_DAY')}`;
+    const rango = task.targetMax ? ` ${this.translate.instant('COACH.RANGE_TO')} ${formatLocalNumber(task.targetMax)}` : '';
+    return `${formatLocalNumber(task.target)}${rango} ${task.unit} ${this.translate.instant('CLIENT_DETAIL.PER_DAY')}`;
   }
 
   public onTaskTypeChange(type: TrainerTaskType): void {
@@ -3403,42 +3417,26 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public submitTask(): void {
-    if (
-      !this.taskTarget ||
-      this.taskTarget <= 0 ||
-      !this.taskUnit.trim() ||
-      this.isSavingTask
-    )
-      return;
-    if (this.taskType === 'custom' && !this.taskLabel.trim()) return;
-
+    if (this.isSavingTask || this.taskFormError) return;
+    const payload = habitPayload(this.habitForm);
+    const editingId = this.editingTaskId;
     this.isSavingTask = true;
-    this.clientDetailApi
-      .createTask(this.clientId, {
-        type: this.taskType,
-        label: this.taskType === 'custom' ? this.taskLabel.trim() : undefined,
-        target: this.taskTarget,
-        targetMax:
-          this.taskTargetMax && this.taskTargetMax > this.taskTarget
-            ? this.taskTargetMax
-            : null,
-        unit: this.taskUnit.trim(),
-      })
-      .subscribe({
-        next: (task) => {
-          this.isSavingTask = false;
-          this.showTaskPanel = false;
-          this.tasks = [...this.tasks, task];
-        },
-        error: (err) => {
-          this.isSavingTask = false;
-          this.ionicUtilService.showErrorToast(
-            err?.error?.message || this.translate.instant('CLIENT_DETAIL.NO_SE_PUDO_CREAR_EL'),
-            this.translate.instant('COMMON.ERROR'),
-            3000
-          );
-        },
-      });
+    const request$ = editingId
+      ? this.clientDetailApi.updateTask(this.clientId, editingId, payload)
+      : this.clientDetailApi.createTask(this.clientId, payload as Parameters<ClientDetailApiService['createTask']>[1]);
+    request$.subscribe({
+      next: (task) => {
+        this.isSavingTask = false;
+        this.showTaskPanel = false;
+        this.editingTaskId = null;
+        this.tasks = editingId ? this.tasks.map((t) => (t._id === editingId ? task : t)) : [...this.tasks, task];
+      },
+      error: (err) => {
+        this.isSavingTask = false;
+        const { key, params } = habitErrorKey(err);
+        this.ionicUtilService.showErrorToast(this.translate.instant(key, params), this.translate.instant('COMMON.ERROR'), 3500);
+      },
+    });
   }
 
   public async confirmDeactivateTask(task: TrainerTask): Promise<void> {

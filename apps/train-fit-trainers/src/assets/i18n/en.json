@@ -613,7 +613,20 @@
     "LA_VEZ_ANTERIOR": "Previous time ({{date}}): {{best}}",
     "SERIE": "Set",
     "HECHO": "Done",
-    "NO_HECHA": "Not done"
+    "NO_HECHA": "Not done",
+    "EDITAR_HABITO_DIARIO": "Edit daily habit",
+    "TASK_ERRORS": {
+      "TASK_INVALID_TYPE": "That habit type doesn't exist.",
+      "TASK_LABEL_REQUIRED": "Give the habit a name.",
+      "TASK_LABEL_TOO_LONG": "The name is too long (at most {{max}} characters).",
+      "TASK_UNIT_REQUIRED": "Enter the unit (steps, L, hours…).",
+      "TASK_UNIT_TOO_LONG": "The unit is too long (at most {{max}} characters).",
+      "TASK_INVALID_TARGET": "The target must be a number greater than 0.",
+      "TASK_TARGET_TOO_HIGH": "The target can't be over {{max}}.",
+      "TASK_INVALID_RANGE": "The “up to” value must be greater than the target.",
+      "TASK_DUPLICATE": "That habit is already set: edit it to change the target.",
+      "TASK_NOT_FOUND": "That habit no longer exists."
+    }
   },
   "TRAINER_COMMON": {
     "CLIENTS": "Clients",
@@ -1453,7 +1466,11 @@
     "FALTAN_POSES": "No photo for: {{poses}}.",
     "VIDEOS_PEDIDOS": "Videos",
     "VIDEO_BORRADO": "Sent, then deleted from their progress.",
-    "NO_LO_MANDO": "Not sent."
+    "NO_LO_MANDO": "Not sent.",
+    "PESO_COLUMNA": "Weight ({{periodDays}} d)",
+    "PESO_COLUMNA_DETALLE": "Weight change over the last {{periodDays}} days (first measurement vs. last)",
+    "UNA_SOLA_MEDIDA_EN_DIAS": "{{weight}} kg · only one measurement in {{periodDays}} days: no change yet",
+    "VARIACION_DE_PESO_DETALLE": "{{from}} → {{to}} kg · {{count}} measurements"
   },
   "CLIENT_SUMMARY": {
     "DIMENSIONS": {
@@ -1484,7 +1501,8 @@
       "measurement_change": "You review",
       "low_adherence": "You decide",
       "inactive_client": "Waiting on the client",
-      "no_training_activity": "Waiting on the client"
+      "no_training_activity": "Waiting on the client",
+      "pain_high": "You review"
     },
     "CHANGE_ENTITY": {
       "nutritional_goal": "Nutrition goal",
@@ -2767,7 +2785,7 @@
     "REQUIERE_ACCION": "Needs action",
     "NO_SE_PUDIERON_CARGAR_LAS": "We couldn't load your clients' alerts.",
     "NINGUN_CLIENTE_NECESITA_ATENCION": "No client needs attention",
-    "CADA_MADRUGADA_SE_REVISAN_EL": "Every night your clients' weight, measurements, adherence and check-ins are reviewed. Anything that needs your decision will appear here.",
+    "CADA_MADRUGADA_SE_REVISAN_EL": "Every time you open the dashboard your clients' weight, measurements, adherence and check-ins are reviewed. Anything that needs your decision will appear here.",
     "NADA_URGENTE_AHORA_MISMO": "Nothing urgent right now",
     "MIS_PENDIENTES": "My to-dos",
     "NO_SE_PUDIERON_CARGAR_TUS": "We couldn't load your to-dos.",
@@ -2835,7 +2853,8 @@
       "measurement_change": "Review the measurements",
       "low_adherence": "Get in touch about adherence",
       "inactive_client": "Get in touch with the client",
-      "no_training_activity": "Find out why they aren't training"
+      "no_training_activity": "Find out why they aren't training",
+      "pain_high": "Review the pain"
     },
     "OVERDUE_ONE": "overdue",
     "OVERDUE_MANY": "overdue",
@@ -2953,7 +2972,7 @@
         "after_measurement": "After a measurement"
       },
       "DESC": {
-        "daily": "Reviews all your clients every night.",
+        "daily": "Reviews all your clients every time you open the dashboard (and right away when new data arrives).",
         "after_checkin": "Only reviews those who have answered since last time.",
         "after_measurement": "Only reviews those who have logged measurements since last time."
       }
@@ -3043,7 +3062,8 @@
     "OBLIGATORIO": "Required",
     "OPCIONAL": "Optional",
     "OPCIONALES": "Optional",
-    "OBLIGATORIA_ARIA": "Required: {{label}}"
+    "OBLIGATORIA_ARIA": "Required: {{label}}",
+    "PREGUNTA_SIN_ANADIR": "The question you're writing can't be added: {{error}} Fix it or cancel it before sending."
   },
   "ACCOUNT": {
     "EDITAR_PERFIL": "Edit profile",
@@ -3324,6 +3344,7 @@
     "ADD_OPTION": "Add option",
     "ERROR_LABEL": "Every question needs a text.",
     "ERROR_OPTIONS": "\"{{p0}}\" needs at least 2 options.",
-    "ADD": "Add"
+    "ADD": "Add",
+    "ERROR_MAX": "At most {{max}} custom questions."
   }
 }

@@ -28,9 +28,18 @@ export interface LibraryDietFilters {
   trainerId?: string | null;
 }
 
-// Aptitud efectiva: la que calcula el backend más la forzada a mano.
+// Lo que se deduce de una aptitud: vegana ⇒ vegetariana y sin lactosa
+// (mismo criterio que el back, dietTemplates/diet-suitability.js#IMPLIED_BY).
+const IMPLIED_BY: Record<string, string[]> = { vegetarian: ['vegan'], lactoseFree: ['vegan'] };
+
+// Aptitud efectiva: la que calcula el backend más la forzada a mano, con lo
+// que se deduce de ellas.
 export function effectiveSuitableFor(diet: LibraryDiet): string[] {
-  return [...new Set([...(diet.suitableFor || []), ...(diet.suitableForOverride || [])])];
+  const set = new Set([...(diet.suitableFor || []), ...(diet.suitableForOverride || [])]);
+  for (const [flag, sources] of Object.entries(IMPLIED_BY)) {
+    if (sources.some((source) => set.has(source))) set.add(flag);
+  }
+  return [...set];
 }
 
 // Orígenes de una dieta en la biblioteca. A diferencia del cajón "Empezar

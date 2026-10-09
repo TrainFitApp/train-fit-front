@@ -2,6 +2,9 @@ import { ColorMode } from '../services/util/theme.service';
 
 export class User {
   _id: string;
+  // Solo en la respuesta del alta: false = la cuenta está creada pero el
+  // correo con el código no salió (core/utils/verification-mail.util.ts).
+  verificationMailSent?: boolean;
   name: string;
   lastname: string;
   email: string;

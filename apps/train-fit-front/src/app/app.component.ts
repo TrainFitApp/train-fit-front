@@ -13,6 +13,7 @@ import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { WorkoutNotificationService } from 'src/app/core/services/workout-notification/workout-notification.service';
 import { LiveActivityService } from 'src/app/core/services/live-activity/live-activity.service';
+import { startupReturnUrl } from 'src/app/core/utils/startup-return-url.util';
 
 register();
 @Component({
@@ -92,7 +93,13 @@ export class AppComponent implements OnDestroy {
     this.authService.restoreSessionSilently().subscribe({
       next: (restored) => {
         if (restored && !this.router.url.includes('/user-loader')) {
-          void this.router.navigate(['/user-loader'], { replaceUrl: true });
+          // De vuelta a donde estaba al recargar (la navegación inicial aún
+          // puede no haber terminado: se lee de la barra de direcciones).
+          const returnUrl = startupReturnUrl(`${window.location.pathname}${window.location.search}`);
+          void this.router.navigate(['/user-loader'], {
+            replaceUrl: true,
+            queryParams: returnUrl ? { returnUrl } : undefined,
+          });
         }
       },
       error: (error) => {

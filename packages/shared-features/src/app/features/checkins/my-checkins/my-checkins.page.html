@@ -58,6 +58,14 @@
       </button>
 
       <div class="checkin-form" *ngIf="expandedTrainerId === checkinKey(checkin)">
+        <p class="answered-notice" *ngIf="!isEditable(checkin)">
+          <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+          <span>{{ 'MY_CHECKINS.ANSWERED_READONLY' | translate }}</span>
+        </p>
+        <!-- Respondido: las respuestas se ven, no se tocan, hasta pulsar
+             «EDITAR RESPUESTA» (un fieldset deshabilitado desactiva todos los
+             controles nativos de dentro). -->
+        <fieldset class="checkin-fields" [disabled]="!isEditable(checkin)">
         <p class="prefill-notice" *ngIf="prefillNotice(checkin) as notice">
           <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
           <span>{{ notice }}</span>
@@ -168,18 +176,30 @@
           </div>
         </div>
 
-        <p class="required-hint" *ngIf="missingRequiredLabel(checkin) as missing">
-          {{ 'MY_CHECKINS.MISSING_ANSWER' | translate }} <strong>{{ missing }}</strong>
-        </p>
+        </fieldset>
 
-        <button
-          class="submit-button"
-          (click)="submitResponse(checkin)"
-          [disabled]="!hasAnyValue() || isSubmitting"
-        >
-          <span *ngIf="!isSubmitting">{{ 'MY_CHECKINS.SUBMIT' | translate }}</span>
-          <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>
-        </button>
+        <ng-container *ngIf="isEditable(checkin); else answered">
+          <p class="required-hint" *ngIf="missingRequiredLabel(checkin) as missing">
+            {{ 'MY_CHECKINS.MISSING_ANSWER' | translate }} <strong>{{ missing }}</strong>
+          </p>
+
+          <button
+            class="submit-button"
+            (click)="submitResponse(checkin)"
+            [disabled]="!hasAnyValue() || isSubmitting"
+          >
+            <span *ngIf="!isSubmitting">{{ (isDone(checkin) ? 'MY_CHECKINS.UPDATE' : 'MY_CHECKINS.SUBMIT') | translate }}</span>
+            <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>
+          </button>
+          <button class="secondary-button" *ngIf="isDone(checkin)" (click)="cancelEditing(checkin)" [disabled]="isSubmitting">
+            {{ 'COMMON.CANCEL' | translate }}
+          </button>
+        </ng-container>
+        <ng-template #answered>
+          <button class="secondary-button" (click)="startEditing(checkin)">
+            {{ 'MY_CHECKINS.EDIT_ANSWER' | translate }}
+          </button>
+        </ng-template>
       </div>
     </div>
 

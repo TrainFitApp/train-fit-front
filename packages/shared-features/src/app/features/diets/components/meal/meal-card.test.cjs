@@ -272,3 +272,45 @@ test('la cantidad consumida de una receta descarta lo que no es un número posit
     assert.equal(component.getRecipeConsumedQuantity({ quantity }), 0, `cantidad ${quantity}`);
   }
 });
+
+// --- cantidad consumida de un pautado (QA 2026-10-09, M3) ----------------------
+// Cambiar 30 → 50 g en la vista del pautado actualizaba la fila pero los
+// totales del día seguían en el valor viejo hasta salir y volver: la tarjeta
+// tiene que reemitir el día al cerrarse la vista tras guardar.
+
+function withModal(component, role) {
+  const emitted = [];
+  Object.assign(component, {
+    selectionMode: false,
+    dietDayService: {
+      set setCurrentDietDay(day) {
+        emitted.push(day);
+      },
+    },
+    modalController: {
+      create: async () => ({
+        present: async () => undefined,
+        onDidDismiss: async () => ({ role }),
+      }),
+    },
+  });
+  return emitted;
+}
+
+test('guardar la cantidad de un pautado reemite el día (los totales se recalculan en el acto)', async () => {
+  const product = planned('a', { kcal: 100, protein: 0, carbs: 0, fat: 0 });
+  const component = card(mealOf([product]));
+  const emitted = withModal(component, 'quantity-saved');
+  await component.viewPautadoProduct(product);
+  assert.equal(emitted.length, 1);
+  assert.notEqual(emitted[0], component.dietDay, 'una copia: el signal no avisa con la misma referencia');
+  assert.equal(emitted[0].meals[0], component.meal);
+});
+
+test('cerrar la vista sin guardar no reemite nada', async () => {
+  const product = planned('a', { kcal: 100, protein: 0, carbs: 0, fat: 0 });
+  const component = card(mealOf([product]));
+  const emitted = withModal(component, 'backdrop');
+  await component.viewPautadoProduct(product);
+  assert.equal(emitted.length, 0);
+});

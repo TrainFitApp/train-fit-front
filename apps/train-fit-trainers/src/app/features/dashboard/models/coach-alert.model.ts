@@ -11,7 +11,9 @@ export type CoachAlertType =
   | 'measurement_change'
   | 'low_adherence'
   | 'inactive_client'
-  | 'no_training_activity';
+  | 'no_training_activity'
+  // Dolor reciente por encima del umbral de «parar» de su zona.
+  | 'pain_high';
 
 export type CoachAlertPriority = 'high' | 'medium' | 'low';
 

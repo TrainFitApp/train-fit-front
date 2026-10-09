@@ -613,7 +613,20 @@
     "LA_VEZ_ANTERIOR": "La vez anterior ({{date}}): {{best}}",
     "SERIE": "Serie",
     "HECHO": "Hecho",
-    "NO_HECHA": "No hecha"
+    "NO_HECHA": "No hecha",
+    "EDITAR_HABITO_DIARIO": "Editar hábito diario",
+    "TASK_ERRORS": {
+      "TASK_INVALID_TYPE": "Ese tipo de hábito no existe.",
+      "TASK_LABEL_REQUIRED": "Ponle un nombre al hábito.",
+      "TASK_LABEL_TOO_LONG": "El nombre es demasiado largo (máximo {{max}} caracteres).",
+      "TASK_UNIT_REQUIRED": "Indica la unidad (pasos, L, horas…).",
+      "TASK_UNIT_TOO_LONG": "La unidad es demasiado larga (máximo {{max}} caracteres).",
+      "TASK_INVALID_TARGET": "El objetivo tiene que ser un número mayor que 0.",
+      "TASK_TARGET_TOO_HIGH": "El objetivo no puede pasar de {{max}}.",
+      "TASK_INVALID_RANGE": "El «hasta» tiene que ser mayor que el objetivo.",
+      "TASK_DUPLICATE": "Ese hábito ya está pautado: edítalo para cambiar el objetivo.",
+      "TASK_NOT_FOUND": "Ese hábito ya no existe."
+    }
   },
   "TRAINER_COMMON": {
     "CLIENTS": "Clientes",
@@ -1453,7 +1466,11 @@
     "FALTAN_POSES": "Sin foto de: {{poses}}.",
     "VIDEOS_PEDIDOS": "Vídeos",
     "VIDEO_BORRADO": "Lo mandó y después lo borró de su progreso.",
-    "NO_LO_MANDO": "No lo mandó."
+    "NO_LO_MANDO": "No lo mandó.",
+    "PESO_COLUMNA": "Peso ({{periodDays}} d)",
+    "PESO_COLUMNA_DETALLE": "Variación de peso en los últimos {{periodDays}} días (primera medida frente a la última)",
+    "UNA_SOLA_MEDIDA_EN_DIAS": "{{weight}} kg · una sola medida en {{periodDays}} días: aún no hay variación",
+    "VARIACION_DE_PESO_DETALLE": "{{from}} → {{to}} kg · {{count}} medidas"
   },
   "CLIENT_SUMMARY": {
     "DIMENSIONS": {
@@ -1484,7 +1501,8 @@
       "measurement_change": "Tú revisas",
       "low_adherence": "Tú decides",
       "inactive_client": "Pendiente del cliente",
-      "no_training_activity": "Pendiente del cliente"
+      "no_training_activity": "Pendiente del cliente",
+      "pain_high": "Tú revisas"
     },
     "CHANGE_ENTITY": {
       "nutritional_goal": "Objetivo nutricional",
@@ -2767,7 +2785,7 @@
     "REQUIERE_ACCION": "Requiere acción",
     "NO_SE_PUDIERON_CARGAR_LAS": "No se pudieron cargar las alertas de tus clientes.",
     "NINGUN_CLIENTE_NECESITA_ATENCION": "Ningún cliente necesita atención",
-    "CADA_MADRUGADA_SE_REVISAN_EL": "Cada madrugada se revisan el peso, las medidas, la adherencia y los check-ins de tus clientes. Lo que necesite una decisión tuya aparecerá aquí.",
+    "CADA_MADRUGADA_SE_REVISAN_EL": "Cada vez que abres el panel se revisan el peso, las medidas, la adherencia y los check-ins de tus clientes. Lo que necesite una decisión tuya aparecerá aquí.",
     "NADA_URGENTE_AHORA_MISMO": "Nada urgente ahora mismo",
     "MIS_PENDIENTES": "Mis pendientes",
     "NO_SE_PUDIERON_CARGAR_TUS": "No se pudieron cargar tus pendientes.",
@@ -2835,7 +2853,8 @@
       "measurement_change": "Revisar las medidas",
       "low_adherence": "Contactar para revisar adherencia",
       "inactive_client": "Contactar con el cliente",
-      "no_training_activity": "Revisar por qué no entrena"
+      "no_training_activity": "Revisar por qué no entrena",
+      "pain_high": "Revisar el dolor"
     },
     "OVERDUE_ONE": "vencido",
     "OVERDUE_MANY": "vencidos",
@@ -2953,7 +2972,7 @@
         "after_measurement": "Tras una medición"
       },
       "DESC": {
-        "daily": "Revisa a todos tus clientes cada madrugada.",
+        "daily": "Revisa a todos tus clientes cada vez que abres el panel (y al momento cuando llega un dato nuevo).",
         "after_checkin": "Solo revisa a quien haya respondido desde la última vez.",
         "after_measurement": "Solo revisa a quien haya registrado medidas desde la última vez."
       }
@@ -3043,7 +3062,8 @@
     "OBLIGATORIO": "Obligatorio",
     "OPCIONAL": "Opcional",
     "OPCIONALES": "Opcionales",
-    "OBLIGATORIA_ARIA": "Obligatorio: {{label}}"
+    "OBLIGATORIA_ARIA": "Obligatorio: {{label}}",
+    "PREGUNTA_SIN_ANADIR": "La pregunta que estás escribiendo no se puede añadir: {{error}} Corrígela o cancélala antes de enviar."
   },
   "ACCOUNT": {
     "EDITAR_PERFIL": "Editar perfil",
@@ -3324,6 +3344,7 @@
     "ADD_OPTION": "Añadir opción",
     "ERROR_LABEL": "Todas las preguntas necesitan un enunciado.",
     "ERROR_OPTIONS": "\"{{p0}}\" necesita al menos 2 opciones.",
-    "ADD": "Añadir"
+    "ADD": "Añadir",
+    "ERROR_MAX": "Como mucho {{max}} preguntas propias."
   }
 }

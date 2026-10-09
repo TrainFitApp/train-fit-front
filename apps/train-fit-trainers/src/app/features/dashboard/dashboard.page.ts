@@ -47,6 +47,7 @@ const ALERT_ICONS: Record<CoachAlertType, string> = {
   low_adherence: 'pie-chart-outline',
   inactive_client: 'moon-outline',
   no_training_activity: 'barbell-outline',
+  pain_high: 'bandage-outline',
 };
 
 const PRIORITY_LABELS: Record<CoachAlertPriority, string> = {
@@ -68,6 +69,7 @@ const TASK_TITLE_BY_ALERT: Record<CoachAlertType, string> = {
   low_adherence: 'Contactar para revisar adherencia',
   inactive_client: 'Contactar con el cliente',
   no_training_activity: 'Revisar por qué no entrena',
+  pain_high: 'Revisar el dolor',
 };
 localizeRecord(TASK_TITLE_BY_ALERT, 'DASHBOARD.TASK_TITLES');
 

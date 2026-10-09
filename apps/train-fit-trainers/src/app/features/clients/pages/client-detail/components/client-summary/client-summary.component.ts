@@ -106,6 +106,7 @@ const ALERT_ICONS: Record<CoachAlertType, string> = {
   low_adherence: 'pie-chart-outline',
   inactive_client: 'moon-outline',
   no_training_activity: 'barbell-outline',
+  pain_high: 'bandage-outline',
 };
 
 // Quién tiene que mover ficha ante cada tipo de alerta — CoachAlert no
@@ -120,6 +121,7 @@ const OWNER_BY_TYPE: Record<CoachAlertType, string> = {
   low_adherence: 'Tú decides',
   inactive_client: 'Pendiente del cliente',
   no_training_activity: 'Pendiente del cliente',
+  pain_high: 'Tú revisas',
 };
 localizeRecord(OWNER_BY_TYPE, 'CLIENT_SUMMARY.OWNER');
 
@@ -132,6 +134,7 @@ const TAB_BY_ALERT_TYPE: Partial<Record<CoachAlertType, ClientDetailTab>> = {
   measurement_change: 'measurements',
   stagnation: 'measurements',
   no_training_activity: 'training',
+  pain_high: 'pain',
 };
 
 const CHANGE_ENTITY_LABELS: Record<PlanChangeEntity, string> = {

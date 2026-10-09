@@ -164,7 +164,7 @@
         </p>
         <p class="ctx-chip ctx-chip--accent" *ngIf="clientPreferences?.dietaryFlags?.length">
           <ion-icon name="leaf-outline" aria-hidden="true"></ion-icon>
-          <span><b>{{ 'DIET_TEMPLATES.RESTRICCIONES' | translate }}</b> {{ clientPreferences?.dietaryFlags?.join(', ') }}</span>
+          <span><b>{{ 'DIET_TEMPLATES.RESTRICCIONES' | translate }}</b> {{ dietaryFlagLabels(clientPreferences?.dietaryFlags) }}</span>
         </p>
         <p class="ctx-chip ctx-chip--accent" *ngIf="clientSupplements.length">
           <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>
