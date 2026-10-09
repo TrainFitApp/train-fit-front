@@ -35,10 +35,12 @@
     color: var(--tf-text-muted);
   }
 
+  // Mismo hueco que Dietas: con el mismo mínimo de 320px, las dos pantallas
+  // caben el mismo número de columnas en cualquier ancho.
   .library-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--tf-space-3);
+    gap: var(--tf-space-2);
 
     @media (min-width: 900px) {
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
