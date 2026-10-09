@@ -32,7 +32,10 @@ import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { ExerciseService } from "src/app/core/services/exercise/exercise.service";
-import { ExerciseScoreEditHandler } from "src/app/core/services/exercise/exercise-score-edit-handler";
+import {
+  ExerciseScoreEditHandler,
+  ExerciseScoreSummary,
+} from "src/app/core/services/exercise/exercise-score-edit-handler";
 import { SearchExercisesPage } from "src/app/shared/components/search-exercises/search-exercises.page";
 import {
   ExerciseMuscle,
@@ -153,9 +156,25 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     return !this.form?.invalid && !!this.form?.get('name')?.value?.trim();
   }
 
-  public editScore(): void {
+  // Cómo está puntuado este ejercicio (solo app de entrenadores). Antes era
+  // un icono de velocímetro sin texto en la cabecera: no se sabía qué era ni
+  // si el ejercicio ya contaba en la carga de la sesión. Ahora es una tarjeta
+  // con su estado, junto a las series.
+  public scoreSummary: ExerciseScoreSummary | null = null;
+
+  private loadScoreSummary(): void {
+    const exercise = this.scorableExercise;
+    if (!this.canEditScore || !exercise) return;
+    void this.scoreEditHandler!
+      .getSummary(exercise)
+      .then((summary) => (this.scoreSummary = summary))
+      .catch(() => (this.scoreSummary = null));
+  }
+
+  public async editScore(): Promise<void> {
     if (!this.scorableExercise) return;
-    this.scoreEditHandler?.editScore(this.scorableExercise, this.modal);
+    await this.scoreEditHandler?.editScore(this.scorableExercise, this.modal);
+    this.loadScoreSummary();
   }
 
   // Referencia al contenedor que proporciona AngularDelegate de Ionic.
@@ -294,6 +313,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     }
     this.isCreateMode = !this.customExercise && !this.exercise;
     this.initForm();
+    this.loadScoreSummary();
 
     const currentExerciseObj = this.exercise || this.customExercise?.exercise;
     if (currentExerciseObj?.userId === this.user?._id) {

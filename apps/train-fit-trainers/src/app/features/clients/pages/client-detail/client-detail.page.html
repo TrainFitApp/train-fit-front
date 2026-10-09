@@ -819,6 +819,7 @@
                       *ngIf="trainingSelectedDay"
                       [date]="trainingSelectedDay"
                       [workouts]="trainingSelectedDayWorkouts"
+                      [history]="completedWorkouts"
                       [projectedDay]="projectedTrainingDays.get(trainingSelectedDay) || null"
                       (close)="trainingSelectedDay = null"
                     ></app-training-day-detail>

@@ -8,6 +8,8 @@ export interface ProfessionalSummary {
     email: string;
   } | null;
   scopes: ProfessionalScope[];
+  // Desde cuándo trabajáis juntos: la aceptación más antigua de sus scopes en curso.
+  since?: string | null;
 }
 
 // Invitación sin responder: UNA por profesional, con todos los scopes a los

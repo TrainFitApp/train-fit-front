@@ -565,7 +565,14 @@
     },
     "PHASE_SCHEDULED": "Phase {{n}} · scheduled",
     "PHASE_FINISHED": "Phase {{n}} · finished",
-    "PHASE_STATE_SCHEDULED": "Scheduled"
+    "PHASE_STATE_SCHEDULED": "Scheduled",
+    "NOTA_DEL_CLIENTE": "Client note",
+    "MEJOR_SERIE_VS_ANTERIOR": "The arrow compares the best set with the previous time they did the exercise.",
+    "SERIES_HECHAS_DE": "{{done}} of {{total}} sets done",
+    "LA_VEZ_ANTERIOR": "Previous time ({{date}}): {{best}}",
+    "SERIE": "Set",
+    "HECHO": "Done",
+    "NO_HECHA": "Not done"
   },
   "TRAINER_COMMON": {
     "CLIENTS": "Clients",

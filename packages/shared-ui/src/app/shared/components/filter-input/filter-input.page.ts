@@ -18,6 +18,10 @@ export class FilterInputPage implements OnInit {
   public exercises: Exercise[];
   public isCreateMode: boolean = false;
   public showExerciseTypeFilter: boolean = false;
+  // Quien abre los filtros puede relanzar él la búsqueda (el buscador
+  // paginado necesita el total y volver a la primera página). Sin él, se
+  // busca aquí y se publica la lista en ExerciseService, como siempre.
+  public onFiltersChange?: () => void;
 
   public categories = [
     "Cardio",
@@ -136,6 +140,10 @@ export class FilterInputPage implements OnInit {
 
   private searchExercises(): void {
     if (this.isCreateMode) return;
+    if (this.onFiltersChange) {
+      this.onFiltersChange();
+      return;
+    }
     this.exerciseService
       .searchExercise(this.searchFilterGroupExercises)
       .subscribe((resExercises) => {

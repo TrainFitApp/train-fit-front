@@ -2,7 +2,7 @@ import { animate, group, query, style, transition, trigger } from '@angular/anim
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { IonItemSliding } from '@ionic/angular';
+import { IonItemSliding, ModalController } from '@ionic/angular';
 import { finalize } from 'rxjs/operators';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
@@ -10,7 +10,6 @@ import { OPEN_INTAKE_TRAINER_KEY, OnboardingService } from 'src/app/core/service
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
-  CoachCurrentPlan,
   CoachDashboard,
   CoachNotification,
   CoachPendingCheckin,
@@ -31,6 +30,10 @@ import {
   ProfessionalScope,
   ProfessionalSummary,
 } from './models/professional-relation.model';
+import { initials, scopeIcon, scopeLabelKey } from './models/coach-sheets-view';
+import { COACH_FULL_SHEET_OPTIONS, COACH_SHEET_OPTIONS } from './components/coach-sheet-options';
+import { CoachPlansSheetComponent } from './components/coach-plans-sheet/coach-plans-sheet.component';
+import { CoachProfessionalsSheetComponent } from './components/coach-professionals-sheet/coach-professionals-sheet.component';
 import { CoachDashboardApiService } from './services/coach-dashboard-api.service';
 import { NotificationsApiService } from './services/notifications-api.service';
 import { ProfessionalsApiService } from './services/professionals-api.service';
@@ -38,11 +41,6 @@ import { HabitsService } from './services/habits.service';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 type ViewState = 'loading' | 'error' | 'loaded';
-
-interface GroupedHistoryEntry {
-  key: string;
-  entries: HistoryEntry[];
-}
 
 // Continúa hacia el lado del gesto antes de cerrar el hueco. Congelar la
 // transición de Ionic evita su rebote al ancho del botón después de ionSwipe.
@@ -85,10 +83,9 @@ export class CoachPage implements OnInit {
   // Aceptar/rechazar responde a la vez todos los scopes a los que invita un
   // profesional (una invitación por profesional, ver PendingInvite).
   public respondingTrainerId: string | null = null;
-  public unlinkingScope: ProfessionalScope | null = null;
 
+  // Relaciones pasadas: se pintan en la hoja de "Tus profesionales".
   public history: HistoryEntry[] = [];
-  public showHistory = false;
 
   public dashboardState: ViewState = 'loading';
   public dashboard: CoachDashboard | null = null;
@@ -140,6 +137,7 @@ export class CoachPage implements OnInit {
     public onboardingService: OnboardingService,
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService,
+    private modalController: ModalController,
     private translate: TranslateService
   ) {}
 
@@ -261,18 +259,35 @@ export class CoachPage implements OnInit {
     return this.translate.instant(count === 1 ? 'COACH.PLANS_ONE' : 'COACH.PLANS_MANY', { count });
   }
 
-  public planDatePrefix(plan: CoachCurrentPlan): string {
-    if (plan.status === 'scheduled') return this.translate.instant('COACH.PLAN_STARTS');
-    if (plan.status === 'assigned') return this.translate.instant('COACH.PLAN_ASSIGNED');
-    return this.translate.instant('COACH.PLAN_SINCE');
-  }
-
-  // Rediseño "menú de cards" — cada tarjeta de arriba lleva a su sección
-  // más abajo en la misma página (no hay pantallas propias por sección
-  // todavía). Scroll nativo del elemento, no de IonContent: ion-content usa
-  // scroll real del propio host, scrollIntoView funciona tal cual.
+  // Rediseño "menú de cards" — "Pendiente de ti" baja a su sección más abajo
+  // en la misma página. Scroll nativo del elemento, no de IonContent:
+  // ion-content usa scroll real del propio host, scrollIntoView funciona tal cual.
   public scrollToSection(sectionId: string): void {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // "Tu plan actual" y "Tus profesionales" abren su hoja en vez de bajar a
+  // una sección: llevan historial (planes anteriores, cobros) que no cabe
+  // en la página.
+  public async openPlans(): Promise<void> {
+    const modal = await this.modalController.create({ ...COACH_SHEET_OPTIONS, component: CoachPlansSheetComponent });
+    await modal.present();
+  }
+
+  public async openProfessionals(): Promise<void> {
+    if (this.state !== 'loaded') return;
+    const modal = await this.modalController.create({
+      ...COACH_FULL_SHEET_OPTIONS,
+      component: CoachProfessionalsSheetComponent,
+      componentProps: { professionals: this.activeProfessionals, history: this.history },
+    });
+    await modal.present();
+    // Se desvinculó de algo: cambia lo que hay que enseñar (y quizá el tab).
+    const { data } = await modal.onWillDismiss<{ changed?: boolean }>();
+    if (data?.changed) {
+      this.load();
+      this.loadDashboard();
+    }
   }
 
   // --- Notificaciones (coach-tab FASE3) ---
@@ -497,44 +512,8 @@ export class CoachPage implements OnInit {
     return task._id;
   }
 
-  public toggleHistory(): void {
-    this.showHistory = !this.showHistory;
-  }
-
-  // Getter (sin estado propio) — se recalcula solo cada vez que history
-  // cambia (load()).
-  // HistoryEntry no trae trainerId (solo el objeto trainer sin _id) — el
-  // email es el identificador estable disponible; sin trainer (null,
-  // cuenta borrada) cada entrada queda en su propio grupo por su propio id,
-  // nunca se fusionan "Un profesional" distintos entre sí por accidente.
-  public get groupedHistory(): GroupedHistoryEntry[] {
-    const groups = new Map<string, GroupedHistoryEntry>();
-    for (const entry of this.history) {
-      const key = entry.trainer?.email || entry._id;
-      if (!groups.has(key)) groups.set(key, { key, entries: [] });
-      groups.get(key)!.entries.push(entry);
-    }
-    return [...groups.values()];
-  }
-
   public trackByPendingInvite(_index: number, invite: PendingInvite): string {
     return invite.trainerId;
-  }
-
-  public trackByHistoryGroup(_index: number, group: GroupedHistoryEntry): string {
-    return group.key;
-  }
-
-  public getHistoryTrainerName(entry: HistoryEntry): string {
-    if (!entry.trainer) return this.translate.instant('ONBOARDING.A_PROFESSIONAL');
-    return `${entry.trainer.name} ${entry.trainer.lastname}`.trim();
-  }
-
-  public historyEndedByLabel(entry: HistoryEntry): string {
-    if (entry.status === 'declined') return this.translate.instant('COACH.HISTORY_DECLINED');
-    if (entry.revokedBy === 'client') return this.translate.instant('COACH.HISTORY_ENDED_BY_YOU');
-    if (entry.revokedBy === 'trainer') return this.translate.instant('COACH.HISTORY_ENDED_BY_COACH');
-    return this.translate.instant('COACH.HISTORY_ENDED');
   }
 
   public getTrainerName(invite: PendingInvite): string {
@@ -542,31 +521,16 @@ export class CoachPage implements OnInit {
     return `${invite.trainer.name} ${invite.trainer.lastname}`.trim();
   }
 
-  public getProfessionalName(professional: ProfessionalSummary): string {
-    if (!professional.user) return this.translate.instant('COACH.PROFESSIONAL');
-    return `${professional.user.name} ${professional.user.lastname}`.trim();
-  }
-
   public scopeLabel(scope: ProfessionalScope): string {
-    return this.translate.instant(scope === 'training' ? 'ONBOARDING.SCOPE_TRAINING' : 'ONBOARDING.SCOPE_NUTRITION');
+    return this.translate.instant(scopeLabelKey(scope));
   }
 
-  // Mismo par de iconos que ya usa el resto de la app para estos 2 ámbitos
-  // (selector de scope al invitar, iconos de notificación) — un chip
-  // reconocible de un vistazo, no solo texto.
   public scopeIcon(scope: ProfessionalScope): string {
-    return scope === 'training' ? 'barbell-outline' : 'nutrition-outline';
+    return scopeIcon(scope);
   }
 
   public getInitials(name: string): string {
-    return (
-      name
-        .split(' ')
-        .map((part) => part.charAt(0))
-        .join('')
-        .slice(0, 2)
-        .toUpperCase() || '?'
-    );
+    return initials(name);
   }
 
   // «entrenamiento y nutrición»
@@ -661,43 +625,6 @@ export class CoachPage implements OnInit {
       });
   }
 
-  public async confirmUnlink(professional: ProfessionalSummary, scope: ProfessionalScope): Promise<void> {
-    await this.ionicUtilService.showAlert({
-      header: this.translate.instant('COACH.UNLINK'),
-      message: this.translate.instant('COACH.UNLINK_MSG', {
-        name: this.getProfessionalName(professional),
-        scope: this.scopeLabel(scope).toLowerCase(),
-      }),
-      buttons: [
-        { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
-        {
-          text: this.translate.instant('COACH.UNLINK'),
-          cssClass: 'alert-button-danger',
-          handler: () => this.unlink(scope),
-        },
-      ],
-    });
-  }
-
-  private unlink(scope: ProfessionalScope): void {
-    this.unlinkingScope = scope;
-    this.professionalsApi.unlinkProfessional(scope).subscribe({
-      next: () => {
-        this.unlinkingScope = null;
-        this.load();
-        this.loadDashboard();
-      },
-      error: () => {
-        this.unlinkingScope = null;
-        this.ionicUtilService.showErrorToast(this.translate.instant('COACH.UNLINK_ERROR'), this.translate.instant('COMMON.ERROR'), 3000);
-      },
-    });
-  }
-
-  public trackByProfessionalId(_index: number, professional: ProfessionalSummary): string {
-    return professional.user?._id || _index.toString();
-  }
-
   // Acceso a su cuestionario inicial: rellenarlo, editarlo mientras no esté
   // revisado o verlo después.
   public goToOnboardingStatus(): void {
@@ -730,18 +657,6 @@ export class CoachPage implements OnInit {
       : this.translate.instant('COACH.REQUESTED_BY', { name: item.trainerName });
     const hasta = item.closesDate ? ` · ${this.translate.instant('COACH.UNTIL', { date: fmt(item.closesDate) })}` : '';
     return `${week}${hasta}`;
-  }
-
-  // "24 ago 2026". La app no registra LOCALE_ID, así que el DatePipe saldría
-  // en inglés ("24 Aug 2026").
-  public planDateLabel(iso: string): string {
-    if (!iso) return '';
-    return new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString(uiLocale(), {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      timeZone: 'UTC',
-    });
   }
 
   public goToNutritionPreferences(): void {

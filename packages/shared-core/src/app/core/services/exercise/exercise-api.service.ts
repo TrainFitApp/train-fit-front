@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Exercise } from 'src/app/core/models/exercise';
+import { Exercise, ExerciseSearchPage } from 'src/app/core/models/exercise';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { SearchFilterGroupExercises } from 'src/app/shared/models/filterGroup';
 
@@ -13,8 +13,29 @@ export class ExerciseAPIService {
   public searchExercise(
     searchExercisesFilterGroup: SearchFilterGroupExercises
   ): Observable<Exercise[]> {
+    return this.http.post<Exercise[]>(
+      `${ExerciseAPIService.EXERCISE_ENDPOINT}/search?page=${searchExercisesFilterGroup.page}&limit=10`,
+      this.toSearchPayload(searchExercisesFilterGroup)
+    );
+  }
+
+  // Misma búsqueda con el total de coincidencias y si quedan más páginas
+  // (withTotal=1). La página va aparte del filtro para que una respuesta
+  // tardía no dependa de cómo esté el filtro cuando llega.
+  public searchExercisePage(
+    searchExercisesFilterGroup: SearchFilterGroupExercises,
+    page: number,
+    limit: number
+  ): Observable<ExerciseSearchPage> {
+    return this.http.post<ExerciseSearchPage>(
+      `${ExerciseAPIService.EXERCISE_ENDPOINT}/search?page=${page}&limit=${limit}&withTotal=1`,
+      this.toSearchPayload(searchExercisesFilterGroup)
+    );
+  }
+
+  private toSearchPayload(searchExercisesFilterGroup: SearchFilterGroupExercises): any {
     // Do not send ownFilter for exercises; rely on userId + favFilter
-    const { ownFilter, isCardio, ...restPayload } =
+    const { ownFilter, isCardio, page, ...restPayload } =
       (searchExercisesFilterGroup as any) || {};
     const payload: any = { ...restPayload };
 
@@ -22,10 +43,7 @@ export class ExerciseAPIService {
       payload.isCardio = true;
     }
 
-    return this.http.post<Exercise[]>(
-      `${ExerciseAPIService.EXERCISE_ENDPOINT}/search?page=${searchExercisesFilterGroup.page}&limit=10`,
-      payload
-    );
+    return payload;
   }
 
   public createExercise(exerciseData: Partial<Exercise>): Observable<Exercise> {

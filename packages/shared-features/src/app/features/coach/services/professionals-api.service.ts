@@ -8,6 +8,7 @@ import {
   ProfessionalScope,
   ProfessionalSummary,
 } from '../models/professional-relation.model';
+import { ProfessionalPayments } from '../models/professional-payments.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProfessionalsApiService {
@@ -37,5 +38,10 @@ export class ProfessionalsApiService {
   // F22 — relaciones pasadas (revoked/declined) con cualquier profesional.
   public getHistory(): Observable<HistoryEntry[]> {
     return this.http.get<HistoryEntry[]>('trainer/history?asClient=1');
+  }
+
+  // Lo que le cobra un profesional con el que trabaja ahora (404 si no).
+  public getPayments(trainerId: string): Observable<ProfessionalPayments> {
+    return this.http.get<ProfessionalPayments>(`coach/professionals/${trainerId}/payments`);
   }
 }

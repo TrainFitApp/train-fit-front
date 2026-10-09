@@ -15,8 +15,9 @@ import { ExerciseFormModalComponent } from './components/exercise-form-modal/exe
 // exerciseSelected en vez de abrir ConfigExercisePage, así que aquí solo
 // abrimos ExerciseDetailModalComponent (lectura), y el alta/edición va por
 // ExerciseFormModalComponent, que guarda contra /exercises sin necesitar una
-// rutina abierta. La página no lleva cabecera: Volver y "+ Ejercicio" los
-// pinta el propio buscador al escuchar (back) y (create).
+// rutina abierta. La cabecera es la común (app-page-header); el buscador y
+// los filtros van dentro del contenido y "+ Ejercicio" es la primera tarjeta
+// de la lista, que el buscador pinta al escuchar (create).
 @Component({
   selector: 'app-exercise-library',
   templateUrl: 'exercise-library.page.html',

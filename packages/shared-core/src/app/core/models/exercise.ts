@@ -15,3 +15,12 @@ export class Exercise {
   isIsometric?: boolean;
   userId?: string;
 }
+
+// Respuesta de POST /exercises/search?withTotal=1.
+export interface ExerciseSearchPage {
+  items: Exercise[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}

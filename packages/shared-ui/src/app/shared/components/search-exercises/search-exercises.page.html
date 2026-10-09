@@ -1,7 +1,10 @@
-<ion-header class="minimal-header">
-  <div class="search-header" [class.search-header--library]="mode === 'library'">
+<!-- Modal de picker (rutinas, plantillas, sustituir): buscador y filtros en
+     la cabecera. En la biblioteca (mode="library") van dentro del contenido,
+     encima de la lista; la cabecera es la de la página que lo usa. -->
+<ion-header class="minimal-header" *ngIf="mode !== 'library'">
+  <div class="search-header">
     <div class="header-content">
-      <div class="back-section" *ngIf="canGoBack">
+      <div class="back-section">
         <button
           type="button"
           class="back-button"
@@ -29,7 +32,7 @@
         </button>
         <button
           class="action-button ripple-effect"
-          *ngIf="!isChangeMode && !pickerMode && mode !== 'library'"
+          *ngIf="!isChangeMode && !pickerMode"
           (click)="createExercise()"
         >
           <ion-icon name="add-outline" color="primary"></ion-icon>
@@ -40,12 +43,16 @@
     <!-- Exercise filter icons for Todo / Mis Ejercicios / Favoritos -->
     <app-exercise-filter-icons
       *ngIf="user && user._id"
-      [compact]="mode === 'library'"
       (filterSelection)="setFilterIconsValueBySelection($event)"
     >
     </app-exercise-filter-icons>
   </div>
 
+  <ng-container *ngTemplateOutlet="activeFilters"></ng-container>
+</ion-header>
+
+<!-- Categorías y músculos elegidos en Filtros, con su aspa para quitarlos. -->
+<ng-template #activeFilters>
   <div
     class="filters-section"
     *ngIf="searchFilterGroupExercises.category.length > 0"
@@ -101,9 +108,53 @@
       </div>
     </div>
   </div>
-</ion-header>
+</ng-template>
 
-<ion-content class="exercises-content">
+<ion-content #content class="exercises-content">
+  <!-- Biblioteca: misma barra que la Cartera de clientes (buscar ocupa el
+       ancho; filtrar es un botón con el número de filtros puestos), y debajo
+       el alcance (Todo / Mis ejercicios / Favoritos) con cuántos coinciden. -->
+  <div class="library-toolbar" *ngIf="mode === 'library'">
+    <div class="library-search-row">
+      <label class="library-search">
+        <ion-icon name="search-outline" class="library-search__icon" aria-hidden="true"></ion-icon>
+        <input
+          type="search"
+          class="library-search__input"
+          enterkeyhint="search"
+          [placeholder]="'SEARCH_EXERCISES.SEARCH' | translate"
+          [attr.aria-label]="'SEARCH_EXERCISES.SEARCH' | translate"
+          (input)="onLibrarySearch($any($event.target).value)"
+        />
+      </label>
+
+      <button
+        type="button"
+        class="library-filter-btn"
+        [class.has-filters]="activeFilterCount"
+        (click)="openFilterModal()"
+        [attr.aria-label]="'SEARCH_EXERCISES.FILTERS' | translate"
+      >
+        <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
+        <span class="library-filter-btn__count" *ngIf="activeFilterCount">{{ activeFilterCount }}</span>
+      </button>
+    </div>
+
+    <div class="library-scope-row">
+      <app-exercise-filter-icons
+        *ngIf="user && user._id"
+        [compact]="true"
+        (filterSelection)="setFilterIconsValueBySelection($event)"
+      ></app-exercise-filter-icons>
+
+      <p class="library-count" aria-live="polite" *ngIf="load && exercisesTotal !== null">
+        {{ (exercisesTotal === 1 ? 'SEARCH_EXERCISES.RESULTS_ONE' : 'SEARCH_EXERCISES.RESULTS') | translate: { count: exercisesTotal } }}
+      </p>
+    </div>
+
+    <ng-container *ngTemplateOutlet="activeFilters"></ng-container>
+  </div>
+
   <div class="exercises-list" *ngIf="exercises.length > 0 || canCreate">
     <!-- Mismo trazo discontinuo que "Siguiente fase" en la ficha del cliente.
          Sigue ahí con cero resultados: es justo cuando más se echa en falta. -->
@@ -199,7 +250,7 @@
     ></app-skeleton-loader>
   </div>
 
-  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+  <ion-infinite-scroll threshold="100px" [disabled]="!hasMore" (ionInfinite)="loadData($event)">
     <ion-infinite-scroll-content loadingSpinner="crescent">
     </ion-infinite-scroll-content>
   </ion-infinite-scroll>

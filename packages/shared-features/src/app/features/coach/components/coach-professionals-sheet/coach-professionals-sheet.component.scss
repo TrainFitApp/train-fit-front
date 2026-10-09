@@ -1,0 +1,597 @@
+@import '../coach-sheet';
+
+// Hoja a pantalla completa (.coach-sheet-modal--full en global.scss): el
+// host es el .ion-page del modal y ocupa todo su alto; el scroll va en
+// .cs-body, que se estira hasta abajo en vez de quedarse en 72vh.
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cs-sheet {
+  flex: 1;
+  min-height: 0;
+}
+
+.cs-body {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
+.pp-muted {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--cs-text-3);
+}
+
+// --- Lista ---------------------------------------------------------------
+
+// Disco neutro, como en Coach: el acento se reserva para lo que pide acción.
+.pp-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--cs-surface-2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--cs-text-2);
+  font-size: 0.8rem;
+  font-weight: 700;
+
+  &--large {
+    width: 56px;
+    height: 56px;
+    font-size: 1rem;
+  }
+
+  &--past {
+    width: 32px;
+    height: 32px;
+    font-size: 0.7rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--cs-text-3);
+  }
+}
+
+.pp-pro-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  margin-bottom: 8px;
+  padding: 12px 10px 12px 12px;
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-line);
+  border-radius: 14px;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms var(--cs-ease-out), transform 160ms var(--cs-ease-out);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.pp-pro-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pp-pro-name {
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--cs-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pp-pro-meta {
+  font-size: 0.78rem;
+  color: var(--cs-text-3);
+}
+
+.pp-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--cs-text-3);
+}
+
+// Anteriores: monocromo y en plano, sin tarjeta. El color apagado es la
+// señal de "esto ya pasó".
+.pp-history + .pp-history {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cs-line-soft);
+}
+
+.pp-history-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.pp-history-name {
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--cs-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pp-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0 6px 42px;
+}
+
+.pp-history-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: var(--cs-text-3);
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.pp-history-label {
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  color: var(--cs-text-3);
+}
+
+// --- Ficha ---------------------------------------------------------------
+
+.pp-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.pp-identity-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+// El nombre va aquí y no en la cabecera: encabeza sus datos, encima del email.
+.pp-name {
+  margin: 0;
+  padding-top: 4px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--cs-text);
+  overflow-wrap: anywhere;
+
+  // Recibe el foco al abrir la ficha (tabindex="-1").
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+.pp-facts {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+
+  dt {
+    margin: 0 0 2px;
+    font-size: 0.74rem;
+    color: var(--cs-text-3);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--cs-text);
+    overflow-wrap: anywhere;
+  }
+}
+
+.pp-link {
+  color: var(--cs-accent-text);
+  text-decoration: underline;
+  text-decoration-color: rgba(254, 155, 26, 0.4);
+  text-underline-offset: 3px;
+
+  &:focus-visible {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.pp-scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.pp-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  ion-icon {
+    font-size: 15px;
+  }
+}
+
+.pp-scope-icon--training {
+  color: var(--cs-training);
+}
+
+.pp-scope-icon--nutrition {
+  color: var(--cs-nutrition);
+}
+
+// --- Cobros --------------------------------------------------------------
+
+// Lo que debe: la cifra manda. Sin deuda, el bloque no existe.
+.pp-balance {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 14px 16px;
+  background: rgba(254, 144, 0, 0.06);
+  border: 1px solid rgba(254, 144, 0, 0.28);
+  border-radius: 14px;
+
+  &--overdue {
+    background: rgba(var(--cs-danger-rgb), 0.07);
+    border-color: rgba(var(--cs-danger-rgb), 0.35);
+
+    .pp-balance-label {
+      color: var(--cs-danger-text);
+    }
+  }
+}
+
+.pp-balance-amount {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-text);
+}
+
+.pp-balance-label {
+  font-size: 0.82rem;
+  color: var(--cs-text-2);
+}
+
+.pp-fee {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-line);
+  border-radius: 14px;
+}
+
+.pp-fee-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.pp-fee-concept {
+  min-width: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--cs-text);
+  overflow-wrap: anywhere;
+}
+
+.pp-fee-amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-text);
+}
+
+.pp-fee-meta {
+  font-size: 0.78rem;
+  color: var(--cs-text-3);
+
+  &:empty {
+    display: none;
+  }
+}
+
+// Va pegado a lo que debe y a la cuota (no al final de la lista): es lo que
+// responde "¿dónde pago?" antes de que lo busque.
+.pp-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--cs-text-2);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 16px;
+    color: var(--cs-text-3);
+  }
+}
+
+// Historial de cobros: filas en plano separadas por línea, no tarjetas.
+.pp-charges,
+.pp-payments {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pp-charge + .pp-charge {
+  border-top: 1px solid var(--cs-line-soft);
+}
+
+.pp-charge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &--static {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+}
+
+.pp-charge-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pp-charge-concept {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--cs-text);
+  overflow-wrap: anywhere;
+}
+
+.pp-charge-meta {
+  font-size: 0.76rem;
+  color: var(--cs-text-3);
+}
+
+.pp-charge-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.pp-charge-amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-text);
+
+  &--struck {
+    color: var(--cs-text-3);
+    text-decoration: line-through;
+  }
+}
+
+.pp-charge-chevron {
+  flex-shrink: 0;
+  font-size: 15px;
+  color: var(--cs-text-3);
+}
+
+// Estado del cobro: texto con color y fondo tenue, siempre con palabra (el
+// color nunca va solo).
+.pp-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+
+  &--paid {
+    background: rgba(var(--cs-success-rgb), 0.12);
+    color: var(--cs-success-text);
+  }
+
+  &--overdue {
+    background: rgba(var(--cs-danger-rgb), 0.14);
+    color: var(--cs-danger-text);
+  }
+
+  &--due_today,
+  &--upcoming {
+    background: var(--cs-accent-soft);
+    color: var(--cs-accent-text);
+  }
+
+  &--cancelled {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--cs-text-3);
+  }
+}
+
+.pp-payments {
+  margin: 0 0 10px;
+  padding: 4px 12px;
+  background: var(--cs-surface);
+  border-radius: 10px;
+}
+
+.pp-payment {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  font-size: 0.8rem;
+  color: var(--cs-text-2);
+
+  & + & {
+    border-top: 1px solid var(--cs-line-soft);
+  }
+
+  &--rest {
+    color: var(--cs-text-3);
+  }
+}
+
+.pp-payment-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+// --- Terminar la relación ------------------------------------------------
+
+.pp-danger {
+  padding-top: 18px;
+  border-top: 1px solid var(--cs-line);
+}
+
+.pp-danger-text {
+  margin: 0 0 12px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--cs-text-3);
+}
+
+// Columnas iguales a lo ancho: con dos ámbitos, dos botones del mismo
+// tamaño lado a lado; con uno, a todo el ancho. En pantallas estrechas
+// bajan uno debajo de otro, igual de anchos.
+.pp-danger-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+// Rojo suave, como .alert-button-danger: se ve como lo que es sin gritar.
+.pp-danger-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  line-height: 1.2;
+  text-align: center;
+  background: rgba(var(--cs-danger-rgb), 0.08);
+  border: 1px solid rgba(var(--cs-danger-rgb), 0.35);
+  border-radius: 10px;
+  color: var(--cs-danger-text);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms var(--cs-ease-out), transform 160ms var(--cs-ease-out);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 17px;
+  }
+
+  ion-spinner {
+    width: 18px;
+    height: 18px;
+    color: var(--cs-danger-text);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      background: rgba(var(--cs-danger-rgb), 0.14);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cs-danger);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}

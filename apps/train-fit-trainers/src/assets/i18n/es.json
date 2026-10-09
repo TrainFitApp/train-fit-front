@@ -565,7 +565,14 @@
     },
     "PHASE_SCHEDULED": "{{n}}ª · programada",
     "PHASE_FINISHED": "{{n}}ª · finalizada",
-    "PHASE_STATE_SCHEDULED": "Programada"
+    "PHASE_STATE_SCHEDULED": "Programada",
+    "NOTA_DEL_CLIENTE": "Nota del cliente",
+    "MEJOR_SERIE_VS_ANTERIOR": "La flecha compara la mejor serie con la vez anterior que hizo el ejercicio.",
+    "SERIES_HECHAS_DE": "{{done}} de {{total}} series hechas",
+    "LA_VEZ_ANTERIOR": "La vez anterior ({{date}}): {{best}}",
+    "SERIE": "Serie",
+    "HECHO": "Hecho",
+    "NO_HECHA": "No hecha"
   },
   "TRAINER_COMMON": {
     "CLIENTS": "Clientes",

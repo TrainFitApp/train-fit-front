@@ -3,7 +3,7 @@
   <div class="search-header">
     <div class="header-content">
       <div class="back-section">
-        <button class="back-button" (click)="close()">
+        <button class="back-button" (click)="close()" [attr.aria-label]="'COMMON.BACK_ARIA' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
@@ -16,24 +16,27 @@
         <button
           *ngIf="!isCreateMode && isOwnExercise"
           class="action-button ripple-effect"
+          [attr.aria-label]="'EXERCISE_CONFIG.DELETE_OWN_EXERCISE_ARIA' | translate"
+          [attr.title]="'EXERCISE_CONFIG.DELETE_OWN_EXERCISE_ARIA' | translate"
           (click)="deleteOwnExercise()"
         >
           <ion-icon name="trash-bin-outline"></ion-icon>
         </button>
-        <button class="action-button ripple-effect" (click)="manageNote()">
-          <ion-icon name="create-outline"></ion-icon>
-        </button>
         <button
-          *ngIf="canEditScore"
           class="action-button ripple-effect"
-          (click)="editScore()"
+          [attr.aria-label]="'EXERCISE_CONFIG.NOTE_ARIA' | translate"
+          [attr.title]="'EXERCISE_CONFIG.NOTE_ARIA' | translate"
+          (click)="manageNote()"
         >
-          <ion-icon name="speedometer-outline"></ion-icon>
+          <ion-icon name="create-outline"></ion-icon>
         </button>
         <button
           class="action-button ripple-effect"
           *ngIf="!isCreateMode"
           [disabled]="isFavoritingExercise"
+          [attr.aria-label]="(isExerciseFavorited ? 'EXERCISE_CONFIG.FAVORITE_REMOVE_ARIA' : 'EXERCISE_CONFIG.FAVORITE_ADD_ARIA') | translate"
+          [attr.title]="(isExerciseFavorited ? 'EXERCISE_CONFIG.FAVORITE_REMOVE_ARIA' : 'EXERCISE_CONFIG.FAVORITE_ADD_ARIA') | translate"
+          [attr.aria-pressed]="isExerciseFavorited"
           (click)="toggleFavorite()"
         >
           <!-- Solo el guardado lleva color: es estado, no decoración. -->
@@ -471,6 +474,39 @@
           <p class="empty-text">{{ 'EXERCISE_CONFIG.NO_SETS' | translate }}</p>
         </div>
       </ng-template>
+    </div>
+
+    <!-- Puntuación de "Mi método" (solo app de entrenadores: canEditScore
+         depende del ExerciseScoreEditHandler que solo provee esa app). Antes
+         era un velocímetro sin texto en la cabecera; aquí dice qué es, en qué
+         estado está y si cuenta en la carga de la sesión. -->
+    <div class="elegant-card score-card" *ngIf="canEditScore">
+      <div class="score-card-header">
+        <div class="score-card-icon">
+          <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
+        </div>
+        <div class="score-card-text">
+          <h3 class="score-card-title">{{ 'EXERCISE_CONFIG.SCORE_TITLE' | translate }}</h3>
+          <p class="score-card-status" [class.score-card-status--warning]="scoreSummary?.state === 'none'">
+            <ng-container [ngSwitch]="scoreSummary?.state">
+              <ng-container *ngSwitchCase="'mine'">{{ 'EXERCISE_CONFIG.SCORE_STATE_MINE' | translate }}</ng-container>
+              <ng-container *ngSwitchCase="'suggested'">{{ 'EXERCISE_CONFIG.SCORE_STATE_SUGGESTED' | translate }}</ng-container>
+              <ng-container *ngSwitchCase="'none'">{{ 'EXERCISE_CONFIG.SCORE_STATE_NONE' | translate }}</ng-container>
+              <ng-container *ngSwitchDefault>{{ 'EXERCISE_CONFIG.SCORE_HELP' | translate }}</ng-container>
+            </ng-container>
+          </p>
+        </div>
+        <button type="button" class="score-card-action" (click)="editScore()">
+          {{ (scoreSummary?.state === 'mine' ? 'EXERCISE_CONFIG.SCORE_EDIT' : scoreSummary?.state === 'suggested' ? 'EXERCISE_CONFIG.SCORE_REVIEW' : 'EXERCISE_CONFIG.SCORE_RATE') | translate }}
+        </button>
+      </div>
+      <div class="score-card-highlights" *ngIf="scoreSummary && (scoreSummary.topMuscles.length || scoreSummary.hardestJoint)">
+        <span class="score-chip" *ngFor="let muscle of scoreSummary.topMuscles">{{ muscle | translateDb }}</span>
+        <span class="score-chip score-chip--joint" *ngIf="scoreSummary.hardestJoint" [attr.title]="'EXERCISE_CONFIG.SCORE_JOINT_TITLE' | translate">
+          <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+          {{ scoreSummary.hardestJoint | translateDb }}
+        </span>
+      </div>
     </div>
 
     <!-- App del entrenador, rutina de un cliente: qué vídeo de su biblioteca

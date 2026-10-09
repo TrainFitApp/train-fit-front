@@ -29,6 +29,7 @@ interface WorkoutDaySummary {
   sorenessText: string;
   clientNote: string;
   exercises: DayExerciseRow[];
+  hasProgress: boolean;
 }
 
 // 2026-09 (día suelto) — ficha de UN día, alternativa a la comparativa por
@@ -66,16 +67,20 @@ export class TrainingDayDetailComponent implements OnChanges {
     if (changes['workouts']) this.collapsed.clear();
     const locale = uiLocale();
     const history = this.history as unknown as DayWorkoutSource[];
-    this.summaries = this.workouts.map((workout) => ({
-      workout,
-      splitLabel: [workout.tableName, workout.splitName].filter(Boolean).join(' · '),
-      completionPercentage: this.completionPercentage(workout),
-      volume: this.volume(workout),
-      duration: this.duration(workout),
-      sorenessText: formatSoreness(workout.sorenessPre),
-      clientNote: (workout.clientNotes || '').trim(),
-      exercises: buildExerciseRows(workout as unknown as DayWorkoutSource, history, locale),
-    }));
+    this.summaries = this.workouts.map((workout) => {
+      const exercises = buildExerciseRows(workout as unknown as DayWorkoutSource, history, locale);
+      return {
+        workout,
+        splitLabel: [workout.tableName, workout.splitName].filter(Boolean).join(' · '),
+        completionPercentage: this.completionPercentage(workout),
+        volume: this.volume(workout),
+        duration: this.duration(workout),
+        sorenessText: formatSoreness(workout.sorenessPre),
+        clientNote: (workout.clientNotes || '').trim(),
+        exercises,
+        hasProgress: exercises.some((exercise) => !!exercise.progress),
+      };
+    });
   }
 
   // Misma fórmula que completedDaysMap en client-detail.page.ts — una serie
