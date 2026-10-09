@@ -175,7 +175,10 @@ test('desde Free, añadir plazas enseña su cuota y contrata solo plan, periodic
   h.api.createCheckout = (target) => { h.calls.checkout.push(target); return pending; };
   h.page.ionViewWillEnter();
   assert.deepEqual(h.page.selection, { tier: 'free', interval: 'monthly', extraSeats: 0 });
-  assert.equal(h.page.selectionAction, 'same', 'Free con sus 3 plazas no se contrata');
+  assert.equal(h.page.selectionAction, 'choose', 'Free con sus 3 plazas no se contrata, pero el botón de contratar se ve');
+  assert.equal(h.page.selectionCtaLabel, 'Contratar');
+  h.page.submitSelection();
+  assert.equal(h.calls.checkout.length, 0, 'sin plan elegido el botón no contrata');
   h.page.stepSeats(1);
   assert.equal(h.page.selectionSeats, 4);
   assert.equal(h.page.selectionAmount, 300, 'Free con plazas no se presenta como gratis');
@@ -188,6 +191,32 @@ test('desde Free, añadir plazas enseña su cuota y contrata solo plan, periodic
   assert.match(h.page.actionError, /validar el enlace/);
   assert.equal(h.page.busy, false);
   h.page.ngOnDestroy();
+});
+
+test('si no se puede contratar lo elegido, el configurador dice por qué en vez de quedarse sin botón', () => {
+  const off = { enabled: false, mode: 'test', portalAvailable: false, planChanges: false, current: null };
+  const cases = [
+    ['backend sin configurar', { plans: catalog({ enabled: false, capabilities: { checkout: false, portal: false, planChanges: false } }),
+      entitlements: free({ billing: off }) }, /no está disponible en este momento/],
+    ['app nativa', { native: true }, /versión web/],
+    ['vuelta de Checkout sin confirmar', { query: { session_id: 'cs_test_abc' }, entitlements: free({ status: 'checkout_pending' }) }, /confirmando el pago/],
+    ['primer pago sin cerrar', { entitlements: free({ status: 'incomplete' }) }, /revisa el estado de tu suscripción/],
+    ['renovación cancelada', { entitlements: managed(view('starter'), { cancelAtPeriodEnd: true }, { actions: { canChange: false, canCancel: false, canResume: true, canDiscardChange: false } }) },
+      /revisa el estado de tu suscripción/],
+  ];
+  for (const [label, config, reason] of cases) {
+    const h = harness(config);
+    if (config.native) h.page.isWeb = false;
+    h.page.ionViewWillEnter();
+    assert.notEqual(h.page.selectionAction, 'choose', `${label}: no se ofrece contratar`);
+    h.page.selectTier('professional');
+    assert.equal(h.page.selectionAction, 'unavailable', label);
+    assert.match(h.page.unavailableReason, reason, label);
+    h.page.submitSelection();
+    assert.equal(h.calls.checkout.length, 0, label);
+    assert.equal(h.calls.preview.length, 0, label);
+    h.page.ngOnDestroy();
+  }
 });
 
 test('las plazas se acotan al plan: Free de 3 a 12, y al tope se recomienda Inicio con su precio real', () => {

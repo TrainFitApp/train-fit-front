@@ -280,11 +280,14 @@
             </ul>
 
             <div class="config-actions">
-              <button type="button" class="primary-button" *ngIf="['checkout', 'change', 'cancel', 'keep'].includes(selectionAction)"
-                      [disabled]="busy" [attr.aria-busy]="checkoutBusy" (click)="submitSelection()">{{ selectionCtaLabel }}</button>
+              <button type="button" class="primary-button" *ngIf="['choose', 'checkout', 'change', 'cancel', 'keep'].includes(selectionAction)"
+                      [disabled]="busy || selectionAction === 'choose'" [attr.aria-busy]="checkoutBusy"
+                      [attr.aria-describedby]="selectionAction === 'choose' ? 'config-choose-hint' : null" (click)="submitSelection()">{{ selectionCtaLabel }}</button>
+              <span class="config-status" id="config-choose-hint" *ngIf="selectionAction === 'choose'">{{ 'SUBSCRIPTION.CONFIG_CHOOSE_PLAN' | translate }}</span>
               <span class="config-status" *ngIf="selectionAction === 'same'">{{ 'SUBSCRIPTION.CONFIG_IS_CURRENT' | translate }}</span>
               <span class="config-status" *ngIf="selectionAction === 'scheduled'">{{ 'SUBSCRIPTION.CONFIG_IS_SCHEDULED' | translate }}</span>
-              <button type="button" class="text-button" *ngIf="selectionAction !== 'same'" [disabled]="busy" (click)="resetSelection()">{{ 'SUBSCRIPTION.CONFIG_RESET' | translate }}</button>
+              <span class="config-status" *ngIf="selectionAction === 'unavailable'" role="status">{{ unavailableReason }}</span>
+              <button type="button" class="text-button" *ngIf="selectionAction !== 'same' && selectionAction !== 'choose'" [disabled]="busy" (click)="resetSelection()">{{ 'SUBSCRIPTION.CONFIG_RESET' | translate }}</button>
             </div>
           </div>
         </div>
