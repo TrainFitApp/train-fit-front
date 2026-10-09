@@ -3,6 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { ModalController } from '@ionic/angular';
 import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.service';
 import { DietPhase } from '../../../../shared/models/diet-phase.model';
+import { compareChain } from '../../../../shared/models/phase-state';
 import {
   PhaseStartVerdict,
   addIsoDays,
@@ -25,10 +26,10 @@ type ViewState = 'loading' | 'ready' | 'error';
 // Desde qué día empieza una fase de dieta nueva: hoja inferior con el
 // calendario de Plan › Nutrición del cliente (cumplimiento, fases, semanas,
 // suplementos) en el que se pulsa el día. Solo deja elegir días en los que el
-// backend acepta la fase (phase-start.util.ts): libres, u hoy para sustituir
-// la que rige. Se abre justo antes de crear la fase, desde el cajón de
-// sugerencias y desde el constructor "para este cliente"; devuelve el día
-// elegido o null si se cierra sin elegir.
+// backend acepta la fase (phase-start.util.ts): libres, o dentro de la fase
+// que rige ese día, avisando de que se corta. Se abre justo antes de crear la
+// fase, desde el cajón de sugerencias y desde el constructor "para este
+// cliente"; devuelve el día elegido o null si se cierra sin elegir.
 @Component({
   selector: 'app-phase-start-sheet',
   templateUrl: './phase-start-sheet.component.html',
@@ -104,7 +105,8 @@ export class PhaseStartSheetComponent implements OnInit {
     return this.translate.instant('DIET_TEMPLATES.START_SHEET_STARTS', { name: this.phaseName, when });
   }
 
-  // Qué le pasa a la fase que rige ese día (solo hoy puede sustituirse).
+  // Aviso de que ese día sigue en curso otra fase y empezar esta la corta (o,
+  // si empezó hoy, la sustituye).
   public get replacesLine(): string {
     const verdict = this.verdict;
     if (verdict?.kind !== 'replaces' || !this.startDate) return '';
@@ -125,15 +127,14 @@ export class PhaseStartSheetComponent implements OnInit {
       : this.translate.instant('DIET_TEMPLATES.START_SHEET_GAP', { from: this.shortDate(gap.from), to: this.shortDate(gap.to) });
   }
 
-  // Sin ningún día posible: hay una fase programada más adelante (impide hoy)
-  // y la cadena acaba en una abierta (ocupa lo que viene). Se nombra la
-  // abierta, que es la que hay que cerrar para liberar días.
+  // Sin día propuesto: hoy no puede (hay una fase programada más adelante) y
+  // la cadena acaba en una abierta que aún no ha empezado, así que no queda
+  // ningún día libre. Se puede elegir uno posterior a su inicio: la corta.
   public get noDayLine(): string {
     if (this.state !== 'ready' || this.startDate) return '';
-    const open = this.phases.find((phase) => phase.endDate === null);
-    const verdict = phaseStartVerdict(this.today, this.phases, this.today);
-    const name = open?.name ?? (verdict.kind === 'blocked' ? verdict.phase.name : '');
-    return this.translate.instant('DIET_TEMPLATES.START_SHEET_NO_DAY', { name });
+    const last = this.phases.slice().sort(compareChain).pop();
+    if (!last) return '';
+    return this.translate.instant('DIET_TEMPLATES.START_SHEET_NO_DAY', { name: last.name, start: this.shortDate(last.startDate) });
   }
 
   public get confirmLabel(): string {

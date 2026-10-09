@@ -3,6 +3,11 @@
 // Movimiento 5 Coach Pro — lista de la compra (lado cliente).
 // Sin tokens --tf-*: esos son de la app de entrenadores. Misma paleta en
 // crudo que el resto de shared-features.
+//
+// Color con significado, no de adorno: el naranja de marca marca lo que se
+// elige (rango), lo que hay que comprar (cantidades) y lo que ya está en el
+// carro (check y barra de avance); el verde solo aparece al completar la
+// compra. Sobre naranja el texto va oscuro: el blanco no llega a 3:1.
 
 @include tf-client-page(52px);
 
@@ -58,8 +63,9 @@
   white-space: nowrap;
 
   &.selected {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
+    background: #fe9000;
+    color: #1a0e00;
+    font-weight: 700;
   }
 
   &:focus-visible {
@@ -156,7 +162,7 @@ ion-select.choice-select {
 .menu-summary {
   margin: -2px 0 0;
   font-size: 0.7rem;
-  color: #6b6b6b;
+  color: #8f8f8f;
   font-variant-numeric: tabular-nums;
 }
 
@@ -181,7 +187,7 @@ ion-select.choice-select {
   background: none;
   border: none;
   border-radius: 10px;
-  color: #ffffff;
+  color: #fe9b1a;
   font-size: 15px;
   cursor: pointer;
 
@@ -202,97 +208,228 @@ ion-select.choice-select {
   font-size: 0.78rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #ffffff;
+  color: #ffd9a8;
 }
 
 .segment-warning {
   color: #fe9b1a;
 }
 
-.list-progress {
-  margin-bottom: 10px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: rgba(254, 144, 0, 0.12);
-  color: #fe9b1a;
-  font-size: 0.78rem;
+// --- Avance del carro ---
+// Superficie teñida del naranja de marca, con el texto sacado del mismo tono
+// (no gris). Al completarse pasa entera a verde.
+.cart-progress {
+  --cart-accent: #fe9000;
+  --cart-surface: #2a1a06;
+  --cart-edge: rgba(254, 144, 0, 0.3);
+  --cart-text: #ffd9a8;
+  --cart-track: rgba(254, 144, 0, 0.2);
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: var(--cart-surface);
+  border: 1px solid var(--cart-edge);
+  border-radius: 12px;
+
+  &--done {
+    --cart-accent: #2dd36f;
+    --cart-surface: #0c2616;
+    --cart-edge: rgba(45, 211, 111, 0.32);
+    --cart-text: #b9f3cf;
+    --cart-track: rgba(45, 211, 111, 0.2);
+  }
+}
+
+.cart-progress-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--cart-accent);
+  color: #1a0e00;
+  font-size: 18px;
+}
+
+.cart-progress-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-progress-label {
+  color: var(--cart-text);
+  font-size: 0.85rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cart-progress-track {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--cart-track);
+  overflow: hidden;
+}
+
+.cart-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cart-accent);
+  transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 // --- Filas ---
 .item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  min-height: 52px;
+  min-height: 56px;
   margin-bottom: 6px;
-  padding: 0 12px;
+  padding: 8px 12px;
   background: #161616;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  border-radius: 12px;
   color: #ffffff;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: opacity 160ms ease, background 160ms ease;
+  transition: background 160ms ease, border-color 160ms ease;
+
+  &:active {
+    background: #1d1d1d;
+  }
 
   &:focus-visible {
     outline: 2px solid #fe9000;
     outline-offset: -2px;
   }
 
-  // Lo que ya está en el carro se atenúa y se tacha, pero NO desaparece:
-  // hacerlo desaparecer impediría corregir un toque por error.
+  // Lo que ya está en el carro se apaga y se tacha, pero NO desaparece:
+  // hacerlo desaparecer impediría corregir un toque por error. Solo el
+  // check conserva el color: es la confirmación del toque.
   &--checked {
-    opacity: 0.45;
+    background: #111111;
+    border-color: rgba(255, 255, 255, 0.04);
 
     .item-name {
+      color: #7d7d7d;
       text-decoration: line-through;
+    }
+
+    .item-days {
+      color: #7d7d7d;
+    }
+
+    .item-quantity {
+      background: rgba(255, 255, 255, 0.05);
+      color: #7d7d7d;
     }
   }
 }
 
 .item-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  font-size: 20px;
-  color: #6b6b6b;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #4d4d4d;
+  border-radius: 50%;
+  color: #1a0e00;
+  font-size: 16px;
 
   .item--checked & {
-    color: #fe9b1a;
+    background: #fe9000;
+    border-color: #fe9000;
+  }
+
+  ion-icon {
+    --ionicon-stroke-width: 64px;
   }
 }
 
-.item-icon {
-  flex-shrink: 0;
-  font-size: 16px;
-  color: #6b6b6b;
-
-  .item--checked & {
-    color: rgba(107, 107, 107, 0.6);
-  }
+.item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .item-name {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .item-days {
-  flex-shrink: 0;
   font-size: 0.72rem;
-  color: #6b6b6b;
+  color: #8f8f8f;
 }
 
+// La cantidad es lo que se busca en el lineal: en pastilla del color de
+// marca para leerla de un vistazo.
 .item-quantity {
   flex-shrink: 0;
   min-width: 62px;
-  text-align: right;
-  font-size: 0.88rem;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(254, 144, 0, 0.14);
+  color: #ffb24d;
+  text-align: center;
+  font-size: 0.85rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// --- Vacío y error ---
+// El icono en un círculo teñido: naranja si es "aún no hay nada", neutro si
+// algo ha fallado. Reintentar es la única acción y va en naranja.
+.page-state .state-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: rgba(254, 144, 0, 0.12);
+
+  ion-icon {
+    font-size: 34px;
+    color: #fe9b1a;
+  }
+
+  &--neutral {
+    background: rgba(255, 255, 255, 0.06);
+
+    ion-icon {
+      color: #9a9a9a;
+    }
+  }
+}
+
+.retry-button {
+  background: #fe9000;
+  border-color: #fe9000;
+  color: #1a0e00;
+  font-weight: 700;
 }

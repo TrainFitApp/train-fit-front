@@ -2,82 +2,111 @@
   <app-page-header [title]="'ROUTINES.PLANTILLAS_DE_ENTRENAMIENTOS' | translate"></app-page-header>
 </ion-header>
 
-<ion-content class="routines-content" appScrollMemory="routines">
-  <div class="templates-page">
-    <p class="templates-hint">
-      {{ 'ROUTINES.CREA_UNA_PLANTILLA_CON_SUS' | translate }}
-    </p>
+<ion-content class="library-content" appScrollMemory="routines">
+  <p class="page-hint">{{ 'ROUTINES.CREA_UNA_PLANTILLA_CON_SUS' | translate }}</p>
 
-    <div class="create-bar" appSubmitOnEnter="createRoutine">
-      <div class="input-wrapper">
-        <ion-icon name="albums-outline" class="input-icon"></ion-icon>
-        <input
-          type="text"
-          class="input-field"
-          [placeholder]="'ROUTINES.PLANTILLA_DIA_DE_EMPUJE' | translate"
-          [(ngModel)]="newName"
-        />
-      </div>
-      <button
-        type="button"
-        class="submit-button"
-        [disabled]="!newName.trim() || isCreating"
-        (click)="createAndEdit()"
-        data-enter-submit-action="createRoutine"
-      >
-        <span *ngIf="!isCreating">{{ 'ROUTINES.CREAR_PLANTILLA' | translate }}</span>
-        <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
+  <!-- Carga: la forma de la rejilla, no un spinner genérico. -->
+  <div class="library-grid" *ngIf="loading">
+    <div class="library-card-skeleton" *ngFor="let i of [1, 2, 3, 4, 5]"></div>
+  </div>
+
+  <!-- El alta es la primera tarjeta de la rejilla, como en Ejercicios. -->
+  <div class="library-grid" *ngIf="!loading">
+    <button type="button" class="library-add-card" (click)="openCreateSheet()">
+      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'ROUTINES.ADD_CARD' | translate }}</span>
+    </button>
+
+    <div
+      class="library-cell library-cell--two-actions"
+      *ngFor="let template of templates; trackBy: trackByTemplateId"
+    >
+      <button type="button" class="library-card" (click)="openTemplate(template)">
+        <span class="library-card__top">
+          <span class="library-card__name">{{ template.name }}</span>
+          <span class="library-card__badge" *ngIf="levelLabels[template.level]">{{ levelLabels[template.level] }}</span>
+        </span>
+
+        <span class="library-card__description" *ngIf="template.description">{{ template.description }}</span>
+
+        <span class="library-card__tags" *ngIf="template.tags?.length">
+          <span class="library-card__tag" *ngFor="let tag of template.tags">{{ tag }}</span>
+        </span>
+
+        <span class="library-card__meta">
+          <span><strong>{{ blockCount(template) }}</strong> {{ 'ROUTINES.BLOQUES' | translate }}</span>
+          <span><strong>{{ exerciseCount(template) }}</strong> {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
+        </span>
       </button>
-    </div>
 
-    <!-- Carga: mismo esqueleto de la forma final (grid de cards), no un
-         spinner genérico — mismo criterio que dashboard.page.html -->
-    <div class="templates-skeleton" *ngIf="loading">
-      <div class="skeleton-block template-card-skeleton" *ngFor="let i of [1, 2, 3]"></div>
-    </div>
-
-    <!-- Vacío de página completa: mismo patrón que clients/dashboard
-         (icono + título + texto). Sin CTA propio: el formulario de crear ya
-         está justo encima. -->
-    <div class="state-message" *ngIf="!loading && templates.length === 0">
-      <ion-icon name="albums-outline"></ion-icon>
-      <h2>{{ 'ROUTINES.TODAVIA_NO_TIENES_PLANTILLAS' | translate }}</h2>
-      <p>{{ 'ROUTINES.CREA_LA_PRIMERA_CON_EL' | translate }}</p>
-    </div>
-
-    <div class="templates-grid" *ngIf="!loading && templates.length > 0">
-      <div
-        class="template-card"
-        *ngFor="let template of templates; trackBy: trackByTemplateId"
-        (click)="openTemplate(template)"
-      >
-        <div class="template-card-header">
-          <span class="template-name">{{ template.name }}</span>
-          <span class="template-level">{{ levelLabels[template.level] }}</span>
-        </div>
-
-        <p class="template-description" *ngIf="template.description">
-          {{ template.description }}
-        </p>
-
-        <div class="template-tags" *ngIf="template.tags?.length">
-          <span class="template-tag" *ngFor="let tag of template.tags">{{ tag }}</span>
-        </div>
-
-        <div class="template-meta">
-          <span>{{ blockCount(template) }} {{ 'ROUTINES.BLOQUES' | translate }}</span>
-          <span>{{ exerciseCount(template) }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
-        </div>
-
-        <div class="template-card-actions">
-          <button type="button" class="secondary-button" [disabled]="isDuplicating" (click)="duplicateTemplate(template, $event)">
-            {{ 'TRAINER_COMMON.DUPLICATE' | translate }}
-          </button>
-          <button type="button" class="danger-button" (click)="confirmDelete(template, $event)">
-            {{ 'TRAINER_COMMON.ERASE' | translate }}
-          </button>
-        </div>
+      <div class="library-card__actions">
+        <button
+          type="button"
+          class="corner-button"
+          [disabled]="isDuplicating"
+          (click)="duplicateTemplate(template, $event)"
+          [title]="'TRAINER_COMMON.DUPLICATE' | translate"
+          [attr.aria-label]="('TRAINER_COMMON.DUPLICATE' | translate) + ': ' + template.name"
+        >
+          <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <button
+          type="button"
+          class="corner-button corner-button--danger"
+          (click)="confirmDelete(template, $event)"
+          [title]="'TRAINER_COMMON.ERASE' | translate"
+          [attr.aria-label]="('TRAINER_COMMON.ERASE' | translate) + ': ' + template.name"
+        >
+          <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+        </button>
       </div>
     </div>
   </div>
+
+  <div class="state-message" *ngIf="!loading && templates.length === 0">
+    <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
+    <h2>{{ 'ROUTINES.TODAVIA_NO_TIENES_PLANTILLAS' | translate }}</h2>
+    <p>{{ 'ROUTINES.CREA_LA_PRIMERA_CON_EL' | translate }}</p>
+  </div>
 </ion-content>
+
+<!-- Alta: hoja inferior con el nombre y "Crear", como en Dietas. Fuera del
+     ion-content para que no se mueva con el scroll. -->
+<ng-container *ngIf="showCreateSheet">
+  <div class="panel-backdrop" (click)="closeCreateSheet()"></div>
+  <div
+    class="panel-sheet"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'ROUTINES.NEW_TEMPLATE_TITLE' | translate"
+    appSubmitOnEnter="createRoutine"
+    (keydown.escape)="closeCreateSheet()"
+  >
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">{{ 'ROUTINES.NEW_TEMPLATE_TITLE' | translate }}</h3>
+
+    <div class="input-wrapper">
+      <ion-icon name="albums-outline" class="input-icon" aria-hidden="true"></ion-icon>
+      <input
+        #createNameInput
+        type="text"
+        class="input-field"
+        [placeholder]="'ROUTINES.PLANTILLA_DIA_DE_EMPUJE' | translate"
+        [attr.aria-label]="'ROUTINES.NEW_TEMPLATE_TITLE' | translate"
+        [(ngModel)]="newName"
+      />
+    </div>
+
+    <button
+      type="button"
+      class="submit-button"
+      [disabled]="!newName.trim() || isCreating"
+      [attr.aria-busy]="isCreating"
+      (click)="createAndEdit()"
+      data-enter-submit-action="createRoutine"
+    >
+      <span *ngIf="!isCreating">{{ 'TRAINER_COMMON.CREATE' | translate }}</span>
+      <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
+    </button>
+  </div>
+</ng-container>

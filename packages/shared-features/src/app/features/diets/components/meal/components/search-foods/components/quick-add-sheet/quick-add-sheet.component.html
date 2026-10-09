@@ -131,10 +131,10 @@
   </button>
 
   <footer class="quick-add__actions">
-    <ion-button expand="block" fill="outline" color="medium" type="button" (click)="cancel()">
+    <ion-button class="quick-add__action quick-add__action--secondary" expand="block" type="button" (click)="cancel()">
       {{ 'COMMON.CANCEL' | translate | uppercase }}
     </ion-button>
-    <ion-button expand="block" color="primary" type="submit" [disabled]="!canSubmit">
+    <ion-button class="quick-add__action quick-add__action--primary" expand="block" type="submit" [disabled]="!canSubmit">
       {{ (isEditMode ? 'COMMON.SAVE' : 'SEARCH_FOODS.QUICK_ADD_SUBMIT') | translate | uppercase }}
     </ion-button>
   </footer>

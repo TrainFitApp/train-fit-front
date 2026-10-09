@@ -1,0 +1,131 @@
+<form
+  class="supplement-sheet"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  aria-labelledby="supplement-sheet-title"
+  novalidate
+>
+  <header class="supplement-sheet__head">
+    <h2 class="supplement-sheet__title" id="supplement-sheet-title">
+      {{ (isEditMode ? 'SUPPLEMENTS.EDIT_TITLE' : 'SUPPLEMENTS.ADD_TITLE') | translate }}
+    </h2>
+    <p class="supplement-sheet__hint" *ngIf="!isEditMode">
+      {{
+        startDate === today
+          ? ('SUPPLEMENTS.ADD_HINT_TODAY' | translate)
+          : ('SUPPLEMENTS.ADD_HINT_FROM' | translate : { date: (startDate | localDate : 'longDate') })
+      }}
+    </p>
+    <p class="supplement-sheet__hint" *ngIf="isEditMode && supplement?.startDate">
+      {{ 'SUPPLEMENTS.EDIT_HINT_SINCE' | translate : { date: (supplement?.startDate | localDate : 'longDate') } }}
+    </p>
+  </header>
+
+  <!-- Qué y cuánto: dos cajas como las de la adición rápida, etiqueta
+       encima y la caja entera pulsable. La dosis es texto libre ("5 g",
+       "2 cápsulas", "1 medida"), igual que en la pauta del profesional. -->
+  <div class="supplement-sheet__row">
+    <label class="supplement-sheet__field supplement-sheet__field--name">
+      <span class="supplement-sheet__label">{{ 'SUPPLEMENTS.NAME' | translate }}</span>
+      <ion-input
+        class="supplement-sheet__input"
+        type="text"
+        maxlength="120"
+        autocapitalize="sentences"
+        formControlName="name"
+        [attr.aria-label]="'SUPPLEMENTS.NAME' | translate"
+        [placeholder]="'SUPPLEMENTS.NAME_PLACEHOLDER' | translate"
+        (ionInput)="clearError()"
+      ></ion-input>
+    </label>
+
+    <label class="supplement-sheet__field supplement-sheet__field--dose">
+      <span class="supplement-sheet__label">{{ 'SUPPLEMENTS.DOSE' | translate }}</span>
+      <ion-input
+        class="supplement-sheet__input"
+        type="text"
+        maxlength="60"
+        autocomplete="off"
+        formControlName="dose"
+        [attr.aria-label]="'SUPPLEMENTS.DOSE' | translate"
+        [placeholder]="'SUPPLEMENTS.DOSE_PLACEHOLDER' | translate"
+        (ionInput)="clearError()"
+      ></ion-input>
+    </label>
+  </div>
+
+  <!-- Cuándo: el mismo vocabulario cerrado que usa el profesional, de la
+       mañana a la noche. "Otro momento" abre un texto libre. -->
+  <fieldset class="supplement-sheet__timings">
+    <legend class="supplement-sheet__label">{{ 'SUPPLEMENTS.WHEN' | translate }}</legend>
+    <div class="supplement-sheet__chips" role="radiogroup" [attr.aria-label]="'SUPPLEMENTS.WHEN' | translate">
+      <button
+        type="button"
+        role="radio"
+        class="supplement-sheet__chip"
+        *ngFor="let timing of timings"
+        [class.is-selected]="form.value.timing === timing.key"
+        [attr.aria-checked]="form.value.timing === timing.key"
+        (click)="selectTiming(timing.key)"
+      >
+        {{ timingLabel(timing) }}
+      </button>
+    </div>
+  </fieldset>
+
+  <label class="supplement-sheet__field" *ngIf="isCustomTiming">
+    <span class="supplement-sheet__label">{{ 'SUPPLEMENTS.CUSTOM_TIMING' | translate }}</span>
+    <ion-input
+      class="supplement-sheet__input"
+      type="text"
+      maxlength="100"
+      autocapitalize="sentences"
+      formControlName="customTiming"
+      [attr.aria-label]="'SUPPLEMENTS.CUSTOM_TIMING' | translate"
+      [placeholder]="'SUPPLEMENTS.CUSTOM_TIMING_PLACEHOLDER' | translate"
+      (ionInput)="clearError()"
+    ></ion-input>
+  </label>
+
+  <p class="supplement-sheet__error" role="alert" *ngIf="errorKey">
+    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+    {{ errorKey | translate }}
+  </p>
+
+  <footer class="supplement-sheet__actions">
+    <ion-button
+      class="supplement-sheet__action supplement-sheet__action--secondary"
+      expand="block"
+      type="button"
+      [disabled]="busy"
+      (click)="cancel()"
+    >
+      {{ 'COMMON.CANCEL' | translate | uppercase }}
+    </ion-button>
+    <ion-button
+      class="supplement-sheet__action supplement-sheet__action--primary"
+      expand="block"
+      type="submit"
+      [disabled]="!canSubmit"
+    >
+      <ion-spinner name="crescent" *ngIf="saving" aria-hidden="true"></ion-spinner>
+      <ng-container *ngIf="!saving">
+        {{ (isEditMode ? 'COMMON.SAVE' : 'SUPPLEMENTS.ADD') | translate | uppercase }}
+      </ng-container>
+    </ion-button>
+  </footer>
+
+  <ion-button
+    *ngIf="isEditMode"
+    class="supplement-sheet__remove"
+    expand="block"
+    fill="clear"
+    color="danger"
+    type="button"
+    [disabled]="busy"
+    (click)="confirmRemove()"
+  >
+    <ion-icon name="trash-outline" slot="start" aria-hidden="true"></ion-icon>
+    {{ (removing ? 'SUPPLEMENTS.REMOVING' : 'SUPPLEMENTS.REMOVE') | translate | uppercase }}
+  </ion-button>
+</form>

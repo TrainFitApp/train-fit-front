@@ -30,13 +30,13 @@
   </div>
 
   <div class="page-state" *ngIf="state === 'error'">
-    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <span class="state-badge state-badge--neutral" aria-hidden="true"><ion-icon name="cloud-offline-outline"></ion-icon></span>
     <p>{{ 'SHOPPING_LIST.LOAD_ERROR' | translate }}</p>
     <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
   </div>
 
-  <div class="page-state" *ngIf="isEmpty">
-    <ion-icon name="cart-outline" aria-hidden="true"></ion-icon>
+  <div class="page-state page-state--empty" *ngIf="isEmpty">
+    <span class="state-badge" aria-hidden="true"><ion-icon name="cart-outline"></ion-icon></span>
     <p>
       {{ 'SHOPPING_LIST.EMPTY' | translate }}
     </p>
@@ -130,8 +130,20 @@
       </div>
     </section>
 
-    <div class="list-progress" *ngIf="checkedCount">
-      {{ 'SHOPPING_LIST.IN_CART' | translate: { count: checkedCount, total: items.length } }}
+    <!-- Siempre a la vista con algo que comprar: el avance del carro es lo
+         que se mira entre pasillo y pasillo. Verde al completarlo. -->
+    <div class="cart-progress" *ngIf="items.length" [class.cart-progress--done]="allInCart" role="status">
+      <span class="cart-progress-icon" aria-hidden="true">
+        <ion-icon [name]="allInCart ? 'checkmark' : 'cart'"></ion-icon>
+      </span>
+      <div class="cart-progress-body">
+        <span class="cart-progress-label">
+          {{ allInCart ? ('SHOPPING_LIST.ALL_IN_CART' | translate) : ('SHOPPING_LIST.IN_CART' | translate: { count: checkedCount, total: items.length }) }}
+        </span>
+        <span class="cart-progress-track" aria-hidden="true">
+          <span class="cart-progress-fill" [style.width.%]="cartPercent"></span>
+        </span>
+      </div>
     </div>
 
     <p class="page-hint" *ngIf="!items.length">{{ 'SHOPPING_LIST.NOTHING_TO_BUY' | translate }}</p>
@@ -144,14 +156,13 @@
       [attr.aria-pressed]="isChecked(item)"
       (click)="toggle(item)"
     >
-      <ion-icon
-        class="item-check"
-        [name]="isChecked(item) ? 'checkbox' : 'square-outline'"
-        aria-hidden="true"
-      ></ion-icon>
-      <ion-icon class="item-icon" name="basket-outline" aria-hidden="true"></ion-icon>
-      <span class="item-name">{{ item.name }}</span>
-      <span class="item-days">{{ daysLabel(item) }}</span>
+      <span class="item-check" aria-hidden="true">
+        <ion-icon *ngIf="isChecked(item)" name="checkmark"></ion-icon>
+      </span>
+      <span class="item-text">
+        <span class="item-name">{{ item.name }}</span>
+        <span class="item-days">{{ daysLabel(item) }}</span>
+      </span>
       <span class="item-quantity">{{ quantityLabel(item) }}</span>
     </button>
   </ng-container>

@@ -1,27 +1,29 @@
-// Misma familia visual que CreateFoodSheetComponent y RecentFoodsSheetComponent
-// (hoja inferior, colores de Ionic y nunca hex sueltos, para que siga al tema
-// claro y al oscuro), y los campos con la misma forma que el modal de medidas
-// (AnthropometryModalComponent): etiqueta encima, valor grande y unidad al
-// lado, en una caja de 44px+ que se pulsa entera.
+// Misma familia que QuickAddSheetComponent (hoja inferior, colores de Ionic y
+// nunca hex sueltos, para que siga al tema claro y al oscuro): cajas de 44px+
+// con la etiqueta encima y el foco en naranja. La hoja es de alto automático;
+// si con el teclado abierto no cabe, hace scroll dentro.
 :host {
   display: block;
-  padding: 26px 16px calc(env(safe-area-inset-bottom) + 16px);
+  max-height: 88vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 26px 16px calc(env(safe-area-inset-bottom) + 12px);
 }
 
-.quick-add {
+.supplement-sheet {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.quick-add__head {
+.supplement-sheet__head {
   display: flex;
   flex-direction: column;
   gap: 4px;
   margin: 0 2px 4px;
 }
 
-.quick-add__title {
+.supplement-sheet__title {
   margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
@@ -29,20 +31,22 @@
   text-wrap: balance;
 }
 
-.quick-add__hint {
+.supplement-sheet__hint {
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.35;
   color: var(--ion-color-medium);
 }
 
-.quick-add__grid {
+// Nombre ancho y dosis estrecha en una fila: se leen como un dato,
+// "Creatina · 5 g", igual que luego en la lista del día.
+.supplement-sheet__row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.55fr);
   gap: 8px;
 }
 
-.quick-add__field {
+.supplement-sheet__field {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -66,7 +70,8 @@
   }
 }
 
-.quick-add__label {
+.supplement-sheet__label {
+  padding: 0;
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1.3;
@@ -75,16 +80,7 @@
   color: var(--ion-color-medium);
 }
 
-.quick-add__control {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  min-width: 0;
-}
-
-.quick-add__input {
-  flex: 1;
-  min-width: 0;
+.supplement-sheet__input {
   min-height: 32px;
   --padding-start: 0;
   --padding-end: 0;
@@ -97,58 +93,93 @@
   --highlight-color-focused: transparent;
   caret-color: var(--ion-color-primary);
   font-size: 1rem;
-}
-
-.quick-add__input--number {
-  font-size: 1.25rem;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-}
-
-.quick-add__unit {
-  flex-shrink: 0;
-  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--ion-color-medium);
 }
 
-// Atajo para cuadrar las kcal con los macros escritos. Solo sale cuando las
-// dos cifras no coinciden (ver showKcalHint), así que nunca es ruido.
-.quick-add__kcal-hint {
-  display: inline-flex;
-  align-items: center;
+.supplement-sheet__timings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 6px 0 0;
+  padding: 0;
+  border: none;
+
+  > .supplement-sheet__label {
+    margin: 0 2px;
+  }
+}
+
+.supplement-sheet__chips {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  align-self: flex-start;
+}
+
+// Un toque elige: sin confirmar. El elegido, en el naranja de la marca.
+.supplement-sheet__chip {
   min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.35);
+  padding: 0 14px;
+  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.14);
   border-radius: 12px;
-  background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.08);
-  color: var(--ion-color-primary);
+  background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
+  color: var(--ion-text-color);
   font-family: inherit;
   font-size: 0.85rem;
-  font-weight: 600;
-  text-align: start;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 
+  &.is-selected {
+    border-color: var(--ion-color-primary);
+    background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.14);
+    color: var(--ion-color-primary);
+    font-weight: 650;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.supplement-sheet__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 2px 2px 0;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--ion-color-danger);
+
   ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
     font-size: 16px;
   }
 }
 
-.quick-add__actions {
+.supplement-sheet__actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 6px;
+
+  ion-spinner {
+    width: 20px;
+    height: 20px;
+    color: currentColor;
+  }
 }
 
 // Los mismos botones que las alertas en hoja inferior de toda la app
-// (ion-alert.custom-alert en shared-theme) y que SupplementSheetComponent.
-// Sin `color` en el ion-button: con él, Ionic no lee --background.
-.quick-add__action {
+// (ion-alert.custom-alert en shared-theme): 48px, radio 12, Cancelar en
+// superficie suave y la acción en naranja con texto oscuro (el blanco sobre
+// naranja se queda en 2:1). Sin `color` en el ion-button: con él, Ionic pinta
+// el fondo con el color y no lee --background.
+.supplement-sheet__action {
   height: 48px;
   margin: 0;
   --border-radius: 12px;
@@ -170,7 +201,6 @@
     --color: var(--ion-text-color);
   }
 
-  // Texto oscuro: el blanco sobre naranja se queda en 2:1.
   &--primary {
     --background: var(--ion-color-primary);
     --background-activated: var(--ion-color-primary-shade);
@@ -180,4 +210,9 @@
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
+}
+
+.supplement-sheet__remove {
+  margin: 0;
+  min-height: 44px;
 }

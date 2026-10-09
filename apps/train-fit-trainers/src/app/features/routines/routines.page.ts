@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -32,9 +32,13 @@ export class RoutinesPage implements OnInit {
   public loading = true;
   public newName = '';
   public isCreating = false;
+  // Hoja inferior de alta (nombre + Crear), como en Dietas.
+  public showCreateSheet = false;
   public isDuplicating = false;
 
   public readonly levelLabels = LEVEL_LABELS;
+
+  @ViewChild('createNameInput') private createNameInput?: ElementRef<HTMLInputElement>;
 
   constructor(
     private workoutTemplateApi: WorkoutTemplateApiService,
@@ -52,6 +56,12 @@ export class RoutinesPage implements OnInit {
   // un refresco manual). ngOnInit solo se dispara una vez por instancia.
   public ionViewWillEnter(): void {
     this.loadTemplates();
+  }
+
+  // La página queda cacheada al abrir una plantilla: sin esto, la hoja de
+  // alta seguiría abierta al volver.
+  public ionViewWillLeave(): void {
+    this.showCreateSheet = false;
   }
 
   private loadTemplates(): void {
@@ -86,6 +96,18 @@ export class RoutinesPage implements OnInit {
     return template._id;
   }
 
+  public openCreateSheet(): void {
+    this.newName = '';
+    this.showCreateSheet = true;
+    // El campo existe tras el siguiente render (*ngIf de la hoja).
+    setTimeout(() => this.createNameInput?.nativeElement.focus());
+  }
+
+  public closeCreateSheet(): void {
+    if (this.isCreating) return;
+    this.showCreateSheet = false;
+  }
+
   public createAndEdit(): void {
     const name = this.newName.trim();
     if (!name || this.isCreating) return;
@@ -94,7 +116,7 @@ export class RoutinesPage implements OnInit {
     this.workoutTemplateApi.create({ name }).subscribe({
       next: (template) => {
         this.isCreating = false;
-        this.newName = '';
+        this.showCreateSheet = false;
         this.openTemplate(template);
       },
       error: () => {
@@ -124,7 +146,7 @@ export class RoutinesPage implements OnInit {
 
     this.workoutTemplateApi
       .create({
-        name: `${template.name} (copia)`,
+        name: this.translate.instant('ROUTINES.COPY_NAME', { name: template.name }),
         description: template.description,
         level: template.level,
         tags: template.tags,

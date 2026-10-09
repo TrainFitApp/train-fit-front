@@ -15,8 +15,8 @@ export interface PhaseSpan {
 
 // Qué pasa si la fase nueva empieza ese día:
 // - free: ninguna fase lo cubre ni choca con él.
-// - replaces: la fase que rige ese día se corta el día anterior (o, si
-//   empezaba ese mismo día, queda sustituida).
+// - replaces: la fase que rige ese día (en curso hoy o programada) se corta
+//   el día anterior o, si empezaba ese mismo día (solo hoy), queda sustituida.
 // - blocked: no se puede; `phase` es la que lo impide.
 export type PhaseStartVerdict<T extends PhaseSpan> =
   | { kind: 'free' }
@@ -56,16 +56,17 @@ export function coveringPhase<T extends PhaseSpan>(phases: T[], date: string): T
 /**
  * La regla del backend al crear una fase (diet-phase-service.js#reserveSlot y
  * #blocksNewPhase), para no dejar elegir un día que acabaría en 409:
- * - Un día futuro solo vale si ninguna fase llega hasta él: una fase abierta
- *   ocupa todo lo que viene, y programar encima de otra no se puede.
- * - Hoy (o antes) solo lo impide una fase programada más adelante (la nueva
- *   queda abierta y se la comería). La que rige ese día se corta, y una que
- *   se sustituyó el mismo día en que empezó (tapada por la más reciente) no
- *   cuenta.
+ * - La fase que rige ese día no bloquea, empiece la nueva hoy o más adelante:
+ *   se corta el día anterior. Quien elige el día lo ve como aviso.
+ * - Lo impide una fase programada más adelante (la nueva queda abierta y se
+ *   la comería) y, en un día futuro, una que empieza ese mismo día (no ha
+ *   regido nunca: se quita en vez de sustituirla). Hoy, la que empezó hoy
+ *   queda sustituida, y una que ya se sustituyó así (tapada por la más
+ *   reciente) no cuenta.
  *
  * Y una restricción propia: un día PASADO que ya regía otra fase es historial
  * del cliente. El backend lo aceptaría (cortándola hacia atrás), pero desde
- * aquí solo se sustituye la fase en curso a partir de hoy.
+ * aquí solo se corta a partir de hoy.
  *
  * Si lo impiden varias, se nombra la que rige ese día o, si no, la primera
  * que empieza después: es la que hay que mover para dejarlo libre.
@@ -75,7 +76,9 @@ export function phaseStartVerdict<T extends PhaseSpan>(date: string, phases: T[]
   if (covering && date < today) return { kind: 'blocked', phase: covering };
 
   const clashes = phases.filter(
-    (phase) => (phase.endDate === null || phase.endDate >= date) && (date > today || phase.startDate > date)
+    (phase) =>
+      (phase.endDate === null || phase.endDate >= date) &&
+      (phase.startDate > date || (phase.startDate === date && date > today))
   );
   if (clashes.length) {
     const clash = clashes.includes(covering as T) ? (covering as T) : clashes.slice().sort(compareChain)[0];
@@ -84,15 +87,19 @@ export function phaseStartVerdict<T extends PhaseSpan>(date: string, phases: T[]
   return covering ? { kind: 'replaces', phase: covering } : { kind: 'free' };
 }
 
-// El día que se propone al abrir: hoy si se puede y, si no, el primero libre
-// más adelante. Un hueco libre solo puede abrirse el día siguiente al fin de
-// alguna fase, así que basta con mirar esos días. null si no queda ninguno
-// (una fase abierta que todavía no ha empezado lo ocupa todo).
+// El día que se propone al abrir: hoy si se puede (aunque corte la que
+// rige) y, si no, el primero libre más adelante, que solo puede abrirse el
+// día siguiente al fin de alguna fase. null si no hay ninguno libre (la
+// última fase está programada y abierta): se puede elegir igualmente un día
+// posterior a su inicio, que la corta, pero no se propone por defecto.
 export function firstStartDate(phases: PhaseSpan[], today: string): string | null {
-  const candidates = [today, ...phases.filter((phase) => phase.endDate !== null).map((phase) => addIsoDays(phase.endDate!, 1))]
-    .filter((date) => date >= today)
+  if (phaseStartVerdict(today, phases, today).kind !== 'blocked') return today;
+  const candidates = phases
+    .filter((phase) => phase.endDate !== null)
+    .map((phase) => addIsoDays(phase.endDate!, 1))
+    .filter((date) => date > today)
     .sort();
-  return candidates.find((date) => phaseStartVerdict(date, phases, today).kind !== 'blocked') ?? null;
+  return candidates.find((date) => phaseStartVerdict(date, phases, today).kind === 'free') ?? null;
 }
 
 // Días sin plan entre la fase anterior y una que empieza en `date`, o null si

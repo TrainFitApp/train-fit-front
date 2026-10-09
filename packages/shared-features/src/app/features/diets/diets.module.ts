@@ -14,6 +14,7 @@ import { DietsPageRoutingModule } from './diets-routing.module';
 import { DietsPage } from './diets.page';
 import { MacrosBarsModule } from './components/macros-bars/macros-bars.module';
 import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-preview-modal.component';
+import { SupplementSheetComponent } from './components/supplement-sheet/supplement-sheet.component';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-
     MealComponent,
     ClipboardMealModalComponent,
     MenuPreviewModalComponent,
+    SupplementSheetComponent,
   ],
   imports: [
     SharedModule,

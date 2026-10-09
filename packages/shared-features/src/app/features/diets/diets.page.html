@@ -149,27 +149,74 @@
   </ion-grid>
 
   <!-- Suplementación vigente ese día (§14): va por fechas, así que
-       desaparece sola cuando termina la pauta. -->
-  <div class="day-supplements" *ngIf="supplements.length">
-    <p class="day-supplements__title">{{ 'DIETS.SUPPLEMENTS' | translate }}</p>
-    <div class="day-supplements__row" *ngFor="let supplement of supplements">
-      <ion-icon
-        color="success"
-        name="flask-outline"
-        aria-hidden="true"
-      ></ion-icon>
-      <span class="day-supplements__text">
-        <strong>{{ supplement.name }} · {{ supplement.dose }}</strong>
-        <small
-          >{{ supplementTiming(supplement) }}<ng-container
-            *ngIf="supplement.reason"
-          >
-            · {{ supplement.reason }}</ng-container
-          ></small
-        >
-      </span>
+       desaparece sola cuando termina la pauta. Lo pautado por el profesional
+       es de solo lectura y lleva el icono y el azul de la sección Pautado de
+       las comidas; lo que se apunta el cliente se toca para editarlo. Sin
+       profesional, la sección sale siempre para poder añadir. -->
+  <section
+    class="day-supplements"
+    *ngIf="showSupplements"
+    [class.copy-mode-locked]="copyModeLocked"
+    aria-labelledby="day-supplements-title"
+  >
+    <div class="day-supplements__header">
+      <h2 class="day-supplements__title" id="day-supplements-title">
+        {{ 'DIETS.SUPPLEMENTS' | translate }}
+      </h2>
+      <button
+        type="button"
+        class="day-supplements__add"
+        *ngIf="canAddSupplements"
+        (click)="openSupplementSheet()"
+      >
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+        {{ 'DIETS.SUPPLEMENTS_ADD' | translate | uppercase }}
+      </button>
     </div>
-  </div>
+
+    <p class="day-supplements__empty" *ngIf="!supplements.length">
+      {{ 'DIETS.SUPPLEMENTS_EMPTY' | translate }}
+    </p>
+
+    <ng-container *ngFor="let supplement of supplements; trackBy: trackSupplement">
+      <div
+        class="day-supplements__row day-supplements__row--prescribed"
+        *ngIf="!supplement.own"
+      >
+        <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+        <span class="day-supplements__text">
+          <strong>{{ supplement.name }} · {{ supplement.dose }}</strong>
+          <small
+            ><span class="day-supplements__by">{{
+              'SUPPLEMENTS.PRESCRIBED_BY' | translate: { name: supplement.trainerName }
+            }}</span>
+            · {{ supplementTiming(supplement) }}<ng-container *ngIf="supplement.reason">
+              · {{ supplement.reason }}</ng-container
+            ></small
+          >
+        </span>
+      </div>
+
+      <button
+        type="button"
+        class="day-supplements__row day-supplements__row--own"
+        *ngIf="supplement.own"
+        [attr.aria-label]="'SUPPLEMENTS.EDIT_ARIA' | translate: { name: supplement.name }"
+        (click)="openSupplementSheet(supplement)"
+      >
+        <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>
+        <span class="day-supplements__text">
+          <strong>{{ supplement.name }} · {{ supplement.dose }}</strong>
+          <small>{{ supplementTiming(supplement) }}</small>
+        </span>
+        <ion-icon
+          name="chevron-forward-outline"
+          class="day-supplements__chevron"
+          aria-hidden="true"
+        ></ion-icon>
+      </button>
+    </ng-container>
+  </section>
 
   <!-- Floating Clipboard Bar -->
   <div

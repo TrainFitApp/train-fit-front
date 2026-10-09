@@ -28,7 +28,10 @@
 
       <div class="start-sheet__summary" aria-live="polite">
         <p class="start-sheet__starts" *ngIf="startsLine">{{ startsLine }}</p>
-        <p class="start-sheet__note" *ngIf="replacesLine">{{ replacesLine }}</p>
+        <p class="start-sheet__note start-sheet__note--warning" *ngIf="replacesLine">
+          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+          {{ replacesLine }}
+        </p>
         <p class="start-sheet__note start-sheet__note--warning" *ngIf="gapLine">
           <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
           {{ gapLine }}

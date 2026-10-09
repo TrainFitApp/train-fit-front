@@ -223,6 +223,14 @@ export class MyShoppingListPage implements OnInit {
     return this.items.filter((item) => this.checked.has(item.name)).length;
   }
 
+  public get allInCart(): boolean {
+    return this.items.length > 0 && this.checkedCount === this.items.length;
+  }
+
+  public get cartPercent(): number {
+    return this.items.length ? Math.round((this.checkedCount / this.items.length) * 100) : 0;
+  }
+
   public quantityLabel(item: ShoppingListItem): string {
     return shoppingQuantityLabel(item.quantity);
   }

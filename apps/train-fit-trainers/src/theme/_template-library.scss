@@ -1,0 +1,326 @@
+// Biblioteca de plantillas de entrenamiento: Rutinas (/tabs/routine-templates)
+// y Entrenamientos (/tabs/routines). Las dos pantallas comparten esqueleto:
+// pista, rejilla de tarjetas con el alta como primera celda y hoja inferior
+// para el nombre de la nueva plantilla.
+//
+// - Rejilla: mismas columnas que Dietas (diet-templates-list) y Ejercicios
+//   (app-search-exercises): una por debajo de 900px y, por encima, tantas
+//   como quepan a 320px (5 en un monitor ancho), a todo el ancho del
+//   contenido.
+// - Filas del mismo alto en escritorio (grid-auto-rows: 1fr): nombre y
+//   descripción van recortados, así que la tarjeta más alta está acotada y
+//   ninguna fila queda descuadrada.
+// - Alta: tarjeta discontinua "+ …", copia de .exercise-add-card
+//   (search-exercises.page.scss).
+// - Tarjeta: mismo aspecto que app-diet-card (superficie 1, borde, radio
+//   14px, borde de acento al pasar el ratón). Es un <button>; sus acciones
+//   (duplicar, borrar) van en la esquina como hermanas, igual que en Dietas.
+//
+// Requiere importar antes buttons, inputs, skeleton y panel-sheet.
+
+@mixin tf-template-library {
+  .library-content {
+    --background: var(--tf-bg);
+    --padding-start: var(--tf-space-4);
+    --padding-end: var(--tf-space-4);
+    --padding-top: var(--tf-space-3);
+    --padding-bottom: var(--tf-space-6);
+  }
+
+  .page-hint {
+    max-width: 90ch;
+    margin: 0 0 var(--tf-space-4);
+    font-size: var(--tf-font-size-sm);
+    line-height: var(--tf-line-height-base);
+    color: var(--tf-text-muted);
+  }
+
+  .library-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--tf-space-3);
+
+    @media (min-width: 900px) {
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-auto-rows: 1fr;
+    }
+  }
+
+  // --- Alta ---
+  .library-add-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 88px;
+    padding: var(--tf-space-3);
+    background: var(--tf-surface-1);
+    border: 1px dashed var(--tf-border);
+    border-radius: 14px;
+    color: var(--tf-text-muted);
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: color var(--tf-duration-fast) var(--tf-ease-out),
+      border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+    ion-icon {
+      font-size: 20px;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        color: var(--tf-accent);
+        border-color: var(--tf-accent);
+      }
+    }
+
+    &:active {
+      color: var(--tf-accent);
+      border-color: var(--tf-accent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  // --- Tarjeta ---
+  .library-cell {
+    position: relative;
+    min-width: 0;
+  }
+
+  .library-card {
+    width: 100%;
+    height: 100%;
+    min-height: 88px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--tf-space-2);
+    padding: 14px;
+    text-align: left;
+    background: var(--tf-surface-1);
+    border: 1px solid var(--tf-border);
+    border-radius: 14px;
+    font-family: inherit;
+    color: var(--tf-text);
+    cursor: pointer;
+    transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+    @media (hover: hover) {
+      &:hover {
+        border-color: var(--tf-accent);
+      }
+    }
+
+    &:active {
+      border-color: var(--tf-accent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  // Hueco a la derecha para las acciones de la esquina (32px cada una).
+  .library-card__top {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--tf-space-2);
+    padding-right: 32px;
+  }
+
+  .library-cell--two-actions .library-card__top {
+    padding-right: 64px;
+  }
+
+  .library-card__name {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--tf-font-size-base);
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  // Nivel: mismo tratamiento que las etiquetas de app-diet-card.
+  .library-card__badge {
+    flex-shrink: 0;
+    margin-top: 1px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--tf-surface-2);
+    color: var(--tf-text-secondary);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .library-card__description {
+    font-size: var(--tf-font-size-sm);
+    line-height: 1.4;
+    color: var(--tf-text-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  // Una sola línea: las que no caben pasan a una segunda que no se ve, así
+  // no estiran la tarjeta ni quedan cortadas a medias.
+  .library-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tf-space-1);
+    max-height: 22px;
+    overflow: hidden;
+  }
+
+  .library-card__tag {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 18px;
+    padding: 2px 8px;
+    border-radius: var(--tf-radius-pill);
+    background: var(--tf-surface-2);
+    color: var(--tf-text-secondary);
+    font-size: var(--tf-font-size-xs);
+    white-space: nowrap;
+  }
+
+  // Siempre abajo: con las filas igualadas, los recuentos quedan alineados
+  // en toda la fila.
+  .library-card__meta {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tf-space-1) var(--tf-space-3);
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-muted);
+    font-variant-numeric: tabular-nums;
+
+    strong {
+      font-weight: 700;
+      color: var(--tf-text-secondary);
+    }
+  }
+
+  .library-card__actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 1;
+    display: flex;
+  }
+
+  .corner-button {
+    @include tf-card-corner-button;
+  }
+
+  .corner-button--danger {
+    &:hover,
+    &:active {
+      color: var(--tf-danger);
+    }
+  }
+
+  // --- Carga: la forma de la rejilla, no un spinner ---
+  .library-card-skeleton {
+    @include tf-skeleton-shimmer;
+    min-height: 88px;
+    border-radius: 14px;
+  }
+
+  // --- Vacío: bajo la tarjeta de alta, que ya es la acción ---
+  .state-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: var(--tf-space-8) var(--tf-space-4) 0;
+    color: var(--tf-text-muted);
+
+    ion-icon {
+      font-size: 36px;
+      color: var(--tf-text-faint);
+      margin-bottom: 6px;
+    }
+
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--tf-text);
+      margin: 0;
+    }
+
+    p {
+      font-size: var(--tf-font-size-base);
+      line-height: 1.5;
+      max-width: 40ch;
+      margin: 0;
+    }
+  }
+
+  // --- Hoja de alta: mismo formulario que "Nueva plantilla" de Dietas ---
+  .panel-backdrop {
+    @include tf-panel-backdrop;
+  }
+
+  .panel-sheet {
+    @include tf-panel-sheet;
+
+    @media (min-width: 768px) {
+      width: 480px;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+  }
+
+  .panel-handle {
+    @include tf-panel-handle;
+  }
+
+  .panel-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--tf-text);
+    margin: 0 0 14px;
+  }
+
+  .panel-sheet .input-wrapper {
+    @include tf-input-wrapper(var(--tf-surface-2));
+    height: 50px;
+    margin-bottom: 14px;
+  }
+
+  .input-icon {
+    @include tf-input-icon;
+    font-size: 1.1rem;
+  }
+
+  .input-field {
+    @include tf-input-field;
+    font-size: var(--tf-font-size-base);
+  }
+
+  .submit-button {
+    @include tf-gradient-button;
+    width: 100%;
+    height: 50px;
+    font-size: var(--tf-font-size-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

@@ -40,7 +40,8 @@ export class DietPhaseApiService {
   constructor(private http: HttpService) {}
 
   // Empezar una fase (con una plantilla o con menús nuevos). Si ya tenía una,
-  // la corta. 409 PLAN_OVERLAP si pisa una fase programada.
+  // la que rige ese día se corta. 409 PLAN_OVERLAP si empieza antes que una
+  // fase programada (o, en un día futuro, el mismo en que empieza otra).
   public create(clientId: string, body: CreateDietPhaseRequest): Observable<DietPhase> {
     return this.http.post<DietPhase>(this.base(clientId), body);
   }

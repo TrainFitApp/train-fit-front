@@ -403,10 +403,11 @@ export class NutritionCalendarComponent implements OnChanges {
     };
   }
 
-  // Por qué la fase nueva no puede empezar en `date`. Cuatro casos que se
-  // resuelven distinto: un día pasado es historial; una fase programada más
-  // adelante choca porque la nueva queda abierta; una abierta ocupa todo lo
-  // que viene (hay que ponerle fin antes), y una cerrada, su tramo.
+  // Por qué la fase nueva no puede empezar en `date`. Tres casos: un día
+  // pasado es historial; una fase programada más adelante choca porque la
+  // nueva queda abierta, y una futura que empieza ese mismo día no se
+  // sustituye (no ha regido nunca: se quita). Dentro de la que rige ese día
+  // sí se puede: se corta (replacesText).
   private blockedText(phase: DietPhase, date: string): string {
     const name = phase.name;
     if (date < this.todayIso && phase.startDate <= date) {
@@ -415,14 +416,7 @@ export class NutritionCalendarComponent implements OnChanges {
     if (phase.startDate > date) {
       return this.translate.instant('CLIENTS.START_BLOCKED_LATER', { name, start: this.shortDate(phase.startDate) });
     }
-    if (phase.endDate === null) {
-      return this.translate.instant('CLIENTS.START_BLOCKED_OPEN', { name, start: this.shortDate(phase.startDate) });
-    }
-    return this.translate.instant('CLIENTS.START_BLOCKED_CLOSED', {
-      name,
-      start: this.shortDate(phase.startDate),
-      end: this.shortDate(phase.endDate),
-    });
+    return this.translate.instant('CLIENTS.START_BLOCKED_SAME_DAY', { name });
   }
 
   // Qué le pasa a la fase que rige `date` si la nueva empieza ese día.

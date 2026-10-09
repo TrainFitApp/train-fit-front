@@ -1266,10 +1266,12 @@ ion-modal.create-food-sheet-modal {
   }
 }
 
-/* Adición rápida del buscador de alimentos (QuickAddSheetComponent) — hoja
-   de alto automático: con el teclado abierto, el alto fijo dejaría los
+/* Adición rápida del buscador de alimentos (QuickAddSheetComponent) y
+   suplemento propio de la pantalla de dieta (SupplementSheetComponent) —
+   hojas de alto automático: con el teclado abierto, el alto fijo dejaría los
    botones fuera de la pantalla. */
-ion-modal.quick-add-sheet-modal {
+ion-modal.quick-add-sheet-modal,
+ion-modal.supplement-sheet-modal {
   --height: auto;
   --border-radius: 20px 20px 0 0;
 

@@ -526,7 +526,9 @@
     "MENU_SELECTED_HINT": "Este es el menú que tienes elegido hoy.",
     "MENU_PREVIEW_HINT": "Así es este menú. Si lo eliges, sus comidas pasan a ser las de hoy.",
     "MENU_EMPTY": "Este menú no tiene comidas pautadas.",
-    "CHOOSE_MENU": "Elegir este menú"
+    "CHOOSE_MENU": "Elegir este menú",
+    "SUPPLEMENTS_ADD": "Añadir",
+    "SUPPLEMENTS_EMPTY": "Apunta lo que tomas: creatina, vitamina D, proteína…"
   },
   "MEAL": {
     "DELETE_RECIPE_HEADER": "Eliminar receta",
@@ -2851,6 +2853,7 @@
     "WITHOUT_MENU": "{{count}} sin menú",
     "ALTERNATIVE_OF": "Alternativa de {{slot}}",
     "IN_CART": "{{count}} de {{total}} en el carro",
+    "ALL_IN_CART": "Todo en el carro",
     "NOTHING_TO_BUY": "Con este reparto no hay nada que comprar.",
     "RANGE_WEEK": "Esta semana",
     "RANGE_2_WEEKS": "2 semanas",
@@ -2871,7 +2874,39 @@
       "Jue",
       "Vie",
       "Sáb"
-    ]
+    ],
+    "ADD_TITLE": "Añadir suplemento",
+    "EDIT_TITLE": "Editar suplemento",
+    "ADD_HINT_TODAY": "Lo verás bajo tus comidas cada día, desde hoy hasta que lo quites.",
+    "ADD_HINT_FROM": "Lo verás bajo tus comidas cada día, desde el {{date}} hasta que lo quites.",
+    "EDIT_HINT_SINCE": "Lo tomas desde el {{date}}.",
+    "NAME": "Nombre",
+    "NAME_PLACEHOLDER": "Creatina",
+    "DOSE": "Dosis",
+    "DOSE_PLACEHOLDER": "5 g",
+    "WHEN": "Cuándo lo tomas",
+    "CUSTOM_TIMING": "Cuándo exactamente",
+    "CUSTOM_TIMING_PLACEHOLDER": "Con el café de media mañana",
+    "ADD": "Añadir",
+    "REMOVE": "Quitar",
+    "REMOVING": "Quitando…",
+    "REMOVE_HEADER": "¿Quitar {{name}}?",
+    "REMOVE_MESSAGE": "Dejará de salir en todos los días, también en los pasados.",
+    "EDIT_ARIA": "Editar {{name}}",
+    "SAVE_ERROR": "No se pudo guardar el suplemento. Inténtalo de nuevo.",
+    "REMOVE_ERROR": "No se pudo quitar el suplemento. Inténtalo de nuevo.",
+    "DUPLICATE": "Ya tienes un suplemento con ese nombre. Edita el que tienes en vez de crear otro.",
+    "MANAGED_BY_TRAINER": "Tu profesional lleva tu suplementación: pídele que te lo paute.",
+    "TIMINGS": {
+      "waking": "Al levantarme",
+      "breakfast": "Con el desayuno",
+      "pre_workout": "Antes de entrenar",
+      "intra_workout": "Durante el entrenamiento",
+      "post_workout": "Después de entrenar",
+      "with_meal": "Con una comida principal",
+      "before_bed": "Antes de dormir",
+      "custom": "Otro momento"
+    }
   },
   "RIR": {
     "FAIL": "FALLO"

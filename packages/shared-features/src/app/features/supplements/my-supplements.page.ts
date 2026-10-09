@@ -73,7 +73,8 @@ export class MySupplementsPage implements OnInit {
   private loadSupplements(): void {
     this.mySupplementsApi.getMine().subscribe({
       next: (supplements) => {
-        this.groups = this.groupByTiming(supplements || []);
+        // Solo lo pautado: los que se apuntó él mismo los ve y edita en Dietas.
+        this.groups = this.groupByTiming((supplements || []).filter((supplement) => !supplement.own));
         this.state = 'loaded';
       },
       error: () => {

@@ -26,8 +26,22 @@ export interface MySupplement {
   // `endDate` null = hasta nueva orden.
   startDate: string;
   endDate: string | null;
+  // Propio = se lo apuntó el cliente desde Dietas (sin profesional que lo
+  // pautara). Los pautados son de solo lectura.
+  own: boolean;
   // Quién se lo pautó: un cliente puede tener entrenador y nutricionista.
-  trainerName: string;
+  // Solo en los pautados.
+  trainerName?: string;
+}
+
+// Lo que el cliente decide de sus propios suplementos. `startDate` solo al
+// crear: el día que estaba mirando en Dietas, desde el que se toma.
+export interface OwnSupplementInput {
+  name: string;
+  dose: string;
+  timing: string;
+  customTiming: string;
+  startDate?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -44,5 +58,19 @@ export class MySupplementsApiService {
     return this.http.get<MySupplement[]>(
       date ? `supplements/mine?date=${encodeURIComponent(date)}` : 'supplements/mine'
     );
+  }
+
+  // Los propios solo se añaden sin profesional activo (403
+  // SUPPLEMENT_MANAGED_BY_TRAINER); editar y quitar, siempre.
+  public createMine(body: OwnSupplementInput): Observable<MySupplement> {
+    return this.http.post<MySupplement>('supplements/mine', body);
+  }
+
+  public updateMine(id: string, body: OwnSupplementInput): Observable<MySupplement> {
+    return this.http.put<MySupplement>(`supplements/mine/${id}`, body);
+  }
+
+  public removeMine(id: string): Observable<void> {
+    return this.http.delete<void>(`supplements/mine/${id}`);
   }
 }

@@ -40,7 +40,17 @@ import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/c
 import { DayMenuPreview, DayMenuStatus } from './models/day-menu.model';
 import { DayMenuApiService } from './services/day-menu-api.service';
 import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-preview-modal.component';
-import { MySupplement, MySupplementsApiService } from '../supplements/services/my-supplements-api.service';
+import {
+  MySupplement,
+  MySupplementsApiService,
+  SupplementTiming,
+} from '../supplements/services/my-supplements-api.service';
+import { supplementsForDay } from '../supplements/supplement-day.util';
+import {
+  SUPPLEMENT_SHEET_OPTIONS,
+  SupplementSheetComponent,
+  SupplementSheetResult,
+} from './components/supplement-sheet/supplement-sheet.component';
 import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 @Component({
@@ -91,9 +101,13 @@ export class DietsPage implements OnInit {
   private menuState$: Subscription;
 
   // Suplementación vigente ese día (§14): va por fechas, así que cambia
-  // según el día que se mire. Se pinta al final, tras las comidas.
+  // según el día que se mire. Se pinta al final, tras las comidas: lo
+  // pautado por su profesional (solo lectura) y lo que se apunta él.
   public supplements: MySupplement[] = [];
-  private supplementTimings: Record<string, string> = {};
+  public supplementsLoaded = false;
+  private supplementTimings: SupplementTiming[] = [];
+  private supplements$: Subscription;
+  private isSupplementSheetOpen = false;
 
   public MONTHS = MONTHS;
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
@@ -479,25 +493,61 @@ export class DietsPage implements OnInit {
   // --- Suplementación del día (§14) ---
 
   private loadSupplements(date: string): void {
-    this.mySupplementsApi.getMine(date).subscribe({
-      next: (supplements) => (this.supplements = supplements || []),
+    // Al cambiar de día rápido, solo cuenta la respuesta del último.
+    if (this.supplements$) this.supplements$.unsubscribe();
+    this.supplements$ = this.mySupplementsApi.getMine(date).subscribe({
+      next: (supplements) => {
+        this.supplements = supplementsForDay(supplements || [], date);
+        this.supplementsLoaded = true;
+      },
       error: () => (this.supplements = []),
     });
     // El vocabulario de "cuándo tomarlo" lo decide el backend; se pide una
     // sola vez por sesión de pantalla.
-    if (!Object.keys(this.supplementTimings).length) {
+    if (!this.supplementTimings.length) {
       this.mySupplementsApi.getTimings().subscribe({
-        next: (res) => {
-          this.supplementTimings = Object.fromEntries((res?.timings || []).map((t) => [t.key, t.label]));
-        },
+        next: (res) => (this.supplementTimings = res?.timings || []),
         error: () => undefined,
       });
     }
   }
 
+  // Sin profesional, la suplementación la lleva él: puede apuntarse la
+  // suya. Con uno activo se la pauta el profesional, y lo que se apuntó
+  // antes sigue siendo suyo (lo edita y lo quita, pero no añade más).
+  public get canAddSupplements(): boolean {
+    return !this.coachService.hasActiveTrainer();
+  }
+
+  public get showSupplements(): boolean {
+    return this.supplementsLoaded && (this.supplements.length > 0 || this.canAddSupplements);
+  }
+
   public supplementTiming(supplement: MySupplement): string {
     if (supplement.timing === 'custom') return supplement.customTiming || this.translate.instant('DIETS.OTHER_TIME');
-    return this.supplementTimings[supplement.timing] || supplement.timing;
+    const key = `SUPPLEMENTS.TIMINGS.${supplement.timing}`;
+    const label = this.translate.instant(key);
+    if (label !== key) return label;
+    return this.supplementTimings.find((timing) => timing.key === supplement.timing)?.label || supplement.timing;
+  }
+
+  public async openSupplementSheet(supplement?: MySupplement): Promise<void> {
+    if (this.isSupplementSheetOpen || (supplement && !supplement.own)) return;
+    this.isSupplementSheetOpen = true;
+    try {
+      const { data } = await this.ionicUtilService.showModal({
+        component: SupplementSheetComponent,
+        componentProps: { supplement, timings: this.supplementTimings, startDate: this.selectedDate },
+        ...SUPPLEMENT_SHEET_OPTIONS,
+      });
+      if ((data as SupplementSheetResult | undefined)?.changed) this.loadSupplements(this.selectedDate);
+    } finally {
+      this.isSupplementSheetOpen = false;
+    }
+  }
+
+  public trackSupplement(_index: number, supplement: MySupplement): string {
+    return supplement._id;
   }
 
   // --- Plan "choice": chips de menús, preview, elegir y salir ---

@@ -526,7 +526,9 @@
     "MENU_SELECTED_HINT": "This is the menu you chose for today.",
     "MENU_PREVIEW_HINT": "This is what the menu looks like. If you choose it, its meals become today's.",
     "MENU_EMPTY": "This menu has no prescribed meals.",
-    "CHOOSE_MENU": "Choose this menu"
+    "CHOOSE_MENU": "Choose this menu",
+    "SUPPLEMENTS_ADD": "Add",
+    "SUPPLEMENTS_EMPTY": "Log what you take: creatine, vitamin D, protein…"
   },
   "MEAL": {
     "DELETE_RECIPE_HEADER": "Delete recipe",
@@ -2851,6 +2853,7 @@
     "WITHOUT_MENU": "{{count}} without a menu",
     "ALTERNATIVE_OF": "{{slot}} alternative",
     "IN_CART": "{{count}} of {{total}} in the cart",
+    "ALL_IN_CART": "Everything is in the cart",
     "NOTHING_TO_BUY": "With this split there is nothing to buy.",
     "RANGE_WEEK": "This week",
     "RANGE_2_WEEKS": "2 weeks",
@@ -2871,7 +2874,39 @@
       "Thu",
       "Fri",
       "Sat"
-    ]
+    ],
+    "ADD_TITLE": "Add supplement",
+    "EDIT_TITLE": "Edit supplement",
+    "ADD_HINT_TODAY": "You'll see it under your meals every day, from today until you remove it.",
+    "ADD_HINT_FROM": "You'll see it under your meals every day, from {{date}} until you remove it.",
+    "EDIT_HINT_SINCE": "You've been taking it since {{date}}.",
+    "NAME": "Name",
+    "NAME_PLACEHOLDER": "Creatine",
+    "DOSE": "Dose",
+    "DOSE_PLACEHOLDER": "5 g",
+    "WHEN": "When you take it",
+    "CUSTOM_TIMING": "When exactly",
+    "CUSTOM_TIMING_PLACEHOLDER": "With my mid-morning coffee",
+    "ADD": "Add",
+    "REMOVE": "Remove",
+    "REMOVING": "Removing…",
+    "REMOVE_HEADER": "Remove {{name}}?",
+    "REMOVE_MESSAGE": "It will no longer show on any day, past days included.",
+    "EDIT_ARIA": "Edit {{name}}",
+    "SAVE_ERROR": "Couldn't save the supplement. Please try again.",
+    "REMOVE_ERROR": "Couldn't remove the supplement. Please try again.",
+    "DUPLICATE": "You already have a supplement with that name. Edit it instead of adding another.",
+    "MANAGED_BY_TRAINER": "Your coach manages your supplements: ask them to add it.",
+    "TIMINGS": {
+      "waking": "When I wake up",
+      "breakfast": "With breakfast",
+      "pre_workout": "Before training",
+      "intra_workout": "During training",
+      "post_workout": "After training",
+      "with_meal": "With a main meal",
+      "before_bed": "Before bed",
+      "custom": "Other time"
+    }
   },
   "RIR": {
     "FAIL": "FAILURE"

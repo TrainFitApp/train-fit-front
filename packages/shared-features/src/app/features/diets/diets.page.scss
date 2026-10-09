@@ -218,23 +218,80 @@ ion-header.copy-mode-locked {
   margin: var(--diets-gap) 7px 0;
 }
 
-// Suplementación vigente del día, bajo las comidas.
+// Suplementación vigente del día, bajo las comidas. Misma superficie que
+// la tarjeta de cada comida; lo pautado lleva el azul de la sección Pautado
+// y lo propio, el gris neutro con chevron porque se toca para editar.
 .day-supplements {
   width: calc(100% - 14px);
   margin: var(--diets-gap) 7px 0;
-  padding: 12px 14px;
+  padding: 6px 14px 4px;
   border-radius: 14px;
   border: 1px solid #2a2a2a;
   background: #111111;
+
+  &.copy-mode-locked {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
+
+.day-supplements__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
 }
 
 .day-supplements__title {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #9ca3af;
+  color: var(--ion-color-medium);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+// Acción de texto en naranja, como «Salir del menú» pero sin subrayado:
+// aquí es la acción principal de la sección. Área de 44px con margen
+// negativo para que no empuje la cabecera.
+.day-supplements__add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin: 0 -10px 0 0;
+  padding: 0 10px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--ion-color-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:active {
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: -2px;
+  }
+}
+
+.day-supplements__empty {
+  margin: -4px 0 10px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--ion-color-medium);
 }
 
 .day-supplements__row {
@@ -242,20 +299,46 @@ ion-header.copy-mode-locked {
   align-items: center;
   gap: 10px;
   width: 100%;
+  min-height: 52px;
   padding: 8px 0;
-  color: #ffffff;
+  border: none;
+  border-top: 1px solid #1d1d1d;
+  background: none;
+  color: var(--ion-text-color);
   font-family: inherit;
   text-align: left;
 
-  + .day-supplements__row {
-    border-top: 1px solid #1d1d1d;
-  }
-
-  > ion-icon {
+  > ion-icon:first-child {
     flex-shrink: 0;
     font-size: 20px;
-    color: #9ca3af;
+    color: var(--ion-color-medium);
   }
+}
+
+.day-supplements__row--prescribed > ion-icon:first-child,
+.day-supplements__by {
+  color: var(--ion-color-alternative);
+}
+
+.day-supplements__row--own {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+}
+
+.day-supplements__chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--ion-color-medium);
 }
 
 .day-supplements__text {
@@ -268,11 +351,13 @@ ion-header.copy-mode-locked {
   strong {
     font-size: 0.9rem;
     font-weight: 600;
+    overflow-wrap: anywhere;
   }
 
   small {
     font-size: 0.75rem;
-    color: #9ca3af;
+    line-height: 1.35;
+    color: var(--ion-color-medium);
   }
 }
 
