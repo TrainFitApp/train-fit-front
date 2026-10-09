@@ -54,7 +54,9 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 88px;
+    // En móvil, una fila táctil como en Ejercicios; en escritorio la estira
+    // la rejilla al alto de las tarjetas.
+    min-height: var(--tf-touch-min);
     padding: var(--tf-space-3);
     background: var(--tf-surface-1);
     border: 1px dashed var(--tf-border);
