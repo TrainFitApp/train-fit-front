@@ -24,6 +24,9 @@ import {
   ACTIONS,
 } from 'src/app/shared/constants/actions';
 import { SetService } from 'src/app/core/services/set/set.service';
+import { loggedWeight, prescribedWeight } from 'src/app/core/utils/set-load.util';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
+import { setOptions } from '../../assigned-routine-actions.util';
 
 @Component({
   selector: 'app-set',
@@ -107,6 +110,17 @@ export class SetComponent implements OnInit, OnChanges {
       ?.exercise?.isIsometric;
   }
 
+  public get hasExpectedWeight(): boolean {
+    return prescribedWeight(this.set) !== null;
+  }
+
+  // La carga pautada se propone como placeholder, nunca como valor: así lo
+  // que se guarda en `weight` es siempre lo que levantó el cliente.
+  public get weightPlaceholder(): string {
+    const expected = prescribedWeight(this.set);
+    return expected !== null ? formatLocalNumber(expected) : formatLocalNumber(0, { minDecimals: 1 });
+  }
+
   public get rirFormControl(): FormControl {
     return this.setForm.get('rir') as FormControl;
   }
@@ -136,13 +150,19 @@ export class SetComponent implements OnInit, OnChanges {
       .subscribe((resSetForm) => {
         const justCompleted = !this.set.doned && resSetForm.doned === true;
 
-        // Actualizar solo los valores ejecutados, NO los objetivos
+        // Actualizar solo los valores ejecutados, NO los objetivos. Marcar
+        // hecha una serie con la carga vacía apunta la pautada, que es la que
+        // el cliente veía propuesta.
+        const weight = loggedWeight(resSetForm.weight, this.set, justCompleted);
+        if (weight !== null && resSetForm.weight !== weight) {
+          this.setForm.patchValue({ weight }, { emitEvent: false });
+        }
         this.set.velocity = resSetForm.velocity;
         this.set.time = resSetForm.time;
         this.set.distance = resSetForm.distance;
         this.set.doned = resSetForm.doned;
         this.set.reps = resSetForm.reps;
-        this.set.weight = resSetForm.weight;
+        this.set.weight = weight;
 
         // Store performed RIR like expectedRir: [-1], [0-10], or [first, second].
         // Explicit null (not `delete`) so a cleared value is still sent to the
@@ -265,20 +285,13 @@ export class SetComponent implements OnInit, OnChanges {
   // igual que el menú ⋮ "Editar", que es quien decide si toca guardar (guard)
   // y por dónde (updateCustomExercise, protegido en rutina asignada).
   public editSet(): void {
+    // Pauta de solo lectura: el objetivo se ve, no se abre su editor.
+    if (this.isReadonly) return;
     this.configSet(this.set);
   }
 
   private getActionsPopover(): ACTION_TYPE[] {
-    const actions: ACTION_TYPE[] = [];
-
-    // Orden visual coherente: acciones de contenido y finalmente la destructiva.
-    // "Mover series" solo vive en el menú de opciones del ejercicio (arriba),
-    // no aquí — es la misma acción, no hace falta duplicarla por serie.
-    actions.push(ACTIONS[this.ACTION_TYPES.edit]);
-    actions.push(ACTIONS[this.ACTION_TYPES.duplicate]);
-    actions.push(ACTIONS[this.ACTION_TYPES.delete]);
-
-    return actions;
+    return setOptions(this.isReadonly);
   }
 
   private handleActions(action: ACTION_TYPE): void {

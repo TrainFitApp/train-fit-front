@@ -14,6 +14,8 @@ export interface DaySetSource {
   displayOrder?: number;
   doned?: boolean;
   weight?: number | null;
+  // Carga pautada (lo levantado es `weight`).
+  expectedWeight?: number | null;
   reps?: number | null;
   rir?: number | number[] | null;
   time?: string | null;
@@ -52,7 +54,7 @@ export interface DaySetRow {
   failure: boolean;
   drop: boolean;
   restPause: number | null;
-  // Lo pautado: "8-10 · RIR 1-2", "00:30"… Vacío si no había pauta.
+  // Lo pautado: "8-10 · 40 kg · RIR 1-2", "00:30"… Vacío si no había pauta.
   planned: string;
 }
 
@@ -132,8 +134,11 @@ function plannedLabel(set: DaySetSource, kind: DayExerciseKind, locale?: string)
     return [set.expectedTime || '', distance ? `${formatKg(distance, locale)} km` : ''].filter(Boolean).join(' · ');
   }
   const reps = formatRange(set.expectedReps);
+  const load = set.expectedWeight != null && Number.isFinite(Number(set.expectedWeight))
+    ? `${formatKg(num(set.expectedWeight), locale)} kg`
+    : '';
   const rir = set.expectedRir?.length ? formatRirValue(set.expectedRir, { includeUnit: true, emptyLabel: '' }) : '';
-  return [reps, rir].filter(Boolean).join(' · ');
+  return [reps, load, rir].filter(Boolean).join(' · ');
 }
 
 export function buildSetRows(sets: DaySetSource[] | undefined, kind: DayExerciseKind, locale?: string): DaySetRow[] {

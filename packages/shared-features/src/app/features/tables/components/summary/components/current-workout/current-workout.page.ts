@@ -66,6 +66,8 @@ import {
   buildWorkoutSummary,
 } from './workout-summary-modal/workout-summary.model';
 import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
+import { exerciseOptions, workoutOptions } from './assigned-routine-actions.util';
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -151,6 +153,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly pinnedExerciseNoteService = inject(PinnedExerciseNoteService);
   private readonly mediaApi = inject(MediaApiService);
   private readonly mediaGate = inject(MediaGateService);
+  private readonly coachService = inject(CoachService);
 
   // Revisiones de técnica y vídeos del entrenador (docs/plan-medidas-multimedia.md).
   // Solo con un entrenador de entrenamiento activo, esté o no pautada esta rutina.
@@ -724,6 +727,12 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     return !!this.tableInUse?.assignedByTrainerId;
   }
 
+  // La pauta es de solo lectura mientras quien la pautó siga llevando su
+  // entrenamiento (table-access.js#isLockedForOwner en el back).
+  public get isReadonly(): boolean {
+    return this.coachService.isLockedByTrainer(this.tableInUse?.assignedByTrainerId, 'training');
+  }
+
   public manageNote(): void {
     this.utilService.manageNote(
       this.currentWorkout,
@@ -790,18 +799,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   }
 
   private getWorkoutOptions(): ACTION_TYPE[] {
-    const options = [
-      ACTIONS[ACTION_TYPES.moveExercises],
-      ACTIONS[ACTION_TYPES.note],
-      ACTIONS[ACTION_TYPES.rmCalculator],
-    ];
-
-    // Solo tiene sentido detener un entrenamiento que está en curso.
-    if (this.user?.workoutInUse === this.currentWorkout?._id) {
-      options.push(ACTIONS[ACTION_TYPES.stopWorkout]);
-    }
-
-    return options;
+    return workoutOptions(this.isReadonly, this.user?.workoutInUse === this.currentWorkout?._id);
   }
 
   public openExerciseOptions(event: Event, index: number): void {
@@ -834,11 +832,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   }
 
   private getExerciseOptions(): ACTION_TYPE[] {
-    return [
-      ACTIONS[ACTION_TYPES.moveSets],
-      ACTIONS[ACTION_TYPES.addSet],
-      ACTIONS[ACTION_TYPES.note],
-    ];
+    return exerciseOptions(this.isReadonly);
   }
 
   public onExerciseReorderModeChange(index: number, active: boolean): void {
@@ -872,6 +866,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
   public enterReorderExercisesMode(): void {
     if (
+      this.isReadonly ||
       !this.currentWorkout?.exercises?.length ||
       this.reorderExercisesMode ||
       this.seriesReorderExerciseIndex !== null

@@ -107,7 +107,8 @@
     "GO_BACK": "Go back",
     "CLOSE_ARIA": "Close",
     "YES": "Yes",
-    "NO": "No"
+    "NO": "No",
+    "OPTIONS": "Options"
   },
   "USER_FORM": {
     "NAME": "Name",
@@ -332,7 +333,8 @@
     "NETWORK": "Could not connect. Try again",
     "TIMEOUT": "Connection timed out. Try again",
     "UNEXPECTED": "An unexpected error occurred",
-    "ACCOUNT_NOT_VERIFIED": "Account not verified. We have sent a new code to your email."
+    "ACCOUNT_NOT_VERIFIED": "Account not verified. We have sent a new code to your email.",
+    "ACCOUNT_NOT_VERIFIED_MAIL_FAILED": "Account not verified and we couldn't send you the code. Tap “Resend code” in a few minutes."
   },
   "BILLING": {
     "INVALID_PACKAGE": "Billing not configured or invalid package",
@@ -516,7 +518,8 @@
     "INCORRECT_CODE": "Incorrect code",
     "CODE_RESENT": "Code resent",
     "RESEND_CODE_ERROR": "Error resending code",
-    "CODE_SENT_TO_EMAIL": "Code sent to your email"
+    "CODE_SENT_TO_EMAIL": "Code sent to your email",
+    "MAIL_NOT_SENT": "Your account is ready, but we couldn't send you the code. Tap “Resend code” in a few minutes."
   },
   "DIETS": {
     "DELETE_NOTE_HEADER": "Delete note",
@@ -1003,7 +1006,8 @@
     "MAINTAIN_WEIGHT": "Maintain Weight",
     "LOSE_WEIGHT": "Lose Weight",
     "KEYWORD_0": "surplus",
-    "KEYWORD_2": "deficit"
+    "KEYWORD_2": "deficit",
+    "KEYWORD_1": "maintenance"
   },
   "MEASURE_FILTER": {
     "AUTO": "Auto",
@@ -2236,7 +2240,8 @@
       "FORM_CHECK_WEEKLY_LIMIT": "You've already sent 5 videos this week.",
       "FORM_CHECK_NO_TRAINER": "You need an active trainer to send them videos.",
       "FORM_CHECK_NO_COMMENTS": "Add at least one comment before sending your answer.",
-      "TECHNIQUE_VIDEO_BAD_URL": "That link isn't valid."
+      "TECHNIQUE_VIDEO_BAD_URL": "That link isn't valid.",
+      "FORM_CHECK_ASSET_IN_USE": "That video is already in another review."
     },
     "TRAINER": {
       "KEPT": "Kept"
@@ -2265,7 +2270,10 @@
     "NO_PHOTOS_SENT": "You did not send photos.",
     "NO_VIDEO_SENT": "You did not send this video.",
     "INTAKE_VIDEO_READY": "Video ready to send · {{duration}}",
-    "INTAKE_VIDEO_RETAKE": "Record another"
+    "INTAKE_VIDEO_RETAKE": "Record another",
+    "POSE_FRONT": "Front",
+    "POSE_SIDE": "Side",
+    "POSE_BACK": "Back"
   },
   "CHECKIN_FIELDS": {
     "weight": {

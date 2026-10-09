@@ -47,6 +47,7 @@ import {
   OpenWorkoutFromCalendarState,
 } from "../routine-calendar/routine-calendar.component";
 import { isPremiumActive } from "src/app/core/utils/premium-status.util";
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -164,8 +165,11 @@ export class MesocyclePage implements OnInit, AfterViewInit, OnDestroy {
   // fallarían con 403. No aplica al entrenador editando la tabla de su
   // cliente desde train-fit-trainers (assignedByTrainerId es del cliente
   // dueño, no de quien está mirando esta pantalla ahí).
+  //
+  // 2026-10 — solo mientras quien la pautó siga llevando su entrenamiento:
+  // terminada la relación, la rutina es suya (table-access.js#isLockedForOwner).
   public get isReadonly(): boolean {
-    return !!this.tableInUse?.assignedByTrainerId;
+    return this.coachService.isLockedByTrainer(this.tableInUse?.assignedByTrainerId, 'training');
   }
 
   public get isManagementAdmin(): boolean {
@@ -232,6 +236,8 @@ export class MesocyclePage implements OnInit, AfterViewInit, OnDestroy {
   private readonly workoutService = inject(WorkoutService);
   private readonly workoutTemplateApi = inject(WorkoutTemplateApiService);
   public applyingTemplate = false;
+
+  private readonly coachService = inject(CoachService);
 
   constructor(
     public utilService: UtilService,

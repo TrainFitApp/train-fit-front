@@ -81,7 +81,7 @@
           </ng-container>
         </ng-template>
         <ng-template #nonCardio>
-          <td>{{ set.weight ? set.weight + " Kg" : "—" }}</td>
+          <td>{{ shownWeight(set) !== null ? (shownWeight(set) | localNumber : 2) + " kg" : "—" }}</td>
           <td>
             {{
             set.doned ? set.reps || "—" : formatExpectedReps(set.expectedReps)

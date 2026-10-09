@@ -133,6 +133,7 @@ import { LedgerIntent } from '../../../payments/components/client-payments-ledge
 import { PaymentsCardRequest } from '../../../payments/components/client-payments-card/client-payments-card.component';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 import { CustomAnswer, CustomQuestion, FREQUENCY_OPTIONS } from 'src/app/core/models/custom-question';
 
 type SectionState = 'loading' | 'error' | 'loaded';
@@ -252,7 +253,6 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     { value: 'steps', label: this.translate.instant('CLIENT_DETAIL.PASOS'), defaultUnit: this.translate.instant('CLIENT_DETAIL.UNIT_STEPS') },
     { value: 'water', label: this.translate.instant('CLIENT_DETAIL.AGUA'), defaultUnit: 'L' },
     { value: 'sleep', label: this.translate.instant('CLIENT_DETAIL.SUENO'), defaultUnit: this.translate.instant('CLIENT_DETAIL.UNIT_HOURS') },
-    { value: 'cardio', label: this.translate.instant('CLIENT_DETAIL.CARDIO'), defaultUnit: 'min' },
     { value: 'custom', label: this.translate.instant('CLIENT_DETAIL.PERSONALIZADA'), defaultUnit: '' },
   ];
 
@@ -1730,7 +1730,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     return doneSets
       .map((s) =>
         s.weight != null
-          ? `${s.reps ?? '-'}×${s.weight}kg`
+          ? `${s.reps ?? '-'}×${formatLocalNumber(s.weight)} kg`
           : `${s.reps ?? '-'} reps`
       )
       .join(' · ');
@@ -1740,7 +1740,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // entrenador para este ejercicio, reutilizando el mismo dato ya cargado
   // (expectedReps/expectedRir de cada Set, sin llamada nueva al backend).
   public expectedDescription(exercise: {
-    sets?: { expectedReps?: number[]; expectedRir?: number[] }[];
+    sets?: { expectedReps?: number[]; expectedRir?: number[]; expectedWeight?: number }[];
   }): string {
     const sets = exercise.sets || [];
     const withExpected = sets.filter((s) => s.expectedReps?.length);
@@ -1748,10 +1748,11 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     return withExpected
       .map((s) => {
         const reps = (s.expectedReps || []).join('/');
+        const load = s.expectedWeight != null ? `×${formatLocalNumber(s.expectedWeight)} kg` : ' reps';
         const rir = (s.expectedRir || [])
           .map((r) => (r === -1 ? 'F' : r))
           .join('/');
-        return rir ? `${reps} reps @ RIR ${rir}` : `${reps} reps`;
+        return rir ? `${reps}${load} @ RIR ${rir}` : `${reps}${load}`;
       })
       .join(' · ');
   }

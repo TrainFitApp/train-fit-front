@@ -1,6 +1,5 @@
 import { Split } from 'src/app/core/models/split';
 import { Workout } from 'src/app/core/models/workout';
-import { CustomExercise } from 'src/app/core/models/customExercise';
 import {
   MUSCLE_GROUPS,
   MUSCLE_ROLE_FACTOR,
@@ -81,9 +80,8 @@ export function formatSignedDelta(
 
 // --- Añadidos para el comparador (no tocan las de arriba) ---
 
-// Series realmente ejecutadas. `doned` es el ÚNICO indicador fiable: al
-// duplicar un microciclo con "Copia completa" el backend arrastra
-// reps/weight/rir del origen y solo borra doned (split-dao.js), así que
+// Series realmente ejecutadas. `doned` es el ÚNICO indicador fiable: una
+// serie sin hacer puede llevar lo que el cliente fue apuntando, así que
 // `set.reps != null` NO significa "hecho".
 export function countDoneSets(split: Split | null): number {
   if (!split) return 0;
@@ -96,16 +94,6 @@ export function countDoneSets(split: Split | null): number {
     }
   }
   return done;
-}
-
-export function topWeight(exercise: CustomExercise | null): number | null {
-  if (!exercise) return null;
-  let max: number | null = null;
-  for (const set of exercise.sets || []) {
-    if (!set.weight) continue;
-    if (max === null || set.weight > max) max = set.weight;
-  }
-  return max;
 }
 
 // --- Árbol muscular con énfasis (2026-09) ---

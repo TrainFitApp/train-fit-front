@@ -2,7 +2,11 @@ export class Set {
   _id?: string;
   reps?: number;
   expectedReps?: number[];
+  // Lo levantado (lo apunta el cliente al hacer la serie).
   weight?: number;
+  // La carga pautada. Nunca se escribe en `weight`: pauta y ejecución van
+  // por separado (docs/domain.md).
+  expectedWeight?: number;
   rir?: number | number[];
   expectedRir?: number[];
   drop?: boolean;

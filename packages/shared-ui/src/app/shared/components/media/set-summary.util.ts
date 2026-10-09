@@ -35,12 +35,14 @@ export function executedSummary(set: Record<string, any> | null | undefined, fai
   return parts.length ? parts.join(' · ') : null;
 }
 
-/** «8–10 reps · RIR 1–2» con lo pautado, o null. */
+/** «8–10 reps · 40 kg · RIR 1–2» con lo pautado, o null. */
 export function prescribedSummary(set: Record<string, any> | null | undefined, failLabel = 'Fallo'): string | null {
   if (!set) return null;
   const parts: string[] = [];
   const reps = list(set['expectedReps']);
   if (reps.length) parts.push(`${reps.join('–')} reps`);
+  const load = number(set['expectedWeight']);
+  if (load) parts.push(`${load} kg`);
   if (set['expectedTime']) parts.push(String(set['expectedTime']));
   if (number(set['expectedDistance'])) parts.push(`${number(set['expectedDistance'])} m`);
   const rir = rirLabel(list(set['expectedRir']), failLabel);
@@ -52,7 +54,7 @@ export function prescribedSummary(set: Record<string, any> | null | undefined, f
 export function setSnapshotOf(set: Record<string, any> | null | undefined, index: number): Record<string, any> | null {
   if (!set) return null;
   const snapshot: Record<string, any> = { index };
-  for (const key of ['reps', 'weight', 'restSeconds', 'expectedDistance', 'distance', 'expectedTime', 'time']) {
+  for (const key of ['reps', 'weight', 'expectedWeight', 'restSeconds', 'expectedDistance', 'distance', 'expectedTime', 'time']) {
     if (set[key] != null && set[key] !== '') snapshot[key] = set[key];
   }
   for (const key of ['rir', 'expectedRir', 'expectedReps']) {

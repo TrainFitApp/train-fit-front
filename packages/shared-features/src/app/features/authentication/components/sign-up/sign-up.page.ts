@@ -56,6 +56,7 @@ import Swiper from 'swiper';
 import { calculateTrainingValues } from 'src/app/shared/constants/training';
 import { EmailExistValidator } from 'src/app/core/validators/email-exist';
 import { TranslateService } from '@ngx-translate/core';
+import { resendCodeErrorMessage, verificationMailFailed } from 'src/app/core/utils/verification-mail.util';
 
 @Component({
   selector: 'app-sign-up',
@@ -799,8 +800,13 @@ export class SignUpPage implements OnInit, OnDestroy {
             this.user.email
           );
           this.codeSended = true;
-          this.mailToast();
-          this.startResendCooldown();
+          if (verificationMailFailed(resUser)) {
+            // Cuenta creada, correo sin salir: se dice y se deja reenviar ya.
+            this.ionicUtilService.showWarningToast(this.translate.instant('SIGN_UP.MAIL_NOT_SENT'));
+          } else {
+            this.mailToast();
+            this.startResendCooldown();
+          }
           this.isProcessing = false;
           // Avanzar al slide de verificación
           setTimeout(() => {
@@ -953,7 +959,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.ionicUtilService.showToast({
-          message: err?.error?.message || this.translate.instant('SIGN_UP.RESEND_CODE_ERROR'),
+          message: resendCodeErrorMessage(err, (key) => this.translate.instant(key)),
           duration: 3000,
         });
         this.isProcessing = false;

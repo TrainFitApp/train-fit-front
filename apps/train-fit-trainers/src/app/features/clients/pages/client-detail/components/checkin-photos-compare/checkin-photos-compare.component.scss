@@ -44,9 +44,9 @@
   cursor: pointer;
 
   &.active {
-    background: var(--tf-text);
-    border-color: var(--tf-text);
-    color: var(--tf-bg);
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-accent-text);
   }
 
   &:focus-visible {

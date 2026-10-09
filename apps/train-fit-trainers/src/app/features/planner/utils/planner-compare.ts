@@ -319,7 +319,7 @@ function buildChips(a: CustomExercise, b: CustomExercise): string[] {
 
   // Las envolventes y el peso máximo pueden ocultar cambios en series intermedias.
   const signature = (exercise: CustomExercise) => JSON.stringify((exercise.sets || []).map((set) => [
-    set.expectedReps || [], set.weight ?? null, set.expectedRir || [],
+    set.expectedReps || [], set.expectedWeight ?? null, set.expectedRir || [],
     set.restSeconds ?? null, set.expectedTime ?? null, set.expectedDistance ?? null,
     set.drop ?? false, set.restPause ?? null, set.dropSetSeries ?? [], set.restPauseSeries ?? [],
   ]));
@@ -379,10 +379,11 @@ function uniformValue(ranges: (number[] | undefined)[]): number | null {
     ? first : null;
 }
 
-// El cero es una carga registrada; cardio e isométricos no son comparables en kg.
+// Carga PAUTADA (expectedWeight): el comparador compara pautas. El cero es
+// una carga pautada; cardio e isométricos no son comparables en kg.
 function topWeight(exercise: CustomExercise): number | null {
   if (exercise.exercise?.isCardio || exercise.exercise?.isIsometric) return null;
-  const weights = (exercise.sets || []).map((set) => set.weight)
+  const weights = (exercise.sets || []).map((set) => set.expectedWeight)
     .filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0);
   return weights.length ? Math.max(...weights) : null;
 }
@@ -391,7 +392,7 @@ function isHomogeneous(exercise: CustomExercise): boolean {
   const sets = exercise.sets || [];
   if (sets.length < 2) return true;
   const key = (set: ExerciseSet) =>
-    `${(set.expectedReps || []).join('-')}|${set.weight ?? ''}|${(set.expectedRir || []).join('-')}`;
+    `${(set.expectedReps || []).join('-')}|${set.expectedWeight ?? ''}|${(set.expectedRir || []).join('-')}`;
   const first = key(sets[0]);
   return sets.every((set) => key(set) === first);
 }
@@ -410,7 +411,7 @@ function repsLabel(exercise: CustomExercise): string {
 function weightLabel(exercise: CustomExercise): string {
   if (exercise.exercise?.isCardio || exercise.exercise?.isIsometric) return '';
   const values = (exercise.sets || [])
-    .map((set) => set.weight)
+    .map((set) => set.expectedWeight)
     .filter((weight): weight is number => typeof weight === 'number' && !isNaN(weight));
   const range = rangeLabel(values);
   return range ? `${range} kg` : '';

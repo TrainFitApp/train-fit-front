@@ -430,7 +430,7 @@
 
                     <ng-template #noCardio>
                       <span class="set-value"
-                        >{{ set.weight ? set.weight+' KG' : '-' }}
+                        >{{ set.expectedWeight != null ? (set.expectedWeight | localNumber : 2) + ' kg' : '-' }}
                       </span>
                       <span class="set-value"
                         >{{ set.expectedReps | expected:'REP' }}

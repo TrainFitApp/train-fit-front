@@ -320,7 +320,7 @@
                          apps/casos conserva exactamente el mismo texto de siempre. -->
                     <td class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'weight')"
                       (click)="startEditCell(entry.exercise, set, 'weight', $event)">
-                      <ng-container *ngIf="!isEditingCell(set, 'weight')">{{ set.weight ? set.weight + " Kg" : "—"
+                      <ng-container *ngIf="!isEditingCell(set, 'weight')">{{ shownWeight(set) !== null ? (shownWeight(set) | localNumber : 2) + " kg" : "—"
                         }}</ng-container>
                       <input *ngIf="isEditingCell(set, 'weight')" type="text" inputmode="decimal" appNumericKeypad
                         class="tf-inline-input" [id]="'tf-cell-' + set._id + '-weight'"

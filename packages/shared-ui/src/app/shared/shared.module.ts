@@ -56,6 +56,7 @@ import { SafePipe } from './pipes/safe.pipe';
 import { TranslateDbPipe } from './pipes/translate-db.pipe';
 import { TranslateDescPipe } from './pipes/translate-desc.pipe';
 import { LocalDatePipe } from './pipes/local-date.pipe';
+import { LocalNumberPipe } from './pipes/local-number.pipe';
 import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
 import { HorizontalScrollDirective } from './directives/horizontal-scroll.directive';
 
@@ -86,6 +87,7 @@ import { HorizontalScrollDirective } from './directives/horizontal-scroll.direct
     TranslateDbPipe,
     TranslateDescPipe,
     LocalDatePipe,
+    LocalNumberPipe,
     DisconnectedComponent,
     RoutineCalendarComponent,
     VideoModalComponent,
@@ -156,6 +158,7 @@ import { HorizontalScrollDirective } from './directives/horizontal-scroll.direct
     TranslateDbPipe,
     TranslateDescPipe,
     LocalDatePipe,
+    LocalNumberPipe,
     DisconnectedComponent,
     RoutineCalendarComponent,
     CursorEndDirective,

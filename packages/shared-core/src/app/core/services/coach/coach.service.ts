@@ -2,11 +2,16 @@ import { Injectable, WritableSignal, computed, signal } from '@angular/core';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { HttpService } from '../http/http.service';
+import {
+  ActiveProfessionalLike,
+  CoachScope,
+  NO_ACTIVE_TRAINERS,
+  TrainerIdsByScope,
+  activeTrainerIdsByScope,
+  isLockedByTrainer,
+} from '../../utils/trainer-lock.util';
 
-interface ActiveProfessionalSummary {
-  user: { _id: string } | null;
-  scopes?: ('training' | 'nutrition')[];
-}
+type ActiveProfessionalSummary = ActiveProfessionalLike;
 
 interface PendingInviteSummary {
   trainerId: string;
@@ -38,7 +43,20 @@ export class CoachService {
   private readonly _hasNutritionCoach: WritableSignal<boolean> = signal(false);
   public readonly hasNutritionCoach = computed(() => this._hasNutritionCoach());
 
+  // Quién lleva cada ámbito ahora mismo: decide si lo que pautó un
+  // profesional sigue bloqueado para el cliente (isLockedByTrainer).
+  private readonly _activeTrainerIds: WritableSignal<TrainerIdsByScope> = signal(NO_ACTIVE_TRAINERS);
+
   constructor(private http: HttpService) {}
+
+  /**
+   * ¿Sigue bloqueado lo que pautó `assignedByTrainerId`? Solo mientras ese
+   * profesional lleve al cliente en ese ámbito; terminada la relación, la
+   * rutina o la comida es del cliente (mismo criterio que el back).
+   */
+  public isLockedByTrainer(assignedByTrainerId: string | { _id?: string } | null | undefined, scope: CoachScope): boolean {
+    return isLockedByTrainer(assignedByTrainerId, scope, this._activeTrainerIds());
+  }
 
   // Lo llama quien ya tiene en la mano las dos listas (refresh, y la página
   // Coach cada vez que las recarga): así el tab y los permisos cambian en el
@@ -48,6 +66,7 @@ export class CoachService {
     const hasCoachRelation = hasActive || (pending || []).length > 0;
     this._hasActiveTrainer.set(hasActive);
     this._hasNutritionCoach.set((active || []).some((p) => p.scopes?.includes('nutrition')));
+    this._activeTrainerIds.set(activeTrainerIdsByScope(active));
     this._hasCoachRelation.set(hasCoachRelation);
     return hasCoachRelation;
   }
@@ -65,6 +84,7 @@ export class CoachService {
         this._hasCoachRelation.set(false);
         this._hasActiveTrainer.set(false);
         this._hasNutritionCoach.set(false);
+        this._activeTrainerIds.set(NO_ACTIVE_TRAINERS);
         return of(false);
       })
     );

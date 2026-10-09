@@ -27,6 +27,7 @@ const { MealComponent, MealService } = loadFromSource(__filename, __dirname, {
 
 const own = (id) => ({ _id: id, quantity: 100, product: { _id: `p-${id}`, name: id } });
 const planned = (id) => ({ ...own(id), assignedByTrainerId: 'trainer-1', assignedQuantity: 100, consumed: true });
+let activeNutritionTrainer = 'trainer-1';
 const mealOf = (id, customProducts = [], customRecipes = [], over = {}) => ({
   _id: id,
   name: id,
@@ -63,6 +64,8 @@ function card(target, { pasteResult, alertRole = 'merge' } = {}) {
     recipeService: {},
     dietDayService: {},
     translate: { instant: (key) => key },
+    // trainer-1 sigue llevando su nutrición: lo suyo está bloqueado.
+    coachService: { isLockedByTrainer: (trainerId, scope) => trainerId === activeNutritionTrainer && scope === 'nutrition' },
     ionicUtilService: {
       showAlert: async (options) => {
         alerts.push(options);
@@ -164,6 +167,18 @@ test('una comida que el profesional pautó entera no ofrece pegar ni manda nada'
 
   assert.equal(sent.length, 0);
   assert.equal(component.loadPaste, false);
+});
+
+test('terminada la relación de nutrición, la comida pautada entera vuelve a aceptar pegar (QA A3)', () => {
+  activeNutritionTrainer = null;
+  try {
+    const formerlyLocked = mealOf('cena', [planned('salmon')], [], { assignedByTrainerId: 'trainer-1' });
+    const { component } = card(formerlyLocked);
+    assert.equal(component.acceptsPaste, true);
+    assert.equal(component.isLocked(formerlyLocked.customProducts[0]), false, 'y lo pautado ya se puede quitar');
+  } finally {
+    activeNutritionTrainer = 'trainer-1';
+  }
 });
 
 test('una comida mixta (pautado por alimento) sí acepta pegar', () => {

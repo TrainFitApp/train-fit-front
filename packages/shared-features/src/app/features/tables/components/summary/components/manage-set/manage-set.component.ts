@@ -136,7 +136,7 @@ export class ManageSetComponent implements OnInit, OnDestroy {
     if (this.isIsometric) {
       this.setForm = new FormGroup({
         expectedTime: new FormControl(this.set?.expectedTime ?? null),
-        weight: new FormControl(this.set?.weight, [Validators.min(0), Validators.max(2000)]),
+        expectedWeight: new FormControl(this.set?.expectedWeight, [Validators.min(0), Validators.max(2000)]),
         restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
         restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
       });
@@ -153,7 +153,7 @@ export class ManageSetComponent implements OnInit, OnDestroy {
       const hasFail = this.set?.expectedRir?.[0] === -1;
 
       this.setForm = new FormGroup({
-        weight: new FormControl(this.set?.weight, [Validators.min(0), Validators.max(2000)]),
+        expectedWeight: new FormControl(this.set?.expectedWeight, [Validators.min(0), Validators.max(2000)]),
         drop: new FormControl(this.set?.drop),
         restPause: new FormControl(this.set?.restPause, [Validators.min(0), Validators.max(600)]),
         restPauseEnabled: new FormControl(this.set?.restPause ? true : false),
@@ -361,11 +361,9 @@ export class ManageSetComponent implements OnInit, OnDestroy {
         set.expectedTime = this.setForm.controls.expectedTime.value;
       }
 
-      if (
-        this.setForm.controls.weight.value !== null &&
-        this.setForm.controls.weight.value !== undefined
-      )
-        set.weight = this.setForm.controls.weight.value;
+      // Carga PAUTADA: nunca `weight`, que es lo que el cliente levanta al
+      // hacer la serie. Vaciar el campo quita la pauta (null llega al back).
+      set.expectedWeight = this.setForm.controls.expectedWeight.value ?? null;
 
       // Igual que restPause: si el checkbox está desactivado, no confiar en
       // que el control restSeconds esté ya a null (defensa extra por si el
@@ -453,11 +451,9 @@ export class ManageSetComponent implements OnInit, OnDestroy {
         }
       }
 
-      if (
-        this.setForm.controls.weight.value !== null &&
-        this.setForm.controls.weight.value !== undefined
-      )
-        set.weight = this.setForm.controls.weight.value;
+      // Carga PAUTADA: nunca `weight`, que es lo que el cliente levanta al
+      // hacer la serie. Vaciar el campo quita la pauta (null llega al back).
+      set.expectedWeight = this.setForm.controls.expectedWeight.value ?? null;
 
       if (
         this.setForm.controls.drop.value !== null &&

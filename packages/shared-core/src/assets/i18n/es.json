@@ -107,7 +107,8 @@
     "GO_BACK": "Volver",
     "CLOSE_ARIA": "Cerrar",
     "YES": "Sí",
-    "NO": "No"
+    "NO": "No",
+    "OPTIONS": "Opciones"
   },
   "USER_FORM": {
     "NAME": "Nombre",
@@ -332,7 +333,8 @@
     "NETWORK": "No se pudo conectar. Inténtalo de nuevo",
     "TIMEOUT": "La conexión tardó demasiado. Inténtalo de nuevo",
     "UNEXPECTED": "Ha ocurrido un error inesperado",
-    "ACCOUNT_NOT_VERIFIED": "Cuenta no verificada. Te hemos enviado un nuevo código al correo."
+    "ACCOUNT_NOT_VERIFIED": "Cuenta no verificada. Te hemos enviado un nuevo código al correo.",
+    "ACCOUNT_NOT_VERIFIED_MAIL_FAILED": "Cuenta no verificada y no hemos podido enviarte el código. Pulsa «Reenviar código» en unos minutos."
   },
   "BILLING": {
     "INVALID_PACKAGE": "Billing no configurado o paquete no válido",
@@ -516,7 +518,8 @@
     "INCORRECT_CODE": "Código incorrecto",
     "CODE_RESENT": "Código reenviado",
     "RESEND_CODE_ERROR": "Error al reenviar código",
-    "CODE_SENT_TO_EMAIL": "Código enviado a tu correo"
+    "CODE_SENT_TO_EMAIL": "Código enviado a tu correo",
+    "MAIL_NOT_SENT": "Tu cuenta está creada, pero no hemos podido enviarte el código. Pulsa «Reenviar código» en unos minutos."
   },
   "DIETS": {
     "DELETE_NOTE_HEADER": "Borrar nota",
@@ -1003,7 +1006,8 @@
     "MAINTAIN_WEIGHT": "Mantener Peso",
     "LOSE_WEIGHT": "Perder Peso",
     "KEYWORD_0": "superávit",
-    "KEYWORD_2": "déficit"
+    "KEYWORD_2": "déficit",
+    "KEYWORD_1": "mantenimiento"
   },
   "MEASURE_FILTER": {
     "AUTO": "Auto",
@@ -2236,7 +2240,8 @@
       "FORM_CHECK_WEEKLY_LIMIT": "Ya has mandado 5 vídeos esta semana.",
       "FORM_CHECK_NO_TRAINER": "Necesitas un entrenador activo para mandarle vídeos.",
       "FORM_CHECK_NO_COMMENTS": "Añade al menos un comentario antes de enviar la respuesta.",
-      "TECHNIQUE_VIDEO_BAD_URL": "Ese enlace no es válido."
+      "TECHNIQUE_VIDEO_BAD_URL": "Ese enlace no es válido.",
+      "FORM_CHECK_ASSET_IN_USE": "Ese vídeo ya está en otra revisión."
     },
     "TRAINER": {
       "KEPT": "Conservada"
@@ -2265,7 +2270,10 @@
     "NO_PHOTOS_SENT": "No enviaste fotos.",
     "NO_VIDEO_SENT": "No enviaste este vídeo.",
     "INTAKE_VIDEO_READY": "Vídeo listo para enviar · {{duration}}",
-    "INTAKE_VIDEO_RETAKE": "Grabar otro"
+    "INTAKE_VIDEO_RETAKE": "Grabar otro",
+    "POSE_FRONT": "Frente",
+    "POSE_SIDE": "Perfil",
+    "POSE_BACK": "Espalda"
   },
   "CHECKIN_FIELDS": {
     "weight": {

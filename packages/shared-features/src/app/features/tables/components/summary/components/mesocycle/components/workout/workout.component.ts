@@ -79,6 +79,7 @@ import {
 import { WorkoutSummaryModalComponent } from "src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component";
 import { buildWorkoutSummary } from "src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary.model";
 import { isPremiumActive } from "src/app/core/utils/premium-status.util";
+import { shownWeight } from "src/app/core/utils/set-load.util";
 
 @Component({
   selector: "app-workout",
@@ -1893,6 +1894,11 @@ export class WorkoutComponent implements OnDestroy {
   // formato propio, ver ManageSetComponent) — siguen abriendo el modal. Un
   // set ya "doned" es un registro de ejecución real, no una previsión: no se
   // edita en línea desde el planificador.
+  // Carga de la celda: la levantada si la serie está hecha; si no, la pautada.
+  public shownWeight(set: ExerciseSet): number | null {
+    return shownWeight(set);
+  }
+
   public canInlineEditSet(exercise: CustomExercise, set: ExerciseSet): boolean {
     return (
       this.plannerMode &&
@@ -2130,12 +2136,14 @@ export class WorkoutComponent implements OnDestroy {
       if (raw !== "" && (parsed === undefined || isNaN(parsed))) return;
 
       if (field === "weight") {
+        // La celda de carga del Planner es la PAUTA (expectedWeight); el
+        // peso levantado lo escribe el cliente al hacer la serie.
         const bounded =
           parsed === undefined
-            ? undefined
+            ? null
             : this.clampToLimits(parsed, WorkoutComponent.SET_LIMITS.weight);
-        changed = updatedSet.weight !== bounded;
-        updatedSet.weight = bounded;
+        changed = (updatedSet.expectedWeight ?? null) !== bounded;
+        updatedSet.expectedWeight = bounded;
       } else {
         const rounded =
           parsed === undefined
@@ -2222,8 +2230,8 @@ export class WorkoutComponent implements OnDestroy {
   // expectedReps/expectedRir en startEditCell (2 inputs, no 1 con guion).
   private rawCellValue(set: ExerciseSet, field: "weight" | "rest"): string {
     return field === "weight"
-      ? set.weight != null
-        ? `${set.weight}`
+      ? set.expectedWeight != null
+        ? `${set.expectedWeight}`
         : ""
       : set.restSeconds != null
       ? `${set.restSeconds}`

@@ -45,6 +45,17 @@ test('serie a serie: lo hecho junto a lo pautado', () => {
   assert.equal(rows[3].planned, '8 · FALLO');
 });
 
+test('lo pautado incluye la carga pautada; lo hecho, la levantada (QA A2)', () => {
+  const [row] = util.buildSetRows([set({ expectedWeight: 40, weight: 42.5, reps: 9 })], 'strength', 'es-ES');
+  assert.equal(row.planned, '8-10 · 40 kg · 1-2 RIR');
+  assert.equal(row.performed, '42,5 kg × 9');
+  const [pending] = util.buildSetRows([set({ doned: false, expectedWeight: 37.5 })], 'strength', 'es-ES');
+  assert.equal(pending.planned, '8-10 · 37,5 kg · 1-2 RIR');
+  assert.equal(pending.performed, '');
+  const [noLoad] = util.buildSetRows([set({ weight: 40 })], 'strength', 'es-ES');
+  assert.equal(noLoad.planned, '8-10 · 1-2 RIR', 'weight nunca se pinta como pauta');
+});
+
 test('peso corporal, isométricos y cardio', () => {
   assert.equal(util.buildSetRows([set({ weight: 0, reps: 12 })], 'strength')[0].performed, '12 reps');
   const [plankRow] = util.buildSetRows([{ doned: true, time: '00:45', expectedTime: '00:30' }], 'isometric');

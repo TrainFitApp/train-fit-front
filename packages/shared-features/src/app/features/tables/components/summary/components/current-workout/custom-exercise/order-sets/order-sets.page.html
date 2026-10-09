@@ -65,12 +65,12 @@
                   <span class="set-weight" *ngIf="set.expectedReps?.length">
                     {{ formatExpectedReps(set.expectedReps) }}
                   </span>
-                  <span class="set-weight" *ngIf="!set.expectedReps?.length && set.weight">
-                    {{ set.weight }} kg
+                  <span class="set-weight" *ngIf="!set.expectedReps?.length && set.expectedWeight != null">
+                    {{ set.expectedWeight | localNumber : 2 }} kg
                   </span>
-                  <span class="set-separator" *ngIf="(set.expectedReps?.length && set.weight) || (set.expectedRir?.length && set.expectedReps?.length)">·</span>
-                  <span class="set-weight" *ngIf="set.weight && set.expectedReps?.length">
-                    {{ set.weight }} kg
+                  <span class="set-separator" *ngIf="(set.expectedReps?.length && set.expectedWeight != null) || (set.expectedRir?.length && set.expectedReps?.length)">·</span>
+                  <span class="set-weight" *ngIf="set.expectedWeight != null && set.expectedReps?.length">
+                    {{ set.expectedWeight | localNumber : 2 }} kg
                   </span>
                   <span class="set-rir" *ngIf="set.expectedRir?.length && !isFail(set)">
                     {{ formatExpectedRir(set.expectedRir) }}
@@ -84,7 +84,7 @@
               <div class="set-executed" *ngIf="set.doned; else notExecuted">
                 <span class="executed-label">{{ 'ORDER_SETS.EJECUTADO' | translate }}</span>
                 <div class="set-values">
-                  <span class="set-weight">{{ set.weight ? set.weight + ' kg' : '—' }}</span>
+                  <span class="set-weight">{{ set.weight != null ? (set.weight | localNumber : 2) + ' kg' : '—' }}</span>
                   <span class="set-separator" *ngIf="set.weight && set.reps">·</span>
                   <span class="set-weight">{{ set.reps ? set.reps + ' reps' : '—' }}</span>
                   <span class="set-separator" *ngIf="set.rir && set.rir !== null">·</span>

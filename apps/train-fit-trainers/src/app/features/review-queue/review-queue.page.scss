@@ -32,19 +32,20 @@
     gap: var(--tf-space-2);
     min-height: var(--tf-touch-min);
     padding: 0 var(--tf-space-4);
-    border: 1px solid var(--tf-border);
+    border: 1px solid var(--tf-border-strong);
     border-radius: var(--tf-radius-pill);
     background: transparent;
     color: var(--tf-text-secondary);
     font-family: inherit;
     font-size: var(--tf-font-size-sm);
-    font-weight: 600;
+    font-weight: var(--tf-weight-label);
     cursor: pointer;
 
+    // Mismo filtro activo que Cobros: tinte de marca, no un bloque claro.
     &.active {
-      background: var(--tf-text);
-      border-color: var(--tf-text);
-      color: var(--tf-bg);
+      background: var(--tf-accent-soft);
+      border-color: var(--tf-accent-soft-border);
+      color: var(--tf-accent-text);
     }
 
     &:focus-visible {

@@ -200,7 +200,10 @@
       "ERROR_WARNING_BEFORE_START": "The pre-warning must be before the start date",
       "ERROR_INVALID_VERSION_IOS": "The minimum iOS version isn't a valid format (X.Y.Z)",
       "ERROR_INVALID_VERSION_ANDROID": "The minimum Android version isn't a valid format (X.Y.Z)",
-      "ERROR_INVALID_VERSION_WEB": "The minimum Web version isn't a valid format (X.Y.Z)"
+      "ERROR_INVALID_VERSION_WEB": "The minimum Web version isn't a valid format (X.Y.Z)",
+      "PREVIEW_NORMAL": "Right now: normal, nothing shown",
+      "PREVIEW_WARNING": "Right now: pre-warning (dismissable banner)",
+      "PREVIEW_ACTIVE": "Right now: maintenance active (full screen)"
     }
   },
   "TABLES": {

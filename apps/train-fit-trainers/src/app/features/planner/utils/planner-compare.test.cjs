@@ -30,10 +30,19 @@ const { compareSplits, comparisonSnapshot, exerciseMetrics, metricComparison, ov
 const es = require('../../../../assets/i18n/es.json');
 applyCatalogTranslations(es, 'es');
 
-const series = (weight = 80, overrides = {}) => ({ order: 0, weight, expectedReps: [8], expectedRir: [2], ...overrides });
+// La carga que compara el Planner es la PAUTADA (expectedWeight).
+const series = (weight = 80, overrides = {}) => ({ order: 0, expectedWeight: weight, expectedReps: [8], expectedRir: [2], ...overrides });
 const exercise = (id, sets, flags = {}) => ({ _id: `custom-${id}`, exercise: { _id: id, name: id, muscleGroups1: ['Pecho'], ...flags }, sets });
 const split = (exercises) => ({ _id: 'split', workouts: [{ _id: 'workout', name: 'Torso', exercises }] });
 const row = (a, b) => compareSplits(split([a]), split([b])).workouts[0].exercises[0];
+
+test('compara la carga pautada, no la que levantó el cliente', () => {
+  const lifted = (expectedWeight, weight) => ({ order: 0, expectedWeight, weight, doned: true, expectedReps: [8], expectedRir: [2] });
+  const result = row(exercise('press', [lifted(80, 82.5)]), exercise('press', [lifted(80, 90)]));
+  assert.equal(result.status, 'same', 'misma pauta aunque el cliente levantara distinto');
+  assert.equal(result.weightTrend, 0);
+  assert.match(result.b.label, /80 kg/);
+});
 
 test('detecta cambios intermedios aunque máximo y envolvente sean iguales', () => {
   const result = row(exercise('press', [series(60), series(70), series(80)]), exercise('press', [series(60), series(75), series(80)]));

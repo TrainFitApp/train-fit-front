@@ -50,18 +50,19 @@ test('prescrito: rango de reps, tiempo, distancia y RIR (con fallo)', () => {
 });
 
 test('prescrito y ejecutado no se mezclan: cada resumen solo lee sus campos', () => {
-  const set = { reps: 6, weight: 90, rir: [0], expectedReps: [8, 10], expectedRir: [2] };
+  const set = { reps: 6, weight: 90, rir: [0], expectedReps: [8, 10], expectedWeight: 85, expectedRir: [2] };
   assert.equal(executedSummary(set), '90 kg × 6 · RIR 0');
-  assert.equal(prescribedSummary(set), '8–10 reps · RIR 2');
+  assert.equal(prescribedSummary(set), '8–10 reps · 85 kg · RIR 2', 'la carga pautada es la de expectedWeight');
+  assert.equal(executedSummary({ expectedWeight: 85 }), null, 'la pauta no es lo levantado');
   assert.equal(executedSummary({ expectedReps: [8], expectedRir: [2] }), null);
   assert.equal(prescribedSummary({ reps: 8, weight: 80, rir: [2] }), null);
 });
 
 test('copia de la serie para la revisión: solo campos aceptados, listas normalizadas, vacíos fuera', () => {
   const snapshot = setSnapshotOf(
-    { _id: 'x', reps: 8, weight: 80, rir: 2, expectedReps: ['8', '10'], expectedRir: [], time: '', drop: true, doned: true, order: 3 },
+    { _id: 'x', reps: 8, weight: 80, expectedWeight: 77.5, rir: 2, expectedReps: ['8', '10'], expectedRir: [], time: '', drop: true, doned: true, order: 3 },
     1,
   );
-  assert.deepEqual(snapshot, { index: 1, reps: 8, weight: 80, rir: [2], expectedReps: [8, 10], drop: true });
+  assert.deepEqual(snapshot, { index: 1, reps: 8, weight: 80, expectedWeight: 77.5, rir: [2], expectedReps: [8, 10], drop: true });
   assert.equal(setSnapshotOf(null, 0), null);
 });

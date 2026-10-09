@@ -109,7 +109,7 @@ export class NeedBreakdownComponent implements OnInit {
   // Qué significa el signo del objetivo, para no obligar a deducirlo.
   public get deltaKind(): string {
     const d = this.delta;
-    return d < 0 ? this.translate.instant('OBJETIVES.KEYWORD_2') : d > 0 ? this.translate.instant('OBJETIVES.KEYWORD_0') : 'mantenimiento';
+    return this.translate.instant(d < 0 ? 'OBJETIVES.KEYWORD_2' : d > 0 ? 'OBJETIVES.KEYWORD_0' : 'OBJETIVES.KEYWORD_1');
   }
 
   public get absPlannedDelta(): number {

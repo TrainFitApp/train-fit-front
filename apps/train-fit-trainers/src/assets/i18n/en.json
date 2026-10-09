@@ -516,7 +516,6 @@
     "PASOS": "Steps",
     "AGUA": "Water",
     "SUENO": "Sleep",
-    "CARDIO": "Cardio",
     "PERSONALIZADA": "Custom",
     "NO_SE_ENCONTRO_ESTE_CLIENTE": "This client wasn't found or you don't have access.",
     "NO_SE_PUDO_CARGAR_LA_2": "We couldn't load this client's information.",
@@ -2562,14 +2561,12 @@
     "TASK_PRESETS": {
       "steps": "Daily steps",
       "water": "Water",
-      "sleep": "Sleep hours",
-      "cardio": "Cardio"
+      "sleep": "Sleep hours"
     },
     "TASK_UNITS": {
       "steps": "steps",
       "water": "l",
-      "sleep": "h",
-      "cardio": "min"
+      "sleep": "h"
     },
     "CADENCES": {
       "once": "Once",

@@ -223,7 +223,9 @@ export class LiveActivityService {
           reps: doned
             ? set.reps ?? 0
             : this.firstExpectedValue(set.expectedReps) ?? set.reps ?? 0,
-          weight: set.weight ?? 0,
+          // Pendiente: lo que ya apuntó o, si nada, la carga pautada (la
+          // que se guardará como levantada al marcarla desde la tarjeta).
+          weight: doned ? set.weight ?? 0 : set.weight ?? set.expectedWeight ?? 0,
           // null = sin dato («—»). Rellenarlo con 0 hacía que marcar la serie
           // desde la tarjeta guardase un «RIR 0» que nadie había indicado.
           rir: doned ? this.firstRir(set.rir) : this.firstRir(set.expectedRir),

@@ -200,7 +200,10 @@
       "ERROR_WARNING_BEFORE_START": "El aviso previo debe ser anterior a la fecha de inicio",
       "ERROR_INVALID_VERSION_IOS": "La versión mínima de iOS no tiene un formato válido (X.Y.Z)",
       "ERROR_INVALID_VERSION_ANDROID": "La versión mínima de Android no tiene un formato válido (X.Y.Z)",
-      "ERROR_INVALID_VERSION_WEB": "La versión mínima de Web no tiene un formato válido (X.Y.Z)"
+      "ERROR_INVALID_VERSION_WEB": "La versión mínima de Web no tiene un formato válido (X.Y.Z)",
+      "PREVIEW_NORMAL": "Ahora mismo: normal, no se muestra nada",
+      "PREVIEW_WARNING": "Ahora mismo: aviso previo (banner descartable)",
+      "PREVIEW_ACTIVE": "Ahora mismo: mantenimiento activo (pantalla completa)"
     }
   },
   "TABLES": {

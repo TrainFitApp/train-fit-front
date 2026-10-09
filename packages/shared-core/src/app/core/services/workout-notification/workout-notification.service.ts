@@ -10,6 +10,7 @@ import { NavigationService } from '../util/navigation.service';
 import { RestTimerService } from '../rest-timer/rest-timer.service';
 import { SetService } from '../set/set.service';
 import { WorkoutService } from '../workout/workout.service';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 
 const SET_NOTIFICATION_ID = 888888;
 const SET_ACTION_TYPE_ID = 'CURRENT_SET_ACTIONS';
@@ -150,6 +151,7 @@ export class WorkoutNotificationService {
 
     let target = this.translate.instant('WORKOUT_NOTIFICATION.SET', { current: setNumber, total: totalSets });
     if (reps !== null) target += `: ${reps} reps`;
+    if (set.expectedWeight != null) target += ` · ${formatLocalNumber(set.expectedWeight)} kg`;
     if (rir !== null) target += ` · RIR ${rir}`;
 
     const body = this.translate.instant('WORKOUT_NOTIFICATION.BODY', {
@@ -233,6 +235,7 @@ export class WorkoutNotificationService {
       ...targetSet,
       doned: true,
       reps: this.firstExpectedValue(targetSet.expectedReps) ?? targetSet.reps,
+      weight: targetSet.weight ?? targetSet.expectedWeight,
       rir: Array.isArray(targetSet.expectedRir) ? targetSet.expectedRir : targetSet.rir,
       time: targetSet.expectedTime ?? targetSet.time,
       distance: targetSet.expectedDistance ?? targetSet.distance,

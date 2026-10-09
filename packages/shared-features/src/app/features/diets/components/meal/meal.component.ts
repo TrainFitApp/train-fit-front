@@ -9,6 +9,7 @@ import {
   Output,
   ViewChild,
   ElementRef,
+  inject,
 } from '@angular/core';
 import { AlertOptions, ModalController, ModalOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
 import { forkJoin, Subscription } from 'rxjs';
@@ -39,6 +40,7 @@ import {
 } from 'src/app/shared/constants/actions';
 import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-meal-modal.component';
 import { PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view.component';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 import {
   QUICK_ADD_SHEET_OPTIONS,
@@ -100,6 +102,8 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
 
   // F28 — eligiendo una alternativa propuesta.
   public isChoosingAlternative = false;
+
+  private readonly coachService = inject(CoachService);
 
   constructor(
     private utilService: UtilService,
@@ -205,7 +209,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     // Pautado — nunca editable directamente (backend, meal-service.js
     // #assertMealEditable, ya lo rechazaría igualmente; esto solo evita
     // navegar a un editor que fallaría al guardar).
-    if (this.selectionMode || customProduct.assignedByTrainerId) return;
+    if (this.selectionMode || this.isLocked(customProduct)) return;
 
     // Adición rápida: no hay Product detrás que AddProductPage pueda editar,
     // así que se vuelve a abrir la hoja con la que se escribió.
@@ -276,7 +280,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public editCustomRecipe(instance: CustomRecipe): void {
-    if (this.selectionMode || instance.assignedByTrainerId) return;
+    if (this.selectionMode || this.isLocked(instance)) return;
     this.navigationService.goToConfigRecipe({
       state: {
         mode: 'edit',
@@ -291,7 +295,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
 
   public deleteRecipe(meal: Meal, instance: CustomRecipe): void {
     // Pautado — no eliminable (mismo criterio que editCustomRecipe).
-    if (instance.assignedByTrainerId) return;
+    if (this.isLocked(instance)) return;
 
     const recipeName =
       typeof instance.recipe === 'object' ? instance.recipe.name : this.translate.instant('COMMON.THIS');
@@ -331,7 +335,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public deleteProduct(meal: Meal, product: CustomProduct): void {
-    if (product.assignedByTrainerId) return;
+    if (this.isLocked(product)) return;
 
     const t = this.translate.instant.bind(this.translate);
     const alertOptions: AlertOptions = {
@@ -373,7 +377,15 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   // #keptOnPaste en el back). Solo una comida que el profesional pautó
   // entera no admite pegar (MEAL_PROTECTED): ahí ni se ofrece.
   public get acceptsPaste(): boolean {
-    return !this.meal?.assignedByTrainerId;
+    return !this.isLocked(this.meal);
+  }
+
+  // Lo pautado está bloqueado solo mientras quien lo pautó lleve la
+  // nutrición del cliente (mismo criterio que meal-service.js
+  // #assertMealEditable). Terminada la relación sigue en «Pautado» (es lo que
+  // se le indicó ese día), pero ya se puede quitar.
+  public isLocked(item: { assignedByTrainerId?: string | null } | null | undefined): boolean {
+    return !!item?.assignedByTrainerId && this.coachService.isLockedByTrainer(item.assignedByTrainerId, 'nutrition');
   }
 
   // Fusionar o reemplazar solo cambia algo si la comida ya tiene alimentos

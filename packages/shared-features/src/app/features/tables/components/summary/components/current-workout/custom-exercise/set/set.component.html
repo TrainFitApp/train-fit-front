@@ -3,7 +3,7 @@
   <div class="premium-set-header" [class.doned]="set.doned">
     <div class="set-header-row">
       <!-- Expected Values Section -->
-      <div class="expected-values-section" (click)="editSet()">
+      <div class="expected-values-section" [class.readonly]="isReadonly" (click)="editSet()">
         <div class="expected-header">
           <span class="serie-number" [ngClass]="{
               'serie-completed': set.doned,
@@ -15,6 +15,7 @@
               <span *ngIf="set.expectedTime" class="time-value">{{
                 set.expectedTime
                 }}</span>
+              <span *ngIf="hasExpectedWeight" class="time-value">{{ set.expectedWeight | localNumber : 2 }} kg</span>
             </div>
           </ng-container>
           <ng-template #notIsometricExpected>
@@ -32,6 +33,10 @@
               <span class="reps-value">{{
                 set.expectedReps | expected : "REP"
                 }}</span>
+
+              <!-- Carga pautada: aparte de la que apunta el cliente abajo -->
+              <span *ngIf="hasExpectedWeight" class="reps-value expected-weight">{{
+                set.expectedWeight | localNumber : 2 }} kg</span>
 
               <!-- FAIL label (always show if expectedRir contains -1) -->
               <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
@@ -88,7 +93,10 @@
       <!-- Action Buttons -->
       <div class="set-actions">
         <ion-button fill="clear" size="small" class="options-btn"
-          [style.visibility]="reorderMode ? 'hidden' : 'visible'" (click)="showPopoverOptions($event, set)">
+          [style.visibility]="reorderMode || isReadonly ? 'hidden' : 'visible'"
+          [attr.aria-hidden]="reorderMode || isReadonly ? 'true' : null"
+          [attr.aria-label]="'COMMON.OPTIONS' | translate"
+          (click)="showPopoverOptions($event, set)">
           <ion-icon name="ellipsis-vertical"></ion-icon>
         </ion-button>
       </div>
@@ -111,7 +119,7 @@
             <!-- Isometric Inputs -->
             <ion-col size="5" class="weight-col">
               <app-numeric-input [inputControl]="getFormControl('weight')" [label]="'TABLES.WEIGHT_LABEL' | translate"
-                placeholder="0.0" [maxLength]="6" [isDone]="set.doned"
+                [placeholder]="weightPlaceholder" [maxLength]="6" [isDone]="set.doned"
                 (valueChange)="onFormValueChange('weight', $event)"></app-numeric-input>
             </ion-col>
             <ion-col size="5" class="time-col">
@@ -164,7 +172,7 @@
             <!-- Weight Training Inputs -->
             <ion-col size="3.33" class="weight-col">
               <app-numeric-input [inputControl]="getFormControl('weight')" [label]="'TABLES.WEIGHT_LABEL' | translate"
-                placeholder="0.0" [maxLength]="6" [isDone]="set.doned"
+                [placeholder]="weightPlaceholder" [maxLength]="6" [isDone]="set.doned"
                 (valueChange)="onFormValueChange('weight', $event)"></app-numeric-input>
             </ion-col>
             <ion-col size="3.33" class="reps-col">

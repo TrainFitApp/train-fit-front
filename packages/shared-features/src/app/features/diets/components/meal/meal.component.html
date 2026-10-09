@@ -270,6 +270,15 @@
           [class.consumed]="instance.consumed"
           (click)="viewPautadoRecipe(instance)"
         >
+          <ion-button
+            *ngIf="!selectionMode && !isLocked(instance)"
+            class="item-delete-btn"
+            fill="clear"
+            [attr.aria-label]="'COMMON.DELETE' | translate"
+            (click)="deleteRecipe(meal, instance); $event.stopPropagation()"
+          >
+            <ion-icon name="close-outline" color="danger"></ion-icon>
+          </ion-button>
           <div class="item-content">
             <div class="item-header">
               <h3 class="item-name">
@@ -351,6 +360,15 @@
           [class.consumed]="product.consumed"
           (click)="viewPautadoProduct(product)"
         >
+          <ion-button
+            *ngIf="!selectionMode && !isLocked(product)"
+            class="item-delete-btn"
+            fill="clear"
+            [attr.aria-label]="'COMMON.DELETE' | translate"
+            (click)="deleteProduct(meal, product); $event.stopPropagation()"
+          >
+            <ion-icon name="close-outline" color="danger"></ion-icon>
+          </ion-button>
           <div class="item-content">
             <div class="item-header">
               <h3 class="item-name">

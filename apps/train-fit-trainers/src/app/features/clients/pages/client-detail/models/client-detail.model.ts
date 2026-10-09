@@ -398,7 +398,7 @@ export interface ClientNutritionPreferences {
 
 // coach-tab FASE4 — tarea/hábito diario, entrada de cumplimiento 100% manual
 // (sin integración con salud del dispositivo), solo el profesional la crea.
-export type TrainerTaskType = 'steps' | 'water' | 'sleep' | 'cardio' | 'custom';
+export type TrainerTaskType = 'steps' | 'water' | 'sleep' | 'custom';
 
 export interface TrainerTask {
   _id: string;

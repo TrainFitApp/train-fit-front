@@ -147,3 +147,42 @@ test('Escape cancela sin guardar ni mostrar un error de rango', () => {
   assert.equal(state.saved.length, 0);
   assert.equal(state.notices.length, 0);
 });
+
+// QA 2026-10-09 (A2): la celda de carga del Planner es la PAUTA. Escribía en
+// `weight`, el mismo campo que rellena el cliente al hacer la serie, y lo
+// que apuntaba el cliente borraba la pauta.
+function weightEditor(value, setFields = {}) {
+  const state = editor('weight', '', '');
+  Object.assign(state.set, setFields);
+  state.component.editingCellValue = value;
+  return state;
+}
+
+test('carga: se guarda como expectedWeight, nunca como weight', () => {
+  const state = weightEditor('42,5', { weight: 30 });
+  state.component.commitEditCell(state.exercise, state.set, 'weight');
+  assert.equal(state.saved.length, 1);
+  assert.equal(state.saved[0].expectedWeight, 42.5);
+  assert.equal(state.saved[0].weight, 30, 'lo levantado no se toca');
+});
+
+test('carga: vaciar la celda quita la pauta (null llega al back); repetir el mismo valor no escribe', () => {
+  const cleared = weightEditor('', { expectedWeight: 40 });
+  cleared.component.commitEditCell(cleared.exercise, cleared.set, 'weight');
+  assert.equal(cleared.saved.length, 1);
+  assert.equal(cleared.saved[0].expectedWeight, null);
+
+  const same = weightEditor('40', { expectedWeight: 40 });
+  same.component.commitEditCell(same.exercise, same.set, 'weight');
+  assert.equal(same.saved.length, 0);
+});
+
+test('carga: se recorta a los límites del editor de series y rechaza texto', () => {
+  const big = weightEditor('9999');
+  big.component.commitEditCell(big.exercise, big.set, 'weight');
+  assert.equal(big.saved[0].expectedWeight, 2000);
+
+  const junk = weightEditor('abc');
+  junk.component.commitEditCell(junk.exercise, junk.set, 'weight');
+  assert.equal(junk.saved.length, 0);
+});

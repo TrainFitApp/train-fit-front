@@ -93,7 +93,7 @@ export interface CoachTask {
   _id: string;
   trainerId: string;
   trainerName: string;
-  type: 'steps' | 'water' | 'sleep' | 'cardio' | 'custom';
+  type: 'steps' | 'water' | 'sleep' | 'custom';
   label: string;
   target: number;
   // Tope del rango, cuando el hábito se pauta como "de 10.000 a 15.000

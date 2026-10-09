@@ -180,3 +180,125 @@ test('i18n: una clave de la capa de una app no redefine una común con OTROS par
   }
   assert.deepEqual(conflicts, []);
 });
+
+// --- Claves dinámicas ----------------------------------------------------------------
+//
+// Las claves que se montan en ejecución ('MEDIA.POSE_' + pose,
+// `MEDIA.ERRORS.${code}`) no las ve el escáner de arriba. En 2026-10 un
+// barrido de claves «sin uso» se llevó MEDIA.POSE_FRONT/SIDE/BACK,
+// OBJETIVES.KEYWORD_1 y MANAGEMENT.MAINTENANCE.PREVIEW_*, y salían en crudo.
+// Aquí cada prefijo dinámico declara los sufijos que tiene que haber (sacados
+// del propio código cuando hay un catálogo) y un prefijo nuevo en el código
+// que no esté declarado hace fallar el test.
+
+const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
+const quoted = (text) => [...text.matchAll(/['"]([\w-]+)['"]/g)].map((m) => m[1]);
+
+/** Cadenas de un array literal (`NAME ... = [ ... ]`) de un fichero. */
+function arrayLiteral(file, name) {
+  const match = read(file).match(new RegExp(`\\b${name}\\b[^=]*=\\s*\\[([^\\]]*)\\]`));
+  assert.ok(match, `no encuentro ${name} en ${file}`);
+  return quoted(match[1]);
+}
+
+/** Claves de un objeto literal (`NAME ... = { clave: ... }`). */
+function objectKeys(file, name) {
+  const match = read(file).match(new RegExp(`\\b${name}\\b[^=]*=\\s*\\{([^}]*)\\}`));
+  assert.ok(match, `no encuentro ${name} en ${file}`);
+  return [...match[1].matchAll(/^\s*['"]?(\w+)['"]?\s*:/gm)].map((m) => m[1]);
+}
+
+const upper = (list) => list.map((value) => value.toUpperCase());
+const glossaryTerms = () => {
+  const terms = new Set();
+  for (const file of [...walk(path.join(ROOT, 'packages')), ...APPS.flatMap((app) => walk(path.join(ROOT, 'apps', app, 'src')))]) {
+    if (!file.endsWith('.html')) continue;
+    for (const match of fs.readFileSync(file, 'utf8').matchAll(/\bterm="'?([A-Z][A-Z0-9_]*)'?"/g)) terms.add(match[1]);
+  }
+  return [...terms];
+};
+
+const DYNAMIC_KEYS = [
+  {
+    prefix: 'MEDIA.POSE_',
+    layer: 'common',
+    keys: () => upper(arrayLiteral('packages/shared-core/src/app/core/models/media.ts', 'PROGRESS_POSES')),
+  },
+  { prefix: 'OBJETIVES.KEYWORD_', layer: 'common', keys: () => ['0', '1', '2'] },
+  { prefix: 'MANAGEMENT.MAINTENANCE.PREVIEW_', layer: 'train-fit-management', keys: () => ['NORMAL', 'WARNING', 'ACTIVE'] },
+  {
+    prefix: 'MEDIA.ERRORS.',
+    layer: 'common',
+    keys: () => [...arrayLiteral('packages/shared-core/src/app/core/services/media/media-errors.ts', 'KNOWN_CODES'), 'GENERIC'],
+  },
+  {
+    prefix: 'GLOSSARY.',
+    layer: 'common',
+    keys: () => glossaryTerms().flatMap((term) => [`${term}.TITLE`, `${term}.DESCRIPTION`]),
+  },
+  {
+    prefix: 'CONCEPTS.',
+    layer: 'common',
+    keys: () => [...read('packages/shared-features/src/app/features/profile/components/configuration/components/concepts/constants/concepts.ts').matchAll(/\bkey:\s*'([A-Z0-9_]+)'/g)].map((m) => m[1]),
+  },
+  {
+    prefix: 'SUPPLEMENTS.TIMINGS.',
+    layer: 'common',
+    keys: () =>
+      objectKeys(
+        'apps/train-fit-trainers/src/app/features/clients/pages/client-detail/components/supplements-panel/supplements-panel.component.ts',
+        'TIMING_ICONS',
+      ),
+  },
+  {
+    prefix: 'PROFILE.COACH_CARD.',
+    layer: 'common',
+    keys: () => [...new Set([...read('packages/shared-features/src/app/features/profile/components/coach-card/profile-coach-card.component.ts').matchAll(/\bt\(\s*'([A-Z0-9_]+)'/g)].map((m) => m[1]))],
+  },
+  { prefix: 'INVITES.STATUS.', layer: 'train-fit-trainers', keys: () => ['pending', 'active', 'declined', 'cancelled', 'revoked'] },
+  { prefix: 'INVITES.STATUS_HINT.', layer: 'train-fit-trainers', keys: () => ['pending', 'active', 'declined', 'cancelled', 'revoked'] },
+  {
+    prefix: 'INVITES.EVENT.',
+    layer: 'train-fit-trainers',
+    keys: () => ['sent', 'accepted', 'declined', 'cancelled', 'ended_by_trainer', 'ended_by_client', 'ended'],
+  },
+  { prefix: 'CLIENT_DETAIL.DAY.ITEM_STATUS.', layer: 'train-fit-trainers', keys: () => ['eaten', 'unchecked', 'pending', 'extra'] },
+  { prefix: 'CLIENT_DETAIL.DAY.MEAL_STATUS.', layer: 'train-fit-trainers', keys: () => ['done', 'partial', 'unchecked', 'pending', 'extra'] },
+  { prefix: 'CHECKIN_FIELD_GROUPS.', layer: 'train-fit-trainers', keys: () => ['composicion_corporal', 'perimetros'] },
+];
+
+/** Prefijos dinámicos que usa el código (concatenación o plantilla). */
+function dynamicPrefixesInCode() {
+  const found = new Map();
+  const files = [...walk(path.join(ROOT, 'packages')), ...APPS.flatMap((app) => walk(path.join(ROOT, 'apps', app, 'src')))];
+  for (const file of files) {
+    for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+      // localizeProp() traduce catálogos con su propio texto de respaldo.
+      if (line.includes('localizeProp(')) continue;
+      const patterns = [/['"]([A-Z][A-Z0-9_]*(?:\.[A-Z0-9_]+)*[._])['"]\s*\+/g, /`([A-Z][A-Z0-9_]*(?:\.[A-Z0-9_]+)*[._])\$\{/g];
+      for (const pattern of patterns) {
+        for (const match of line.matchAll(pattern)) {
+          if (!found.has(match[1])) found.set(match[1], path.relative(ROOT, file));
+        }
+      }
+    }
+  }
+  return found;
+}
+
+test('i18n dinámicas: todo prefijo que se completa en ejecución está declarado en DYNAMIC_KEYS', () => {
+  const declared = new Set(DYNAMIC_KEYS.map((entry) => entry.prefix));
+  const undeclared = [...dynamicPrefixesInCode()].filter(([prefix]) => !declared.has(prefix)).map(([prefix, file]) => `${prefix}  (${file})`);
+  assert.deepEqual(undeclared, []);
+});
+
+for (const { prefix, layer, keys } of DYNAMIC_KEYS) {
+  test(`i18n dinámicas: ${prefix}* tiene todos sus sufijos (es y en)`, () => {
+    const suffixes = keys();
+    assert.ok(suffixes.length > 0, `${prefix}: sin sufijos (¿cambió el catálogo de origen?)`);
+    const missing = suffixes
+      .map((suffix) => `${prefix}${suffix}`)
+      .filter((key) => !(has(layer, key) || (layer !== 'common' && has('common', key))));
+    assert.deepEqual(missing, []);
+  });
+}

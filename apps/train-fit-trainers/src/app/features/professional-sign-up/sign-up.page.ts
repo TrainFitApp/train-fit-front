@@ -13,6 +13,7 @@ import { EmailExistValidator } from 'src/app/core/validators/email-exist';
 import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import { PasswordComplexity } from 'src/app/core/validators/password-complexity';
 import { LINKS } from 'src/app/shared/constants/links';
+import { resendCodeErrorMessage, verificationMailFailed } from 'src/app/core/utils/verification-mail.util';
 
 @Component({
   selector: 'app-professional-sign-up',
@@ -112,11 +113,19 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.userService
       .createProfessionalUser({ name, lastname, email, password })
       .subscribe({
-        next: () => {
+        next: (created) => {
           this.email = email;
           this.pendingEmailVerificationService.start(email);
           this.codeSended = true;
           this.isProcessing = false;
+          if (verificationMailFailed(created)) {
+            // Cuenta creada, correo sin salir: se dice y se deja reenviar ya.
+            this.ionicUtilService.showToast({
+              message: this.translate.instant('SIGN_UP.MAIL_NOT_SENT'),
+              duration: 5000,
+            });
+            return;
+          }
           this.startResendCooldown();
           this.ionicUtilService.showToast({
             message: this.translate.instant('SIGN_UP.CODE_SENT_TO_EMAIL'),
@@ -175,10 +184,12 @@ export class SignUpPage implements OnInit, OnDestroy {
     });
   }
 
+  // Reenvía el código de VERIFICACIÓN del alta (antes llamaba a sendMailCode,
+  // que manda el de restablecer la contraseña: el código no servía aquí).
   public resendCode(): void {
     if (!this.email || this.resendDisabled) return;
 
-    this.userService.sendMailCode(this.email).subscribe({
+    this.userService.resendActivationCode(this.email).subscribe({
       next: () => {
         this.pendingEmailVerificationService.markCodeSent(this.email);
         this.startResendCooldown();
@@ -187,9 +198,9 @@ export class SignUpPage implements OnInit, OnDestroy {
           duration: 3000,
         });
       },
-      error: () => {
+      error: (err) => {
         this.ionicUtilService.showToast({
-          message: this.translate.instant('SIGN_UP.RESEND_CODE_ERROR'),
+          message: resendCodeErrorMessage(err, (key) => this.translate.instant(key)),
           duration: 3000,
         });
       },

@@ -7,6 +7,7 @@ import {
   SimpleChanges,
   Output,
   EventEmitter,
+  inject,
 } from '@angular/core';
 import { AlertButton, AlertInput, AlertOptions, ModalOptions, ToastOptions } from '@ionic/angular';
 import { Subscription } from 'rxjs';
@@ -22,6 +23,8 @@ import { ManageSetComponent } from 'src/app/features/tables/components/summary/c
 import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
 import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from 'src/app/core/models/pinned-exercise-note';
 import { TranslateService } from '@ngx-translate/core';
+import { shownWeight } from 'src/app/core/utils/set-load.util';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 
 interface CurrentSetRow {
   type: 'set';
@@ -70,6 +73,8 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
 
   public pinnedNote: PinnedExerciseNote | null = null;
   private pinnedNoteCacheSub: Subscription | null = null;
+
+  private readonly coachService = inject(CoachService);
 
   constructor(
     private customExerciseService: CustomExerciseService,
@@ -309,8 +314,11 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   // recorrer toda la UI (abrir el modal, arrastrar, confirmar) y solo
   // enterarse del bloqueo al final, con el 403. Mismo patrón que
   // workout.component.ts#guardReadonly en el Planner.
+  //
+  // 2026-10 — solo mientras quien la pautó siga llevando su entrenamiento
+  // (table-access.js#isLockedForOwner): terminada la relación, es suya.
   public get isReadonly(): boolean {
-    return !!this.tableInUse?.assignedByTrainerId;
+    return this.coachService.isLockedByTrainer(this.tableInUse?.assignedByTrainerId, 'training');
   }
 
   private guardReadonly(): boolean {
@@ -707,6 +715,11 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   // Formateo de valores esperados para alinearse con workout.component
+  // Carga de la sesión anterior: la levantada si la hizo; si no, la pautada.
+  public shownWeight(set: Set): number | null {
+    return shownWeight(set);
+  }
+
   public formatExpectedReps(expectedReps: number[]): string {
     if (!expectedReps || expectedReps.length === 0) return '—';
 

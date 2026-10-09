@@ -1,5 +1,6 @@
 import { Injector, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { verificationMailFailedIn } from '../../utils/verification-mail.util';
 
 export const AUTH_LOGIN_FEEDBACK_QUERY_PARAM = 'loginIssue';
 export const AUTH_LOGIN_CONNECTION_QUERY_VALUE = 'connection';
@@ -44,7 +45,13 @@ export class AuthErrorService {
     if (this.isAccountNotVerified(status, code)) {
       return {
         kind: 'account-not-verified',
-        message: this.translate.instant('AUTH_ERRORS.ACCOUNT_NOT_VERIFIED'),
+        // El back manda el código nuevo al responder; si el correo no salió,
+        // lo dice (verificationMailSent: false) y aquí se avisa de reenviarlo.
+        message: this.translate.instant(
+          verificationMailFailedIn(error)
+            ? 'AUTH_ERRORS.ACCOUNT_NOT_VERIFIED_MAIL_FAILED'
+            : 'AUTH_ERRORS.ACCOUNT_NOT_VERIFIED'
+        ),
         retryable: false,
         status,
         code,

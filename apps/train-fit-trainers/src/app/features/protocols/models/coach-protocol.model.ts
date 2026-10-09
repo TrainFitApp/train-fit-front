@@ -1,7 +1,7 @@
 import { uiText, localizeProp } from 'src/app/core/i18n/localized-catalog';
 // Fase 4 Coach Pro — espejo de components/coachProtocols/ (backend).
 
-export type ProtocolTaskType = 'steps' | 'water' | 'sleep' | 'cardio' | 'custom';
+export type ProtocolTaskType = 'steps' | 'water' | 'sleep' | 'custom';
 
 export interface ProtocolDailyTask {
   type: ProtocolTaskType;
@@ -64,7 +64,6 @@ export const PROTOCOL_TASK_PRESETS: { type: ProtocolTaskType; label: string; uni
   { type: 'steps', label: 'Pasos diarios', unit: 'pasos', target: 10000 },
   { type: 'water', label: 'Agua', unit: 'l', target: 2 },
   { type: 'sleep', label: 'Horas de sueño', unit: 'h', target: 8 },
-  { type: 'cardio', label: 'Cardio', unit: 'min', target: 30 },
 ];
 PROTOCOL_TASK_PRESETS.forEach((item) => localizeProp(item, 'unit', `PROTOCOLS.TASK_UNITS.${item.type}`));
 PROTOCOL_TASK_PRESETS.forEach((item) => localizeProp(item, 'label', `PROTOCOLS.TASK_PRESETS.${item.type}`));
