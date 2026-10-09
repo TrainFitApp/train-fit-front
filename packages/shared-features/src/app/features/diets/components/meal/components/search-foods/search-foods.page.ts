@@ -1,10 +1,12 @@
 import {
   ChangeDetectorRef,
   Component,
+  EventEmitter,
   Input,
   OnDestroy,
   OnInit,
   Optional,
+  Output,
   ViewChild,
   inject,
   signal,
@@ -150,6 +152,23 @@ export interface SearchFoodsTrainerContext {
 export class SearchFoodsPage implements OnInit, OnDestroy {
   @Input()
   public trainerContext?: SearchFoodsTrainerContext;
+
+  // Biblioteca › Alimentos (entrenadores) — mismo criterio que
+  // SearchExercisesPage en mode="library": el buscador como catálogo de
+  // consulta, embebido en una página (no por ruta ni en modal). Productos y
+  // Recetas a la derecha del buscador, con sus filtros debajo, arrancando en
+  // «Añadidos por mí»; sin escáner, cesta ni macros del día. Tocar una card
+  // emite foodSelected, crear emite create con la pestaña activa y Volver
+  // emite back: lo que se abre (detalle, alta de producto, constructor de
+  // recetas) es de la app que lo usa.
+  @Input()
+  public mode: "default" | "library" = "default";
+  @Output()
+  public back = new EventEmitter<void>();
+  @Output()
+  public create = new EventEmitter<FilterMode>();
+  @Output()
+  public foodSelected = new EventEmitter<TrainerFoodSelection>();
 
   private readonly modalController = inject(ModalController);
 
@@ -308,8 +327,52 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
+    if (this.isLibrary) {
+      this.initLibrary();
+      return;
+    }
     this.initInputsFromRoute();
     this.initVariables();
+  }
+
+  public get isLibrary(): boolean {
+    return this.mode === "library";
+  }
+
+  // En la biblioteca, Volver solo aparece si la página escucha (back).
+  public get canGoBack(): boolean {
+    return !this.isLibrary || this.back.observed;
+  }
+
+  public get canCreate(): boolean {
+    return this.isLibrary && this.create.observed;
+  }
+
+  public goBack(): void {
+    if (this.isLibrary) {
+      this.back.emit();
+      return;
+    }
+    void this.close();
+  }
+
+  // Embebido no hay ionViewWillEnter (solo lo recibe la página de la ruta):
+  // todo arranca aquí. Sin comida ni día, el catálogo del propio
+  // profesional: busca ya, con «Añadidos por mí» (initVariables lo marca
+  // cuando no hay comida), en vez de esperar a que escriba.
+  private initLibrary(): void {
+    this.user = this.userService.getLocalUser;
+    this.initVariables();
+    this.currentMode = "products";
+    this.hasStartedFoodSearch = true;
+    this.search();
+  }
+
+  // Vuelve a pedir la pestaña activa con el texto y los filtros de ahora
+  // (tras crear o editar algo desde la página que lo embebe).
+  public reload(): void {
+    if (!this.searchFilterGroup) return;
+    this.search();
   }
 
   public async ionViewWillEnter(): Promise<void> {
@@ -1035,9 +1098,15 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         return;
       }
 
-      this.searchFilterGroup.ownFilter = false;
+      // La biblioteca vuelve a «Añadidos por mí», igual que sus chips
+      // (app-filter-icons, defaultOwn).
+      this.searchFilterGroup.ownFilter = this.isLibrary;
       this.searchFilterGroup.favFilter = false;
       this.searchFilterGroup.shieldFilter = false;
+      // Los chips también apagan «Pautados» al cambiar de pestaña: si aquí
+      // se quedaba puesto, la lista seguía filtrando lo pautado con «Todos»
+      // marcado.
+      this.searchFilterGroup.pautadoFilter = false;
       this.searchFilterGroup.page = 0;
 
       this.products = [];
@@ -2425,15 +2494,15 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return (name || "").toLowerCase().includes(search);
   }
 
-  private applyPautadoProductsFilter(): void {
+  // Productos y recetas a la vez, esté en la pestaña que esté: el chip sale
+  // si hay algo pautado de cualquiera de los dos, y filtrar solo la pestaña
+  // abierta dejaba la lista vacía cuando lo pautado era del otro tipo (p. ej.
+  // una receta pautada mirando Productos).
+  private applyPautadoFilter(): void {
     this.products = (this.meal?.customProducts || [])
       .filter((customProduct) => !!customProduct?.assignedByTrainerId)
       .map((customProduct) => customProduct.product as IProduct)
       .filter((product) => !!product?._id && this.matchesPautadoSearch(product.name));
-    this.load = true;
-  }
-
-  private applyPautadoRecipesFilter(): void {
     this.recipes = (this.meal?.customRecipes || [])
       .filter((instance) => !!instance?.assignedByTrainerId)
       .map((instance) => instance.recipe as Recipe)
@@ -2443,7 +2512,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   private searchProducts(): void {
     if (this.isPautadoFilterActive) {
-      this.applyPautadoProductsFilter();
+      this.applyPautadoFilter();
       return;
     }
 
@@ -2666,7 +2735,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   private searchRecipes(): void {
     if (this.isPautadoFilterActive) {
-      this.applyPautadoRecipesFilter();
+      this.applyPautadoFilter();
       return;
     }
 
@@ -3514,6 +3583,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       product,
       quantity: existing?.quantity ?? product.servingQuantity ?? 100,
     };
+    // En la biblioteca el detalle es una ficha que se cierra encima de la
+    // lista: no queda nada que resaltar al volver.
+    if (this.isLibrary) {
+      this.foodSelected.emit(item);
+      return;
+    }
     this.focusedTrainerItem = item;
     this.trainerContext?.onFocusItem?.(item);
   }
@@ -3523,6 +3598,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       (item) => item.kind === "recipe" && item.recipe?._id === recipe._id,
     );
     const item: TrainerFoodSelection = { kind: "recipe", recipe, quantity: existing?.quantity ?? null };
+    if (this.isLibrary) {
+      this.foodSelected.emit(item);
+      return;
+    }
     this.focusedTrainerItem = item;
     this.trainerContext?.onFocusItem?.(item);
   }

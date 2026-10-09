@@ -1,0 +1,8 @@
+<!-- Sin cabecera de página, como la de ejercicios: «Volver» va a la
+     izquierda del buscador y el alta es la primera tarjeta de la lista. -->
+<app-products
+  mode="library"
+  (back)="navigation.back()"
+  (create)="create($event)"
+  (foodSelected)="openDetail($event)"
+></app-products>

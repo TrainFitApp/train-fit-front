@@ -469,8 +469,28 @@ $clipboard-panel-width: 320px;
   }
 }
 
+// "Guardar como plantilla" (secundario) a la izquierda del principal; el
+// principal se queda con el resto del ancho.
+.submit-row {
+  display: flex;
+  gap: 12px;
+}
+
+.save-as-template-button {
+  @include tf-secondary-button;
+  flex: 0 0 auto;
+  height: 50px;
+  padding: 0 20px;
+  font-size: 0.92rem;
+
+  ion-icon {
+    font-size: 1.1rem;
+  }
+}
+
 .submit-button {
   @include tf-gradient-button;
+  flex: 1 1 auto;
   width: 100%;
   height: 50px;
   font-size: 0.92rem;

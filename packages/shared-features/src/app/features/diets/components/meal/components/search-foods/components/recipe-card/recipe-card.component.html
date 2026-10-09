@@ -32,7 +32,7 @@
           <span
             class="recipe-qty"
             [ngStyle]="{ 'font-weight': isChecked ? 'bolder' : '' }"
-            [style.color]="isChecked ? 'var(--ion-color-secondary)' : '#888'"
+            [style.color]="isPautado ? null : isChecked ? 'var(--ion-color-secondary)' : '#888'"
           >
             {{
               displayQuantity !== null
@@ -65,7 +65,7 @@
         <!-- Sin checkbox en una pautada: no se puede quitar ni volver a
              añadir (ver ProductComponent, mismo motivo). -->
         <div
-          *ngIf="!isPautado && (meal || trainerMultiSelect)"
+          *ngIf="selectable && !isPautado && (meal || trainerMultiSelect)"
           class="checkbox-container"
           (click)="onCheckboxClick($event)"
         >

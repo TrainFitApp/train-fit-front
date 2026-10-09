@@ -12,6 +12,7 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
+import { onDaySkipped } from '../../../../../../shared/services/diet-phase-api.service';
 import { NutritionTrackingDay } from '../../models/client-detail.model';
 import { uiLocale, localizeProp } from 'src/app/core/i18n/localized-catalog';
 
@@ -88,7 +89,16 @@ export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDes
   private chart: Chart<'line'> | null = null;
   private initialized = false;
 
-  constructor(private clientDetailApi: ClientDetailApiService) {}
+  constructor(private clientDetailApi: ClientDetailApiService) {
+    // Un día saltado se queda sin lo pautado: si cae en el rango, cambia la
+    // línea de pautado de ese día.
+    onDaySkipped(
+      () => this.clientId,
+      (date) => {
+        if (this.customRange && this.customRange.start <= date && date <= this.customRange.end) this.load();
+      }
+    );
+  }
 
   // F20-sedecies — antes esto vivía en ngAfterViewInit, que se ejecuta
   // DESPUÉS de que Angular ya haya comprobado la plantilla por primera

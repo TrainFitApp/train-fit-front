@@ -527,6 +527,23 @@ ion-popover.select-popover {
   }
 }
 
+// --- Desde qué día empieza una fase de dieta: ion-modal.tf-phase-start-sheet ---
+// (PhaseStartSheetComponent). Hoja inferior de alto automático; en escritorio
+// se queda del ancho de un calendario, centrada: a lo ancho de una pantalla
+// grande las casillas del mes medirían 150px.
+ion-modal.tf-phase-start-sheet {
+  --width: min(480px, 100%);
+  --height: auto;
+  --border-radius: 20px 20px 0 0;
+  --background: var(--tf-surface-1);
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
 // --- Selector de fecha/hora: <app-date-field> → ion-modal.tf-datetime-modal ---
 // Sustituye al <input type="date|time"> nativo (calendario del sistema, en
 // claro). El calendario (días, hoy, día elegido) lo pinta

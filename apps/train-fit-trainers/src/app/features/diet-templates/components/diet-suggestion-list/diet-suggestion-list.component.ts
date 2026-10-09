@@ -9,6 +9,7 @@ import {
 } from '../../models/diet-suggestion.model';
 import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
 import { DietTemplateApiService } from '../../services/diet-template-api.service';
+import { filterDietsByName } from '../../utils/diet-name-search';
 
 // Sugerencias de dieta — la LISTA rankeada de la biblioteca de dietas, en
 // la zona principal de diet-phase-picker (ancho completo). Los parámetros y
@@ -38,6 +39,7 @@ export class DietSuggestionListComponent {
   // ion-content de aquí se movería con el scroll de la lista.
   @Output() public previewed = new EventEmitter<{ template: DietTemplate; flags: string[] }>();
   public previewingId: string | null = null;
+  public search = '';
 
   constructor(
     private session: DietSuggestionSessionService,
@@ -48,6 +50,14 @@ export class DietSuggestionListComponent {
     this.selectedId$ = this.session.selectedId$;
     this.loading$ = this.session.loading$;
     this.topSuggestionId$ = this.session.topSuggestionId$;
+  }
+
+  public onSearch(event: Event): void {
+    this.search = String((event as CustomEvent).detail?.value || '');
+  }
+
+  public visible(ranked: RankedTemplate[]): RankedTemplate[] {
+    return filterDietsByName(ranked, this.search);
   }
 
   public missingCount(ranked: RankedTemplate[]): number {

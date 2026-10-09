@@ -122,11 +122,52 @@ ion-chip.custom-chip-unselected {
     color: var(--ion-color-primary) !important;
   }
 }
+// Sin scroll-behavior: smooth: el arrastre con ratón (appHorizontalScroll)
+// tiene que seguir al puntero sin retraso.
 .filter-chips-scroll {
+  --chips-fade: 28px;
+
   width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
-  scroll-behavior: smooth;
+  // Arrastrar desde el hueco entre chips no debe seleccionar sus textos.
+  -webkit-user-select: none;
+  user-select: none;
+
+  // Degradado en el lado por el que quedan chips escondidos: la barra está
+  // oculta y, sin él, un chip cortado justo en el hueco no avisa de que hay
+  // más. Lo pone appHorizontalScroll solo mientras queda algo por ver.
+  &.is-scrollable-end {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--chips-fade)), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - var(--chips-fade)), transparent);
+  }
+
+  &.is-scrollable-start {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--chips-fade));
+    mask-image: linear-gradient(to right, transparent, #000 var(--chips-fade));
+  }
+
+  &.is-scrollable-start.is-scrollable-end {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--chips-fade),
+      #000 calc(100% - var(--chips-fade)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--chips-fade),
+      #000 calc(100% - var(--chips-fade)),
+      transparent
+    );
+  }
+
+  &.is-dragging,
+  &.is-dragging .modern-pill {
+    cursor: grabbing;
+  }
 }
 
 .filter-chips-scroll::-webkit-scrollbar {

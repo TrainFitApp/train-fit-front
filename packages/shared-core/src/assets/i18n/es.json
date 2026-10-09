@@ -544,6 +544,7 @@
     "ALTERNATIVE_CHANGED": "Cambiado a {{label}} en {{meal}}",
     "PASTE_REPLACE": "REEMPLAZAR",
     "PASTE_MERGE": "FUSIONAR",
+    "PASTE_ERROR": "No se pudo pegar. Vuelve a intentarlo.",
     "PRODUCTS_COPIED": "Productos copiados",
     "RECIPE_NO_NAME": "Receta sin nombre",
     "EDIT_NAME_HEADER": "Editar nombre",
@@ -615,6 +616,7 @@
     "START_SEARCHING_MSG": "Encuentra más de 1.000.000 de productos y recetas",
     "NO_MATCHES": "No hay coincidencias",
     "NO_MATCHES_MSG": "Prueba con otro término o crea uno nuevo",
+    "NO_PAUTADO_MATCHES_MSG": "Nada de lo pautado en esta comida coincide con tu búsqueda",
     "CREATE_PRODUCT": "Crear producto",
     "CREATE_RECIPE": "Crear receta",
     "CREATE_NEW": "Crear nuevo",
@@ -1576,8 +1578,7 @@
     "VERIFIED_RECIPES": "Recetas verificadas",
     "FAVORITE_RECIPES": "Recetas favoritas",
     "VERIFIED_FAVORITE_RECIPES": "Recetas verificadas favoritas",
-    "PAUTADO_PRODUCTS": "Pautados por tu profesional",
-    "PAUTADO_RECIPES": "Recetas pautadas por tu profesional"
+    "PAUTADO": "Pautados por tu profesional"
   },
   "PROFILE": {
     "COACH_CARD": {

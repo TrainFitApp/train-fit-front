@@ -59,6 +59,16 @@ export class TemplatesPage implements OnInit {
       colorVar: 'var(--ion-color-tertiary, #ffd359)',
       path: '/tabs/diet-templates',
     },
+    // Productos y recetas propios (y el catálogo entero para consultar),
+    // fuera de construir una dieta: buscador de alimentos en modo
+    // biblioteca, igual que Ejercicios.
+    {
+      name: this.translate.instant('TEMPLATES.ALIMENTOS'),
+      description: this.translate.instant('TEMPLATES.TUS_PRODUCTOS_Y_RECETAS'),
+      icon: 'nutrition-outline',
+      colorVar: 'var(--tf-accent)',
+      path: '/tabs/foods',
+    },
     // TASK-042 (MASTER_BACKLOG.md) — antes el catálogo de ejercicios solo era
     // alcanzable como modal picker dentro de construir un workout. Se anida
     // aquí (categoría dentro de "Biblioteca") en vez de como destino nuevo

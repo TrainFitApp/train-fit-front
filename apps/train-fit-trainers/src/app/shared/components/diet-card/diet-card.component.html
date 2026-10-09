@@ -13,7 +13,7 @@
     <span class="medal" *ngIf="medal">{{ medal }}</span>
     <span class="card-name">{{ name }}</span>
     <span class="tag tag--verified" *ngIf="verified">{{ 'SHARED_COMPONENTS.DE_FABRICA' | translate }}</span>
-    <span class="tag tag--owned" *ngIf="ownedByClient">{{ 'SHARED_COMPONENTS.DE_UN_CLIENTE' | translate }}</span>
+    <span class="tag tag--owned" *ngIf="ownedByClient">{{ (inClientContext ? 'SHARED_COMPONENTS.DE_ESTE_CLIENTE' : 'SHARED_COMPONENTS.DE_UN_CLIENTE') | translate }}</span>
   </div>
 
   <!-- Cuadra de macros pero incumple alguna restricción del cliente: se

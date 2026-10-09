@@ -19,6 +19,7 @@ export type ClientDetailTab =
   | 'pain'
   | 'media'
   | 'tasks'
+  | 'supplements'
   | 'clientNotes';
 
 // Movimiento 1 Coach Pro — la ficha llegó a tener 9 pestañas en fila: con
@@ -78,6 +79,10 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
       // entrenamiento o nutrición activos, un cliente puede tener hábitos
       // pautados con cualquier combinación de scopes.
       { key: 'tasks', label: 'Hábitos', icon: 'repeat-outline' },
+      // Suplementación: vivía en la columna lateral de Nutrición, pero la
+      // pautan igual el entrenador y el nutricionista (el back no pide
+      // scope), así que va suelta junto a Hábitos y sin requiresScope.
+      { key: 'supplements', label: 'Suplementación', icon: 'flask-outline' },
       // Lo que el CLIENTE ha escrito en sesiones, ejercicios, dolor y dieta.
       // "del cliente" porque Gestión ya tiene "Notas" (las privadas del
       // entrenador) y dos pestañas con el mismo nombre no se distinguirían.
@@ -297,6 +302,59 @@ export interface NutritionFoodsSummary {
   items: NutritionFoodCompliance[];
   from: string;
   to: string;
+}
+
+// Resumen de UN día (Plan › Nutrición › Día), de
+// GET /trainer/clients/:clientId/nutrition-day (dietDays/day-summary.js).
+//   skipped   lo saltó          menu     eligió menú
+//   planned   pautado sin menú  unchosen pasado sin menú: se mide con el
+//   pending   hoy o futuro sin menú       menú por defecto, sin nada tomado
+//   none      ninguna fase lo cubre
+export type NutritionDayState = 'skipped' | 'menu' | 'planned' | 'unchosen' | 'pending' | 'none';
+
+// eaten = pautado y marcado; unchecked = pautado sin marcar; extra = lo añadió
+// el cliente por su cuenta.
+export type NutritionDayItemStatus = 'eaten' | 'unchecked' | 'extra';
+
+export interface NutritionDayItem {
+  kind: 'product' | 'recipe';
+  name: string;
+  brand: string | null;
+  status: NutritionDayItemStatus;
+  // Gramos que pautó el profesional (null en lo propio del cliente).
+  plannedQuantity: number | null;
+  // Gramos que registró el cliente.
+  quantity: number | null;
+  // Pautadas si no lo marcó; tomadas si lo marcó o es suyo.
+  kcal: number;
+}
+
+export interface NutritionDayMeal {
+  name: string;
+  notes: string | null;
+  // Solo cuando el profesional dio a elegir (2+ opciones).
+  options: { chosen: number | null; labels: string[] } | null;
+  status: 'done' | 'partial' | 'unchecked' | 'extra';
+  planned: NutritionMacroTotals;
+  consumed: NutritionMacroTotals;
+  items: NutritionDayItem[];
+}
+
+export interface NutritionDaySummary {
+  date: string;
+  today: string;
+  state: NutritionDayState;
+  phase: { _id: string; name: string; week: number | null } | null;
+  menus: string[];
+  menuName: string | null;
+  notes: string | null;
+  planned: NutritionMacroTotals;
+  consumed: NutritionMacroTotals;
+  extra: NutritionMacroTotals;
+  deviation: { kcal: number; percentage: number; withinTolerance: boolean } | null;
+  counts: { planned: number; eaten: number; extra: number };
+  completionPercentage: number | null;
+  meals: NutritionDayMeal[];
 }
 
 // TAREA1/TAREA5 (replanteamiento MVP nutrición) — un alimento dentro de una

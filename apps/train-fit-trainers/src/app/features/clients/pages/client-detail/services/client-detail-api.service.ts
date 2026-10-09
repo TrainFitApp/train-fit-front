@@ -12,6 +12,7 @@ import {
   ClientScope,
   ClientTable,
   NutritionComplianceSummary,
+  NutritionDaySummary,
   NutritionFoodsSummary,
   NutritionTrackingSummary,
   Supplement,
@@ -347,6 +348,14 @@ export class ClientDetailApiService {
   ): Observable<NutritionFoodsSummary> {
     return this.http.get<NutritionFoodsSummary>(
       `${this.base(clientId)}/nutrition-foods?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+    );
+  }
+
+  // Resumen de un día (Plan › Nutrición › Día): menú y opciones elegidas, lo
+  // tomado, lo que no, lo propio y la desviación. No crea el día.
+  public getNutritionDay(clientId: string, date: string): Observable<NutritionDaySummary> {
+    return this.http.get<NutritionDaySummary>(
+      `${this.base(clientId)}/nutrition-day?date=${encodeURIComponent(date)}`
     );
   }
 

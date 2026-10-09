@@ -1,4 +1,4 @@
-<div class="nutrition-calendar" [class.nutrition-calendar--picker]="isPickerMode">
+<div class="nutrition-calendar">
   <div class="nutrition-calendar__header">
     <button
       type="button"
@@ -19,7 +19,7 @@
     </button>
   </div>
 
-  <div class="nutrition-calendar__toolbar">
+  <div class="nutrition-calendar__toolbar" *ngIf="!startPicker">
     <div class="nutrition-calendar__toolbar-row">
       <button
         type="button"
@@ -39,7 +39,7 @@
         (click)="clearRange()"
       >
         <ion-icon name="close-circle-outline"></ion-icon>
-        {{ rangeStart }} → {{ openEnded ? ('CLIENTS.OPEN_ENDED' | translate) : rangeEnd }}
+        {{ rangeStart }} → {{ rangeEnd }}
       </button>
     </div>
   </div>
@@ -60,36 +60,26 @@
       [class.is-skipped]="!!cell.compliance?.skipped"
       [class.has-phase]="!!cell.phase"
       [class.is-in-range]="isInRange(cell.date)"
-      [class.is-range-endpoint]="cell.date === rangeStart || cell.date === rangeEnd"
+      [class.is-range-endpoint]="!!cell.date && (cell.date === rangeStart || cell.date === rangeEnd)"
       [class.is-range-pick-mode]="isRangeMode"
-      [class.is-occupied]="isPickerMode && !!cell.phase?.blocksNewPhase"
+      [class.is-start-blocked]="cell.start?.kind === 'blocked'"
       [class.is-open-ended-tail]="isOpenEndedTail(cell)"
       [disabled]="!cell.date"
-      [attr.aria-disabled]="isPickerMode && !!cell.phase?.blocksNewPhase ? 'true' : null"
+      [attr.aria-disabled]="cell.start?.kind === 'blocked' ? 'true' : null"
       [style.--fill-opacity]="cellFillOpacity(cell)"
       [style.--phase-color]="cell.phase?.color"
       (click)="selectDay(cell)"
       (mouseenter)="onCellHover(cell, $event)"
     >
-      <!-- Fuera del selector: barra fina arriba (convive con el relleno de
-           cumplimiento). Dentro del selector: cuadradito sólido entero (ver
-           .nutrition-calendar--picker en el scss) — aquí el color de fase
-           es el único dato que importa, ocupa toda la celda para que
-           "ocupado" se vea a la primera, no en una franja de 3px.
-           Excepción: una fase indefinida en curso SÍ admite empezar encima
-           (el backend la corta), así que se queda en barra — sólido
-           significa "no puedes", y ahí sí puedes. -->
-      <span
-        class="nutrition-calendar__phase-bar"
-        *ngIf="cell.phase && (!isPickerMode || !cell.phase.blocksNewPhase)"
-      ></span>
+      <!-- Barra fina arriba: convive con el relleno de cumplimiento. Al
+           elegir el inicio de una fase nueva sigue igual; lo que no se puede
+           elegir lo dice el rayado (.is-start-blocked), no la barra. -->
+      <span class="nutrition-calendar__phase-bar" *ngIf="cell.phase"></span>
       <span class="nutrition-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
-      <!-- Semana (R1, R2…) — qué check-in cubre este día. Fuera del
-           selector: ahí la celda es un cuadrado sólido de color y el número
-           sobraría. -->
+      <!-- Semana (S1, S2…) de la fase en la que cae este día. -->
       <span
         class="nutrition-calendar__week-badge"
-        *ngIf="cell.phase?.weekLabel && !isPickerMode"
+        *ngIf="cell.phase?.weekLabel"
         [attr.aria-label]="('CLIENTS.SEMANA' | translate) + cell.phase?.weekLabel"
       >{{ cell.phase?.weekLabel }}</span>
       <!-- Suplementación pautada ese día: va por fechas, así que también se
@@ -97,7 +87,7 @@
       <ion-icon
         class="nutrition-calendar__supplement"
         name="flask-outline"
-        *ngIf="cell.supplements.length && !isPickerMode"
+        *ngIf="cell.supplements.length"
         [attr.aria-label]="('CLIENTS.SUPLEMENTOS' | translate) + cell.supplements.join(', ')"
         (mouseenter)="onSupplementEnter(cell, $event)"
         (mouseleave)="onSupplementLeave()"
@@ -108,22 +98,23 @@
       <span class="nutrition-calendar__open-end" *ngIf="isOpenEndedTail(cell)" aria-hidden="true">››</span>
     </button>
 
-    <!-- Por qué no se puede (o sí, pero cortando) elegir el día que hay
-         debajo del ratón. Va aquí, hijo de la rejilla, para posicionarse con
-         los offsets de la celda sin depender del scroll de la página. -->
+    <!-- Por qué no se puede (o sí, pero cortando otra fase) empezar la fase
+         nueva el día que hay debajo del ratón. Va aquí, hijo de la rejilla,
+         para posicionarse con los offsets de la celda sin depender del
+         scroll de la página. -->
     <div
       class="nutrition-calendar__tooltip"
-      *ngIf="occupiedTooltip"
+      *ngIf="startTooltip && !supplementTooltip"
       role="tooltip"
-      [style.left.px]="occupiedTooltip.left"
-      [style.top.px]="occupiedTooltip.top"
+      [style.left.px]="startTooltip.left"
+      [style.top.px]="startTooltip.top"
     >
-      {{ occupiedTooltip.text }}
+      {{ startTooltip.text }}
     </div>
 
     <!-- Qué suplementos toca ese día, al pasar por encima de su icono. Mismo
-         globo y misma colocación que el de arriba; nunca coinciden, porque
-         aquel solo existe en el selector y el icono solo fuera de él. -->
+         globo y misma colocación que el de arriba, que cede el sitio mientras
+         se señala el icono. -->
     <div
       class="nutrition-calendar__tooltip nutrition-calendar__tooltip--supplement"
       *ngIf="supplementTooltip"
@@ -139,7 +130,7 @@
        distintas: lo que dice del cliente (relleno, barra, excepciones) y
        dónde estás mirando tú (hoy, seleccionado, rango). Mezclarlas en una
        fila hacía leer el borde naranja del rango como si fuera un dato. -->
-  <div class="nutrition-calendar__legend" *ngIf="!isPickerMode">
+  <div class="nutrition-calendar__legend">
     <p class="legend-title">{{ 'CLIENTS.QUE_DICE_DEL_CLIENTE' | translate }}</p>
 
     <!-- Escala, no un cuadradito: el cumplimiento se lee por INTENSIDAD del
@@ -172,37 +163,27 @@
     <span class="legend-item"><span class="legend-swatch legend-swatch--empty"></span>{{ 'CLIENTS.SIN_PLAN_ESE_DIA' | translate }}</span>
   </div>
 
-  <!-- Selector de fechas para una fase nueva: lo único que importa aquí es
-       "¿este día ya es de otra fase o está libre?" — cumplimiento,
-       excepciones y "sin plan" son datos de seguimiento pasado, irrelevantes
-       al programar fechas. -->
-  <div class="nutrition-calendar__legend" *ngIf="isPickerMode">
-    <span class="legend-item">
-      <span class="legend-swatch legend-swatch--occupied"></span>
-      {{ 'CLIENTS.OCUPADO_OTRA_FASE_NO_SELECCIONABLE' | translate }}
-    </span>
-    <span class="legend-item">
-      <span class="legend-swatch legend-swatch--empty"></span>
-      {{ 'CLIENTS.LIBRE' | translate }}
-    </span>
-    <!-- Solo si de verdad hay una en pantalla: si no, es una regla de más
-         que nadie necesita leer. -->
-    <span class="legend-item" *ngIf="hasOpenEndedVisible">
-      <span class="legend-swatch legend-swatch--phase-bar"></span>
-      {{ 'CLIENTS.PLAN_INDEFINIDO_EN_CURSO_PUEDES' | translate }}
-    </span>
-  </div>
-
-  <p class="range-error" *ngIf="isPickerMode && rangeError">
+  <!-- Al pulsar un día en el que la fase nueva no puede empezar: el porqué,
+       escrito, porque en táctil no hay globo que lo diga antes. -->
+  <p class="start-notice" *ngIf="startPicker && startNotice" role="status">
     <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-    {{ rangeError }}
+    {{ startNotice }}
   </p>
 
-  <div class="nutrition-calendar__legend nutrition-calendar__legend--nav" *ngIf="!isPickerMode">
+  <div class="nutrition-calendar__legend nutrition-calendar__legend--nav" *ngIf="!startPicker">
     <p class="legend-title">{{ 'CLIENTS.DONDE_ESTAS_MIRANDO' | translate }}</p>
     <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>{{ 'TRAINER_COMMON.TODAY' | translate }}</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--selected"></span>{{ 'CLIENTS.DIA_SELECCIONADO' | translate }}</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--endpoint"></span>{{ 'CLIENTS.INICIO_FIN_DEL_RANGO' | translate }}</span>
+  </div>
+
+  <!-- Al elegir el inicio de una fase nueva, el segundo bloque habla de ella:
+       dónde empieza (y que sigue abierta) y dónde no puede empezar. -->
+  <div class="nutrition-calendar__legend nutrition-calendar__legend--nav" *ngIf="startPicker">
+    <p class="legend-title">{{ 'CLIENTS.START_LEGEND_TITLE' | translate }}</p>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>{{ 'TRAINER_COMMON.TODAY' | translate }}</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--endpoint"></span>{{ 'CLIENTS.START_LEGEND_FROM' | translate }}</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--blocked"></span>{{ 'CLIENTS.START_LEGEND_BLOCKED' | translate }}</span>
   </div>
 
   <!-- Debajo de la leyenda y no en la tarjeta del plan: la acción es sobre
@@ -212,7 +193,7 @@
   <button
     type="button"
     class="skip-day-btn"
-    *ngIf="canSkipDay"
+    *ngIf="showSkipDay"
     [disabled]="isSkippingDay"
     (click)="skipDayRequested.emit(selectedDate)"
   >

@@ -24,6 +24,14 @@
         border-color: var(--ion-color-alternative);
         background-color: rgba(var(--ion-color-alternative-rgb), 0.08);
         cursor: pointer;
+
+        // Nombre, «Añadido a …» y gramos también en azul (ver el mismo
+        // bloque en product.component.scss).
+        .recipe-name,
+        .added-label,
+        .recipe-qty {
+            color: var(--ion-color-alternative);
+        }
     }
 
     &.is-loading {

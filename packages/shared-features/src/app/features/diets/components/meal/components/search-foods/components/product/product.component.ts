@@ -76,6 +76,10 @@ export class ProductComponent implements OnInit, OnChanges {
   // SearchFoodsPage#onFocusItem). No implica selección.
   @Input()
   public isTrainerFocused = false;
+  // Biblioteca › Alimentos (entrenadores): la card solo se consulta, no se
+  // añade a nada, así que va sin checkbox.
+  @Input()
+  public selectable = true;
   // A qué se añade en modo entrenador (SearchFoodsTrainerContext#targetLabel):
   // el constructor de dietas no tiene un Meal real y «Añadido a …» salía vacío.
   @Input()

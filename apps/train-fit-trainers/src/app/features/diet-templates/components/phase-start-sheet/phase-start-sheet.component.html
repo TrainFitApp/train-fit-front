@@ -1,0 +1,48 @@
+<div class="start-sheet">
+  <header class="start-sheet__head">
+    <h2 class="start-sheet__title">{{ 'DIET_TEMPLATES.START_SHEET_TITLE' | translate }}</h2>
+    <p class="start-sheet__subtitle">
+      {{ 'DIET_TEMPLATES.START_SHEET_SUBTITLE' | translate: { name: phaseName, client: clientName } }}
+    </p>
+  </header>
+
+  <div class="start-sheet__body">
+    <div class="start-sheet__state" *ngIf="state === 'loading'">
+      <ion-spinner name="crescent" [attr.aria-label]="'DIET_TEMPLATES.START_SHEET_LOADING' | translate"></ion-spinner>
+    </div>
+
+    <div class="start-sheet__state" *ngIf="state === 'error'">
+      <p>{{ 'DIET_TEMPLATES.START_SHEET_ERROR' | translate }}</p>
+      <button type="button" class="start-sheet__retry" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
+    </div>
+
+    <ng-container *ngIf="state === 'ready'">
+      <!-- El mismo calendario de Plan › Nutrición, con todos sus datos: solo
+           cambia que pulsar un día lo elige como inicio. -->
+      <app-nutrition-calendar
+        [clientId]="clientId"
+        [selectedDate]="startDate || ''"
+        [startPicker]="true"
+        (dateSelected)="pick($event)"
+      ></app-nutrition-calendar>
+
+      <div class="start-sheet__summary" aria-live="polite">
+        <p class="start-sheet__starts" *ngIf="startsLine">{{ startsLine }}</p>
+        <p class="start-sheet__note" *ngIf="replacesLine">{{ replacesLine }}</p>
+        <p class="start-sheet__note start-sheet__note--warning" *ngIf="gapLine">
+          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+          {{ gapLine }}
+        </p>
+        <p class="start-sheet__note start-sheet__note--warning" *ngIf="noDayLine">
+          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+          {{ noDayLine }}
+        </p>
+      </div>
+    </ng-container>
+  </div>
+
+  <footer class="start-sheet__actions">
+    <button type="button" class="start-sheet__cancel" (click)="cancel()">{{ 'COMMON.CANCEL' | translate }}</button>
+    <button type="button" class="start-sheet__confirm" [disabled]="!startDate" (click)="confirm()">{{ confirmLabel }}</button>
+  </footer>
+</div>

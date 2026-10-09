@@ -1,0 +1,194 @@
+<div class="nday-skeleton" *ngIf="state === 'loading'" aria-busy="true">
+  <div class="skeleton-block" style="height: 40px"></div>
+  <div class="skeleton-block" style="height: 132px"></div>
+  <div class="skeleton-block" style="height: 180px"></div>
+</div>
+
+<div class="section-state" *ngIf="state === 'error'">
+  <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+  <p>{{ 'CLIENT_DETAIL.DAY.ERROR' | translate }}</p>
+  <button type="button" class="retry-button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
+</div>
+
+<ng-container *ngIf="state === 'ready' && summary as day">
+  <header class="nday-head">
+    <div class="nday-head__title">
+      <h3 class="nday-head__date">{{ day.date | localDate: 'EEEE d MMM' }}</h3>
+      <span class="nday-head__today" *ngIf="isToday">{{ 'TRAINER_COMMON.TODAY' | translate }}</span>
+    </div>
+    <p class="nday-head__phase" *ngIf="day.phase as phase">
+      {{ phase.name }}<ng-container *ngIf="phase.week">
+        · {{ 'CLIENT_DETAIL.DAY.WEEK' | translate: { n: phase.week } }}</ng-container
+      >
+    </p>
+  </header>
+
+  <!-- Los menús de la fase con el que eligió marcado: «qué menú siguió» de
+       un vistazo, y cuántos tenía para elegir. -->
+  <div class="nday-menus" *ngIf="showMenus">
+    <span class="nday-menus__label">{{ 'CLIENT_DETAIL.DAY.MENU' | translate }}</span>
+    <ul class="nday-menus__list" [attr.aria-label]="'CLIENT_DETAIL.DAY.MENUS' | translate">
+      <li
+        class="menu-chip"
+        *ngFor="let menu of day.menus"
+        [class.is-chosen]="menu === day.menuName"
+        [attr.aria-current]="menu === day.menuName ? 'true' : null"
+      >
+        <ion-icon name="checkmark" *ngIf="menu === day.menuName" aria-hidden="true"></ion-icon>
+        {{ menu }}
+      </li>
+      <li class="menu-chip is-chosen" *ngIf="day.menuName && !day.menus.includes(day.menuName)" aria-current="true">
+        <ion-icon name="checkmark" aria-hidden="true"></ion-icon>
+        {{ day.menuName }}
+      </li>
+    </ul>
+  </div>
+
+  <p class="nday-notice" [class.nday-notice--warn]="day.state === 'unchosen'" *ngIf="notice as dayNotice">
+    <ion-icon [name]="dayNotice.icon" aria-hidden="true"></ion-icon>
+    <span>{{ dayNotice.key | translate: { menu: day.menus[0] || '' } }}</span>
+  </p>
+
+  <!-- La nota del día explica a menudo la desviación de abajo («cena fuera»). -->
+  <blockquote class="nday-note" *ngIf="day.notes">
+    <span class="nday-note__label">{{ 'CLIENT_DETAIL.DAY.CLIENT_NOTE' | translate }}</span>
+    <p>{{ day.notes }}</p>
+  </blockquote>
+
+  <!-- Pautado frente a comido y la desviación. Las kcal llevan el margen de
+       la adherencia (±15 %); los macros, solo la diferencia. -->
+  <section class="nday-balance" *ngIf="hasNumbers">
+    <table class="nday-table">
+      <thead>
+        <tr>
+          <th scope="col"><span class="sr-only">{{ 'CLIENT_DETAIL.DAY.MACRO' | translate }}</span></th>
+          <th scope="col">{{ 'CLIENTS.PAUTADO' | translate }}</th>
+          <th scope="col">{{ 'CLIENTS.COMIDO' | translate }}</th>
+          <th scope="col">{{ 'CLIENT_DETAIL.DAY.DEVIATION' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of rows; trackBy: trackByKey" [class.is-kcal]="row.key === 'kcal'">
+          <th scope="row">
+            <span class="macro-dot" [style.background]="row.color" aria-hidden="true"></span>
+            {{ row.labelKey | translate }}
+          </th>
+          <td>
+            <ng-container *ngIf="row.delta !== null; else noPlan"
+              >{{ n(row.planned) }}<span class="unit" *ngIf="row.unit === 'g'"> g</span></ng-container
+            >
+          </td>
+          <td>{{ n(row.consumed) }}<span class="unit" *ngIf="row.unit === 'g'"> g</span></td>
+          <td>
+            <span
+              class="dev-chip"
+              *ngIf="row.key === 'kcal' && day.deviation as dev; else macroDelta"
+              [class.is-ok]="dev.withinTolerance"
+              [class.is-off]="!dev.withinTolerance"
+            >
+              <ion-icon [name]="dev.withinTolerance ? 'checkmark' : 'alert'" aria-hidden="true"></ion-icon>
+              {{ signed(dev.kcal) }} · {{ signed(dev.percentage) }} %
+            </span>
+            <ng-template #macroDelta>
+              <span class="delta" *ngIf="row.delta !== null; else noPlan"
+                >{{ signed(row.delta) }}<ng-container *ngIf="row.unit === 'g'"> g</ng-container></span
+              >
+            </ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noPlan><span class="nday-table__none">—</span></ng-template>
+
+    <p class="nday-hint" *ngIf="day.deviation">
+      {{ (day.deviation.withinTolerance ? 'CLIENT_DETAIL.DAY.WITHIN_MARGIN' : 'CLIENT_DETAIL.DAY.OUTSIDE_MARGIN') | translate }}
+    </p>
+
+    <dl class="nday-stats">
+      <div class="nday-stat" *ngIf="day.counts.planned">
+        <dt>{{ 'CLIENT_DETAIL.DAY.MARKED' | translate }}</dt>
+        <dd>
+          <span class="nday-stat__value">{{ day.counts.eaten }}/{{ day.counts.planned }}</span>
+          <span class="nday-stat__sub" *ngIf="day.completionPercentage !== null">{{ day.completionPercentage }} %</span>
+        </dd>
+        <dd class="nday-stat__bar" aria-hidden="true">
+          <span [style.width.%]="day.completionPercentage || 0"></span>
+        </dd>
+      </div>
+      <div class="nday-stat nday-stat--extra" *ngIf="day.counts.extra">
+        <dt>{{ 'CLIENT_DETAIL.DAY.OFF_PLAN' | translate }}</dt>
+        <dd>
+          <span class="nday-stat__value">{{ day.counts.extra }}</span>
+          <span class="nday-stat__sub">+{{ n(day.extra.kcal) }} kcal</span>
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- Comida a comida: lo tomado, lo que no y lo propio. -->
+  <section class="nday-meals" *ngIf="day.meals.length; else emptyDay">
+    <article class="meal" *ngFor="let meal of day.meals; trackBy: trackByName">
+      <header class="meal__head">
+        <ion-icon
+          class="meal__status meal__status--{{ meal.status }}"
+          [class.is-past]="isPast"
+          [name]="mealIcon(meal)"
+          role="img"
+          [attr.aria-label]="mealStatusKey(meal) | translate"
+        ></ion-icon>
+        <h4 class="meal__name">{{ meal.name | translateDb }}</h4>
+        <span class="meal__kcal">
+          {{ n(meal.consumed.kcal) }}<ng-container *ngIf="meal.planned.kcal">
+            / {{ n(meal.planned.kcal) }}</ng-container
+          >
+          kcal
+        </span>
+      </header>
+
+      <p class="meal__option" *ngIf="meal.options as options">
+        <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
+        <span>
+          {{ 'CLIENT_DETAIL.DAY.OPTION' | translate: { n: (options.chosen ?? 0) + 1, total: options.labels.length }
+          }}<ng-container *ngIf="chosenOption(meal) as label">: <strong>{{ label }}</strong></ng-container>
+        </span>
+      </p>
+
+      <ul class="meal__items">
+        <li
+          class="item item--{{ item.status }}"
+          [class.is-past]="isPast"
+          *ngFor="let item of meal.items; trackBy: trackByItem"
+        >
+          <ion-icon
+            class="item__icon"
+            [name]="itemIcon(item)"
+            role="img"
+            [attr.aria-label]="itemStatusKey(item) | translate"
+          ></ion-icon>
+          <div class="item__body">
+            <span class="item__name">{{ item.name }}</span>
+            <span class="item__meta">
+              <span *ngIf="item.kind === 'recipe'">{{ 'CLIENT_DETAIL.DAY.RECIPE' | translate }}</span>
+              <span *ngIf="item.brand">{{ item.brand }}</span>
+              <span class="item__qty" *ngIf="shownQuantity(item) as qty">{{ n(qty) }} g</span>
+              <span class="item__adjusted" *ngIf="isAdjusted(item)">{{
+                'CLIENT_DETAIL.DAY.PLANNED_QTY' | translate: { qty: n(item.plannedQuantity || 0) }
+              }}</span>
+            </span>
+          </div>
+          <span class="item__tag" *ngIf="item.status === 'extra'">{{ 'CLIENT_DETAIL.DAY.OFF_PLAN' | translate }}</span>
+          <span class="item__kcal">{{ n(item.kcal) }} kcal</span>
+        </li>
+      </ul>
+
+      <p class="meal__note" *ngIf="meal.notes">
+        <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+        <span>{{ meal.notes }}</span>
+      </p>
+    </article>
+  </section>
+
+  <ng-template #emptyDay>
+    <p class="nday-empty" *ngIf="!notice">{{ 'CLIENT_DETAIL.DAY.EMPTY' | translate }}</p>
+  </ng-template>
+</ng-container>

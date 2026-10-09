@@ -15,7 +15,7 @@ import { PerimeterFilterPanelComponent } from './pages/client-detail/components/
 import { SelectClientsModalModule } from './components/select-clients-modal/select-clients-modal.module';
 import { ApplyDietTemplateModalComponent } from './components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineModalComponent } from './components/apply-routine-modal/apply-routine-modal.component';
-import { NutritionCalendarComponent } from './pages/client-detail/components/nutrition-calendar/nutrition-calendar.component';
+import { NutritionCalendarModule } from './pages/client-detail/components/nutrition-calendar/nutrition-calendar.module';
 import { CheckinHistoryChartComponent } from './pages/client-detail/components/checkin-history-chart/checkin-history-chart.component';
 import { CheckinWorkspaceComponent } from './pages/client-detail/components/checkin-workspace/checkin-workspace.component';
 import { NutritionTrackingChartComponent } from './pages/client-detail/components/nutrition-tracking-chart/nutrition-tracking-chart.component';
@@ -35,6 +35,7 @@ import { NutritionPreferencesPanelComponent } from './pages/client-detail/compon
 import { TrainingCalendarComponent } from './pages/client-detail/components/training-calendar/training-calendar.component';
 import { TrainingComparisonChartComponent } from './pages/client-detail/components/training-comparison-chart/training-comparison-chart.component';
 import { TrainingDayDetailComponent } from './pages/client-detail/components/training-day-detail/training-day-detail.component';
+import { NutritionDayDetailComponent } from './pages/client-detail/components/nutrition-day-detail/nutrition-day-detail.component';
 import { PhaseScheduleCalendarComponent } from './components/phase-schedule-calendar/phase-schedule-calendar.component';
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
 import { CheckinFieldSelectorModule } from '../../shared/components/checkin-field-selector/checkin-field-selector.module';
@@ -62,6 +63,8 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     DateFieldModule,
     // Cobros: Gestión > Cobros y la tarjeta del Resumen (features/payments).
     PaymentsSharedModule,
+    // Calendario de Plan › Nutrición (también lo usa la hoja de empezar fase).
+    NutritionCalendarModule,
   ],
   declarations: [
     ClientsPage,
@@ -75,7 +78,6 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     PerimeterFilterPanelComponent,
     ApplyDietTemplateModalComponent,
     ApplyRoutineModalComponent,
-    NutritionCalendarComponent,
     CheckinHistoryChartComponent,
     CheckinWorkspaceComponent,
     TrackingStatusComponent,
@@ -96,6 +98,7 @@ import { TrackingStatusComponent } from './pages/client-detail/components/tracki
     TrainingCalendarComponent,
     TrainingComparisonChartComponent,
     TrainingDayDetailComponent,
+    NutritionDayDetailComponent,
     PhaseScheduleCalendarComponent,
   ],
 })

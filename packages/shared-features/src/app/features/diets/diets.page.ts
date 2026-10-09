@@ -675,10 +675,17 @@ export class DietsPage implements OnInit {
           };
           this.ionicUtilService.showToast(toastOptions);
         },
-        // Un día con comida pautada no se puede pegar encima (MEAL_PROTECTED):
-        // el interceptor ya enseña el motivo; aquí solo se suelta el estado.
+        // Lo pautado del día destino se queda y lo pegado llega como del
+        // cliente (diet-days-dao.js#pasteDietDayByUser en el back): pegar un
+        // día ya no choca con lo pautado. Si aun así falla, se avisa y el
+        // portapapeles sigue para reintentar.
         error: () => {
           this.isPasting = false;
+          this.ionicUtilService.showErrorToast(
+            this.translate.instant('MEAL.PASTE_ERROR'),
+            this.translate.instant('COMMON.ERROR'),
+            2500
+          );
         },
       });
   }

@@ -1,10 +1,17 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>{{ 'SHARED_COMPONENTS.INSERTAR_SNIPPET' | translate }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">{{ 'COMMON.CLOSE_ARIA' | translate }}</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ 'SHARED_COMPONENTS.INSERTAR_SNIPPET' | translate }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="snippet-picker-content">

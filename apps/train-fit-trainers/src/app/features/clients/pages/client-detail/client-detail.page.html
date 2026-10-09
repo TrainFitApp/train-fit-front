@@ -1527,16 +1527,6 @@
                 (saved)="onNutritionPreferencesSaved($event)"
               ></app-nutrition-preferences-panel>
 
-              <!-- Movimiento 5 Coach Pro — suplementación. En la columna fija de
-               nutrición y no en una pestaña propia: es parte de lo que se le
-               pauta al cliente, y añadir una quinta sección a la ficha
-               desharía lo que arregló el Movimiento 1. -->
-              <div class="sidebar-block">
-                <app-supplements-panel
-                  [clientId]="clientId"
-                ></app-supplements-panel>
-              </div>
-
               <!-- Movimiento 5 Coach Pro — comprobación de que lo pautado es
                comprable. Plegada y sin cargar nada hasta abrirla: no es algo
                que se mire cada vez que se entra en la ficha. -->
@@ -1966,7 +1956,7 @@
                       [clientId]="clientId"
                       [selectedDate]="nutritionDate"
                       [activeRange]="customTrackingRange"
-                      [canSkipDay]="!!currentDietPhase"
+                      [canSkipDay]="true"
                       [isSkippingDay]="isSkippingDay"
                       (dateSelected)="onNutritionDateSelected($event)"
                       (rangeSelected)="onNutritionRangeSelected($event)"
@@ -1982,7 +1972,40 @@
                  (kcal consumidas / cumplimiento). -->
                 <div class="nutrition-chart-col">
                   <div class="section-row">
-                    <h2 class="section-heading">{{ 'CLIENT_DETAIL.SEGUIMIENTO' | translate }}</h2>
+                    <!-- Dos pestañas en la cabecera de la columna: Seguimiento
+                     (gráficas de un rango) y Día (resumen del día pulsado en
+                     el calendario). Pulsar un día abre «Día». -->
+                    <div
+                      class="column-tabs"
+                      role="tablist"
+                      [attr.aria-label]="'CLIENT_DETAIL.DAY.TABS_ARIA' | translate"
+                    >
+                      <button
+                        type="button"
+                        role="tab"
+                        id="nutrition-tab-tracking"
+                        class="column-tab"
+                        aria-controls="nutrition-panel-tracking"
+                        [class.is-active]="nutritionColumnTab === 'tracking'"
+                        [attr.aria-selected]="nutritionColumnTab === 'tracking'"
+                        (click)="setNutritionColumnTab('tracking')"
+                      >
+                        {{ 'CLIENT_DETAIL.SEGUIMIENTO' | translate }}
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        id="nutrition-tab-day"
+                        class="column-tab"
+                        aria-controls="nutrition-panel-day"
+                        [class.is-active]="nutritionColumnTab === 'day'"
+                        [attr.aria-selected]="nutritionColumnTab === 'day'"
+                        (click)="setNutritionColumnTab('day')"
+                      >
+                        {{ 'CLIENT_DETAIL.DAY.TAB' | translate }}
+                        <span class="column-tab__date">{{ nutritionDate | localDate: 'd MMM' }}</span>
+                      </button>
+                    </div>
                     <!-- F20-vicies — alterna entre la gráfica diaria (macros
                      pautado/consumido) y peso vs. adherencia, sin perder el
                      rango de fechas elegido (ambas comparten
@@ -1990,6 +2013,7 @@
                      CÓMO se elige el rango (días/semana), ver más abajo. -->
                     <div
                       class="chart-view-toggle"
+                      *ngIf="nutritionColumnTab === 'tracking'"
                       role="group"
                       [attr.aria-label]="'CLIENT_DETAIL.VISTA_DE_LA_GRAFICA_DE' | translate"
                     >
@@ -2011,56 +2035,79 @@
                       </button>
                     </div>
                   </div>
-                  <div class="nutrition-card">
-                    <!-- Periodo de las dos gráficas (mismo rango para ambas).
-                     Un preset marcado, o ninguno si el rango se eligió a
-                     mano en el calendario. "Fase actual" solo con fase. -->
-                    <div class="range-row">
-                      <span class="range-dates" *ngIf="trackingRangeLabel"
-                        >{{ trackingRangeLabel }}</span
-                      >
-                      <div
-                        class="range-preset-group"
-                        role="group"
-                        [attr.aria-label]="'CLIENT_DETAIL.PERIODO_DEL_SEGUIMIENTO' | translate"
-                      >
-                        <button
-                          type="button"
-                          class="range-preset-btn"
-                          *ngFor="let preset of trackingPresets; trackBy: trackByPresetKey"
-                          [class.is-active]="trackingPreset === preset.key"
-                          [attr.aria-pressed]="trackingPreset === preset.key"
-                          (click)="applyTrackingPreset(preset.key)"
+                  <!-- [hidden] y no *ngIf: las gráficas (Chart.js) se quedan
+                   montadas al ir y volver de «Día». -->
+                  <div
+                    id="nutrition-panel-tracking"
+                    role="tabpanel"
+                    aria-labelledby="nutrition-tab-tracking"
+                    [hidden]="nutritionColumnTab !== 'tracking'"
+                  >
+                    <div class="nutrition-card">
+                      <!-- Periodo de las dos gráficas (mismo rango para ambas).
+                       Un preset marcado, o ninguno si el rango se eligió a
+                       mano en el calendario. "Fase actual" solo con fase. -->
+                      <div class="range-row">
+                        <span class="range-dates" *ngIf="trackingRangeLabel"
+                          >{{ trackingRangeLabel }}</span
                         >
-                          {{ preset.label }}
-                        </button>
+                        <div
+                          class="range-preset-group"
+                          role="group"
+                          [attr.aria-label]="'CLIENT_DETAIL.PERIODO_DEL_SEGUIMIENTO' | translate"
+                        >
+                          <button
+                            type="button"
+                            class="range-preset-btn"
+                            *ngFor="let preset of trackingPresets; trackBy: trackByPresetKey"
+                            [class.is-active]="trackingPreset === preset.key"
+                            [attr.aria-pressed]="trackingPreset === preset.key"
+                            (click)="applyTrackingPreset(preset.key)"
+                          >
+                            {{ preset.label }}
+                          </button>
+                        </div>
                       </div>
+
+                      <app-nutrition-tracking-chart
+                        *ngIf="nutritionChartView === 'daily'"
+                        [clientId]="clientId"
+                        [customRange]="customTrackingRange"
+                      ></app-nutrition-tracking-chart>
+                      <app-weight-adherence-chart
+                        *ngIf="nutritionChartView === 'weight'"
+                        [clientId]="clientId"
+                        [customRange]="customTrackingRange"
+                      ></app-weight-adherence-chart>
                     </div>
 
-                    <app-nutrition-tracking-chart
-                      *ngIf="nutritionChartView === 'daily'"
-                      [clientId]="clientId"
-                      [customRange]="customTrackingRange"
-                    ></app-nutrition-tracking-chart>
-                    <app-weight-adherence-chart
-                      *ngIf="nutritionChartView === 'weight'"
-                      [clientId]="clientId"
-                      [customRange]="customTrackingRange"
-                    ></app-weight-adherence-chart>
+                    <!-- Semana vs. semana (lo pautado): en el hueco bajo la
+                     gráfica, dos cards con selector propio. Solo con fase con
+                     semanas — sin fase no hay nada que comparar. Van por
+                     libre respecto al rango de arriba. -->
+                    <ng-container *ngIf="phaseWeeks">
+                      <div class="section-row">
+                        <h2 class="section-heading">{{ 'CLIENT_DETAIL.SEMANA_SEMANA' | translate }}</h2>
+                      </div>
+                      <app-week-comparison-cards
+                        [phaseWeeks]="phaseWeeks"
+                      ></app-week-comparison-cards>
+                    </ng-container>
                   </div>
 
-                  <!-- Semana vs. semana (lo pautado): en el hueco bajo la
-                   gráfica, dos cards con selector propio. Solo con fase con
-                   semanas — sin fase no hay nada que comparar. Van por
-                   libre respecto al rango de arriba. -->
-                  <ng-container *ngIf="phaseWeeks">
-                    <div class="section-row">
-                      <h2 class="section-heading">{{ 'CLIENT_DETAIL.SEMANA_SEMANA' | translate }}</h2>
+                  <div
+                    id="nutrition-panel-day"
+                    role="tabpanel"
+                    aria-labelledby="nutrition-tab-day"
+                    *ngIf="nutritionColumnTab === 'day'"
+                  >
+                    <div class="nutrition-card">
+                      <app-nutrition-day-detail
+                        [clientId]="clientId"
+                        [date]="nutritionDate"
+                      ></app-nutrition-day-detail>
                     </div>
-                    <app-week-comparison-cards
-                      [phaseWeeks]="phaseWeeks"
-                    ></app-week-comparison-cards>
-                  </ng-container>
+                  </div>
                 </div>
               </div>
 
@@ -2611,6 +2658,13 @@
       <!-- === DOLOR (Movimiento 3, subpestaña propia desde el Movimiento final) === -->
       <div class="tab-panel" *ngIf="activeTab === 'media'">
         <app-client-media-panel [clientId]="clientId" [hasTraining]="scopes.includes('training')"></app-client-media-panel>
+      </div>
+
+      <!-- === SUPLEMENTACIÓN (Plan) ===
+       Subpestaña propia junto a Hábitos: la pautan entrenador y
+       nutricionista por igual, no solo quien lleva la nutrición. -->
+      <div class="tab-panel" *ngIf="activeTab === 'supplements'">
+        <app-supplements-panel [clientId]="clientId"></app-supplements-panel>
       </div>
 
       <div class="tab-panel" *ngIf="activeTab === 'pain'">

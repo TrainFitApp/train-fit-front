@@ -13,6 +13,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import { forkJoin } from 'rxjs';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
+import { onDaySkipped } from '../../../../../../shared/services/diet-phase-api.service';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 interface WeightAdherenceDay {
@@ -55,7 +56,16 @@ export class WeightAdherenceChartComponent implements OnChanges, OnInit, OnDestr
   private chart: Chart<'line'> | null = null;
   private initialized = false;
 
-  constructor(private clientDetailApi: ClientDetailApiService) {}
+  constructor(private clientDetailApi: ClientDetailApiService) {
+    // Un día saltado deja de contar para el cumplimiento: si cae en el rango,
+    // se relee.
+    onDaySkipped(
+      () => this.clientId,
+      (date) => {
+        if (this.customRange && this.customRange.start <= date && date <= this.customRange.end) this.load();
+      }
+    );
+  }
 
   public ngOnInit(): void {
     this.initialized = true;

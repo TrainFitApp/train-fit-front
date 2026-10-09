@@ -44,6 +44,9 @@ export class ProductDetailPanelComponent implements OnInit {
   // En una receta, null = receta completa (lo mismo que enseñan las macros).
   @Input() onAdd?: (quantity: number | null) => void;
   @Input() addLabel = this.translate.instant('TRAINER_COMMON.ADD');
+  // Biblioteca › Alimentos: la lista de detrás vuelve a pedir el producto
+  // tras editarlo aquí (editProduct), o seguiría con los valores viejos.
+  @Input() onProductEdited?: (product: IProduct) => void;
 
   private readonly modalController = inject(ModalController);
   private readonly customProductService = inject(CustomProductService);
@@ -116,8 +119,16 @@ export class ProductDetailPanelComponent implements OnInit {
   public secondaryRows: { label: string; value: number; unit: NutrientRow['unit'] }[] = [];
   public microRows: { label: string; value: number; unit: NutrientRow['unit'] }[] = [];
 
+  // Receta: qué lleva (cantidades de la receta completa, tal como se
+  // guardó) y cómo se prepara — un paso por línea de `description`, igual
+  // que la escribe RecipeBuilderModalComponent. Calculado una vez, por el
+  // mismo motivo que las filas de arriba.
+  public ingredientRows: { name: string; quantity: number | null }[] = [];
+  public preparationSteps: string[] = [];
+
   public ngOnInit(): void {
     this.recalculate();
+    this.buildRecipeContent();
   }
 
   public dismiss(): void {
@@ -157,6 +168,22 @@ export class ProductDetailPanelComponent implements OnInit {
     return row.label;
   }
 
+  public trackByIndex(index: number): number {
+    return index;
+  }
+
+  private buildRecipeContent(): void {
+    if (!this.recipe) return;
+    this.ingredientRows = (this.recipe.customProducts || []).map((customProduct) => ({
+      name: this.customProductService.customProductName(customProduct),
+      quantity: Number.isFinite(customProduct.quantity) ? customProduct.quantity : null,
+    }));
+    this.preparationSteps = (this.recipe.description || '')
+      .split('\n')
+      .map((step) => step.trim())
+      .filter(Boolean);
+  }
+
   private buildRows(rows: NutrientRow[]): { label: string; value: number; unit: NutrientRow['unit'] }[] {
     if (!this.product) return [];
     const multiplier = (this.quantity ?? 100) / 100;
@@ -177,12 +204,18 @@ export class ProductDetailPanelComponent implements OnInit {
     this.onQuantityChange?.(next);
   }
 
+  // Un producto sin cantidad no se puede añadir: antes se colaba como 100 g
+  // aunque el campo estuviera vacío. Una receta sin cantidad sí, entera.
+  public get canAdd(): boolean {
+    return this.isRecipe || this.quantity !== null;
+  }
+
   public addToTarget(): void {
-    if (!this.onAdd) return;
+    if (!this.onAdd || !this.canAdd) return;
     // Una receta sin cantidad se añade entera: es lo que enseñan sus macros
     // (computeMacros). Antes se mandaba 100 g y lo añadido no coincidía con
     // lo que se veía en el panel.
-    this.onAdd(this.isRecipe ? this.quantity : this.quantity ?? 100);
+    this.onAdd(this.quantity);
     // Autodismiss: este botón vive DENTRO del propio panel, así que al
     // pulsarlo el panel siempre es el overlay más reciente (topmost) —
     // cerrar así nunca es ambiguo.
@@ -207,6 +240,7 @@ export class ProductDetailPanelComponent implements OnInit {
     if (role === 'confirm' && data?.product) {
       this.product = data.product;
       this.recalculate();
+      this.onProductEdited?.(data.product);
     }
   }
 }

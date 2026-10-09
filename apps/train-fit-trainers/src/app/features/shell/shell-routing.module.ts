@@ -143,6 +143,17 @@ const routes: Routes = [
           ),
       },
       {
+        // Biblioteca › Alimentos: productos y recetas del profesional, con el
+        // buscador de alimentos de siempre en modo biblioteca (mismo patrón
+        // que 'exercises').
+        path: 'foods',
+        data: { parent: '/tabs/templates' },
+        loadChildren: () =>
+          import('src/app/features/food-library/food-library.module').then(
+            (m) => m.FoodLibraryPageModule
+          ),
+      },
+      {
         // TASK-026 (MASTER_BACKLOG.md) — antes vivía como ruta raíz en
         // app-routing.module.ts ('clients/:clientId/tables/:tableId/planner',
         // fuera de 'tabs'): el usuario perdía el sidebar al entrar, y había

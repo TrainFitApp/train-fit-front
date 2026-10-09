@@ -83,10 +83,32 @@
     </div>
   </div>
 
-  <button type="button" class="add-to-target-btn" *ngIf="onAdd" (click)="addToTarget()" data-enter-submit-action="addToTarget">
+  <button
+    type="button"
+    class="add-to-target-btn"
+    *ngIf="onAdd"
+    (click)="addToTarget()"
+    [disabled]="!canAdd"
+    data-enter-submit-action="addToTarget"
+  >
     <ion-icon name="add-circle-outline"></ion-icon>
     {{ addLabel }}
   </button>
+
+  <ng-container *ngIf="isRecipe">
+    <h3 class="section-title" *ngIf="ingredientRows.length">{{ 'CONFIG_RECIPE.INGREDIENTS_TITLE' | translate }}</h3>
+    <div class="nutrient-table" *ngIf="ingredientRows.length">
+      <div class="nutrient-row" *ngFor="let row of ingredientRows; trackBy: trackByIndex">
+        <span class="nutrient-label">{{ row.name }}</span>
+        <span class="nutrient-value" *ngIf="row.quantity !== null">{{ row.quantity | number : '1.0-1' }} g</span>
+      </div>
+    </div>
+
+    <h3 class="section-title" *ngIf="preparationSteps.length">{{ 'SHARED_COMPONENTS.PREPARACION' | translate }}</h3>
+    <ol class="preparation-steps" *ngIf="preparationSteps.length">
+      <li *ngFor="let step of preparationSteps; trackBy: trackByIndex">{{ step }}</li>
+    </ol>
+  </ng-container>
 
   <ng-container *ngIf="!isRecipe">
     <div class="nutrient-table" *ngIf="secondaryRows.length">

@@ -42,6 +42,12 @@ export class FilterIconsComponent implements OnInit, OnChanges {
   @Input()
   public showPautadoFilter = false;
 
+  // Biblioteca › Alimentos (entrenadores): arranca, y vuelve al cambiar de
+  // Productos a Recetas, con «Añadidos por mí» marcado en vez de «Todos». El
+  // padre busca con el mismo filtro (SearchFoodsPage, mode="library").
+  @Input()
+  public defaultOwn = false;
+
   @Output()
   public filterSelection = new EventEmitter<SearchFilterGroup>();
   @Output()
@@ -85,6 +91,7 @@ export class FilterIconsComponent implements OnInit, OnChanges {
       'isInitialized:',
       this.isInitialized
     );
+    this.ownFilter = this.defaultOwn;
     // Do NOT emit during first setFilterDescription
     this.setFilterDescription();
     // NOW mark as initialized so future calls will emit
@@ -107,7 +114,7 @@ export class FilterIconsComponent implements OnInit, OnChanges {
         changes['currentMode'].currentValue
       );
       // Reset filters when mode changes from parent
-      this.ownFilter = false;
+      this.ownFilter = this.defaultOwn;
       this.favFilter = false;
       this.shieldFilter = false;
       this.pautadoFilter = false;
@@ -127,7 +134,7 @@ export class FilterIconsComponent implements OnInit, OnChanges {
     if (this.currentMode !== mode) {
       this.currentMode = mode;
       // Reset filters when switching modes
-      this.ownFilter = false;
+      this.ownFilter = this.defaultOwn;
       this.favFilter = false;
       this.shieldFilter = false;
       this.pautadoFilter = false;
@@ -254,11 +261,10 @@ export class FilterIconsComponent implements OnInit, OnChanges {
 
     // Corta antes de las cadenas de own/shield/fav: con Pautados activo esos
     // tres están apagados, así que caería siempre en el "todos" y diría lo
-    // contrario de lo que se está viendo.
+    // contrario de lo que se está viendo. Una sola descripción: Pautados
+    // enseña productos y recetas juntos, sea cual sea la pestaña.
     if (this.pautadoFilter) {
-      this.filterDescription = this.translate.instant(
-        this.currentMode === 'products' ? 'FILTER_DESC.PAUTADO_PRODUCTS' : 'FILTER_DESC.PAUTADO_RECIPES'
-      );
+      this.filterDescription = this.translate.instant('FILTER_DESC.PAUTADO');
       return;
     }
 

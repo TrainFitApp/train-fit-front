@@ -184,7 +184,7 @@
 
       <div class="meal-header__actions">
         <ion-button
-          *ngIf="pasteMode && !loadPaste"
+          *ngIf="pasteMode && acceptsPaste && !loadPaste"
           class="meal-header__button meal-header__button--paste"
           fill="clear"
           (click)="createMealFromClipboard(meal); $event.stopPropagation()"

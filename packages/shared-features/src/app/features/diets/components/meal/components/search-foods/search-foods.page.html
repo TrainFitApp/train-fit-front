@@ -1,9 +1,14 @@
 <ion-header>
-  <div class="search-header">
+  <div class="search-header" [class.search-header--library]="isLibrary">
     <div class="header-content">
-      <div class="back-section">
-        <button class="back-button" (click)="close()">
-          <ion-icon name="chevron-back-outline"></ion-icon>
+      <div class="back-section" *ngIf="canGoBack">
+        <button
+          type="button"
+          class="back-button"
+          (click)="goBack()"
+          [attr.aria-label]="'COMMON.BACK' | translate"
+        >
+          <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
         </button>
       </div>
 
@@ -20,7 +25,13 @@
         ></ion-searchbar>
       </div>
 
-      <div class="actions-section">
+      <!-- Biblioteca: Productos / Recetas a la derecha del buscador (en la
+           comida van abajo, junto al +). -->
+      <div class="library-mode-toggle" *ngIf="isLibrary">
+        <ng-container *ngTemplateOutlet="modeToggle"></ng-container>
+      </div>
+
+      <div class="actions-section" *ngIf="!isLibrary">
         <button
           class="action-button ripple-effect"
           (click)="openScanner()"
@@ -33,13 +44,15 @@
         </button>
       </div>
     </div>
+
     <app-filter-icons
       #filterIconsRef
-      *ngIf="meal"
+      *ngIf="meal || isLibrary"
       [disabled]="!load"
       [ingredientMode]="ingredientMode"
       [currentMode]="currentMode"
       [showPautadoFilter]="showPautadoFilter"
+      [defaultOwn]="isLibrary"
       (filterMeasureSelect)="filterByMeasure($event)"
       (filterSelection)="setFilterIconsValueBySelection($event)"
     ></app-filter-icons>
@@ -54,8 +67,22 @@
 </ion-header>
 
 <ion-content appHideKeyboardOnScroll>
-  <!-- Products List -->
-  <ng-container *ngIf="currentMode === 'products'">
+  <!-- Biblioteca: el alta es la primera tarjeta, con el mismo trazo
+       discontinuo que «+ Ejercicio» en la de ejercicios. Cambia con la
+       pestaña: crea lo que se está mirando. -->
+  <button
+    type="button"
+    class="food-add-card"
+    *ngIf="canCreate"
+    (click)="create.emit(currentMode)"
+  >
+    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+    <span>{{ (currentMode === 'recipes' ? 'SEARCH_FOODS.CREATE_RECIPE' : 'SEARCH_FOODS.CREATE_PRODUCT') | translate }}</span>
+  </button>
+
+  <!-- Products List. Con «Pautados» van las dos listas, una tras otra: lo
+       pautado de la comida, productos y recetas, en cualquier pestaña. -->
+  <ng-container *ngIf="currentMode === 'products' || isPautadoFilterActive">
     <ion-list *ngIf="products.length > 0; else noProducts"
       ><ng-container *ngFor="let product of products">
         <app-product
@@ -66,7 +93,8 @@
           [isIngredientSelected]="isIngredientSelected(product)"
           [recentCustomProduct]="getRecentCustomProduct(product)"
           [showRecentIcon]="isRecentProduct(product)"
-          [trainerMultiSelect]="!!trainerContext"
+          [trainerMultiSelect]="!!trainerContext || isLibrary"
+          [selectable]="!isLibrary"
           [isTrainerSelected]="isProductInTrainerSelection(product)"
           [trainerSelectedQuantity]="getTrainerSelectedQuantity(product)"
           [isTrainerFavorite]="isTrainerFavoriteProduct(product)"
@@ -82,7 +110,7 @@
     </ion-list>
 
     <ng-template #noProducts>
-      <ng-container *ngIf="load">
+      <ng-container *ngIf="load && !isPautadoFilterActive">
         <div
           class="no-results-card"
           *ngIf="shouldShowProductsEmptyState(); else encourageSearch"
@@ -92,9 +120,11 @@
           </div>
           <h3>{{ 'SEARCH_FOODS.NO_MATCHES' | translate }}</h3>
           <p>{{ 'SEARCH_FOODS.NO_MATCHES_MSG' | translate }}</p>
+          <!-- En la biblioteca no: ya está «+ Crear …» como primera tarjeta. -->
           <button
             class="no-results-action"
             type="button"
+            *ngIf="!isLibrary"
             (click)="createProductFromEmptyState()"
           >
             <ion-icon name="add-circle-outline"></ion-icon>
@@ -106,7 +136,7 @@
   </ng-container>
 
   <!-- Recipes List -->
-  <ng-container *ngIf="currentMode === 'recipes'">
+  <ng-container *ngIf="currentMode === 'recipes' || isPautadoFilterActive">
     <ion-list *ngIf="recipes.length > 0; else noRecipes">
       <ng-container *ngFor="let recipe of recipes">
         <app-recipe-card
@@ -117,7 +147,8 @@
           [loading]="isRecipeLoading(recipe)"
           [recentCustomRecipe]="getRecentCustomRecipe(recipe)"
           [showRecentIcon]="isRecentRecipe(recipe)"
-          [trainerMultiSelect]="!!trainerContext"
+          [trainerMultiSelect]="!!trainerContext || isLibrary"
+          [selectable]="!isLibrary"
           [isTrainerSelected]="isRecipeInTrainerSelection(recipe)"
           [trainerSelectedQuantity]="getTrainerSelectedRecipeQuantity(recipe)"
           [isTrainerFavorite]="isTrainerFavoriteRecipe(recipe)"
@@ -135,7 +166,7 @@
     </ion-list>
 
     <ng-template #noRecipes>
-      <ng-container *ngIf="load">
+      <ng-container *ngIf="load && !isPautadoFilterActive">
         <div
           class="no-results-card"
           *ngIf="shouldShowProductsEmptyState(); else encourageSearch"
@@ -145,9 +176,11 @@
           </div>
           <h3>{{ 'SEARCH_FOODS.NO_MATCHES' | translate }}</h3>
           <p>{{ 'SEARCH_FOODS.NO_MATCHES_MSG' | translate }}</p>
+          <!-- En la biblioteca no: ya está «+ Crear …» como primera tarjeta. -->
           <button
             class="no-results-action"
             type="button"
+            *ngIf="!isLibrary"
             (click)="createRecipeFromEmptyState()"
           >
             <ion-icon name="add-circle-outline"></ion-icon>
@@ -157,6 +190,20 @@
       </ng-container>
     </ng-template>
   </ng-container>
+
+  <!-- «Pautados» sin nada que enseñar: solo pasa cuando el texto no coincide
+       con nada de lo pautado (el chip no sale si la comida no tiene pauta).
+       Sin «Crear …»: aquí se mira lo que mandó el profesional. -->
+  <div
+    class="no-results-card"
+    *ngIf="isPautadoFilterActive && load && !products.length && !recipes.length"
+  >
+    <div class="no-results-icon">
+      <ion-icon name="search-outline"></ion-icon>
+    </div>
+    <h3>{{ 'SEARCH_FOODS.NO_MATCHES' | translate }}</h3>
+    <p>{{ 'SEARCH_FOODS.NO_PAUTADO_MATCHES_MSG' | translate }}</p>
+  </div>
 
   <!-- Compartido por products/recipes: mismo criterio "aún no has buscado" en ambos modos -->
   <ng-template #encourageSearch>
@@ -241,37 +288,44 @@
   </ion-infinite-scroll>
 </ion-content>
 
-<ion-footer class="search-foods-footer">
+<!-- Productos / Recetas: abajo en la comida, arriba en la biblioteca. -->
+<ng-template #modeToggle>
+  <div class="mode-toggle">
+    <button
+      type="button"
+      class="mode-btn"
+      [class.is-active]="currentMode === 'products'"
+      [attr.aria-pressed]="currentMode === 'products'"
+      (click)="setMode('products')"
+    >
+      <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP' | translate }}</span>
+    </button>
+    <button
+      type="button"
+      class="mode-btn"
+      [class.is-active]="currentMode === 'recipes'"
+      [attr.aria-pressed]="currentMode === 'recipes'"
+      (click)="setMode('recipes')"
+    >
+      <ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP' | translate }}</span>
+    </button>
+    <div
+      class="mode-indicator"
+      [class.recipes-active]="currentMode === 'recipes'"
+    ></div>
+  </div>
+</ng-template>
+
+<ion-footer class="search-foods-footer" *ngIf="!isLibrary">
   <div class="footer-wrapper">
     <!-- Mode Toggle Row (hidden in ingredient mode) - ORDEN 1 (segment siempre arriba) -->
     <div
       class="footer-controls footer-section--segment"
       *ngIf="meal && !isFooterHidden && !ingredientMode"
     >
-      <div class="mode-toggle">
-        <button
-          type="button"
-          class="mode-btn"
-          [class.is-active]="currentMode === 'products'"
-          (click)="setMode('products')"
-        >
-          <ion-icon name="nutrition-outline"></ion-icon>
-          <span>{{ 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP' | translate }}</span>
-        </button>
-        <button
-          type="button"
-          class="mode-btn"
-          [class.is-active]="currentMode === 'recipes'"
-          (click)="setMode('recipes')"
-        >
-          <ion-icon name="restaurant-outline"></ion-icon>
-          <span>{{ 'SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP' | translate }}</span>
-        </button>
-        <div
-          class="mode-indicator"
-          [class.recipes-active]="currentMode === 'recipes'"
-        ></div>
-      </div>
+      <ng-container *ngTemplateOutlet="modeToggle"></ng-container>
       <button
         type="button"
         class="add-btn"

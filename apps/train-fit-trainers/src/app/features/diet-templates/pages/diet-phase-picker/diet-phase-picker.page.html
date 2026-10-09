@@ -2,7 +2,7 @@
   <app-page-header [title]="'DIET_TEMPLATES.ELIGE_UNA_DIETA_PARA_LA' | translate"></app-page-header>
 </ion-header>
 
-<ion-content class="phase-picker-content">
+<ion-content class="phase-picker-content" (click)="onContentClick($event)">
   <p class="page-hint">
     {{ 'DIET_TEMPLATES.TUS_PLANTILLAS_DE_DIETA_ORDENADAS' | translate }}
     <strong>{{ clientName }}</strong>{{ 'DIET_TEMPLATES.LA_PRIMERA_ES_LA_QUE' | translate }}

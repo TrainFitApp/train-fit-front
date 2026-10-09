@@ -16,6 +16,8 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
 import { MacroAdjustModule } from '../../shared/components/macro-adjust/macro-adjust.module';
 import { DietSuggestionDrawerComponent } from './components/diet-suggestion-drawer/diet-suggestion-drawer.component';
 import { DayMealEditorModalComponent } from './pages/diet-template-builder/components/day-meal-editor-modal/day-meal-editor-modal.component';
+import { PhaseStartSheetComponent } from './components/phase-start-sheet/phase-start-sheet.component';
+import { NutritionCalendarModule } from '../clients/pages/client-detail/components/nutrition-calendar/nutrition-calendar.module';
 
 @NgModule({
   imports: [
@@ -29,6 +31,9 @@ import { DayMealEditorModalComponent } from './pages/diet-template-builder/compo
     ProductDetailPanelModule,
     DietCardModule,
     MacroAdjustModule,
+    // El calendario de Plan › Nutrición, para elegir desde qué día empieza
+    // una fase (PhaseStartSheetComponent).
+    NutritionCalendarModule,
   ],
   declarations: [
     DietSuggestionDrawerComponent,
@@ -38,6 +43,7 @@ import { DayMealEditorModalComponent } from './pages/diet-template-builder/compo
     DietPhasePickerPage,
     DietSuggestionListComponent,
     DietTemplatePreviewPanelComponent,
+    PhaseStartSheetComponent,
   ],
 })
 export class DietTemplatesPageModule {}

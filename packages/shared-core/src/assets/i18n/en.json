@@ -544,6 +544,7 @@
     "ALTERNATIVE_CHANGED": "Switched to {{label}} in {{meal}}",
     "PASTE_REPLACE": "REPLACE",
     "PASTE_MERGE": "MERGE",
+    "PASTE_ERROR": "Could not paste. Please try again.",
     "PRODUCTS_COPIED": "Products copied",
     "RECIPE_NO_NAME": "Unnamed recipe",
     "EDIT_NAME_HEADER": "Edit name",
@@ -615,6 +616,7 @@
     "START_SEARCHING_MSG": "Find over 1,000,000 products and recipes",
     "NO_MATCHES": "No matches found",
     "NO_MATCHES_MSG": "Try another term or create a new one",
+    "NO_PAUTADO_MATCHES_MSG": "Nothing your coach prescribed for this meal matches your search",
     "CREATE_PRODUCT": "Create product",
     "CREATE_RECIPE": "Create recipe",
     "CREATE_NEW": "Create new",
@@ -1576,8 +1578,7 @@
     "VERIFIED_RECIPES": "Verified recipes",
     "FAVORITE_RECIPES": "Favorite recipes",
     "VERIFIED_FAVORITE_RECIPES": "Verified favorite recipes",
-    "PAUTADO_PRODUCTS": "Prescribed by your coach",
-    "PAUTADO_RECIPES": "Recipes prescribed by your coach"
+    "PAUTADO": "Prescribed by your coach"
   },
   "PROFILE": {
     "COACH_CARD": {

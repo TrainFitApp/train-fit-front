@@ -75,7 +75,7 @@ import { NextWeekModalComponent } from '../../components/next-week-modal/next-we
 import { CheckinSchedulesPanelComponent } from '../../components/checkin-schedules-panel/checkin-schedules-panel.component';
 import { CheckinScheduleHistoryPanelComponent } from '../../components/checkin-schedule-history-panel/checkin-schedule-history-panel.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
-import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.service';
+import { DietPhaseApiService, onDaySkipped } from '../../../../shared/services/diet-phase-api.service';
 import { buildPhaseColorMap } from './phase-color.util';
 import { RoutineAssignmentApiService } from '../../../../shared/services/routine-assignment-api.service';
 import {
@@ -348,6 +348,15 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     this.nutritionChartView = view;
   }
 
+  // Pestaña de la columna derecha de Nutrición: Seguimiento (gráficas de un
+  // rango) o Día (resumen del día elegido en el calendario,
+  // <app-nutrition-day-detail>).
+  public nutritionColumnTab: 'tracking' | 'day' = 'tracking';
+
+  public setNutritionColumnTab(tab: 'tracking' | 'day'): void {
+    this.nutritionColumnTab = tab;
+  }
+
   public get trackingPresets(): TrackingPresetOption[] {
     return this.phaseWeeks ? TRACKING_PRESETS_WITH_PHASE : TRACKING_PRESETS;
   }
@@ -443,7 +452,18 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     private trainerInvitesApi: TrainerInvitesApiService,
     private navigation: TrainerNavigationService,
     private trainerBillingApi: TrainerBillingApiService
-  ) {}
+  ) {
+    // Saltar un día solo cambia la adherencia y el historial: se releen sin
+    // pasar por el esqueleto del tab (loadNutrition lo desmontaba entero y
+    // con él el calendario y las gráficas, que se refrescan por su cuenta).
+    onDaySkipped(
+      () => this.clientId,
+      () => {
+        this.refreshAdherence();
+        if (this.nutritionHistoryLoaded) this.loadNutritionHistory({ silent: true });
+      }
+    );
+  }
 
   // TASK-051/TASK-073 (MASTER_BACKLOG.md) — antes leía el :id una sola vez
   // de route.snapshot en ngOnInit. Sin explotar hoy (no hay ningún enlace
@@ -2017,18 +2037,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
       },
     });
 
-    // F20-bis — ventana fija de 30 días terminando hoy, no la fecha que se
-    // esté viendo abajo (mismo criterio que /adherence).
-    this.clientDetailApi
-      .getNutritionCompliance(
-        this.clientId,
-        this.isoDateDaysAgo(30),
-        this.todayIsoDate()
-      )
-      .subscribe({
-        next: (summary) => (this.complianceSummary = summary),
-        error: () => (this.complianceSummary = null),
-      });
+    this.loadComplianceSummary();
 
     // F29 — no bloquea el resto de la sección si falla, es un widget aparte.
     this.clientDetailApi.getNutritionPreferences(this.clientId).subscribe({
@@ -2041,25 +2050,52 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     void this.loadDietPhases();
   }
 
+  // F20-bis — ventana fija de 30 días terminando hoy, no la fecha que se
+  // esté viendo abajo (mismo criterio que /adherence).
+  private loadComplianceSummary(): void {
+    this.clientDetailApi
+      .getNutritionCompliance(
+        this.clientId,
+        this.isoDateDaysAgo(30),
+        this.todayIsoDate()
+      )
+      .subscribe({
+        next: (summary) => (this.complianceSummary = summary),
+        error: () => (this.complianceSummary = null),
+      });
+  }
+
+  // Adherencia y cumplimiento sin tocar nutritionState: lo que ya se ve se
+  // queda en pantalla hasta que llegan las cifras nuevas.
+  private refreshAdherence(): void {
+    this.clientDetailApi.getAdherence(this.clientId).subscribe({
+      next: (adherence) => (this.adherence = adherence),
+      error: () => undefined,
+    });
+    this.loadComplianceSummary();
+  }
+
   // F20-quinquies — llamado por <app-nutrition-calendar> al completar una
   // selección de rango (click día inicio, click día fin); alimenta las
   // gráficas con ese rango exacto. Rango a mano: deja de haber preset activo.
+  // Un rango es para mirar su seguimiento: vuelve a esa pestaña si estaba
+  // en «Día».
   public onNutritionRangeSelected(range: { start: string; end: string }): void {
     this.trackingPreset = null;
     this.customTrackingRange = range;
+    this.nutritionColumnTab = 'tracking';
   }
 
   // F20-bis — llamado por <app-nutrition-calendar> al hacer click en un día;
   // sustituye a los antiguos botones ±1 día (changeNutritionDate), que no
   // daban vista de conjunto ni salto directo a una fecha.
   //
-  // Ya no pide nada al cambiar de día (antes releía el dietDay para poder
-  // pautar comida a comida desde aquí — ver Replanteamiento MVP en
-  // client-detail.page.html): adherence/complianceSummary/
-  // nutritionPreferences/currentDietPhase tampoco cambian según el día que se
-  // esté mirando, así que no queda nada de verdad que releer.
+  // Pulsar un día es querer verlo: abre la pestaña «Día», que lee su resumen
+  // (<app-nutrition-day-detail>). Lo demás de la sección (adherencia,
+  // cumplimiento, preferencias, fase vigente) no depende del día elegido.
   public onNutritionDateSelected(date: string): void {
     this.nutritionDate = date;
+    this.nutritionColumnTab = 'day';
   }
 
   // Fecha de calendario LOCAL, no UTC: `startDate` de una fase es el día
@@ -2744,8 +2780,9 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
     }
   }
 
-  public loadNutritionHistory(): void {
-    this.nutritionHistoryState = 'loading';
+  // `silent`: relee sin el esqueleto, dejando el historial que ya se ve.
+  public loadNutritionHistory({ silent = false } = {}): void {
+    if (!silent) this.nutritionHistoryState = 'loading';
     this.dietPhaseApi.getNutritionHistory(this.clientId).subscribe({
       next: (history) => {
         // Ya viene ordenado del más reciente al más antiguo.
@@ -2754,15 +2791,16 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
         this.nutritionHistoryState = 'loaded';
       },
       error: () => {
-        this.nutritionHistoryState = 'error';
+        if (!silent) this.nutritionHistoryState = 'error';
       },
     });
   }
 
   // Siempre sobre nutritionDate, el día seleccionado en el calendario (no
-  // "hoy", como decían el nombre y la etiqueta antiguos).
+  // "hoy", como decían el nombre y la etiqueta antiguos). El calendario solo
+  // lo ofrece en días dentro de una fase, sea la vigente o no.
   public async skipSelectedDay(): Promise<void> {
-    if (!this.currentDietPhase || this.isSkippingDay) return;
+    if (this.isSkippingDay) return;
     await this.ionicUtilService.showAlert({
       header: this.translate.instant('CLIENT_DETAIL.SKIP_DAY_HEADER', { date: this.nutritionDateLabel }),
       message:
@@ -2779,11 +2817,11 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
               .subscribe({
                 next: () => {
                   this.isSkippingDay = false;
+                  // Lo que cambia se refresca solo (onDaySkipped).
                   this.ionicUtilService.showToast({
                     message: this.translate.instant('CLIENT_DETAIL.DIA_MARCADO_COMO_SALTADO'),
                     duration: 2000,
                   });
-                  this.loadNutrition();
                 },
                 error: () => {
                   this.isSkippingDay = false;
@@ -2879,11 +2917,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   // lo cerca que quedan del objetivo de este cliente y abre ahí el panel de
   // parámetros. Antes la lista rankeada se pintaba en esta misma pantalla,
   // en un "modo" que escondía media ficha: elegir una dieta es entrar en la
-  // biblioteca, no una vista más de la ficha. El nombre y la fecha
-  // propuesta viajan por query param (y no por router state) para que la
-  // pantalla sobreviva a un F5. El modal antiguo
-  // (ApplyDietTemplateModalComponent) sigue disponible desde
-  // "Aplicar plantilla concreta".
+  // biblioteca, no una vista más de la ficha. El nombre viaja por query
+  // param (y no por router state) para que la pantalla sobreviva a un F5.
+  // Desde qué día empieza se elige al aplicarla, en el calendario del
+  // cliente (PhaseStartSheetComponent).
   public startDietPhase(): void {
     void this.router.navigate(
       ['/tabs/diet-templates/for-phase', this.clientId],
@@ -2905,18 +2942,12 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   // "Crear dieta" — directo al builder (for-client/:clientId): nombre en
-  // blanco (editable ahí mismo) y fase que empieza HOY. Las fechas se
-  // corrigen después desde la propia ficha (openPhaseDatesEditor).
+  // blanco (editable ahí mismo). Desde qué día empieza la fase se elige al
+  // guardar, en el calendario del cliente (PhaseStartSheetComponent).
   public goToCreateDiet(): void {
-    void this.router.navigate(
-      ['/tabs/diet-templates/for-client', this.clientId],
-      {
-        state: {
-          clientName: this.name,
-          startDate: this.todayIsoDate(),
-        },
-      }
-    );
+    void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
+      state: { clientName: this.name },
+    });
   }
 
   // Corregir cuándo empieza y acaba la fase vigente. Una fase se crea para

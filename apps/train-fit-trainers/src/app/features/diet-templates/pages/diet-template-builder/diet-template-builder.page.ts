@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { ModalController } from '@ionic/angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -28,11 +29,14 @@ import {
   Supplement,
 } from '../../../clients/pages/client-detail/models/client-detail.model';
 import { DietPhaseApiService } from '../../../../shared/services/diet-phase-api.service';
+import { formatIsoDay } from '../../../../shared/utils/phase-start.util';
+import { PhaseStartSheetComponent } from '../../components/phase-start-sheet/phase-start-sheet.component';
 import { PhaseStartSettings } from '../../../../shared/models/diet-phase.model';
 import { of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { alternativeTotals, MacroKey, MacroTotals, sameMacros } from '../../utils/alternative-macros';
 import { fitsTarget, isWithinTarget, targetDeviation } from '../../utils/menu-target-fit';
+import { filledAlternatives, isMissingQuantity, pruneEmptyAlternatives } from '../../utils/meal-alternatives';
 import { computeItemMicros, TOTALS_NUTRIENT_FIELDS } from '../../utils/nutrient-fields';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
@@ -61,16 +65,15 @@ interface MacroTarget {
 }
 
 // Lo que trae la navegación a "Crear dieta" (ver
-// client-detail.page.ts#goToCreateDiet): sin formulario previo, name/
-// startDate llegan ya con sus defaults (vacío/hoy) — el cajón de sugerencias
-// ("empezar de cero") sí manda los suyos ya decididos, más `phase` (nombre y
-// objetivo de la fase). El contenido se construye en esta misma pantalla; al
-// guardar se crea la dieta propia del cliente y se aplica como fase de una
-// vez.
+// client-detail.page.ts#goToCreateDiet): sin formulario previo, el nombre
+// llega vacío — el cajón de sugerencias ("empezar de cero") sí manda el suyo
+// ya decidido, más `phase` (nombre y objetivo de la fase). El contenido se
+// construye en esta misma pantalla; al guardar se elige desde qué día empieza
+// (PhaseStartSheetComponent), se crea la dieta propia del cliente y se aplica
+// como fase de una vez.
 interface ForClientNavigationState {
   clientName?: string;
   name?: string;
-  startDate?: string;
   phase?: PhaseStartSettings;
   // Sugerencias de dieta — "Editar antes de aplicar" (diet-suggestion-drawer):
   // contenido de la plantilla elegida, para precargar el tablero en vez de
@@ -175,9 +178,9 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   private phaseId = '';
   private contentId = '';
   private phaseName = '';
-  // Desde cuándo se aplica la fase al guardar — hoy por defecto (ver
-  // startForClient), o lo que traiga la navegación (cajón de sugerencias).
-  private phaseStartDate = '';
+  // Hoja del día de inicio abierta (al guardar "para este cliente"): ni el
+  // botón ni el Enter vuelven a abrirla encima.
+  private isPickingStart = false;
   // g/kg del cajón de sugerencias: aquí no se editan, se pasan tal cual al
   // aplicar.
   private phaseProteinPerKg: number | null = null;
@@ -233,6 +236,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   }
 
   private readonly destroyRef = inject(DestroyRef);
+  private readonly modalController = inject(ModalController);
   // Solo fiable en el constructor (getCurrentNavigation() vuelve a null en
   // cuanto la navegación termina, y ngOnInit ya corre después) — mismo
   // motivo por el que Angular documenta leerlo aquí y no más abajo.
@@ -302,17 +306,17 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // "Crear dieta" ya no pasa por ningún formulario previo (el nutricionista
   // improvisa semana a semana, una duración estimada de antemano no le sirve
   // de nada — ver client-detail.page.ts#goToCreateDiet): nombre en blanco,
-  // editable aquí mismo (campo de arriba), y fase abierta desde HOY sin fin
-  // estimado. El objetivo de la fase (foco/delta/ritmo) se pone aquí (bloque
-  // "Objetivo de la fase"); el cajón de sugerencias ("empezar de cero") lo
-  // manda ya decidido junto con `name`/`startDate` — se respetan tal cual.
+  // editable aquí mismo (campo de arriba), y fase abierta sin fin estimado
+  // desde el día que se elige al guardar. El objetivo de la fase
+  // (foco/delta/ritmo) se pone aquí (bloque "Objetivo de la fase"); el cajón
+  // de sugerencias ("empezar de cero") lo manda ya decidido junto con `name`
+  // — se respetan tal cual.
   private startForClient(clientId: string): void {
     const nav = this.navigationState;
     this.isCreatingForClient = true;
     this.clientId = clientId;
     this.clientName = nav.clientName || this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
     this.name = nav.name || '';
-    this.phaseStartDate = nav.startDate || localIsoDate();
     if (nav.phase) {
       this.phaseProteinPerKg = nav.phase.proteinPerKg ?? null;
       this.phaseFatPerKg = nav.phase.fatPerKg ?? null;
@@ -946,10 +950,11 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     const row = this.activeRows[dayIndex];
     const meal = row.meals[mealIndex];
     // Siempre se edita con al menos una alternativa visible en pantalla,
-    // aunque la celda esté vacía — igual que el panel de "Pautar" en
-    // client-detail.page.ts.
+    // aunque la celda esté vacía. Arranca sin alimentos: "Añadir alimento"
+    // abre el buscador directamente (ver DayMealEditorModalComponent). Es
+    // solo un hueco: al cerrar se quita si no se le añadió nada.
     if (!meal.alternatives.length) {
-      meal.alternatives.push({ label: '', items: [{}] });
+      meal.alternatives.push({ label: '', items: [] });
     }
 
     this.activeCell = { dayIndex, mealIndex };
@@ -961,6 +966,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       componentProps: { meal, menuName: this.rowLabel(row) },
       cssClass: 'tf-panel-modal',
     });
+    pruneEmptyAlternatives(meal);
     if (seq === this.mealEditorSeq) this.mealEditorOpen = false;
   }
 
@@ -980,7 +986,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // un arrastre accidental sería un desastre silencioso. ---
   public onCellDragStart(dayIndex: number, mealIndex: number, event: DragEvent): void {
     const meal = this.activeRows[dayIndex].meals[mealIndex];
-    if (this.copyMode || !meal.alternatives.length) {
+    if (this.copyMode || !this.mealHasFood(meal)) {
       event.preventDefault();
       return;
     }
@@ -1008,7 +1014,7 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     if (from.dayIndex === dayIndex && from.mealIndex === mealIndex) return;
 
     const targetMeal = this.activeRows[dayIndex].meals[mealIndex];
-    if (targetMeal.alternatives.length) {
+    if (this.mealHasFood(targetMeal)) {
       await this.ionicUtilService.showAlert({
         header: this.translate.instant('DIET_TEMPLATES.SOBRESCRIBIR', { p0: this.rowLabel(this.activeRows[dayIndex]), slot: targetMeal.slot }),
         message: this.translate.instant('DIET_TEMPLATES.YA_TIENE_ALIMENTOS_COMPUESTOS_SE'),
@@ -1207,13 +1213,19 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   }
 
   // La etiqueta de una alternativa es opcional: sin ella se muestra "Opción N"
-  // (alternativeLabel) y el back la guarda vacía.
+  // (alternativeLabel) y el back la guarda vacía. Las opciones sin alimentos
+  // no cuentan (filledAlternatives): se puede guardar con el editor abierto
+  // sobre una celda vacía, o tras borrar todos sus alimentos.
   private mealProblem(menu: TemplateMenu, meal: TemplateMeal): string | null {
-    const isMultiple = meal.alternatives.length >= 2;
-    for (const [i, alt] of meal.alternatives.entries()) {
-      const where = `${this.rowLabel(menu)} · ${meal.slot}${isMultiple ? this.translate.instant('DIET_TEMPLATES.OPCION_3', { p0: meal.alternatives.length - i }) : ''}`;
-      if (!alt.items.length) return this.translate.instant('DIET_TEMPLATES.NO_TIENE_ALIMENTOS', { where });
+    const alternatives = filledAlternatives(meal);
+    const isMultiple = alternatives.length >= 2;
+    for (const [i, alt] of alternatives.entries()) {
+      const where = `${this.rowLabel(menu)} · ${meal.slot}${isMultiple ? this.translate.instant('DIET_TEMPLATES.OPCION_3', { p0: alternatives.length - i }) : ''}`;
       if (!alt.items.every((item) => item.productId || item.recipeId)) return this.translate.instant('DIET_TEMPLATES.HAY_UN_ALIMENTO_SIN_ELEGIR', { where });
+      const withoutQuantity = alt.items.find(isMissingQuantity);
+      if (withoutQuantity) {
+        return this.translate.instant('DIET_TEMPLATES.ALIMENTO_SIN_CANTIDAD', { where, food: withoutQuantity.productName });
+      }
     }
     return null;
   }
@@ -1223,6 +1235,14 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   // entrenador sepa qué falta.
   private get validationError(): string | null {
     if (!this.name.trim()) return this.translate.instant('DIET_TEMPLATES.FALTA_EL_NOMBRE_DE_LA');
+    return this.menusValidationError;
+  }
+
+  // Lo mismo sin el nombre de la dieta: "Guardar como plantilla" pide el suyo.
+  // Una dieta sin ningún menú no se guarda por ninguna vía (la lista de
+  // plantillas sí la crea vacía, pero solo para abrir este editor).
+  private get menusValidationError(): string | null {
+    if (!this.menus.length) return this.translate.instant('DIET_TEMPLATES.ANADE_AL_MENOS_UN_MENU');
     const unnamed = this.menus.findIndex((menu) => !menu.name.trim());
     if (unnamed >= 0) return this.translate.instant('DIET_TEMPLATES.FALTA_EL_NOMBRE_DEL_MENU', { p0: unnamed + 1 });
     if (this.duplicateMenuNamesWarning) return this.translate.instant('DIET_TEMPLATES.HAY_MENUS_CON_EL_MISMO_2', { duplicateMenuNamesWarning: this.duplicateMenuNamesWarning });
@@ -1237,31 +1257,29 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
 
   private mealsToSave(meals: TemplateMeal[]): DietTemplateMealPayload[] {
     return meals
-      .filter((meal) => meal.alternatives.length > 0)
+      .filter((meal) => filledAlternatives(meal).length > 0)
       .map((meal) => ({
         slot: meal.slot,
-        alternatives: meal.alternatives
-          .filter((alt) => alt.items.length > 0)
+        alternatives: filledAlternatives(meal)
           .map((alt) => ({ label: alt.label.trim(), ...this.itemsToCustomEntries(alt.items) })),
       }));
   }
 
   public save(): void {
-    if (this.isSaving) return;
+    if (this.isSaving || this.isPickingStart) return;
     const problem = this.validationError;
     if (problem) {
       this.ionicUtilService.showToast({ message: problem, duration: 4000, color: 'warning' });
       return;
     }
+
+    if (this.isCreatingForClient) {
+      void this.saveForClient();
+      return;
+    }
+
     this.isSaving = true;
-    // Solo se envían las comidas con al menos una alternativa — un slot
-    // vacío no aporta nada al aplicar la plantilla. Cada alimento se
-    // convierte a formato "clipboard" (customProducts/customRecipes) — el
-    // que realmente espera el backend, no el TemplateFoodItem de la UI.
-    const menusToSave = this.menus.map((menu, i) => ({
-      name: menu.name.trim() || this.translate.instant('DIET_TEMPLATES.MENU', { p0: i + 1 }),
-      meals: this.mealsToSave(menu.meals),
-    }));
+    const menusToSave = this.menusToSave();
 
     if (this.isPreparingNextWeek) {
       this.saveNextWeek(menusToSave);
@@ -1270,11 +1288,6 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
 
     if (this.isEditingPhaseContent) {
       this.savePhaseContent(menusToSave);
-      return;
-    }
-
-    if (this.isCreatingForClient) {
-      this.saveForClient(menusToSave);
       return;
     }
 
@@ -1293,18 +1306,93 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-  // Dos pasos, en este orden:
+  // Solo se envían las comidas con al menos una alternativa — un slot
+  // vacío no aporta nada al aplicar la plantilla. Cada alimento se
+  // convierte a formato "clipboard" (customProducts/customRecipes) — el
+  // que realmente espera el backend, no el TemplateFoodItem de la UI.
+  private menusToSave(): DietTemplateMenuPayload[] {
+    return this.menus.map((menu, i) => ({
+      name: menu.name.trim() || this.translate.instant('DIET_TEMPLATES.MENU', { p0: i + 1 }),
+      meals: this.mealsToSave(menu.meals),
+    }));
+  }
+
+  // "Guardar como plantilla" mientras se crea la dieta de un cliente: copia
+  // lo construido a la biblioteca general (sin ownerClientId), con el nombre
+  // que se elija en el aviso. No asigna nada ni sale del editor: la dieta
+  // del cliente se sigue creando con "Crear y asignar".
+  public async saveAsTemplate(): Promise<void> {
+    if (this.isSaving) return;
+    const problem = this.menusValidationError;
+    if (problem) {
+      this.ionicUtilService.showToast({ message: problem, duration: 4000, color: 'warning' });
+      return;
+    }
+
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('DIET_TEMPLATES.GUARDAR_COMO_PLANTILLA'),
+      message: this.translate.instant('DIET_TEMPLATES.GUARDAR_COMO_PLANTILLA_HINT'),
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          label: this.translate.instant('DIET_TEMPLATES.NOMBRE_DE_LA_PLANTILLA'),
+          // "Plantilla <nombre de la dieta>", o solo "Plantilla" si aún no
+          // tiene nombre.
+          value: this.translate.instant('DIET_TEMPLATES.PLANTILLA_NOMBRE_POR_DEFECTO', { name: this.name.trim() }).trim(),
+          attributes: { maxlength: 100 },
+        },
+      ],
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.SAVE'),
+          cssClass: 'alert-button-primary',
+          handler: (data: { name?: string }) => {
+            const name = (data?.name || '').trim();
+            if (!name) return false;
+            this.isSaving = true;
+            this.dietTemplateApi.create(name, this.menusToSave()).subscribe({
+              next: () => {
+                this.isSaving = false;
+                this.ionicUtilService.showToast({ message: this.translate.instant('TABLES.TEMPLATE_SAVED'), duration: 2000 });
+              },
+              error: () => {
+                this.isSaving = false;
+                this.ionicUtilService.showErrorToast(this.translate.instant('TABLES.TEMPLATE_SAVE_ERROR'), this.translate.instant('COMMON.ERROR'), 3000);
+              },
+            });
+            return true;
+          },
+        },
+      ],
+    });
+  }
+
+  // Primero se elige desde qué día empieza, en el calendario del cliente
+  // (PhaseStartSheetComponent: hoy o un día libre). Cerrar la hoja sin
+  // elegir no guarda nada. Después, dos pasos, en este orden:
   //   1. Crear la dieta de BIBLIOTECA propia del cliente (ownerClientId):
   //      queda reutilizable, se puede volver a aplicar más adelante.
-  //   2. Empezar con ella una fase desde la fecha elegida.
+  //   2. Empezar con ella una fase desde ese día.
   //
-  // Si el paso 2 falla (lo normal: 409, las fechas pisan otra fase), el paso
+  // Si el paso 2 falla (409: otra fase ocupó el día mientras tanto), el paso
   // 1 NO se deshace: la dieta ya construida es trabajo bueno que no hay por
   // qué tirar. Se dice que quedó guardada y que solo faltan las fechas, que
   // se pueden reelegir desde "Siguiente fase".
-  private saveForClient(menusToSave: DietTemplateMenuPayload[]): void {
-    const startDate = this.phaseStartDate || localIsoDate();
+  private async saveForClient(): Promise<void> {
     const name = this.name.trim();
+    this.isPickingStart = true;
+    const startDate = await PhaseStartSheetComponent.open(this.modalController, {
+      clientId: this.clientId,
+      clientName: this.clientName,
+      phaseName: name,
+    });
+    this.isPickingStart = false;
+    if (!startDate) return;
+
+    this.isSaving = true;
+    const menusToSave = this.menusToSave();
     // La fase arranca con el objetivo que se ve arriba: el del cliente, o el
     // que el profesional haya tecleado.
     const target = this.clientTarget;
@@ -1336,7 +1424,13 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
           this.isSaving = false;
           this.savedSnapshot = this.snapshot();
           this.ionicUtilService.showToast({
-            message: this.translate.instant('DIET_TEMPLATES.DIETA_CREADA_APLICADA_DESDE_EL', { clientName: this.clientName, startDate }),
+            message:
+              startDate === localIsoDate()
+                ? this.translate.instant('DIET_TEMPLATES.DIETA_CREADA_APLICADA_HOY', { clientName: this.clientName })
+                : this.translate.instant('DIET_TEMPLATES.DIETA_CREADA_APLICADA_DESDE_EL', {
+                    clientName: this.clientName,
+                    startDate: formatIsoDay(startDate, uiLocale(), { day: 'numeric', month: 'long' }),
+                  }),
             duration: 3000,
           });
           this.router.navigate(['/tabs/clients', this.clientId]);
@@ -1407,10 +1501,15 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
       });
   }
 
+  // Sin las opciones vacías: abrir una celda y cerrarla sin añadir nada no
+  // es un cambio.
   private snapshot(): string {
     return JSON.stringify({
       name: this.name.trim(),
-      menus: this.menus,
+      menus: this.menus.map((menu) => ({
+        ...menu,
+        meals: menu.meals.map((meal) => ({ ...meal, alternatives: filledAlternatives(meal) })),
+      })),
       suitableForOverride: [...this.suitableForOverride].sort(),
     });
   }

@@ -57,10 +57,12 @@ import { TranslateDbPipe } from './pipes/translate-db.pipe';
 import { TranslateDescPipe } from './pipes/translate-desc.pipe';
 import { LocalDatePipe } from './pipes/local-date.pipe';
 import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
+import { HorizontalScrollDirective } from './directives/horizontal-scroll.directive';
 
 @NgModule({
   declarations: [
     SubmitOnEnterDirective,
+    HorizontalScrollDirective,
     PopoverActionsComponent,
     ActionsSheetComponent,
     ConfirmSheetComponent,
@@ -124,6 +126,7 @@ import { SubmitOnEnterDirective } from './directives/submit-on-enter.directive';
   ],
   exports: [
     SubmitOnEnterDirective,
+    HorizontalScrollDirective,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

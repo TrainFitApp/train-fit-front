@@ -1,0 +1,140 @@
+@import '../../../../../theme/buttons';
+
+// Hoja inferior de alto automático (ion-modal.tf-phase-start-sheet, en
+// theme/tokens.scss): cabecera y botones fijos, el calendario hace scroll en
+// medio si la ventana es baja.
+:host {
+  display: block;
+}
+
+.start-sheet {
+  display: flex;
+  flex-direction: column;
+  max-height: min(92vh, 900px);
+  background: var(--tf-surface-1);
+  color: var(--tf-text);
+}
+
+.start-sheet__head {
+  padding: var(--tf-space-6) var(--tf-space-5) var(--tf-space-3);
+}
+
+.start-sheet__title {
+  margin: 0;
+  font-size: var(--tf-font-size-lg);
+  font-weight: var(--tf-weight-title);
+  letter-spacing: -0.01em;
+}
+
+.start-sheet__subtitle {
+  margin: var(--tf-space-1) 0 0;
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-muted);
+}
+
+.start-sheet__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--tf-space-1) var(--tf-space-5) var(--tf-space-4);
+  overscroll-behavior: contain;
+}
+
+// Carga y error ocupan el alto aproximado del calendario: la hoja no salta
+// de tamaño al llegar los datos.
+.start-sheet__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-3);
+  min-height: 320px;
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+.start-sheet__retry {
+  @include tf-secondary-button(var(--tf-radius-md));
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-4);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+// Qué va a pasar con el día elegido. Separado del calendario por una línea:
+// es la consecuencia, no un dato más de la leyenda.
+.start-sheet__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-4);
+  padding-top: var(--tf-space-4);
+  border-top: 1px solid var(--tf-border-subtle);
+
+  p {
+    margin: 0;
+  }
+}
+
+.start-sheet__starts {
+  font-size: var(--tf-font-size-base);
+  font-weight: var(--tf-weight-label);
+  line-height: 1.4;
+  color: var(--tf-text);
+}
+
+.start-sheet__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.4;
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 15px;
+  }
+}
+
+.start-sheet__note--warning {
+  color: var(--tf-warning);
+}
+
+.start-sheet__actions {
+  display: flex;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-5) calc(var(--tf-space-4) + var(--ion-safe-area-bottom, 0px));
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+// Botones compañeros: los dos en mayúsculas.
+.start-sheet__cancel,
+.start-sheet__confirm {
+  min-height: 48px;
+  padding: 0 var(--tf-space-4);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.start-sheet__cancel {
+  @include tf-secondary-button;
+  flex: 0 0 auto;
+}
+
+.start-sheet__confirm {
+  @include tf-gradient-button;
+  flex: 1 1 auto;
+  font-variant-numeric: tabular-nums;
+}

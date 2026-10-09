@@ -7,25 +7,39 @@
     {{ 'DIET_TEMPLATES.CONSTRUYE_UNA_PLANTILLA_UNA_VEZ' | translate }}
   </p>
 
-  <div class="create-template-row" appSubmitOnEnter="createDiet">
-    <div class="input-wrapper">
-      <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
-      <input
-        type="text"
-        class="input-field"
-        [placeholder]="'DIET_TEMPLATES.NOMBRE_DE_LA_NUEVA_PLANTILLA' | translate"
-        [(ngModel)]="newName"
-      />
-    </div>
+  <!-- Buscador y, a su derecha, filtros (abre el panel lateral) y el alta.
+       En el contenido, no en la cabecera, como en "Elige una dieta para la
+       fase" (diet-suggestion-list). -->
+  <div class="library-toolbar">
+    <ion-searchbar
+      class="name-searchbar"
+      mode="ios"
+      [placeholder]="'DIET_TEMPLATES.SEARCH_BY_NAME' | translate"
+      [value]="search"
+      [debounce]="150"
+      (ionInput)="onSearch($event)"
+    ></ion-searchbar>
+
     <button
       type="button"
-      class="submit-button"
-      [disabled]="!newName.trim() || isCreating"
-      (click)="createAndEdit()"
-      data-enter-submit-action="createDiet"
+      class="header-button toolbar-button header-button--filters"
+      [class.has-filters]="activeFilterCount"
+      (click)="openFilters()"
+      [attr.aria-expanded]="showFilters"
+      [attr.aria-label]="'DIET_TEMPLATES.FILTERS' | translate"
     >
-      <span *ngIf="!isCreating">{{ 'TRAINER_COMMON.CREATE' | translate }}</span>
-      <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
+      <ion-icon name="filter-outline" aria-hidden="true"></ion-icon>
+      <span class="filter-count" *ngIf="activeFilterCount">{{ activeFilterCount }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="header-button toolbar-button header-button--create"
+      (click)="openCreateSheet()"
+      [title]="'DIET_TEMPLATES.NEW_TEMPLATE_TITLE' | translate"
+      [attr.aria-label]="'DIET_TEMPLATES.NEW_TEMPLATE_TITLE' | translate"
+    >
+      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
     </button>
   </div>
 
@@ -47,14 +61,8 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <div class="state-message" *ngIf="!templates.length">
-      <ion-icon name="restaurant-outline"></ion-icon>
-      <h2>{{ 'DIET_TEMPLATES.TODAVIA_NO_HAS_CREADO_NINGUNA' | translate }}</h2>
-      <p>{{ 'DIET_TEMPLATES.CREA_TU_PRIMERA_PLANTILLA_ARRIBA' | translate }}</p>
-    </div>
-
-    <div class="templates-grid" *ngIf="templates.length">
-      <div class="template-cell" *ngFor="let template of templates; trackBy: trackByTemplateId">
+    <div class="templates-grid" *ngIf="filteredTemplates.length">
+      <div class="template-cell" *ngFor="let template of filteredTemplates; trackBy: trackByTemplateId">
         <app-diet-card
           [name]="template.name"
           [profile]="template.macroProfile || null"
@@ -84,8 +92,142 @@
         </button>
       </div>
     </div>
+
+    <div class="state-message" *ngIf="!templates.length">
+      <ion-icon name="restaurant-outline"></ion-icon>
+      <h2>{{ 'DIET_TEMPLATES.TODAVIA_NO_HAS_CREADO_NINGUNA' | translate }}</h2>
+      <p>{{ 'DIET_TEMPLATES.CREA_TU_PRIMERA_PLANTILLA_ARRIBA' | translate }}</p>
+    </div>
+
+    <div class="state-message" *ngIf="templates.length && !filteredTemplates.length">
+      <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+      <ng-container *ngIf="!activeFilterCount; else filtersEmpty">
+        <h2>{{ 'DIET_TEMPLATES.SEARCH_NO_MATCHES' | translate: { query: search.trim() } }}</h2>
+        <p>{{ 'DIET_TEMPLATES.SEARCH_NO_MATCHES_HINT' | translate }}</p>
+        <button type="button" class="retry-button" (click)="clearFilters()">{{ 'DIET_TEMPLATES.CLEAR_SEARCH' | translate }}</button>
+      </ng-container>
+      <ng-template #filtersEmpty>
+        <h2>{{ 'DIET_TEMPLATES.NO_FILTER_MATCHES' | translate }}</h2>
+        <p>{{ 'DIET_TEMPLATES.NO_FILTER_MATCHES_HINT' | translate }}</p>
+        <button type="button" class="retry-button" (click)="clearFilters()">{{ 'DIET_TEMPLATES.CLEAR_FILTERS' | translate }}</button>
+      </ng-template>
+    </div>
   </ng-container>
 </ion-content>
+
+<!-- Filtros: panel lateral derecho que abre el botón de filtros junto al
+     buscador, con los mismos chips que el cajón "Empezar fase"
+     (diet-suggestion-drawer). Por debajo de 768px, a pantalla completa. -->
+<div class="filters-backdrop" *ngIf="showFilters" (click)="showFilters = false"></div>
+<aside
+  class="filters-panel"
+  *ngIf="showFilters"
+  role="dialog"
+  [attr.aria-label]="'DIET_TEMPLATES.FILTERS' | translate"
+  (keydown.escape)="showFilters = false"
+>
+  <div class="filters-panel__header">
+    <h2 class="filters-panel__title">{{ 'DIET_TEMPLATES.FILTERS' | translate }}</h2>
+    <button
+      type="button"
+      class="filters-panel__clear"
+      *ngIf="activeFilterCount"
+      (click)="clearPanelFilters()"
+    >
+      {{ 'DIET_TEMPLATES.CLEAR_FILTERS' | translate }}
+    </button>
+    <button
+      #filtersClose
+      type="button"
+      class="header-button filters-panel__close"
+      (click)="showFilters = false"
+      [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate"
+    >
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+
+  <div class="filters-panel__body">
+    <label class="field-label">{{ 'DIET_TEMPLATES.RESTRICCIONES' | translate }}</label>
+    <div class="flag-chips">
+      <button
+        type="button"
+        *ngFor="let opt of dietaryFlagOptions"
+        [class]="opt.colorClass"
+        [class.is-active]="flags.has(opt.key)"
+        [attr.aria-pressed]="flags.has(opt.key)"
+        (click)="toggleFlag(opt.key)"
+      >
+        <ion-icon [name]="opt.icon" aria-hidden="true"></ion-icon>
+        {{ opt.label }}
+      </button>
+    </div>
+
+    <label class="field-label">{{ 'DIET_TEMPLATES.ORIGEN' | translate }}</label>
+    <div class="flag-chips">
+      <button
+        type="button"
+        [class.is-active]="allSourcesSelected"
+        [attr.aria-pressed]="allSourcesSelected"
+        (click)="selectAllSources()"
+      >
+        <ion-icon name="apps-outline" aria-hidden="true"></ion-icon>
+        {{ 'TRAINER_COMMON.ALL_F' | translate }}
+      </button>
+      <button
+        type="button"
+        *ngFor="let opt of sourceOptions"
+        [class.is-active]="sources.has(opt.key) && !allSourcesSelected"
+        [attr.aria-pressed]="sources.has(opt.key) && !allSourcesSelected"
+        (click)="toggleSource(opt.key)"
+      >
+        <ion-icon [name]="opt.icon" aria-hidden="true"></ion-icon>
+        {{ opt.labelKey ? (opt.labelKey | translate) : opt.label }}
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Alta de plantilla: hoja inferior con el nombre y "Crear". Fuera del
+     ion-content, como la vista previa, para que no se mueva con el scroll. -->
+<ng-container *ngIf="showCreateSheet">
+  <div class="panel-backdrop" (click)="closeCreateSheet()"></div>
+  <div
+    class="panel-sheet"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'DIET_TEMPLATES.NEW_TEMPLATE_TITLE' | translate"
+    appSubmitOnEnter="createDiet"
+    (keydown.escape)="closeCreateSheet()"
+  >
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">{{ 'DIET_TEMPLATES.NEW_TEMPLATE_TITLE' | translate }}</h3>
+
+    <div class="input-wrapper">
+      <ion-icon name="restaurant-outline" class="input-icon" aria-hidden="true"></ion-icon>
+      <input
+        #createNameInput
+        type="text"
+        class="input-field"
+        [placeholder]="'DIET_TEMPLATES.NOMBRE_DE_LA_NUEVA_PLANTILLA' | translate"
+        [attr.aria-label]="'DIET_TEMPLATES.NOMBRE_DE_LA_NUEVA_PLANTILLA' | translate"
+        [(ngModel)]="newName"
+      />
+    </div>
+
+    <button
+      type="button"
+      class="submit-button"
+      [disabled]="!newName.trim() || isCreating"
+      [attr.aria-busy]="isCreating"
+      (click)="createAndEdit()"
+      data-enter-submit-action="createDiet"
+    >
+      <span *ngIf="!isCreating">{{ 'TRAINER_COMMON.CREATE' | translate }}</span>
+      <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
+    </button>
+  </div>
+</ng-container>
 
 <app-diet-template-preview-panel
   *ngIf="previewTemplate"

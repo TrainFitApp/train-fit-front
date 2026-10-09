@@ -1,0 +1,8 @@
+// El buscador va embebido, no como página de ruta: sin una caja flex con
+// altura, su <ion-header>/<ion-content> no tienen qué llenar y la lista se
+// corta (mismo motivo que el :host de search-exercises).
+app-products {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

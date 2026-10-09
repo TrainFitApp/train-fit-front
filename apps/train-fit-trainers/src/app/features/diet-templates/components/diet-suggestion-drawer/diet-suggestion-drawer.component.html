@@ -114,6 +114,7 @@
         [deltas]="c.deltas"
         [verified]="c.verified"
         [ownedByClient]="!!c.ownerClientId"
+        [inClientContext]="true"
         [basedOnDays]="c.basedOnDays"
         [flags]="c.effectiveSuitableFor || []"
         [missingFlags]="c.missingFlags || []"
@@ -175,18 +176,15 @@
       </div>
     </section>
 
-    <!-- ===== Cuándo empieza ===== sin fecha que elegir: la fase empieza hoy
-         y sus fechas se corrigen después desde Plan > Nutrición. -->
+    <!-- ===== Cuándo empieza ===== se elige al pulsar «Empezar fase», en el
+         calendario del cliente (PhaseStartSheetComponent). -->
     <section class="confirm-box">
-      <p class="muted small">
-        {{ 'DIET_TEMPLATES.LA_FASE_EMPIEZA' | translate }} <strong>{{ 'DIET_TEMPLATES.HOY' | translate }}</strong> y queda abierta. Si el cliente ya tiene una fase en curso, se
-        cerrará ayer al aplicar esta. Las fechas se pueden corregir luego desde Plan &gt; Nutrición.
-      </p>
+      <p class="muted small">{{ 'DIET_TEMPLATES.START_DAY_HINT' | translate: { client: clientName } }}</p>
     </section>
   </ng-container>
 </ion-content>
 
-<ion-footer class="ion-no-border" *ngIf="state === 'ready'">
+<ion-footer class="ion-no-border" *ngIf="state === 'ready' && selectedTemplate">
   <div class="footer-actions">
     <button #enterSubmitTarget type="button" class="confirm-button" [disabled]="!canConfirm" (click)="confirm()">
       {{ applying ? ('DIET_TEMPLATES.APLICANDO' | translate) : ('DIET_TEMPLATES.EMPEZAR_FASE_CON_ESTA_DIETA' | translate) }}

@@ -34,7 +34,7 @@
           <span
             class="product-qty"
             [ngStyle]="{ 'font-weight': !!displayCustomProduct ? 'bolder' : '' }"
-            [style.color]="isChecked ? 'var(--ion-color-secondary)' : '#888'"
+            [style.color]="isPautado ? null : isChecked ? 'var(--ion-color-secondary)' : '#888'"
           >
             {{
               (displayCustomProduct?.quantity ?? productQuantity | number : "1.0-1")
@@ -72,7 +72,7 @@
            (el backend bloquea su composición), así que un control marcado y
            deshabilitado solo daría a entender que hay algo que decidir. -->
       <div
-        *ngIf="!isPautado && (meal || ingredientMode || trainerMultiSelect)"
+        *ngIf="selectable && !isPautado && (meal || ingredientMode || trainerMultiSelect)"
         class="checkbox-container"
         (click)="$event.stopPropagation()"
       >

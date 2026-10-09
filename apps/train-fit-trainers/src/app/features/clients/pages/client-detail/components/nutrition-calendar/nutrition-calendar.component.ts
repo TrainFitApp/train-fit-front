@@ -3,10 +3,12 @@ import { TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import { NutritionComplianceDay } from '../../models/client-detail.model';
-import { DietPhaseApiService } from '../../../../../../shared/services/diet-phase-api.service';
+import { DietPhaseApiService, onDaySkipped } from '../../../../../../shared/services/diet-phase-api.service';
 import { DietPhase } from '../../../../../../shared/models/diet-phase.model';
 import { compareChain } from '../../../../../../shared/models/phase-state';
 import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
+import { canSkipDate } from './skip-day.util';
+import { PhaseStartVerdict, addIsoDays, phaseStartVerdict } from '../../../../../../shared/utils/phase-start.util';
 import { uiLocale, localizeList } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
@@ -18,14 +20,6 @@ interface CalendarPhaseInfo {
   // Semana de la fase en la que cae este día ("S3"), o null si ese día no
   // cae en ninguna. Las calcula el backend (diet-timeline).
   weekLabel: string | null;
-  // ¿Impide que una fase nueva empiece en este día? Misma regla que el
-  // backend (diet-phase-service.js#blocksNewPhase): una fase con
-  // fecha de fin cerrada bloquea; una INDEFINIDA ya en curso no, porque
-  // "le cambio el plan a partir de hoy" es el caso normal y se resuelve
-  // cortándola. Sin esta distinción el selector se quedaría muerto para
-  // cualquier cliente con plan indefinido: esa fase cubre todos los días
-  // desde su inicio en adelante, así que no quedaría ni un día pulsable.
-  blocksNewPhase: boolean;
 }
 
 // Leyenda dinámica: qué fases pinta el mes que se está viendo, con su
@@ -46,6 +40,9 @@ interface CalendarCell {
   // Suplementos pautados vigentes ese día (docs/plan-semanas.md): la
   // suplementación va por fechas, así que también se ve en el calendario.
   supplements: string[];
+  // Solo al elegir el inicio de una fase nueva (startPicker): si puede
+  // empezar este día y qué le pasa a la fase que ya hay.
+  start: PhaseStartVerdict<DietPhase> | null;
 }
 
 const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
@@ -81,14 +78,14 @@ function buildMonthGrid(year: number, month: number): CalendarCell[] {
   // formar parte de ningún rango, mismo comportamiento que antes.
   const prevMonthLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
   for (let i = firstWeekday - 1; i >= 0; i--) {
-    cells.push({ date: null, dayNumber: prevMonthLastDay - i, compliance: null, phase: null, supplements: [] });
+    cells.push({ date: null, dayNumber: prevMonthLastDay - i, compliance: null, phase: null, supplements: [], start: null });
   }
   for (let day = 1; day <= totalDays; day++) {
-    cells.push({ date: isoDate(year, month, day), dayNumber: day, compliance: null, phase: null, supplements: [] });
+    cells.push({ date: isoDate(year, month, day), dayNumber: day, compliance: null, phase: null, supplements: [], start: null });
   }
   let nextMonthDay = 1;
   while (cells.length % 7 !== 0) {
-    cells.push({ date: null, dayNumber: nextMonthDay, compliance: null, phase: null, supplements: [] });
+    cells.push({ date: null, dayNumber: nextMonthDay, compliance: null, phase: null, supplements: [], start: null });
     nextMonthDay++;
   }
   return cells;
@@ -123,30 +120,9 @@ export class NutritionCalendarComponent implements OnChanges {
   }
   @Output() dateSelected = new EventEmitter<string>();
 
-  // Rango que se está componiendo AHORA MISMO en el formulario de al lado
-  // (fecha de inicio + "hasta cuándo"), para verlo pintado según se teclea en
-  // vez de descubrirlo al guardar.
-  //
-  // Va aparte de activeRange por dos motivos: admite un fin abierto (con
-  // "indefinido" no hay fecha que pasar, y el tramo se pinta hasta el final
-  // del mes con marca de que sigue, ver isOpenEndedTail), y cede el paso a
-  // una selección a mano en curso — si el usuario ya ha dado el primer click,
-  // manda su gesto, no el formulario, que todavía no se ha enterado.
-  @Input() public set rangePreview(preview: { start: string; end: string | null } | null) {
-    if (this.awaitingRangeEnd) return;
-    if (!preview?.start) {
-      this.rangeStart = null;
-      this.rangeEnd = null;
-      this.openEnded = false;
-      return;
-    }
-    this.rangeStart = preview.start;
-    this.rangeEnd = preview.end;
-    this.openEnded = preview.end === null;
-  }
-
   // Fin abierto: el tramo no termina en rangeEnd (que es null), sigue más
-  // allá de lo que se ve.
+  // allá de lo que se ve. Solo al elegir el inicio de una fase nueva: la fase
+  // se crea abierta.
   public openEnded = false;
 
   // Primer click de rango dado, falta el segundo. Antes esto se deducía de
@@ -154,11 +130,19 @@ export class NutritionCalendarComponent implements OnChanges {
   // null legítimamente y esa cuenta lo confundía con "a media selección".
   private awaitingRangeEnd = false;
 
-  // Solo tiene sentido ofrecerlo si hay plan activo que saltarse: lo sabe
-  // la ficha, no el calendario.
+  // Solo la ficha ofrece saltar días (el selector de fechas de una fase
+  // nueva, no). Qué día se puede saltar lo decide showSkipDay.
   @Input() canSkipDay = false;
   @Input() isSkippingDay = false;
   @Output() skipDayRequested = new EventEmitter<string>();
+
+  // El botón sale solo si el día elegido cae dentro de una fase y no está
+  // saltado ya. Se mira contra todas las fases (planPhases), no contra las
+  // celdas del mes: el día elegido puede quedar fuera del mes que se ve.
+  public get showSkipDay(): boolean {
+    const selected = this.cells.find((cell) => cell.date === this.selectedDate);
+    return this.canSkipDay && canSkipDate(this.selectedDate, this.planPhases, !!selected?.compliance?.skipped);
+  }
 
   public get selectedDateLabel(): string {
     if (!this.selectedDate) return this.translate.instant('CLIENTS.ESTE_DIA');
@@ -176,12 +160,6 @@ export class NutritionCalendarComponent implements OnChanges {
   // detalle" con "qué rango ve la gráfica de abajo".
   @Output() rangeSelected = new EventEmitter<{ start: string; end: string }>();
 
-  // Solo el día INICIAL, en cuanto se pulsa (sin esperar al segundo click).
-  // Lo usa el formulario de fase nueva para mover su "fecha de inicio" ya
-  // mismo: el fin puede venir de ahí (duración/indefinido) en vez de un
-  // segundo click, y sin esto el formulario se quedaría con la fecha vieja.
-  @Output() rangeStartPicked = new EventEmitter<string>();
-
   public readonly weekdayLabels = WEEKDAY_LABELS;
   public monthDate = new Date();
   public cells: CalendarCell[] = [];
@@ -189,30 +167,16 @@ export class NutritionCalendarComponent implements OnChanges {
   public readonly todayIso = localIsoDate();
   public isRangeMode = false;
 
-  // Modo "elegir un rango y nada más": lo usa el panel de aplicar plantilla,
-  // donde el calendario sirve para fijar inicio y fin de la fase nueva. Se
-  // sigue pintando lo que ya hay pautado —fases y cumplimiento— porque es
-  // justo lo que evita elegir unas fechas que pisen otra fase.
-  @Input() public set pickerMode(activo: boolean) {
-    if (!activo) return;
-    this.isPickerMode = true;
-    this.isRangeMode = true;
-    this.rangeStart = null;
-    this.rangeEnd = null;
-    this.awaitingRangeEnd = false;
-  }
-
-  // A diferencia de isRangeMode (se apaga solo al completar un rango, ver
-  // handleRangeClick), esto se queda fijo mientras dure la instancia: es
-  // "este calendario entero es un selector de fechas para una fase nueva",
-  // no "hay una selección en curso ahora mismo". Cambia qué se ve
-  // (cuadradito sólido por fase en vez de barra) y qué se puede pulsar
-  // (un día ya ocupado por otra fase no es seleccionable aquí).
-  public isPickerMode = false;
-  // Solo en modo selector: por qué se ha rechazado el tramo que se acababa
-  // de marcar (se solapa con una fase con fechas cerradas). Se limpia en
-  // cuanto se empieza una selección nueva.
-  public rangeError: string | null = null;
+  // "¿Desde qué día empieza la fase nueva?" (PhaseStartSheetComponent): el
+  // mismo calendario de la ficha, con todos sus datos, en el que pulsar un
+  // día lo propone como inicio (dateSelected) si una fase puede empezar ahí
+  // (phaseStartVerdict, la regla del backend). La fase nueva se pinta desde
+  // `selectedDate` en adelante, abierta, como queda al crearla.
+  @Input() startPicker = false;
+  // Por qué no se puede empezar el día que se acaba de pulsar. Va escrito
+  // bajo el calendario y no solo en el globo: en táctil no hay hover que lo
+  // explique antes.
+  public startNotice: string | null = null;
   public rangeStart: string | null = null;
   public rangeEnd: string | null = null;
   // F20-terdecies — día bajo el ratón mientras se elige el día final (entre
@@ -220,13 +184,13 @@ export class NutritionCalendarComponent implements OnChanges {
   // confirmarlo, mismo gesto que cualquier selector de rango de fechas.
   public hoverDate: string | null = null;
 
-  // Aviso flotante al pasar por encima de un día que ya tiene fase (solo en
-  // el selector). Se resuelve en JS y no con el `title` nativo por dos
-  // razones: el `title` del navegador tarda ~1s, no se puede estilar y —lo
-  // que lo hacía inútil aquí— un <button disabled> ni siquiera dispara
-  // eventos de ratón, así que en las celdas ocupadas, que son justo las que
-  // hay que explicar, no salía nunca.
-  public occupiedTooltip: { text: string; left: number; top: number } | null = null;
+  // Aviso flotante al pasar por encima de un día que ya tiene fase (solo al
+  // elegir el inicio de una fase nueva). Se resuelve en JS y no con el
+  // `title` nativo por dos razones: el `title` del navegador tarda ~1s, no se
+  // puede estilar y —lo que lo hacía inútil aquí— un <button disabled> ni
+  // siquiera dispara eventos de ratón, así que en las celdas ocupadas, que
+  // son justo las que hay que explicar, no salía nunca.
+  public startTooltip: { text: string; left: number; top: number } | null = null;
 
   // Qué suplementos toca ese día. Va SOLO en el icono, no en la celda: el día
   // entero ya se pulsa para otra cosa, y un globo que saltara al pasar por
@@ -267,9 +231,6 @@ export class NutritionCalendarComponent implements OnChanges {
   // cronológico — se recalcula en withPhases() cada vez que cambian las
   // celdas (mes nuevo o fases recién cargadas).
   public visiblePhaseLegend: PhaseLegendItem[] = [];
-  // ¿El mes visible tiene días de una fase indefinida en curso? (ver
-  // withPhases) — solo lo usa la leyenda del selector.
-  public hasOpenEndedVisible = false;
 
   constructor(
     private clientDetailApi: ClientDetailApiService,
@@ -282,9 +243,32 @@ export class NutritionCalendarComponent implements OnChanges {
       this.supplements = [];
       this.loadSupplements();
     });
+
+    // Saltar un día se ve al momento en su celda; el cumplimiento del mes se
+    // relee por detrás (el día queda vacío de lo pautado y cambia su %).
+    onDaySkipped(
+      () => this.clientId,
+      (date) => {
+        this.cells = this.cells.map((cell) =>
+          cell.date === date
+            ? {
+                ...cell,
+                compliance: { ...(cell.compliance ?? { date, hasPlan: true, completionPercentage: null }), skipped: true },
+              }
+            : cell
+        );
+        if (this.cells.some((cell) => cell.date === date)) this.loadCompliance();
+      }
+    );
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
+    // Elegido el inicio, la fase nueva queda pintada desde ahí y abierta.
+    if (this.startPicker && changes['selectedDate']) {
+      this.rangeStart = this.selectedDate || null;
+      this.rangeEnd = null;
+      this.openEnded = !!this.selectedDate;
+    }
     if (changes['clientId'] && this.clientId) {
       // La caché es por cliente: al cambiar de ficha se pintaban los
       // suplementos del anterior.
@@ -316,12 +300,17 @@ export class NutritionCalendarComponent implements OnChanges {
 
   public selectDay(cell: CalendarCell): void {
     if (!cell.date) return;
-    // Un día que ya pertenece a una fase BLOQUEANTE no puede ser ni inicio
-    // ni fin del rango nuevo — se corta aquí, en el click, en vez de dejar
-    // llegar hasta el 409 del backend. Los días de una fase indefinida ya
-    // en curso sí son pulsables: el backend los acepta (corta la fase
-    // anterior), y es justo el caso de "le cambio el plan a partir de hoy".
-    if (this.isPickerMode && cell.phase?.blocksNewPhase) return;
+    // Un día en el que la fase nueva no puede empezar se explica en vez de
+    // elegirse: dejarlo pasar acabaría en el 409 del backend al aplicar.
+    if (this.startPicker) {
+      if (cell.start?.kind === 'blocked') {
+        this.startNotice = this.blockedText(cell.start.phase, cell.date);
+        return;
+      }
+      this.startNotice = null;
+      this.dateSelected.emit(cell.date);
+      return;
+    }
     if (this.isRangeMode) {
       this.handleRangeClick(cell.date);
       return;
@@ -363,33 +352,12 @@ export class NutritionCalendarComponent implements OnChanges {
       this.rangeEnd = null;
       this.openEnded = false;
       this.awaitingRangeEnd = true;
-      this.rangeError = null;
-      this.rangeStartPicked.emit(date);
       return;
     }
 
     const start = this.rangeStart <= date ? this.rangeStart : date;
     const end = this.rangeStart <= date ? date : this.rangeStart;
 
-    // Los dos extremos pueden estar libres y aun así el tramo tragarse una
-    // fase entera por el medio. Bloquear el click día a día no lo cubre:
-    // hay que mirar el rango completo, y hacerlo aquí evita que el trainer
-    // rellene el resto del formulario para descubrirlo en el 409 al aplicar.
-    if (this.isPickerMode) {
-      const choque = this.findBlockingPhaseInRange(start, end);
-      if (choque) {
-        this.rangeError =
-          this.translate.instant('CLIENTS.ESE_TRAMO_CAE_DENTRO_DE', { p0: choque.name, startDate: choque.startDate }) + ' ' +
-          this.translate.instant('CLIENTS.EMPIEZALA_HOY_PARA_CORTARLA_ELIGE', { p0: this.phaseEndLabel(choque) });
-        this.rangeStart = null;
-        this.rangeEnd = null;
-        this.hoverDate = null;
-        this.awaitingRangeEnd = false;
-        return;
-      }
-    }
-
-    this.rangeError = null;
     this.rangeStart = start;
     this.rangeEnd = end;
     this.openEnded = false;
@@ -402,41 +370,70 @@ export class NutritionCalendarComponent implements OnChanges {
   // F20-terdecies — con el día inicial ya puesto y el ratón encima de otro
   // día (todavía sin confirmar), previsualiza el tramo completo hasta ahí.
   public onCellHover(cell: CalendarCell, event?: MouseEvent): void {
-    this.updateOccupiedTooltip(cell, event);
+    this.updateStartTooltip(cell, event);
     if (!cell.date || !this.awaitingRangeEnd) return;
     this.hoverDate = cell.date;
   }
 
   public onGridMouseLeave(): void {
     this.hoverDate = null;
-    this.occupiedTooltip = null;
+    this.startTooltip = null;
     this.supplementTooltip = null;
   }
 
-  // Qué se dice al pasar por encima de un día que ya tiene fase. Dos
-  // mensajes distintos porque son dos situaciones distintas y confundirlas
-  // deja al trainer sin saber por qué unas celdas de color se pueden pulsar
-  // y otras no: la fase con fechas cerradas simplemente no admite otra
-  // encima, mientras que la indefinida en curso sí — empezar ahí la corta,
-  // que es el gesto normal de "le cambio el plan a partir de este día".
-  private updateOccupiedTooltip(cell: CalendarCell, event?: MouseEvent): void {
+  // Qué se dice al pasar por encima de un día con fase al elegir el inicio
+  // de una nueva: por qué no puede empezar ahí o qué le pasa a la que hay.
+  // Sin esto el profesional no sabe por qué unas celdas de color se pueden
+  // pulsar y otras no.
+  private updateStartTooltip(cell: CalendarCell, event?: MouseEvent): void {
     const celda = event?.currentTarget as HTMLElement | undefined;
-    if (!this.isPickerMode || !cell.date || !cell.phase || !celda) {
-      this.occupiedTooltip = null;
+    const start = cell.start;
+    if (!this.startPicker || !cell.date || !start || start.kind === 'free' || !celda) {
+      this.startTooltip = null;
       return;
     }
 
-    const nombre = cell.phase.name;
-    this.occupiedTooltip = {
-      text: cell.phase.blocksNewPhase
-        ? this.translate.instant('CLIENTS.OCUPADO_POR_NO_PUEDES_EMPEZAR', { nombre })
-        : this.translate.instant('CLIENTS.SIGUE_VIGENTE_SI_EMPIEZAS_AQUI', { nombre }),
+    this.startTooltip = {
+      text: start.kind === 'blocked' ? this.blockedText(start.phase, cell.date) : this.replacesText(start.phase, cell.date),
       left: this.tooltipLeft(celda),
       // offsetTop va contra la propia rejilla (position: relative en el
       // scss), que es donde se pinta el globo — así no hace falta medir la
       // ventana ni recolocarlo al hacer scroll.
       top: celda.offsetTop,
     };
+  }
+
+  // Por qué la fase nueva no puede empezar en `date`. Cuatro casos que se
+  // resuelven distinto: un día pasado es historial; una fase programada más
+  // adelante choca porque la nueva queda abierta; una abierta ocupa todo lo
+  // que viene (hay que ponerle fin antes), y una cerrada, su tramo.
+  private blockedText(phase: DietPhase, date: string): string {
+    const name = phase.name;
+    if (date < this.todayIso && phase.startDate <= date) {
+      return this.translate.instant('CLIENTS.START_BLOCKED_PAST', { name });
+    }
+    if (phase.startDate > date) {
+      return this.translate.instant('CLIENTS.START_BLOCKED_LATER', { name, start: this.shortDate(phase.startDate) });
+    }
+    if (phase.endDate === null) {
+      return this.translate.instant('CLIENTS.START_BLOCKED_OPEN', { name, start: this.shortDate(phase.startDate) });
+    }
+    return this.translate.instant('CLIENTS.START_BLOCKED_CLOSED', {
+      name,
+      start: this.shortDate(phase.startDate),
+      end: this.shortDate(phase.endDate),
+    });
+  }
+
+  // Qué le pasa a la fase que rige `date` si la nueva empieza ese día.
+  private replacesText(phase: DietPhase, date: string): string {
+    return phase.startDate === date
+      ? this.translate.instant('CLIENTS.START_REPLACES_SAME_DAY', { name: phase.name })
+      : this.translate.instant('CLIENTS.START_REPLACES', { name: phase.name, end: this.shortDate(addIsoDays(date, -1)) });
+  }
+
+  private shortDate(iso: string): string {
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString(uiLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' });
   }
 
   // El globo se centra en la celda, pero en las columnas de los extremos eso
@@ -491,15 +488,7 @@ export class NutritionCalendarComponent implements OnChanges {
 
     this.cells = this.withPhases(buildMonthGrid(year, month));
     this.isLoading = true;
-    this.clientDetailApi.getNutritionCompliance(this.clientId, from, to).subscribe({
-      next: (summary) => {
-        this.isLoading = false;
-        this.applyCompliance(summary?.dailyBreakdown || []);
-      },
-      error: () => {
-        this.isLoading = false;
-      },
-    });
+    this.loadCompliance(() => (this.isLoading = false));
 
     // Semanas del mes visible: es la única fuente de los badges R1/R2 —
     // las ventanas dependen de los check-ins programados del cliente.
@@ -514,6 +503,22 @@ export class NutritionCalendarComponent implements OnChanges {
     });
 
     this.loadSupplements();
+  }
+
+  // Cumplimiento del mes visible sobre las celdas que ya hay, sin vaciarlas
+  // mientras llega.
+  private loadCompliance(done: () => void = () => undefined): void {
+    const year = this.monthDate.getUTCFullYear();
+    const month = this.monthDate.getUTCMonth();
+    const from = isoDate(year, month, 1);
+    const to = isoDate(year, month, daysInMonth(year, month));
+    this.clientDetailApi.getNutritionCompliance(this.clientId, from, to).subscribe({
+      next: (summary) => {
+        done();
+        this.applyCompliance(summary?.dailyBreakdown || []);
+      },
+      error: done,
+    });
   }
 
   // Los suplementos no cambian de un mes a otro: se piden una vez y se
@@ -579,13 +584,9 @@ export class NutritionCalendarComponent implements OnChanges {
     const mapped = this.withSupplements(cells).map((cell) => ({
       ...cell,
       phase: cell.date ? this.findPhaseForDate(cell.date) : null,
+      start: cell.date && this.startPicker ? phaseStartVerdict(cell.date, this.planPhases, this.todayIso) : null,
     }));
     this.visiblePhaseLegend = this.buildVisiblePhaseLegend(mapped);
-    // Solo para la leyenda del selector: si en el mes visible hay días de
-    // una fase indefinida en curso, se pintan con barra y SÍ son pulsables
-    // — un caso a medio camino entre "ocupado" y "libre" que hay que
-    // explicar, o parece una incoherencia.
-    this.hasOpenEndedVisible = mapped.some((cell) => cell.phase && !cell.phase.blocksNewPhase);
     return mapped;
   }
 
@@ -622,11 +623,6 @@ export class NutritionCalendarComponent implements OnChanges {
       // Solo las semanas de ESTA fase: la numeración se reinicia en cada
       // fase nueva.
       weekLabel: this.weekLabelFor(date, phaseKey),
-      // Misma regla que el backend (diet-phase-service.js#blocksNewPhase):
-      // cambiar el plan "a partir de ya" siempre se puede; lo que no se puede
-      // es PROGRAMAR una fase futura dentro de un tramo ya reservado, sea por
-      // su fin real o por su duración estimada.
-      blocksNewPhase: phase.endDate !== null || date > this.todayIso,
     };
   }
 
@@ -637,33 +633,6 @@ export class NutritionCalendarComponent implements OnChanges {
       (w) => w.phaseId === phaseKey && w.start <= date && w.end >= date
     );
     return window ? `S${window.number}` : null;
-  }
-
-  // ¿Hay alguna fase pisando este tramo? Misma condición de solape que
-  // findOverlapping en el backend y misma regla que blocksNewPhase: el tramo
-  // reservado llega hasta el fin REAL si ya se cortó (o no acaba nunca si
-  // sigue abierta); y empezar "a partir de ya" sobre la que está corriendo
-  // no cuenta como solape (la corta).
-  //
-  // Se comprueba contra planPhases (el historial ENTERO), no contra las
-  // celdas del mes: un rango puede cruzar de un mes a otro y tragarse una
-  // fase que ni siquiera se ve en la cuadrícula actual.
-  private findBlockingPhaseInRange(start: string, end: string): DietPhase | null {
-    return (
-      this.planPhases.find((phase) => {
-        const finEfectivo = phase.endDate || null;
-        const solapa = phase.startDate <= end && (!finEfectivo || finEfectivo >= start);
-        if (!solapa) return false;
-        const cortableDesdeYa = !phase.endDate && phase.startDate <= start && start <= this.todayIso;
-        return !cortableDesdeYa;
-      }) || null
-    );
-  }
-
-  // Hasta cuándo tiene reservado el tramo una fase, para los mensajes de
-  // solape: el fin real si ya se cortó, "indefinido" si sigue corriendo.
-  private phaseEndLabel(phase: DietPhase): string {
-    return phase.endDate || this.translate.instant('CLIENTS.OPEN_ENDED');
   }
 
   // impeccable/quieter — antes llegaba a 1.0 (naranja SÓLIDO) al 100% de

@@ -65,6 +65,9 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   // Fix (ronda detalle) — resaltado naranja al previsualizar (ver
   // ProductComponent#isTrainerFocused, mismo criterio).
   @Input() isTrainerFocused = false;
+  // Biblioteca › Alimentos (entrenadores): solo consulta, sin checkbox (ver
+  // ProductComponent#selectable).
+  @Input() selectable = true;
   // A qué se añade en modo entrenador (SearchFoodsTrainerContext#targetLabel):
   // el constructor de dietas no tiene un Meal real y «Añadido a …» salía vacío.
   @Input() targetLabel?: string;

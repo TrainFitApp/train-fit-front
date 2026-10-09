@@ -32,6 +32,16 @@
     // Es de solo lectura, pero sigue abriendo su ficha nutricional: el
     // cursor no debe decir "aquí no se puede tocar".
     cursor: pointer;
+
+    // Todo el acento de la card en azul, no solo el marco: como también
+    // lleva .product-selected, el nombre y «Añadido a …» salían en naranja y
+    // los gramos en amarillo, y con el filtro «Pautados» la lista se leía
+    // naranja. Los gramos llegan sin color en línea (ver la plantilla).
+    .product-name,
+    .added-label,
+    .product-qty {
+      color: var(--ion-color-alternative);
+    }
   }
 
   &.is-loading {

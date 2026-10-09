@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
+import { onDaySkipped } from '../../../../../../shared/services/diet-phase-api.service';
 import {
   ALL_SHOPPING_MENUS,
   ShoppingListItem,
@@ -65,7 +66,16 @@ export class ShoppingListPanelComponent implements OnChanges {
   public readonly ranges = RANGES;
   public selectedDays = 7;
 
-  constructor(private clientDetailApi: ClientDetailApiService) {}
+  constructor(private clientDetailApi: ClientDetailApiService) {
+    // Un día saltado no se compra: si la lista ya se ha pedido y el día cae
+    // en su rango, se vuelve a pedir.
+    onDaySkipped(
+      () => this.clientId,
+      (date) => {
+        if (this.state !== 'idle' && this.rangeFrom() <= date && date <= this.rangeTo()) this.load();
+      }
+    );
+  }
 
   public ngOnChanges(): void {
     // Al cambiar de cliente se olvida lo cargado: enseñar la compra del
@@ -91,14 +101,7 @@ export class ShoppingListPanelComponent implements OnChanges {
     if (!this.clientId) return;
     this.state = 'loading';
 
-    // Hoy y los días siguientes en el calendario del dispositivo (en UTC,
-    // de madrugada en España el rango se quedaba un día corto).
-    const last = new Date();
-    last.setDate(last.getDate() + this.selectedDays - 1);
-    const from = localIsoDate();
-    const to = localIsoDate(last);
-
-    this.clientDetailApi.getShoppingList(this.clientId, from, to).subscribe({
+    this.clientDetailApi.getShoppingList(this.clientId, this.rangeFrom(), this.rangeTo()).subscribe({
       next: (list) => {
         this.items = list.items;
         this.segments = list.segments;
@@ -111,6 +114,18 @@ export class ShoppingListPanelComponent implements OnChanges {
         this.state = 'error';
       },
     });
+  }
+
+  // Hoy y los días siguientes en el calendario del dispositivo (en UTC,
+  // de madrugada en España el rango se quedaba un día corto).
+  private rangeFrom(): string {
+    return localIsoDate();
+  }
+
+  private rangeTo(): string {
+    const last = new Date();
+    last.setDate(last.getDate() + this.selectedDays - 1);
+    return localIsoDate(last);
   }
 
   // Solo hay algo que repartir con 2+ menús o alguna comida con 2+

@@ -368,15 +368,37 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
+  // Lo pegado es siempre del cliente, aunque se copiara de algo pautado, y lo
+  // pautado del destino se queda también al reemplazar (meal-dao.js
+  // #keptOnPaste en el back). Solo una comida que el profesional pautó
+  // entera no admite pegar (MEAL_PROTECTED): ahí ni se ofrece.
+  public get acceptsPaste(): boolean {
+    return !this.meal?.assignedByTrainerId;
+  }
+
+  // Fusionar o reemplazar solo cambia algo si la comida ya tiene alimentos
+  // del propio cliente: lo pautado no se lo lleva ninguno de los dos.
+  public needsPasteChoice(isFullMeal: boolean): boolean {
+    return (
+      isFullMeal &&
+      (this.getOwnProducts(this.meal).length > 0 || this.getOwnRecipes(this.meal).length > 0)
+    );
+  }
+
   public async createMealFromClipboard(meal: Meal): Promise<void> {
     this.loadPaste = true;
     // El día se asegura (createDietDay es idempotente: si esa fecha ya tiene
     // día devuelve el que hay, nunca crea un segundo) y la comida destino se
     // vuelve a buscar en el día ya real, que es el que tiene _id.
     if (!this.dietDay._id) {
-      this.dietDay = await this.dietDayService
-        .createDietDay(this.dietDayService.getStandardDietDay(this.dietDay.date))
-        .toPromise();
+      try {
+        this.dietDay = await this.dietDayService
+          .createDietDay(this.dietDayService.getStandardDietDay(this.dietDay.date))
+          .toPromise();
+      } catch {
+        this.onPasteError();
+        return;
+      }
       this.meal = this.dietDay.meals.find(
         (mealTemp) => mealTemp.name === meal.name
       );
@@ -384,7 +406,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     const clipboard = this.mealService.getMealClipboard;
-    if (!clipboard) {
+    if (!clipboard || !this.meal || !this.acceptsPaste) {
       this.loadPaste = false;
       return;
     }
@@ -464,11 +486,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
 
-    const canMerge =
-      this.meal.customProducts.length !== 0 ||
-      (this.meal.customRecipes?.length ?? 0) !== 0;
-
-    if (updatedClipboard.isFullMeal && canMerge) {
+    if (this.needsPasteChoice(updatedClipboard.isFullMeal)) {
       const t = this.translate.instant.bind(this.translate);
       const alertOptions: AlertOptions = {
         cssClass: 'alert-grid-buttons',
@@ -550,25 +568,41 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
       ? this.mealService.pasteMeal(clipboard, merge)
       : this.mealService.pasteMeal(clipboard, true);
 
-    pasteMealObservable.subscribe((resMeal) => {
-      this.meal = resMeal;
-      const indexMeal = this.dietDay.meals.findIndex(
-        (mealTemp) => mealTemp._id === resMeal._id
-      );
-      this.dietDay.meals[indexMeal] = resMeal;
-      this.pasteEvent.emit({ pasted: true });
+    pasteMealObservable.subscribe({
+      next: (resMeal) => {
+        this.meal = resMeal;
+        const indexMeal = this.dietDay.meals.findIndex(
+          (mealTemp) => mealTemp._id === resMeal._id
+        );
+        this.dietDay.meals[indexMeal] = resMeal;
+        this.pasteEvent.emit({ pasted: true });
 
-      this.getMealInfo();
+        this.getMealInfo();
 
-      this.dietDayService.setCurrentDietDay = this.dietDay;
+        this.dietDayService.setCurrentDietDay = this.dietDay;
 
-      this.loadPaste = false;
+        this.loadPaste = false;
 
-      this.ionicUtilService.showToast({
-        message: this.translate.instant('MEAL.PRODUCTS_COPIED'),
-        duration: 2000,
-      });
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('MEAL.PRODUCTS_COPIED'),
+          duration: 2000,
+        });
+      },
+      error: (error) => this.onPasteError(error),
     });
+  }
+
+  // Un pegado fallido suelta el spinner (antes se quedaba girando) y el
+  // portapapeles sigue, para reintentar o pegar en otra comida.
+  // MEAL_PROTECTED ya lo enseña el interceptor con el mensaje del back.
+  private onPasteError(error?: { code?: string }): void {
+    this.loadPaste = false;
+    if (error?.code === 'MEAL_PROTECTED') return;
+    this.ionicUtilService.showErrorToast(
+      this.translate.instant('MEAL.PASTE_ERROR'),
+      this.translate.instant('COMMON.ERROR'),
+      2500
+    );
   }
 
   public getProductsAndOwnProductsOrdered(meal: Meal): CustomProduct[] {

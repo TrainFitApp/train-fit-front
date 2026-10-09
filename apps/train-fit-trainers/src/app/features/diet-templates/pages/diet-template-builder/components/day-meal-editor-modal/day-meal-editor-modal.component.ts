@@ -39,6 +39,7 @@ import {
   macroDeviation,
 } from '../../../../utils/alternative-macros';
 import { computeItemMicros } from '../../../../utils/nutrient-fields';
+import { isMissingQuantity } from '../../../../utils/meal-alternatives';
 
 // Extraído de diet-template-builder.page.ts a un modal real (ion-modal) —
 // mismo motivo y mismo arreglo que ApplyCheckinTemplateModalComponent
@@ -90,6 +91,28 @@ export class DayMealEditorModalComponent {
 
   public dismiss(): void {
     this.modalController.dismiss();
+  }
+
+  // Un alimento sin cantidad deshabilita «Listo» y avisa de cuál es hasta
+  // que tenga una (ver isMissingQuantity); la página tampoco deja guardar la
+  // dieta así.
+  public readonly isMissingQuantity = isMissingQuantity;
+
+  public get itemWithoutQuantity(): TemplateFoodItem | undefined {
+    for (const alt of this.meal.alternatives) {
+      const item = alt.items.find(isMissingQuantity);
+      if (item) return item;
+    }
+    return undefined;
+  }
+
+  public get canFinish(): boolean {
+    return !this.itemWithoutQuantity;
+  }
+
+  public finish(): void {
+    if (!this.canFinish) return;
+    this.dismiss();
   }
 
   // «Menú A · Desayuno», lo mismo que la cabecera: a qué se añade lo que se
@@ -186,11 +209,9 @@ export class DayMealEditorModalComponent {
     return {};
   }
 
-  // Sin item semilla — antes una alternativa nueva arrancaba con un
-  // "Alimento 1" en blanco que exigía un segundo tap ("Buscar producto o
-  // receta real") para hacer algo útil. Vacía del todo: solo se ven los
-  // botones "Añadir alimento"/"Insertar snippet", y "Añadir alimento" ya
-  // abre el buscador real directamente (ver addFoodItem).
+  // Sin item semilla: una alternativa nueva arranca vacía y solo muestra
+  // "Añadir alimento"/"Insertar snippet"; "Añadir alimento" abre el
+  // buscador directamente (ver addFoodItem).
   private emptyAlternative(): TemplateMealAlternative {
     return { label: '', items: [] };
   }
@@ -219,9 +240,9 @@ export class DayMealEditorModalComponent {
     this.meal.alternatives.splice(altIndex, 1);
   }
 
-  // Va directo al buscador real (mismo criterio que "Buscar producto o
-  // receta real" en un item ya existente) en vez de crear un placeholder
-  // "Alimento N" en blanco que hubiera que rellenar en un segundo paso.
+  // Va directo al buscador (mismo que al tocar el nombre de un item ya
+  // elegido para cambiarlo) en vez de crear un hueco en blanco que hubiera
+  // que rellenar en un segundo paso.
   // itemIndex=null en openProductSearch/applyTrainerSelection significa
   // "añade uno nuevo al final", no "rellena este hueco".
   public addFoodItem(altIndex: number): void {
@@ -230,9 +251,11 @@ export class DayMealEditorModalComponent {
     void this.openProductSearch(altIndex, null);
   }
 
+  // Se puede quitar también el último: la opción se queda vacía y, al
+  // cerrar el editor, el constructor la descarta (pruneEmptyAlternatives).
   public removeFoodItem(altIndex: number, itemIndex: number): void {
     const alt = this.meal.alternatives[altIndex];
-    if (!alt || alt.items.length <= 1) return;
+    if (!alt) return;
     alt.items.splice(itemIndex, 1);
   }
 
@@ -401,6 +424,7 @@ export class DayMealEditorModalComponent {
       item.addedCustomProducts = undefined;
       item.modifiedBaseCustomProducts = undefined;
       item.removedBaseCustomProductIds = undefined;
+      this.fillWholeRecipeQuantity(item);
       this.recalculateItemMacros(item);
     } else if (selection.kind === 'product' && selection.product) {
       item.productId = selection.product._id;
@@ -425,6 +449,19 @@ export class DayMealEditorModalComponent {
     const parsed = parseFloat(value);
     item.quantity = Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
     this.recalculateItemMacros(item);
+  }
+
+  // Una receta elegida «entera» (sin cantidad en la ficha) entra con sus
+  // gramos totales: sin cantidad el editor la cuenta como 0 y no deja dar a
+  // «Listo» (ver isMissingQuantity).
+  private fillWholeRecipeQuantity(item: TemplateFoodItem): void {
+    if (!item.recipe || Number(item.quantity) > 0) return;
+    const whole = this.recipeService.calculateCustomRecipeTotals(item.recipe, {
+      addedCustomProducts: item.addedCustomProducts,
+      modifiedBaseCustomProducts: item.modifiedBaseCustomProducts,
+      removedBaseCustomProductIds: item.removedBaseCustomProductIds,
+    } as CustomRecipe).portionBaseline;
+    if (whole > 0) item.quantity = Math.round(whole * 10) / 10;
   }
 
   private recalculateItemMacros(item: TemplateFoodItem): void {
@@ -602,7 +639,10 @@ export class DayMealEditorModalComponent {
         modifiedBaseCustomProducts: (cr as any).modifiedBaseCustomProducts,
         removedBaseCustomProductIds: (cr as any).removedBaseCustomProductIds,
       };
-      if (recipe) this.recalculateItemMacros(item);
+      if (recipe) {
+        this.fillWholeRecipeQuantity(item);
+        this.recalculateItemMacros(item);
+      }
       alt.items.push(item);
     }
   }

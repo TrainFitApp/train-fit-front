@@ -318,7 +318,7 @@
             [class.is-locked]="copyMode"
             [class.is-clipboard-source]="isClipboardSource(d, s)"
             [class.is-paste-target]="copyingMeal && !isClipboardSource(d, s)"
-            [attr.draggable]="!copyMode && row.meals[s].alternatives.length > 0"
+            [attr.draggable]="!copyMode && mealHasFood(row.meals[s])"
             (dragstart)="onCellDragStart(d, s, $event)"
             (dragover)="onCellDragOver(d, s, $event)"
             (dragleave)="onCellDragLeave()"
@@ -460,10 +460,16 @@
       {{ 'DIET_TEMPLATES.ANADIR_MENU' | translate }}
     </button>
 
-    <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()" data-enter-submit-action="saveDiet">
-      <span *ngIf="!isSaving">{{ isPreparingNextWeek ? (('DIET_TEMPLATES.PREPARAR' | translate) + nextWeekNumber) : (isCreatingForClient ? ('DIET_TEMPLATES.CREAR_ASIGNAR' | translate) : (isEditingPhaseContent ? ('DIET_TEMPLATES.GUARDAR_CAMBIOS' | translate) : ('DIET_TEMPLATES.GUARDAR_PLANTILLA' | translate))) }}</span>
-      <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
-    </button>
+    <div class="submit-row">
+      <button type="button" class="save-as-template-button" *ngIf="isCreatingForClient" [disabled]="isSaving" (click)="saveAsTemplate()">
+        <ion-icon name="bookmark-outline" aria-hidden="true"></ion-icon>
+        {{ 'DIET_TEMPLATES.GUARDAR_COMO_PLANTILLA' | translate }}
+      </button>
+      <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()" data-enter-submit-action="saveDiet">
+        <span *ngIf="!isSaving">{{ isPreparingNextWeek ? (('DIET_TEMPLATES.PREPARAR' | translate) + nextWeekNumber) : (isCreatingForClient ? ('DIET_TEMPLATES.CREAR_ASIGNAR' | translate) : (isEditingPhaseContent ? ('DIET_TEMPLATES.GUARDAR_CAMBIOS' | translate) : ('DIET_TEMPLATES.GUARDAR_PLANTILLA' | translate))) }}</span>
+        <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+      </button>
+    </div>
   </ng-container>
 </ion-content>
 

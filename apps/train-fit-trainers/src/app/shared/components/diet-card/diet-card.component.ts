@@ -27,6 +27,10 @@ export class DietCardComponent {
   @Input() public medal = '';
   @Input() public verified = false;
   @Input() public ownedByClient = false;
+  // Dentro de la ficha de un cliente (sugerencias de "Empezar fase") la
+  // dieta propia solo puede ser de ESE cliente: se dice "de este cliente".
+  // En la biblioteca conviven las de todos y queda "de un cliente".
+  @Input() public inClientContext = false;
   @Input() public menuCount: number | null = null;
   @Input() public basedOnDays = 0;
   @Input() public flags: string[] = [];

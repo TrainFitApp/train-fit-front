@@ -78,13 +78,26 @@ export class DietPhasePickerPage {
     this.previewTemplate = null;
   }
 
+  // Un click en la página fuera de cualquier dieta (y de su botón de vista
+  // previa) suelta la elegida: el panel vuelve a quedarse sin card de
+  // detalle ni botones. El panel de parámetros es un ion-modal aparte, así
+  // que sus clicks no llegan aquí.
+  public onContentClick(event: MouseEvent): void {
+    const target = event.target as Element | null;
+    if (target?.closest('.suggestion-cell')) return;
+    if (this.session.selectedId) this.session.select(null);
+  }
+
   private async openDrawer(): Promise<void> {
     if (this.drawer) return;
     this.session.reset();
 
     const modal = await this.modalController.create({
       component: DietSuggestionDrawerComponent,
-      cssClass: 'tf-panel-modal-overlay',
+      // ion-disable-focus-trap: el panel deja la lista clicable detrás, pero
+      // el focus trap de Ionic devolvía el foco al modal en cuanto se tocaba
+      // algo de la página, y el buscador por nombre no se podía escribir.
+      cssClass: 'tf-panel-modal-overlay ion-disable-focus-trap',
       showBackdrop: false,
       backdropDismiss: false,
       componentProps: {
@@ -103,12 +116,11 @@ export class DietPhasePickerPage {
     if (role === 'create-from-scratch' && data) {
       // "Empezar de cero" → el builder en modo "para este cliente",
       // arrastrando el objetivo y el bloque de fase que ya se había
-      // decidido en el panel.
+      // decidido en el panel. El día de inicio se elige al guardar.
       void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
         state: {
           clientName: this.clientName,
           name: data.phase?.name || this.translate.instant('DIET_TEMPLATES.NUEVA_DIETA'),
-          startDate: data.startDate,
           phase: data.phase,
         },
       });
@@ -125,7 +137,6 @@ export class DietPhasePickerPage {
         state: {
           clientName: this.clientName,
           name: data.phase?.name || template.name || this.translate.instant('DIET_TEMPLATES.NUEVA_DIETA'),
-          startDate: data.startDate,
           phase: data.phase,
           prefill: { name: template.name, menus: template.menus },
         },

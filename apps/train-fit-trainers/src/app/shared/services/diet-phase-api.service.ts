@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { EffectRef, Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { DietTemplateMenuPayload } from '../../features/diet-templates/models/diet-template.model';
 import {
@@ -15,12 +16,26 @@ import {
   WeekNeedResponse,
 } from '../models/diet-phase.model';
 
+// Un día que el profesional acaba de marcar como saltado.
+export interface SkippedDay {
+  clientId: string;
+  date: string;
+}
+
 // Fases de dieta de un cliente (train-fit-back/components/dietPhases).
 @Injectable({ providedIn: 'root' })
 export class DietPhaseApiService {
   private base(clientId: string): string {
     return `trainer/clients/${clientId}/diet-phases`;
   }
+
+  // Último día marcado como saltado. Cada salto es un objeto nuevo, así que
+  // la señal avisa aunque se repita la fecha. Saltar un día cambia el
+  // calendario, las gráficas de seguimiento, la adherencia y la lista de la
+  // compra: cada uno relee lo suyo (ver onDaySkipped) en vez de volver a
+  // montar el tab de nutrición entero.
+  private readonly _skippedDay = signal<SkippedDay | null>(null);
+  public readonly skippedDay = this._skippedDay.asReadonly();
 
   constructor(private http: HttpService) {}
 
@@ -114,6 +129,26 @@ export class DietPhaseApiService {
   // Ese día el cliente no sigue el plan: se vacía de lo pautado y deja de
   // contar. Lo que anotó por su cuenta se queda.
   public skipDay(clientId: string, date: string): Observable<unknown> {
-    return this.http.post(`trainer/clients/${clientId}/skipped-days`, { date });
+    return this.http
+      .post(`trainer/clients/${clientId}/skipped-days`, { date })
+      .pipe(tap(() => this._skippedDay.set({ clientId, date })));
   }
+}
+
+// Llama a `onSkip` con la fecha cada vez que se salta un día del cliente que
+// devuelve `clientId()`. Solo cuentan los saltos posteriores a la llamada: un
+// componente que se monta después de un salto ya carga los datos frescos y
+// no debe volver a pedirlos por el valor que la señal conserva. Se llama en
+// un contexto de inyección (constructor o inicializador de campo); el efecto
+// muere con quien lo crea.
+export function onDaySkipped(clientId: () => string, onSkip: (date: string) => void): EffectRef {
+  const skippedDay = inject(DietPhaseApiService).skippedDay;
+  const alreadySeen = untracked(skippedDay);
+  return effect(() => {
+    const skipped = skippedDay();
+    if (!skipped || skipped === alreadySeen) return;
+    untracked(() => {
+      if (skipped.clientId === clientId()) onSkip(skipped.date);
+    });
+  });
 }

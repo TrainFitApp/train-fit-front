@@ -262,33 +262,31 @@
   }
 }
 
-// Selector de fechas para una fase nueva (apply-diet-template-modal) — aquí
-// el color de fase es el ÚNICO dato que importa, así que ocupa la celda
-// entera en vez de una barra de 3px: "esto ya es de otra fase" tiene que
-// verse a la primera, no fijándose en el borde superior.
-// .is-occupied, no .has-phase: una fase indefinida en curso también tiene
-// fase, pero SÍ se puede elegir (ver blocksNewPhase), y pintarla sólida
-// diría lo contrario — esa se queda con la barra de siempre.
-.nutrition-calendar--picker .nutrition-calendar__cell.is-occupied {
-  background: var(--phase-color);
-  // Texto oscuro fijo: los 6 colores de fase son vivos y claros, así que el
-  // gris de texto normal (pensado para fondo oscuro) se perdería encima.
-  // Blanco tampoco vale — sobre esta paleta se queda entre 1.4:1 y 3.8:1,
-  // muy por debajo del mínimo. Al 86% de negro el peor de los seis queda en
-  // 4.9:1 (al 78% que había antes, el índigo se quedaba en 4.4:1, por
-  // debajo de AA).
-  color: rgba(0, 0, 0, 0.86);
-  // No lleva [disabled] a propósito: un botón deshabilitado no dispara
-  // eventos de ratón y sin ellos el globo que explica POR QUÉ está ocupado
-  // no llegaría a salir nunca, justo en las celdas que hay que explicar. El
-  // click ya se ignora en selectDay, y aria-disabled lo dice a lectores de
-  // pantalla; aquí solo queda decirlo con el cursor.
+// Inicio de una fase nueva (startPicker): un día en el que no puede empezar
+// se raya en vez de taparse — sus datos (cumplimiento, fase, semana) se
+// siguen leyendo, que es justo lo que explica por qué está ocupado. No lleva
+// [disabled]: un botón deshabilitado no dispara eventos de ratón y el globo
+// que lo explica no saldría nunca. El click ya se ignora en selectDay y
+// aria-disabled lo dice a los lectores de pantalla.
+.nutrition-calendar__cell.is-start-blocked {
   cursor: not-allowed;
 
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: repeating-linear-gradient(135deg, var(--tf-border-strong) 0 1px, transparent 1px 6px);
+    pointer-events: none;
+  }
+
+  .nutrition-calendar__day-number {
+    color: var(--tf-text-muted);
+  }
+
+  // El realce de hover insinuaría que se puede pulsar.
   &:hover {
     transform: none;
-    // El color pleno ES la señal de "ocupado" — el realce de hover normal
-    // insinuaría que se puede pulsar.
     border-color: transparent;
   }
 }
@@ -464,35 +462,23 @@
     border: 1px solid var(--tf-border);
   }
 
-  // Selector de fase nueva — la celda entera pintada: "este día ya es de
-  // otra fase y no se puede elegir". Mismos dos tonos que --phase (la
-  // muestra representa "cualquier color de fase", no uno concreto).
-  &--occupied {
-    background: linear-gradient(135deg, var(--phase-sample-a), var(--phase-sample-b));
-  }
-
-  // El otro caso del selector: fase indefinida en curso, que se pinta con
-  // barra y SÍ es seleccionable. La muestra imita la barra, no el bloque,
-  // para que se lea distinta de --occupied de un vistazo.
-  &--phase-bar {
-    background: transparent;
-    border-top: 3px solid var(--phase-sample-a);
-    border-radius: 0;
+  // Inicio de una fase nueva: el mismo rayado que .is-start-blocked.
+  &--blocked {
+    background: repeating-linear-gradient(135deg, var(--tf-border-strongest) 0 1px, transparent 1px 3px);
+    border: 1px solid var(--tf-border);
   }
 }
 
-// Por qué se ha rechazado el tramo recién marcado (ver handleRangeClick) —
-// mismo tratamiento que .overlap-error del modal que lo contiene: el aviso
-// va junto a donde se acaba de actuar, no en un toast que tape el
-// calendario.
-.range-error {
+// Por qué no puede empezar la fase nueva el día recién pulsado: junto a donde
+// se acaba de actuar, no en un toast que tape el calendario.
+.start-notice {
   display: flex;
   align-items: flex-start;
   gap: 6px;
   margin: var(--tf-space-2) 0 0;
   font-size: var(--tf-font-size-xs);
   line-height: 1.4;
-  color: var(--tf-danger);
+  color: var(--tf-warning);
 
   ion-icon {
     flex-shrink: 0;

@@ -1,8 +1,25 @@
 <ng-container *ngIf="results$ | async as d; else loadingOrEmpty">
+  <!-- Buscador por nombre: filtra sin reordenar, así que las medallas y la
+       sugerencia destacada siguen siendo las del ranking completo. -->
+  <ion-searchbar
+    *ngIf="d.ranked.length > 1 || search"
+    class="name-searchbar"
+    mode="ios"
+    [placeholder]="'DIET_TEMPLATES.SEARCH_BY_NAME' | translate"
+    [value]="search"
+    [debounce]="150"
+    (ionInput)="onSearch($event)"
+  ></ion-searchbar>
+
+  <div class="search-empty" *ngIf="d.ranked.length && !visible(d.ranked).length">
+    <p>{{ 'DIET_TEMPLATES.SEARCH_NO_MATCHES' | translate: { query: search.trim() } }}</p>
+    <button type="button" class="secondary-button" (click)="search = ''">{{ 'DIET_TEMPLATES.CLEAR_SEARCH' | translate }}</button>
+  </div>
+
   <div class="suggestion-grid">
     <div
       class="suggestion-cell"
-      *ngFor="let t of d.ranked; trackBy: trackById"
+      *ngFor="let t of visible(d.ranked); trackBy: trackById"
       [class.span-all]="t._id === (topSuggestionId$ | async)"
     >
       <app-diet-card
@@ -12,6 +29,7 @@
         [medal]="medal(t.rank)"
         [verified]="t.verified"
         [ownedByClient]="!!t.ownerClientId"
+        [inClientContext]="true"
         [basedOnDays]="t.basedOnDays"
         [flags]="t.effectiveSuitableFor || []"
         [missingFlags]="t.missingFlags || []"
@@ -39,7 +57,7 @@
 
   <!-- Las que no cumplen ya no se esconden: se listan detrás con su aviso.
        Esta nota explica el rojo y qué hacer con él. -->
-  <p class="missing-note" *ngIf="missingCount(d.ranked) as n">
+  <p class="missing-note" *ngIf="missingCount(visible(d.ranked)) as n">
     {{ n }} {{ 'TRAINER_MISC.DE_ESTAS_DIETAS_NO' | translate }} {{ (n === 1 ? 'TRAINER_MISC.MEETS_ONE' : 'TRAINER_MISC.MEETS_MANY') | translate }} {{ 'TRAINER_MISC.LAS_RESTRICCIONES_DEL_CLIENTE_SE' | translate }}
   </p>
 </ng-container>

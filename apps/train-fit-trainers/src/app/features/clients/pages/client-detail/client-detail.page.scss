@@ -631,6 +631,79 @@
   }
 }
 
+// Pestañas de la cabecera de la columna derecha de Nutrición (Seguimiento |
+// Día). Tienen la voz de .section-heading —son el título de la columna— y la
+// activa se subraya en acento: no son píldoras para no confundirse con las
+// del selector de gráfica que va a su derecha.
+.column-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: var(--tf-space-5);
+}
+
+.column-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 8px;
+    height: 2px;
+    border-radius: 2px;
+    background: transparent;
+    transition: background var(--tf-duration-fast) var(--tf-ease-out);
+  }
+
+  &:hover {
+    color: var(--tf-text-secondary);
+  }
+
+  &.is-active {
+    color: var(--tf-text);
+
+    &::after {
+      background: var(--tf-accent);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+    border-radius: var(--tf-radius-sm);
+  }
+}
+
+// La fecha del día elegido, en su voz normal (sin mayúsculas): dice qué día
+// abre la pestaña antes de pulsarla.
+.column-tab__date {
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--tf-text-faint);
+
+  .column-tab.is-active & {
+    color: var(--tf-accent);
+  }
+}
+
 // F20-vicies — alterna entre <app-nutrition-tracking-chart> y
 // <app-weight-adherence-chart> en la sección Seguimiento (QUÉ gráfica).
 .chart-view-toggle {
@@ -752,6 +825,8 @@
 // TASK-045 — cabecera clicable del historial de nutrición (colapsable).
 .nutrition-history-toggle {
   cursor: pointer;
+  // La flecha va pegada al título, no empujada al borde derecho.
+  justify-content: flex-start;
 
   ion-icon {
     color: var(--tf-text-muted);
@@ -2475,6 +2550,10 @@
   // y acabar pegándolo sin margen contra la gráfica de encima.
   .nutrition-charts-row > * > .section-row:first-child {
     margin-top: 0;
+    // El alto de las pestañas Seguimiento | Día: así el calendario y la
+    // columna de al lado empiezan a la misma altura.
+    min-height: 44px;
+    margin-bottom: 4px;
   }
 }
 

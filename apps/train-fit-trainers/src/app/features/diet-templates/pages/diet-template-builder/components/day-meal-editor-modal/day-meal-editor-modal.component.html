@@ -107,7 +107,6 @@
             type="button"
             class="remove-alternative-btn"
             [attr.aria-label]="'DIET_TEMPLATES.ELIMINAR_ALIMENTO' | translate"
-            *ngIf="alt.items.length > 1"
             (click)="removeFoodItem(i, j)"
           >
             <ion-icon name="trash-outline"></ion-icon>
@@ -115,7 +114,7 @@
         </div>
         <div class="picked-food-qty-row">
           <ion-label class="qty-label">{{ 'DIET_TEMPLATES.CANTIDAD' | translate }}</ion-label>
-          <div class="qty-input-wrapper">
+          <div class="qty-input-wrapper" [class.qty-input-wrapper--missing]="isMissingQuantity(item)">
             <input
               type="number"
               class="qty-input"
@@ -145,30 +144,6 @@
             <span class="macro-value">{{ item.fat | number : '1.0-1' }}g</span>
           </div>
         </div>
-      </div>
-
-      <!-- Vacío — solo alcanzable tras "Cambiar por otro alimento" sobre un
-           item ya elegido (nunca al crear: "Añadir alimento" va directo al
-           buscador, ver addFoodItem()). -->
-      <div class="empty-food-slot" *ngIf="!item.productId && !item.recipeId">
-        <button
-          type="button"
-          class="search-product-btn"
-          (click)="openProductSearch(i, j)"
-          [disabled]="isOpeningPicker"
-        >
-          <ion-icon name="search-outline"></ion-icon>
-          {{ 'DIET_TEMPLATES.BUSCAR_PRODUCTO_RECETA_REAL' | translate }}
-        </button>
-        <button
-          type="button"
-          class="remove-alternative-btn"
-          [attr.aria-label]="'DIET_TEMPLATES.ELIMINAR_ALIMENTO' | translate"
-          *ngIf="alt.items.length > 1"
-          (click)="removeFoodItem(i, j)"
-        >
-          <ion-icon name="trash-outline"></ion-icon>
-        </button>
       </div>
     </ng-container>
 
@@ -200,11 +175,11 @@
     <div class="snippet-actions-row">
       <button
         type="button"
-        class="add-food-item-btn"
+        class="add-food-item-btn add-food-item-btn--primary"
         (click)="addFoodItem(i)"
         [disabled]="alt.items.length >= maxFoodItemsPerAlternative || isOpeningPicker"
       >
-        <ion-icon name="add-outline"></ion-icon>
+        <ion-icon name="search-outline"></ion-icon>
         {{ 'DIET_TEMPLATES.ANADIR_ALIMENTO' | translate }}
       </button>
       <button
@@ -236,5 +211,11 @@
 </ion-content>
 
 <ion-footer class="editor-modal-footer">
-  <button #doneButton type="button" class="submit-button" (click)="dismiss()">{{ 'DIET_TEMPLATES.LISTO' | translate }}</button>
+  <p class="missing-quantity-warning" *ngIf="itemWithoutQuantity as missing" role="alert">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    {{ 'DIET_TEMPLATES.FALTA_LA_CANTIDAD_DE' | translate: { food: missing.recipeId ? missing.recipeName : missing.productName } }}
+  </p>
+  <button #doneButton type="button" class="submit-button" (click)="finish()" [disabled]="!canFinish">
+    {{ 'DIET_TEMPLATES.LISTO' | translate }}
+  </button>
 </ion-footer>

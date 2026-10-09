@@ -18,7 +18,10 @@ import { DietSuggestionSessionService } from '../../services/diet-suggestion-ses
 import { DIETARY_FLAG_UI } from '../../../../shared/utils/dietary-flag-ui.util';
 import { MacroAdjustComponent } from '../../../../shared/components/macro-adjust/macro-adjust.component';
 import { nextSources } from './diet-source-filter.util';
+import { PhaseStartSheetComponent } from '../phase-start-sheet/phase-start-sheet.component';
+import { formatIsoDay } from '../../../../shared/utils/phase-start.util';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
+import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 
 const DIETARY_FLAGS: { key: DietaryFlag; label: string; icon: string; colorClass: string }[] = (
   ['vegan', 'vegetarian', 'lactoseFree', 'glutenFree'] as DietaryFlag[]
@@ -38,10 +41,11 @@ type TargetMode = 'calculated' | 'goal' | 'manual';
 // las restricciones y la sugerencia principal + CTA.
 //
 // Ya no hay "tipo de fase" ni "ajuste de kcal": lo que importa es con qué
-// números se pauta, no de qué preset salieron. La fase empieza HOY; sus
-// fechas se corrigen después desde Plan > Nutrición. La LISTA rankeada la pinta la pantalla que
-// lo abre (diet-phase-picker: la biblioteca de dietas ordenada para este
-// cliente). Estado compartido en DietSuggestionSessionService.
+// números se pauta, no de qué preset salieron. Desde qué día empieza se
+// elige al aplicarla, en el calendario del cliente (PhaseStartSheetComponent).
+// La LISTA rankeada la pinta la pantalla que lo abre (diet-phase-picker: la
+// biblioteca de dietas ordenada para este cliente). Estado compartido en
+// DietSuggestionSessionService.
 @Component({
   selector: 'app-diet-suggestion-drawer',
   templateUrl: './diet-suggestion-drawer.component.html',
@@ -100,10 +104,9 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   }
 
   // --- Confirmación ---
-  // La fase empieza el día en que se crea (docs/plan-semanas.md); las
-  // fechas se editan después desde la ficha del cliente.
-  public readonly startDate = localIsoDate();
   public applying = false;
+  // Hoja del día de inicio abierta: el botón no vuelve a abrirla encima.
+  private pickingStart = false;
 
   // Reflejo local del estado compartido (para el template).
   public selectedId: string | null = null;
@@ -273,23 +276,13 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     return this.session.results?.weightSource ?? null;
   }
 
-  // La que el entrenador va a aplicar: la elegida en la lista o, si no ha
-  // elegido, la primera COMPATIBLE — no la primera a secas. Las que
-  // incumplen las restricciones salen listadas (detrás, con su aviso) pero
-  // nunca se proponen solas: este botón aplica la fase de un click y nadie
-  // debería acabar con gluten por no haber tocado nada. Si no hay ninguna
-  // compatible no se propone ninguna y hay que elegirla a mano.
-  public get chosen(): RankedTemplate | null {
-    const r = this.session.results?.ranked ?? [];
-    if (this.selectedId) return r.find((t) => t._id === this.selectedId) ?? null;
-    return r.find((t) => t._id === this.session.topSuggestionId) ?? null;
-  }
-
-  // Solo la que el entrenador ha elegido A MANO en la lista (no la
-  // sugerencia principal por defecto): la card de detalle de abajo aparece
-  // como CONSECUENCIA de picar una tarjeta, no ya de entrada.
+  // La dieta que el entrenador ha elegido A MANO en la lista. La sugerencia
+  // principal solo se destaca en la lista, nunca se aplica sola: sin una
+  // dieta elegida no hay card de detalle ni botones en el pie (empezar,
+  // editar antes de aplicar o empezar de cero).
   public get selectedTemplate(): RankedTemplate | null {
-    return this.selectedId ? this.chosen : null;
+    if (!this.selectedId) return null;
+    return (this.session.results?.ranked ?? []).find((t) => t._id === this.selectedId) ?? null;
   }
 
   // La card de detalle vuelve a picarse igual que en la lista: pica de
@@ -312,7 +305,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   }
 
   public get canConfirm(): boolean {
-    return !!this.chosen && !!(this.targetDraft?.kcal || this.target?.kcal) && !this.applying;
+    return !!this.selectedTemplate && !!(this.targetDraft?.kcal || this.target?.kcal) && !this.applying && !this.pickingStart;
   }
 
   private phasePayload(): { phase: PhaseStartSettings } {
@@ -339,44 +332,58 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     };
   }
 
-  public confirm(): void {
-    if (!this.canConfirm || !this.target || !this.chosen) return;
+  // Desde qué día se elige ahora, en el calendario del cliente: hoy (si
+  // tenía una fase en curso, la corta) o cualquier día libre. La dieta y los
+  // números se leen ANTES de abrir la hoja: son los que había al pulsar.
+  public async confirm(): Promise<void> {
+    if (!this.canConfirm || !this.target || !this.selectedTemplate) return;
     if (!this.macrosOk()) return;
-    this.applying = true;
+    const templateId = this.selectedTemplate._id;
+    const { phase } = this.phasePayload();
 
-    // La fase empieza hoy: si ya había una corriendo, el backend la cierra
-    // ayer. Eso se avisa antes de pulsar, en el pie.
-    this.dietPhaseApi
-      .create(this.clientId, { templateId: this.chosen._id, startDate: this.startDate, ...this.phasePayload().phase })
-      .subscribe({
-        next: (phase) => {
-          this.ionicUtil.showToast({
-            message: this.translate.instant('DIET_TEMPLATES.FASE_APLICADA_DESDE_HOY', { phaseName: this.phaseName, clientName: this.clientName }),
-            duration: 3000,
-          });
-          this.session.reset();
-          void this.modalController.dismiss({ phase, phaseName: this.phaseName }, 'confirm');
-        },
-        error: (err) => {
-          this.applying = false;
-          this.ionicUtil.showErrorToast(
-            err?.status === 409
-              ? err?.error?.message || this.translate.instant('DIET_TEMPLATES.ESAS_FECHAS_SE_SOLAPAN_CON')
-              : err?.error?.message || this.translate.instant('DIET_TEMPLATES.NO_SE_PUDO_APLICAR_LA'),
-            this.translate.instant('COMMON.ERROR'),
-            4000
-          );
-        },
-      });
+    this.pickingStart = true;
+    const startDate = await PhaseStartSheetComponent.open(this.modalController, {
+      clientId: this.clientId,
+      clientName: this.clientName,
+      phaseName: phase.name,
+    });
+    this.pickingStart = false;
+    if (!startDate) return;
+
+    this.applying = true;
+    this.dietPhaseApi.create(this.clientId, { templateId, startDate, ...phase }).subscribe({
+      next: (created) => {
+        this.ionicUtil.showToast({
+          message:
+            startDate === localIsoDate()
+              ? this.translate.instant('DIET_TEMPLATES.FASE_APLICADA_DESDE_HOY', { phaseName: phase.name, clientName: this.clientName })
+              : this.translate.instant('DIET_TEMPLATES.FASE_APLICADA_DESDE_EL', {
+                  phaseName: phase.name,
+                  clientName: this.clientName,
+                  date: formatIsoDay(startDate, uiLocale(), { day: 'numeric', month: 'long' }),
+                }),
+          duration: 3000,
+        });
+        this.session.reset();
+        void this.modalController.dismiss({ phase: created, phaseName: phase.name }, 'confirm');
+      },
+      error: (err) => {
+        this.applying = false;
+        this.ionicUtil.showErrorToast(
+          err?.status === 409
+            ? err?.error?.message || this.translate.instant('DIET_TEMPLATES.ESAS_FECHAS_SE_SOLAPAN_CON')
+            : err?.error?.message || this.translate.instant('DIET_TEMPLATES.NO_SE_PUDO_APLICAR_LA'),
+          this.translate.instant('COMMON.ERROR'),
+          4000
+        );
+      },
+    });
   }
 
   public createFromScratch(): void {
     if (!this.targetDraft || !this.macrosOk()) return;
     this.session.reset();
-    void this.modalController.dismiss(
-      { forDirectCreate: true, startDate: this.startDate, ...this.phasePayload() },
-      'create-from-scratch'
-    );
+    void this.modalController.dismiss({ forDirectCreate: true, ...this.phasePayload() }, 'create-from-scratch');
   }
 
   // Editar la sugerencia elegida ANTES de aplicarla — mismo dismiss que
@@ -386,12 +393,12 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   // en sí: el builder construye una plantilla NUEVA propia de este cliente
   // con ese contenido de partida (mismo camino que "empezar de cero").
   public editBeforeApplying(): void {
-    if (!this.targetDraft || !this.chosen || !this.macrosOk()) return;
-    // Leer chosen/phasePayload ANTES de resetear la sesión — igual que
-    // confirm() lee this.chosen._id antes de session.reset(): al revés
-    // (como createFromScratch, que no necesita chosen), el reset deja
-    // this.chosen a null y el dismiss de abajo revienta leyendo _id de null.
-    const payload = { templateId: this.chosen._id, startDate: this.startDate, ...this.phasePayload() };
+    if (!this.targetDraft || !this.selectedTemplate || !this.macrosOk()) return;
+    // Leer selectedTemplate/phasePayload ANTES de resetear la sesión — igual que
+    // confirm() lee this.selectedTemplate._id antes de session.reset(): al revés
+    // (como createFromScratch, que no necesita selectedTemplate), el reset deja
+    // this.selectedTemplate a null y el dismiss de abajo revienta leyendo _id de null.
+    const payload = { templateId: this.selectedTemplate._id, ...this.phasePayload() };
     this.session.reset();
     void this.modalController.dismiss(payload, 'edit-before-apply');
   }
