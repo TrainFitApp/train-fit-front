@@ -23,8 +23,9 @@ type ViewState = 'loading' | 'error' | 'loaded' | 'forbidden';
 type ReturnState = 'none' | 'pending' | 'delayed' | 'confirmed' | 'cancelled' | 'payment_required' | 'error';
 type ManagementDialog = 'change' | 'cancel' | 'resume' | 'discard';
 type ManagementAction = Exclude<ManagementDialog, 'change'>;
-// Qué hace el botón del configurador con lo elegido.
-type SelectionAction = 'same' | 'scheduled' | 'keep' | 'checkout' | 'change' | 'cancel' | 'unavailable';
+// Qué hace el botón del configurador con lo elegido. choose: sin suscripción y con la contratación
+// disponible, el botón de contratar se ve (deshabilitado) hasta elegir un plan o añadir plazas.
+type SelectionAction = 'same' | 'scheduled' | 'keep' | 'choose' | 'checkout' | 'change' | 'cancel' | 'unavailable';
 
 export interface PlanCard {
   plan: TrainerPlan;
@@ -248,7 +249,10 @@ export class SubscriptionPage implements OnDestroy {
   public get selectionReadOnly(): number { return Math.max(0, (this.seatSummary?.occupied || 0) - this.selectionSeats); }
   public get selectionAction(): SelectionAction {
     if (!this.selectionPlan || this.selectionAmount === null) return 'unavailable';
-    if (sameState(this.selection, this.baseline)) return this.pendingChange && this.canManage('canDiscardChange') ? 'keep' : 'same';
+    if (sameState(this.selection, this.baseline)) {
+      if (this.pendingChange && this.canManage('canDiscardChange')) return 'keep';
+      return this.checkoutAvailable ? 'choose' : 'same';
+    }
     if (sameState(this.selection, this.pendingChange)) return 'scheduled';
     const freeOnly = this.selection.tier === 'free' && this.selection.extraSeats === 0;
     if (this.checkoutAvailable) return freeOnly ? 'same' : 'checkout';
@@ -257,12 +261,23 @@ export class SubscriptionPage implements OnDestroy {
   }
   public get selectionCtaLabel(): string {
     switch (this.selectionAction) {
+      case 'choose': return this.translate.instant('SUBSCRIPTION.CONFIG_CTA_CHECKOUT');
       case 'checkout': return this.checkoutBusy ? this.translate.instant('SUBSCRIPTION.ABRIENDO_EL_PAGO') : this.translate.instant('SUBSCRIPTION.CONFIG_CTA_CHECKOUT');
       case 'change': return this.translate.instant('SUBSCRIPTION.CONFIG_CTA_CHANGE');
       case 'cancel': return this.translate.instant('SUBSCRIPTION.CONFIG_CTA_FREE');
       case 'keep': return this.translate.instant('SUBSCRIPTION.CONFIG_CTA_KEEP');
       default: return '';
     }
+  }
+  // Por qué lo elegido no se puede contratar ni cambiar: el configurador enseña precios y,
+  // sin botón, tiene que decir junto a ellos qué lo impide.
+  public get unavailableReason(): string {
+    if (!this.isWeb) return this.translate.instant('SUBSCRIPTION.GESTIONA_TU_SUSCRIPCION_DESDE_LA');
+    if (this.sessionId) return this.translate.instant('SUBSCRIPTION.CONFIG_UNAVAILABLE_CONFIRMING');
+    const catalog = this.catalog;
+    const ready = this.billingEnabled && !!catalog?.enabled && catalog.mode === this.entitlements?.billing?.mode &&
+      (this.currentState ? catalog.capabilities.planChanges : catalog.capabilities.checkout);
+    return this.translate.instant(ready ? 'SUBSCRIPTION.CONFIG_UNAVAILABLE_STATE' : 'SUBSCRIPTION.CONFIG_UNAVAILABLE_DISABLED');
   }
 
   public get planCards(): PlanCard[] {
