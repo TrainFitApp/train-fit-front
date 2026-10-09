@@ -1,0 +1,294 @@
+// Base común de las hojas del tab Coach ("Tus planes", "Tus profesionales").
+// Misma paleta hex que coach.page.scss (en esta app no hay --tf-*): fondo
+// #0f0f0f, superficies #141414, acento #fe9000 y texto apagado #8b8b8b.
+// Alto automático (.coach-sheet-modal en global.scss): el scroll va en
+// .cs-body, con la clase ion-content-scroll-host para que arrastrar la lista
+// no cierre la hoja.
+
+:host {
+  --cs-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --cs-accent: #fe9000;
+  --cs-accent-text: #fe9b1a;
+  --cs-accent-soft: rgba(254, 144, 0, 0.12);
+  --cs-surface: #141414;
+  --cs-surface-2: #1e1e1e;
+  --cs-line: rgba(255, 255, 255, 0.08);
+  --cs-line-soft: rgba(255, 255, 255, 0.05);
+  --cs-text: #ffffff;
+  --cs-text-2: #c7c7c7;
+  --cs-text-3: #8b8b8b;
+  --cs-danger: #eb445a;
+  --cs-danger-rgb: 235, 68, 90;
+  // Texto rojo y verde legibles sobre su fondo tenue (≥ 4.5:1 sobre #0f0f0f).
+  --cs-danger-text: #ff7a8a;
+  --cs-success: #2dd36f;
+  --cs-success-rgb: 45, 211, 111;
+  --cs-success-text: #4be08a;
+  // Mismo par de colores que los ámbitos en Coach.
+  --cs-training: #90a9c2;
+  --cs-nutrition: #ffab3d;
+
+  display: block;
+  color: var(--cs-text);
+}
+
+// Para el lector de pantalla, sin ocupar sitio.
+.cs-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.cs-sheet {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+// Cabecera como la del resto de modales del cliente (menu-preview-modal,
+// clipboard-meal-modal, pautado-item-view): título a la izquierda, cerrar a
+// la derecha y una línea debajo. Volver usa el .tf-page-header__back-button
+// global, el mismo de todas las páginas.
+.cs-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 12px 10px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  // Con volver delante, el botón marca el borde izquierdo como el de cerrar
+  // marca el derecho.
+  &--with-back {
+    padding-left: 12px;
+  }
+}
+
+.cs-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--cs-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  // Recibe el foco al cambiar de vista (tabindex="-1"): sin anillo si llega
+  // por toque, con anillo si se navega con teclado.
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+// Mismo botón de cerrar que los modales de Dieta (con .ripple-effect y la X
+// en naranja, color="primary").
+.close-action-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+// El global no trae anillo de foco: se añade aquí, sin cambiar su aspecto.
+.close-action-button,
+.tf-page-header__back-button {
+  &:focus-visible {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 2px;
+  }
+}
+
+// En móvil el global baja a 36px; en la hoja se queda en 40px, igual que el
+// botón de cerrar que tiene enfrente en la misma cabecera.
+.tf-page-header__back-button {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.cs-body {
+  max-height: min(72vh, 680px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 20px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+
+.cs-section + .cs-section {
+  margin-top: 22px;
+}
+
+// Mismo tipo que .section-heading de la página: la hoja se lee como una
+// continuación de Coach, no como otra pantalla.
+.cs-section-heading {
+  margin: 0 0 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cs-text-3);
+}
+
+.cs-footnote {
+  margin: 22px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--cs-text-3);
+}
+
+// Pestañas Entrenamiento / Nutrición: control segmentado, 44px de alto.
+.cs-tabs {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  margin: 12px 20px 0;
+  padding: 4px;
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-line);
+  border-radius: 12px;
+}
+
+.cs-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  border-radius: 9px;
+  color: var(--cs-text-3);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 180ms var(--cs-ease-out), color 180ms var(--cs-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &--active {
+    background: var(--cs-surface-2);
+    color: var(--cs-text);
+
+    ion-icon {
+      color: var(--cs-accent-text);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 1px;
+  }
+}
+
+.cs-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cs-skeleton-block {
+  position: relative;
+  height: 52px;
+  overflow: hidden;
+  background: var(--cs-surface-2);
+  border-radius: 12px;
+
+  &--tall {
+    height: 96px;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    animation: cs-shimmer 1.4s infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      animation: none;
+    }
+  }
+}
+
+@keyframes cs-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.cs-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 0;
+
+  p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--cs-text-3);
+  }
+}
+
+.cs-retry {
+  min-height: 44px;
+  padding: 0 18px;
+  background: #252525;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: var(--cs-text);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--cs-accent);
+    outline-offset: 2px;
+  }
+}

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Exercise } from 'src/app/core/models/exercise';
+import { Exercise, ExerciseSearchPage } from 'src/app/core/models/exercise';
 import { ExerciseAPIService } from './exercise-api.service';
 import { SearchFilterGroupExercises } from 'src/app/shared/models/filterGroup';
 
@@ -25,6 +25,14 @@ export class ExerciseService {
     searchFilterGroupExercises: SearchFilterGroupExercises
   ): Observable<Exercise[]> {
     return this.exerciseAPIService.searchExercise(searchFilterGroupExercises);
+  }
+
+  public searchExercisePage(
+    searchFilterGroupExercises: SearchFilterGroupExercises,
+    page: number,
+    limit: number
+  ): Observable<ExerciseSearchPage> {
+    return this.exerciseAPIService.searchExercisePage(searchFilterGroupExercises, page, limit);
   }
 
   public createExercise(exerciseData: Partial<Exercise>): Observable<Exercise> {

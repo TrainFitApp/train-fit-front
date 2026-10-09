@@ -22,8 +22,12 @@
       <p class="history-subtitle" *ngIf="s.splitLabel">{{ s.splitLabel }}</p>
 
       <div class="day-detail__stat-row">
+        <span class="day-detail__stat" *ngIf="s.duration">
+          <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+          {{ s.duration }}
+        </span>
         <span class="day-detail__stat">
-          <ion-icon name="barbell-outline"></ion-icon>
+          <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
           {{ s.volume | number: '1.0-0' }} kg
         </span>
       </div>
@@ -32,6 +36,81 @@
         <span class="pulse-badge" *ngIf="s.workout.readinessPre">{{ 'CLIENT_DETAIL.READINESS' | translate }} {{ s.workout.readinessPre }}/5</span>
         <span class="pulse-badge" *ngIf="s.workout.perceivedEffortPost">{{ 'CLIENT_DETAIL.EFFORT' | translate }} {{ s.workout.perceivedEffortPost }}/5</span>
         <span class="pulse-badge" *ngIf="s.sorenessText">{{ 'CLIENTS.AGUJETAS_AL_LLEGAR' | translate }}: {{ s.sorenessText }}</span>
+      </div>
+
+      <!-- Lo que apuntó el cliente sobre la sesión. -->
+      <p class="day-detail__note" *ngIf="s.clientNote">
+        <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+        <span><strong>{{ 'CLIENT_DETAIL.NOTA_DEL_CLIENTE' | translate }}:</strong> {{ s.clientNote }}</span>
+      </p>
+
+      <!-- Ejercicio a ejercicio: cada serie hecha junto a lo pautado y la
+           mejor serie frente a la vez anterior (training-day-detail.util.ts). -->
+      <div class="day-detail__exercises" *ngIf="s.exercises.length">
+        <p class="day-detail__legend" *ngIf="s.hasProgress">{{ 'CLIENT_DETAIL.MEJOR_SERIE_VS_ANTERIOR' | translate }}</p>
+        <section class="day-exercise" *ngFor="let ex of s.exercises; trackBy: trackByKey">
+          <button
+            type="button"
+            class="day-exercise__header"
+            [attr.aria-expanded]="!isCollapsed(ex)"
+            [attr.aria-controls]="'day-ex-' + s.workout._id + '-' + ex.key"
+            (click)="toggle(ex)"
+          >
+            <span class="day-exercise__name">{{ ex.name ? (ex.name | translateDb) : ('TABLES.EXERCISE_DELETED' | translate) }}</span>
+            <span
+              class="day-exercise__count"
+              [class.is-partial]="ex.doneCount < ex.sets.length"
+              [attr.aria-label]="'CLIENT_DETAIL.SERIES_HECHAS_DE' | translate: { done: ex.doneCount, total: ex.sets.length }"
+              >{{ ex.doneCount }}/{{ ex.sets.length }}</span
+            >
+            <span
+              class="day-exercise__delta"
+              *ngIf="ex.progress as p"
+              [class.is-up]="p.diff > 0"
+              [class.is-down]="p.diff < 0"
+              [attr.title]="'CLIENT_DETAIL.LA_VEZ_ANTERIOR' | translate: { date: (p.previousDate | localDate: 'd MMM'), best: previousLabel(p) }"
+              [attr.aria-label]="'CLIENT_DETAIL.LA_VEZ_ANTERIOR' | translate: { date: (p.previousDate | localDate: 'd MMM'), best: previousLabel(p) }"
+            >
+              <ion-icon *ngIf="p.diff !== 0" [name]="p.diff > 0 ? 'trending-up-outline' : 'trending-down-outline'" aria-hidden="true"></ion-icon>
+              {{ delta(p) }}
+            </span>
+            <ion-icon class="day-exercise__chevron" [name]="isCollapsed(ex) ? 'chevron-down-outline' : 'chevron-up-outline'" aria-hidden="true"></ion-icon>
+          </button>
+
+          <div class="day-exercise__body" [id]="'day-ex-' + s.workout._id + '-' + ex.key" [hidden]="isCollapsed(ex)">
+            <table class="day-sets">
+              <thead>
+                <tr>
+                  <th scope="col" class="col-index">{{ 'CLIENT_DETAIL.SERIE' | translate }}</th>
+                  <th scope="col">{{ 'CLIENT_DETAIL.HECHO' | translate }}</th>
+                  <th scope="col" class="col-planned">{{ 'CLIENTS.PAUTADO' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let set of ex.sets; trackBy: trackByIndex" [class.is-missed]="!set.done">
+                  <td class="col-index">{{ set.index }}</td>
+                  <td>
+                    <ng-container *ngIf="set.done; else missed">
+                      <span class="day-sets__performed">{{ set.performed }}</span>
+                      <span class="day-sets__rir" *ngIf="set.rir">{{ set.rir }} RIR</span>
+                      <span class="day-sets__badge day-sets__badge--fail" *ngIf="set.failure" [attr.title]="'TABLES.FAIL' | translate">F</span>
+                      <span class="day-sets__badge day-sets__badge--drop" *ngIf="set.drop" [attr.title]="'TABLES.DROP_SET' | translate">DS</span>
+                      <span class="day-sets__badge day-sets__badge--rp" *ngIf="set.restPause">RP {{ set.restPause }} s</span>
+                    </ng-container>
+                    <ng-template #missed>
+                      <span class="day-sets__missed">{{ 'CLIENT_DETAIL.NO_HECHA' | translate }}</span>
+                    </ng-template>
+                  </td>
+                  <td class="col-planned">{{ set.planned || '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="day-exercise__note" *ngIf="ex.clientNote">
+              <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+              <span>{{ ex.clientNote }}</span>
+            </p>
+          </div>
+        </section>
       </div>
     </div>
   </ng-container>

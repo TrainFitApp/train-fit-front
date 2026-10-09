@@ -1,10 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { Output, EventEmitter } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { PluginListenerHandle } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
 import { ModalController, ModalOptions, AlertOptions, Platform } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
+import { finalize } from 'rxjs/operators';
 import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 // No importar IonSearchbar directamente para evitar errores en NgModules
 import { CUSTOM_PRODUCT_VALUES } from 'src/app/core/models/customProduct';
@@ -35,11 +36,18 @@ import { muscleGroupOf, muscleLabel, muscleNeedsGroup, primaryMuscleLabels } fro
   templateUrl: './search-exercises.page.html',
   styleUrls: ['./search-exercises.page.scss'],
 })
-export class SearchExercisesPage implements OnInit {
+export class SearchExercisesPage implements OnInit, OnDestroy {
   // Referencia al contenedor que proporciona AngularDelegate de Ionic.
   public modal?: HTMLIonModalElement;
 
   @ViewChild('searchbar', { static: false }) searchbar: any;
+  @ViewChild('content', { read: ElementRef }) private contentRef?: ElementRef<HTMLIonContentElement>;
+
+  // Ejercicios por página. Múltiplo de 2, 3 y 4 para que la rejilla de
+  // escritorio no deje la última fila a medias en cada página.
+  private static readonly PAGE_SIZE = 24;
+  // El mismo umbral que el ion-infinite-scroll de la plantilla.
+  private static readonly SCROLL_THRESHOLD_PX = 100;
 
   @Input() user: User;
   @Input() workout: Workout;
@@ -59,6 +67,21 @@ export class SearchExercisesPage implements OnInit {
   // nada que sustituir, solo añadir.
   @Input() pickerMode = false;
 
+  // Plantillas de entrenamiento (routine-builder) — el mismo comportamiento
+  // que en el Planificador: el checkbox añade o quita el ejercicio al momento
+  // (sin series, el buscador sigue abierto) y tocar el resto de la tarjeta
+  // abre "Configurar ejercicio" encima del buscador; si se guarda, el
+  // buscador se cierra. Quien abre el picker da estas funciones; sin ellas,
+  // el picker es la selección múltiple con "Añadir" en el pie.
+  @Input() pickerIsAdded?: (exercise: Exercise) => boolean;
+  @Input() pickerToggle?: (exercise: Exercise) => void | Promise<void>;
+  @Input() pickerConfigure?: (exercise: Exercise, origin?: HTMLIonModalElement) => Promise<boolean>;
+  @Input() pickerAddedLabel = '';
+
+  public get pickerLive(): boolean {
+    return this.pickerMode && !!this.pickerToggle;
+  }
+
   // Biblioteca de ejercicios (TASK-042) — misma pantalla de picker
   // reutilizada como catálogo navegable de solo consulta: sin workout, sin
   // ConfigExercisePage. En 'library' el tap emite exerciseSelected en vez de
@@ -66,16 +89,24 @@ export class SearchExercisesPage implements OnInit {
   @Input() mode: 'default' | 'library' = 'default';
   @Output() exerciseSelected = new EventEmitter<Exercise>();
 
-  // Biblioteca a pantalla completa (exercise-library, entrenadores): la
-  // página no tiene cabecera propia, así que "Volver" va a la izquierda del
-  // buscador y el alta es la primera tarjeta de la lista. Solo aparecen si
-  // la página escucha el evento (el picker de Puntuaciones no lo hace).
-  @Output() back = new EventEmitter<void>();
+  // Biblioteca a pantalla completa (exercise-library, entrenadores): el alta
+  // es la primera tarjeta de la lista. Solo aparece si la página escucha el
+  // evento (el picker de Puntuaciones no lo hace).
   @Output() create = new EventEmitter<void>();
 
   public exercises: Exercise[];
-  public exercisesCount: number;
   public load: boolean;
+
+  // Paginación (POST /exercises/search?withTotal=1): cuántos coinciden con
+  // la búsqueda y si quedan páginas por pedir. null hasta la primera
+  // respuesta.
+  public exercisesTotal: number | null = null;
+  public hasMore = false;
+  private loadingMore = false;
+  // Cada búsqueda nueva invalida las respuestas de las anteriores: una
+  // página que llega tarde no se mezcla con la lista de otra búsqueda.
+  private searchRequest = 0;
+  private librarySearchTimer?: ReturnType<typeof setTimeout>;
 
   // pickerMode — selección múltiple: antes cada tap (tarjeta o checkbox)
   // cerraba el modal al instante con un solo ejercicio, así que marcar el
@@ -142,19 +173,29 @@ export class SearchExercisesPage implements OnInit {
     this.searchByFilter();
   }
 
-  public get canGoBack(): boolean {
-    return this.mode !== 'library' || this.back.observed;
+  public ngOnDestroy(): void {
+    clearTimeout(this.librarySearchTimer);
   }
 
   public get canCreate(): boolean {
     return this.create.observed;
   }
 
+  // Filtros puestos en el panel de Filtros (el número del botón). En
+  // sustituir, el tipo lo fija el ejercicio de origen y no se puede tocar.
+  public get activeFilterCount(): number {
+    const filters = this.searchFilterGroupExercises;
+    if (!filters) return 0;
+    const typeFilter = !this.isChangeMode && (filters.isStrength || filters.isCardio || filters.isIsometric) ? 1 : 0;
+    return (
+      (filters.category?.length || 0) +
+      (filters.muscles?.length || 0) +
+      (filters.equipment?.length || 0) +
+      typeFilter
+    );
+  }
+
   public goBack(): void {
-    if (this.back.observed) {
-      this.back.emit();
-      return;
-    }
     void this.modalController.dismiss();
   }
 
@@ -187,48 +228,120 @@ export class SearchExercisesPage implements OnInit {
     this.searchByFilter();
   }
 
+  // Campo de búsqueda de la biblioteca (input nativo, sin el debounce de
+  // ion-searchbar).
+  public onLibrarySearch(value: string): void {
+    clearTimeout(this.librarySearchTimer);
+    this.librarySearchTimer = setTimeout(() => {
+      const search = (value || '').trim();
+      if (search === (this.searchFilterGroupExercises.search || '')) return;
+      this.searchFilterGroupExercises.search = search;
+      this.searchByFilter();
+    }, 300);
+  }
+
   private searchByFilter(): void {
+    const request = ++this.searchRequest;
     this.load = false;
+    this.loadingMore = false;
+    this.hasMore = false;
 
     this.searchFilterGroupExercises.page = 0;
     this.exerciseService
-      .searchExercise(this.searchFilterGroupExercises)
-      .subscribe((resExercises) => {
-        const filteredExercises = resExercises || [];
+      .searchExercisePage(this.searchFilterGroupExercises, 0, SearchExercisesPage.PAGE_SIZE)
+      .subscribe({
+        next: (result) => {
+          if (request !== this.searchRequest) return;
+          const filteredExercises = result?.items || [];
 
-        if (!this.isChangeMode && this.workout?.exercises) {
-           const selectedIds = this.workout.exercises.map(ce => ce.exercise?._id);
-           filteredExercises.sort((a, b) => {
+          if (!this.isChangeMode && this.workout?.exercises) {
+            const selectedIds = this.workout.exercises.map((ce) => ce.exercise?._id);
+            filteredExercises.sort((a, b) => {
               const aSelected = selectedIds.includes(a._id);
               const bSelected = selectedIds.includes(b._id);
               if (aSelected && !bSelected) return -1;
               if (!aSelected && bSelected) return 1;
               return 0;
-           });
-        }
+            });
+          }
 
-        this.exercises = filteredExercises;
-        this.exerciseService.setExercises = this.exercises;
-        this.load = true;
+          this.exercises = filteredExercises;
+          this.exerciseService.setExercises = this.exercises;
+          this.exercisesTotal = result?.total ?? filteredExercises.length;
+          this.hasMore = !!result?.hasMore;
+          this.load = true;
+          this.fillViewport(request);
+        },
+        error: (error) => {
+          if (request !== this.searchRequest) return;
+          this.exercises = [];
+          this.exercisesTotal = null;
+          this.load = true;
+          void this.ionicUtilService.showErrorToast(
+            error,
+            this.translate.instant('SEARCH_EXERCISES.LOAD_ERROR')
+          );
+        },
       });
   }
 
   public loadData(event): void {
-    this.searchFilterGroupExercises.page++;
-    setTimeout(() => {
-      event.target.complete();
-      // TODO: Unificar las busquedas
-      this.exerciseService
-        .searchExercise(this.searchFilterGroupExercises)
-        .subscribe((resExercises) => {
-          const nextExercises = resExercises || [];
+    this.loadNextPage(() => event.target.complete());
+  }
 
+  private loadNextPage(done?: () => void): void {
+    if (!this.hasMore || this.loadingMore) {
+      done?.();
+      return;
+    }
+
+    const request = this.searchRequest;
+    const nextPage = (this.searchFilterGroupExercises.page || 0) + 1;
+    this.loadingMore = true;
+
+    // Si falla, la página no avanza y hasMore sigue igual: volver a bajar
+    // la reintenta.
+    this.exerciseService
+      .searchExercisePage(this.searchFilterGroupExercises, nextPage, SearchExercisesPage.PAGE_SIZE)
+      .pipe(
+        finalize(() => {
+          if (request === this.searchRequest) this.loadingMore = false;
+          done?.();
+        })
+      )
+      .subscribe({
+        next: (result) => {
+          if (request !== this.searchRequest) return;
+          // Un ejercicio creado mientras tanto desplaza las páginas: no se
+          // repite el que ya está en la lista.
+          const known = new Set(this.exercises.map((exercise) => exercise._id));
+          const nextExercises = (result?.items || []).filter((exercise) => !known.has(exercise._id));
+
+          this.searchFilterGroupExercises.page = nextPage;
           this.exercises = this.exercises.concat(nextExercises);
           this.exerciseService.setExercises = this.exercises;
-          this.load = true;
-        });
-      // this.searchByFilter();
-    }, 500);
+          this.exercisesTotal = result?.total ?? this.exercisesTotal;
+          this.hasMore = !!result?.hasMore;
+          this.fillViewport(request);
+        },
+        error: () => undefined,
+      });
+  }
+
+  // ion-infinite-scroll solo pide la página siguiente al hacer scroll. En
+  // escritorio la rejilla de varias columnas enseña la primera página entera
+  // sin scroll, así que nunca llegaba a pedir más: se piden páginas hasta
+  // que la lista desborde o no queden.
+  private fillViewport(request: number): void {
+    setTimeout(async () => {
+      if (request !== this.searchRequest || !this.hasMore) return;
+      const scrollElement = await this.contentRef?.nativeElement?.getScrollElement?.();
+      if (!scrollElement) return;
+      const overflow = scrollElement.scrollHeight - scrollElement.clientHeight;
+      if (overflow <= SearchExercisesPage.SCROLL_THRESHOLD_PX) {
+        this.loadNextPage();
+      }
+    });
   }
 
   public addExerciseModal(
@@ -282,6 +395,7 @@ export class SearchExercisesPage implements OnInit {
   }
 
   public isExerciseSelected(exercise: Exercise): boolean {
+    if (this.pickerLive) return !!this.pickerIsAdded?.(exercise);
     if (this.pickerMode) {
       return this.pickerSelectedExercises.some((e) => e._id === exercise._id);
     }
@@ -311,6 +425,15 @@ export class SearchExercisesPage implements OnInit {
       return;
     }
 
+    // Como addExerciseModal: "Configurar ejercicio" encima del buscador.
+    if (this.pickerLive && this.pickerConfigure) {
+      void this.ionicUtilService.closeChildSidePanels(this.modal);
+      void this.pickerConfigure(exercise, this.modal).then((added) => {
+        if (added) void this.modalController.dismiss();
+      });
+      return;
+    }
+
     if (this.pickerMode) {
       this.togglePickerSelection(exercise);
       return;
@@ -330,7 +453,18 @@ export class SearchExercisesPage implements OnInit {
     this.addExerciseModal(exercise);
   }
 
-  public toggleExerciseSelection(exercise: Exercise): void {
+  public toggleExerciseSelection(exercise: Exercise, event?: Event): void {
+    if (this.pickerLive) {
+      // Quien abre el picker puede pedir confirmación (quitar un ejercicio ya
+      // pautado). Si se cancela, el checkbox ya cambió por dentro: se vuelve
+      // a poner como diga la plantilla.
+      const checkbox = event?.target as HTMLIonCheckboxElement | undefined;
+      void Promise.resolve(this.pickerToggle!(exercise)).then(() => {
+        if (checkbox) checkbox.checked = this.isExerciseSelected(exercise);
+      });
+      return;
+    }
+
     if (this.pickerMode) {
       this.togglePickerSelection(exercise);
       return;
@@ -433,6 +567,7 @@ export class SearchExercisesPage implements OnInit {
       componentProps: {
         searchFilterGroupExercises: this.searchFilterGroupExercises,
         showExerciseTypeFilter: !this.isChangeMode,
+        onFiltersChange: () => this.searchByFilter(),
       },
       animated: true,
     };

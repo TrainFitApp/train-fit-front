@@ -10,8 +10,8 @@
 @mixin tf-gradient-button($radius: 12px) {
   border: none;
   border-radius: $radius;
-  background: var(--tf-accent-gradient);
-  color: var(--tf-accent-contrast);
+  background: var(--tf-cta-bg);
+  color: var(--tf-cta-contrast);
   font-weight: 700;
   cursor: pointer;
   transition: transform 160ms var(--tf-ease-out), opacity 160ms var(--tf-ease-out);

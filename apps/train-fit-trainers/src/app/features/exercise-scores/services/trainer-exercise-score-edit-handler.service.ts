@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { Exercise } from 'src/app/core/models/exercise';
-import { ExerciseScoreEditHandler } from 'src/app/core/services/exercise/exercise-score-edit-handler';
+import {
+  ExerciseScoreEditHandler,
+  ExerciseScoreSummary,
+} from 'src/app/core/services/exercise/exercise-score-edit-handler';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { ExerciseScore } from 'src/app/core/constants/exercise-score';
+import { ExerciseScore, scoreHighlights } from 'src/app/core/constants/exercise-score';
 import { ExerciseScoresApiService, ScoreCatalog } from './exercise-scores-api.service';
 import { ScoreEditorModalComponent } from '../components/score-editor-modal/score-editor-modal.component';
 
@@ -27,8 +30,28 @@ export class TrainerExerciseScoreEditHandlerService extends ExerciseScoreEditHan
     super();
   }
 
-  public editScore(exercise: Exercise, origin?: HTMLElement): void {
-    void this.open(exercise, origin);
+  public editScore(exercise: Exercise, origin?: HTMLElement): Promise<void> {
+    return this.open(exercise, origin);
+  }
+
+  public async getSummary(exercise: Exercise): Promise<ExerciseScoreSummary> {
+    const { existing, defaultScore } = await this.scoresFor(exercise);
+    const state = existing ? 'mine' : defaultScore ? 'suggested' : 'none';
+    return { state, ...scoreHighlights(existing || defaultScore) };
+  }
+
+  // La puntuación propia guardada y la sugerencia por patrón de movimiento.
+  private async scoresFor(exercise: Exercise): Promise<{
+    existing: ExerciseScore | null;
+    defaultScore: Pick<ExerciseScore, 'muscleScores' | 'jointScores'> | null;
+  }> {
+    const [mine, defaultScore] = await Promise.all([
+      lastValueFrom(this.exerciseScoresApi.getMine()).catch(() => [] as ExerciseScore[]),
+      lastValueFrom(this.exerciseScoresApi.getDefault(exercise._id)).catch(() => null),
+    ]);
+    const existing =
+      (mine || []).find((score) => this.scoreExerciseId(score) === exercise._id) || null;
+    return { existing, defaultScore };
   }
 
   private async open(exercise: Exercise, origin?: HTMLElement): Promise<void> {
@@ -36,13 +59,7 @@ export class TrainerExerciseScoreEditHandlerService extends ExerciseScoreEditHan
       this.catalog = await lastValueFrom(this.exerciseScoresApi.getCatalog()).catch(() => null);
     }
 
-    const [mine, defaultScore] = await Promise.all([
-      lastValueFrom(this.exerciseScoresApi.getMine()).catch(() => [] as ExerciseScore[]),
-      lastValueFrom(this.exerciseScoresApi.getDefault(exercise._id)).catch(() => null),
-    ]);
-
-    const existing =
-      (mine || []).find((score) => this.scoreExerciseId(score) === exercise._id) || null;
+    const { existing, defaultScore } = await this.scoresFor(exercise);
     const isDefault = !existing && !!defaultScore;
     const initial = existing || (defaultScore ? { ...defaultScore, secondsPerSet: null } : null);
 

@@ -63,3 +63,25 @@ export const SCORE_LEVELS: number[] = Array.from(
 export function scoreFor(entries: ExerciseScoreEntry[] | undefined, name: string): number {
   return entries?.find((entry) => entry.name === name)?.score ?? 0;
 }
+
+export interface ScoreHighlights {
+  // Los (como mucho) 3 músculos con más estímulo, de más a menos.
+  topMuscles: string[];
+  // La articulación más exigente, solo si llega al nivel que obliga a
+  // dosificarla (2): nombrar "Codo 1" en cada ejercicio sería ruido.
+  hardestJoint: string | null;
+}
+
+// Lo que se enseña de una puntuación sin abrir el editor: el mismo resumen
+// en "Mi método" (lista de puntuados) y en "Configurar ejercicio".
+export function scoreHighlights(
+  score: Pick<ExerciseScore, 'muscleScores' | 'jointScores'> | null | undefined
+): ScoreHighlights {
+  const topMuscles = [...(score?.muscleScores || [])]
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((entry) => entry.name);
+  const hardest = [...(score?.jointScores || [])].sort((a, b) => b.score - a.score)[0];
+  return { topMuscles, hardestJoint: hardest && hardest.score >= 2 ? hardest.name : null };
+}

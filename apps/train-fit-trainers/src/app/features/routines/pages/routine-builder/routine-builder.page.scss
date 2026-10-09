@@ -2,12 +2,14 @@
 @import '../../../../../theme/buttons';
 @import '../../../../../theme/inputs';
 
+$desktop: 900px;
+
 .builder-content {
   --background: var(--tf-bg);
   --padding-start: 16px;
   --padding-end: 16px;
   --padding-top: 12px;
-  --padding-bottom: 24px;
+  --padding-bottom: 32px;
 }
 
 .skeleton-block {
@@ -15,9 +17,7 @@
   border-radius: 12px;
 }
 
-// --- Carga de página completa: forma aproximada del layout final (panel de
-// metadata + bloques), no dos bloques genéricos — mismo criterio que
-// dashboard.page.scss ---
+// --- Carga de página completa: forma aproximada del layout final ---
 .builder-skeleton {
   display: flex;
   flex-direction: column;
@@ -25,21 +25,14 @@
 }
 
 .skeleton-block--sidebar {
-  height: 220px;
+  height: 160px;
 }
 
 .skeleton-block--block {
   height: 120px;
 }
 
-.empty-hint {
-  font-size: 0.86rem;
-  color: var(--tf-text-muted);
-  text-align: center;
-}
-
-// --- Estado de error de página completa — mismo patrón que
-// clients.page.scss / dashboard.page.scss (icono + título + texto + CTA) ---
+// --- Estado de error de página completa (mismo patrón que clients/dashboard) ---
 .state-message {
   display: flex;
   flex-direction: column;
@@ -88,37 +81,49 @@
   }
 }
 
+// --- Layout ---
+
 .builder-layout {
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
-.builder-section {
-  margin-bottom: 20px;
-}
-
-.field-pair {
+.builder-sidebar {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  .field-pair-col {
-    flex: 1;
-    min-width: 0;
+.builder-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+// Móvil: el panel de la izquierda se deshace para que el resumen de la
+// sesión vaya después de los ejercicios, que es lo que se edita.
+@media (max-width: 899px) {
+  .builder-sidebar {
+    display: contents;
   }
 
-  .field-label {
-    margin-top: 12px;
+  .sheet {
+    order: 0;
+  }
+
+  .builder-main {
+    order: 1;
+  }
+
+  .session-summary {
+    order: 2;
   }
 }
 
-// Desktop/web — antes todo se apilaba en una sola columna a lo ancho de la
-// ventana (campos de metadata a 1200px+ de ancho para un input que solo
-// necesita ~300px). El nombre/descripción/nivel/etiquetas quedan en un
-// panel fijo a la izquierda — no se pierden de vista al bajar por los
-// bloques — y "Contenido" pasa a ser la columna ancha, que es donde de
-// verdad hace falta el espacio (las filas de series/reps/RIR ya no
-// necesitan envolver).
-@media (min-width: 900px) {
+// Escritorio: la ficha y el resumen quedan fijos a la izquierda mientras se
+// pauta; el contenido es la columna ancha, donde hace falta el espacio.
+@media (min-width: $desktop) {
   .builder-content {
     --padding-start: 28px;
     --padding-end: 28px;
@@ -127,9 +132,9 @@
 
   .builder-layout {
     display: grid;
-    grid-template-columns: minmax(280px, 340px) 1fr;
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
     align-items: start;
-    gap: 24px;
+    gap: 28px;
     max-width: 1220px;
     margin: 0 auto;
   }
@@ -137,36 +142,36 @@
   .builder-sidebar {
     position: sticky;
     top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .builder-sidebar .builder-section {
-    margin-bottom: 0;
-  }
-
-  .builder-main .builder-section {
-    margin-bottom: 0;
   }
 }
+
+// --- Campos comunes ---
 
 .field-label {
   display: block;
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--tf-text-secondary);
-  margin: 12px 0 6px;
+  margin: 14px 0 6px;
 
   &:first-child {
     margin-top: 0;
   }
 }
 
+.field-label-note {
+  font-weight: 500;
+  color: var(--tf-text-muted);
+}
+
 .input-wrapper {
   @include tf-input-wrapper(var(--tf-surface-2));
   position: relative;
   height: 46px;
+
+  &--error {
+    border-color: var(--tf-danger);
+  }
 }
 
 .input-icon {
@@ -176,18 +181,32 @@
 
 .input-field {
   @include tf-input-field;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.field-error {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--tf-danger-text);
 }
 
 .builder-textarea {
+  display: block;
   width: 100%;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border);
   border-radius: 10px;
   color: var(--tf-text);
   padding: 10px 12px;
+  font-family: inherit;
   font-size: 0.88rem;
+  line-height: 1.45;
   resize: vertical;
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
 
   &:focus {
     outline: none;
@@ -195,54 +214,438 @@
   }
 }
 
-.level-picker {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+// --- Ficha ---
+
+.sheet {
+  display: flex;
+  flex-direction: column;
 }
 
-.level-option {
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid var(--tf-border-strong);
-  background: var(--tf-surface-2);
+.details-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tf-touch-min);
+  margin-top: 10px;
+  padding: 0 4px;
+  background: transparent;
+  border: none;
   color: var(--tf-text-secondary);
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-family: inherit;
+  text-align: left;
   cursor: pointer;
 
-  &.selected {
-    border-color: var(--tf-accent);
-    color: var(--tf-accent);
-    background: var(--tf-accent-soft);
+  ion-icon {
+    margin-left: auto;
+    flex-shrink: 0;
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    border-radius: 8px;
   }
 }
 
-.section-heading {
-  font-size: 0.95rem;
+.details-toggle-title {
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--tf-text);
-  margin-bottom: 10px;
 }
 
-.block-card {
+.details-toggle-summary {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+}
+
+.details-body {
+  display: none;
+
+  &--open {
+    display: block;
+  }
+}
+
+@media (min-width: $desktop) {
+  .details-toggle {
+    display: none;
+  }
+
+  .details-body {
+    display: block;
+  }
+}
+
+// --- Resumen de la sesión ---
+
+.session-summary {
+  padding: 14px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: 12px;
-  margin-bottom: 12px;
-  padding: 12px;
 }
 
-.block-header {
-  display: block;
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0;
+
+  div {
+    min-width: 0;
+  }
+
+  dt {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+  }
+
+  dd {
+    margin: 2px 0 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--tf-text);
+    font-variant-numeric: tabular-nums;
+
+    small {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--tf-text-muted);
+    }
+  }
+}
+
+.summary-equipment {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 12px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--tf-text-muted);
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.summary-muscles {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tf-border-subtle);
+
+  ul {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, 7.5rem) 1fr 2.2rem;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+  }
+}
+
+.summary-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
+.muscle-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tf-text-secondary);
+}
+
+.muscle-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--tf-surface-4);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--tf-accent);
+  }
+}
+
+.muscle-sets {
+  text-align: right;
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+// --- Guardar: en el panel en escritorio, en el pie en móvil ---
+
+.submit-button {
+  @include tf-gradient-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
+  height: 50px;
+  font-size: 0.92rem;
+
+  // Sin cambios: el botón se apaga y confirma que está todo guardado, en
+  // vez de quedarse igual de llamativo.
+  &--clean,
+  &--clean:disabled {
+    background: var(--tf-surface-3);
+    color: var(--tf-text-secondary);
+    opacity: 1;
+  }
+}
+
+.submit-button--sidebar {
+  display: none;
+}
+
+.builder-footer {
+  padding: 10px 16px calc(10px + var(--ion-safe-area-bottom, 0px));
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border);
+}
+
+@media (min-width: $desktop) {
+  .submit-button--sidebar {
+    display: flex;
+  }
+
+  .builder-footer {
+    display: none;
+  }
+}
+
+// --- Contenido ---
+
+.session-notes {
+  margin-bottom: 20px;
+}
+
+.notes-toggle {
+  width: 100%;
+  margin-top: 0;
+  border-bottom: 1px solid var(--tf-border-subtle);
+}
+
+.notes-body {
+  display: none;
+  padding-top: 10px;
+
+  &--open {
+    display: block;
+  }
+
+  .field-label {
+    display: none;
+  }
+}
+
+@media (min-width: 900px) {
+  .notes-toggle {
+    display: none;
+  }
+
+  .notes-body {
+    display: block;
+    padding-top: 0;
+
+    .field-label {
+      display: block;
+    }
+  }
+}
+
+.content-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--tf-text);
+  }
+
+  > span {
+    font-size: 0.78rem;
+    color: var(--tf-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .toggle-all {
+    margin-left: auto;
+    align-self: center;
+  }
+}
+
+.content-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 20px 28px;
+  text-align: center;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: 12px;
+
+  > ion-icon {
+    font-size: 36px;
+    color: var(--tf-text-faint);
+  }
+
+  h3 {
+    margin: 4px 0 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--tf-text);
+  }
+
+  p {
+    margin: 0 0 8px;
+    max-width: 38ch;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--tf-text-muted);
+  }
+}
+
+.primary-action {
+  @include tf-gradient-button;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 46px;
+  padding: 0 22px;
+  font-size: 0.9rem;
+}
+
+.text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tf-touch-min);
+  padding: 0 8px;
   background: transparent;
   border: none;
+  border-radius: 8px;
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: var(--tf-accent-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+  }
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
   padding: 0;
-  margin-bottom: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: var(--tf-text-muted);
+  font-size: 20px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-text);
+    background: var(--tf-surface-3);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+    background: transparent;
+  }
+
+  &--small {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
+// --- Bloques: el contenedor del Planificador (workout.component.scss) —
+// fondo tintado y borde del color de su tipo; --block-rgb lo pone
+// shared-theme/global.scss por tipo (.workout-block--superset…) ---
+
+.workout-block {
+  margin: 12px 0;
+  padding: 2px 10px 4px;
+  border-radius: 10px;
+  border-left: 3px solid rgb(var(--block-rgb));
+  background: rgba(var(--block-rgb), 0.08);
+
+  .exercise-card {
+    background: transparent;
+  }
+}
+
+.workout-block-header {
+  display: block;
+  width: 100%;
+  margin: 0 0 4px;
+  padding: 10px 4px 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(var(--block-rgb), 0.3);
+  color: inherit;
   font-family: inherit;
   text-align: left;
-  color: inherit;
   cursor: pointer;
 
   &:focus-visible {
@@ -255,25 +658,17 @@
 .block-header-main {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
-  > ion-icon:first-child {
-    color: var(--tf-text-muted);
+  ion-icon {
+    font-size: 14px;
+    color: rgb(var(--block-rgb));
   }
-}
-
-// Señal de que la cabecera del bloque se puede pulsar (renombrar/rondas/
-// borrar) — en móvil no hay :hover que lo distinga a simple vista, mismo
-// criterio que .stat-chevron en dashboard.page.scss.
-.block-header-chevron {
-  flex-shrink: 0;
-  font-size: 16px;
-  color: var(--tf-text-faint);
 }
 
 .block-name {
   flex: 1;
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 700;
   color: var(--tf-text);
 }
@@ -281,13 +676,13 @@
 .block-type-badge {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--tf-accent-text);
-  background: var(--tf-accent-soft);
-  border: 1px solid var(--tf-accent-soft-border);
+  letter-spacing: 0.03em;
+  color: var(--tf-text);
+  background: rgba(var(--block-rgb), 0.18);
+  border: 1px solid rgba(var(--block-rgb), 0.55);
   border-radius: 6px;
-  padding: 2px 7px;
+  padding: 2px 8px;
 }
 
 .block-header-meta {
@@ -295,135 +690,420 @@
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 4px;
-  font-size: 0.72rem;
+  font-size: 11px;
   color: var(--tf-text-muted);
 }
 
-.exercise-row {
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border-subtle);
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 8px;
+.block-empty {
+  margin: 8px 4px 10px;
+  font-size: 0.8rem;
+  color: var(--tf-text-muted);
 }
 
-.exercise-row-header {
+.ungrouped-header {
+  margin: 16px 0 4px;
+  padding: 4px 14px;
+  border-bottom: 1px solid var(--tf-border);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tf-text-muted);
+}
+
+// --- Tarjeta de ejercicio (la del Planificador, sin peso) ---
+
+.exercise-list {
+  display: block;
+}
+
+.exercise-card {
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--tf-border);
+  background: var(--tf-bg);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.exercise-info {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  gap: 4px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
 }
 
-.exercise-name {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--tf-text);
-}
-
-.remove-exercise-btn {
+.exercise-drag-handle {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  flex-shrink: 0;
+  width: 32px;
+  height: var(--tf-touch-min);
+  color: var(--tf-text-muted);
+  font-size: 18px;
+  cursor: grab;
+}
+
+.exercise-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tf-touch-min);
+  padding: 6px 4px;
   background: transparent;
   border: none;
-  color: var(--tf-text-muted);
+  border-radius: 8px;
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: left;
   cursor: pointer;
 
-  &:hover {
-    color: var(--tf-danger);
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+  }
+
+  &--missing {
+    color: var(--tf-text-muted);
+    font-style: italic;
+  }
+}
+
+.exercise-name-text {
+  min-width: 0;
+}
+
+.exercise-name-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-faint);
+}
+
+.retired-tag {
+  margin-left: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-style: normal;
+  color: var(--tf-warning);
+}
+
+.exercise-icons {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.no-sets {
+  display: flex;
+  padding: 12px 0 4px;
+}
+
+.add-sets-button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 14px;
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 1.1rem;
   }
 
   &:focus-visible {
     outline: 2px solid var(--tf-accent);
-    outline-offset: 1px;
-    border-radius: 4px;
+    outline-offset: 2px;
   }
 }
 
-// Grid en vez de flex-wrap: con flex-wrap las filas de campos (series/reps/
-// RIR) se quedaban pegadas a la izquierda sin usar el ancho del bloque en
-// desktop (el bloque puede llegar a 800px+ y los inputs a 56px). Con grid +
-// auto-fit las columnas se reparten el ancho disponible entre sí — en móvil
-// caben menos columnas y ninguna queda huérfana ocupando solo su mínimo.
-.scheme-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  gap: 8px;
-}
+// --- Series plegadas: una línea de resumen ---
 
-.scheme-field {
+.sets-summary {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  margin-top: 2px;
+  padding: 6px 8px;
+  background: var(--tf-surface-1);
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
 
-  &--wide {
-    grid-column: span 2;
+  .fail-label,
+  .intensity-drop,
+  .intensity-rp {
+    margin: 0;
   }
 
-  span {
-    font-size: 10px;
-    font-weight: 600;
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+  }
+}
+
+.sets-summary-count {
+  color: var(--tf-text);
+  font-weight: 700;
+}
+
+// --- Tabla de series (previous-session-table del Planificador) ---
+
+.set-table {
+  width: 100%;
+  margin-top: 4px;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+
+  th {
+    padding: 10px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    text-align: center;
     color: var(--tf-text-muted);
   }
 
-  input {
-    width: 100%;
-    background: var(--tf-surface-4);
-    border: 1px solid var(--tf-border);
-    border-radius: 6px;
-    color: var(--tf-text);
-    padding: 5px 6px;
-    font-size: 13px;
+  td {
+    height: var(--tf-touch-min);
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--tf-border-subtle);
     font-weight: 600;
+    text-align: center;
+    color: var(--tf-text);
+  }
 
-    &:focus-visible {
-      outline: 2px solid var(--tf-accent);
-      outline-offset: 1px;
-    }
+  .col-set {
+    width: 60px;
   }
 }
 
-.scheme-summary {
-  margin: 6px 0 0;
-  font-size: 0.74rem;
+.set-index {
+  min-width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--tf-accent-soft-border);
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--tf-accent-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+  }
+}
+
+.editable-cell {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--tf-text-faint);
+  text-underline-offset: 4px;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-accent-soft);
+  }
+
+  &.editing {
+    padding: 4px;
+  }
+}
+
+.inline-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 5px 4px;
+  background: var(--tf-accent-soft);
+  border: 1.5px solid var(--tf-accent);
+  border-radius: 6px;
+  color: var(--tf-text);
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.inline-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .inline-input {
+    flex: 1 1 0;
+    min-width: 30px;
+    padding: 5px 3px;
+  }
+}
+
+.inline-range-sep {
+  flex: 0 0 auto;
+  font-weight: 700;
   color: var(--tf-text-muted);
 }
 
-.add-exercise-btn,
-.add-block-btn {
+// Intensidad, abreviada como en el Planificador (F, DS, RP n s).
+.fail-label,
+.intensity-drop,
+.intensity-rp {
+  display: inline-block;
+  margin: 0 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+// Mismos colores que el Planificador (workout.component.scss): fallo
+// naranja, drop set rojo y rest-pause azul.
+.fail-label {
+  color: var(--tf-accent);
+  background: var(--tf-accent-soft);
+}
+
+.intensity-drop {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.intensity-rp {
+  color: #2563eb;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.quick-add-set-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   width: 100%;
-  height: 40px;
+  min-height: 36px;
+  margin-top: 6px;
+  padding: 8px;
+  background: var(--tf-accent-soft);
+  border: 1px dashed var(--tf-accent-soft-border);
+  border-radius: 8px;
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 1rem;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.exercise-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 10px 4px 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--tf-text-secondary);
+  white-space: pre-line;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--tf-text-muted);
+  }
+}
+
+// --- Añadir ---
+
+.content-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.add-exercise-button,
+.add-block-button {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  min-height: var(--tf-touch-min);
+  padding: 0 12px;
   background: transparent;
   border: 1px dashed var(--tf-border-strong);
   border-radius: 10px;
   color: var(--tf-text-secondary);
-  font-size: 0.82rem;
+  font-family: inherit;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
 
   &:hover {
     border-color: var(--tf-accent);
-    color: var(--tf-accent);
+    color: var(--tf-accent-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
   }
 }
 
-.add-block-btn {
-  height: 44px;
-  border-color: var(--tf-border-strongest);
-}
-
-.submit-button {
-  @include tf-gradient-button;
-  width: 100%;
-  height: 50px;
-  font-size: 0.92rem;
+.add-block-button {
+  flex: 0 0 auto;
 }

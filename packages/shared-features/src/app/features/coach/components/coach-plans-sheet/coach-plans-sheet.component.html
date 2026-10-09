@@ -1,0 +1,93 @@
+<div class="cs-sheet">
+  <header class="cs-head">
+    <h2 class="cs-title">{{ 'COACH_SHEETS.PLANS_TITLE' | translate }}</h2>
+    <button type="button" class="close-action-button ripple-effect" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate" (click)="close()">
+      <ion-icon name="close" color="primary" aria-hidden="true"></ion-icon>
+    </button>
+  </header>
+
+  <div class="cs-tabs" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      class="cs-tab"
+      [class.cs-tab--active]="kind === 'training'"
+      [attr.aria-selected]="kind === 'training'"
+      (click)="select('training')"
+    >
+      <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+      {{ 'ONBOARDING.SCOPE_TRAINING' | translate }}
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="cs-tab"
+      [class.cs-tab--active]="kind === 'nutrition'"
+      [attr.aria-selected]="kind === 'nutrition'"
+      (click)="select('nutrition')"
+    >
+      <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon>
+      {{ 'ONBOARDING.SCOPE_NUTRITION' | translate }}
+    </button>
+  </div>
+
+  <!-- Scroll propio: con la clase, el gesto de la hoja respeta el scroll. -->
+  <div class="cs-body ion-content-scroll-host">
+    <div class="cs-skeleton" *ngIf="state === 'loading'" aria-hidden="true">
+      <div class="cs-skeleton-block cs-skeleton-block--tall"></div>
+      <div class="cs-skeleton-block"></div>
+      <div class="cs-skeleton-block"></div>
+    </div>
+
+    <div class="cs-error" *ngIf="state === 'error'" role="status">
+      <p>{{ 'COACH_SHEETS.PLANS_ERROR' | translate }}</p>
+      <button type="button" class="cs-retry" (click)="load()">{{ 'COMMON.RETRY' | translate }}</button>
+    </div>
+
+    <ng-container *ngIf="state === 'loaded' && timeline as t">
+      <section class="cs-section">
+        <h3 class="cs-section-heading">{{ 'COACH_SHEETS.NOW' | translate }}</h3>
+
+        <div class="ps-current" *ngIf="t.current as current; else noCurrent">
+          <span class="ps-current-name">{{ current.name }}</span>
+          <span class="ps-current-dates">{{ currentDates(current) }}</span>
+          <span class="ps-current-meta">
+            <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+            {{ trainerLabel(current) }}
+            <ng-container *ngIf="kcalLabel(current) as kcal"> · <span class="ps-kcal">{{ kcal }}</span></ng-container>
+          </span>
+        </div>
+
+        <ng-template #noCurrent>
+          <p class="ps-empty">{{ (kind === 'training' ? 'COACH.NO_ROUTINE' : 'COACH.NO_DIET') | translate }}</p>
+        </ng-template>
+      </section>
+
+      <section class="cs-section" *ngIf="t.upcoming.length">
+        <h3 class="cs-section-heading">{{ 'COACH_SHEETS.UPCOMING' | translate }}</h3>
+        <ol class="ps-list">
+          <li class="ps-row ps-row--upcoming" *ngFor="let entry of t.upcoming; trackBy: trackByEntry">
+            <span class="ps-row-name">{{ entry.name }}</span>
+            <span class="ps-row-meta">
+              {{ rowDates(entry) }} · {{ trainerLabel(entry) }}<ng-container *ngIf="kcalLabel(entry) as kcal"> · {{ kcal }}</ng-container>
+            </span>
+          </li>
+        </ol>
+      </section>
+
+      <section class="cs-section" *ngIf="t.past.length">
+        <h3 class="cs-section-heading">{{ 'COACH_SHEETS.PAST' | translate }}</h3>
+        <ol class="ps-list">
+          <li class="ps-row ps-row--past" *ngFor="let entry of t.past; trackBy: trackByEntry">
+            <span class="ps-row-name">{{ entry.name }}</span>
+            <span class="ps-row-meta">
+              {{ rowDates(entry) }} · {{ trainerLabel(entry) }}<ng-container *ngIf="kcalLabel(entry) as kcal"> · {{ kcal }}</ng-container>
+            </span>
+          </li>
+        </ol>
+      </section>
+
+      <p class="cs-footnote">{{ 'COACH_SHEETS.PLANS_READ_ONLY' | translate }}</p>
+    </ng-container>
+  </div>
+</div>

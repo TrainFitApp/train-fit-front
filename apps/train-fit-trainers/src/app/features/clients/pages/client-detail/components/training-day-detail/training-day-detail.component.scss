@@ -142,3 +142,233 @@
     margin: 0;
   }
 }
+
+// --- Detalle de la sesión: nota del cliente y ejercicios ---
+
+.day-detail__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  background: var(--tf-surface-2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--tf-text-secondary);
+  white-space: pre-line;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--tf-text-muted);
+  }
+
+  strong {
+    color: var(--tf-text);
+    font-weight: 600;
+  }
+}
+
+.day-detail__exercises {
+  margin-top: 12px;
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.day-detail__legend {
+  margin: 8px 0 2px;
+  font-size: 0.72rem;
+  color: var(--tf-text-muted);
+}
+
+// Un ejercicio: cabecera tocable (pliega o despliega sus series) y filas
+// separadas por una línea, no tarjetas dentro de la tarjeta.
+.day-exercise {
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.day-exercise__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: 6px 2px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+  }
+}
+
+.day-exercise__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.day-exercise__count {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+
+  &.is-partial {
+    color: var(--tf-warning);
+  }
+}
+
+// Mejor serie frente a la vez anterior: verde si sube, rojo si baja.
+.day-exercise__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--tf-surface-3);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--tf-text-secondary);
+  font-variant-numeric: tabular-nums;
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &.is-up {
+    color: var(--tf-success);
+    background: var(--tf-success-soft);
+  }
+
+  &.is-down {
+    color: var(--tf-danger-text);
+    background: var(--tf-danger-soft);
+  }
+}
+
+.day-exercise__chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-faint);
+}
+
+.day-exercise__body {
+  padding: 0 2px 10px;
+}
+
+.day-sets {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+
+  th {
+    padding: 6px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: left;
+    color: var(--tf-text-muted);
+  }
+
+  td {
+    padding: 7px 4px;
+    border-top: 1px solid var(--tf-border-subtle);
+    color: var(--tf-text);
+    vertical-align: middle;
+  }
+
+  .col-index {
+    width: 44px;
+    color: var(--tf-text-muted);
+    font-weight: 700;
+  }
+
+  .col-planned {
+    color: var(--tf-text-muted);
+    font-size: 12px;
+  }
+
+  tr.is-missed td {
+    color: var(--tf-text-faint);
+  }
+}
+
+.day-sets__performed {
+  font-weight: 700;
+}
+
+.day-sets__rir {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--tf-text-secondary);
+}
+
+// Mismos colores que el Planificador: fallo naranja, drop set rojo y
+// rest-pause azul.
+.day-sets__badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+
+  &--fail {
+    color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+  }
+
+  &--drop {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  &--rp {
+    color: #2563eb;
+    background: rgba(59, 130, 246, 0.1);
+  }
+}
+
+.day-sets__missed {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--tf-text-faint);
+}
+
+.day-exercise__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--tf-text-secondary);
+  white-space: pre-line;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--tf-text-muted);
+  }
+}

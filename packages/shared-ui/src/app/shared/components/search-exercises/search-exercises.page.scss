@@ -9,6 +9,9 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  // Con la cabecera de la página encima (biblioteca, Puntuaciones), el 100%
+  // se pasaría de alto: así encoge a lo que queda en la columna de .ion-page.
+  min-height: 0;
 }
 
 // Minimalist Header Styles
@@ -237,33 +240,151 @@
   }
 }
 
-// Biblioteca (mode="library", solo entrenadores): una sola barra compacta.
-// Volver + buscador + filtro y, pegados a él, los chips Todo / Mis
-// ejercicios / Favoritos en la misma fila cuando caben; si no, bajan justo
-// debajo. Va detrás del bloque móvil de arriba para ganarle en el padding.
-.search-header--library {
+// Biblioteca (mode="library", solo entrenadores): buscador y filtros dentro
+// del contenido, encima de la lista; la cabecera es la de la página. Copia
+// de la barra de la Cartera de clientes (client-roster: roster-toolbar,
+// mixins tf-input-* y tf-icon-button), con sus valores a mano porque los
+// mixins viven en el tema de la app de entrenadores, no en shared-ui.
+.library-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-4) 0;
+
+  // Las secciones de filtros activos traen el padding de cuando iban en la
+  // cabecera; aquí ya lo pone la barra.
+  .filters-section {
+    padding: 0;
+  }
+}
+
+.library-search-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
+.library-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: var(--tf-touch-min);
+  padding: 0 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 12px;
+  cursor: text;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:focus-within {
+    border-color: var(--tf-accent);
+  }
+}
+
+.library-search__icon {
+  flex-shrink: 0;
+  color: var(--tf-text-muted);
+  font-size: 18px;
+}
+
+.library-search__input {
+  flex: 1;
+  min-width: 0;
+  height: var(--tf-touch-min);
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
+  caret-color: var(--tf-accent);
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  // El aspa nativa de type="search" no sigue el tema; se borra seleccionando.
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+}
+
+// Botón de icono en acento: es la única acción de la barra y tiene que
+// distinguirse del campo que lleva al lado. Con filtros puestos se rellena.
+.library-filter-btn {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  margin: 0;
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &.has-filters {
+    background: var(--tf-accent);
+    color: var(--tf-accent-contrast);
+  }
+}
+
+// Cuántos filtros hay puestos, sin abrir el panel para comprobarlo.
+.library-filter-btn__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent);
+  box-shadow: 0 0 0 2px var(--tf-bg);
+  color: var(--tf-accent-contrast);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+// Alcance (Todo / Mis ejercicios / Favoritos) y cuántos ejercicios
+// coinciden, en la misma fila; en móvil el número baja si no cabe.
+.library-scope-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: var(--tf-space-2) var(--tf-space-3);
-  padding: var(--tf-space-2) var(--tf-space-4);
-
-  .header-content {
-    flex: 1 1 320px;
-    min-height: 0;
-    padding: 0;
-    gap: var(--tf-space-2);
-  }
-
-  // El ion-searchbar iOS trae min-height: 60px: a la altura de su caja.
-  .custom-searchbar {
-    min-height: 0;
-  }
 
   app-exercise-filter-icons {
     flex: 0 1 auto;
     min-width: 0;
   }
+}
+
+.library-count {
+  margin: 0 0 0 auto;
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 // Filters Section

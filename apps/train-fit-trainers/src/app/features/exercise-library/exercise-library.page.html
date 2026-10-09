@@ -1,9 +1,13 @@
-<!-- Sin cabecera de página: "Volver" va a la izquierda del buscador y el alta
-     es la primera tarjeta de la lista (ver app-search-exercises). -->
+<!-- Cabecera común de la app (Volver a Biblioteca + título). El buscador y los
+     filtros van dentro del contenido, encima de la lista, y el alta es la
+     primera tarjeta (ver app-search-exercises en mode="library"). -->
+<ion-header class="ion-no-border">
+  <app-page-header [title]="'TRAINER_COMMON.EXERCISES' | translate"></app-page-header>
+</ion-header>
+
 <app-search-exercises
   *ngIf="listVisible"
   mode="library"
-  (back)="navigation.back()"
   (create)="openExerciseForm()"
   (exerciseSelected)="openExerciseDetail($event)"
 ></app-search-exercises>

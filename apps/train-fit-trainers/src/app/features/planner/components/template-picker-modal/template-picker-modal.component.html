@@ -51,13 +51,12 @@
           [name]="isSelected(template) ? 'checkmark-circle' : 'ellipse-outline'"
         ></ion-icon>
         <span class="template-name">{{ template.name }}</span>
-        <span class="template-level">{{ levelLabels[template.level] }}</span>
       </div>
       <div class="template-tags" *ngIf="template.tags?.length">
         <span class="template-tag" *ngFor="let tag of template.tags">{{ tag }}</span>
       </div>
       <div class="template-meta">
-        <span>{{ blockCount(template) }} {{ 'PLANNER.BLOQUES' | translate }}</span>
+        <span *ngIf="blockCount(template)">{{ blockCount(template) }} {{ 'PLANNER.BLOQUES' | translate }}</span>
         <span>{{ exerciseCount(template) }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
       </div>
     </button>

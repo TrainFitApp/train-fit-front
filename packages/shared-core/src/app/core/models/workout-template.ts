@@ -1,3 +1,5 @@
+import { ExerciseMuscle } from '../constants/muscle-catalog';
+
 export interface WorkoutTemplateSet {
   expectedReps: number[];
   expectedRir: number[];
@@ -5,10 +7,25 @@ export interface WorkoutTemplateSet {
   restPause?: number | null;
   expectedTime?: string;
   expectedDistance?: number | null;
+  // Descanso tras la serie, en segundos (el mismo campo que la serie real).
+  restSeconds?: number | null;
+}
+
+// Ficha resumida del ejercicio con la que el back devuelve cada plantilla
+// (workout-template-dao.js#toEditorShape). Un ejercicio que ya no está en el
+// catálogo llega como id plano.
+export interface WorkoutTemplateExerciseRef {
+  _id: string;
+  name: string;
+  isCardio?: boolean;
+  isIsometric?: boolean;
+  equipment?: string[];
+  muscles?: ExerciseMuscle[];
+  deletedAt?: string;
 }
 
 export interface WorkoutTemplateExercise {
-  exercise: string | { _id: string; name: string };
+  exercise: string | WorkoutTemplateExerciseRef;
   order: number;
   notes?: string;
   sets: WorkoutTemplateSet[];
@@ -22,6 +39,9 @@ export type WorkoutTemplateBlockType =
   | 'finisher';
 
 export interface WorkoutTemplateBlock {
+  // El grupo "Sin agrupar" (como en el Planificador): sus ejercicios se
+  // guardan sin bloque. Va siempre el último.
+  ungrouped?: boolean;
   name?: string;
   type: WorkoutTemplateBlockType;
   order: number;
@@ -38,6 +58,9 @@ export interface WorkoutTemplate {
   _id: string;
   trainerId: string;
   name: string;
+  // Indicaciones de la sesión para el cliente: pasan al entrenamiento al
+  // aplicar la plantilla. `description` es solo para la biblioteca.
+  notes?: string;
   description: string;
   level: WorkoutTemplateLevel;
   tags: string[];
@@ -48,6 +71,7 @@ export interface WorkoutTemplate {
 
 export interface WorkoutTemplateInput {
   name: string;
+  notes?: string;
   description?: string;
   level?: WorkoutTemplateLevel;
   tags?: string[];

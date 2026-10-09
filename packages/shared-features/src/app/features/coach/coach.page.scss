@@ -317,7 +317,7 @@
   margin: 0 0 4px;
 }
 
-// --- Dashboard: "Pendiente de ti" / "Tu plan actual" ---
+// --- Dashboard: "Pendiente de ti" ---
 .detail-skeleton {
   display: flex;
   flex-direction: column;
@@ -686,39 +686,6 @@
   }
 }
 
-.plan-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  margin-bottom: 8px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-}
-
-.plan-icon {
-  flex-shrink: 0;
-  font-size: 22px;
-  color: #fe9b1a;
-}
-
-// Sin plan de ese tipo: misma tarjeta, apagada.
-.plan-card--empty .plan-icon,
-.plan-card--empty .plan-kicker {
-  color: #8b8b8b;
-}
-
-// Qué tipo de plan es (entrenamiento / nutrición): con dos tarjetas seguidas
-// el nombre solo ("Definición") no dice a cuál de las dos pertenece.
-.plan-kicker {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #fe9b1a;
-}
-
 // --- Profesionales / invitaciones ---
 // Tarjeta editorial: la identidad (avatar + nombre) vive en un encabezado
 // separado por una línea fina de las filas de detalle. Un único acento de
@@ -787,21 +754,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-// Una fila plana por scope — texto + icono tenue, nunca una pastilla con
-// fondo. La separación entre filas (cuando hay 2) es tipográfica, no una
-// segunda tarjeta.
-.pro-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  }
 }
 
 .pro-scope {
@@ -958,101 +910,6 @@
   }
 }
 
-// Profesional activo, versión compacta: una sola línea (avatar + nombre +
-// chips de ámbito). Cada chip es a la vez etiqueta y botón de desvincular
-// (pide confirmación). En pantallas estrechas los chips bajan de línea.
-.pro-card--active {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-  padding: 8px 8px 8px 10px;
-  margin-bottom: 6px;
-  border-radius: 12px;
-
-  .pro-avatar {
-    width: 30px;
-    height: 30px;
-    font-size: 0.7rem;
-  }
-
-  .pro-name {
-    flex: 1 1 120px;
-    font-size: 0.9rem;
-  }
-}
-
-.pro-scope-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-left: auto;
-}
-
-.pro-scope-chip {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 28px;
-  padding: 0 6px 0 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  color: #e0e0e0;
-  font-family: inherit;
-  font-size: 0.76rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
-
-  // Área táctil de 44px sin engordar la fila.
-  &::before {
-    content: '';
-    position: absolute;
-    inset: -8px -3px;
-  }
-
-  ion-icon {
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-
-  .pro-scope-chip-close {
-    font-size: 12px;
-    color: #8b8b8b;
-  }
-
-  ion-spinner {
-    width: 12px;
-    height: 12px;
-  }
-
-  &:active {
-    transform: scale(0.96);
-  }
-
-  @media (hover: hover) {
-    &:hover:not(:disabled) {
-      border-color: rgba(235, 68, 90, 0.5);
-
-      .pro-scope-chip-close {
-        color: #eb445a;
-      }
-    }
-  }
-
-  &:focus-visible {
-    outline: 2px solid #fe9000;
-    outline-offset: 1px;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-}
-
 .mp-state-message {
   display: flex;
   flex-direction: column;
@@ -1141,59 +998,6 @@
   100% {
     transform: translateX(100%);
   }
-}
-
-// --- Historial de relaciones pasadas ---
-.history-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-
-  .section-heading {
-    margin: 8px 0;
-  }
-
-  ion-icon {
-    font-size: 16px;
-    color: #8b8b8b;
-  }
-}
-
-.pro-card--history {
-  background: #131313;
-  border-color: rgba(255, 255, 255, 0.06);
-  opacity: 0.8;
-}
-
-.pro-avatar--past {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: #6b6b6b;
-}
-
-.pro-row--history {
-  padding: 8px 0;
-}
-
-// Historial: deliberadamente monocromo (nunca los colores de training/
-// nutrition) — el desenfoque de color es la señal de "esto ya pasó".
-.pro-scope--past {
-  color: #8b8b8b;
-
-  ion-icon {
-    color: #6b6b6b;
-  }
-}
-
-.pro-history-label {
-  font-size: 0.76rem;
-  color: #6b6b6b;
-  flex-shrink: 0;
 }
 
 /* Etiqueta de orientación, no un destino: si compitiera en peso con las

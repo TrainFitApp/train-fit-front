@@ -76,13 +76,13 @@
         </span>
       </button>
 
-      <button type="button" class="coach-menu-card" (click)="scrollToSection('section-plan')">
+      <button type="button" class="coach-menu-card" (click)="openPlans()">
         <div class="coach-menu-icon"><ion-icon name="barbell-outline"></ion-icon></div>
         <span class="coach-menu-name">{{ 'COACH.CURRENT_PLAN' | translate }}</span>
         <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">{{ currentPlansStat }}</span>
       </button>
 
-      <button type="button" class="coach-menu-card" (click)="scrollToSection('section-professionals')">
+      <button type="button" class="coach-menu-card" (click)="openProfessionals()" [disabled]="state !== 'loaded'">
         <div class="coach-menu-icon"><ion-icon name="people-outline"></ion-icon></div>
         <span class="coach-menu-name">{{ 'COACH.YOUR_PROFESSIONALS' | translate }}</span>
         <span class="coach-menu-stat" *ngIf="state === 'loaded'">
@@ -172,7 +172,7 @@
     </div>
   </div>
 
-  <!-- === Dashboard: pendiente de ti + tu plan actual === -->
+  <!-- === Dashboard: pendiente de ti === -->
   <!-- Pendiente de ti va ANTES que Notificaciones: son acciones que
        requieren algo de ti (check-in, propuesta de comida, cobro...), más
        importante que un feed informativo — ver comentario del usuario en
@@ -226,37 +226,6 @@
       </div>
     </div>
 
-    <!-- Siempre las dos tarjetas: si falta una, el cliente ve que no tiene
-         ese plan en vez de no ver nada. -->
-    <div class="section-card" id="section-plan">
-      <h2 class="section-heading">{{ 'COACH.CURRENT_PLAN' | translate }}</h2>
-
-      <ng-container
-        *ngTemplateOutlet="planCard; context: { plan: d.currentPlans?.training, kicker: 'ONBOARDING.SCOPE_TRAINING', icon: 'barbell-outline', empty: 'COACH.NO_ROUTINE' }"
-      ></ng-container>
-      <ng-container
-        *ngTemplateOutlet="planCard; context: { plan: d.currentPlans?.nutrition, kicker: 'ONBOARDING.SCOPE_NUTRITION', icon: 'nutrition-outline', empty: 'COACH.NO_DIET' }"
-      ></ng-container>
-    </div>
-
-    <ng-template #planCard let-plan="plan" let-kicker="kicker" let-icon="icon" let-empty="empty">
-      <div class="plan-card" [class.plan-card--empty]="!plan">
-        <ion-icon [name]="icon" class="plan-icon"></ion-icon>
-        <div class="action-info">
-          <span class="plan-kicker">{{ kicker | translate }}</span>
-          <ng-container *ngIf="plan; else noPlan">
-            <span class="action-title">{{ plan.name }}</span>
-            <span class="action-subtitle">
-              {{ plan.assignedByTrainerName }} ·
-              {{ planDatePrefix(plan) }} {{ planDateLabel(plan.startDate) }}
-            </span>
-          </ng-container>
-          <ng-template #noPlan>
-            <span class="action-subtitle">{{ empty | translate }}</span>
-          </ng-template>
-        </div>
-      </div>
-    </ng-template>
   </ng-container>
 
   <!-- === Notificaciones (coach-tab FASE3) === -->
@@ -364,7 +333,7 @@
 
   </ng-container>
 
-  <!-- === Profesionales / invitaciones / historial === -->
+  <!-- === Invitaciones pendientes === -->
   <div class="mp-section" *ngIf="state === 'loading'">
     <div class="pro-card pro-card--skeleton" *ngFor="let i of [1, 2]">
       <header class="pro-card-header">
@@ -413,56 +382,7 @@
       </article>
     </div>
 
-    <div class="section-card" id="section-professionals" *ngIf="!inviteOnly">
-      <h2 class="section-heading">{{ 'COACH.YOUR_PROFESSIONALS' | translate }}</h2>
-
-      <p class="empty-hint" *ngIf="!activeProfessionals.length">
-        {{ 'COACH.NO_PROFESSIONALS' | translate }}
-      </p>
-
-      <article class="pro-card pro-card--active" *ngFor="let professional of activeProfessionals; trackBy: trackByProfessionalId">
-        <div class="pro-avatar">{{ getInitials(getProfessionalName(professional)) }}</div>
-        <span class="pro-name">{{ getProfessionalName(professional) }}</span>
-
-        <div class="pro-scope-chips">
-          <button
-            class="pro-scope-chip"
-            *ngFor="let scope of professional.scopes"
-            (click)="confirmUnlink(professional, scope)"
-            [disabled]="unlinkingScope === scope"
-            [attr.aria-label]="'COACH.UNLINK_SCOPE_ARIA' | translate: { scope: scopeLabel(scope).toLowerCase() }"
-          >
-            <ion-icon [name]="scopeIcon(scope)" [ngClass]="'pro-scope-icon--' + scope"></ion-icon>
-            <span>{{ scopeLabel(scope) }}</span>
-            <ion-icon class="pro-scope-chip-close" name="close" *ngIf="unlinkingScope !== scope"></ion-icon>
-            <ion-spinner name="dots" *ngIf="unlinkingScope === scope"></ion-spinner>
-          </button>
-        </div>
-      </article>
-    </div>
-
-    <div class="section-card" *ngIf="history.length && !inviteOnly">
-      <button class="history-toggle" (click)="toggleHistory()">
-        <h2 class="section-heading">{{ 'COACH.HISTORY' | translate }}</h2>
-        <ion-icon [name]="showHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-      </button>
-
-      <ng-container *ngIf="showHistory">
-        <article class="pro-card pro-card--history" *ngFor="let group of groupedHistory; trackBy: trackByHistoryGroup">
-          <header class="pro-card-header">
-            <div class="pro-avatar pro-avatar--past">{{ getInitials(getHistoryTrainerName(group.entries[0])) }}</div>
-            <span class="pro-name">{{ getHistoryTrainerName(group.entries[0]) }}</span>
-          </header>
-
-          <div class="pro-row pro-row--history" *ngFor="let entry of group.entries">
-            <span class="pro-scope pro-scope--past">
-              <ion-icon [name]="scopeIcon(entry.scope)"></ion-icon>
-              {{ scopeLabel(entry.scope) }}
-            </span>
-            <span class="pro-history-label">{{ historyEndedByLabel(entry) }}</span>
-          </div>
-        </article>
-      </ng-container>
-    </div>
+    <!-- Tus profesionales (datos, cobros, terminar la relación) e historial
+         viven en su propia hoja: CoachProfessionalsSheetComponent. -->
   </ng-container>
 </ion-content>

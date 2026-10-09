@@ -5,37 +5,64 @@
 <ion-content class="library-content" appScrollMemory="routines">
   <p class="page-hint">{{ 'ROUTINES.CREA_UNA_PLANTILLA_CON_SUS' | translate }}</p>
 
+  <div class="library-search" *ngIf="!loading && cards.length > 0">
+    <ion-icon name="search-outline" class="input-icon" aria-hidden="true"></ion-icon>
+    <input
+      type="search"
+      class="input-field"
+      [attr.aria-label]="'ROUTINES.BUSCAR_PLANTILLAS' | translate"
+      [placeholder]="'ROUTINES.BUSCAR_PLANTILLAS_PLACEHOLDER' | translate"
+      [(ngModel)]="search"
+    />
+  </div>
+
   <!-- Carga: la forma de la rejilla, no un spinner genérico. -->
   <div class="library-grid" *ngIf="loading">
     <div class="library-card-skeleton" *ngFor="let i of [1, 2, 3, 4, 5]"></div>
   </div>
 
-  <!-- El alta es la primera tarjeta de la rejilla, como en Ejercicios. -->
+  <!-- El alta es la primera tarjeta de la rejilla, como en Ejercicios: abre
+       el builder vacío, que pide el nombre. -->
   <div class="library-grid" *ngIf="!loading">
-    <button type="button" class="library-add-card" (click)="openCreateSheet()">
+    <button type="button" class="library-add-card" (click)="createTemplate()">
       <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
       <span>{{ 'ROUTINES.ADD_CARD' | translate }}</span>
     </button>
 
     <div
       class="library-cell library-cell--two-actions"
-      *ngFor="let template of templates; trackBy: trackByTemplateId"
+      *ngFor="let card of filteredCards; trackBy: trackByTemplateId"
     >
-      <button type="button" class="library-card" (click)="openTemplate(template)">
+      <button type="button" class="library-card" (click)="openTemplate(card.template)">
         <span class="library-card__top">
-          <span class="library-card__name">{{ template.name }}</span>
-          <span class="library-card__badge" *ngIf="levelLabels[template.level]">{{ levelLabels[template.level] }}</span>
+          <span class="library-card__name">{{ card.template.name }}</span>
         </span>
 
-        <span class="library-card__description" *ngIf="template.description">{{ template.description }}</span>
+        <span class="template-preview" *ngIf="card.exerciseNames.length; else emptyTemplate">
+          <span class="template-preview-item" *ngFor="let name of card.exerciseNames">{{ name | translateDb }}</span>
+          <span class="template-preview-more" *ngIf="card.moreExercises">
+            {{ 'ROUTINES.Y_N_MAS' | translate: { n: card.moreExercises } }}
+          </span>
+        </span>
+        <ng-template #emptyTemplate>
+          <span class="template-preview template-preview--empty">{{ 'ROUTINES.SIN_EJERCICIOS_TODAVIA' | translate }}</span>
+        </ng-template>
 
-        <span class="library-card__tags" *ngIf="template.tags?.length">
-          <span class="library-card__tag" *ngFor="let tag of template.tags">{{ tag }}</span>
+        <span class="template-equipment" *ngIf="card.equipment.length">
+          <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+          <span><ng-container *ngFor="let item of card.equipment; let last = last">{{ item | translateDb }}<ng-container *ngIf="!last"> · </ng-container></ng-container></span>
+        </span>
+
+        <span class="library-card__description" *ngIf="card.template.description">{{ card.template.description }}</span>
+
+        <span class="library-card__tags" *ngIf="card.template.tags?.length">
+          <span class="library-card__tag" *ngFor="let tag of card.template.tags">{{ tag }}</span>
         </span>
 
         <span class="library-card__meta">
-          <span><strong>{{ blockCount(template) }}</strong> {{ 'ROUTINES.BLOQUES' | translate }}</span>
-          <span><strong>{{ exerciseCount(template) }}</strong> {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
+          <span><strong>{{ card.exerciseCount }}</strong> {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
+          <span><strong>{{ card.setCount }}</strong> {{ 'ROUTINES.SERIES' | translate }}</span>
+          <span *ngIf="card.minutes">≈ <strong>{{ card.minutes }}</strong> min</span>
         </span>
       </button>
 
@@ -44,18 +71,18 @@
           type="button"
           class="corner-button"
           [disabled]="isDuplicating"
-          (click)="duplicateTemplate(template, $event)"
+          (click)="duplicateTemplate(card.template, $event)"
           [title]="'TRAINER_COMMON.DUPLICATE' | translate"
-          [attr.aria-label]="('TRAINER_COMMON.DUPLICATE' | translate) + ': ' + template.name"
+          [attr.aria-label]="('TRAINER_COMMON.DUPLICATE' | translate) + ': ' + card.template.name"
         >
           <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
         </button>
         <button
           type="button"
           class="corner-button corner-button--danger"
-          (click)="confirmDelete(template, $event)"
+          (click)="confirmDelete(card.template, $event)"
           [title]="'TRAINER_COMMON.ERASE' | translate"
-          [attr.aria-label]="('TRAINER_COMMON.ERASE' | translate) + ': ' + template.name"
+          [attr.aria-label]="('TRAINER_COMMON.ERASE' | translate) + ': ' + card.template.name"
         >
           <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
         </button>
@@ -63,50 +90,18 @@
     </div>
   </div>
 
-  <div class="state-message" *ngIf="!loading && templates.length === 0">
+  <div class="state-message" *ngIf="!loading && cards.length === 0">
     <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
     <h2>{{ 'ROUTINES.TODAVIA_NO_TIENES_PLANTILLAS' | translate }}</h2>
-    <p>{{ 'ROUTINES.CREA_LA_PRIMERA_CON_EL' | translate }}</p>
+    <p>{{ 'ROUTINES.CREA_LA_PRIMERA_HINT' | translate }}</p>
+    <p class="state-tip">
+      <ion-icon name="bulb-outline" aria-hidden="true"></ion-icon>
+      {{ 'ROUTINES.TIP_GUARDAR_DESDE_PLANIFICADOR' | translate }}
+    </p>
+  </div>
+
+  <div class="state-message state-message--compact" *ngIf="!loading && cards.length > 0 && filteredCards.length === 0">
+    <h2>{{ 'ROUTINES.NINGUNA_PLANTILLA_COINCIDE' | translate }}</h2>
+    <button type="button" class="text-action" (click)="clearFilters()">{{ 'ROUTINES.QUITAR_FILTROS' | translate }}</button>
   </div>
 </ion-content>
-
-<!-- Alta: hoja inferior con el nombre y "Crear", como en Dietas. Fuera del
-     ion-content para que no se mueva con el scroll. -->
-<ng-container *ngIf="showCreateSheet">
-  <div class="panel-backdrop" (click)="closeCreateSheet()"></div>
-  <div
-    class="panel-sheet"
-    role="dialog"
-    aria-modal="true"
-    [attr.aria-label]="'ROUTINES.NEW_TEMPLATE_TITLE' | translate"
-    appSubmitOnEnter="createRoutine"
-    (keydown.escape)="closeCreateSheet()"
-  >
-    <div class="panel-handle"></div>
-    <h3 class="panel-title">{{ 'ROUTINES.NEW_TEMPLATE_TITLE' | translate }}</h3>
-
-    <div class="input-wrapper">
-      <ion-icon name="albums-outline" class="input-icon" aria-hidden="true"></ion-icon>
-      <input
-        #createNameInput
-        type="text"
-        class="input-field"
-        [placeholder]="'ROUTINES.PLANTILLA_DIA_DE_EMPUJE' | translate"
-        [attr.aria-label]="'ROUTINES.NEW_TEMPLATE_TITLE' | translate"
-        [(ngModel)]="newName"
-      />
-    </div>
-
-    <button
-      type="button"
-      class="submit-button"
-      [disabled]="!newName.trim() || isCreating"
-      [attr.aria-busy]="isCreating"
-      (click)="createAndEdit()"
-      data-enter-submit-action="createRoutine"
-    >
-      <span *ngIf="!isCreating">{{ 'TRAINER_COMMON.CREATE' | translate }}</span>
-      <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
-    </button>
-  </div>
-</ng-container>

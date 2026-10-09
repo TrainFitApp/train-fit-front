@@ -152,29 +152,9 @@ ion-header ion-toolbar {
 
 .template-name {
   flex: 1;
-}
-
-.template-level {
-  margin-left: auto;
-}
-
-.template-name {
   font-size: var(--tf-font-size-base);
   font-weight: 600;
   color: var(--tf-text);
-}
-
-.template-level {
-  flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--tf-accent-text);
-  background: var(--tf-accent-soft);
-  border: 1px solid var(--tf-accent-soft-border);
-  border-radius: var(--tf-radius-sm);
-  padding: 2px 8px;
 }
 
 .template-tags {

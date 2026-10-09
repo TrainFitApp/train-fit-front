@@ -60,6 +60,14 @@
   // Texto sobre el gradiente de acento: negro, no blanco — mejor contraste
   // sobre naranja (#fe9000 contra blanco ≈ 2:1, contra negro ≈ 8:1).
   --tf-accent-contrast: #0f0f0f;
+  // Fondo y texto de los botones de acción (guardar/añadir/confirmar):
+  // sólido, sin degradado. Con blanco en negrita encima da ≈3,3:1 — cumple
+  // AA para texto grande/negrita, no para texto pequeño normal (el naranja
+  // vivo original solo llegaba a ≈2:1). Token separado para no tocar
+  // avatar/barra de progreso/indicadores, que siguen con --tf-accent-gradient
+  // y texto negro sin problema.
+  --tf-cta-bg: #cd7800;
+  --tf-cta-contrast: #ffffff;
 
   // Dorado, mismo valor que --ion-color-secondary en shared-theme —
   // referenciado, no repetido. Reservado para indicadores de MODO ACTIVO a

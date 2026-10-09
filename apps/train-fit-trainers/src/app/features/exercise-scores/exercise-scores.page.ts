@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Exercise } from 'src/app/core/models/exercise';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { ExerciseScore } from 'src/app/core/constants/exercise-score';
+import { ExerciseScore, scoreHighlights } from 'src/app/core/constants/exercise-score';
 import { ExerciseScoresApiService, ScoreCatalog } from './services/exercise-scores-api.service';
 import { ScoreEditorModalComponent } from './components/score-editor-modal/score-editor-modal.component';
 
@@ -91,16 +91,11 @@ export class ExerciseScoresPage implements OnInit {
   }
 
   private toRow(score: ExerciseScore): ScoredExerciseRow {
-    const topMuscles = [...(score.muscleScores || [])]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3)
-      .map((entry) => entry.name)
-      .join(' · ');
-
-    // Solo se nombra la articulación cuando llega al nivel que obliga a
-    // dosificar: decir "Codo 1" en cada fila sería ruido.
-    const hardest = [...(score.jointScores || [])].sort((a, b) => b.score - a.score)[0];
-    const hardestJoint = hardest && hardest.score >= 2 ? hardest.name : '';
+    // Mismo resumen que "Configurar ejercicio" (scoreHighlights): los tres
+    // músculos con más estímulo y la articulación solo si obliga a dosificar.
+    const highlights = scoreHighlights(score);
+    const topMuscles = highlights.topMuscles.join(' · ');
+    const hardestJoint = highlights.hardestJoint || '';
 
     return {
       score,

@@ -1,0 +1,231 @@
+<div class="cs-sheet">
+  <header class="cs-head" [class.cs-head--with-back]="!!selected">
+    <button
+      type="button"
+      class="tf-page-header__back-button"
+      *ngIf="selected"
+      [attr.aria-label]="'COMMON.BACK_ARIA' | translate"
+      (click)="back()"
+    >
+      <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+    </button>
+    <h2 class="cs-title" #sheetTitle tabindex="-1">{{ 'COACH.YOUR_PROFESSIONALS' | translate }}</h2>
+    <button type="button" class="close-action-button ripple-effect" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate" (click)="close()">
+      <ion-icon name="close" color="primary" aria-hidden="true"></ion-icon>
+    </button>
+  </header>
+
+  <div class="cs-body ion-content-scroll-host">
+    <!-- === Lista: en curso + anteriores === -->
+    <ng-container *ngIf="!selected">
+      <section class="cs-section">
+        <p class="pp-muted" *ngIf="!professionals.length">{{ 'COACH.NO_PROFESSIONALS' | translate }}</p>
+
+        <button
+          type="button"
+          class="pp-pro-row"
+          *ngFor="let professional of professionals; trackBy: trackByProfessional"
+          (click)="open(professional)"
+        >
+          <span class="pp-avatar" aria-hidden="true">{{ initials(name(professional)) }}</span>
+          <span class="pp-pro-text">
+            <span class="pp-pro-name">{{ name(professional) }}</span>
+            <span class="pp-pro-meta">
+              {{ scopesLabel(professional.scopes) }}<ng-container *ngIf="sinceLabel(professional) as since">
+                · {{ 'COACH_SHEETS.SINCE' | translate: { date: since } }}</ng-container
+              >
+            </span>
+          </span>
+          <ion-icon class="pp-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </section>
+
+      <section class="cs-section" *ngIf="groupedHistory.length">
+        <h3 class="cs-section-heading">{{ 'COACH_SHEETS.FORMER_PROFESSIONALS' | translate }}</h3>
+        <div class="pp-history" *ngFor="let group of groupedHistory; trackBy: trackByHistoryGroup">
+          <div class="pp-history-head">
+            <span class="pp-avatar pp-avatar--past" aria-hidden="true">{{ initials(historyName(group.entries[0])) }}</span>
+            <span class="pp-history-name">{{ historyName(group.entries[0]) }}</span>
+          </div>
+          <div class="pp-history-row" *ngFor="let entry of group.entries">
+            <span class="pp-history-scope">
+              <ion-icon [name]="scopeIcon(entry.scope)" aria-hidden="true"></ion-icon>
+              {{ scopeLabel(entry.scope) }}
+            </span>
+            <span class="pp-history-label">{{ historyEndedLabel(entry) }}</span>
+          </div>
+        </div>
+      </section>
+    </ng-container>
+
+    <!-- === Ficha de un profesional === -->
+    <ng-container *ngIf="selected as pro">
+      <section class="cs-section pp-identity">
+        <span class="pp-avatar pp-avatar--large" aria-hidden="true">{{ initials(name(pro)) }}</span>
+        <div class="pp-identity-text">
+          <h3 class="pp-name" #proName tabindex="-1">{{ name(pro) }}</h3>
+          <dl class="pp-facts">
+            <div class="pp-fact" *ngIf="pro.user?.email as email">
+              <dt>{{ 'COACH_SHEETS.EMAIL' | translate }}</dt>
+              <dd><a class="pp-link" [href]="'mailto:' + email">{{ email }}</a></dd>
+            </div>
+            <div class="pp-fact">
+              <dt>{{ 'COACH_SHEETS.TAKES_CARE_OF' | translate }}</dt>
+              <dd class="pp-scopes">
+                <span class="pp-scope" *ngFor="let scope of pro.scopes">
+                  <ion-icon [name]="scopeIcon(scope)" [ngClass]="'pp-scope-icon--' + scope" aria-hidden="true"></ion-icon>
+                  {{ scopeLabel(scope) }}
+                </span>
+              </dd>
+            </div>
+            <div class="pp-fact" *ngIf="sinceLabel(pro) as since">
+              <dt>{{ 'COACH_SHEETS.WORKING_SINCE' | translate }}</dt>
+              <dd>{{ since }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- Cobros: solo lectura -->
+      <section class="cs-section" *ngIf="paymentsOf(pro) as slot">
+        <h3 class="cs-section-heading">{{ 'COACH_SHEETS.PAYMENTS' | translate }}</h3>
+
+        <div class="cs-skeleton" *ngIf="slot.state === 'loading'" aria-hidden="true">
+          <div class="cs-skeleton-block cs-skeleton-block--tall"></div>
+          <div class="cs-skeleton-block"></div>
+        </div>
+
+        <div class="cs-error" *ngIf="slot.state === 'error' || slot.state === 'unavailable'" role="status">
+          <p>{{ (slot.state === 'unavailable' ? 'COACH_SHEETS.PAYMENTS_UNAVAILABLE' : 'COACH_SHEETS.PAYMENTS_ERROR') | translate }}</p>
+          <button type="button" class="cs-retry" *ngIf="pro.user" (click)="loadPayments(pro.user._id)">
+            {{ 'COMMON.RETRY' | translate }}
+          </button>
+        </div>
+
+        <ng-container *ngIf="slot.state === 'loaded' && slot.data as data">
+          <!-- Lo que debe ahora (si debe algo) y la cuota. -->
+          <div class="pp-balance" [class.pp-balance--overdue]="!!data.summary.overdue" *ngIf="data.summary.pendingCents > 0">
+            <span class="pp-balance-amount">{{ cents(data.summary.pendingCents, data.summary.currency) }}</span>
+            <span class="pp-balance-label" *ngIf="data.summary.overdue as overdue; else pendingTotal">
+              {{ 'COACH_SHEETS.OVERDUE_SINCE' | translate: { date: day(overdue.oldestDueDay, data) } }}
+            </span>
+            <ng-template #pendingTotal>
+              <span class="pp-balance-label">{{ 'COACH_SHEETS.PENDING_TOTAL' | translate }}</span>
+            </ng-template>
+          </div>
+
+          <div class="pp-fee" *ngIf="data.plan as plan">
+            <div class="pp-fee-main">
+              <span class="pp-fee-concept">{{ plan.concept || ('COACH_SHEETS.CHARGE_FEE' | translate) }}</span>
+              <span class="pp-fee-amount">{{ feeLabel(data) }}</span>
+            </div>
+            <span class="pp-fee-meta" [ngSwitch]="plan.status">
+              <ng-container *ngSwitchCase="'paused'">{{ 'COACH_SHEETS.FEE_PAUSED' | translate }}</ng-container>
+              <ng-container *ngSwitchCase="'ended'">{{ 'COACH_SHEETS.FEE_ENDED' | translate }}</ng-container>
+              <ng-container *ngSwitchDefault>
+                <ng-container *ngIf="data.summary.next as next">
+                  {{ 'COACH_SHEETS.NEXT_CHARGE' | translate: { date: day(next.dueDay, data), amount: cents(next.amountCents) } }}
+                </ng-container>
+              </ng-container>
+            </span>
+            <span class="pp-fee-meta" *ngIf="plan.status === 'active' && plan.scheduledPrice as price">
+              {{ 'COACH_SHEETS.PRICE_CHANGE' | translate: { date: day(price.fromDay, data), amount: cents(price.amountCents) } }}
+            </span>
+          </div>
+
+          <p class="pp-note" *ngIf="data.plan || data.charges.length">
+            <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ 'COACH_SHEETS.PAYMENTS_NOTE' | translate }}</span>
+          </p>
+
+          <p class="pp-muted" *ngIf="!data.plan && !data.charges.length">{{ 'COACH_SHEETS.NO_CHARGES' | translate }}</p>
+
+          <ul class="pp-charges" *ngIf="data.charges.length">
+            <li class="pp-charge" *ngFor="let charge of data.charges; trackBy: trackByCharge">
+              <button
+                type="button"
+                class="pp-charge-row"
+                *ngIf="charge.payments.length; else staticCharge"
+                [attr.aria-expanded]="expandedChargeId === charge.id"
+                [attr.aria-controls]="'pp-payments-' + charge.id"
+                (click)="toggleCharge(charge)"
+              >
+                <ng-container *ngTemplateOutlet="chargeContent; context: { $implicit: charge }"></ng-container>
+                <ion-icon
+                  class="pp-charge-chevron"
+                  [name]="expandedChargeId === charge.id ? 'chevron-up-outline' : 'chevron-down-outline'"
+                  aria-hidden="true"
+                ></ion-icon>
+              </button>
+              <ng-template #staticCharge>
+                <div class="pp-charge-row pp-charge-row--static">
+                  <ng-container *ngTemplateOutlet="chargeContent; context: { $implicit: charge }"></ng-container>
+                </div>
+              </ng-template>
+
+              <ul class="pp-payments" [id]="'pp-payments-' + charge.id" *ngIf="expandedChargeId === charge.id">
+                <li class="pp-payment" *ngFor="let payment of charge.payments">
+                  <span>{{ payment.receivedDay ? day(payment.receivedDay, data) : ('COACH_SHEETS.PAYMENT_NO_DATE' | translate) }}</span>
+                  <span class="pp-payment-amount">{{ cents(payment.amountCents, charge.currency) }}</span>
+                </li>
+                <li class="pp-payment pp-payment--rest" *ngIf="charge.balanceCents > 0">
+                  <span>{{ 'COACH_SHEETS.STILL_PENDING' | translate }}</span>
+                  <span class="pp-payment-amount">{{ cents(charge.balanceCents, charge.currency) }}</span>
+                </li>
+              </ul>
+            </li>
+          </ul>
+
+          <ng-template #chargeContent let-charge>
+            <span class="pp-charge-text">
+              <span class="pp-charge-concept">{{ chargeConcept(charge) }}</span>
+              <span class="pp-charge-meta">
+                <ng-container *ngIf="isPartial(charge)">
+                  {{ 'COACH_SHEETS.PAID_OF' | translate: { paid: cents(charge.receivedCents, charge.currency), total: cents(charge.amountCents, charge.currency) } }}
+                </ng-container>
+                <ng-container *ngIf="isPartlyCancelled(charge)">
+                  {{ 'COACH_SHEETS.PAID_REST_CANCELLED' | translate: { paid: cents(charge.receivedCents, charge.currency) } }}
+                </ng-container>
+                <ng-container *ngIf="!isPartial(charge) && !isPartlyCancelled(charge)">{{ chargeDue(charge, data) }}</ng-container>
+              </span>
+            </span>
+            <span class="pp-charge-side">
+              <span
+                class="pp-charge-amount"
+                [class.pp-charge-amount--struck]="chargeState(charge) === 'cancelled' && !isPartlyCancelled(charge)"
+              >
+                {{ cents(charge.amountCents, charge.currency) }}
+              </span>
+              <span class="pp-status" [ngClass]="'pp-status--' + chargeState(charge)">{{ chargeStateKey(charge) | translate }}</span>
+            </span>
+          </ng-template>
+        </ng-container>
+      </section>
+
+      <!-- Terminar la relación: al final y en rojo suave, cada ámbito aparte. -->
+      <section class="cs-section pp-danger">
+        <h3 class="cs-section-heading">{{ 'COACH_SHEETS.END_RELATION' | translate }}</h3>
+        <p class="pp-danger-text">{{ 'COACH_SHEETS.END_RELATION_HINT' | translate: { name: name(pro) } }}</p>
+        <div class="pp-danger-actions">
+          <button
+            type="button"
+            class="pp-danger-button"
+            *ngFor="let scope of pro.scopes"
+            [disabled]="unlinkingScope !== null"
+            [attr.aria-busy]="unlinkingScope === scope"
+            (click)="confirmUnlink(pro, scope)"
+          >
+            <ng-container *ngIf="unlinkingScope === scope">
+              <ion-spinner name="dots" aria-hidden="true"></ion-spinner>
+              <span class="cs-visually-hidden">{{ 'COACH_SHEETS.UNLINKING' | translate }}</span>
+            </ng-container>
+            <ng-container *ngIf="unlinkingScope !== scope">
+              <ion-icon [name]="scopeIcon(scope)" aria-hidden="true"></ion-icon>
+              {{ 'COACH_SHEETS.END_SCOPE' | translate: { scope: scopeLabel(scope).toLowerCase() } }}
+            </ng-container>
+          </button>
+        </div>
+      </section>
+    </ng-container>
+  </div>
+</div>

@@ -1,0 +1,159 @@
+@import '../../../../../theme/buttons';
+
+ion-header ion-toolbar {
+  --background: var(--tf-bg);
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  ion-button {
+    @include tf-icon-button;
+  }
+}
+
+.panel-content {
+  --background: var(--tf-bg);
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-2);
+  --padding-bottom: var(--tf-space-6);
+}
+
+.field-label {
+  display: block;
+  margin: var(--tf-space-5) 0 var(--tf-space-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+
+  &:first-child {
+    margin-top: var(--tf-space-2);
+  }
+
+  .optional {
+    font-weight: 500;
+    color: var(--tf-text-muted);
+  }
+}
+
+// Tipos como lista de opciones con su explicación: el entrenador que no
+// usa "finisher" a diario sabe qué elige sin salir del panel.
+.type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.type-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: var(--tf-touch-min);
+  padding: 10px 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &--selected,
+  &--selected:hover {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+  }
+}
+
+.type-option-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+
+  .type-option--selected & {
+    color: var(--tf-accent-text);
+  }
+}
+
+.type-option-hint {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--tf-text-muted);
+}
+
+.text-field {
+  width: 100%;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text);
+  font-family: inherit;
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.text-field {
+  height: 46px;
+  padding: 0 12px;
+  font-size: 0.9rem;
+}
+
+.panel-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: 12px var(--tf-space-4);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border);
+}
+
+.delete-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tf-touch-min);
+  padding: 0 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-danger-text);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--tf-danger-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-danger);
+    outline-offset: 2px;
+  }
+}
+
+.confirm-button {
+  @include tf-gradient-button;
+  flex: 1;
+  height: 50px;
+  font-size: 0.95rem;
+}

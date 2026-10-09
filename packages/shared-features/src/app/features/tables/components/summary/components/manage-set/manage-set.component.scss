@@ -430,8 +430,9 @@
 
 // Pie de la app de entrenadores (solo se pinta con isTrainerApp, así que los
 // tokens --tf-* existen). Mismo trazo que tf-gradient-button (theme/_buttons.scss
-// de trainers, no importable desde shared): texto oscuro sobre el naranja; el
-// ion-button de antes llevaba whitesmoke sobre #fe9000 (2:1).
+// de trainers, no importable desde shared): blanco en negrita sobre el
+// naranja sólido de --tf-cta-bg (≈3,3:1; el ion-button de antes llevaba
+// whitesmoke sobre #fe9000 vivo, que solo daba 2:1).
 .manage-set-footer-trainer {
     padding: var(--tf-space-3) var(--tf-space-4) calc(var(--tf-space-4) + env(safe-area-inset-bottom));
     background: var(--tf-surface-1);
@@ -465,8 +466,8 @@
         padding: 0 var(--tf-space-4);
         border: none;
         border-radius: var(--tf-radius-lg);
-        background: var(--tf-accent-gradient);
-        color: var(--tf-accent-contrast);
+        background: var(--tf-cta-bg);
+        color: var(--tf-cta-contrast);
         font-family: inherit;
         font-size: var(--tf-font-size-md);
         font-weight: 700;

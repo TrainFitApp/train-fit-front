@@ -4,6 +4,105 @@
 @import '../../../theme/panel-sheet';
 @import '../../../theme/template-library';
 
-// Rejilla, tarjetas y hoja de alta compartidas con Rutinas
-// (routine-templates): ver theme/_template-library.scss.
+// Rejilla, tarjetas y estados compartidos con Rutinas (routine-templates):
+// ver theme/_template-library.scss. Aquí solo lo propio de Entrenamientos:
+// buscador, vista previa de ejercicios y material.
 @include tf-template-library;
+
+.library-search {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: 46px;
+  margin-bottom: var(--tf-space-3);
+}
+
+// --- Tarjeta: primeros ejercicios y material ---
+.template-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--tf-space-2) 0;
+  border-top: 1px solid var(--tf-border-subtle);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &--empty {
+    font-size: var(--tf-font-size-sm);
+    font-style: italic;
+    color: var(--tf-text-muted);
+  }
+}
+
+.template-preview-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+}
+
+.template-preview-more {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.template-equipment {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--tf-text-muted);
+  }
+}
+
+// --- Vacío: consejo para guardar una sesión desde el Planificador, y sin
+// coincidencias en la búsqueda ---
+.state-message {
+  .state-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: var(--tf-space-3);
+    padding: var(--tf-space-3) var(--tf-space-4);
+    max-width: 46ch;
+    background: var(--tf-surface-2);
+    border-radius: var(--tf-radius-md);
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+    text-align: left;
+
+    ion-icon {
+      flex-shrink: 0;
+      margin: 1px 0 0;
+      font-size: 18px;
+      color: var(--tf-accent);
+    }
+  }
+
+  &--compact {
+    padding-top: var(--tf-space-6);
+  }
+}
+
+.text-action {
+  min-height: var(--tf-touch-min);
+  padding: 0 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--tf-accent-soft);
+    }
+  }
+}

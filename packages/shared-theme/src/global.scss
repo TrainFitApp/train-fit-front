@@ -1210,6 +1210,35 @@ ion-modal.trainer-note-sheet-modal {
   }
 }
 
+/* Hojas del tab Coach del cliente ("Tus planes", "Tus profesionales"):
+   alto automático y fondo oscuro de Coach; el scroll va dentro (.cs-body). */
+ion-modal.coach-sheet-modal {
+  --height: auto;
+  --width: min(560px, 100%);
+  --border-radius: 20px 20px 0 0;
+  --background: #0f0f0f;
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
+/* "Tus profesionales": abierta por completo (deja solo un margen arriba
+   para que se lea como hoja). Recupera el .ion-page normal de Ionic. */
+ion-modal.coach-sheet-modal.coach-sheet-modal--full {
+  --height: calc(100% - env(safe-area-inset-top, 0px) - 12px);
+
+  .ion-page {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    contain: layout size style;
+  }
+}
+
 /* Color de cada TIPO de bloque (superserie, circuito…), compartido por el
    Planner (workout.component) y el entrenamiento en curso del cliente
    (current-workout.page): lo que pauta el entrenador se ve igual en los dos.
