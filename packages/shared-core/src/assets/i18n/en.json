@@ -2821,7 +2821,10 @@
     "UNLINK_ERROR": "Couldn't unlink",
     "RANGE_TO": "to",
     "WEEK_N": "Week {{n}}",
-    "UNTIL": "until {{date}}"
+    "UNTIL": "until {{date}}",
+    "ACCEPT_NO_SEAT": "Your professional has no free seat right now. Ask them to add seats or try again later.",
+    "ACCEPT_OVERLAP": "You already have another professional for the same thing. End that relationship to accept this invitation.",
+    "ACCEPT_BUSY": "Your professional is updating their plan. Try again in a few seconds."
   },
   "COACH_SHEETS": {
     "PLANS_TITLE": "Your plans",

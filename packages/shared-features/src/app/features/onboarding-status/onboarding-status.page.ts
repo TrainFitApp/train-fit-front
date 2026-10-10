@@ -21,6 +21,7 @@ import { IntakeApiService } from './services/intake-api.service';
 import { IntakeWizardPrefill, IntakeWizardResult } from './components/intake-wizard/intake-wizard.component';
 import { CustomAnswerValue, CustomQuestion } from 'src/app/core/models/custom-question';
 import { IntakeMeasurementRequest, IntakePhotoRequest, IntakeVideoRequest } from 'src/app/core/models/intake-requests';
+import { inviteResponseErrorKey } from '../coach/models/invite-response-error.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -185,7 +186,7 @@ export class OnboardingStatusPage {
         error: (err) => {
           this.respondingTrainerId = null;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || this.translate.instant('ONBOARDING.INVITE_ERROR'),
+            this.translate.instant(inviteResponseErrorKey(err, 'ONBOARDING.INVITE_ERROR')),
             this.translate.instant('COMMON.ERROR'),
             3000
           );

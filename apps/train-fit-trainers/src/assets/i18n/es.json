@@ -2383,7 +2383,23 @@
       "PRICE_CATALOG_REQUIRED": "La contratación todavía no está disponible. Tu plan actual se mantiene.",
       "PRICE_MISMATCH": "La contratación todavía no está disponible. Tu plan actual se mantiene.",
       "UNKNOWN_SUBSCRIPTION_PRICE": "Tu suscripción necesita una revisión de soporte antes de cambiarla. Escríbenos.",
-      "TERMS_CHANGED": "Las condiciones de contratación han cambiado. Revísalas en el nuevo cálculo y vuelve a confirmar."
+      "TERMS_CHANGED": "Las condiciones de contratación han cambiado. Revísalas en el nuevo cálculo y vuelve a confirmar.",
+      "CHECKOUT_UNAVAILABLE": "No hemos podido contactar con el sistema de pagos. Inténtalo de nuevo en unos minutos.",
+      "USAGE_UNAVAILABLE": "No hemos podido contactar con el sistema de pagos. Inténtalo de nuevo en unos minutos.",
+      "DATABASE_UNAVAILABLE": "No hemos podido contactar con el sistema de pagos. Inténtalo de nuevo en unos minutos.",
+      "MODE_MISMATCH": "La contratación todavía no está disponible. Tu plan actual se mantiene.",
+      "INVALID_QUOTE": "Ese cálculo ya no es válido. Vuelve a calcular el cambio para ver el importe vigente.",
+      "SESSION_NOT_OWNED": "Ese pago no corresponde a tu cuenta. Revisa tu suscripción desde esta página.",
+      "INVALID_SESSION": "Ese pago no corresponde a tu cuenta. Revisa tu suscripción desde esta página.",
+      "NO_BILLING_ACCOUNT": "Todavía no tienes cuenta de pago: se crea al contratar un plan.",
+      "ACCOUNT_DELETION_PENDING": "Tu cuenta se está eliminando: ya no se pueden hacer cambios de facturación.",
+      "BILLING_REVIEW_REQUIRED": "Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.",
+      "CHANGE_REVIEW_REQUIRED": "Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.",
+      "CUSTOMER_REVIEW_REQUIRED": "Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.",
+      "MULTIPLE_SUBSCRIPTIONS": "Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.",
+      "UNSUPPORTED_SUBSCRIPTION": "Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.",
+      "SUBSCRIPTION_NOT_OWNED": "Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.",
+      "PAYMENT_NOT_OWNED": "Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos."
     },
     "PLAN_NAMES": {
       "free": "Free",
@@ -2483,7 +2499,10 @@
     "CANCEL_TO_FREE": "Después pasarás a Free, con {{seats}} plazas gratis.",
     "CANCEL_CHOOSE": "Tienes {{count}} clientes: podrás elegir cuáles {{seats}} siguen activos; el resto queda en solo lectura. No se borra nada.",
     "QUOTE_TERMS": "Al confirmar aceptas este cambio y su importe según las",
-    "QUOTE_TERMS_LINK": "condiciones de contratación"
+    "QUOTE_TERMS_LINK": "condiciones de contratación",
+    "SEATS_OCCUPIED_ONE": "1 ocupada",
+    "SEATS_RESERVED_ONE": "1 reservada por una invitación",
+    "SEATS_AVAILABLE_ONE": "1 libre"
   },
   "PROTOCOLS": {
     "NO_SE_PUDIERON_CARGAR_TUS": "No se pudieron cargar tus protocolos",

@@ -98,6 +98,24 @@ const ERROR_MESSAGES: Record<string, string> = {
   CONTROL_REJECTED: 'El sistema de pagos no ha aceptado la operación. Tu suscripción no ha cambiado.',
   CANCELLATION_SCHEDULED: 'Tu suscripción no se va a renovar. Mantenla antes de cambiar de plan.',
   BILLING_UNAVAILABLE: 'No hemos podido contactar con el sistema de pagos. Inténtalo de nuevo en unos minutos.',
+  // QA 2026-10-10: códigos que el back devuelve al entrenador y que caían en
+  // el mensaje genérico de la acción.
+  CHECKOUT_UNAVAILABLE: 'No hemos podido contactar con el sistema de pagos. Inténtalo de nuevo en unos minutos.',
+  USAGE_UNAVAILABLE: 'No hemos podido contactar con el sistema de pagos. Inténtalo de nuevo en unos minutos.',
+  DATABASE_UNAVAILABLE: 'No hemos podido contactar con el sistema de pagos. Inténtalo de nuevo en unos minutos.',
+  MODE_MISMATCH: 'La contratación todavía no está disponible. Tu plan actual se mantiene.',
+  INVALID_QUOTE: 'Ese cálculo ya no es válido. Vuelve a calcular el cambio para ver el importe vigente.',
+  SESSION_NOT_OWNED: 'Ese pago no corresponde a tu cuenta. Revisa tu suscripción desde esta página.',
+  INVALID_SESSION: 'Ese pago no corresponde a tu cuenta. Revisa tu suscripción desde esta página.',
+  NO_BILLING_ACCOUNT: 'Todavía no tienes cuenta de pago: se crea al contratar un plan.',
+  ACCOUNT_DELETION_PENDING: 'Tu cuenta se está eliminando: ya no se pueden hacer cambios de facturación.',
+  BILLING_REVIEW_REQUIRED: 'Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.',
+  CHANGE_REVIEW_REQUIRED: 'Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.',
+  CUSTOMER_REVIEW_REQUIRED: 'Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.',
+  MULTIPLE_SUBSCRIPTIONS: 'Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.',
+  UNSUPPORTED_SUBSCRIPTION: 'Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.',
+  SUBSCRIPTION_NOT_OWNED: 'Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.',
+  PAYMENT_NOT_OWNED: 'Tu suscripción necesita una revisión de soporte antes de seguir. Escríbenos y lo revisamos.',
 };
 localizeRecord(ERROR_MESSAGES, 'SUBSCRIPTION.ERRORS');
 
@@ -882,11 +900,14 @@ export class SubscriptionPage implements OnDestroy {
   private errorMessage(error: unknown, fallback: string): string {
     if (!error || typeof error !== 'object') return fallback;
     const response = error as { code?: unknown; status?: unknown; error?: { code?: unknown } };
+    const code = response.code || response.error?.code;
+    // Un 403 de pagos (SESSION_NOT_OWNED) dice lo suyo; solo el de rol o
+    // sesión (ROLE_FORBIDDEN, 401) pide volver a entrar como entrenador.
+    if (typeof code === 'string' && ERROR_MESSAGES[code]) return ERROR_MESSAGES[code];
     if (response.status === 401 || response.status === 403) {
       return this.translate.instant('SUBSCRIPTION.ESTA_ACCION_REQUIERE_UNA_SESION');
     }
-    const code = response.code || response.error?.code;
-    return typeof code === 'string' ? ERROR_MESSAGES[code] || fallback : fallback;
+    return fallback;
   }
 
   private clearPoll(): void {

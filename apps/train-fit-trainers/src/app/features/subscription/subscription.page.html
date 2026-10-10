@@ -122,9 +122,9 @@
               <span class="seat-bar-reserved" [style.width.%]="reservedPercent"></span>
             </div>
             <ul class="seat-legend">
-              <li><span class="legend-dot occupied" aria-hidden="true"></span>{{ 'SUBSCRIPTION.SEATS_OCCUPIED' | translate: { count: seat.occupied } }}</li>
-              <li *ngIf="seat.reserved"><span class="legend-dot reserved" aria-hidden="true"></span>{{ 'SUBSCRIPTION.SEATS_RESERVED' | translate: { count: seat.reserved } }}</li>
-              <li><span class="legend-dot free" aria-hidden="true"></span>{{ 'SUBSCRIPTION.SEATS_AVAILABLE' | translate: { count: seat.available } }}</li>
+              <li><span class="legend-dot occupied" aria-hidden="true"></span>{{ (seat.occupied === 1 ? 'SUBSCRIPTION.SEATS_OCCUPIED_ONE' : 'SUBSCRIPTION.SEATS_OCCUPIED') | translate: { count: seat.occupied } }}</li>
+              <li *ngIf="seat.reserved"><span class="legend-dot reserved" aria-hidden="true"></span>{{ (seat.reserved === 1 ? 'SUBSCRIPTION.SEATS_RESERVED_ONE' : 'SUBSCRIPTION.SEATS_RESERVED') | translate: { count: seat.reserved } }}</li>
+              <li><span class="legend-dot free" aria-hidden="true"></span>{{ (seat.available === 1 ? 'SUBSCRIPTION.SEATS_AVAILABLE_ONE' : 'SUBSCRIPTION.SEATS_AVAILABLE') | translate: { count: seat.available } }}</li>
             </ul>
             <span class="fact-note warning" *ngIf="seat.occupied > seat.capacity">{{ 'SUBSCRIPTION.SUPERAS_EL_CUPO_NO_PUEDES' | translate }}</span>
             <span class="fact-note warning" *ngIf="seatsFull && seat.occupied <= seat.capacity">{{ 'SUBSCRIPTION.SEATS_FULL' | translate }}</span>

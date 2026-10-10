@@ -40,6 +40,7 @@ import { ProfessionalsApiService } from './services/professionals-api.service';
 import { HabitsService } from './services/habits.service';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
+import { inviteResponseErrorKey } from './models/invite-response-error.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -572,7 +573,7 @@ export class CoachPage implements OnInit {
         },
         error: (err) => {
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || this.translate.instant('COACH.ACCEPT_ERROR'),
+            this.translate.instant(inviteResponseErrorKey(err, 'COACH.ACCEPT_ERROR')),
             this.translate.instant('COMMON.ERROR'),
             4000
           );

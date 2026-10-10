@@ -2821,7 +2821,10 @@
     "UNLINK_ERROR": "No se pudo desvincular",
     "RANGE_TO": "a",
     "WEEK_N": "Semana {{n}}",
-    "UNTIL": "hasta el {{date}}"
+    "UNTIL": "hasta el {{date}}",
+    "ACCEPT_NO_SEAT": "Tu profesional no tiene ahora mismo una plaza libre. Pídele que amplíe sus plazas o vuelve a intentarlo más tarde.",
+    "ACCEPT_OVERLAP": "Ya tienes otro profesional que lleva lo mismo. Termina esa relación para aceptar esta invitación.",
+    "ACCEPT_BUSY": "Tu profesional está actualizando su plan. Vuelve a intentarlo en unos segundos."
   },
   "COACH_SHEETS": {
     "PLANS_TITLE": "Tus planes",

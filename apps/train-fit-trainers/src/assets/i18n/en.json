@@ -2383,7 +2383,23 @@
       "PRICE_CATALOG_REQUIRED": "Subscribing isn't available yet. Your current plan stays the same.",
       "PRICE_MISMATCH": "Subscribing isn't available yet. Your current plan stays the same.",
       "UNKNOWN_SUBSCRIPTION_PRICE": "Your subscription needs a support review before it can change. Write to us.",
-      "TERMS_CHANGED": "The terms of purchase have changed. Review them in the new calculation and confirm again."
+      "TERMS_CHANGED": "The terms of purchase have changed. Review them in the new calculation and confirm again.",
+      "CHECKOUT_UNAVAILABLE": "We couldn't reach the payment system. Try again in a few minutes.",
+      "USAGE_UNAVAILABLE": "We couldn't reach the payment system. Try again in a few minutes.",
+      "DATABASE_UNAVAILABLE": "We couldn't reach the payment system. Try again in a few minutes.",
+      "MODE_MISMATCH": "Subscribing isn't available yet. Your current plan stays as it is.",
+      "INVALID_QUOTE": "That calculation is no longer valid. Calculate the change again to see the current amount.",
+      "SESSION_NOT_OWNED": "That payment doesn't belong to your account. Check your subscription from this page.",
+      "INVALID_SESSION": "That payment doesn't belong to your account. Check your subscription from this page.",
+      "NO_BILLING_ACCOUNT": "You don't have a payment account yet: it's created when you subscribe to a plan.",
+      "ACCOUNT_DELETION_PENDING": "Your account is being deleted: billing changes are no longer possible.",
+      "BILLING_REVIEW_REQUIRED": "Your subscription needs a support review before going on. Write to us and we will look into it.",
+      "CHANGE_REVIEW_REQUIRED": "Your subscription needs a support review before going on. Write to us and we will look into it.",
+      "CUSTOMER_REVIEW_REQUIRED": "Your subscription needs a support review before going on. Write to us and we will look into it.",
+      "MULTIPLE_SUBSCRIPTIONS": "Your subscription needs a support review before going on. Write to us and we will look into it.",
+      "UNSUPPORTED_SUBSCRIPTION": "Your subscription needs a support review before going on. Write to us and we will look into it.",
+      "SUBSCRIPTION_NOT_OWNED": "Your subscription needs a support review before going on. Write to us and we will look into it.",
+      "PAYMENT_NOT_OWNED": "Your subscription needs a support review before going on. Write to us and we will look into it."
     },
     "PLAN_NAMES": {
       "free": "Free",
@@ -2483,7 +2499,10 @@
     "CANCEL_TO_FREE": "Afterwards you'll move to Free, with {{seats}} free seats.",
     "CANCEL_CHOOSE": "You have {{count}} clients: you'll choose which {{seats}} stay active; the rest become read-only. Nothing is deleted.",
     "QUOTE_TERMS": "By confirming you accept this change and its amount under the",
-    "QUOTE_TERMS_LINK": "terms of purchase"
+    "QUOTE_TERMS_LINK": "terms of purchase",
+    "SEATS_OCCUPIED_ONE": "1 taken",
+    "SEATS_RESERVED_ONE": "1 reserved by an invitation",
+    "SEATS_AVAILABLE_ONE": "1 free"
   },
   "PROTOCOLS": {
     "NO_SE_PUDIERON_CARGAR_TUS": "We couldn't load your protocols",

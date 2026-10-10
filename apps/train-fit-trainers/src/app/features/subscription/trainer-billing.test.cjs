@@ -844,3 +844,37 @@ test('no fuerza navegación si la sesión ya es válida o no se logra restaurar'
   }
 });
 
+
+// QA 2026-10-10 (revisión de pagos): códigos que components/trainerBilling
+// devuelve a un entrenador (BillingError de service.ts/config.ts y el
+// BILLING_UNAVAILABLE del adaptador). Cada uno tiene su mensaje: antes una
+// parte caía en el genérico de la acción («No se pudo abrir…») y un 403 de
+// pagos decía que hacía falta iniciar sesión como entrenador.
+const TRAINER_BILLING_CODES = [
+  'ACCOUNT_DELETION_PENDING', 'ACTIVE_SUBSCRIPTION', 'BILLING_BUSY', 'BILLING_DISABLED', 'BILLING_NOT_READY',
+  'BILLING_REVIEW_REQUIRED', 'BILLING_UNAVAILABLE', 'CANCELLATION_SCHEDULED', 'CHANGE_ALREADY_SCHEDULED',
+  'CHANGE_REJECTED', 'CHANGE_REVIEW_REQUIRED', 'CHECKOUT_REJECTED', 'CHECKOUT_UNAVAILABLE', 'COLLECTION_PAUSED',
+  'CONTROL_REJECTED', 'CUSTOMER_REJECTED', 'CUSTOMER_REVIEW_REQUIRED', 'DATABASE_UNAVAILABLE', 'EXISTING_CHECKOUT',
+  'INVALID_PLAN', 'INVALID_QUOTE', 'INVALID_SESSION', 'MODE_MISMATCH', 'MULTIPLE_SUBSCRIPTIONS', 'NO_BILLING_ACCOUNT',
+  'PAYMENT_NOT_OWNED', 'PAYMENT_PENDING', 'PORTAL_NOT_READY', 'PRICE_CATALOG_REQUIRED', 'PRICE_MISMATCH',
+  'QUOTE_EXPIRED', 'QUOTE_STALE', 'SAME_PLAN', 'SAME_SCHEDULED_CHANGE', 'SESSION_NOT_OWNED', 'SUBSCRIPTION_NOT_ACTIVE',
+  'SUBSCRIPTION_NOT_OWNED', 'TERMS_CHANGED', 'UNKNOWN_SUBSCRIPTION_PRICE', 'UNSUPPORTED_SUBSCRIPTION', 'USAGE_UNAVAILABLE',
+];
+
+test('cada código de pagos que puede recibir un entrenador tiene su mensaje, nunca el genérico', () => {
+  const { page } = harness();
+  for (const code of TRAINER_BILLING_CODES) {
+    const message = page.errorMessage({ status: 409, error: { code } }, 'GENÉRICO');
+    assert.notEqual(message, 'GENÉRICO', `${code} sin mensaje`);
+    assert.doesNotMatch(message, /^SUBSCRIPTION\./, `${code} sin traducir`);
+  }
+});
+
+test('un 403 de pagos dice lo suyo; solo el de rol pide entrar como entrenador', () => {
+  const { page } = harness();
+  assert.match(page.errorMessage({ status: 403, error: { code: 'SESSION_NOT_OWNED' } }, 'x'), /no corresponde a tu cuenta/);
+  const roleMessage = page.errorMessage({ status: 403, error: { code: 'ROLE_FORBIDDEN' } }, 'x');
+  assert.equal(roleMessage, page.errorMessage({ status: 401 }, 'x'));
+  assert.notEqual(roleMessage, 'x');
+  assert.equal(page.errorMessage({ status: 500, error: { code: 'ALGO_NUEVO' } }, 'x'), 'x', 'lo desconocido, al genérico de la acción');
+});
