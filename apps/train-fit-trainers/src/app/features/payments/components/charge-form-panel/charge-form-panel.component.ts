@@ -11,6 +11,7 @@ import {
   formatCents,
   formatDay,
   newOperationId,
+  amountInputErrorKey,
   parseAmountInput,
   paymentsErrorMessage,
 } from '../../utils/payments-view.util';
@@ -85,7 +86,7 @@ export class ChargeFormPanelComponent implements OnInit {
   public get amountError(): string | null {
     if (!this.amountText.trim()) return this.translate.instant('PAYMENTS.INDICA_EL_IMPORTE');
     const cents = this.amountCents;
-    if (cents === null) return this.translate.instant('PAYMENTS.IMPORTE_NO_VALIDO_USA_COMO');
+    if (cents === null) return this.translate.instant(amountInputErrorKey(this.amountText) || 'PAYMENTS.AMOUNT_ERRORS.NOT_A_NUMBER');
     if (this.charge && cents < this.floorCents) {
       return this.translate.instant('PAYMENTS.NO_PUEDE_QUEDAR_POR_DEBAJO', { p0: this.money(this.floorCents) });
     }

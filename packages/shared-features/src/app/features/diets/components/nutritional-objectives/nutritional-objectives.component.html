@@ -73,7 +73,7 @@
         <div class="calories-hero-content">
             <div class="calories-label">{{ 'NUTRITIONAL_OBJECTIVES.DAILY_CALORIES' | translate }}</div>
             <div class="calories-display">
-                <span class="calories-number">{{ nutritionalData.energyKcal | number:'1.0-0' }}</span>
+                <span class="calories-number">{{ nutritionalData.energyKcal | localNumber:'1.0-0' }}</span>
                 <span class="calories-goal">/ {{ kcalTotal ?? '--' }}</span>
             </div>
             <div class="calories-bar">
@@ -106,7 +106,7 @@
                     <div class="macro-name">{{ 'NUTRITION_EDITOR.PROTEINS' | translate }}</div>
                 </div>
                 <div class="macro-values">
-                    <span class="macro-current">{{ nutritionalData.protein | number:'1.0-0' }}</span>
+                    <span class="macro-current">{{ nutritionalData.protein | localNumber:'1.0-0' }}</span>
                     <span class="macro-goal-inline">/ {{ proteinsGTotal ?? '--' }} g</span>
                 </div>
                 <div class="macro-progress">
@@ -124,7 +124,7 @@
                     <div class="macro-name">{{ 'ADD_PRODUCT.CARBOHYDRATES' | translate }}</div>
                 </div>
                 <div class="macro-values">
-                    <span class="macro-current">{{ nutritionalData.carbohydrate | number:'1.0-0' }}</span>
+                    <span class="macro-current">{{ nutritionalData.carbohydrate | localNumber:'1.0-0' }}</span>
                     <span class="macro-goal-inline">/ {{ carbohydratesGTotal ?? '--' }} g</span>
                 </div>
                 <div class="macro-progress">
@@ -141,7 +141,7 @@
                     <div class="macro-name">{{ 'NUTRITION_EDITOR.FATS' | translate }}</div>
                 </div>
                 <div class="macro-values">
-                    <span class="macro-current">{{ nutritionalData.fat | number:'1.0-0' }}</span>
+                    <span class="macro-current">{{ nutritionalData.fat | localNumber:'1.0-0' }}</span>
                     <span class="macro-goal-inline">/ {{ fatGTotal ?? '--' }} g</span>
                 </div>
                 <div class="macro-progress">
@@ -158,8 +158,8 @@
                     <div class="macro-name">{{ 'ADD_PRODUCT.FIBER' | translate }}</div>
                 </div>
                 <div class="macro-values">
-                    <span class="macro-current">{{ nutritionalData.fiber | number:'1.0-0' }}</span>
-                    <span class="macro-goal-inline">/ {{ references.fiber | number:'1.0-0' }} g</span>
+                    <span class="macro-current">{{ nutritionalData.fiber | localNumber:'1.0-0' }}</span>
+                    <span class="macro-goal-inline">/ {{ references.fiber | localNumber:'1.0-0' }} g</span>
                 </div>
                 <div class="macro-progress">
                     <div class="macro-progress-fill"
@@ -175,8 +175,8 @@
                     <div class="macro-name">{{ 'ADD_PRODUCT.SUGAR' | translate }}</div>
                 </div>
                 <div class="macro-values">
-                    <span class="macro-current">{{ nutritionalData.sugar | number:'1.0-0' }}</span>
-                    <span class="macro-goal-inline">/ {{ references.sugar | number:'1.0-0' }} g</span>
+                    <span class="macro-current">{{ nutritionalData.sugar | localNumber:'1.0-0' }}</span>
+                    <span class="macro-goal-inline">/ {{ references.sugar | localNumber:'1.0-0' }} g</span>
                 </div>
                 <div class="macro-progress">
                     <div class="macro-progress-fill"
@@ -191,8 +191,8 @@
                     <div class="macro-name">{{ 'ADD_PRODUCT.SALT' | translate }}</div>
                 </div>
                 <div class="macro-values">
-                    <span class="macro-current">{{ nutritionalData.salt | number:'1.0-0' }}</span>
-                    <span class="macro-goal-inline">/ {{ references.salt | number:'1.0-0' }} g</span>
+                    <span class="macro-current">{{ nutritionalData.salt | localNumber:'1.0-0' }}</span>
+                    <span class="macro-goal-inline">/ {{ references.salt | localNumber:'1.0-0' }} g</span>
                 </div>
                 <div class="macro-progress">
                     <div class="macro-progress-fill"
@@ -227,7 +227,7 @@
                     </div>
                     <div class="micro-right-values">
                         <div class="micro-values-set">
-                            <span class="micro-current-val">{{ m.v | number:'1.0-0' }}</span>
+                            <span class="micro-current-val">{{ m.v | localNumber:'1.0-0' }}</span>
                             <span class="micro-unit-label"> {{ m.u | translate }}</span>
                         </div>
                     </div>
@@ -260,7 +260,7 @@
                     </div>
                     <div class="micro-right-values">
                         <div class="micro-values-set">
-                            <span class="micro-current-val">{{ v.v | number:'1.0-0' }}</span>
+                            <span class="micro-current-val">{{ v.v | localNumber:'1.0-0' }}</span>
                             <span class="micro-unit-label"> {{ v.u | translate }}</span>
                         </div>
                     </div>
@@ -293,7 +293,7 @@
                     </div>
                     <div class="micro-right-values">
                         <div class="micro-values-set">
-                            <span class="micro-current-val">{{ o.v | number:'1.0-0' }}</span>
+                            <span class="micro-current-val">{{ o.v | localNumber:'1.0-0' }}</span>
                             <span class="micro-unit-label"> {{ o.u | translate }}</span>
                         </div>
                     </div>

@@ -24,7 +24,7 @@
       <span class="recent-row__name">{{ item.name }}</span>
       <span class="recent-row__meta" *ngIf="!hiddenIds.has(item.id); else hiddenMeta">
         <span *ngIf="item.brand">{{ item.brand }}</span>
-        <span *ngIf="item.quantity" class="recent-row__qty">{{ item.quantity | number : '1.0-1' }} g</span>
+        <span *ngIf="item.quantity" class="recent-row__qty">{{ item.quantity | localNumber : '1.0-1' }} g</span>
         <span *ngIf="item.lastUsedAt">{{ item.lastUsedAt | localDate : 'd MMM' }}</span>
       </span>
       <ng-template #hiddenMeta>

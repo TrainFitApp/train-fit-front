@@ -11,6 +11,7 @@ import {
   worstByZone,
 } from 'src/app/core/constants/pain';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
+import { PainTrend, painTrend } from './pain-trend.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -27,8 +28,10 @@ interface ZoneSummary {
   // a 8 es un problema aunque el resto de la semana esté a 1.
   worst: number;
   lastDate: string;
-  // El nivel del último día con registro, para ver si va a mejor o a peor.
+  // El nivel del último día con registro y el del anterior, para ver si va
+  // a mejor o a peor.
   latest: number | null;
+  previous: number | null;
   threshold: PainThreshold | null;
 }
 
@@ -92,16 +95,22 @@ export class PainPanelComponent implements OnChanges {
   private buildSummaries(entries: PainEntry[], thresholds: PainThreshold[]): ZoneSummary[] {
     const thresholdByZone = new Map(thresholds.map((threshold) => [threshold.zone, threshold]));
 
-    // El último valor de cada zona: las entradas llegan ordenadas por fecha
-    // ascendente, así que la última que se ve de cada zona es la más nueva.
+    // Los dos últimos valores de cada zona: las entradas llegan ordenadas por
+    // fecha ascendente, así que la última que se ve de cada zona es la más
+    // nueva.
     const latestByZone = new Map<string, number>();
-    for (const entry of entries) latestByZone.set(entry.zone, entry.level);
+    const previousByZone = new Map<string, number>();
+    for (const entry of entries) {
+      if (latestByZone.has(entry.zone)) previousByZone.set(entry.zone, latestByZone.get(entry.zone) as number);
+      latestByZone.set(entry.zone, entry.level);
+    }
 
     const summaries: ZoneSummary[] = worstByZone(entries).map((worst) => ({
       zone: worst.zone,
       worst: worst.level,
       lastDate: worst.lastDate,
       latest: latestByZone.has(worst.zone) ? (latestByZone.get(worst.zone) as number) : null,
+      previous: previousByZone.has(worst.zone) ? (previousByZone.get(worst.zone) as number) : null,
       threshold: thresholdByZone.get(worst.zone) || null,
     }));
 
@@ -115,6 +124,7 @@ export class PainPanelComponent implements OnChanges {
         worst: 0,
         lastDate: '',
         latest: null,
+        previous: null,
         threshold,
       });
     }
@@ -134,11 +144,8 @@ export class PainPanelComponent implements OnChanges {
     return summary.worst >= limit;
   }
 
-  public trendFor(summary: ZoneSummary): 'mejor' | 'peor' | 'igual' | null {
-    if (summary.latest === null) return null;
-    if (summary.latest < summary.worst) return 'mejor';
-    if (summary.latest > summary.worst) return 'peor';
-    return this.translate.instant('CLIENTS.IGUAL_2');
+  public trendFor(summary: ZoneSummary): PainTrend | null {
+    return painTrend(summary.latest, summary.previous);
   }
 
   public thresholdLabel(summary: ZoneSummary): string {

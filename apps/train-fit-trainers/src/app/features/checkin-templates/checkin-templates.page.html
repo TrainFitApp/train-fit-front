@@ -39,7 +39,7 @@
            entrada (sin "+" en la cabecera). -->
       <button type="button" class="template-card template-card--add" (click)="openCreatePanel()">
         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-        <span>{{ 'CHECKIN_TEMPLATES.CREAR_CHECK_IN' | translate }}</span>
+        <span>{{ 'CHECKIN_TEMPLATES.CREAR_PLANTILLA' | translate }}</span>
       </button>
 
       <div class="template-card" *ngFor="let template of templates; trackBy: trackByTemplateId">
@@ -59,7 +59,7 @@
           </ng-template>
 
           <span class="template-total-count">
-            {{ template.enabledFields.length }} {{ 'CHECKIN_TEMPLATES.CAMPOS_EN_TOTAL' | translate }}<ng-container *ngIf="requiredCount(template) as required"> · {{ required }} {{ required === 1 ? 'obligatorio' : 'obligatorios' }}</ng-container>
+            {{ template.enabledFields.length }} {{ (template.enabledFields.length === 1 ? 'CHECKIN_TEMPLATES.CAMPO_EN_TOTAL' : 'CHECKIN_TEMPLATES.CAMPOS_EN_TOTAL') | translate }}<ng-container *ngIf="requiredCount(template) as required"> · {{ required }} {{ (required === 1 ? 'CHECKIN_TEMPLATES.OBLIGATORIO' : 'CHECKIN_TEMPLATES.OBLIGATORIOS') | translate }}</ng-container>
           </span>
         </div>
 

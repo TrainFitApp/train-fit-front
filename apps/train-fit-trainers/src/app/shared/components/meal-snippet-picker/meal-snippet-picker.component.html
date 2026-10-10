@@ -74,19 +74,19 @@
             <div class="picked-food-macros">
               <div class="macro-item">
                 <div class="macro-dot kcal"></div>
-                <span class="macro-value">{{ productMacros(cp).kcal | number : '1.0-0' }}</span>
+                <span class="macro-value">{{ productMacros(cp).kcal | localNumber : '1.0-0' }}</span>
               </div>
               <div class="macro-item">
                 <div class="macro-dot protein"></div>
-                <span class="macro-value">{{ productMacros(cp).protein | number : '1.0-1' }}g</span>
+                <span class="macro-value">{{ productMacros(cp).protein | localNumber : '1.0-1' }}g</span>
               </div>
               <div class="macro-item">
                 <div class="macro-dot carbs"></div>
-                <span class="macro-value">{{ productMacros(cp).carbs | number : '1.0-1' }}g</span>
+                <span class="macro-value">{{ productMacros(cp).carbs | localNumber : '1.0-1' }}g</span>
               </div>
               <div class="macro-item">
                 <div class="macro-dot fat"></div>
-                <span class="macro-value">{{ productMacros(cp).fat | number : '1.0-1' }}g</span>
+                <span class="macro-value">{{ productMacros(cp).fat | localNumber : '1.0-1' }}g</span>
               </div>
             </div>
           </div>
@@ -102,19 +102,19 @@
             <div class="picked-food-macros">
               <div class="macro-item">
                 <div class="macro-dot kcal"></div>
-                <span class="macro-value">{{ recipeMacros(cr).kcal | number : '1.0-0' }}</span>
+                <span class="macro-value">{{ recipeMacros(cr).kcal | localNumber : '1.0-0' }}</span>
               </div>
               <div class="macro-item">
                 <div class="macro-dot protein"></div>
-                <span class="macro-value">{{ recipeMacros(cr).protein | number : '1.0-1' }}g</span>
+                <span class="macro-value">{{ recipeMacros(cr).protein | localNumber : '1.0-1' }}g</span>
               </div>
               <div class="macro-item">
                 <div class="macro-dot carbs"></div>
-                <span class="macro-value">{{ recipeMacros(cr).carbs | number : '1.0-1' }}g</span>
+                <span class="macro-value">{{ recipeMacros(cr).carbs | localNumber : '1.0-1' }}g</span>
               </div>
               <div class="macro-item">
                 <div class="macro-dot fat"></div>
-                <span class="macro-value">{{ recipeMacros(cr).fat | number : '1.0-1' }}g</span>
+                <span class="macro-value">{{ recipeMacros(cr).fat | localNumber : '1.0-1' }}g</span>
               </div>
             </div>
           </div>

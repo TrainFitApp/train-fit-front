@@ -7,6 +7,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { money } from '../../models/coach-notification-view';
 import {
   ChargeState,
+  chargeDueKey,
   chargeState,
   civilDayLabel,
   feeFrequency,
@@ -151,11 +152,9 @@ export class CoachProfessionalsSheetComponent implements OnInit {
     return this.translate.instant(charge.origin === 'recurring' ? 'COACH_SHEETS.CHARGE_FEE' : 'COACH_SHEETS.CHARGE_ONE_OFF');
   }
 
-  // "Vence el 5 nov" / "Venció el 5 oct" / "Vence hoy".
+  // "Vence el 5 nov" / "Venció el 5 oct" / "Vence hoy" (ver chargeDueKey).
   public chargeDue(charge: ClientCharge, data: ProfessionalPayments): string {
-    if (charge.dueDay === data.today) return this.translate.instant('COACH_SHEETS.CHARGE_DUE_TODAY');
-    const key = charge.dueDay < data.today ? 'COACH_SHEETS.DUE_PAST' : 'COACH_SHEETS.DUE_FUTURE';
-    return this.translate.instant(key, { date: this.day(charge.dueDay, data) });
+    return this.translate.instant(chargeDueKey(charge, data.today), { date: this.day(charge.dueDay, data) });
   }
 
   public feeLabel(data: ProfessionalPayments): string {

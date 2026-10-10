@@ -7,6 +7,7 @@ import { RoutineAssignmentApiService } from '../../../../shared/services/routine
 import { RoutineAssignment } from '../../../../shared/models/routine-assignment.model';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
+import { initialRoutineSelection } from './apply-routine-selection.util';
 
 type ViewState = 'loading' | 'error' | 'loaded' | 'applying';
 
@@ -67,6 +68,7 @@ export class ApplyRoutineModalComponent implements OnInit {
     this.clientDetailApi.getTables(this.clientId).subscribe({
       next: (tables) => {
         this.tables = tables || [];
+        this.selectedTableId = initialRoutineSelection(this.tables);
         this.state = 'loaded';
       },
       error: () => {

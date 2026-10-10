@@ -623,13 +623,19 @@ export class InvitesPage implements OnInit {
     }
   }
 
-  private outcomeOf(results: Pick<SendInviteResult, 'scope' | 'success' | 'error'>[]): SendOutcome {
+  private outcomeOf(results: Pick<SendInviteResult, 'scope' | 'success' | 'error' | 'code'>[]): SendOutcome {
     const failed = results.filter((result) => !result.success);
     return {
       sentScopes: results.filter((result) => result.success).map((result) => result.scope),
-      failure: failed.length ? failed.map((result) => `${this.scopeLabel(result.scope)}: ${result.error}`).join(' · ') : null,
+      failure: failed.length ? failed.map((result) => `${this.scopeLabel(result.scope)}: ${this.inviteFailureText(result)}`).join(' · ') : null,
       seatsExhausted: false,
     };
+  }
+
+  // Por código en el idioma de la app; si no lo hay, el texto del back.
+  private inviteFailureText(result: Pick<SendInviteResult, 'error' | 'code'>): string {
+    const key = result.code === 'OVERLAP' ? 'INVITES.FAIL_OVERLAP' : result.code === 'INVITE_ALREADY_PENDING' ? 'INVITES.FAIL_ALREADY_PENDING' : null;
+    return key ? this.translate.instant(key) : result.error || this.translate.instant('INVITES.NO_SE_PUDO_ENVIAR_LA');
   }
 
   public goToSeats(): void {

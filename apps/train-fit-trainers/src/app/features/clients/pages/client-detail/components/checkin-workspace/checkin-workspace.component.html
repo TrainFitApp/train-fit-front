@@ -91,7 +91,7 @@
         <article class="request-detail" *ngIf="selected as entry">
           <div class="request-heading"><h3>{{ entry.name }}</h3><span class="status" [attr.data-status]="entry.status"><ion-icon [name]="statusIcons[entry.status]" aria-hidden="true"></ion-icon>{{ statusLabels[entry.status] }}</span></div>
           <p class="request-timing">
-            {{ 'CLIENTS.PREVISTO' | translate }} {{ formatDay(entry.date) }} · {{ formatTime(entry) }}
+            {{ 'CLIENTS.PREVISTO' | translate }} {{ formatDay(entry.date) }}<ng-container *ngIf="formatTime(entry) as time"> · {{ time }}</ng-container>
             <span *ngIf="entry.respondedAt"> · {{ 'MY_CHECKINS.ANSWERED' | translate }} {{ formatDate(entry.respondedAt) }}</span>
             <span *ngIf="entry.updatedAt && entry.updatedAt !== entry.respondedAt"> · {{ 'CLIENTS.ACTUALIZADO' | translate }} {{ formatDate(entry.updatedAt) }}</span>
             <span *ngIf="weekLabel(entry) as week"> · {{ week }}</span>

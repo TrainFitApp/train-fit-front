@@ -147,6 +147,15 @@
   border-top: 1px solid var(--tf-border);
 }
 
+// Por qué el botón está deshabilitado (sin rutina elegida).
+.footer-hint {
+  margin: 0 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+  color: var(--tf-text-muted);
+  text-align: center;
+}
+
 .submit-button {
   @include tf-gradient-button;
   width: 100%;

@@ -165,7 +165,7 @@
       <span class="content-row__main">
         <span class="content-row__name">{{ dietTemplate(protocol.dietTemplateId)?.name || missingName() }}</span>
         <span class="content-row__meta" *ngIf="dietTemplate(protocol.dietTemplateId)?.macroProfile as profile">
-          {{ 'PROTOCOLS.DIA_TIPO' | translate }} {{ profile.kcal | number: '1.0-0' }} kcal
+          {{ 'PROTOCOLS.DIA_TIPO' | translate }} {{ profile.kcal | localNumber: '1.0-0' }} kcal
         </span>
       </span>
       <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
@@ -173,7 +173,7 @@
     <div class="target-summary" *ngIf="protocol.nutritionTarget as target">
       <div class="target-summary__kcal">
         <ion-icon name="flame" aria-hidden="true"></ion-icon>
-        <strong>{{ target.kcal | number: '1.0-0' }}</strong><span>{{ 'PROTOCOLS.KCAL_DIA' | translate }}</span>
+        <strong>{{ target.kcal | localNumber: '1.0-0' }}</strong><span>{{ 'PROTOCOLS.KCAL_DIA' | translate }}</span>
       </div>
       <div class="macro-bar" aria-hidden="true">
         <span
@@ -185,7 +185,7 @@
       <ul class="macro-legend">
         <li *ngFor="let macro of macroKeys" class="macro-legend__item macro-legend__item--{{ macro.key }}">
           <span class="macro-legend__dot" aria-hidden="true"></span>
-          {{ macro.label }} <strong>{{ target[macro.key] | number: '1.0-0' }} g</strong>
+          {{ macro.label }} <strong>{{ target[macro.key] | localNumber: '1.0-0' }} g</strong>
           <span class="macro-legend__pct">{{ macroShare(target, macro.key) }}%</span>
         </li>
       </ul>
@@ -232,7 +232,7 @@
     <h3 class="section-title"><ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>{{ 'PROTOCOLS.HABITOS_DIARIOS' | translate }}</h3>
     <div class="content-row content-row--static" *ngFor="let task of protocol.dailyTasks; trackBy: trackByIndex">
       <span class="content-row__name">{{ task.label || ('PROTOCOLS.HABITO' | translate) }}</span>
-      <span class="content-row__value">{{ task.target | number: '1.0-2' }} {{ task.unit }}</span>
+      <span class="content-row__value">{{ task.target | localNumber: '1.0-2' }} {{ task.unit }}</span>
     </div>
   </section>
 
@@ -401,8 +401,8 @@
           </button>
         </div>
         <p class="checkin-row__meta" *ngIf="selectedDietProfile as profile">
-          {{ 'TRAINER_MISC.DIA_TIPO' | translate }} {{ profile.kcal | number: '1.0-0' }} kcal · P {{ profile.protein | number: '1.0-0' }} g ·
-          C {{ profile.carbs | number: '1.0-0' }} g · G {{ profile.fat | number: '1.0-0' }} g
+          {{ 'TRAINER_MISC.DIA_TIPO' | translate }} {{ profile.kcal | localNumber: '1.0-0' }} kcal · P {{ profile.protein | localNumber: '1.0-0' }} g ·
+          C {{ profile.carbs | localNumber: '1.0-0' }} g · G {{ profile.fat | localNumber: '1.0-0' }} g
         </p>
 
         <span class="field-label">{{ 'PROTOCOLS.OBJETIVO_DE_KCAL_MACROS' | translate }}</span>
@@ -660,11 +660,11 @@
     <ng-container *ngIf="previewDiet as diet">
       <div class="preview-macros" *ngIf="diet.macroProfile as profile">
         <div class="preview-macros__kcal">
-          <strong>{{ profile.kcal | number: '1.0-0' }}</strong><span>{{ 'PROTOCOLS.KCAL_DIA_TIPO' | translate }}</span>
+          <strong>{{ profile.kcal | localNumber: '1.0-0' }}</strong><span>{{ 'PROTOCOLS.KCAL_DIA_TIPO' | translate }}</span>
         </div>
-        <div class="preview-macros__item preview-macros__item--protein"><strong>{{ profile.protein | number: '1.0-0' }} g</strong><span>{{ 'TRAINER_COMMON.PROTEIN' | translate }}</span></div>
-        <div class="preview-macros__item preview-macros__item--carbs"><strong>{{ profile.carbs | number: '1.0-0' }} g</strong><span>{{ 'TRAINER_COMMON.CARBOHYDRATES' | translate }}</span></div>
-        <div class="preview-macros__item preview-macros__item--fat"><strong>{{ profile.fat | number: '1.0-0' }} g</strong><span>{{ 'TRAINER_COMMON.FAT_SINGULAR' | translate }}</span></div>
+        <div class="preview-macros__item preview-macros__item--protein"><strong>{{ profile.protein | localNumber: '1.0-0' }} g</strong><span>{{ 'TRAINER_COMMON.PROTEIN' | translate }}</span></div>
+        <div class="preview-macros__item preview-macros__item--carbs"><strong>{{ profile.carbs | localNumber: '1.0-0' }} g</strong><span>{{ 'TRAINER_COMMON.CARBOHYDRATES' | translate }}</span></div>
+        <div class="preview-macros__item preview-macros__item--fat"><strong>{{ profile.fat | localNumber: '1.0-0' }} g</strong><span>{{ 'TRAINER_COMMON.FAT_SINGULAR' | translate }}</span></div>
       </div>
       <section class="preview-menu" *ngFor="let menu of diet.menus; trackBy: trackByIndex">
         <h3 class="section-title">{{ menu.name || ('SHOPPING_LIST.MENU_ARIA' | translate) }}</h3>

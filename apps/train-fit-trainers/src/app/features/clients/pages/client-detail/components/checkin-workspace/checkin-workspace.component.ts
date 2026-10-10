@@ -11,6 +11,7 @@ import { CheckinAgendaData, CheckinComparisonRow, CheckinDay, CheckinEntry, Chec
 import { compareCheckins, tabsFor } from './checkin-comparison';
 import { checkinCadenceLabel, checkinWeekLabel } from '../../../../checkin-labels.util';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { ReviewQueueApiService } from '../../../../../review-queue/review-queue-api.service';
 
 function localDate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -37,6 +38,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly ionicUtilService = inject(IonicUtilService);
+  private readonly reviewQueue = inject(ReviewQueueApiService);
   private loadSubscription?: Subscription;
   private summarySubscription?: Subscription;
   public readonly today = localDate(new Date());
@@ -288,7 +290,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
   }
   public async review(): Promise<void> {
     if (!this.selected?.responseId || this.selected.status !== 'responded') return;
-    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-responses/${this.selected!.responseId}/review`, { comment: this.comment })), this.translate.instant('CLIENTS.RESPUESTA_REVISADA_EL_COMENTARIO_ESTA'));
+    await this.mutate(() => firstValueFrom(this.http.post(`${this.base}/checkin-responses/${this.selected!.responseId}/review`, { comment: this.comment })), this.translate.instant('CLIENTS.RESPUESTA_REVISADA_EL_COMENTARIO_ESTA'), () => this.reviewQueue.notifyChanged());
   }
   private async mutate<T>(action: () => Promise<T>, message: string | ((result: T) => string), done?: () => void): Promise<void> {
     if (this.busy) return; this.busy = true; this.error = ''; this.notice = '';

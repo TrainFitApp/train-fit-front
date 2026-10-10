@@ -1,6 +1,6 @@
 <div class="category-grid">
   <a class="category-card" *ngFor="let c of categories; trackBy: trackByPath" [routerLink]="c.path">
-    <div class="category-icon" [style.background]="c.colorVar">
+    <div class="category-icon" aria-hidden="true">
       <ion-icon [name]="c.icon"></ion-icon>
     </div>
     <span class="category-name">{{ c.name }}</span>

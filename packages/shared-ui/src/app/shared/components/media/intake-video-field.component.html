@@ -23,7 +23,7 @@
 
       <div class="upload" *ngIf="uploading" role="status">
         <span class="bar"><span class="bar-fill" [style.transform]="'scaleX(' + progress + ')'"></span></span>
-        <span>{{ 'MEDIA.UPLOADING_PERCENT' | translate: { percent: (progress * 100 | number: '1.0-0') } }}</span>
+        <span>{{ 'MEDIA.UPLOADING_PERCENT' | translate: { percent: (progress * 100 | localNumber: '1.0-0') } }}</span>
       </div>
       <p class="note" *ngIf="uploading">{{ 'MEDIA.KEEP_APP_OPEN' | translate }}</p>
 

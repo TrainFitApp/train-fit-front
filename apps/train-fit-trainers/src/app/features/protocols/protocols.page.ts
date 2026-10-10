@@ -635,7 +635,7 @@ export class ProtocolsPage {
         text: `${this.translate.instant('PROTOCOLS.CHECK_IN')} ${protocolCadenceLabel(checkins[0]).toLowerCase()}`,
       });
     } else if (checkins.length > 1) {
-      parts.push({ icon: 'clipboard-outline', text: this.translate.instant('PROTOCOLS.CHECKINS_COUNT', { count: checkins.length }) });
+      parts.push({ icon: 'clipboard-outline', text: this.translate.instant(checkins.length === 1 ? 'PROTOCOLS.CHECKINS_ONE' : 'PROTOCOLS.CHECKINS_COUNT', { count: checkins.length }) });
     }
     if (protocol.dietTemplateId) {
       parts.push({ icon: 'restaurant-outline', text: this.dietTemplate(protocol.dietTemplateId)?.name || this.translate.instant('PROTOCOLS.PLAN_DE_DIETA') });

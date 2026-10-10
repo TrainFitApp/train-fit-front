@@ -12,6 +12,7 @@ import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/n
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { NutritionalData } from 'src/app/shared/models/nutritional-data';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 
 interface NutrientItem {
   n: string;
@@ -259,7 +260,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
       return;
     }
     const diff = this.kcalTotal - this.nutritionalData.energyKcal;
-    const value = Math.abs(diff).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    const value = formatLocalNumber(Math.abs(diff), { maxDecimals: 0 });
     if (diff >= 0) {
       this.kcalRemainingPrefix = this.translate.instant('NUTRITIONAL_OBJECTIVES.KCAL_REMAINING_PREFIX');
       this.kcalRemainingValue = value;

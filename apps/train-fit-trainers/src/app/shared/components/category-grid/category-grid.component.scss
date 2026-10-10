@@ -56,7 +56,12 @@
   width: 40px;
   height: 40px;
   border-radius: var(--tf-radius-md);
-  color: var(--tf-accent-contrast);
+  // Un solo tono para todas las secciones (naranja de marca, suave): los
+  // fondos verde/rojo/naranja por sección iban contra la regla de iconos
+  // sobrios (QA 2026-10-09).
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  color: var(--tf-accent-text);
   margin-bottom: var(--tf-space-3);
 
   ion-icon {

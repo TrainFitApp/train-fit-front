@@ -48,18 +48,18 @@
         <div class="week__fact">
           <dt>{{ 'CLIENTS.PAUTADO' | translate }}</dt>
           <dd>
-            {{ event.profile.kcal | number: '1.0-0' }} kcal
+            {{ event.profile.kcal | localNumber: '1.0-0' }} kcal
             <span class="week__delta" *ngIf="kcalDeltaLabel(event) as delta">{{ delta }}</span>
           </dd>
           <dd class="week__macros">
             <span class="week__macro week__macro--protein">
-              <i class="week__macro-dot"></i>P <strong>{{ event.profile.protein | number: '1.0-0' }} g</strong>
+              <i class="week__macro-dot"></i>P <strong>{{ event.profile.protein | localNumber: '1.0-0' }} g</strong>
             </span>
             <span class="week__macro week__macro--carbs">
-              <i class="week__macro-dot"></i>C <strong>{{ event.profile.carbs | number: '1.0-0' }} g</strong>
+              <i class="week__macro-dot"></i>C <strong>{{ event.profile.carbs | localNumber: '1.0-0' }} g</strong>
             </span>
             <span class="week__macro week__macro--fat">
-              <i class="week__macro-dot"></i>G <strong>{{ event.profile.fat | number: '1.0-0' }} g</strong>
+              <i class="week__macro-dot"></i>G <strong>{{ event.profile.fat | localNumber: '1.0-0' }} g</strong>
             </span>
           </dd>
         </div>

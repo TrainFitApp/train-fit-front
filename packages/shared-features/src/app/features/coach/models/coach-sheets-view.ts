@@ -50,6 +50,15 @@ export function chargeState(charge: Pick<ClientCharge, 'status' | 'temporal'>): 
   return 'upcoming';
 }
 
+// La fecha junto al cobro: "Vence hoy", "Venció el 5 oct", "Vence el 5 nov".
+// Lo pagado o anulado ya no vence (QA 2026-10-09: seguía con «Vence hoy»):
+// solo se dice cuándo vencía.
+export function chargeDueKey(charge: Pick<ClientCharge, 'status' | 'dueDay'>, today: string): string {
+  if (charge.status === 'settled' || charge.status === 'cancelled') return 'COACH_SHEETS.DUE_DATE';
+  if (charge.dueDay === today) return 'COACH_SHEETS.CHARGE_DUE_TODAY';
+  return charge.dueDay < today ? 'COACH_SHEETS.DUE_PAST' : 'COACH_SHEETS.DUE_FUTURE';
+}
+
 // Pagado algo, pero aún queda: "Pagado 20,00 € de 60,00 €".
 export function isPartial(charge: Pick<ClientCharge, 'status' | 'receivedCents' | 'balanceCents'>): boolean {
   return charge.status === 'open' && charge.receivedCents > 0 && charge.balanceCents > 0;

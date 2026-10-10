@@ -49,7 +49,7 @@ export class DietTemplatesListPage implements OnInit {
   public readonly sourceOptions: { key: LibraryDietSource; labelKey?: string; label?: string; icon: string }[] = [
     { key: 'general', labelKey: 'DIET_TEMPLATES.ANADIDAS_POR_MI', icon: 'person' },
     { key: 'client', labelKey: 'DIET_TEMPLATES.FROM_CLIENTS', icon: 'person-circle' },
-    { key: 'verified', label: 'By TrainFit', icon: 'shield' },
+    { key: 'verified', labelKey: 'DIET_TEMPLATES.DE_FABRICA', icon: 'shield' },
   ];
   public sources = new Set<LibraryDietSource>(LIBRARY_DIET_SOURCES);
   // Panel lateral de filtros, abierto desde el botón junto al buscador.

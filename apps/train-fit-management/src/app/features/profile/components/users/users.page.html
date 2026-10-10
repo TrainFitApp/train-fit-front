@@ -121,7 +121,7 @@
               <ion-icon name="list-outline" class="detail-icon var-secondary"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">{{ 'MANAGEMENT.USERS.ROUTINE_ACTIVE' | translate }}</span>
-                <span class="detail-value">{{ (user.hasTableInUse || user.tableInUse) ? (user.tableSplitsCount ? ('MANAGEMENT.USERS.SPLITS_COUNT' | translate:{count: user.tableSplitsCount}) : ('MANAGEMENT.USERS.WORKOUT_YES' | translate)) : ('MANAGEMENT.USERS.WORKOUT_NO' | translate) }}</span>
+                <span class="detail-value">{{ (user.hasTableInUse || user.tableInUse) ? (user.tableSplitsCount ? ((user.tableSplitsCount === 1 ? 'MANAGEMENT.USERS.SPLITS_ONE' : 'MANAGEMENT.USERS.SPLITS_COUNT') | translate:{count: user.tableSplitsCount}) : ('MANAGEMENT.USERS.WORKOUT_YES' | translate)) : ('MANAGEMENT.USERS.WORKOUT_NO' | translate) }}</span>
               </div>
             </div>
             <div class="detail-item">

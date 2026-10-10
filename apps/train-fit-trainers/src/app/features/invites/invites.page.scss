@@ -750,16 +750,11 @@
 // columnas, 3 con el ancho de escritorio, 1 en un móvil estrecho.
 .request-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  // Columnas de al menos 15rem: marcada, la fila lleva además la píldora
+  // OPCIONAL/OBLIGATORIA, y con tres columnas en un panel de 800px el nombre
+  // se quedaba en «C», «M…» o «Bíceps relajado i…» (QA 2026-10-09).
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
   gap: 6px;
-
-  @media (min-width: 840px) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  @media (max-width: 400px) {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 // Fila de una petición: el checkbox con su etiqueta y, si está marcada, la
@@ -823,6 +818,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  // Con la píldora al lado, el nombre entero en dos líneas antes que
+  // cortado: «Bíceps relajado izquierdo» no se distingue del derecho por
+  // la primera mitad.
+  .is-selected & {
+    white-space: normal;
+    overflow-wrap: break-word;
+    line-height: 1.25;
+    padding-block: 4px;
+  }
 
   &--wrap {
     white-space: normal;

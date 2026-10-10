@@ -822,7 +822,10 @@
   margin-top: var(--tf-space-2);
   font-size: var(--tf-font-size-xs);
   color: var(--tf-text-muted);
-  text-transform: capitalize;
+  // Solo la primera letra en mayúscula: `capitalize` ponía «Octubre De 2026».
+  &::first-letter {
+    text-transform: uppercase;
+  }
 }
 
 .empty-hint {

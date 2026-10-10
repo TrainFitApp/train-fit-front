@@ -25,6 +25,7 @@ import { Subscription } from "rxjs";
 import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
 import { isPremiumActive } from "src/app/core/utils/premium-status.util";
 import { nextTrainingDay } from "src/app/core/utils/training-day.util";
+import { currentMicrocycleNumber } from "src/app/core/utils/microcycle-progress.util";
 
 @Component({
   selector: "app-summary",
@@ -317,14 +318,8 @@ export class SummaryPage {
     return nextTrainingDay(this.tableInUse?.splits);
   }
 
-  public countDoneSplits(): number {
-    return (
-      this.tableInUse.splits.reduce((totalDoneSplits, split) => {
-        return this.utilService.isSplitDoned(split)
-          ? totalDoneSplits + 1
-          : totalDoneSplits;
-      }, 0) - 1
-    );
+  public currentMicrocycle(): number {
+    return currentMicrocycleNumber(this.tableInUse?.splits);
   }
 
   public isWorkoutInSplit(split: any): boolean {

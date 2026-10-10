@@ -123,9 +123,14 @@
   position: relative;
   display: flex;
   // flex-start: con la descripción debajo del nombre la fila crece a dos o
-  // tres líneas y casilla y pill deben quedarse arriba, junto al nombre.
+  // tres líneas y la casilla debe quedarse arriba, junto al nombre.
   align-items: flex-start;
-  gap: var(--tf-space-2);
+  // La pill «Obligatorio» baja a su propia línea, bajo el texto: al lado le
+  // quitaba ~100px a la descripción y partía palabras («levantarte / ,
+  // después», «desayuna / r.») con el panel a ~800px (QA 2026-10-09).
+  flex-wrap: wrap;
+  column-gap: var(--tf-space-2);
+  row-gap: 0;
   width: 100%;
   min-height: var(--tf-touch-min);
   padding: var(--tf-space-1) var(--tf-space-2) var(--tf-space-1) var(--tf-space-3);
@@ -155,7 +160,7 @@
 }
 
 .field-toggle-main {
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
   display: flex;
   align-items: flex-start;
@@ -224,7 +229,8 @@
   z-index: 1;
   flex-shrink: 0;
   min-height: 28px;
-  margin-top: 6px;
+  // Alineada con el nombre: casilla (18px) + su hueco.
+  margin: 0 0 var(--tf-space-1) calc(18px + var(--tf-space-2));
   padding: 0 var(--tf-space-3);
   background: transparent;
   border: 1px solid var(--tf-border-strong);

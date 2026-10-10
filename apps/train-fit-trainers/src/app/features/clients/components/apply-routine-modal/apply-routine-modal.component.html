@@ -111,6 +111,7 @@
 </ion-content>
 
 <ion-footer class="apply-modal-footer" *ngIf="(state === 'loaded' || state === 'applying') && (mode === 'reschedule' || tables.length)">
+  <p class="footer-hint" *ngIf="mode === 'apply' && !selectedTableId">{{ 'CLIENTS.ELIGE_RUTINA_PARA_PROGRAMAR' | translate }}</p>
   <button class="submit-button" [disabled]="!canConfirm || state === 'applying'" (click)="confirm()">
     <span *ngIf="state !== 'applying'">{{ mode === 'reschedule' ? ('CLIENTS.GUARDAR_NUEVA_FECHA' | translate) : ('CLIENTS.APLICAR_2' | translate) + clientName }}</span>
     <ion-spinner name="dots" *ngIf="state === 'applying'"></ion-spinner>

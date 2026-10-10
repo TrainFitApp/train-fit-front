@@ -26,7 +26,7 @@
     </div>
     <span class="planner-column-meta">
       {{ split.workouts.length }} {{ (split.workouts.length === 1 ? 'PLANNER.CARD_SINGULAR' : 'PLANNER.CARD_PLURAL') | translate }}
-      · {{ totalExercises }} {{ 'TABLES.EXERCISE_PLURAL' | translate }}
+      · {{ totalExercises }} {{ (totalExercises === 1 ? 'TABLES.EXERCISE_SINGULAR' : 'TABLES.EXERCISE_PLURAL') | translate }}
     </span>
 
     <!-- Movimiento 6 Coach Pro — qué es este bloque y qué busca.

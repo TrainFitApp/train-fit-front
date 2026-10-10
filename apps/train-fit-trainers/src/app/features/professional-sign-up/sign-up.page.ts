@@ -14,6 +14,7 @@ import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import { PasswordComplexity } from 'src/app/core/validators/password-complexity';
 import { LINKS } from 'src/app/shared/constants/links';
 import { resendCodeErrorMessage, verificationMailFailed } from 'src/app/core/utils/verification-mail.util';
+import { signupErrorMessage } from 'src/app/core/utils/signup-errors.util';
 
 @Component({
   selector: 'app-professional-sign-up',
@@ -135,8 +136,7 @@ export class SignUpPage implements OnInit, OnDestroy {
         error: (err) => {
           this.isProcessing = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message ||
-              this.translate.instant('SIGN_UP.REGISTER_ERROR'),
+            signupErrorMessage(err, (key) => this.translate.instant(key)),
             this.translate.instant('COMMON.ERROR'),
             3000
           );

@@ -11,8 +11,9 @@
                     workoutIndex === 0 && splitIndex === 0
                 }" (click)="
                   workoutActions(workoutIndex); $event.stopPropagation()
-                " [disabled]="!load || exercisePasteMode || exerciseCopyActive || stateSelected !== STATES.static">
-                <ion-icon color="primary" name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>
+                " [disabled]="!load || exercisePasteMode || exerciseCopyActive || stateSelected !== STATES.static"
+                [attr.aria-label]="'TABLES.A11Y_WORKOUT_MENU' | translate">
+                <ion-icon color="primary" name="ellipsis-vertical-outline" slot="icon-only" aria-hidden="true"></ion-icon>
               </ion-button>
             </ion-buttons>
 
@@ -96,7 +97,7 @@
             justify-content: space-around;
           ">
           <ion-button *ngIf="load && exercisePasteMode && canPasteExercises()" style="margin-left: -5%; font-size: xx-large"
-            (click)="pasteExercises(); $event.stopPropagation()"><ion-icon color="tertiary"
+            (click)="pasteExercises(); $event.stopPropagation()" [attr.aria-label]="'TABLES.A11Y_PASTE_EXERCISES' | translate"><ion-icon color="tertiary" aria-hidden="true"
               name="clipboard-outline"></ion-icon></ion-button>
 
           <ion-button *ngIf="
@@ -107,8 +108,9 @@
               stateSelected === STATES.static &&
               user?.workoutInUse === workout._id &&
               workout.exercises?.length > 0
-            " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()">
-            <ion-icon slot="icon-only" name="chevron-forward-circle-outline"></ion-icon>
+            " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()"
+            [attr.aria-label]="'TABLES.A11Y_START_WORKOUT' | translate">
+            <ion-icon slot="icon-only" name="chevron-forward-circle-outline" aria-hidden="true"></ion-icon>
           </ion-button>
 
           <ion-button *ngIf="
@@ -119,13 +121,14 @@
               stateSelected === STATES.static &&
               user?.workoutInUse !== workout._id &&
               workout.exercises?.length > 0
-            " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()">
-            <ion-icon color="success" name="play-circle-outline"></ion-icon>
+            " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()"
+            [attr.aria-label]="'TABLES.A11Y_START_WORKOUT' | translate">
+            <ion-icon color="success" name="play-circle-outline" aria-hidden="true"></ion-icon>
           </ion-button>
 
           <ion-button *ngIf="load && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static && !isReadonly && !workout.isPlannedRestDay"
             style="margin-left: -5%; font-size: xx-large" class="t-workout-add-exercises"
-            (click)="searchExercises(workout, split); $event.stopPropagation()"><ion-icon color="primary"
+            (click)="searchExercises(workout, split); $event.stopPropagation()" [attr.aria-label]="'TABLES.A11Y_ADD_EXERCISE' | translate"><ion-icon color="primary" aria-hidden="true"
               name="add-circle-outline"></ion-icon></ion-button>
 
           <ion-spinner *ngIf="!load" style="transform: scale(1.2)" name="crescent" color="primary"></ion-spinner>
@@ -208,8 +211,9 @@
                     </div>
                     <div class="action-wrapper" *ngIf="canEditPinnedNote(pinnedNote)">
                       <ion-button fill="clear" size="small" class="close-button"
-                        (click)="deletePinnedNote(workoutIndex, entry.index); $event.stopPropagation()">
-                        <ion-icon name="close" slot="icon-only"></ion-icon>
+                        (click)="deletePinnedNote(workoutIndex, entry.index); $event.stopPropagation()"
+                        [attr.aria-label]="'TABLES.A11Y_REMOVE_PINNED_NOTE' | translate">
+                        <ion-icon name="close" slot="icon-only" aria-hidden="true"></ion-icon>
                       </ion-button>
                     </div>
                   </div>
@@ -241,15 +245,16 @@
                 ></ion-checkbox>
                 <ion-button *ngIf="!exerciseSelectionMode && showsBlocks && !isReadonly" fill="clear" size="small" class="move-to-block-btn"
                   [disabled]="exercisePasteMode || exerciseCopyActive"
-                  (click)="moveExerciseToBlockAlert(entry.exercise, $event)">
-                  <ion-icon slot="icon-only" name="layers-outline"></ion-icon>
+                  (click)="moveExerciseToBlockAlert(entry.exercise, $event)"
+                  [attr.aria-label]="'TABLES.A11Y_MOVE_TO_BLOCK' | translate">
+                  <ion-icon slot="icon-only" name="layers-outline" aria-hidden="true"></ion-icon>
                 </ion-button>
                 <ion-button *ngIf="!exerciseSelectionMode && !isReadonly" fill="clear" size="small" class="delete-exercise-btn"
                   [disabled]="exercisePasteMode || exerciseCopyActive" (click)="
                     deleteExercisesAlert(entry.exercise.exercise?.name, workoutIndex, entry.index);
                     $event.stopPropagation()
-                  ">
-                  <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                  " [attr.aria-label]="'TABLES.A11Y_REMOVE_EXERCISE' | translate">
+                  <ion-icon slot="icon-only" name="close-outline" aria-hidden="true"></ion-icon>
                 </ion-button>
               </div>
             </div>

@@ -22,6 +22,7 @@ import { PhaseStartSheetComponent } from '../phase-start-sheet/phase-start-sheet
 import { formatIsoDay } from '../../../../shared/utils/phase-start.util';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { suggestedPhaseName } from './phase-name.util';
 
 const DIETARY_FLAGS: { key: DietaryFlag; label: string; icon: string; colorClass: string }[] = (
   ['vegan', 'vegetarian', 'lactoseFree', 'glutenFree'] as DietaryFlag[]
@@ -67,6 +68,8 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
 
   // --- Filtros ---
   public phaseName = this.translate.instant('DIET_TEMPLATES.NUEVA_FASE');
+  // Lo último que puso la app en el nombre (para no pisar lo escrito a mano).
+  private suggestedName = this.phaseName;
   // El objetivo con el que se va a pautar: arranca en el calculado, se puede
   // alternar con el objetivo actual del cliente y el entrenador puede teclear
   // encima de cualquiera (entonces `targetMode` = 'manual').
@@ -89,7 +92,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   public readonly sourceOptions: { key: DietSource; label: string; icon: string }[] = [
     { key: 'general', label: this.translate.instant('DIET_TEMPLATES.ANADIDAS_POR_MI'), icon: 'person' },
     { key: 'client', label: this.translate.instant('DIET_TEMPLATES.DE_ESTE_CLIENTE'), icon: 'person-circle' },
-    { key: 'verified', label: 'By TrainFit', icon: 'shield' },
+    { key: 'verified', label: this.translate.instant('DIET_TEMPLATES.DE_FABRICA'), icon: 'shield' },
   ];
   public sources = new Set<DietSource>(['general', 'client', 'verified']);
 
@@ -131,7 +134,12 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this.session.reset();
     this.subs.add(this.refetch$.pipe(debounceTime(350)).subscribe(() => this.fetch()));
-    this.subs.add(this.session.selectedId$.subscribe((id) => (this.selectedId = id)));
+    this.subs.add(
+      this.session.selectedId$.subscribe((id) => {
+        this.selectedId = id;
+        this.suggestPhaseName();
+      })
+    );
     this.fetch();
   }
 
@@ -272,6 +280,11 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     return this.session.results?.currentGoal ?? null;
   }
 
+  // «9 oct 2026», nunca el ISO crudo.
+  public dayLabel(iso: string | undefined): string {
+    return iso ? formatIsoDay(iso, uiLocale(), { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  }
+
   public get weightSource(): { weightKg: number; from: string; date?: string } | null {
     return this.session.results?.weightSource ?? null;
   }
@@ -283,6 +296,18 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   public get selectedTemplate(): RankedTemplate | null {
     if (!this.selectedId) return null;
     return (this.session.results?.ranked ?? []).find((t) => t._id === this.selectedId) ?? null;
+  }
+
+  private suggestPhaseName(): void {
+    const name = suggestedPhaseName(
+      this.phaseName,
+      this.suggestedName,
+      this.translate.instant('DIET_TEMPLATES.NUEVA_FASE'),
+      this.selectedTemplate?.name
+    );
+    if (name === null) return;
+    this.phaseName = name;
+    this.suggestedName = name;
   }
 
   // La card de detalle vuelve a picarse igual que en la lista: pica de

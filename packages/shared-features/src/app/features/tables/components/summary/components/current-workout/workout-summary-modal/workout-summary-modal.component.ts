@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { WorkoutSummary } from './workout-summary.model';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 
 @Component({
   selector: 'app-workout-summary-modal',
@@ -47,6 +48,6 @@ export class WorkoutSummaryModalComponent {
 
   public get volumeLabel(): string {
     const kg = this.summary?.volumeKg || 0;
-    return `${kg.toLocaleString(undefined, { maximumFractionDigits: 0 })} kg`;
+    return `${formatLocalNumber(kg, { maxDecimals: 0 })} kg`;
   }
 }

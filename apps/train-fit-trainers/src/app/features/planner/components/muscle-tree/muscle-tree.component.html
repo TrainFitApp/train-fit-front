@@ -28,14 +28,14 @@
         [class.group-count--low]="statusFor(row) === 'low'"
         [class.group-count--high]="statusFor(row) === 'high'"
         [title]="setsTitle(row)"
-      >{{ row.sets | number: '1.0-1' }}</span>
+      >{{ row.sets | localNumber: '1.0-1' }}</span>
       <span
         class="group-delta"
         *ngIf="delta(row) !== null"
         [class.group-delta--up]="delta(row)! > 0"
         [class.group-delta--down]="delta(row)! < 0"
         [title]="'PLANNER.DIFERENCIA_DE_SERIES_FRENTE_AL' | translate"
-      >{{ delta(row) === 0 ? '·' : (delta(row)! > 0 ? '▲ +' : '▼ ') }}{{ delta(row) === 0 ? '' : (delta(row) | number: '1.0-1') }}</span>
+      >{{ delta(row) === 0 ? '·' : (delta(row)! > 0 ? '▲ +' : '▼ ') }}{{ delta(row) === 0 ? '' : (delta(row) | localNumber: '1.0-1') }}</span>
     </div>
 
     <span
@@ -71,7 +71,7 @@
         <span class="portion-track" [title]="portion.share + ('PLANNER.DE_LAS_SERIES_DE' | translate) + (row.label | translateDb)">
           <span class="portion-fill" [style.width.%]="portion.share"></span>
         </span>
-        <span class="portion-count">{{ portion.sets | number: '1.0-1' }}</span>
+        <span class="portion-count">{{ portion.sets | localNumber: '1.0-1' }}</span>
       </li>
     </ul>
   </li>

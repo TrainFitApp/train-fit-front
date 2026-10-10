@@ -48,7 +48,7 @@
           </span>
           <span class="checkin-card-subtitle" *ngIf="checkin.name">{{ trainerName(checkin) }}</span>
           <span class="checkin-card-subtitle">
-            {{ periodLabel(checkin) }} · {{ 'MY_CHECKINS.FIELDS_COUNT' | translate: { count: fieldsFor(checkin).length } }}
+            {{ periodLabel(checkin) }} · {{ (fieldsFor(checkin).length === 1 ? 'MY_CHECKINS.FIELDS_ONE' : 'MY_CHECKINS.FIELDS_COUNT') | translate: { count: fieldsFor(checkin).length } }}
           </span>
         </div>
         <ion-icon
@@ -237,7 +237,7 @@
               </span>
               <span class="checkin-card-subtitle" *ngIf="entry.name">{{ historyTrainerName(entry) }}</span>
               <span class="checkin-card-subtitle">
-                {{ entry.respondedAt | localDate: 'd MMM y' }} · {{ 'MY_CHECKINS.ANSWERS_COUNT' | translate: { count: historyEntries(entry).length } }}
+                {{ entry.respondedAt | localDate: 'd MMM y' }} · {{ (historyEntries(entry).length === 1 ? 'MY_CHECKINS.ANSWERS_ONE' : 'MY_CHECKINS.ANSWERS_COUNT') | translate: { count: historyEntries(entry).length } }}
               </span>
             </span>
             <ion-icon class="checkin-card-chevron" [name]="expandedHistoryId === entry._id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>

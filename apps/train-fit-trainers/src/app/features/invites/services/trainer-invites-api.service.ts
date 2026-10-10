@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { IntakeStatus } from 'src/app/core/services/onboarding/onboarding.service';
+import { ReviewQueueApiService } from '../../review-queue/review-queue-api.service';
 import {
   ClientEmailScopeStatus,
   ClientIntake,
@@ -15,7 +17,10 @@ import {
 export class TrainerInvitesApiService {
   private static readonly ENDPOINT = 'trainer/invites';
 
-  constructor(private http: HttpService) {}
+  constructor(
+    private http: HttpService,
+    private reviewQueue: ReviewQueueApiService
+  ) {}
 
   public getMyInvites(): Observable<TrainerInvite[]> {
     return this.http.get<TrainerInvite[]>(TrainerInvitesApiService.ENDPOINT);
@@ -68,7 +73,9 @@ export class TrainerInvitesApiService {
 
   // Hasta marcarlo revisado, el cliente puede editar o rehacer su cuestionario.
   public markIntakeReviewed(clientId: string): Observable<ClientIntake> {
-    return this.http.post<ClientIntake>(`trainer/clients/${clientId}/intake/reviewed`, {});
+    return this.http
+      .post<ClientIntake>(`trainer/clients/${clientId}/intake/reviewed`, {})
+      .pipe(tap(() => this.reviewQueue.notifyChanged()));
   }
 
   // TASK-049 — configuración de campos activos del cuestionario inicial.

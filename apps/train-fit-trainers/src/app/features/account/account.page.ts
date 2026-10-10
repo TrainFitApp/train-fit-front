@@ -12,6 +12,7 @@ import { TrainerEntitlements } from 'src/app/features/subscription/models/traine
 import { trainerBillingSummary, trainerPlanName } from 'src/app/features/subscription/trainer-billing-view.util';
 import { LINKS } from 'src/app/shared/constants/links';
 import { environment } from '../../../environments/environment';
+import { personInitials } from '../../shared/utils/initials.util';
 
 interface SecurityItem {
   label: string;
@@ -120,10 +121,7 @@ export class AccountPage implements OnInit {
 
   public get initials(): string {
     const user = this.user();
-    if (!user?.name) return '?';
-    const first = user.name.charAt(0) || '';
-    const last = user.lastname?.charAt(0) || '';
-    return (first + last).toUpperCase() || '?';
+    return personInitials(user?.name, user?.lastname);
   }
 
   public get fullName(): string {

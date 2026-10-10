@@ -490,7 +490,7 @@ export class SignInPage implements OnInit {
       });
   }
 
-  private handleLoginError(error: any): void {
+  private async handleLoginError(error: any): Promise<void> {
     this.loading = false;
     const feedback = this.authErrorService.toLoginFeedback(error);
 
@@ -511,6 +511,9 @@ export class SignInPage implements OnInit {
         icon: 'mail-unread-outline',
       });
 
+      // La hoja de login se cierra antes de ir al código: si no, se quedaba
+      // encima con «Verificando credenciales…» (QA 2026-10-09).
+      await this.loginModal?.dismiss();
       this.navigationService.goToSignUp(extras);
       return;
     }

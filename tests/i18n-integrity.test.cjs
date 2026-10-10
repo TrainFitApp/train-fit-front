@@ -266,6 +266,11 @@ const DYNAMIC_KEYS = [
   { prefix: 'CLIENT_DETAIL.DAY.MEAL_STATUS.', layer: 'train-fit-trainers', keys: () => ['done', 'partial', 'unchecked', 'pending', 'extra'] },
   { prefix: 'CHECKIN_FIELD_GROUPS.', layer: 'train-fit-trainers', keys: () => ['composicion_corporal', 'perimetros'] },
   {
+    prefix: 'SIGN_UP.ERRORS.',
+    layer: 'common',
+    keys: () => arrayLiteral('packages/shared-core/src/app/core/utils/signup-errors.util.ts', 'SIGNUP_ERROR_CODES'),
+  },
+  {
     prefix: 'CLIENT_DETAIL.TASK_ERRORS.',
     layer: 'train-fit-trainers',
     keys: () => arrayLiteral('apps/train-fit-trainers/src/app/features/clients/habit-form.util.ts', 'TASK_ERROR_CODES'),

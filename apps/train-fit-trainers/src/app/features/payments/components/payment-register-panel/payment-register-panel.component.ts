@@ -12,6 +12,7 @@ import {
   formatCents,
   formatDay,
   newOperationId,
+  amountInputErrorKey,
   parseAmountInput,
   paymentsErrorMessage,
 } from '../../utils/payments-view.util';
@@ -78,7 +79,7 @@ export class PaymentRegisterPanelComponent implements OnInit {
   public get amountError(): string | null {
     if (!this.amountText.trim()) return this.translate.instant('PAYMENTS.INDICA_EL_IMPORTE_RECIBIDO');
     const cents = this.amountCents;
-    if (cents === null) return this.translate.instant('PAYMENTS.IMPORTE_NO_VALIDO_USA_COMO_3');
+    if (cents === null) return this.translate.instant(amountInputErrorKey(this.amountText) || 'PAYMENTS.AMOUNT_ERRORS.NOT_A_NUMBER');
     if (cents > this.balanceCents) return this.translate.instant('PAYMENTS.SUPERA_EL_SALDO_PENDIENTE', { p0: this.money(this.balanceCents) });
     return null;
   }

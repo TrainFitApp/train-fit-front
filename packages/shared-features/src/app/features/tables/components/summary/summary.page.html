@@ -71,7 +71,7 @@
             <span class="continue-card__body">
               <span class="continue-card__title">{{ 'TABLES.DAY' | translate }} {{ workout.name | translateDb }}</span>
               <span class="continue-card__subtitle">
-                {{ getCompletedExercises() }}/{{ workout.exercises.length }} {{ 'TABLES.EXERCISES' | translate }} · {{ getWorkoutProgress() | number:'1.0-0' }}%
+                {{ getCompletedExercises() }}/{{ workout.exercises.length }} {{ (workout.exercises.length === 1 ? 'TABLES.EXERCISE_SINGULAR' : 'TABLES.EXERCISES') | translate }} · {{ getWorkoutProgress() | localNumber:'1.0-0' }}%
               </span>
               <span class="continue-card__progress">
                 <span class="continue-card__progress-fill" [style.width.%]="getWorkoutProgress()"></span>
@@ -164,7 +164,7 @@
             <span class="continue-card__eyebrow">{{ 'TABLES.NEXT_WORKOUT_LABEL' | translate }}</span>
             <span class="continue-card__title">{{ 'TABLES.DAY' | translate }} {{ nextWorkout.name | translateDb }}</span>
             <span class="continue-card__subtitle">
-              {{ nextWorkout.exercises.length }} {{ 'TABLES.EXERCISES' | translate }}
+              {{ nextWorkout.exercises.length }} {{ (nextWorkout.exercises.length === 1 ? 'TABLES.EXERCISE_SINGULAR' : 'TABLES.EXERCISES') | translate }}
             </span>
           </span>
           <ng-template #restBody>
@@ -194,7 +194,7 @@
         <div *ngIf="tableInUse; else notTableInUse">
           <div class="routine-name">{{ tableInUse.name | translateDb }}</div>
           <div class="routine-description">
-            {{ 'TABLES.MICROCYCLE_OF' | translate:{ current: countDoneSplits() + 1, total: tableInUse.splits.length } }}
+            {{ 'TABLES.MICROCYCLE_OF' | translate:{ current: currentMicrocycle(), total: tableInUse.splits.length } }}
             <app-glossary-info term="MICROCYCLE" size="sm"></app-glossary-info>
           </div>
 

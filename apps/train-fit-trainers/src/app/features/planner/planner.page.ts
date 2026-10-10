@@ -11,6 +11,7 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { SplitService } from 'src/app/core/services/split/split.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { CompareSplitsModalComponent } from './components/compare-splits-modal/compare-splits-modal.component';
+import { canReorderCards, canReorderWeeks, canSyncRows } from './utils/planner-toolbar.util';
 import { PlannerRowSyncService } from './services/planner-row-sync.service';
 import { PlannerExerciseCopyService } from './services/planner-exercise-copy.service';
 import { ClientDetailApiService } from '../clients/pages/client-detail/services/client-detail-api.service';
@@ -533,6 +534,20 @@ export class PlannerPage {
 
   public get canCompare(): boolean {
     return (this.table?.splits?.length || 0) >= 2;
+  }
+
+  // Modos de la barra que no hacen nada con lo que hay (ver
+  // planner-toolbar.util). Un modo ya encendido se puede apagar siempre.
+  public get canSyncRows(): boolean {
+    return canSyncRows(this.table?.splits);
+  }
+
+  public get canReorderWeeks(): boolean {
+    return canReorderWeeks(this.table?.splits);
+  }
+
+  public get canReorderCards(): boolean {
+    return canReorderCards(this.table?.splits);
   }
 
   // La columna seleccionada solo PRESIEMBRA la comparación (B = la

@@ -170,7 +170,7 @@
           >
             <span class="portion-name">{{ portion.label | translateDb }}</span>
             <div class="muscle-bars" aria-hidden="true"><i [style.width.%]="portion.widthA"></i><i [style.width.%]="portion.widthB"></i></div>
-            <span class="portion-values">{{ portion.a | number: '1.0-1' }} → <b>{{ portion.b | number: '1.0-1' }}</b></span>
+            <span class="portion-values">{{ portion.a | localNumber: '1.0-1' }} → <b>{{ portion.b | localNumber: '1.0-1' }}</b></span>
           </li>
         </ul>
       </ng-container>

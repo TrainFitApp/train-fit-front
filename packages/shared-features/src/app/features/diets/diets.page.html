@@ -249,19 +249,19 @@
         <div class="clipboard-macros">
           <span class="macro calories"
             ><ion-icon name="flame-outline"></ion-icon>{{
-            getClipboardTotalKcal() | number: '1.0-0' }}</span
+            getClipboardTotalKcal() | localNumber: '1.0-0' }}</span
           >
           <span class="macro protein"
             ><ion-icon name="nutrition-outline"></ion-icon>{{
-            getClipboardTotalProtein() | number: '1.1-1' }}g</span
+            getClipboardTotalProtein() | localNumber: '1.1-1' }}g</span
           >
           <span class="macro carbs"
             ><ion-icon name="leaf-outline"></ion-icon>{{
-            getClipboardTotalCarbs() | number: '1.1-1' }}g</span
+            getClipboardTotalCarbs() | localNumber: '1.1-1' }}g</span
           >
           <span class="macro fat"
             ><ion-icon name="water-outline"></ion-icon>{{ getClipboardTotalFat()
-            | number: '1.1-1' }}g</span
+            | localNumber: '1.1-1' }}g</span
           >
         </div>
         <ion-button

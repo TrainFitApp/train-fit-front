@@ -13,6 +13,19 @@ import { uiLocale, uiText, localizeRecord, localizeProp } from 'src/app/core/i18
 
 const MONEY_FORMATTERS = new Map<string, Intl.NumberFormat>();
 
+// Etiqueta corta (barras de la gráfica): euros enteros sin decimales
+// («80 €») y, si hay céntimos, con ellos («80,50 €»). Redondear 80,50 a
+// «81 €» falseaba el importe (QA 2026-10-09).
+export function eurosCompact(cents: number): string {
+  const whole = Math.round(cents) % 100 === 0;
+  return new Intl.NumberFormat(uiLocale(), {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: whole ? 0 : 2,
+    maximumFractionDigits: whole ? 0 : 2,
+  }).format(cents / 100);
+}
+
 export function formatCents(cents: number, currency = 'EUR'): string {
   const cacheKey = `${uiLocale()}|${currency}`;
   let formatter = MONEY_FORMATTERS.get(cacheKey);
@@ -37,6 +50,19 @@ export function parseAmountInput(value: string | number | null | undefined): num
   const [whole, fraction = ''] = text.split(/[.,]/);
   const cents = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
   return cents > 0 && cents <= 100_000_000 ? cents : null;
+}
+
+// Por qué no vale un importe escrito (clave i18n), o null si vale o está
+// vacío. Antes todo salía como «usa como mucho dos decimales», también un
+// importe negativo (QA 2026-10-09).
+export function amountInputErrorKey(value: string | number | null | undefined): string | null {
+  const text = String(value ?? '').trim();
+  if (!text || parseAmountInput(text) !== null) return null;
+  const number = Number(text.replace(',', '.'));
+  if (!Number.isFinite(number) || !/^-?\d+(?:[.,]\d+)?$/.test(text)) return 'PAYMENTS.AMOUNT_ERRORS.NOT_A_NUMBER';
+  if (number <= 0) return 'PAYMENTS.AMOUNT_ERRORS.NOT_POSITIVE';
+  if (number > 1_000_000) return 'PAYMENTS.AMOUNT_ERRORS.TOO_HIGH';
+  return 'PAYMENTS.AMOUNT_ERRORS.TOO_MANY_DECIMALS';
 }
 
 // --- Días civiles -----------------------------------------------------------

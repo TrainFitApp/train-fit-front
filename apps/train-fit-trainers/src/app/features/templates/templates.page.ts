@@ -36,7 +36,6 @@ export class TemplatesPage implements OnInit {
       name: this.translate.instant('TEMPLATES.ENTRENAMIENTOS'),
       description: this.translate.instant('TEMPLATES.BIBLIOTECA_DE_BLOQUES_DE_ENTRENAMIENTO'),
       icon: 'barbell-outline',
-      colorVar: 'var(--tf-accent)',
       path: '/tabs/routines',
     },
     {
@@ -49,14 +48,12 @@ export class TemplatesPage implements OnInit {
       name: this.translate.instant('TEMPLATES.RUTINAS'),
       description: this.translate.instant('TEMPLATES.PLANTILLAS_DE_RUTINA_COMPLETA_LISTAS'),
       icon: 'calendar-outline',
-      colorVar: 'var(--tf-accent)',
       path: '/tabs/routine-templates',
     },
     {
       name: this.translate.instant('TEMPLATES.DIETAS'),
       description: this.translate.instant('TEMPLATES.DIAS_DE_COMIDAS_REUTILIZABLES_PARA'),
       icon: 'restaurant-outline',
-      colorVar: 'var(--ion-color-tertiary, #ffd359)',
       path: '/tabs/diet-templates',
     },
     // Productos y recetas propios (y el catálogo entero para consultar),
@@ -66,7 +63,6 @@ export class TemplatesPage implements OnInit {
       name: this.translate.instant('TEMPLATES.ALIMENTOS'),
       description: this.translate.instant('TEMPLATES.TUS_PRODUCTOS_Y_RECETAS'),
       icon: 'nutrition-outline',
-      colorVar: 'var(--tf-accent)',
       path: '/tabs/foods',
     },
     // TASK-042 (MASTER_BACKLOG.md) — antes el catálogo de ejercicios solo era
@@ -80,7 +76,6 @@ export class TemplatesPage implements OnInit {
       name: this.translate.instant('TRAINER_COMMON.EXERCISES'),
       description: this.translate.instant('TEMPLATES.CONSULTA_EL_CATALOGO_COMPLETO_FUERA'),
       icon: 'search-outline',
-      colorVar: 'var(--tf-danger, #ff5c5c)',
       path: '/tabs/exercises',
     },
     // Vídeos de técnica propios (subidos o enlazados) que ven sus clientes
@@ -89,7 +84,6 @@ export class TemplatesPage implements OnInit {
       name: this.translate.instant('TEMPLATES.VIDEOS_DE_TECNICA'),
       description: this.translate.instant('TEMPLATES.TUS_VIDEOS_DE_EJECUCION_VINCULADOS'),
       icon: 'videocam-outline',
-      colorVar: 'var(--tf-secondary, #ffc455)',
       path: '/tabs/technique-videos',
     },
   ];

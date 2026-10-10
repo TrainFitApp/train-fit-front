@@ -23,6 +23,7 @@ import {
   frequencyLabel,
   newOperationId,
   occurrencesFrom,
+  amountInputErrorKey,
   parseAmountInput,
   paymentsErrorMessage,
 } from '../../utils/payments-view.util';
@@ -160,7 +161,8 @@ export class FeePlanPanelComponent implements OnInit, OnDestroy {
 
   public get amountError(): string | null {
     if (!this.amountText.trim()) return null;
-    return this.amountCents === null ? this.translate.instant('PAYMENTS.IMPORTE_NO_VALIDO_USA_COMO_2') : null;
+    const key = amountInputErrorKey(this.amountText);
+    return key ? this.translate.instant(key) : null;
   }
 
   public get scheduleChanged(): boolean {

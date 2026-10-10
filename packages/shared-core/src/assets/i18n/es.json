@@ -73,7 +73,7 @@
   "COMMON": {
     "OK": "OK",
     "CANCEL": "Cancelar",
-    "CONFIRM": "CONFIRMAR",
+    "CONFIRM": "Confirmar",
     "SAVE": "Guardar",
     "SAVING": "Guardando...",
     "CERRAR": "CERRAR",
@@ -522,7 +522,14 @@
     "CODE_RESENT": "Código reenviado",
     "RESEND_CODE_ERROR": "Error al reenviar código",
     "CODE_SENT_TO_EMAIL": "Código enviado a tu correo",
-    "MAIL_NOT_SENT": "Tu cuenta está creada, pero no hemos podido enviarte el código. Pulsa «Reenviar código» en unos minutos."
+    "MAIL_NOT_SENT": "Tu cuenta está creada, pero no hemos podido enviarte el código. Pulsa «Reenviar código» en unos minutos.",
+    "ERRORS": {
+      "EMAIL_ALREADY_REGISTERED": "Ya hay una cuenta con ese correo. Inicia sesión o recupera la contraseña.",
+      "EMAIL_NOT_DELIVERABLE": "Ese correo no existe: revisa que esté bien escrito.",
+      "SIGNUP_FIELDS_REQUIRED": "Rellena nombre, apellidos, correo y contraseña.",
+      "USER_BIRTH_INVALID": "La fecha de nacimiento no es válida.",
+      "USER_UNDER_MIN_AGE": "Necesitas tener la edad mínima para usar TrainFit."
+    }
   },
   "DIETS": {
     "DELETE_NOTE_HEADER": "Borrar nota",
@@ -979,12 +986,12 @@
   },
   "STEPS": {
     "NOT_COUNTED": "No los he contado",
-    "LESS_THAN_1000": "Menos de 1000",
-    "BETWEEN_2000_6000": "Entre 2000 y 6000",
-    "BETWEEN_7000_9000": "Entre 7000 y 9000",
-    "BETWEEN_10000_15000": "Entre 10000 y 15000",
-    "BETWEEN_16000_18000": "Entre 16000 y 18000",
-    "MORE_THAN_19000": "Más de 19000"
+    "UNDER_1500": "Menos de 1.500",
+    "FROM_1500_TO_6500": "Entre 1.500 y 6.500",
+    "FROM_6500_TO_9500": "Entre 6.500 y 9.500",
+    "FROM_9500_TO_15500": "Entre 9.500 y 15.500",
+    "FROM_15500_TO_18500": "Entre 15.500 y 18.500",
+    "OVER_18500": "Más de 18.500"
   },
   "ACTIVITY_FACTOR": {
     "VERY_LIGHT": "Muy ligero",
@@ -1002,7 +1009,7 @@
     "NONE": "Ninguno",
     "ONE_OR_TWO": "1 o 2 días",
     "THREE_OR_FOUR": "3 o 4 días",
-    "FIVE_OR_SIX": "5 o 6 días"
+    "FIVE_OR_MORE": "5 días o más"
   },
   "OBJETIVES": {
     "GAIN_WEIGHT": "Ganancia Peso",
@@ -1094,7 +1101,7 @@
     "WORKOUT_NAME_UPDATED": "Nombre de entrenamientos actualizados",
     "START_WORKOUT": "Iniciar entrenamiento",
     "START_WORKOUT_CONFIRM": "{{name}} se mostrará en la pestaña de resumen y perfil como entrenamiento en uso",
-    "START": "INICIAR",
+    "START": "Iniciar",
     "FIELD_NOT_EMPTY": "El campo no puede estar vacío",
     "DATE_UPDATED": "Fecha actualizada",
     "DELETE_SET": "Eliminar serie",
@@ -1415,7 +1422,14 @@
     "SELECT_MICROCYCLES": "Selecciona los microciclos",
     "SELECT_MICROCYCLE_N": "Seleccionar microciclo {{n}}",
     "DELETE_COUNT": "Eliminar ({{count}})",
-    "EXERCISES_LABEL": "Ejercicios"
+    "EXERCISES_LABEL": "Ejercicios",
+    "A11Y_WORKOUT_MENU": "Opciones del entrenamiento",
+    "A11Y_PASTE_EXERCISES": "Pegar ejercicios",
+    "A11Y_START_WORKOUT": "Empezar entrenamiento",
+    "A11Y_ADD_EXERCISE": "Añadir ejercicio",
+    "A11Y_REMOVE_PINNED_NOTE": "Quitar nota fijada",
+    "A11Y_MOVE_TO_BLOCK": "Mover a un bloque",
+    "A11Y_REMOVE_EXERCISE": "Quitar ejercicio"
   },
   "RM_CALCULATOR": {
     "TITLE": "Calculadora de RM",
@@ -1460,7 +1474,7 @@
     "DELETE_ACCOUNT": "Eliminar cuenta",
     "LOGOUT_HEADER": "Cerrar sesión",
     "LOGOUT_MSG": "¿Estás seguro de cerrar sesión?",
-    "CONFIRM": "CONFIRMAR",
+    "CONFIRM": "Confirmar",
     "CANCEL_BTN": "CANCELAR",
     "DELETE_HEADER": "Eliminar cuenta",
     "DELETE_MSG": "Esta acción no se puede deshacer. Introduce tu contraseña para confirmar.",
@@ -1576,7 +1590,7 @@
     "VERIFIED_RECIPES": "recetas verificadas",
     "SHIELD_DISABLED": "Un {{itemType}} creado por ti mismo no puede ser verificado",
     "OWN_DISABLED": "No puedes seleccionar tus elementos mientras tienes {{itemTypePlural}} activos",
-    "CONFIRM": "CONFIRMAR",
+    "CONFIRM": "Confirmar",
     "CHIP_ALL_PRODUCTS": "Todos",
     "CHIP_ALL_RECIPES": "Todas",
     "CHIP_ADDED_BY_ME_PRODUCTS": "Añadidos por mí",
@@ -1662,7 +1676,8 @@
     "OF_KCAL": "de {{kcal}} kcal",
     "TODAY_WEIGHT_INFO": "Peso de hoy",
     "PREV_WEEK_AVG_INFO": "Media semanal anterior",
-    "CURR_WEEK_AVG_INFO": "Media semanal actual"
+    "CURR_WEEK_AVG_INFO": "Media semanal actual",
+    "MICROCYCLES_AVAILABLE_ONE": "1 microciclo disponible"
   },
   "EDITOR": {
     "TITLE": "Editar",
@@ -2717,7 +2732,8 @@
     "PHOTOS_SUBTITLE_OPTIONAL": "{{name}} te pide fotos de {{poses}} para ver de dónde partes. Puedes enviar el cuestionario sin ellas.",
     "VIDEO_SUBTITLE": "Vídeo que te pide {{name}}. Grábalo o elige uno de tu galería.",
     "VIDEO_REQUIRED": "Es obligatorio.",
-    "MEDIA_PRIVACY": "Se guarda en tu progreso, y {{name}} lo verá aunque después ocultes ese día."
+    "MEDIA_PRIVACY": "Se guarda en tu progreso, y {{name}} lo verá aunque después ocultes ese día.",
+    "VIDEO_OPTIONAL": "Puedes enviar el cuestionario sin él."
   },
   "ONBOARDING": {
     "TAKES_FEW_MINUTES": "Te llevará unos 5 minutos",
@@ -2854,7 +2870,8 @@
     "END_SCOPE": "Dejar {{scope}}",
     "UNLINKING": "Desvinculando…",
     "UNLINKED": "Ya no trabajas con {{name}} en {{scope}}",
-    "PAID_REST_CANCELLED": "Pagaste {{paid}} · resto anulado"
+    "PAID_REST_CANCELLED": "Pagaste {{paid}} · resto anulado",
+    "DUE_DATE": "Vencimiento: {{date}}"
   },
   "DAILY_WEIGHT": {
     "TITLE": "PESO DIARIO",
@@ -2895,7 +2912,8 @@
     "SENT_TO": "Check-in enviado a {{name}}",
     "SUBMIT_ERROR": "No se pudo enviar el check-in",
     "ANSWERED_READONLY": "Ya lo enviaste. Mientras siga abierto puedes corregir la respuesta.",
-    "EDIT_ANSWER": "Editar respuesta"
+    "EDIT_ANSWER": "Editar respuesta",
+    "ANSWERS_ONE": "1 respuesta"
   },
   "NUTRITION_PREFERENCES": {
     "TITLE": "Mis preferencias",

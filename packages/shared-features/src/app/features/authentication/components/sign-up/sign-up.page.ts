@@ -57,6 +57,7 @@ import { calculateTrainingValues } from 'src/app/shared/constants/training';
 import { EmailExistValidator } from 'src/app/core/validators/email-exist';
 import { TranslateService } from '@ngx-translate/core';
 import { resendCodeErrorMessage, verificationMailFailed } from 'src/app/core/utils/verification-mail.util';
+import { signupErrorMessage } from 'src/app/core/utils/signup-errors.util';
 
 @Component({
   selector: 'app-sign-up',
@@ -101,6 +102,9 @@ export class SignUpPage implements OnInit, OnDestroy {
   public registerSocialPending: boolean;
 
   public error: string;
+  // El resumen de errores sale tras intentar registrarse, no antes de tocar
+  // nada (QA 2026-10-09: «Este campo es obligatorio» al llegar al último paso).
+  public registerAttempted = false;
 
   private backButton$: Subscription;
   private destroy$ = new Subject<void>();
@@ -785,7 +789,12 @@ export class SignUpPage implements OnInit, OnDestroy {
   }
 
   public register(): void {
-    if (this.signUpForm.invalid) return;
+    this.registerAttempted = true;
+    if (this.signUpForm.invalid) {
+      // Antes se quedaba sin hacer nada y sin decir por qué.
+      this.signUpForm.markAllAsTouched();
+      return;
+    }
     this.isProcessing = true;
     this.kcalTotal = this.userService.calculateKcal(this.user);
 
@@ -816,7 +825,7 @@ export class SignUpPage implements OnInit, OnDestroy {
         error: (err) => {
           this.isProcessing = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || this.translate.instant('SIGN_UP.REGISTER_ERROR'),
+            signupErrorMessage(err, (key) => this.translate.instant(key)),
             this.translate.instant('COMMON.ERROR'),
             3000
           );

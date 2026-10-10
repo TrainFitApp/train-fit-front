@@ -2,8 +2,8 @@
   <ion-toolbar>
     <ion-title>{{ 'PLANNER.ELEGIR_PLANTILLA' | translate }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="close()">
-        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      <ion-button (click)="close()" [attr.aria-label]="'COMMON.CLOSE_ARIA' | translate">
+        <ion-icon name="close-outline" slot="icon-only" aria-hidden="true"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -57,7 +57,7 @@
       </div>
       <div class="template-meta">
         <span *ngIf="blockCount(template)">{{ blockCount(template) }} {{ 'PLANNER.BLOQUES' | translate }}</span>
-        <span>{{ exerciseCount(template) }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
+        <span>{{ exerciseCount(template) }} {{ (exerciseCount(template) === 1 ? 'TRAINER_COMMON.EXERCISE_LOWER' : 'TRAINER_COMMON.EXERCISES_LOWER') | translate }}</span>
       </div>
     </button>
   </div>

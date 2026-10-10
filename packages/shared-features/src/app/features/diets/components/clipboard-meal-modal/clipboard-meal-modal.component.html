@@ -47,7 +47,7 @@
           <span class="item-name">
             {{ getRecipeName(recipe) || ('MEAL.RECIPE_NO_NAME' | translate) }}
           </span>
-          <span class="item-quantity">{{ recipe.quantity | number:'1.0-1' }}g</span>
+          <span class="item-quantity">{{ recipe.quantity | localNumber:'1.0-1' }}g</span>
         </div>
       </div>
     </ng-container>
@@ -75,7 +75,7 @@
         <div class="item-info">
           <span class="item-name">{{ getProductName(product) }}</span>
           <span class="item-quantity" *ngIf="!product.quickAdd"
-            >{{ product.quantity | number:'1.0-1' }}g</span
+            >{{ product.quantity | localNumber:'1.0-1' }}g</span
           >
         </div>
       </div>

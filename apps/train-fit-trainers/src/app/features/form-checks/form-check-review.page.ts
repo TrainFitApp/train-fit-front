@@ -9,6 +9,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { MediaVideoPlayerComponent } from 'src/app/shared/components/media/media-video-player.component';
 import { executedSummary, prescribedSummary } from 'src/app/shared/components/media/set-summary.util';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { ReviewQueueApiService } from '../review-queue/review-queue-api.service';
 
 /**
  * Responder a un vídeo de técnica: comentarios anclados a un segundo del
@@ -55,7 +56,8 @@ export class FormCheckReviewPage {
     private router: Router,
     private mediaApi: MediaApiService,
     private ionicUtilService: IonicUtilService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private reviewQueue: ReviewQueueApiService
   ) {}
 
   public ionViewWillEnter(): void {
@@ -169,6 +171,7 @@ export class FormCheckReviewPage {
     this.busy = true;
     try {
       this.check = (await firstValueFrom(this.mediaApi.reviewFormCheck(this.check.id))).formCheck;
+      this.reviewQueue.notifyChanged();
       this.ionicUtilService.showToast({
         message: this.translate.instant('MEDIA.TRAINER.REVIEW_SENT'),
         duration: 2200,

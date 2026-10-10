@@ -57,6 +57,7 @@ import { EditorPage } from './components/configuration/components/editor/editor.
 import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 import { ProfileCoachCardComponent } from './components/coach-card/profile-coach-card.component';
 import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 
 @Component({
   selector: 'app-profile',
@@ -272,7 +273,7 @@ export class ProfilePage implements OnInit {
 
     const diff = current - previous;
     const sign = diff > 0 ? '+' : '';
-    return `${sign}${diff.toFixed(2)}kg`;
+    return `${sign}${formatLocalNumber(diff)} kg`;
   }
 
   getWeightChangeIcon(current: number, previous: number): string {
@@ -300,11 +301,11 @@ export class ProfilePage implements OnInit {
     if (period === 'month') {
       const monthlyDiff = diff * 4;
       const sign = monthlyDiff > 0 ? '+' : '';
-      return `${sign}${monthlyDiff.toFixed(2)}kg`;
+      return `${sign}${formatLocalNumber(monthlyDiff)} kg`;
     }
 
     const sign = diff > 0 ? '+' : '';
-    return `${sign}${diff.toFixed(2)}kg`;
+    return `${sign}${formatLocalNumber(diff)} kg`;
   }
 
   getTodayWeight(): number {
@@ -747,9 +748,9 @@ export class ProfilePage implements OnInit {
   public getNutritionValue(): string {
     if (this.showRemainingNutrition) {
       const remaining = this._kcalTotal - this.macrosData.kcal;
-      return Math.round(remaining).toLocaleString();
+      return formatLocalNumber(Math.round(remaining));
     } else {
-      return Math.round(this.macrosData.kcal).toLocaleString();
+      return formatLocalNumber(Math.round(this.macrosData.kcal));
     }
   }
 
@@ -757,7 +758,7 @@ export class ProfilePage implements OnInit {
     if (this.showRemainingNutrition) {
       return this.translate.instant('PROFILE.REMAINING');
     } else {
-      return this.translate.instant('PROFILE.OF_KCAL', { kcal: Math.round(this._kcalTotal).toLocaleString() });
+      return this.translate.instant('PROFILE.OF_KCAL', { kcal: formatLocalNumber(Math.round(this._kcalTotal)) });
     }
   }
 

@@ -110,4 +110,8 @@ test("aggregateShoppingView", async (t) => {
 test("shoppingQuantityLabel", () => {
   assert.equal(util.shoppingQuantityLabel(950), "950 g");
   assert.equal(util.shoppingQuantityLabel(3420), "3.4 kg");
+  // Con el formato de la app (QA 2026-10-09: «3.3 kg» en español).
+  const es = (value) => new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 }).format(value);
+  assert.equal(util.shoppingQuantityLabel(3420, es), "3,4 kg");
+  assert.equal(util.shoppingQuantityLabel(950, es), "950 g");
 });

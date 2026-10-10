@@ -1039,7 +1039,10 @@
         .stat-label {
           font-size: 14px;
           color: var(--text-secondary);
-          text-transform: capitalize;
+          // Solo la primera letra en mayúscula: `capitalize` ponía «Octubre De 2026».
+          &::first-letter {
+            text-transform: uppercase;
+          }
         }
       }
     }

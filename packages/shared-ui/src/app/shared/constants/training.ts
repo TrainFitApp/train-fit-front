@@ -34,7 +34,7 @@ export const calculateTrainingValues = (selectedStep: number) => {
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: 'TRAINING.FIVE_OR_SIX',
+          name: 'TRAINING.FIVE_OR_MORE',
           value: 1.07,
         },
       };
@@ -57,7 +57,7 @@ export const calculateTrainingValues = (selectedStep: number) => {
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: 'TRAINING.FIVE_OR_SIX',
+          name: 'TRAINING.FIVE_OR_MORE',
           value: 1.162,
         },
       };
@@ -80,7 +80,7 @@ export const calculateTrainingValues = (selectedStep: number) => {
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: 'TRAINING.FIVE_OR_SIX',
+          name: 'TRAINING.FIVE_OR_MORE',
           value: 1.326,
         },
       };
@@ -103,7 +103,7 @@ export const calculateTrainingValues = (selectedStep: number) => {
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: 'TRAINING.FIVE_OR_SIX',
+          name: 'TRAINING.FIVE_OR_MORE',
           value: 1.413,
         },
       };
@@ -126,7 +126,7 @@ export const calculateTrainingValues = (selectedStep: number) => {
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: 'TRAINING.FIVE_OR_SIX',
+          name: 'TRAINING.FIVE_OR_MORE',
           value: 1.5,
         },
       };
@@ -149,7 +149,7 @@ export const calculateTrainingValues = (selectedStep: number) => {
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: 'TRAINING.FIVE_OR_SIX',
+          name: 'TRAINING.FIVE_OR_MORE',
           value: 1.655,
         },
       };
@@ -172,7 +172,7 @@ export const calculateTrainingValues = (selectedStep: number) => {
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: 'TRAINING.FIVE_OR_SIX',
+          name: 'TRAINING.FIVE_OR_MORE',
           value: 1.801,
         },
       };

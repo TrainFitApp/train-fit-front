@@ -77,9 +77,9 @@
 
 <ng-template #macroTags let-t>
   <span class="macros">
-    <span class="macro-tag macro-tag--kcal">{{ t.kcal | number: '1.0-0' }} kcal</span>
-    <span class="macro-tag macro-tag--protein">P {{ t.protein | number: '1.0-0' }}g</span>
-    <span class="macro-tag macro-tag--carbs">C {{ t.carbs | number: '1.0-0' }}g</span>
-    <span class="macro-tag macro-tag--fat">G {{ t.fat | number: '1.0-0' }}g</span>
+    <span class="macro-tag macro-tag--kcal">{{ t.kcal | localNumber: '1.0-0' }} kcal</span>
+    <span class="macro-tag macro-tag--protein">P {{ t.protein | localNumber: '1.0-0' }}g</span>
+    <span class="macro-tag macro-tag--carbs">C {{ t.carbs | localNumber: '1.0-0' }}g</span>
+    <span class="macro-tag macro-tag--fat">G {{ t.fat | localNumber: '1.0-0' }}g</span>
   </span>
 </ng-template>

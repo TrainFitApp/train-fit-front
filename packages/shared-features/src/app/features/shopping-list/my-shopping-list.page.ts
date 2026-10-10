@@ -20,6 +20,7 @@ import {
   unassignedDays,
 } from 'src/app/core/utils/shopping-list.util';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -232,7 +233,7 @@ export class MyShoppingListPage implements OnInit {
   }
 
   public quantityLabel(item: ShoppingListItem): string {
-    return shoppingQuantityLabel(item.quantity);
+    return shoppingQuantityLabel(item.quantity, (value) => formatLocalNumber(value, { maxDecimals: 1 }));
   }
 
   public daysLabel(item: ShoppingListItem): string {

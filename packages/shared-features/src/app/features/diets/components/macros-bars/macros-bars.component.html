@@ -9,10 +9,10 @@
         </div>
         <div class="macro-values">
           <div class="macro-value">
-            {{ macrosData.kcal | number : "1.0-0" }}
+            {{ macrosData.kcal | localNumber : "1.0-0" }}
           </div>
           <div class="macro-goal">
-            / {{ _kcalTotal | number : "1.0-0" }}
+            / {{ _kcalTotal | localNumber : "1.0-0" }}
           </div>
         </div>
       </div>
@@ -33,10 +33,10 @@
         </div>
         <div class="macro-values">
           <div class="macro-value">
-            {{ macrosData.protein | number : "1.1-1" }}
+            {{ macrosData.protein | localNumber : "1.1-1" }}
           </div>
           <div class="macro-goal">
-            / {{ _proteinsGTotal | number : "1.0-0" }} g
+            / {{ _proteinsGTotal | localNumber : "1.0-0" }} g
           </div>
         </div>
       </div>
@@ -58,10 +58,10 @@
         </div>
         <div class="macro-values">
           <div class="macro-value">
-            {{ macrosData.carbohydrate | number : "1.1-1" }}
+            {{ macrosData.carbohydrate | localNumber : "1.1-1" }}
           </div>
           <div class="macro-goal">
-            / {{ _carbohydratesGTotal | number : "1.0-0" }} g
+            / {{ _carbohydratesGTotal | localNumber : "1.0-0" }} g
           </div>
         </div>
       </div>
@@ -83,10 +83,10 @@
         </div>
         <div class="macro-values">
           <div class="macro-value">
-            {{ macrosData.fat | number : "1.1-1" }}
+            {{ macrosData.fat | localNumber : "1.1-1" }}
           </div>
           <div class="macro-goal">
-            / {{ _fatGTotal | number : "1.0-0" }} g
+            / {{ _fatGTotal | localNumber : "1.0-0" }} g
           </div>
         </div>
       </div>

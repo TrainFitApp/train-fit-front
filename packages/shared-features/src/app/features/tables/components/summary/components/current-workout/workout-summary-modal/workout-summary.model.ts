@@ -2,6 +2,7 @@ import { Workout } from 'src/app/core/models/workout';
 import { Set } from 'src/app/core/models/set';
 import { formatRirValue, isRirFail, rirFailLabel } from 'src/app/core/models/rir';
 import { localizeProp } from 'src/app/core/i18n/localized-catalog';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 
 // Nombre de reserva de un ejercicio borrado del catálogo, en el idioma del usuario.
 const FALLBACK = { exerciseName: 'Ejercicio' };
@@ -43,10 +44,7 @@ export interface WorkoutSummary {
 function formatNumber(value: number, digits: string = '1.0-1'): string {
   if (!Number.isFinite(value)) return '0';
   const maxDecimals = Number(digits.split('-')[1] || 1);
-  return value.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: maxDecimals,
-  });
+  return formatLocalNumber(value, { maxDecimals });
 }
 
 function getSetOrder(set: Set, fallbackIndex: number): number {

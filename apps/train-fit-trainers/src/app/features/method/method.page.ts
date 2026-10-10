@@ -40,7 +40,6 @@ export class MethodPage implements OnInit {
       name: 'Check-in',
       description: this.translate.instant('METHOD.QUE_LE_PREGUNTAS_TUS_CLIENTES'),
       icon: 'document-text-outline',
-      colorVar: 'var(--tf-success)',
       path: '/tabs/checkin-templates',
     },
     {
@@ -50,7 +49,6 @@ export class MethodPage implements OnInit {
       name: this.translate.instant('METHOD.PROTOCOLOS'),
       description: this.translate.instant('METHOD.TU_METODOLOGIA_COMPLETA_LISTA_PARA'),
       icon: 'layers-outline',
-      colorVar: 'var(--tf-accent-2, #ff6b35)',
       path: '/tabs/protocols',
     },
     {
@@ -58,7 +56,6 @@ export class MethodPage implements OnInit {
       name: this.translate.instant('METHOD.AVISOS_AUTOMATIZADOS'),
       description: this.translate.instant('METHOD.REGLAS_QUE_VIGILAN_POR_TI'),
       icon: 'git-branch-outline',
-      colorVar: 'var(--tf-accent)',
       path: '/tabs/automations',
     },
     {
@@ -68,7 +65,6 @@ export class MethodPage implements OnInit {
       name: this.translate.instant('METHOD.PUNTUACIONES'),
       description: this.translate.instant('METHOD.QUE_MUSCULOS_TRABAJA_QUE_ARTICULACIONES'),
       icon: 'analytics-outline',
-      colorVar: 'var(--tf-accent-2, #4fc79a)',
       path: '/tabs/exercise-scores',
     },
   ];

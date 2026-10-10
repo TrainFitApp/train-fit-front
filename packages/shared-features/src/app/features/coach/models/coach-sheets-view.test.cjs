@@ -14,7 +14,7 @@ const bundled = buildSync({
 });
 const compiled = new Module(__filename);
 compiled._compile(bundled.outputFiles[0].text, __filename);
-const { civilDayLabel, instantDayLabel, chargeState, isPartial, isPartlyCancelled, feeFrequency, initials, scopeLabelKey, scopeIcon } =
+const { civilDayLabel, instantDayLabel, chargeState, chargeDueKey, isPartial, isPartlyCancelled, feeFrequency, initials, scopeLabelKey, scopeIcon } =
   compiled.exports;
 
 test('día civil: sin año si es del año de hoy, con año si no; nunca se mueve de día', () => {
@@ -37,6 +37,19 @@ test('estado del cobro: pagado y anulado mandan sobre la fecha', () => {
   assert.equal(chargeState({ status: 'open', temporal: 'overdue' }), 'overdue');
   assert.equal(chargeState({ status: 'open', temporal: 'due_today' }), 'due_today');
   assert.equal(chargeState({ status: 'open', temporal: 'upcoming' }), 'upcoming');
+});
+
+// QA 2026-10-09: lo pagado y lo anulado seguían con «Vence hoy».
+test('vencimiento: lo abierto vence; lo pagado o anulado solo dice cuándo vencía', () => {
+  const today = '2026-10-09';
+  assert.equal(chargeDueKey({ status: 'open', dueDay: today }, today), 'COACH_SHEETS.CHARGE_DUE_TODAY');
+  assert.equal(chargeDueKey({ status: 'open', dueDay: '2026-10-01' }, today), 'COACH_SHEETS.DUE_PAST');
+  assert.equal(chargeDueKey({ status: 'open', dueDay: '2026-11-05' }, today), 'COACH_SHEETS.DUE_FUTURE');
+  for (const status of ['settled', 'cancelled']) {
+    for (const dueDay of [today, '2026-10-01', '2026-11-05']) {
+      assert.equal(chargeDueKey({ status, dueDay }, today), 'COACH_SHEETS.DUE_DATE', `${status} ${dueDay}`);
+    }
+  }
 });
 
 test('pago parcial: abierto, con algo pagado y algo pendiente', () => {

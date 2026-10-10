@@ -50,7 +50,7 @@
         ></textarea>
         <div class="draft-progress" *ngIf="draft.uploading" role="status">
           <span class="bar"><span class="bar-fill" [style.transform]="'scaleX(' + draft.progress + ')'"></span></span>
-          <span>{{ 'MEDIA.UPLOADING_PERCENT' | translate: { percent: (draft.progress * 100 | number: '1.0-0') } }}</span>
+          <span>{{ 'MEDIA.UPLOADING_PERCENT' | translate: { percent: (draft.progress * 100 | localNumber: '1.0-0') } }}</span>
         </div>
         <p class="videos-note" *ngIf="draft.uploading">{{ 'MEDIA.KEEP_APP_OPEN' | translate }}</p>
         <div class="draft-actions">

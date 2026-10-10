@@ -39,6 +39,7 @@ import { NotificationsApiService } from './services/notifications-api.service';
 import { ProfessionalsApiService } from './services/professionals-api.service';
 import { HabitsService } from './services/habits.service';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -643,8 +644,8 @@ export class CoachPage implements OnInit {
   // "10.000 a 15.000 pasos" cuando el hábito lleva rango (los pasos se
   // pautan así, ver docs/plan-semanas.md §12).
   public taskTargetLabel(task: CoachTask): string {
-    const rango = task.targetMax ? ` ${this.translate.instant('COACH.RANGE_TO')} ${task.targetMax}` : '';
-    return `${task.target}${rango} ${task.unit}`;
+    const rango = task.targetMax ? ` ${this.translate.instant('COACH.RANGE_TO')} ${formatLocalNumber(task.targetMax)}` : '';
+    return `${formatLocalNumber(task.target)}${rango} ${task.unit}`;
   }
 
   // "Semana 3 · hasta el 20 sept": de qué periodo es el check-in que le

@@ -60,7 +60,7 @@
         </span>
 
         <span class="library-card__meta">
-          <span><strong>{{ card.exerciseCount }}</strong> {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span>
+          <span><strong>{{ card.exerciseCount }}</strong> {{ (card.exerciseCount === 1 ? 'TRAINER_COMMON.EXERCISE_LOWER' : 'TRAINER_COMMON.EXERCISES_LOWER') | translate }}</span>
           <span><strong>{{ card.setCount }}</strong> {{ 'ROUTINES.SERIES' | translate }}</span>
           <span *ngIf="card.minutes">≈ <strong>{{ card.minutes }}</strong> min</span>
         </span>

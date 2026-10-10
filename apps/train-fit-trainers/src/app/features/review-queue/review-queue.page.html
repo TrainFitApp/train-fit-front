@@ -67,7 +67,7 @@
           <span class="row-thumb" [attr.data-type]="item.type">
             <img *ngIf="item.thumbUrl as thumb" [src]="thumb" alt="" />
             <ion-icon *ngIf="!item.thumbUrl" [name]="icon(item.type)" aria-hidden="true"></ion-icon>
-            <span class="row-duration" *ngIf="item.durationSec as seconds">{{ seconds | number: '1.0-0' }} s</span>
+            <span class="row-duration" *ngIf="item.durationSec as seconds">{{ seconds | localNumber: '1.0-0' }} s</span>
           </span>
           <span class="row-main">
             <strong class="row-client">{{ item.clientName }}</strong>

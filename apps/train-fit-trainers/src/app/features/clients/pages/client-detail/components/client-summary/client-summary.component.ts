@@ -34,6 +34,7 @@ import {
   TrainingWeek,
 } from '../../models/client-progress.model';
 import { uiLocale, localizeRecord } from 'src/app/core/i18n/localized-catalog';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
@@ -761,6 +762,13 @@ export class ClientSummaryComponent implements OnInit {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     }).format(value);
+  }
+
+  // Una carga se pinta tal cual (42,5 kg), nunca redondeada a entero: «43
+  // kg × 9» contaba un récord que no existía (QA 2026-10-09).
+  public formatLoad(value: number | null): string {
+    if (value === null || value === undefined) return '—';
+    return formatLocalNumber(value, { maxDecimals: 2 });
   }
 
   public deltaSign(delta: ProgressDelta): string {

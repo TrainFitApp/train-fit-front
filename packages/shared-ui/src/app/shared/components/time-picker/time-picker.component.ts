@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 import { formatSecondsAsTime, parseTimeToSeconds } from 'src/app/shared/utils';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 
@@ -20,6 +21,8 @@ export class TimePickerComponent implements OnInit {
   @Input() label: string = 'TIEMPO';
   @Input() isDone: boolean = false;
   @Output() timeChange = new EventEmitter<string>();
+
+  private readonly translate = inject(TranslateService);
 
   constructor(private ionicUtilService: IonicUtilService) {}
 
@@ -59,9 +62,9 @@ export class TimePickerComponent implements OnInit {
         },
       ],
       buttons: [
-        { text: 'CANCELAR', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'OK',
+          text: this.translate.instant('COMMON.OK'),
           handler: (value: any) => {
             const minutes = value?.min?.value ?? 0;
             const seconds = value?.sec?.value ?? 0;

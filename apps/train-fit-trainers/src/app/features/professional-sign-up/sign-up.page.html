@@ -165,11 +165,12 @@
               formControlName="termsAndConditions"
               mode="ios"
               class="modern-checkbox"
+              [attr.aria-label]="('SIGN_UP.I_ACCEPT' | translate) + ' ' + ('SIGN_UP.TRAINER_CONDITIONS' | translate)"
               (click)="$event.stopPropagation()"
             ></ion-checkbox>
             <span class="checkbox-label">
               {{ 'SIGN_UP.I_ACCEPT' | translate }}
-              <a [href]="LINKS.termsAndConditions" class="checkbox-link" (click)="$event.stopPropagation()">{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}</a>
+              <a [href]="LINKS.trainerConditions" target="_blank" rel="noopener" class="checkbox-link" (click)="$event.stopPropagation()">{{ 'SIGN_UP.TRAINER_CONDITIONS' | translate }}</a>
             </span>
             <ion-icon name="document-text-outline" class="checkbox-icon" color="primary"></ion-icon>
           </div>
@@ -184,11 +185,12 @@
               formControlName="policyAndPrivacy"
               mode="ios"
               class="modern-checkbox"
+              [attr.aria-label]="('SIGN_UP.I_HAVE_READ' | translate) + ' ' + ('SIGN_UP.PRIVACY_POLICY' | translate)"
               (click)="$event.stopPropagation()"
             ></ion-checkbox>
             <span class="checkbox-label">
               {{ 'SIGN_UP.I_HAVE_READ' | translate }}
-              <a [href]="LINKS.privacyAndPolicy" class="checkbox-link" (click)="$event.stopPropagation()">{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a>
+              <a [href]="LINKS.privacyAndPolicy" target="_blank" rel="noopener" class="checkbox-link" (click)="$event.stopPropagation()">{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a>
             </span>
             <ion-icon name="shield-checkmark-outline" class="checkbox-icon" color="primary"></ion-icon>
           </div>

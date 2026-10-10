@@ -31,8 +31,8 @@ export class PaymentBalanceBarComponent {
     const charge = this.current;
     if (!charge) return '';
     const parts = [this.translate.instant('PAYMENTS.RECIBIDO_DE', { p0: formatCents(charge.receivedCents, charge.currency), p1: formatCents(charge.amountCents, charge.currency) })];
-    if (charge.cancelledCents > 0) parts.push(`anulado ${formatCents(charge.cancelledCents, charge.currency)}`);
-    parts.push(`pendiente ${formatCents(charge.balanceCents, charge.currency)}`);
+    if (charge.cancelledCents > 0) parts.push(this.translate.instant('PAYMENTS.ANULADO_IMPORTE', { amount: formatCents(charge.cancelledCents, charge.currency) }));
+    parts.push(this.translate.instant('PAYMENTS.PENDIENTE_IMPORTE', { amount: formatCents(charge.balanceCents, charge.currency) }));
     return parts.join(', ');
   }
 

@@ -136,6 +136,7 @@ import { localIsoDate } from 'src/app/core/utils/local-date.util';
 import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 import { CustomAnswer, CustomQuestion, FREQUENCY_OPTIONS } from 'src/app/core/models/custom-question';
 import { HabitForm, habitErrorKey, habitFormError, habitPayload } from '../../habit-form.util';
+import { personInitials } from '../../../../shared/utils/initials.util';
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
@@ -199,11 +200,7 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
   }
 
   public get initials(): string {
-    const parts = (this.name || '').trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return '?';
-    const first = parts[0].charAt(0);
-    const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
-    return (first + last).toUpperCase();
+    return personInitials(this.name);
   }
 
   // --- Notas (F19, transversal a los scopes) ---
@@ -3123,10 +3120,10 @@ export class ClientDetailPage implements OnInit, AfterViewInit {
 
   // --- F08: finalizar relación (lado profesional) ---
   public async confirmRevoke(scope: ClientScope): Promise<void> {
-    const scopeLabel = scope === 'training' ? this.translate.instant('CLIENT_DETAIL.ENTRENAMIENTO') : this.translate.instant('CLIENT_DETAIL.NUTRICION');
+    // Una frase por ámbito: «el {{scope}}» decía «el nutrición».
     await this.ionicUtilService.showAlert({
       header: this.translate.instant('CLIENT_DETAIL.FINALIZAR_RELACION'),
-      message: this.translate.instant('CLIENT_DETAIL.REVOKE_MSG', { scope: scopeLabel, name: this.name }),
+      message: this.translate.instant(scope === 'training' ? 'CLIENT_DETAIL.REVOKE_MSG_TRAINING' : 'CLIENT_DETAIL.REVOKE_MSG_NUTRITION', { name: this.name }),
       buttons: [
         { text: this.translate.instant('COMMON.GO_BACK'), role: 'cancel' },
         {

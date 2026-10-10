@@ -579,7 +579,7 @@
             {{ record.exerciseName }}
             <span class="new-tag" *ngIf="isRecent(record.date)">{{ 'CLIENTS.NUEVA' | translate }}</span>
           </span>
-          <span class="delta-current">{{ formatValue(record.weight, 0) }} {{ 'CLIENTS.KG_2' | translate }} {{ record.reps }}</span>
+          <span class="delta-current">{{ formatLoad(record.weight) }} {{ 'CLIENTS.KG_2' | translate }} {{ record.reps }}</span>
           <span class="delta-change">{{ record.date | localDate: 'd MMM' }}</span>
         </li>
       </ul>
@@ -606,7 +606,7 @@
             <tr *ngFor="let exercise of training?.loadEvolution; trackBy: trackByIndex">
               <th scope="row" class="trend-metric-head">{{ exercise.exerciseName }}</th>
               <td *ngFor="let week of exercise.weeks; let last = last">
-                {{ week.maxWeight === null ? '—' : formatValue(week.maxWeight, 0) }}
+                {{ week.maxWeight === null ? '—' : formatLoad(week.maxWeight) }}
                 <ion-icon
                   class="load-trend"
                   *ngIf="last && loadTrend(exercise) as direction"

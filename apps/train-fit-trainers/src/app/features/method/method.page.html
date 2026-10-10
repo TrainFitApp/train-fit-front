@@ -26,7 +26,7 @@
         <div class="recent-row recent-row--with-actions" *ngFor="let ct of checkinTemplates; trackBy: trackById">
           <div class="recent-row-info" (click)="goToCheckinTemplates()">
             <span class="recent-row-name">{{ ct.name }}</span>
-            <span class="recent-row-meta">{{ ct.enabledFields.length }} {{ 'METHOD.CAMPOS' | translate }}</span>
+            <span class="recent-row-meta">{{ ct.enabledFields.length }} {{ (ct.enabledFields.length === 1 ? 'METHOD.CAMPO' : 'METHOD.CAMPOS') | translate }}</span>
           </div>
           <div class="recent-row-actions">
             <button class="recent-row-action-btn" (click)="openApplyPanel(ct)">{{ 'TRAINER_COMMON.APPLY' | translate }}</button>

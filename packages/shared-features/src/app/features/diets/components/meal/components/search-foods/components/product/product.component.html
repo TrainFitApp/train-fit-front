@@ -37,10 +37,10 @@
             [style.color]="isPautado ? null : isChecked ? 'var(--ion-color-secondary)' : '#888'"
           >
             {{
-              (displayCustomProduct?.quantity ?? productQuantity | number : "1.0-1")
+              (displayCustomProduct?.quantity ?? productQuantity | localNumber : "1.0-1")
                 ? "(" +
                   (displayCustomProduct?.quantity ?? productQuantity
-                    | number : "1.0-1") +
+                    | localNumber : "1.0-1") +
                   "g)"
                 : "-"
             }}

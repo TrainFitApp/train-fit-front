@@ -41,6 +41,7 @@ import { computeItemMicros, TOTALS_NUTRIENT_FIELDS } from '../../utils/nutrient-
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 import { dietaryFlagUi } from '../../../../shared/utils/dietary-flag-ui.util';
+import { personInitials } from '../../../../shared/utils/initials.util';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -232,13 +233,9 @@ export class DietTemplateBuilderPage implements OnInit, AfterViewInit, OnDestroy
   private fromClientId = '';
 
   // Iniciales para el avatar de la tarjeta de contexto (mismo criterio que
-  // la ficha del cliente: primera y última palabra del nombre).
+  // la ficha del cliente, ver initials.util).
   public get clientInitials(): string {
-    const parts = (this.clientContextName || '').trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return '?';
-    const first = parts[0].charAt(0);
-    const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
-    return (first + last).toUpperCase();
+    return personInitials(this.clientContextName);
   }
 
   private readonly destroyRef = inject(DestroyRef);

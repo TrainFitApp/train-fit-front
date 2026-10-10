@@ -63,7 +63,10 @@
       font-weight: 600;
       color: #ffffff;
       letter-spacing: 0.5px;
-      text-transform: capitalize;
+      // Solo la primera letra en mayúscula: `capitalize` ponía «Octubre De 2026».
+      &::first-letter {
+        text-transform: uppercase;
+      }
       background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -270,7 +273,10 @@
               font-weight: 600;
               color: #ffffff;
               letter-spacing: 0.5px;
-              text-transform: capitalize;
+              // Solo la primera letra en mayúscula: `capitalize` ponía «Octubre De 2026».
+              &::first-letter {
+                text-transform: uppercase;
+              }
               background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
               -webkit-background-clip: text;
               -webkit-text-fill-color: transparent;

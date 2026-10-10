@@ -26,13 +26,13 @@
       <div class="macro-slider__track">
         <div class="macro-slider__segments">
           <span class="macro-slider__seg macro-slider__seg--protein" [style.left.%]="0" [style.width.%]="rawPct('protein')">
-            <span *ngIf="rawPct('protein') > 12">{{ rawPct('protein') | number: '1.0-0' }} %</span>
+            <span *ngIf="rawPct('protein') > 12">{{ rawPct('protein') | localNumber: '1.0-0' }} %</span>
           </span>
           <span class="macro-slider__seg macro-slider__seg--carbs" [style.left.%]="h1Pos" [style.width.%]="rawPct('carbs')">
-            <span *ngIf="rawPct('carbs') > 12">{{ rawPct('carbs') | number: '1.0-0' }} %</span>
+            <span *ngIf="rawPct('carbs') > 12">{{ rawPct('carbs') | localNumber: '1.0-0' }} %</span>
           </span>
           <span class="macro-slider__seg macro-slider__seg--fat" [style.left.%]="h2Pos" [style.width.%]="rawPct('fat')">
-            <span *ngIf="rawPct('fat') > 12">{{ rawPct('fat') | number: '1.0-0' }} %</span>
+            <span *ngIf="rawPct('fat') > 12">{{ rawPct('fat') | localNumber: '1.0-0' }} %</span>
           </span>
         </div>
         <span
@@ -42,8 +42,8 @@
           [attr.aria-label]="'SHARED_COMPONENTS.REPARTO_ENTRE_PROTEINA_CARBOHIDRATOS' | translate"
           aria-valuemin="0"
           aria-valuemax="100"
-          [attr.aria-valuenow]="h1Pos | number: '1.0-0'"
-          [attr.aria-valuetext]="('SHARED_COMPONENTS.PROTEINA' | translate) + (rawPct('protein') | number: '1.0-0') + ' %'"
+          [attr.aria-valuenow]="h1Pos | localNumber: '1.0-0'"
+          [attr.aria-valuetext]="('SHARED_COMPONENTS.PROTEINA' | translate) + (rawPct('protein') | localNumber: '1.0-0') + ' %'"
           [attr.aria-disabled]="handleBlocked('h1')"
           [class.is-blocked]="handleBlocked('h1')"
           [style.left.%]="h1Pos"
@@ -56,8 +56,8 @@
           [attr.aria-label]="'SHARED_COMPONENTS.REPARTO_ENTRE_CARBOHIDRATOS_GRASA' | translate"
           aria-valuemin="0"
           aria-valuemax="100"
-          [attr.aria-valuenow]="h2Pos | number: '1.0-0'"
-          [attr.aria-valuetext]="('SHARED_COMPONENTS.GRASA' | translate) + (rawPct('fat') | number: '1.0-0') + ' %'"
+          [attr.aria-valuenow]="h2Pos | localNumber: '1.0-0'"
+          [attr.aria-valuetext]="('SHARED_COMPONENTS.GRASA' | translate) + (rawPct('fat') | localNumber: '1.0-0') + ' %'"
           [attr.aria-disabled]="handleBlocked('h2')"
           [class.is-blocked]="handleBlocked('h2')"
           [style.left.%]="h2Pos"
@@ -70,7 +70,7 @@
       <div class="macro-row__head">
         <span class="macro-dot macro-dot--{{ m.key }}"></span>
         <span class="macro-row__name">{{ m.label }}</span>
-        <span class="macro-row__kcal">{{ kcalOf(m.key) }} kcal · {{ pct(m.key) | number: '1.0-0' }} %</span>
+        <span class="macro-row__kcal">{{ kcalOf(m.key) }} kcal · {{ pct(m.key) | localNumber: '1.0-0' }} %</span>
         <span
           class="macro-row__delta"
           [class.is-up]="macroDelta(m.key) > 0"
@@ -117,7 +117,7 @@
     <p class="macros-adjust__foot">
       {{ 'SHARED_COMPONENTS.MACROS' | translate }} <strong [class.is-off]="!balanced">{{ macrosKcal }} kcal</strong>
       <ng-container *ngIf="macroBudget !== targetKcal"> {{ 'SHARED_COMPONENTS.DE' | translate }} {{ targetKcal }} {{ 'SHARED_COMPONENTS.DE_LA_DIETA_EL_RESTO' | translate }})</ng-container>
-      <ng-container *ngIf="weightKg"> · {{ 'SHARED_COMPONENTS.KG_SOBRE' | translate }} {{ weightKg | number: '1.0-1' }} kg</ng-container>
+      <ng-container *ngIf="weightKg"> · {{ 'SHARED_COMPONENTS.KG_SOBRE' | translate }} {{ weightKg | localNumber: '1.0-1' }} kg</ng-container>
       <span *ngIf="!weightKg"> {{ 'SHARED_COMPONENTS.SIN_PESO_DEL_CLIENTE_NO' | translate }}</span>
       <button
         type="button"

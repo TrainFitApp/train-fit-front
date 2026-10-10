@@ -117,7 +117,7 @@
 <ion-footer class="ion-no-border panel-footer">
   <div class="upload" *ngIf="saving && source === 'upload' && !isEdit" role="status">
     <span class="bar"><span class="bar-fill" [style.transform]="'scaleX(' + progress + ')'"></span></span>
-    <span>{{ 'MEDIA.UPLOADING_PERCENT' | translate: { percent: (progress * 100 | number: '1.0-0') } }}</span>
+    <span>{{ 'MEDIA.UPLOADING_PERCENT' | translate: { percent: (progress * 100 | localNumber: '1.0-0') } }}</span>
   </div>
   <button type="button" class="save-button" (click)="save()" [disabled]="!canSave">
     <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>

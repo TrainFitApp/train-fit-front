@@ -36,6 +36,8 @@ export interface SendInviteResult {
   scope: TrainerInviteScope;
   success: boolean;
   error: string | null;
+  // OVERLAP | INVITE_ALREADY_PENDING: se dice en el idioma de la app.
+  code?: string | null;
   invitation: TrainerInvite | null;
 }
 

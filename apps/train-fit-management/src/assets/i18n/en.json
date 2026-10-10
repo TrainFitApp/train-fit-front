@@ -152,7 +152,7 @@
       "WORKOUT_YES": "Yes",
       "WORKOUT_NO": "No",
       "ROUTINE_ACTIVE": "Active Routine",
-      "SPLITS_COUNT": "{{count}} splits",
+      "SPLITS_COUNT": "{{count}} microcycles",
       "DIET_DAYS": "Diet Days",
       "PRODUCTS": "Products",
       "EXERCISES": "Exercises",
@@ -166,7 +166,8 @@
       "ACTIVITY": "Activity",
       "DESCENDING": "Descending",
       "ASCENDING": "Ascending",
-      "UNTIL": "until"
+      "UNTIL": "until",
+      "SPLITS_ONE": "1 microcycle"
     },
     "MAINTENANCE": {
       "TITLE": "Maintenance & versions",

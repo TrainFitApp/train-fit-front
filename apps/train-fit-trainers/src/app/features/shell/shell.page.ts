@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Platform } from '@ionic/angular';
 import { NavigationEnd, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, merge } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { ReviewQueueApiService } from '../review-queue/review-queue-api.service';
 import { TrainerNavigationService } from '../../core/services/trainer-navigation.service';
@@ -103,7 +103,8 @@ export class ShellPage implements OnInit, OnDestroy {
 
   private backButtonSubscription: Subscription | null = null;
   private routerSubscription: Subscription | null = null;
-  // Pendientes de la bandeja «Por revisar»: se refresca al navegar (sin sondeo).
+  // Pendientes de la bandeja «Por revisar»: se refresca al navegar y al
+  // revisar algo (sin sondeo).
   public badges: { review: number } = { review: 0 };
 
   constructor(
@@ -126,9 +127,10 @@ export class ShellPage implements OnInit, OnDestroy {
     // retiran solo los antiguos que se reconocen como de cobros.
     void this.legacyPaymentReminders.cleanUp();
     this.refreshBadges();
-    this.routerSubscription = this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe(() => this.refreshBadges());
+    this.routerSubscription = merge(
+      this.router.events.pipe(filter((event) => event instanceof NavigationEnd)),
+      this.reviewQueueApi.changed$
+    ).subscribe(() => this.refreshBadges());
 
     // El atrás del sistema ejecuta exactamente lo mismo que el botón de la
     // cabecera (regla de docs/frontend.md: ambos llevan al mismo sitio). El

@@ -241,7 +241,9 @@ td ion-icon { font-size: var(--tf-font-size-sm); vertical-align: middle; }
 
 /* --- Calendario -------------------------------------------------------- */
 .calendar-toolbar { display: flex; align-items: center; gap: var(--tf-space-1); }
-.calendar-toolbar h3 { flex: 1; text-transform: capitalize; text-align: center; font-size: var(--tf-font-size-sm); color: var(--tf-text-secondary); }
+.calendar-toolbar h3 { flex: 1; text-align: center; font-size: var(--tf-font-size-sm); color: var(--tf-text-secondary); }
+// Solo la primera letra: `capitalize` ponía «Octubre De 2026».
+.calendar-toolbar h3::first-letter { text-transform: uppercase; }
 .icon-button { width: var(--tf-touch-min); flex: 0 0 var(--tf-touch-min); padding: 0; border-color: transparent; background: transparent; color: var(--tf-text-secondary); }
 .icon-button:hover:not(:disabled) { background: var(--tf-surface-3); border-color: transparent; color: var(--tf-text); }
 .today-button { min-height: var(--tf-touch-min); padding: 0 var(--tf-space-3); font-size: var(--tf-font-size-xs); }

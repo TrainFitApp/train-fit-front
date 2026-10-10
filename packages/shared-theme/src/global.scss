@@ -47,6 +47,16 @@ ion-button {
 }
 
 /*
+ * Selectores de rueda (ion-picker: RIR, tiempo…). Ionic les da 260px fijos
+ * más la barra de botones; en una ventana baja (horizontal, escritorio
+ * pequeño) la hoja se salía por arriba (QA 2026-10-09). Nunca más alta que
+ * la ventana: las columnas siguen haciendo scroll.
+ */
+ion-picker {
+  --height: min(260px, calc(100dvh - 16px));
+}
+
+/*
  * Teclado numérico a medida (app-numeric-keypad, montado fuera de ion-app en
  * app.component.html). Mientras está abierto, ion-app se encoge para dejarle
  * sitio, igual que hace el webview con el teclado del sistema
@@ -1612,9 +1622,12 @@ ion-alert.custom-alert {
       font-size: 0.95rem;
       font-weight: 600;
       line-height: 1.25;
-      letter-spacing: 0;
+      letter-spacing: 0.02em;
       text-align: center;
-      text-transform: none;
+      // En mayúsculas, como ion-button (regla de arriba): el i18n mezcla
+      // «Cancelar» con «CONFIRMAR» o «BORRAR», y los botones compañeros
+      // salían con mayúsculas mezcladas (QA 2026-10-09).
+      text-transform: uppercase;
       overflow: hidden;
       transition: filter 150ms ease, transform 100ms ease;
 

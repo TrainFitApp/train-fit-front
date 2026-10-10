@@ -138,3 +138,22 @@ test('avisos del entrenador: saldo vigente, cobro cerrado y destino según la re
   const former = { ...base, current: { ...partial.current, clientRelation: 'former' } };
   assert.deepEqual(view.trainerPaymentNoticeRoute('u1', former, 'Laura').commands, ['/tabs/account/payments']);
 });
+
+// QA 2026-10-09: la gráfica de cobros redondeaba 80,50 a «81 €» y un importe
+// negativo decía «usa como mucho dos decimales».
+test('etiqueta corta de importe: sin decimales si es entero, con céntimos si los hay', () => {
+  assert.equal(eur(view.eurosCompact(8000)), '80 €');
+  assert.equal(eur(view.eurosCompact(8050)), '80,50 €');
+  assert.equal(eur(view.eurosCompact(0)), '0 €');
+});
+
+test('por qué no vale un importe', () => {
+  assert.equal(view.amountInputErrorKey(''), null, 'vacío: lo dice el formulario');
+  assert.equal(view.amountInputErrorKey('45,50'), null);
+  assert.equal(view.amountInputErrorKey('-10'), 'PAYMENTS.AMOUNT_ERRORS.NOT_POSITIVE');
+  assert.equal(view.amountInputErrorKey('0'), 'PAYMENTS.AMOUNT_ERRORS.NOT_POSITIVE');
+  assert.equal(view.amountInputErrorKey('abc'), 'PAYMENTS.AMOUNT_ERRORS.NOT_A_NUMBER');
+  assert.equal(view.amountInputErrorKey('1.000,00'), 'PAYMENTS.AMOUNT_ERRORS.NOT_A_NUMBER');
+  assert.equal(view.amountInputErrorKey('10,005'), 'PAYMENTS.AMOUNT_ERRORS.TOO_MANY_DECIMALS');
+  assert.equal(view.amountInputErrorKey('2000000'), 'PAYMENTS.AMOUNT_ERRORS.TOO_HIGH');
+});

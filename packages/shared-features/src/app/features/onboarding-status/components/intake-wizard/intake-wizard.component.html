@@ -473,7 +473,7 @@
         <h2 class="section-title">{{ request.label }}</h2>
         <p class="section-subtitle">
           {{ 'INTAKE.VIDEO_SUBTITLE' | translate: { name: trainerName } }}
-          <ng-container *ngIf="request.required">{{ 'INTAKE.VIDEO_REQUIRED' | translate }}</ng-container>
+          {{ (request.required ? 'INTAKE.VIDEO_REQUIRED' : 'INTAKE.VIDEO_OPTIONAL') | translate }}
         </p>
         <app-intake-video-field
           class="media-step"

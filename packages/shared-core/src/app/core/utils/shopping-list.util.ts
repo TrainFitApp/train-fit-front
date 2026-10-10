@@ -155,7 +155,9 @@ export function aggregateShoppingView(
 }
 
 // Por encima del kilo en kg: "3400 g de pollo" obliga a dividir de cabeza.
-export function shoppingQuantityLabel(quantity: number): string {
-  if (quantity >= 1000) return `${Math.round(quantity / 100) / 10} kg`;
-  return `${quantity} g`;
+// `format` pinta el número en el idioma de la app («3,4 kg»); este fichero
+// no importa nada para poder probarse tal cual con node.
+export function shoppingQuantityLabel(quantity: number, format: (value: number) => string = String): string {
+  if (quantity >= 1000) return `${format(Math.round(quantity / 100) / 10)} kg`;
+  return `${format(quantity)} g`;
 }

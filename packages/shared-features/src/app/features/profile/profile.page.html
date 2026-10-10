@@ -179,14 +179,14 @@
       <div class="weight-metric" (click)="showInfo('PROFILE.TODAY_WEIGHT_INFO')">
         <div class="weight-metric-label">{{ 'PROFILE.TODAY_WEIGHT' | translate }}</div>
         <div class="weight-metric-value">
-          {{ getTodayWeight() ? ((getTodayWeight() | number:'1.0-2') + 'kg') :
+          {{ getTodayWeight() ? ((getTodayWeight() | localNumber:'1.0-2') + ' kg') :
           '-' }}
         </div>
       </div>
       <div class="weight-metric" (click)="showInfo('PROFILE.PREV_WEEK_AVG_INFO')">
         <div class="weight-metric-label">{{ 'PROFILE.PREV_WEEK_AVG' | translate }}</div>
         <div class="weight-metric-value">
-          {{ (prevWeightAverage || 0) | number:'1.0-2' }}kg
+          {{ prevWeightAverage ? (prevWeightAverage | localNumber:'1.0-2') + ' kg' : '—' }}
         </div>
       </div>
 
@@ -196,8 +196,7 @@
       >
         <div class="weight-metric-label">{{ 'PROFILE.CURR_WEEK_AVG' | translate }}</div>
         <div class="weight-metric-value">
-          {{ currWeightAverage === 0 ? '-' : ((currWeightAverage || 0) |
-          number:'1.0-2') + 'kg' }}
+          {{ currWeightAverage ? (currWeightAverage | localNumber:'1.0-2') + ' kg' : '—' }}
           <span
             class="weight-change"
             [ngClass]="getWeightChangeClass(currWeightAverage, prevWeightAverage)"
@@ -232,7 +231,7 @@
           {{ 'PROFILE.MICROCYCLE' | translate:{ split: getCurrentPlayingSplit() } }}
         </p>
         <p class="workout-subtitle" *ngIf="!user?.workoutInUse">
-          {{ 'PROFILE.MICROCYCLES_AVAILABLE' | translate:{ count: tableInUse.splits?.length || 0 } }}
+          {{ (tableInUse.splits?.length === 1 ? 'PROFILE.MICROCYCLES_AVAILABLE_ONE' : 'PROFILE.MICROCYCLES_AVAILABLE') | translate:{ count: tableInUse.splits?.length || 0 } }}
         </p>
       </div>
       <div class="workout-progress" *ngIf="user?.workoutInUse && workoutInUse">

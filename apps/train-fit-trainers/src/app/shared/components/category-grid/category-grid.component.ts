@@ -4,7 +4,6 @@ export interface CategoryCard {
   name: string;
   description: string;
   icon: string;
-  colorVar: string;
   path: string;
 }
 

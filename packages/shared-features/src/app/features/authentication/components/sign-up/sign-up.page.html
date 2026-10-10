@@ -643,7 +643,7 @@
                   <span>{{ 'SIGN_UP.PRIVACY_REQUIRED' | translate }}</span>
                 </div>
               </div>
-              <div *ngIf="signUpForm.invalid && error" class="error-message">
+              <div *ngIf="registerAttempted && signUpForm.invalid && error" class="error-message">
                 <ion-icon color="danger" name="alert-circle-outline"></ion-icon>
                 <span class="error-text">{{ error | translate }}</span>
               </div>

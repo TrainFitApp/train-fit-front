@@ -5,8 +5,9 @@ import {
   transition,
   trigger,
 } from '@angular/animations';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
 import { buildRirValue,
   formatRirValue,
   getRirNumberOptions,
@@ -58,6 +59,8 @@ export class RirPickerComponent implements OnInit {
 
   public shimmerAnimationState = 'idle';
   public selectedRirValue: RirValue = null;
+
+  private readonly translate = inject(TranslateService);
 
   constructor(private ionicUtilService: IonicUtilService) {}
 
@@ -125,11 +128,11 @@ export class RirPickerComponent implements OnInit {
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'OK',
+          text: this.translate.instant('COMMON.OK'),
           handler: (value: any) => {
             const firstValue = value?.rirFirst?.value ?? null;
             const secondValue = value?.rirSecond?.value ?? null;

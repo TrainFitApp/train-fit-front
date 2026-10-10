@@ -129,19 +129,19 @@
         <div class="picked-food-macros" *ngIf="item.kcal !== undefined">
           <div class="macro-item">
             <div class="macro-dot kcal"></div>
-            <span class="macro-value">{{ item.kcal | number : '1.0-0' }}</span>
+            <span class="macro-value">{{ item.kcal | localNumber : '1.0-0' }}</span>
           </div>
           <div class="macro-item">
             <div class="macro-dot protein"></div>
-            <span class="macro-value">{{ item.protein | number : '1.0-1' }}g</span>
+            <span class="macro-value">{{ item.protein | localNumber : '1.0-1' }}g</span>
           </div>
           <div class="macro-item">
             <div class="macro-dot carbs"></div>
-            <span class="macro-value">{{ item.carbs | number : '1.0-1' }}g</span>
+            <span class="macro-value">{{ item.carbs | localNumber : '1.0-1' }}g</span>
           </div>
           <div class="macro-item">
             <div class="macro-dot fat"></div>
-            <span class="macro-value">{{ item.fat | number : '1.0-1' }}g</span>
+            <span class="macro-value">{{ item.fat | localNumber : '1.0-1' }}g</span>
           </div>
         </div>
       </div>
@@ -158,14 +158,14 @@
           <div class="alternative-totals-cell" *ngFor="let key of macroKeys">
             <span class="alternative-totals-value">
               <span class="macro-dot {{ key }}"></span>
-              {{ totals[key] | number : macroFormat(key) }}{{ macroUnit(key) }}
+              {{ totals[key] | localNumber : macroFormat(key) }}{{ macroUnit(key) }}
             </span>
             <span
               class="macro-delta"
               *ngIf="ctx.deviation"
               [class.flagged]="ctx.deviation[key].flagged"
             >
-              {{ ctx.deviation[key].delta > 0 ? '+' : '' }}{{ ctx.deviation[key].delta | number : macroFormat(key) }}
+              {{ ctx.deviation[key].delta > 0 ? '+' : '' }}{{ ctx.deviation[key].delta | localNumber : macroFormat(key) }}
             </span>
           </div>
         </div>

@@ -73,7 +73,7 @@
   "COMMON": {
     "OK": "OK",
     "CANCEL": "Cancel",
-    "CONFIRM": "CONFIRM",
+    "CONFIRM": "Confirm",
     "SAVE": "Save",
     "SAVING": "Saving...",
     "CERRAR": "CLOSE",
@@ -522,7 +522,14 @@
     "CODE_RESENT": "Code resent",
     "RESEND_CODE_ERROR": "Error resending code",
     "CODE_SENT_TO_EMAIL": "Code sent to your email",
-    "MAIL_NOT_SENT": "Your account is ready, but we couldn't send you the code. Tap “Resend code” in a few minutes."
+    "MAIL_NOT_SENT": "Your account is ready, but we couldn't send you the code. Tap “Resend code” in a few minutes.",
+    "ERRORS": {
+      "EMAIL_ALREADY_REGISTERED": "There's already an account with that email. Sign in or reset your password.",
+      "EMAIL_NOT_DELIVERABLE": "That email doesn't exist: check it's spelled correctly.",
+      "SIGNUP_FIELDS_REQUIRED": "Fill in first name, last name, email and password.",
+      "USER_BIRTH_INVALID": "The date of birth isn't valid.",
+      "USER_UNDER_MIN_AGE": "You need to be of minimum age to use TrainFit."
+    }
   },
   "DIETS": {
     "DELETE_NOTE_HEADER": "Delete note",
@@ -979,12 +986,12 @@
   },
   "STEPS": {
     "NOT_COUNTED": "I haven't counted them",
-    "LESS_THAN_1000": "Less than 1000",
-    "BETWEEN_2000_6000": "Between 2000 and 6000",
-    "BETWEEN_7000_9000": "Between 7000 and 9000",
-    "BETWEEN_10000_15000": "Between 10000 and 15000",
-    "BETWEEN_16000_18000": "Between 16000 and 18000",
-    "MORE_THAN_19000": "More than 19000"
+    "UNDER_1500": "Under 1,500",
+    "FROM_1500_TO_6500": "1,500 to 6,500",
+    "FROM_6500_TO_9500": "6,500 to 9,500",
+    "FROM_9500_TO_15500": "9,500 to 15,500",
+    "FROM_15500_TO_18500": "15,500 to 18,500",
+    "OVER_18500": "Over 18,500"
   },
   "ACTIVITY_FACTOR": {
     "VERY_LIGHT": "Very light",
@@ -1002,7 +1009,7 @@
     "NONE": "None",
     "ONE_OR_TWO": "1 or 2 days",
     "THREE_OR_FOUR": "3 or 4 days",
-    "FIVE_OR_SIX": "5 or 6 days"
+    "FIVE_OR_MORE": "5 or more days"
   },
   "OBJETIVES": {
     "GAIN_WEIGHT": "Gain Weight",
@@ -1094,7 +1101,7 @@
     "WORKOUT_NAME_UPDATED": "Workout names updated",
     "START_WORKOUT": "Start workout",
     "START_WORKOUT_CONFIRM": "{{name}} will be shown in the summary and profile tabs as the workout in use",
-    "START": "START",
+    "START": "Start",
     "FIELD_NOT_EMPTY": "Field cannot be empty",
     "DATE_UPDATED": "Date updated",
     "DELETE_SET": "Delete set",
@@ -1415,7 +1422,14 @@
     "SELECT_MICROCYCLES": "Select the microcycles",
     "SELECT_MICROCYCLE_N": "Select microcycle {{n}}",
     "DELETE_COUNT": "Delete ({{count}})",
-    "EXERCISES_LABEL": "Exercises"
+    "EXERCISES_LABEL": "Exercises",
+    "A11Y_WORKOUT_MENU": "Workout options",
+    "A11Y_PASTE_EXERCISES": "Paste exercises",
+    "A11Y_START_WORKOUT": "Start workout",
+    "A11Y_ADD_EXERCISE": "Add exercise",
+    "A11Y_REMOVE_PINNED_NOTE": "Remove pinned note",
+    "A11Y_MOVE_TO_BLOCK": "Move to a block",
+    "A11Y_REMOVE_EXERCISE": "Remove exercise"
   },
   "RM_CALCULATOR": {
     "TITLE": "1RM Calculator",
@@ -1460,7 +1474,7 @@
     "DELETE_ACCOUNT": "Delete Account",
     "LOGOUT_HEADER": "Log Out",
     "LOGOUT_MSG": "Are you sure you want to log out?",
-    "CONFIRM": "CONFIRM",
+    "CONFIRM": "Confirm",
     "CANCEL_BTN": "CANCEL",
     "DELETE_HEADER": "Delete Account",
     "DELETE_MSG": "This action cannot be undone. Enter your password to confirm.",
@@ -1576,7 +1590,7 @@
     "VERIFIED_RECIPES": "verified recipes",
     "SHIELD_DISABLED": "An {{itemType}} created by you cannot be verified",
     "OWN_DISABLED": "You cannot select your own items while you have {{itemTypePlural}} active",
-    "CONFIRM": "CONFIRM",
+    "CONFIRM": "Confirm",
     "CHIP_ALL_PRODUCTS": "All",
     "CHIP_ALL_RECIPES": "All",
     "CHIP_ADDED_BY_ME_PRODUCTS": "Added by me",
@@ -1662,7 +1676,8 @@
     "OF_KCAL": "of {{kcal}} kcal",
     "TODAY_WEIGHT_INFO": "Today's weight",
     "PREV_WEEK_AVG_INFO": "Previous week average",
-    "CURR_WEEK_AVG_INFO": "Current week average"
+    "CURR_WEEK_AVG_INFO": "Current week average",
+    "MICROCYCLES_AVAILABLE_ONE": "1 microcycle available"
   },
   "EDITOR": {
     "TITLE": "Edit",
@@ -2717,7 +2732,8 @@
     "PHOTOS_SUBTITLE_OPTIONAL": "{{name}} asks for {{poses}} photos to see where you are starting from. You can send the questionnaire without them.",
     "VIDEO_SUBTITLE": "A video {{name}} asks for. Record it or choose one from your gallery.",
     "VIDEO_REQUIRED": "Required.",
-    "MEDIA_PRIVACY": "It is saved in your progress, and {{name}} will see it even if you hide that day later."
+    "MEDIA_PRIVACY": "It is saved in your progress, and {{name}} will see it even if you hide that day later.",
+    "VIDEO_OPTIONAL": "You can send the questionnaire without it."
   },
   "ONBOARDING": {
     "TAKES_FEW_MINUTES": "It'll take about 5 minutes",
@@ -2854,7 +2870,8 @@
     "END_SCOPE": "Stop {{scope}}",
     "UNLINKING": "Ending…",
     "UNLINKED": "You no longer work with {{name}} on {{scope}}",
-    "PAID_REST_CANCELLED": "You paid {{paid}} · rest cancelled"
+    "PAID_REST_CANCELLED": "You paid {{paid}} · rest cancelled",
+    "DUE_DATE": "Due: {{date}}"
   },
   "DAILY_WEIGHT": {
     "TITLE": "DAILY WEIGHT",
@@ -2895,7 +2912,8 @@
     "SENT_TO": "Check-in sent to {{name}}",
     "SUBMIT_ERROR": "The check-in could not be sent",
     "ANSWERED_READONLY": "Already sent. While it's open you can correct your answer.",
-    "EDIT_ANSWER": "Edit answer"
+    "EDIT_ANSWER": "Edit answer",
+    "ANSWERS_ONE": "1 answer"
   },
   "NUTRITION_PREFERENCES": {
     "TITLE": "My preferences",

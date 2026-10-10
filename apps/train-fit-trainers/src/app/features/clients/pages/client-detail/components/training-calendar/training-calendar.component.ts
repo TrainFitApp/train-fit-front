@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { localizeList } from 'src/app/core/i18n/localized-catalog';
+import { localizeList, uiLocale } from 'src/app/core/i18n/localized-catalog';
+import { dayRangeLabel } from '../../../../../../shared/utils/day-range-label.util';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
 interface ProjectedDay {
@@ -171,8 +172,7 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
 
   // Una sola fecha si inicio y fin coinciden (día suelto), no "X → X".
   public get rangeLabel(): string | null {
-    if (!this.rangeStart || !this.rangeEnd) return null;
-    return this.rangeStart === this.rangeEnd ? this.rangeStart : `${this.rangeStart} → ${this.rangeEnd}`;
+    return dayRangeLabel(this.rangeStart, this.rangeEnd, uiLocale());
   }
 
   public get monthLabel(): string {

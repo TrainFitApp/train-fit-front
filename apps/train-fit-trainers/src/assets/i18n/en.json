@@ -290,7 +290,7 @@
     "CLIENTE_EN_SOLO_LECTURA": "Read-only client.",
     "ELEGIR_CLIENTES_ACTIVOS": "Choose active clients",
     "SIN_DIETA_ASIGNADA": "No diet assigned",
-    "VER_INTAKE": "View intake",
+    "VER_INTAKE": "View questionnaire",
     "LO_QUE_HA_ESCRITO_EN": "What they wrote in their sessions, exercises, pain or diet.",
     "VER_NOTAS": "View notes",
     "NO_SE_PUDO_CARGAR_EL": "We couldn't load this client's training.",
@@ -581,7 +581,6 @@
     "SKIP_DAY_HEADER": "Mark {{date}} as a skipped day?",
     "QUESTIONNAIRE_REQUESTED_TO": "Questionnaire requested from {{name}}",
     "INVITE_MSG": "{{name}} will get an invitation so you can also handle their {{scope}}. Once they accept, it will show up here.",
-    "REVOKE_MSG": "Are you sure you want to stop handling {{name}}'s {{scope}}? This is immediate and can't be undone.",
     "NO_LONGER_CLIENT": "You no longer handle {{name}}",
     "PER_DAY": "/ day",
     "SECTIONS": {
@@ -626,7 +625,9 @@
       "TASK_INVALID_RANGE": "The “up to” value must be greater than the target.",
       "TASK_DUPLICATE": "That habit is already set: edit it to change the target.",
       "TASK_NOT_FOUND": "That habit no longer exists."
-    }
+    },
+    "REVOKE_MSG_TRAINING": "Are you sure you want to stop handling {{name}}'s training? This is immediate and can't be undone.",
+    "REVOKE_MSG_NUTRITION": "Are you sure you want to stop handling {{name}}'s nutrition? Their diet phase ends today. This is immediate and can't be undone."
   },
   "TRAINER_COMMON": {
     "CLIENTS": "Clients",
@@ -703,7 +704,8 @@
     "PL_SELECTED_ONE": "selected",
     "PL_SELECTED_MANY": "selected",
     "PL_CHARGE_ONE": "charge",
-    "PL_CHARGE_MANY": "charges"
+    "PL_CHARGE_MANY": "charges",
+    "EXERCISE_LOWER": "exercise"
   },
   "CLIENTS": {
     "APLICAR_PLANTILLA": "Apply template",
@@ -738,7 +740,7 @@
     "REVISALO_PARA_ABRIR_SU_FICHA": "Review it to open their profile. Until then they can change their answers.",
     "AUN_NO_LO_HA_ENVIADO": "They haven't sent it yet. You'll be able to open their profile once they send it and you review it.",
     "MARCAR_REVISADO_ABRIR_FICHA": "Mark as reviewed and open profile",
-    "NO_SE_PUDO_CARGAR_EL_2": "We couldn't load the intake.",
+    "NO_SE_PUDO_CARGAR_EL_2": "Couldn't load the intake questionnaire.",
     "PENDIENTE_DE_ACEPTAR": "Waiting to be accepted",
     "TODAVIA_NO_HAY_NADA_QUE": "Nothing to compare yet",
     "CUANDO_TENGAS_CLIENTES_ACTIVOS_VERAS": "When you have active clients you'll see their adherence, weight and check-ins side by side here.",
@@ -1058,9 +1060,9 @@
     "NO_SE_PUDIERON_CARGAR_LOS_2": "We couldn't load the check-ins of",
     "NO_TIENE_NINGUN_CHECK_IN": "has no scheduled check-in.",
     "DESDE_EL": "since",
-    "INTAKE_POR_REVISAR": "Intake to review",
-    "PENDIENTE_DE_RELLENAR_EL_INTAKE": "Intake not filled in yet",
-    "INTAKE_DE": "Intake of ",
+    "INTAKE_POR_REVISAR": "Questionnaire to review",
+    "PENDIENTE_DE_RELLENAR_EL_INTAKE": "Questionnaire not filled in yet",
+    "INTAKE_DE": "Intake questionnaire of ",
     "CANCELAR_LA_INVITACION_DE": "Cancel the invitation of ",
     "ABRIR_LA_FICHA_DE": "Open the profile of ",
     "POR_REVISAR_DE": " to review from ",
@@ -1470,7 +1472,8 @@
     "PESO_COLUMNA": "Weight ({{periodDays}} d)",
     "PESO_COLUMNA_DETALLE": "Weight change over the last {{periodDays}} days (first measurement vs. last)",
     "UNA_SOLA_MEDIDA_EN_DIAS": "{{weight}} kg · only one measurement in {{periodDays}} days: no change yet",
-    "VARIACION_DE_PESO_DETALLE": "{{from}} → {{to}} kg · {{count}} measurements"
+    "VARIACION_DE_PESO_DETALLE": "{{from}} → {{to}} kg · {{count}} measurements",
+    "ELIGE_RUTINA_PARA_PROGRAMAR": "Choose the routine you want to schedule above."
   },
   "CLIENT_SUMMARY": {
     "DIMENSIONS": {
@@ -1746,7 +1749,6 @@
     "NO_SE_PUDO_GUARDAR_VUELVE": "Couldn't save. Try again: it won't be applied twice.",
     "PARA_SE_SUMA_SU_CUOTA": "For {{clientName}}. It's added to their fee, it doesn't replace it.",
     "INDICA_EL_IMPORTE": "Enter the amount.",
-    "IMPORTE_NO_VALIDO_USA_COMO": "Invalid amount: use at most two decimals (e.g. 45.50).",
     "NO_PUEDE_QUEDAR_POR_DEBAJO": "It can't go below {{p0}} (what's already received and written off). Correct those records first.",
     "COBRO_ACTUALIZADO": "Charge updated",
     "COBRO_ANADIDO": "Charge added",
@@ -1776,7 +1778,6 @@
     "EMPIEZA_UN_CALENDARIO_NUEVO_LOS": "A new calendar starts; earlier charges are kept as they are.",
     "UNA_SOLA_CUOTA_PARA_ENGLOBA": "A single fee for {{clientName}}: it covers all their services.",
     "ENTRE": "Between {{min}} and {{max}} {{p2}}.",
-    "IMPORTE_NO_VALIDO_USA_COMO_2": "Invalid amount: use at most two decimals.",
     "ELIGE_LA_FECHA_DEL_VENCIMIENTO": "Choose the due date.",
     "NO_PUEDE_SER_ANTERIOR_HOY": "It can't be before today. An old debt is added as a one-off charge.",
     "NO_SE_PUDO_GUARDAR_LA": "Couldn't save the fee. Please try again.",
@@ -1786,7 +1787,6 @@
     "CUOTA_ACTUALIZADA": "Fee updated",
     "RECIBIDO_DE": "Received {{p0}} of {{p1}}",
     "INDICA_EL_IMPORTE_RECIBIDO": "Enter the amount received.",
-    "IMPORTE_NO_VALIDO_USA_COMO_3": "Invalid amount: use at most two decimals (e.g. 20.50).",
     "SUPERA_EL_SALDO_PENDIENTE": "It exceeds the outstanding balance ({{p0}}).",
     "INDICA_CUANDO_LO_RECIBISTE": "Enter when you received it.",
     "LA_FECHA_DE_RECEPCION_NO": "The date received can't be in the future.",
@@ -1910,7 +1910,15 @@
       "October",
       "November",
       "December"
-    ]
+    ],
+    "AMOUNT_ERRORS": {
+      "NOT_A_NUMBER": "Enter the amount in figures (e.g. 45.50).",
+      "NOT_POSITIVE": "The amount must be greater than 0.",
+      "TOO_HIGH": "The amount can't be over €1,000,000.",
+      "TOO_MANY_DECIMALS": "Use at most two decimals (e.g. 45.50)."
+    },
+    "ANULADO_IMPORTE": "cancelled {{amount}}",
+    "PENDIENTE_IMPORTE": "pending {{amount}}"
   },
   "MANAGEMENT": {
     "USERS": {
@@ -2156,7 +2164,8 @@
       "vitaminB6100g": "Vitamin B6",
       "vitaminB9100g": "Vitamin B9 (folate)",
       "vitaminB12100g": "Vitamin B12"
-    }
+    },
+    "DE_FABRICA": "By TrainFit"
   },
   "SUBSCRIPTION": {
     "NO_SE_PUDO_CARGAR_TU": "We couldn't load your subscription",
@@ -2598,7 +2607,8 @@
       "weekly": "Weekly",
       "biweekly": "Every 2 weeks",
       "monthly": "Monthly"
-    }
+    },
+    "CHECKINS_ONE": "1 check-in"
   },
   "SHARED_COMPONENTS": {
     "OBLIGATORIO": "Required",
@@ -3063,7 +3073,9 @@
     "OPCIONAL": "Optional",
     "OPCIONALES": "Optional",
     "OBLIGATORIA_ARIA": "Required: {{label}}",
-    "PREGUNTA_SIN_ANADIR": "The question you're writing can't be added: {{error}} Fix it or cancel it before sending."
+    "PREGUNTA_SIN_ANADIR": "The question you're writing can't be added: {{error}} Fix it or cancel it before sending.",
+    "FAIL_OVERLAP": "another professional already handles it",
+    "FAIL_ALREADY_PENDING": "you've already invited them and it's still pending"
   },
   "ACCOUNT": {
     "EDITAR_PERFIL": "Edit profile",
@@ -3079,7 +3091,6 @@
     "ACERCA_DE": "About",
     "VERSION": "Version",
     "POLITICA_DE_PRIVACIDAD": "Privacy policy",
-    "TERMINOS_CONDICIONES": "Terms and conditions",
     "SOBRE_TRAINFIT": "About TrainFit",
     "CERRAR_SESION": "Sign out",
     "GUARDAR_CAMBIOS": "Save changes",
@@ -3116,7 +3127,6 @@
     "TODAVIA_NO_TIENES_PLANTILLAS": "You don't have templates yet",
     "CREA_UNA_PLANTILLA_DE_CHECK": "Create a check-in template to ask your clients for regular tracking.",
     "CREAR_PLANTILLA": "Create template",
-    "CREAR_CHECK_IN": "Create check-in",
     "SIN_CAMPOS_ACTIVADOS": "No fields turned on",
     "TUS_PROPIAS_PREGUNTAS": "Your own questions",
     "LO_QUE_EL_CATALOGO_DE": "Whatever the catalogue above doesn't cover. These answers are saved and shown to you, but they don't feed charts or automated alerts — that's what the catalogue fields are for.",
@@ -3140,7 +3150,10 @@
     "BORRAR_PLANTILLA_2": "Delete template",
     "SEGURO_QUE_QUIERES_BORRAR_LOS": "Are you sure you want to delete \"{{name}}\"? Clients who already have it applied keep their current setup.",
     "PLANTILLA_BORRADA": "Template deleted",
-    "NO_SE_PUDO_BORRAR_LA": "Couldn't delete the template"
+    "NO_SE_PUDO_BORRAR_LA": "Couldn't delete the template",
+    "CAMPO_EN_TOTAL": "field in total",
+    "OBLIGATORIO": "required",
+    "OBLIGATORIOS": "required"
   },
   "EXERCISE_LIBRARY": {
     "MUSCULOS": "Muscles",
@@ -3227,7 +3240,8 @@
     "SEGURO_QUE_QUIERES_BORRAR_LOS": "Are you sure you want to delete \"{{name}}\"? Clients who already have it applied keep their current setup.",
     "PLANTILLA_BORRADA": "Template deleted",
     "NO_SE_PUDO_BORRAR_LA": "Couldn't delete the template",
-    "PAUSADA": "Paused"
+    "PAUSADA": "Paused",
+    "CAMPO": "field"
   },
   "TEMPLATES": {
     "TODO_LO_QUE_PREPARAS_PARA": "Everything you prepare to give a client: workouts, routines, diets and foods.",
@@ -3346,5 +3360,8 @@
     "ERROR_OPTIONS": "\"{{p0}}\" needs at least 2 options.",
     "ADD": "Add",
     "ERROR_MAX": "At most {{max}} custom questions."
+  },
+  "SIGN_UP": {
+    "TRAINER_CONDITIONS": "the terms of service for professionals"
   }
 }

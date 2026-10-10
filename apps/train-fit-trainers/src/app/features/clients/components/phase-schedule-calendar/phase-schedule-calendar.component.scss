@@ -18,7 +18,10 @@
   font-size: var(--tf-font-size-sm);
   font-weight: 600;
   color: var(--tf-text);
-  text-transform: capitalize;
+  // Solo la primera letra en mayúscula: `capitalize` ponía «Octubre De 2026».
+  &::first-letter {
+    text-transform: uppercase;
+  }
 }
 
 .phase-calendar__nav-btn {

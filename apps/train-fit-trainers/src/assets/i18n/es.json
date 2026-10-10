@@ -290,7 +290,7 @@
     "CLIENTE_EN_SOLO_LECTURA": "Cliente en solo lectura.",
     "ELEGIR_CLIENTES_ACTIVOS": "Elegir clientes activos",
     "SIN_DIETA_ASIGNADA": "Sin dieta asignada",
-    "VER_INTAKE": "Ver intake",
+    "VER_INTAKE": "Ver cuestionario",
     "LO_QUE_HA_ESCRITO_EN": "Lo que ha escrito en sus sesiones, ejercicios, dolor o dieta.",
     "VER_NOTAS": "Ver notas",
     "NO_SE_PUDO_CARGAR_EL": "No se pudo cargar el entrenamiento de este cliente.",
@@ -581,7 +581,6 @@
     "SKIP_DAY_HEADER": "¿Marcar {{date}} como día saltado?",
     "QUESTIONNAIRE_REQUESTED_TO": "Cuestionario solicitado a {{name}}",
     "INVITE_MSG": "{{name}} recibirá una invitación para que también lleves su {{scope}}. Cuando la acepte, aparecerá aquí.",
-    "REVOKE_MSG": "¿Seguro que quieres dejar de llevar el {{scope}} de {{name}}? Esta acción es inmediata y no se puede deshacer.",
     "NO_LONGER_CLIENT": "Ya no llevas a {{name}}",
     "PER_DAY": "/ día",
     "SECTIONS": {
@@ -626,7 +625,9 @@
       "TASK_INVALID_RANGE": "El «hasta» tiene que ser mayor que el objetivo.",
       "TASK_DUPLICATE": "Ese hábito ya está pautado: edítalo para cambiar el objetivo.",
       "TASK_NOT_FOUND": "Ese hábito ya no existe."
-    }
+    },
+    "REVOKE_MSG_TRAINING": "¿Seguro que quieres dejar de llevar el entrenamiento de {{name}}? Esta acción es inmediata y no se puede deshacer.",
+    "REVOKE_MSG_NUTRITION": "¿Seguro que quieres dejar de llevar la nutrición de {{name}}? Su fase de dieta se cierra hoy. Esta acción es inmediata y no se puede deshacer."
   },
   "TRAINER_COMMON": {
     "CLIENTS": "Clientes",
@@ -703,7 +704,8 @@
     "PL_SELECTED_ONE": "seleccionado",
     "PL_SELECTED_MANY": "seleccionados",
     "PL_CHARGE_ONE": "cobro",
-    "PL_CHARGE_MANY": "cobros"
+    "PL_CHARGE_MANY": "cobros",
+    "EXERCISE_LOWER": "ejercicio"
   },
   "CLIENTS": {
     "APLICAR_PLANTILLA": "Aplicar plantilla",
@@ -738,7 +740,7 @@
     "REVISALO_PARA_ABRIR_SU_FICHA": "Revísalo para abrir su ficha. Hasta entonces puede cambiar sus respuestas.",
     "AUN_NO_LO_HA_ENVIADO": "Aún no lo ha enviado. Podrás abrir su ficha cuando lo envíe y lo revises.",
     "MARCAR_REVISADO_ABRIR_FICHA": "Marcar revisado y abrir ficha",
-    "NO_SE_PUDO_CARGAR_EL_2": "No se pudo cargar el intake.",
+    "NO_SE_PUDO_CARGAR_EL_2": "No se pudo cargar el cuestionario de alta.",
     "PENDIENTE_DE_ACEPTAR": "Pendiente de aceptar",
     "TODAVIA_NO_HAY_NADA_QUE": "Todavía no hay nada que comparar",
     "CUANDO_TENGAS_CLIENTES_ACTIVOS_VERAS": "Cuando tengas clientes activos verás aquí su adherencia, su peso y sus check-ins uno al lado del otro.",
@@ -1058,9 +1060,9 @@
     "NO_SE_PUDIERON_CARGAR_LOS_2": "No se pudieron cargar los check-ins de",
     "NO_TIENE_NINGUN_CHECK_IN": "no tiene ningún check-in programado.",
     "DESDE_EL": "desde el",
-    "INTAKE_POR_REVISAR": "Intake por revisar",
-    "PENDIENTE_DE_RELLENAR_EL_INTAKE": "Pendiente de rellenar el intake",
-    "INTAKE_DE": "Intake de ",
+    "INTAKE_POR_REVISAR": "Cuestionario por revisar",
+    "PENDIENTE_DE_RELLENAR_EL_INTAKE": "Pendiente de rellenar el cuestionario",
+    "INTAKE_DE": "Cuestionario de alta de ",
     "CANCELAR_LA_INVITACION_DE": "Cancelar la invitación de ",
     "ABRIR_LA_FICHA_DE": "Abrir la ficha de ",
     "POR_REVISAR_DE": " por revisar de ",
@@ -1470,7 +1472,8 @@
     "PESO_COLUMNA": "Peso ({{periodDays}} d)",
     "PESO_COLUMNA_DETALLE": "Variación de peso en los últimos {{periodDays}} días (primera medida frente a la última)",
     "UNA_SOLA_MEDIDA_EN_DIAS": "{{weight}} kg · una sola medida en {{periodDays}} días: aún no hay variación",
-    "VARIACION_DE_PESO_DETALLE": "{{from}} → {{to}} kg · {{count}} medidas"
+    "VARIACION_DE_PESO_DETALLE": "{{from}} → {{to}} kg · {{count}} medidas",
+    "ELIGE_RUTINA_PARA_PROGRAMAR": "Elige arriba la rutina que quieres programar."
   },
   "CLIENT_SUMMARY": {
     "DIMENSIONS": {
@@ -1746,7 +1749,6 @@
     "NO_SE_PUDO_GUARDAR_VUELVE": "No se pudo guardar. Vuelve a intentarlo: no se aplicará dos veces.",
     "PARA_SE_SUMA_SU_CUOTA": "Para {{clientName}}. Se suma a su cuota, no la sustituye.",
     "INDICA_EL_IMPORTE": "Indica el importe.",
-    "IMPORTE_NO_VALIDO_USA_COMO": "Importe no válido: usa como mucho dos decimales (p. ej. 45,50).",
     "NO_PUEDE_QUEDAR_POR_DEBAJO": "No puede quedar por debajo de {{p0}} (lo ya recibido y anulado). Corrige antes esos registros.",
     "COBRO_ACTUALIZADO": "Cobro actualizado",
     "COBRO_ANADIDO": "Cobro añadido",
@@ -1776,7 +1778,6 @@
     "EMPIEZA_UN_CALENDARIO_NUEVO_LOS": "Empieza un calendario nuevo; los cobros anteriores se conservan tal cual.",
     "UNA_SOLA_CUOTA_PARA_ENGLOBA": "Una sola cuota para {{clientName}}: engloba todos sus servicios.",
     "ENTRE": "Entre {{min}} y {{max}} {{p2}}.",
-    "IMPORTE_NO_VALIDO_USA_COMO_2": "Importe no válido: usa como mucho dos decimales.",
     "ELIGE_LA_FECHA_DEL_VENCIMIENTO": "Elige la fecha del vencimiento.",
     "NO_PUEDE_SER_ANTERIOR_HOY": "No puede ser anterior a hoy. Una deuda antigua se añade como cobro puntual.",
     "NO_SE_PUDO_GUARDAR_LA": "No se pudo guardar la cuota. Vuelve a intentarlo.",
@@ -1786,7 +1787,6 @@
     "CUOTA_ACTUALIZADA": "Cuota actualizada",
     "RECIBIDO_DE": "Recibido {{p0}} de {{p1}}",
     "INDICA_EL_IMPORTE_RECIBIDO": "Indica el importe recibido.",
-    "IMPORTE_NO_VALIDO_USA_COMO_3": "Importe no válido: usa como mucho dos decimales (p. ej. 20,50).",
     "SUPERA_EL_SALDO_PENDIENTE": "Supera el saldo pendiente ({{p0}}).",
     "INDICA_CUANDO_LO_RECIBISTE": "Indica cuándo lo recibiste.",
     "LA_FECHA_DE_RECEPCION_NO": "La fecha de recepción no puede ser futura.",
@@ -1910,7 +1910,15 @@
       "octubre",
       "noviembre",
       "diciembre"
-    ]
+    ],
+    "AMOUNT_ERRORS": {
+      "NOT_A_NUMBER": "Escribe el importe con cifras (p. ej. 45,50).",
+      "NOT_POSITIVE": "El importe tiene que ser mayor que 0.",
+      "TOO_HIGH": "El importe no puede pasar de 1.000.000 €.",
+      "TOO_MANY_DECIMALS": "Usa como mucho dos decimales (p. ej. 45,50)."
+    },
+    "ANULADO_IMPORTE": "anulado {{amount}}",
+    "PENDIENTE_IMPORTE": "pendiente {{amount}}"
   },
   "MANAGEMENT": {
     "USERS": {
@@ -2156,7 +2164,8 @@
       "vitaminB6100g": "Vitamina B6",
       "vitaminB9100g": "Vitamina B9 (fólico)",
       "vitaminB12100g": "Vitamina B12"
-    }
+    },
+    "DE_FABRICA": "De TrainFit"
   },
   "SUBSCRIPTION": {
     "NO_SE_PUDO_CARGAR_TU": "No se pudo cargar tu suscripción",
@@ -2598,7 +2607,8 @@
       "weekly": "Semanal",
       "biweekly": "Quincenal",
       "monthly": "Mensual"
-    }
+    },
+    "CHECKINS_ONE": "1 check-in"
   },
   "SHARED_COMPONENTS": {
     "OBLIGATORIO": "Obligatorio",
@@ -3063,7 +3073,9 @@
     "OPCIONAL": "Opcional",
     "OPCIONALES": "Opcionales",
     "OBLIGATORIA_ARIA": "Obligatorio: {{label}}",
-    "PREGUNTA_SIN_ANADIR": "La pregunta que estás escribiendo no se puede añadir: {{error}} Corrígela o cancélala antes de enviar."
+    "PREGUNTA_SIN_ANADIR": "La pregunta que estás escribiendo no se puede añadir: {{error}} Corrígela o cancélala antes de enviar.",
+    "FAIL_OVERLAP": "ya tiene otro profesional que se lo lleva",
+    "FAIL_ALREADY_PENDING": "ya le has invitado y la invitación sigue pendiente"
   },
   "ACCOUNT": {
     "EDITAR_PERFIL": "Editar perfil",
@@ -3079,7 +3091,6 @@
     "ACERCA_DE": "Acerca de",
     "VERSION": "Versión",
     "POLITICA_DE_PRIVACIDAD": "Política de privacidad",
-    "TERMINOS_CONDICIONES": "Términos y condiciones",
     "SOBRE_TRAINFIT": "Sobre TrainFit",
     "CERRAR_SESION": "Cerrar sesión",
     "GUARDAR_CAMBIOS": "Guardar cambios",
@@ -3116,7 +3127,6 @@
     "TODAVIA_NO_TIENES_PLANTILLAS": "Todavía no tienes plantillas",
     "CREA_UNA_PLANTILLA_DE_CHECK": "Crea una plantilla de check-in para pedir seguimiento periódico a tus clientes.",
     "CREAR_PLANTILLA": "Crear plantilla",
-    "CREAR_CHECK_IN": "Crear check-in",
     "SIN_CAMPOS_ACTIVADOS": "Sin campos activados",
     "TUS_PROPIAS_PREGUNTAS": "Tus propias preguntas",
     "LO_QUE_EL_CATALOGO_DE": "Lo que el catálogo de arriba no cubra. Estas respuestas se guardan y se te muestran, pero no alimentan gráficas ni avisos automatizados — para eso están los campos del catálogo.",
@@ -3140,7 +3150,10 @@
     "BORRAR_PLANTILLA_2": "Borrar plantilla",
     "SEGURO_QUE_QUIERES_BORRAR_LOS": "¿Seguro que quieres borrar \"{{name}}\"? Los clientes que ya la tengan aplicada conservan su configuración actual.",
     "PLANTILLA_BORRADA": "Plantilla borrada",
-    "NO_SE_PUDO_BORRAR_LA": "No se pudo borrar la plantilla"
+    "NO_SE_PUDO_BORRAR_LA": "No se pudo borrar la plantilla",
+    "CAMPO_EN_TOTAL": "campo en total",
+    "OBLIGATORIO": "obligatorio",
+    "OBLIGATORIOS": "obligatorios"
   },
   "EXERCISE_LIBRARY": {
     "MUSCULOS": "Músculos",
@@ -3227,7 +3240,8 @@
     "SEGURO_QUE_QUIERES_BORRAR_LOS": "¿Seguro que quieres borrar \"{{name}}\"? Los clientes que ya la tengan aplicada conservan su configuración actual.",
     "PLANTILLA_BORRADA": "Plantilla borrada",
     "NO_SE_PUDO_BORRAR_LA": "No se pudo borrar la plantilla",
-    "PAUSADA": "Pausada"
+    "PAUSADA": "Pausada",
+    "CAMPO": "campo"
   },
   "TEMPLATES": {
     "TODO_LO_QUE_PREPARAS_PARA": "Todo lo que preparas para dárselo a un cliente: entrenamientos, rutinas, dietas y alimentos.",
@@ -3346,5 +3360,8 @@
     "ERROR_OPTIONS": "\"{{p0}}\" necesita al menos 2 opciones.",
     "ADD": "Añadir",
     "ERROR_MAX": "Como mucho {{max}} preguntas propias."
+  },
+  "SIGN_UP": {
+    "TRAINER_CONDITIONS": "las condiciones del servicio para profesionales"
   }
 }

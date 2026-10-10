@@ -4,6 +4,7 @@ import { ModalController } from '@ionic/angular';
 import { TrainerClientSummary } from '../../../clients/models/trainer-client-summary.model';
 import { TrainerClientsApiService } from '../../../clients/services/trainer-clients-api.service';
 import { CheckinTemplateDefinition } from '../../models/checkin-template.model';
+import { personInitials } from '../../../../shared/utils/initials.util';
 
 // Extraído de checkin-templates.page.ts / templates.page.ts (duplicado en
 // ambas) a un modal real (ion-modal). El panel "Aplicar" vivía como un
@@ -81,10 +82,7 @@ export class ApplyCheckinTemplateModalComponent implements OnInit {
 
   // Mismo patrón de avatar (iniciales + tono por hash del id) que clients.page.ts.
   public getInitials(client: TrainerClientSummary): string {
-    if (!client.user) return '?';
-    const name = client.user.name?.charAt(0) || '';
-    const lastname = client.user.lastname?.charAt(0) || '';
-    return (name + lastname).toUpperCase() || '?';
+    return personInitials(client.user?.name, client.user?.lastname);
   }
 
   private static readonly AVATAR_HUES = [18, 45, 200, 260, 320, 160];

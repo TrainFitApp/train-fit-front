@@ -18,6 +18,7 @@ import {
 } from 'src/app/core/utils/shopping-list.util';
 import { localizeProp } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
+import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
 
 type ViewState = 'idle' | 'loading' | 'error' | 'loaded';
 
@@ -208,7 +209,7 @@ export class ShoppingListPanelComponent implements OnChanges {
   }
 
   public quantityLabel(item: ShoppingListItem): string {
-    return shoppingQuantityLabel(item.quantity);
+    return shoppingQuantityLabel(item.quantity, (value) => formatLocalNumber(value, { maxDecimals: 1 }));
   }
 
   public trackByName(_index: number, item: ShoppingListItem): string {

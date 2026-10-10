@@ -133,10 +133,10 @@
             </ng-container>
             <ng-template #noDietAssigned><span>{{ 'CLIENT_DETAIL.SIN_DIETA_ASIGNADA' | translate }}</span></ng-template>
             <span *ngIf="nutritionalGoal?.goal as goal" [title]="'CLIENT_DETAIL.OBJETIVO_NUTRICIONAL' | translate">
-              · {{ 'CLIENT_DETAIL.GOAL' | translate }} {{ goal.kcalTotal | number: '1.0-0' }} kcal (P
-              {{ goal.proteinsGTotal | number: '1.0-0' }} · C
-              {{ goal.carbohydratesGTotal | number: '1.0-0' }} · {{ 'CLIENT_DETAIL.FAT_INITIAL' | translate }}
-              {{ goal.fatGTotal | number: '1.0-0' }} g)
+              · {{ 'CLIENT_DETAIL.GOAL' | translate }} {{ goal.kcalTotal | localNumber: '1.0-0' }} kcal (P
+              {{ goal.proteinsGTotal | localNumber: '1.0-0' }} · C
+              {{ goal.carbohydratesGTotal | localNumber: '1.0-0' }} · {{ 'CLIENT_DETAIL.FAT_INITIAL' | translate }}
+              {{ goal.fatGTotal | localNumber: '1.0-0' }} g)
             </span>
           </div>
         </div>
@@ -1168,7 +1168,7 @@
                        en el naranja de kcal del diario del cliente. -->
                       <p class="goal-card__kcal">
                         <span class="goal-card__kcal-value"
-                          >{{ goal.kcalTotal | number: '1.0-0' }}</span
+                          >{{ goal.kcalTotal | localNumber: '1.0-0' }}</span
                         >
                         <span class="goal-card__kcal-unit">{{ 'CLIENT_DETAIL.KCAL_DIA' | translate }}</span>
                       </p>
@@ -1208,12 +1208,12 @@
                             ><i class="goal-macro__dot"></i>{{ 'TRAINER_COMMON.PROTEIN' | translate }}</span
                           >
                           <span class="goal-macro__value"
-                            >{{ goal.proteinsGTotal | number: '1.0-0' }}<em
+                            >{{ goal.proteinsGTotal | localNumber: '1.0-0' }}<em
                               >g</em
                             ></span
                           >
                           <span class="goal-macro__share"
-                            >{{ goalMacroSplit(goal).protein | number: '1.0-0'
+                            >{{ goalMacroSplit(goal).protein | localNumber: '1.0-0'
                             }}%</span
                           >
                         </div>
@@ -1222,12 +1222,12 @@
                             ><i class="goal-macro__dot"></i>{{ 'TRAINER_COMMON.CARBS' | translate }}</span
                           >
                           <span class="goal-macro__value"
-                            >{{ goal.carbohydratesGTotal | number: '1.0-0' }}<em
+                            >{{ goal.carbohydratesGTotal | localNumber: '1.0-0' }}<em
                               >g</em
                             ></span
                           >
                           <span class="goal-macro__share"
-                            >{{ goalMacroSplit(goal).carbs | number: '1.0-0'
+                            >{{ goalMacroSplit(goal).carbs | localNumber: '1.0-0'
                             }}%</span
                           >
                         </div>
@@ -1236,12 +1236,12 @@
                             ><i class="goal-macro__dot"></i>{{ 'TRAINER_COMMON.FAT' | translate }}</span
                           >
                           <span class="goal-macro__value"
-                            >{{ goal.fatGTotal | number: '1.0-0' }}<em
+                            >{{ goal.fatGTotal | localNumber: '1.0-0' }}<em
                               >g</em
                             ></span
                           >
                           <span class="goal-macro__share"
-                            >{{ goalMacroSplit(goal).fat | number: '1.0-0'
+                            >{{ goalMacroSplit(goal).fat | localNumber: '1.0-0'
                             }}%</span
                           >
                         </div>
@@ -2264,7 +2264,7 @@
               </span>
               <span
                 ><ion-icon name="barbell-outline"></ion-icon> {{
-                workout.exercises?.length || 0 }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span
+                workout.exercises?.length || 0 }} {{ (workout.exercises?.length === 1 ? 'TRAINER_COMMON.EXERCISE_LOWER' : 'TRAINER_COMMON.EXERCISES_LOWER') | translate }}</span
               >
               <!-- F18 -->
               <span class="pulse-badge" *ngIf="workout.readinessPre"
@@ -2712,7 +2712,7 @@
         </span>
         <span
           ><ion-icon name="barbell-outline"></ion-icon> {{
-          workout.exercises?.length || 0 }} {{ 'TRAINER_COMMON.EXERCISES_LOWER' | translate }}</span
+          workout.exercises?.length || 0 }} {{ (workout.exercises?.length === 1 ? 'TRAINER_COMMON.EXERCISE_LOWER' : 'TRAINER_COMMON.EXERCISES_LOWER') | translate }}</span
         >
         <!-- F18 -->
         <span class="pulse-badge" *ngIf="workout.readinessPre"

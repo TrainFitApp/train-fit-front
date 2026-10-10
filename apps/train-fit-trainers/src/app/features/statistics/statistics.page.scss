@@ -220,7 +220,10 @@ ion-card {
 .month-label {
   font-size: 14px;
   font-weight: 700;
-  text-transform: capitalize;
+  // Solo la primera letra en mayúscula: `capitalize` ponía «Octubre De 2026».
+  &::first-letter {
+    text-transform: uppercase;
+  }
   color: var(--text-primary);
   flex: 1;
   text-align: center;

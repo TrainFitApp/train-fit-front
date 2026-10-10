@@ -84,7 +84,7 @@
           </button>
         </div>
         <p class="next-week-kcal__hint">
-          {{ 'DIET_TEMPLATES.PAUTADO_AHORA' | translate }}: {{ nextWeekBaseKcal | number: '1.0-0' }} {{ 'DIET_TEMPLATES.KCAL_DE_MEDIA_DIARIA' | translate }}
+          {{ 'DIET_TEMPLATES.PAUTADO_AHORA' | translate }}: {{ nextWeekBaseKcal | localNumber: '1.0-0' }} {{ 'DIET_TEMPLATES.KCAL_DE_MEDIA_DIARIA' | translate }}
         </p>
       </div>
 
@@ -119,10 +119,10 @@
           {{ 'DIET_TEMPLATES.RECALCULAR' | translate }}
         </button>
         <span class="client-context__target-values" *ngIf="kind !== 'new'">
-          <span class="macro-tag macro-tag--kcal"><strong>{{ target.kcal | number: '1.0-0' }}</strong> kcal</span>
-          <span class="macro-tag macro-tag--protein"><strong>{{ target.protein | number: '1.0-0' }}</strong> P</span>
-          <span class="macro-tag macro-tag--carbs"><strong>{{ target.carbs | number: '1.0-0' }}</strong> C</span>
-          <span class="macro-tag macro-tag--fat"><strong>{{ target.fat | number: '1.0-0' }}</strong> G</span>
+          <span class="macro-tag macro-tag--kcal"><strong>{{ target.kcal | localNumber: '1.0-0' }}</strong> kcal</span>
+          <span class="macro-tag macro-tag--protein"><strong>{{ target.protein | localNumber: '1.0-0' }}</strong> P</span>
+          <span class="macro-tag macro-tag--carbs"><strong>{{ target.carbs | localNumber: '1.0-0' }}</strong> C</span>
+          <span class="macro-tag macro-tag--fat"><strong>{{ target.fat | localNumber: '1.0-0' }}</strong> G</span>
         </span>
         <!-- Cada macro con el color con el que se lee en el resto de la app
              (kcal naranja, P azul, C verde, G amarillo): el color hace de
@@ -348,10 +348,10 @@
               </ng-container>
 
               <span class="cell-macros" *ngIf="alternativeTotals(alt) as t">
-                <span class="macro-tag macro-tag--kcal">{{ t.kcal | number: '1.0-0' }} kcal</span>
-                <span class="macro-tag macro-tag--protein">P {{ t.protein | number: '1.0-0' }}g</span>
-                <span class="macro-tag macro-tag--carbs">C {{ t.carbs | number: '1.0-0' }}g</span>
-                <span class="macro-tag macro-tag--fat">G {{ t.fat | number: '1.0-0' }}g</span>
+                <span class="macro-tag macro-tag--kcal">{{ t.kcal | localNumber: '1.0-0' }} kcal</span>
+                <span class="macro-tag macro-tag--protein">P {{ t.protein | localNumber: '1.0-0' }}g</span>
+                <span class="macro-tag macro-tag--carbs">C {{ t.carbs | localNumber: '1.0-0' }}g</span>
+                <span class="macro-tag macro-tag--fat">G {{ t.fat | localNumber: '1.0-0' }}g</span>
               </span>
             </div>
             <div class="board-cell-actions" *ngIf="(!copyMode && mealHasFood(row.meals[s])) || (copyingMeal && !isClipboardSource(d, s))">
@@ -399,7 +399,7 @@
           *ngFor="let row of activeRows; trackBy: trackByIndex"
         >
           <ng-container *ngIf="hasAnyItems(row); else emptyTotals">
-            <span class="totals-kcal">{{ dayTotals(row).kcal | number: '1.0-0' }}<small>kcal</small></span>
+            <span class="totals-kcal">{{ dayTotals(row).kcal | localNumber: '1.0-0' }}<small>kcal</small></span>
             <div class="totals-macro-bar">
               <span
                 class="totals-macro-segment totals-macro-segment--protein"
@@ -415,9 +415,9 @@
               ></span>
             </div>
             <div class="totals-macro-legend">
-              <span class="macro-tag macro-tag--protein">P {{ dayTotals(row).protein | number: '1.0-0' }}g</span>
-              <span class="macro-tag macro-tag--carbs">C {{ dayTotals(row).carbs | number: '1.0-0' }}g</span>
-              <span class="macro-tag macro-tag--fat">G {{ dayTotals(row).fat | number: '1.0-0' }}g</span>
+              <span class="macro-tag macro-tag--protein">P {{ dayTotals(row).protein | localNumber: '1.0-0' }}g</span>
+              <span class="macro-tag macro-tag--carbs">C {{ dayTotals(row).carbs | localNumber: '1.0-0' }}g</span>
+              <span class="macro-tag macro-tag--fat">G {{ dayTotals(row).fat | localNumber: '1.0-0' }}g</span>
             </div>
             <!-- Contexto de cliente — desvío de ESTE día respecto al objetivo
                  de arriba. Solo aparece cuando hay un cliente detrás. -->
@@ -444,7 +444,7 @@
                 class="micro-tag"
                 *ngFor="let micro of dayMicroRows(row); trackBy: trackByLabel"
               >
-                {{ micro.label }}: {{ micro.value | number: '1.0-1' }} {{ micro.unit }}
+                {{ micro.label }}: {{ micro.value | localNumber: '1.0-1' }} {{ micro.unit }}
               </span>
             </div>
           </ng-container>
@@ -510,10 +510,10 @@
             </span>
           </ng-container>
           <span class="cell-macros" *ngIf="alternativeTotals(alt) as t">
-            <span class="macro-tag macro-tag--kcal">{{ t.kcal | number: '1.0-0' }} kcal</span>
-            <span class="macro-tag macro-tag--protein">P {{ t.protein | number: '1.0-0' }}g</span>
-            <span class="macro-tag macro-tag--carbs">C {{ t.carbs | number: '1.0-0' }}g</span>
-            <span class="macro-tag macro-tag--fat">G {{ t.fat | number: '1.0-0' }}g</span>
+            <span class="macro-tag macro-tag--kcal">{{ t.kcal | localNumber: '1.0-0' }} kcal</span>
+            <span class="macro-tag macro-tag--protein">P {{ t.protein | localNumber: '1.0-0' }}g</span>
+            <span class="macro-tag macro-tag--carbs">C {{ t.carbs | localNumber: '1.0-0' }}g</span>
+            <span class="macro-tag macro-tag--fat">G {{ t.fat | localNumber: '1.0-0' }}g</span>
           </span>
         </div>
       </ng-container>
@@ -524,7 +524,7 @@
           <span class="clipboard-meal__slot">{{ meal.slot | translateDb }}</span>
           <span class="clipboard-meal__summary">{{ mealSummary(meal) }}</span>
           <span class="clipboard-meal__kcal" *ngIf="alternativeTotals(meal.alternatives[0]) as t">
-            {{ t.kcal | number: '1.0-0' }} kcal
+            {{ t.kcal | localNumber: '1.0-0' }} kcal
           </span>
         </div>
       </ng-container>

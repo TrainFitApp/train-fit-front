@@ -30,12 +30,12 @@
 
       <ion-card-content>
         <div class="calendar-header">
-          <ion-button fill="clear" (click)="changeMonth(-1)">
-            <ion-icon name="chevron-back-outline"></ion-icon>
+          <ion-button fill="clear" (click)="changeMonth(-1)" [attr.aria-label]="'CLIENTS.MES_ANTERIOR' | translate">
+            <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
           </ion-button>
           <div class="month-label">{{ monthYearString }}</div>
-          <ion-button fill="clear" (click)="changeMonth(1)">
-            <ion-icon name="chevron-forward-outline"></ion-icon>
+          <ion-button fill="clear" (click)="changeMonth(1)" [attr.aria-label]="'CLIENTS.MES_SIGUIENTE' | translate">
+            <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
           </ion-button>
         </div>
 
@@ -107,7 +107,7 @@
               (ionChange)="onWorkoutChange($event)"
             >
               <ion-select-option *ngFor="let w of workouts" [value]="w.name">
-                {{ w.name | translateDb }} ({{ w.exercises.length }} {{ 'TABLES.EXERCISE_PLURAL' | translate }})
+                {{ w.name | translateDb }} ({{ w.exercises.length }} {{ (w.exercises.length === 1 ? 'TABLES.EXERCISE_SINGULAR' : 'TABLES.EXERCISE_PLURAL') | translate }})
               </ion-select-option>
             </ion-select>
             <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>

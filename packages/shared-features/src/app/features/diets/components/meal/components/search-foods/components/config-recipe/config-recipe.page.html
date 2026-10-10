@@ -205,19 +205,19 @@
             <div class="per100-panel">
               <div class="per100-grid">
                 <div class="per100-item calories">
-                  <span class="per100-value">{{ per100Kcal | number:'1.0-0' }}</span>
+                  <span class="per100-value">{{ per100Kcal | localNumber:'1.0-0' }}</span>
                   <span class="per100-label">kcal</span>
                 </div>
                 <div class="per100-item">
-                  <span class="per100-value">{{ per100Protein | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-value">{{ per100Protein | localNumber:'1.0-1' }}<small>g</small></span>
                   <span class="per100-label protein">{{ 'CONFIG_RECIPE.MACRO_PROTEIN' | translate }}</span>
                 </div>
                 <div class="per100-item">
-                  <span class="per100-value">{{ per100Carbs | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-value">{{ per100Carbs | localNumber:'1.0-1' }}<small>g</small></span>
                   <span class="per100-label carbs">{{ 'CONFIG_RECIPE.MACRO_CARBS' | translate }}</span>
                 </div>
                 <div class="per100-item">
-                  <span class="per100-value">{{ per100Fat | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-value">{{ per100Fat | localNumber:'1.0-1' }}<small>g</small></span>
                   <span class="per100-label fat">{{ 'CONFIG_RECIPE.MACRO_FAT' | translate }}</span>
                 </div>
               </div>
@@ -272,20 +272,20 @@
             <ion-card-content>
               <div class="macro-summary-flex">
                 <div class="summary-item calories">
-                  <span class="summary-value">{{ footerKcal | number:'1.0-0' }}</span>
+                  <span class="summary-value">{{ footerKcal | localNumber:'1.0-0' }}</span>
                   <span class="summary-label">kcal</span>
                 </div>
                 <div class="summary-divider"></div>
                 <div class="summary-item">
-                  <span class="summary-value">{{ footerProtein | number:'1.0-1' }}<small>g</small></span>
+                  <span class="summary-value">{{ footerProtein | localNumber:'1.0-1' }}<small>g</small></span>
                   <span class="summary-label protein">{{ 'CONFIG_RECIPE.MACRO_PROTEIN' | translate }}</span>
                 </div>
                 <div class="summary-item">
-                  <span class="summary-value">{{ footerCarbs | number:'1.0-1' }}<small>g</small></span>
+                  <span class="summary-value">{{ footerCarbs | localNumber:'1.0-1' }}<small>g</small></span>
                   <span class="summary-label carbs">{{ 'CONFIG_RECIPE.MACRO_CARBS' | translate }}</span>
                 </div>
                 <div class="summary-item">
-                  <span class="summary-value">{{ footerFat | number:'1.0-1' }}<small>g</small></span>
+                  <span class="summary-value">{{ footerFat | localNumber:'1.0-1' }}<small>g</small></span>
                   <span class="summary-label fat">{{ 'CONFIG_RECIPE.MACRO_FAT' | translate }}</span>
                 </div>
               </div>
@@ -308,19 +308,19 @@
             <div class="per100-panel" *ngIf="weightExplainerExpanded">
               <div class="per100-grid">
                 <div class="per100-item calories">
-                  <span class="per100-value">{{ per100Kcal | number:'1.0-0' }}</span>
+                  <span class="per100-value">{{ per100Kcal | localNumber:'1.0-0' }}</span>
                   <span class="per100-label">kcal</span>
                 </div>
                 <div class="per100-item">
-                  <span class="per100-value">{{ per100Protein | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-value">{{ per100Protein | localNumber:'1.0-1' }}<small>g</small></span>
                   <span class="per100-label protein">{{ 'CONFIG_RECIPE.MACRO_PROTEIN' | translate }}</span>
                 </div>
                 <div class="per100-item">
-                  <span class="per100-value">{{ per100Carbs | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-value">{{ per100Carbs | localNumber:'1.0-1' }}<small>g</small></span>
                   <span class="per100-label carbs">{{ 'CONFIG_RECIPE.MACRO_CARBS' | translate }}</span>
                 </div>
                 <div class="per100-item">
-                  <span class="per100-value">{{ per100Fat | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-value">{{ per100Fat | localNumber:'1.0-1' }}<small>g</small></span>
                   <span class="per100-label fat">{{ 'CONFIG_RECIPE.MACRO_FAT' | translate }}</span>
                 </div>
               </div>
@@ -355,7 +355,7 @@
                 <div class="ingredient-top-row">
                   <div class="ingredient-header">
                     <span class="ingredient-name">{{ getIngredientName(ingredient) }}</span>
-                    <span class="ingredient-qty-inline">({{ ingredient.quantity | number:"1.0-1" }}g)</span>
+                    <span class="ingredient-qty-inline">({{ ingredient.quantity | localNumber:"1.0-1" }}g)</span>
                     <span class="ingredient-count" *ngIf="getIngredientStatus(ingredient)">
                       {{ getIngredientStatus(ingredient) }}
                     </span>
@@ -372,10 +372,10 @@
                 </div>
 
                 <div class="ingredient-macros">
-                  <span class="macro kcal">{{ getIngredientMacros(ingredient).kcal | number:'1.0-0' }}</span>
-                  <span class="macro protein">{{ getIngredientMacros(ingredient).protein | number:'1.0-1' }}g</span>
-                  <span class="macro carbs">{{ getIngredientMacros(ingredient).carbs | number:'1.0-1' }}g</span>
-                  <span class="macro fat">{{ getIngredientMacros(ingredient).fat | number:'1.0-1' }}g</span>
+                  <span class="macro kcal">{{ getIngredientMacros(ingredient).kcal | localNumber:'1.0-0' }}</span>
+                  <span class="macro protein">{{ getIngredientMacros(ingredient).protein | localNumber:'1.0-1' }}g</span>
+                  <span class="macro carbs">{{ getIngredientMacros(ingredient).carbs | localNumber:'1.0-1' }}g</span>
+                  <span class="macro fat">{{ getIngredientMacros(ingredient).fat | localNumber:'1.0-1' }}g</span>
                 </div>
               </div>
 
@@ -407,13 +407,13 @@
                 <div class="ingredient-main">
                   <div class="ingredient-header">
                     <span class="ingredient-name">{{ getIngredientName(ingredient) }}</span>
-                    <span class="ingredient-qty-inline">({{ ingredient.quantity | number:"1.0-1" }}g)</span>
+                    <span class="ingredient-qty-inline">({{ ingredient.quantity | localNumber:"1.0-1" }}g)</span>
                   </div>
                   <div class="ingredient-macros">
-                    <span class="macro kcal">{{ getIngredientMacros(ingredient).kcal | number:'1.0-0' }}</span>
-                    <span class="macro protein">{{ getIngredientMacros(ingredient).protein | number:'1.0-1' }}g</span>
-                    <span class="macro carbs">{{ getIngredientMacros(ingredient).carbs | number:'1.0-1' }}g</span>
-                    <span class="macro fat">{{ getIngredientMacros(ingredient).fat | number:'1.0-1' }}g</span>
+                    <span class="macro kcal">{{ getIngredientMacros(ingredient).kcal | localNumber:'1.0-0' }}</span>
+                    <span class="macro protein">{{ getIngredientMacros(ingredient).protein | localNumber:'1.0-1' }}g</span>
+                    <span class="macro carbs">{{ getIngredientMacros(ingredient).carbs | localNumber:'1.0-1' }}g</span>
+                    <span class="macro fat">{{ getIngredientMacros(ingredient).fat | localNumber:'1.0-1' }}g</span>
                   </div>
 
                   <button

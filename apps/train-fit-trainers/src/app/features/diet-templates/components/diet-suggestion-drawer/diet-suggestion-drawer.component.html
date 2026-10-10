@@ -51,7 +51,7 @@
             (click)="selectTargetMode('calculated')"
           >
             <span class="target-toggle__label">{{ 'DIET_TEMPLATES.REFERENCIA_CALCULADA' | translate }}</span>
-            <span class="target-toggle__kcal">{{ calculated?.kcal | number: '1.0-0' }} kcal</span>
+            <span class="target-toggle__kcal">{{ calculated?.kcal | localNumber: '1.0-0' }} kcal</span>
           </button>
           <button
             type="button"
@@ -62,7 +62,7 @@
             (click)="selectTargetMode('goal')"
           >
             <span class="target-toggle__label">{{ 'DIET_TEMPLATES.OBJETIVO_ACTUAL' | translate }}</span>
-            <span class="target-toggle__kcal" *ngIf="currentGoal as g; else noGoal">{{ g.kcal | number: '1.0-0' }} kcal</span>
+            <span class="target-toggle__kcal" *ngIf="currentGoal as g; else noGoal">{{ g.kcal | localNumber: '1.0-0' }} kcal</span>
             <ng-template #noGoal><span class="target-toggle__empty">{{ 'DIET_TEMPLATES.SIN_DEFINIR' | translate }}</span></ng-template>
           </button>
         </div>
@@ -86,8 +86,8 @@
         </label>
       </div>
       <p class="target-source" *ngIf="targetMode === 'calculated' && weightSource as w">
-        {{ 'TRAINER_COMMON.WEIGHT' | translate }} {{ w.weightKg | number: '1.0-1' }} kg —
-        {{ ('DIET_TEMPLATES.DE_LA_ANTROPOMETRIA_DEL' | translate) + w.date }}
+        {{ 'TRAINER_COMMON.WEIGHT' | translate }} {{ w.weightKg | localNumber: '1.0-1' }} kg —
+        {{ ('DIET_TEMPLATES.DE_LA_ANTROPOMETRIA_DEL' | translate) + dayLabel(w.date) }}
       </p>
       <p class="target-source" *ngIf="targetMode === 'goal' && currentGoal as g">
         {{ 'TRAINER_MISC.OBJETIVO_QUE' | translate }} {{ clientName }} {{ 'TRAINER_MISC.TIENE_AHORA' | translate }}, {{ (g.source === 'manual' ? 'TRAINER_MISC.SET_MANUALLY' : 'TRAINER_MISC.CALCULATED') | translate

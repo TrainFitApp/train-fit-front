@@ -9,6 +9,7 @@ import { TrainerPaymentsApiService } from './services/trainer-payments-api.servi
 import { PaymentsMonthPoint, PaymentsSummary } from './models/payments-summary.model';
 import {
   PaymentNoticePayload,
+  eurosCompact,
   formatCents,
   trainerPaymentNoticeRoute,
   trainerPaymentNoticeTitle,
@@ -73,7 +74,6 @@ const TASK_TITLE_BY_ALERT: Record<CoachAlertType, string> = {
 };
 localizeRecord(TASK_TITLE_BY_ALERT, 'DASHBOARD.TASK_TITLES');
 
-const EUROS_COMPACT = () => new Intl.NumberFormat(uiLocale(), { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 localizeList(MONTH_LABELS, 'DASHBOARD.MONTHS_SHORT');
 
@@ -608,7 +608,7 @@ export class DashboardPage implements OnInit {
 
   // Etiqueta corta de barra: sin decimales para que quepa en la columna.
   public centsCompact(value: number): string {
-    return EUROS_COMPACT().format(value / 100);
+    return eurosCompact(value);
   }
 
   public goToPayments(): void {
