@@ -275,7 +275,19 @@ const DYNAMIC_KEYS = [
     layer: 'train-fit-trainers',
     keys: () => arrayLiteral('apps/train-fit-trainers/src/app/features/clients/habit-form.util.ts', 'TASK_ERROR_CODES'),
   },
+  {
+    prefix: 'MANAGEMENT.BILLING.ERRORS.',
+    layer: 'train-fit-management',
+    keys: () => arrayLiteral(MANAGEMENT_BILLING_UTIL, 'ADMIN_ERROR_CODES'),
+  },
+  {
+    prefix: 'MANAGEMENT.BILLING.PROBLEMS.',
+    layer: 'train-fit-management',
+    keys: () => [...new Set([...read(MANAGEMENT_BILLING_UTIL).matchAll(/\bproblem\('([A-Z_]+)'\)/g)].map((m) => m[1]))],
+  },
 ];
+
+const MANAGEMENT_BILLING_UTIL = 'apps/train-fit-management/src/app/features/management-home/components/trainer-billing/trainer-billing-view.util.ts';
 
 /** Prefijos dinámicos que usa el código (concatenación o plantilla). */
 function dynamicPrefixesInCode() {

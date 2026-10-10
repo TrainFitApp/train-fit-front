@@ -1,5 +1,8 @@
-// PURO: textos y reglas de la pantalla de Facturación Trainers (Gestión).
-// Operativa interna en español: la facturación de Trainers es de TrainFit (España).
+import { localizeRecord, uiLocale, uiText } from 'src/app/core/i18n/localized-catalog';
+
+// PURO: textos y reglas de la pantalla de Facturación Trainers (Gestión). Los
+// catálogos guardan el texto en español y se traducen en caliente con
+// `localizeRecord` (MANAGEMENT.BILLING.*), como el resto de la app.
 
 export type AdminAction = 'resolve_case' | 'end_service_now' | 'cancel_renewal' | 'resume_renewal' | 'revert_upgrade' |
   'grant_access' | 'end_grant' | 'restore_period_access' | 'pause_collection' | 'resume_collection';
@@ -151,17 +154,29 @@ export const ACTION_HELP: Record<AdminAction, string> = {
   resume_collection: 'Stripe vuelve a cobrar: se reactivan los reintentos pausados y se cobra el periodo vigente. Los periodos pasados en pausa no se cobran.',
 };
 
-const MONEY = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
-const DATE = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' });
-const DATE_TIME = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+localizeRecord(PLAN_NAMES, 'MANAGEMENT.BILLING.PLANS');
+localizeRecord(INTERVAL_NAMES, 'MANAGEMENT.BILLING.INTERVALS');
+localizeRecord(KIND_LABELS, 'MANAGEMENT.BILLING.KINDS');
+localizeRecord(DISPUTE_STATUS, 'MANAGEMENT.BILLING.DISPUTE_STATUS');
+localizeRecord(REFUND_STATUS, 'MANAGEMENT.BILLING.REFUND_STATUS');
+localizeRecord(ROLE_LABELS, 'MANAGEMENT.BILLING.ROLES');
+localizeRecord(SUGGESTIONS, 'MANAGEMENT.BILLING.SUGGESTIONS');
+localizeRecord(ACTION_LABELS, 'MANAGEMENT.BILLING.ACTIONS');
+localizeRecord(ACTION_HELP, 'MANAGEMENT.BILLING.ACTION_HELP');
 
+// Importes y fechas en el idioma de la app; la hora, siempre la de España
+// (la facturación de Trainers es de TrainFit, en España).
 export function formatAmount(cents: number | null | undefined): string {
-  return typeof cents === 'number' ? MONEY.format(cents / 100) : '—';
+  return typeof cents === 'number' ? new Intl.NumberFormat(uiLocale(), { style: 'currency', currency: 'EUR' }).format(cents / 100) : '—';
 }
 export function formatDate(value: string | number | Date | null | undefined, withTime = false): string {
   if (value === null || value === undefined || value === '') return '—';
   const date = typeof value === 'number' ? new Date(value * 1000) : new Date(value);
-  return Number.isFinite(date.getTime()) ? (withTime ? DATE_TIME : DATE).format(date) : '—';
+  if (!Number.isFinite(date.getTime())) return '—';
+  return new Intl.DateTimeFormat(uiLocale(), {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Madrid',
+    ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}),
+  }).format(date);
 }
 export function planLabel(tier: string | null | undefined, interval?: string | null): string {
   if (!tier) return 'Free';
@@ -171,15 +186,17 @@ export function planLabel(tier: string | null | undefined, interval?: string | n
 // "Inicio mensual + 5 plazas".
 export function stateLabel(state: AdminPlanState | null | undefined): string {
   if (!state) return '—';
-  const extras = state.extraSeats ? ` + ${state.extraSeats} plazas` : '';
+  const extras = state.extraSeats ? uiText('MANAGEMENT.BILLING.EXTRA_SEATS', { count: state.extraSeats }) : '';
   return `${state.tier === 'free' ? 'Free' : planLabel(state.tier, state.interval)}${extras}`;
 }
 export function financedLabel(financed: AdminFinanced | null | undefined): string {
-  if (!financed || financed.kind === 'unknown') return 'No identificado: revísalo en Stripe';
+  if (!financed || financed.kind === 'unknown') return uiText('MANAGEMENT.BILLING.FINANCED_UNKNOWN');
   const period = `${formatDate(financed.periodStart)} – ${formatDate(financed.periodEnd)}`;
-  if (financed.kind === 'upgrade') return `Subida ${stateLabel(financed.fromState)} → ${stateLabel(financed.state)} · ${period}`;
-  if (financed.kind === 'interval_change') return `Paso a anual: ${stateLabel(financed.fromState)} → ${stateLabel(financed.state)} · ${period}`;
-  return `Periodo ${stateLabel(financed.state)} · ${period}`;
+  const from = stateLabel(financed.fromState);
+  const to = stateLabel(financed.state);
+  if (financed.kind === 'upgrade') return uiText('MANAGEMENT.BILLING.FINANCED_UPGRADE', { from, to, period });
+  if (financed.kind === 'interval_change') return uiText('MANAGEMENT.BILLING.FINANCED_INTERVAL', { from, to, period });
+  return uiText('MANAGEMENT.BILLING.FINANCED_PERIOD', { state: to, period });
 }
 
 // Acciones con sentido para el estado actual (el backend vuelve a comprobarlo todo).
@@ -206,16 +223,35 @@ export function availableActions(detail: AdminTrainerDetail | null): AdminAction
 }
 
 // El motivo es obligatorio (3–300 caracteres) y algunas acciones piden datos concretos.
+// Devuelve el texto ya traducido, o null si se puede enviar.
 export function interventionProblem(form: { action: string; reason: string; caseId: string; until: string; tier: string; adjustmentId: string }): string | null {
-  if (!form.action) return 'Elige una acción.';
+  const problem = (key: string): string => uiText(`MANAGEMENT.BILLING.PROBLEMS.${key}`);
+  if (!form.action) return problem('ACTION');
   const reason = form.reason.trim();
-  if (reason.length < 3 || reason.length > 300) return 'Escribe el motivo (entre 3 y 300 caracteres).';
-  if (form.action === 'resolve_case' && !form.caseId) return 'Elige el caso que se resuelve.';
+  if (reason.length < 3 || reason.length > 300) return problem('REASON');
+  if (form.action === 'resolve_case' && !form.caseId) return problem('CASE');
   if (form.action === 'grant_access') {
     const until = Date.parse(form.until);
-    if (!Number.isFinite(until) || until <= Date.now()) return 'La fecha de la excepción debe ser futura.';
-    if (!PLAN_NAMES[form.tier]) return 'Elige el plan que se concede.';
+    if (!Number.isFinite(until) || until <= Date.now()) return problem('FUTURE_DATE');
+    if (!PLAN_NAMES[form.tier]) return problem('PLAN');
   }
-  if ((form.action === 'end_grant' || form.action === 'restore_period_access') && !form.adjustmentId) return 'Elige el ajuste de acceso.';
+  if ((form.action === 'end_grant' || form.action === 'restore_period_access') && !form.adjustmentId) return problem('ADJUSTMENT');
   return null;
+}
+
+// Códigos que devuelven las rutas de admin de trainerBilling (adapter.js y
+// service.ts#intervene) con texto propio en MANAGEMENT.BILLING.ERRORS.
+export const ADMIN_ERROR_CODES = [
+  'CASE_NOT_FOUND', 'ADJUSTMENT_NOT_FOUND', 'ALREADY_PAUSED', 'NOT_PAUSED', 'NOT_REVERTIBLE', 'SUBSCRIPTION_NOT_ACTIVE',
+  'CASE_REQUIRED', 'INVALID_ACTION', 'INVALID_ADJUSTMENT', 'INVALID_CASE', 'INVALID_TIER', 'INVALID_UNTIL', 'REASON_REQUIRED',
+  'INVALID_EMAIL', 'INVALID_USER', 'TRAINER_NOT_FOUND', 'USER_NOT_FOUND', 'ADMIN_UNAVAILABLE', 'BILLING_BUSY',
+  'BILLING_UNAVAILABLE', 'BILLING_REVIEW_REQUIRED', 'CONTROL_REJECTED', 'CHANGE_REJECTED',
+];
+
+// Error del back en el idioma de la app: por su código si es uno conocido, si
+// no, el texto genérico de la operación (nunca el mensaje en español del back).
+export function adminErrorMessage(error: unknown, fallbackKey: string): string {
+  const code = (error as { error?: { code?: unknown } } | null)?.error?.code;
+  if (typeof code === 'string' && ADMIN_ERROR_CODES.includes(code)) return uiText(`MANAGEMENT.BILLING.ERRORS.${code}`);
+  return uiText(fallbackKey);
 }

@@ -1,15 +1,16 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { AdminInterventionRequest, TrainerBillingAdminApiService } from './services/trainer-billing-admin-api.service';
 import {
-  ACTION_HELP, ACTION_LABELS, AdminAction, AdminAdjustment, AdminCase, AdminTrainerDetail, DISPUTE_STATUS, KIND_LABELS,
-  PLAN_NAMES, REFUND_STATUS, ROLE_LABELS, SUGGESTED_ACTION, SUGGESTIONS, availableActions, financedLabel, formatAmount,
-  formatDate, interventionProblem, planLabel, stateLabel,
+  ACTION_HELP, ACTION_LABELS, AdminAction, AdminAdjustment, AdminCase, AdminIntervention, AdminTrainerDetail, DISPUTE_STATUS, KIND_LABELS,
+  PLAN_NAMES, REFUND_STATUS, ROLE_LABELS, SUGGESTED_ACTION, SUGGESTIONS, adminErrorMessage, availableActions, financedLabel,
+  formatAmount, formatDate, interventionProblem, planLabel, stateLabel,
 } from './trainer-billing-view.util';
 
 interface InterventionForm {
@@ -37,6 +38,7 @@ export class TrainerBillingPage implements OnInit, OnDestroy {
   private readonly navigationService = inject(NavigationService);
   private readonly ionicUtil = inject(IonicUtilService);
   private readonly api = inject(TrainerBillingAdminApiService);
+  private readonly translate = inject(TranslateService);
   private readonly subscriptions = new Subscription();
   // Una sola carga viva: cambiar de filtro o de ficha cancela la anterior para que no pise a la nueva.
   private loadRequest: Subscription | null = null;
@@ -74,6 +76,21 @@ export class TrainerBillingPage implements OnInit, OnDestroy {
     return (this.detail?.account?.adjustments || []).filter((entry) => entry.kind === kind && !entry.liftedAt);
   }
   public get formProblem(): string | null { return interventionProblem(this.form); }
+  public get noCasesKey(): string {
+    if (this.filter === 'open') return 'MANAGEMENT.BILLING.NO_CASES_OPEN';
+    return this.filter === 'resolved' ? 'MANAGEMENT.BILLING.NO_CASES_RESOLVED' : 'MANAGEMENT.BILLING.NO_CASES';
+  }
+
+  public caseStatusKey(entry: AdminCase): string {
+    if (entry.status === 'resolved') return 'MANAGEMENT.BILLING.STATUS_RESOLVED';
+    return entry.priority === 'high' ? 'MANAGEMENT.BILLING.PRIORITY_HIGH' : 'MANAGEMENT.BILLING.STATUS_OPEN';
+  }
+
+  // Coletilla del historial: fallida (con su error) o sin terminar; '' si se aplicó.
+  public interventionSuffixKey(entry: AdminIntervention): string {
+    if (entry.status === 'failed') return 'MANAGEMENT.BILLING.FAILED_SUFFIX';
+    return entry.status === 'pending' ? 'MANAGEMENT.BILLING.PENDING_SUFFIX' : '';
+  }
 
   public ngOnInit(): void {
     this.subscriptions.add(this.route.paramMap.subscribe((params) => {
@@ -98,11 +115,11 @@ export class TrainerBillingPage implements OnInit, OnDestroy {
     this.loadRequest = this.userId
       ? this.api.getTrainer(this.userId).pipe(finalize(() => { this.loading = false; })).subscribe({
         next: (detail) => { this.detail = detail; this.mode = detail.mode; },
-        error: (err) => { this.error = this.message(err, 'No se pudo cargar la ficha de facturación.'); },
+        error: (err) => { this.error = adminErrorMessage(err, 'MANAGEMENT.BILLING.LOAD_TRAINER_ERROR'); },
       })
       : this.api.getCases(this.filter).pipe(finalize(() => { this.loading = false; })).subscribe({
         next: (response) => { this.cases = response.cases; this.pendingEvents = response.pendingEvents; this.mode = response.mode; },
-        error: (err) => { this.error = this.message(err, 'No se pudieron cargar los casos de facturación.'); },
+        error: (err) => { this.error = adminErrorMessage(err, 'MANAGEMENT.BILLING.LOAD_CASES_ERROR'); },
       });
   }
 
@@ -121,7 +138,7 @@ export class TrainerBillingPage implements OnInit, OnDestroy {
     if (!email || this.loading) return;
     this.subscriptions.add(this.api.lookup(email).subscribe({
       next: (result) => this.openTrainer(result.userId),
-      error: (err) => this.ionicUtil.showErrorToast(err, this.message(err, 'No hay ningún entrenador con ese email.')),
+      error: (err) => this.toastError(err, 'MANAGEMENT.BILLING.LOOKUP_ERROR'),
     }));
   }
 
@@ -136,7 +153,7 @@ export class TrainerBillingPage implements OnInit, OnDestroy {
 
   public caseTitle(entry: AdminCase): string {
     const status = entry.kind === 'dispute' && entry.disputeStatus ? ` · ${DISPUTE_STATUS[entry.disputeStatus] || entry.disputeStatus}` : '';
-    return `${KIND_LABELS[entry.kind]} de ${formatAmount(entry.amount)}${status}`;
+    return this.translate.instant('MANAGEMENT.BILLING.CASE_TITLE', { kind: KIND_LABELS[entry.kind], amount: formatAmount(entry.amount) }) + status;
   }
 
   public submit(): void {
@@ -144,10 +161,10 @@ export class TrainerBillingPage implements OnInit, OnDestroy {
     const action = this.form.action;
     void this.ionicUtil.showAlert({
       header: ACTION_LABELS[action],
-      message: `${ACTION_HELP[action]} Quedará registrado con tu usuario y el motivo.`,
+      message: `${ACTION_HELP[action]} ${this.translate.instant('MANAGEMENT.BILLING.CONFIRM_SUFFIX')}`,
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Confirmar', role: 'confirm', cssClass: action === 'end_service_now' ? 'danger-btn' : 'alert-button-primary' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('COMMON.CONFIRM'), role: 'confirm', cssClass: action === 'end_service_now' ? 'danger-btn' : 'alert-button-primary' },
       ],
     }).then((result) => {
       if (result?.role === 'confirm') this.send(action);
@@ -166,17 +183,19 @@ export class TrainerBillingPage implements OnInit, OnDestroy {
       next: (detail) => {
         this.detail = detail;
         this.form = emptyForm();
-        this.ionicUtil.showSuccessToast('Intervención aplicada y registrada.');
+        this.ionicUtil.showSuccessToast(this.translate.instant('MANAGEMENT.BILLING.APPLIED'));
       },
       error: (err) => {
-        this.ionicUtil.showErrorToast(err, this.message(err, 'No se pudo aplicar la intervención. Queda registrada como fallida.'));
+        this.toastError(err, 'MANAGEMENT.BILLING.APPLY_ERROR');
         this.load();
       },
     }));
   }
 
-  private message(err: unknown, fallback: string): string {
-    const body = (err as { error?: { message?: unknown } })?.error;
-    return typeof body?.message === 'string' ? body.message : fallback;
+  // El toast enseña el texto ya traducido (el del back viene en español); el
+  // status se conserva para el color y el aviso de conexión.
+  private toastError(err: unknown, fallbackKey: string): void {
+    const text = adminErrorMessage(err, fallbackKey);
+    void this.ionicUtil.showErrorToast({ status: (err as { status?: number } | null)?.status, error: { message: text } }, text);
   }
 }

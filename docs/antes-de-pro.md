@@ -24,6 +24,5 @@
   - En PRE, la suscripción de trainers de punta a punta con tarjeta de prueba
     (contratar, subir, bajar, cancelar, reactivar, portal). Antes hay que
     arreglar los permisos de la clave de Stripe; ver el doc del back.
-- Decisión abierta: Gestión › Facturación de trainers sigue con textos en
-  español a propósito (`trainer-billing-view.util.ts`). Decidir si pasa a
-  i18n.
+- Gestión › Facturación de trainers ya está en i18n (es/en,
+  `MANAGEMENT.BILLING.*`), desde el 2026-10-10.
