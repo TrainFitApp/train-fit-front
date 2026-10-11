@@ -1,6 +1,8 @@
 # Lint del front
 
-Estado a **2026-10-01**. El del backend está en `train-fit-back/.eslintrc.json`.
+Estado a **2026-10-01** (las cifras de avisos son de ese día; no se han vuelto
+a contar). El del backend está en `train-fit-back/.eslintrc.json` (allí todas
+las reglas están en error desde el 2026-10-07).
 
 ## Cómo se ejecuta
 
