@@ -44,8 +44,22 @@ test('asistente: pantallas, comidas y atajos, iguales en back y front', { skip: 
   assert.deepEqual(front('ASSISTANT_MEAL_SLOTS'), back('assistant-catalog.js', 'MEAL_SLOTS'));
   const quick = fs.readFileSync(path.join(BACK, 'components/assistant/assistant-catalog.js'), 'utf8').match(/QUICK_ACTIONS = Object\.freeze\(\{([\s\S]*?)\}\);/);
   assert.ok(quick, 'no encuentro QUICK_ACTIONS en el back');
-  const backQuick = [...quick[1].matchAll(/['"]([\w-]+)['"]/g)].map((m) => m[1]);
+  // Un atajo de las dos apps (energy_status…) sale una vez en el front.
+  const backQuick = new Set([...quick[1].matchAll(/['"]([\w-]+)['"]/g)].map((m) => m[1]));
   assert.deepEqual(sorted(front('ASSISTANT_QUICK_ACTIONS')), sorted(backQuick));
+});
+
+test('asistente: el vocabulario de los datos (sexo, actividad, idioma, tema, hábitos, frecuencias, pagos, avisos), igual en back y front', { skip: !HAS_BACK && 'sin train-fit-back al lado' }, () => {
+  const catalog = require(path.join(BACK, 'components/assistant/assistant-catalog.js'));
+  assert.deepEqual(front('ASSISTANT_SEXES'), [...catalog.SEXES]);
+  assert.deepEqual(front('ASSISTANT_ACTIVITIES'), [...catalog.ACTIVITIES]);
+  assert.deepEqual(front('ASSISTANT_LANGS'), [...catalog.LANGS]);
+  assert.deepEqual(front('ASSISTANT_THEMES'), [...catalog.THEMES]);
+  assert.deepEqual(front('ASSISTANT_HABIT_TYPES'), [...catalog.HABIT_TYPES]);
+  assert.deepEqual(front('ASSISTANT_CHECKIN_FREQUENCIES'), [...catalog.CHECKIN_FREQUENCIES]);
+  assert.deepEqual(front('ASSISTANT_PAYMENT_METHODS'), [...catalog.PAYMENT_METHODS]);
+  const Notification = require(path.join(BACK, 'components/notifications/notification-schema.js'));
+  assert.deepEqual(front('ASSISTANT_NOTIFICATION_TYPES'), Notification.schema.path('type').enumValues);
 });
 
 test('asistente: cada error de negocio del asistente y de las invitaciones tiene texto en la app', { skip: !HAS_BACK && 'sin train-fit-back al lado' }, () => {

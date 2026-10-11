@@ -6,6 +6,8 @@ import { environment } from 'src/environments/environment';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
+import { ThemeService } from 'src/app/core/services/util/theme.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { AssistantApiService } from './assistant-api.service';
 import { AssistantTextService } from './assistant-text.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -50,6 +52,8 @@ export class AssistantService {
   private readonly tableService = inject(TableService);
   private readonly nutritionalGoalService = inject(NutritionalGoalService);
   private readonly translate = inject(TranslateService);
+  private readonly themeService = inject(ThemeService);
+  private readonly i18nService = inject(I18nService);
 
   private readonly family = environment.auth?.clientFamily;
   public readonly app: AssistantApp = this.family === 'trainfit-trainers' ? 'trainer' : 'client';
@@ -260,6 +264,7 @@ export class AssistantService {
   private async refreshAfter(turn: AssistantTurn): Promise<void> {
     const targets = turn.refresh || [];
     const date = typeof turn.navigate?.params?.['date'] === 'string' ? (turn.navigate.params['date'] as string) : undefined;
+    if (targets.includes('profile')) await this.reloadProfile();
     if (targets.includes('goals')) await this.reloadGoals(turn.data?.goalId);
     if (targets.includes('training') && turn.data?.tableId) await this.useRoutine(turn.data.tableId);
     for (const target of targets) {
@@ -267,6 +272,18 @@ export class AssistantService {
       this.pending.set(target, refresh);
       this.refresh$.next(refresh);
     }
+  }
+
+  // El perfil recién cambiado (nombre, idioma, tema…): el usuario local al día
+  // y su idioma y su tema aplicados, igual que al entrar en la app.
+  private async reloadProfile(): Promise<void> {
+    const email = this.userService.getLocalUser?.email;
+    if (!email) return;
+    const user = await firstValueFrom(this.userService.getUserByEmail(email)).catch(() => null);
+    if (!user) return;
+    this.userService.setLocalUser = user;
+    if (user.lang) this.i18nService.switchLang(user.lang);
+    if (user.theme) this.themeService.toggleColorMode(user.theme);
   }
 
   private async reloadGoals(goalId: string | null | undefined): Promise<void> {

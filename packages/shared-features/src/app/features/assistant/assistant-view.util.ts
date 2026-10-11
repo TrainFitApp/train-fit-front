@@ -60,6 +60,9 @@ const CLIENT_ROUTES: Record<string, string[]> = {
   profile: ['/tabs/profile'],
   premium: ['/premium'],
   configuration: ['/configuration'],
+  coach: ['/tabs/coach'],
+  pain: ['/my-pain'],
+  shopping_list: ['/my-shopping-list'],
 };
 
 const TRAINER_ROUTES: Record<string, string[]> = {
@@ -75,6 +78,9 @@ const TRAINER_ROUTES: Record<string, string[]> = {
   invites: ['/tabs/invites'],
   subscription: ['/tabs/subscription'],
   account: ['/tabs/account'],
+  automations: ['/tabs/automations'],
+  checkin_templates: ['/tabs/checkin-templates'],
+  protocols: ['/tabs/protocols'],
 };
 
 const ID = /^[0-9a-f]{24}$/i;

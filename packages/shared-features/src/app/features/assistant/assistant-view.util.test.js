@@ -6,9 +6,16 @@ const assert = require('node:assert/strict');
 // total de la comida con lo elegido.
 
 let util;
+let catalog;
 
 test.before(async () => {
   util = await import('./assistant-view.util.ts');
+  catalog = await import('./assistant-catalog.ts');
+});
+
+test('routeFor: cada pantalla del catálogo de cada app tiene su ruta', () => {
+  for (const screen of catalog.ASSISTANT_CLIENT_SCREENS) assert.ok(util.routeFor('client', { screen }), `cliente: ${screen}`);
+  for (const screen of catalog.ASSISTANT_TRAINER_SCREENS) assert.ok(util.routeFor('trainer', { screen }), `trainers: ${screen}`);
 });
 
 const ID = '0123456789abcdef01234567';

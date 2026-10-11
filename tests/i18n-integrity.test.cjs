@@ -308,6 +308,16 @@ const DYNAMIC_KEYS = [
   // Ámbitos de una invitación y tipos de la bandeja (assistant-text.service.ts).
   { prefix: 'ASSISTANT.SCOPES.', layer: 'common', keys: () => ['training', 'nutrition'] },
   { prefix: 'ASSISTANT.REVIEW_TYPES.', layer: 'common', keys: () => ['checkin', 'form_check', 'intake'] },
+  // Vocabulario de los datos de las líneas (assistant-text.service.ts#VOCABULARY).
+  { prefix: 'ASSISTANT.SEX.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_SEXES') },
+  { prefix: 'ASSISTANT.ACTIVITY.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_ACTIVITIES') },
+  { prefix: 'ASSISTANT.LANGS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_LANGS') },
+  { prefix: 'ASSISTANT.THEMES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_THEMES') },
+  { prefix: 'ASSISTANT.TIERS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_TIERS') },
+  { prefix: 'ASSISTANT.HABITS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_HABIT_TYPES') },
+  { prefix: 'ASSISTANT.FREQUENCIES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_CHECKIN_FREQUENCIES') },
+  { prefix: 'ASSISTANT.PAYMENT_METHODS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_PAYMENT_METHODS') },
+  { prefix: 'ASSISTANT.NOTIFICATION_TYPES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_NOTIFICATION_TYPES') },
 ];
 
 const MANAGEMENT_BILLING_UTIL = 'apps/train-fit-management/src/app/features/management-home/components/trainer-billing/trainer-billing-view.util.ts';

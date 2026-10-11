@@ -42,9 +42,36 @@ const NUMBER_PARAMS = new Set([
   'last',
   'overdue',
   'extra',
+  'target',
+  'atp',
+  'seats',
+  'usage',
+  'limit',
+  'steps',
+  'unread',
+  'invalid',
+  'done',
+  'allowance',
 ]);
-// Con un decimal (pesos y medidas); el resto, enteros.
-const ONE_DECIMAL = new Set(['kg', 'value', 'oneRm', 'first', 'last', 'protein', 'carbs', 'fat']);
+// Con un decimal (pesos, medidas y objetivos de hábito: 2,5 L); el resto, enteros.
+const ONE_DECIMAL = new Set(['kg', 'value', 'oneRm', 'first', 'last', 'protein', 'carbs', 'fat', 'target']);
+// Datos que son un valor de una lista cerrada, con su texto en ASSISTANT.<lista>.<valor>.
+const VOCABULARY: Record<string, string> = {
+  flag: 'ASSISTANT.FLAGS',
+  measure: 'ASSISTANT.MEASURES',
+  objective: 'ASSISTANT.OBJECTIVES',
+  type: 'ASSISTANT.REVIEW_TYPES',
+  sexKey: 'ASSISTANT.SEX',
+  activity: 'ASSISTANT.ACTIVITY',
+  lang: 'ASSISTANT.LANGS',
+  theme: 'ASSISTANT.THEMES',
+  tier: 'ASSISTANT.TIERS',
+  habit: 'ASSISTANT.HABITS',
+  frequency: 'ASSISTANT.FREQUENCIES',
+  method: 'ASSISTANT.PAYMENT_METHODS',
+  notification: 'ASSISTANT.NOTIFICATION_TYPES',
+  timing: 'SUPPLEMENTS.TIMINGS',
+};
 // Días de calendario ("YYYY-MM-DD") que se cuentan como «hoy», «ayer»…
 const DATE_PARAMS = new Set(['date', 'fromDate', 'toDate', 'since', 'startDate', 'dueDate']);
 const MEAL_PARAMS = new Set(['meal', 'fromMeal', 'toMeal']);
@@ -73,6 +100,13 @@ export class AssistantTextService {
     const date = new Date(`${iso}T12:00:00`);
     if (Number.isNaN(date.getTime())) return iso;
     return new Intl.DateTimeFormat(uiLocale(), { weekday: 'short', day: 'numeric', month: 'short' }).format(date);
+  }
+
+  /** «4 de marzo de 1992»: una fecha que no es de esta semana (nacimiento). */
+  public fullDate(iso: string): string {
+    const date = new Date(`${iso}T12:00:00`);
+    if (!ISO_DAY.test(iso) || Number.isNaN(date.getTime())) return iso;
+    return new Intl.DateTimeFormat(uiLocale(), { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
   }
 
   public meal(slot: string): string {
@@ -115,10 +149,8 @@ export class AssistantTextService {
     if (MEAL_PARAMS.has(name) && typeof value === 'string') return this.meal(value);
     if (name === 'screen' && typeof value === 'string') return this.screen(value);
     if (DB_PARAMS.has(name) && typeof value === 'string') return new TranslateDbPipe(this.translate).transform(value);
-    if (name === 'flag') return this.translate.instant(`ASSISTANT.FLAGS.${value}`);
-    if (name === 'measure') return this.translate.instant(`ASSISTANT.MEASURES.${value}`);
-    if (name === 'objective') return this.translate.instant(`ASSISTANT.OBJECTIVES.${value}`);
-    if (name === 'type') return this.translate.instant(`ASSISTANT.REVIEW_TYPES.${value}`);
+    if (name === 'birthDate' && typeof value === 'string') return this.fullDate(value);
+    if (VOCABULARY[name] && typeof value === 'string') return this.translate.instant(`${VOCABULARY[name]}.${value}`);
     if (name === 'scopes' && Array.isArray(value)) return value.map((scope) => this.translate.instant(`ASSISTANT.SCOPES.${scope}`)).join(', ');
     if (name === 'amount' && typeof value === 'number') return this.money(value);
     if (name === 'change' && typeof value === 'number') return `${value > 0 ? '+' : ''}${this.number(value, 1)}`;
