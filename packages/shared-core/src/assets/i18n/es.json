@@ -3543,7 +3543,6 @@
       "CHECKIN_SCHEDULE": "Check-in: {{schedule}}",
       "INVITE_EMAIL": "Email: {{email}}",
       "INVITE_SCOPES": "Para: {{scopes}}",
-      "TEMPLATE": "Plantilla: {{template}}",
       "TASK_TITLE": "{{text}}",
       "TASK_DUE": "Para: {{date}}",
       "TASK_CLIENT": "Cliente: {{name}}",
