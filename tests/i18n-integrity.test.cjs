@@ -318,6 +318,7 @@ const DYNAMIC_KEYS = [
   { prefix: 'ASSISTANT.FREQUENCIES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_CHECKIN_FREQUENCIES') },
   { prefix: 'ASSISTANT.PAYMENT_METHODS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_PAYMENT_METHODS') },
   { prefix: 'ASSISTANT.NOTIFICATION_TYPES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_NOTIFICATION_TYPES') },
+  { prefix: 'ASSISTANT.WEEK_REASONS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_WEEK_REASONS') },
 ];
 
 const MANAGEMENT_BILLING_UTIL = 'apps/train-fit-management/src/app/features/management-home/components/trainer-billing/trainer-billing-view.util.ts';

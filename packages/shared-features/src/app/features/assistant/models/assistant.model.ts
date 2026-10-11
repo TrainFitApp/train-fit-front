@@ -65,6 +65,8 @@ export type AssistantLine = AssistantMessage;
 // Una opción genérica de una vista previa (receta, plantilla, protocolo).
 export interface AssistantPreviewChoice {
   name: string;
+  // Texto traducible de la opción (seguir igual, ajustar a…); sin él, `name`.
+  label?: AssistantLine;
   grams?: number;
   macros?: AssistantMacros;
 }

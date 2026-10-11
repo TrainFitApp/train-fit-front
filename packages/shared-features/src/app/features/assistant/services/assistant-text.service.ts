@@ -70,6 +70,7 @@ const VOCABULARY: Record<string, string> = {
   frequency: 'ASSISTANT.FREQUENCIES',
   method: 'ASSISTANT.PAYMENT_METHODS',
   notification: 'ASSISTANT.NOTIFICATION_TYPES',
+  why: 'ASSISTANT.WEEK_REASONS',
   timing: 'SUPPLEMENTS.TIMINGS',
 };
 // Días de calendario ("YYYY-MM-DD") que se cuentan como «hoy», «ayer»…
@@ -153,9 +154,15 @@ export class AssistantTextService {
     if (VOCABULARY[name] && typeof value === 'string') return this.translate.instant(`${VOCABULARY[name]}.${value}`);
     if (name === 'scopes' && Array.isArray(value)) return value.map((scope) => this.translate.instant(`ASSISTANT.SCOPES.${scope}`)).join(', ');
     if (name === 'amount' && typeof value === 'number') return this.money(value);
-    if (name === 'change' && typeof value === 'number') return `${value > 0 ? '+' : ''}${this.number(value, 1)}`;
+    if (name === 'change' && typeof value === 'number') return this.signed(value, 1);
+    // Ritmo del peso en kg/semana: −0,35.
+    if ((name === 'rate' || name === 'expected') && typeof value === 'number') return this.signed(value, 2);
     if (NUMBER_PARAMS.has(name) && typeof value === 'number') return this.number(value, ONE_DECIMAL.has(name) ? 1 : 0);
     return value;
+  }
+
+  private signed(value: number, decimals: number): string {
+    return `${value > 0 ? '+' : ''}${this.number(value, decimals)}`;
   }
 
   // RIR de una serie: «· RIR 2», «· al fallo» (-1) o nada si no lo dijo.

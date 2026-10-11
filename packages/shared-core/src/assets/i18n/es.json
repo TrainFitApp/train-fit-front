@@ -3094,7 +3094,9 @@
       "invite_code": "Mi código de invitación",
       "list_invites": "Invitaciones enviadas",
       "my_tasks": "Mis tareas",
-      "seats_status": "Mis plazas"
+      "seats_status": "Mis plazas",
+      "review_progress": "Revisar mi progreso",
+      "open_next_weeks": "Semanas del lunes"
     },
     "LINKS": {
       "OPEN_DIETS": "Ver dieta",
@@ -3444,7 +3446,23 @@
       "REDEEM_PREVIEW": "¿Uso el código {{code}}? Si pagas tu mes, los dos ganáis energía.",
       "REDEEM_DONE": "Hecho: código {{code}} guardado.",
       "SUGGESTION_PREVIEW": "Mandaría esto al equipo de TrainFit:",
-      "SUGGESTION_DONE": "Hecho: enviado. ¡Gracias por ayudarnos a mejorar!"
+      "SUGGESTION_DONE": "Hecho: enviado. ¡Gracias por ayudarnos a mejorar!",
+      "NEXT_WEEK_NO_PHASE": "{{name}} no tiene una fase de dieta tuya en curso.",
+      "NEXT_WEEK_NONE": "La fase de {{name}} termina esta semana: no hay semana siguiente que abrir.",
+      "NEXT_WEEK_PREPARED": "La semana {{number}} de {{name}} ya está preparada ({{kcal}} kcal). Cámbiala desde su ficha.",
+      "NEXT_WEEK_KEEP": "Semana {{number}} de {{name}}: sigue igual, {{kcal}} kcal. No hace falta tocar nada, repite lo pautado.",
+      "NEXT_WEEK_PREVIEW": "Semana {{number}} de {{name}}. Te recomiendo la primera opción:",
+      "NEXT_WEEK_DONE": "Hecho: semana {{number}} de {{name}} abierta con {{kcal}} kcal.",
+      "NEXT_WEEK_KEPT": "Hecho: la semana {{number}} de {{name}} repite lo pautado.",
+      "NEXT_WEEKS_NONE": "No hay semanas que abrir: ningún cliente tiene una fase tuya que siga el lunes sin preparar.",
+      "NEXT_WEEKS_ALL_KEEP": "Las {{count}} semanas del lunes siguen igual: no hace falta tocar nada.",
+      "NEXT_WEEKS_PREVIEW": "Ajustaría {{count}} de {{total}} semanas del lunes; el resto sigue igual:",
+      "NEXT_WEEKS_DONE": "Hecho: {{count}} semanas ajustadas ({{skipped}} no se pudieron abrir); el resto repite lo pautado.",
+      "PROGRESS_NO_GOAL": "Primero necesitas un objetivo de kcal. ¿Te lo calculo?",
+      "PROGRESS_KEEP": "Te recomiendo seguir igual: {{kcal}} kcal al día.",
+      "PROGRESS_PREVIEW": "Ahora tienes {{kcal}} kcal al día. Te recomiendo la primera opción:",
+      "PROGRESS_DONE": "Hecho: tu objetivo es de {{kcal}} kcal al día.",
+      "PROGRESS_KEPT": "Hecho: sigues con {{kcal}} kcal. Vuelve a preguntarme la semana que viene."
     },
     "ERRORS": {
       "ASSISTANT_NO_ENERGY": "Me he quedado sin energía este mes. Invita a alguien o espera a que me recargue.",
@@ -3483,7 +3501,8 @@
       "CHARGE_CLOSED": "Ese cobro ya está cerrado.",
       "SEAT_UNAVAILABLE": "Ese profesional no tiene ahora mismo una plaza libre. Vuelve a intentarlo más tarde.",
       "SELF_INVITE": "No puedes invitarte a ti mismo.",
-      "ASSISTANT_SUGGESTION_UNAVAILABLE": "Ahora no puedo mandar sugerencias. Prueba más tarde."
+      "ASSISTANT_SUGGESTION_UNAVAILABLE": "Ahora no puedo mandar sugerencias. Prueba más tarde.",
+      "DIET_NO_NEXT_WEEK": "Esa fase termina esta semana: no hay semana siguiente."
     },
     "LINES": {
       "FOOD": "{{name}} · {{grams}} g · {{kcal}} kcal",
@@ -3568,7 +3587,14 @@
       "PROFILE_OBJECTIVE": "Objetivo: {{objective}}",
       "PROFILE_STEPS": "Pasos al día: unos {{steps}}",
       "PROFILE_TRAINING": "Entrenos por semana: {{days}}",
-      "PROFILE_IGNORED": "Datos que no me cuadran (no los toco): {{count}}"
+      "PROFILE_IGNORED": "Datos que no me cuadran (no los toco): {{count}}",
+      "WEEK_ADHERENCE": "Cumplimiento de la semana: {{adherence}} %",
+      "WEEK_RATE": "Ritmo del peso: {{rate}} kg/sem (esperado {{expected}})",
+      "WEEK_WHY": "{{why}}",
+      "CHOICE_KEEP": "Seguir igual · {{kcal}} kcal",
+      "CHOICE_ADJUST": "Pasar a {{kcal}} kcal",
+      "NEXT_WEEK_ROW_ADJUST": "{{name}}: {{from}} → {{to}} kcal ({{why}})",
+      "NEXT_WEEK_ROW_KEEP": "{{name}}: sigue con {{kcal}} kcal ({{why}})"
     },
     "SUGGEST": {
       "WORKOUT_CONTINUE": "Seguir con {{workout}}",
@@ -3692,6 +3718,14 @@
       "intake_submitted_trainer": "Cuestionario de alta recibido",
       "checkin_responded": "Check-in respondido",
       "nutrition_preferences_updated": "Preferencias de comida actualizadas"
+    },
+    "WEEK_REASONS": {
+      "said": "las kcal que has dicho",
+      "no_weight": "sin dos pesos no se puede medir el ritmo",
+      "low_adherence": "con poco cumplimiento, cambiar las kcal no tiene base: mejor repetir",
+      "on_track": "el peso va al ritmo esperado",
+      "below": "el peso va por debajo de lo esperado: subir kcal",
+      "above": "el peso va por encima de lo esperado: bajar kcal"
     }
   }
 }

@@ -330,7 +330,7 @@
                   >
                     <span class="option__mark" aria-hidden="true"></span>
                     <span class="option__body">
-                      <span class="option__name">{{ option.name }}</span>
+                      <span class="option__name">{{ option.label ? text.line(option.label) : option.name }}</span>
                       <span class="macro-row macro-row--compact" *ngIf="option.macros as macros">
                         <span class="macro" *ngIf="option.grams">{{ 'ASSISTANT.UNITS.GRAMS' | translate: { grams: text.number(option.grams) } }}</span>
                         <span class="macro macro--kcal"><strong>{{ text.number(macros.kcal) }}</strong> kcal</span>

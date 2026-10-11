@@ -234,6 +234,22 @@ export const ASSISTANT_MESSAGE_CODES = [
   'PAYMENT_TOO_MUCH',
   'PAYMENT_PREVIEW',
   'PAYMENT_DONE',
+  'NEXT_WEEK_NO_PHASE',
+  'NEXT_WEEK_NONE',
+  'NEXT_WEEK_PREPARED',
+  'NEXT_WEEK_KEEP',
+  'NEXT_WEEK_PREVIEW',
+  'NEXT_WEEK_DONE',
+  'NEXT_WEEK_KEPT',
+  'NEXT_WEEKS_NONE',
+  'NEXT_WEEKS_ALL_KEEP',
+  'NEXT_WEEKS_PREVIEW',
+  'NEXT_WEEKS_DONE',
+  'PROGRESS_NO_GOAL',
+  'PROGRESS_KEEP',
+  'PROGRESS_PREVIEW',
+  'PROGRESS_DONE',
+  'PROGRESS_KEPT',
   'PROFILE_PREVIEW',
   'PROFILE_DONE',
   'PROFILE_INVALID',
@@ -323,6 +339,7 @@ export const ASSISTANT_ERROR_CODES = [
   'SEAT_UNAVAILABLE',
   'SELF_INVITE',
   'ASSISTANT_SUGGESTION_UNAVAILABLE',
+  'DIET_NO_NEXT_WEEK',
 ];
 
 // Pantallas a las que el modelo puede llevar (open_screen): ASSISTANT.SCREENS.<pantalla>.
@@ -380,6 +397,7 @@ export const ASSISTANT_QUICK_ACTIONS = [
   'notifications_status',
   'mark_notifications_read',
   'invite_code',
+  'review_progress',
   'review_status',
   'next_review',
   'attention_list',
@@ -387,6 +405,7 @@ export const ASSISTANT_QUICK_ACTIONS = [
   'list_invites',
   'my_tasks',
   'seats_status',
+  'open_next_weeks',
 ];
 
 // Huecos del día: ASSISTANT.MEALS.<hueco>.
@@ -477,6 +496,13 @@ export const ASSISTANT_LINE_CODES = [
   'PROFILE_IGNORED',
   'HABIT_CUSTOM',
   'TASK_ITEM_DUE',
+  'WEEK_ADHERENCE',
+  'WEEK_RATE',
+  'WEEK_WHY',
+  'CHOICE_KEEP',
+  'CHOICE_ADJUST',
+  'NEXT_WEEK_ROW_ADJUST',
+  'NEXT_WEEK_ROW_KEEP',
 ];
 
 // Sugerencias del momento sobre el cuadro del chat: ASSISTANT.SUGGEST.<código>.
@@ -526,6 +552,8 @@ export const ASSISTANT_THEMES = ['dark', 'light', 'auto'];
 export const ASSISTANT_HABIT_TYPES = ['steps', 'water', 'sleep', 'custom'];
 export const ASSISTANT_CHECKIN_FREQUENCIES = ['daily', 'weekly', 'monthly', 'once'];
 export const ASSISTANT_PAYMENT_METHODS = ['bizum', 'transfer', 'cash', 'card_external', 'other'];
+// Por qué se recomienda seguir igual o ajustar la semana (assistant-week-plan.js#REASONS).
+export const ASSISTANT_WEEK_REASONS = ['said', 'no_weight', 'low_adherence', 'on_track', 'below', 'above'];
 // Planes de trainers (trainerBilling/src/catalog.ts).
 export const ASSISTANT_TIERS = ['free', 'starter', 'professional', 'scale'];
 export const ASSISTANT_NOTIFICATION_TYPES = [

@@ -3094,7 +3094,9 @@
       "invite_code": "My invite code",
       "list_invites": "Sent invitations",
       "my_tasks": "My to-dos",
-      "seats_status": "My seats"
+      "seats_status": "My seats",
+      "review_progress": "Review my progress",
+      "open_next_weeks": "Monday's weeks"
     },
     "LINKS": {
       "OPEN_DIETS": "See diet",
@@ -3444,7 +3446,23 @@
       "REDEEM_PREVIEW": "Use the code {{code}}? If you pay your month, you both get energy.",
       "REDEEM_DONE": "Done: code {{code}} saved.",
       "SUGGESTION_PREVIEW": "I'd send this to the TrainFit team:",
-      "SUGGESTION_DONE": "Done: sent. Thanks for helping us improve!"
+      "SUGGESTION_DONE": "Done: sent. Thanks for helping us improve!",
+      "NEXT_WEEK_NO_PHASE": "{{name}} has no diet phase of yours running.",
+      "NEXT_WEEK_NONE": "{{name}}'s phase ends this week: there's no next week to open.",
+      "NEXT_WEEK_PREPARED": "{{name}}'s week {{number}} is already prepared ({{kcal}} kcal). Change it from their file.",
+      "NEXT_WEEK_KEEP": "Week {{number}} for {{name}}: keep it as it is, {{kcal}} kcal. Nothing to change, it repeats the plan.",
+      "NEXT_WEEK_PREVIEW": "Week {{number}} for {{name}}. I recommend the first option:",
+      "NEXT_WEEK_DONE": "Done: {{name}}'s week {{number}} opened with {{kcal}} kcal.",
+      "NEXT_WEEK_KEPT": "Done: {{name}}'s week {{number}} repeats the plan.",
+      "NEXT_WEEKS_NONE": "No weeks to open: no client has a phase of yours carrying on on Monday unprepared.",
+      "NEXT_WEEKS_ALL_KEEP": "Monday's {{count}} weeks stay the same: nothing to change.",
+      "NEXT_WEEKS_PREVIEW": "I'd adjust {{count}} of Monday's {{total}} weeks; the rest stay the same:",
+      "NEXT_WEEKS_DONE": "Done: {{count}} weeks adjusted ({{skipped}} couldn't be opened); the rest repeat the plan.",
+      "PROGRESS_NO_GOAL": "First you need a kcal goal. Shall I work it out?",
+      "PROGRESS_KEEP": "I recommend keeping it as it is: {{kcal}} kcal a day.",
+      "PROGRESS_PREVIEW": "You're on {{kcal}} kcal a day. I recommend the first option:",
+      "PROGRESS_DONE": "Done: your goal is {{kcal}} kcal a day.",
+      "PROGRESS_KEPT": "Done: you stay on {{kcal}} kcal. Ask me again next week."
     },
     "ERRORS": {
       "ASSISTANT_NO_ENERGY": "I've run out of energy this month. Invite someone or wait until I recharge.",
@@ -3483,7 +3501,8 @@
       "CHARGE_CLOSED": "That charge is already closed.",
       "SEAT_UNAVAILABLE": "That professional has no free seat right now. Try again later.",
       "SELF_INVITE": "You can't invite yourself.",
-      "ASSISTANT_SUGGESTION_UNAVAILABLE": "I can't send suggestions right now. Try again later."
+      "ASSISTANT_SUGGESTION_UNAVAILABLE": "I can't send suggestions right now. Try again later.",
+      "DIET_NO_NEXT_WEEK": "That phase ends this week: there's no next week."
     },
     "LINES": {
       "FOOD": "{{name}} · {{grams}} g · {{kcal}} kcal",
@@ -3568,7 +3587,14 @@
       "PROFILE_OBJECTIVE": "Objective: {{objective}}",
       "PROFILE_STEPS": "Steps a day: about {{steps}}",
       "PROFILE_TRAINING": "Workouts a week: {{days}}",
-      "PROFILE_IGNORED": "Details that don't fit (left as they were): {{count}}"
+      "PROFILE_IGNORED": "Details that don't fit (left as they were): {{count}}",
+      "WEEK_ADHERENCE": "Plan followed this week: {{adherence}} %",
+      "WEEK_RATE": "Weight pace: {{rate}} kg/week (expected {{expected}})",
+      "WEEK_WHY": "{{why}}",
+      "CHOICE_KEEP": "Keep it · {{kcal}} kcal",
+      "CHOICE_ADJUST": "Move to {{kcal}} kcal",
+      "NEXT_WEEK_ROW_ADJUST": "{{name}}: {{from}} → {{to}} kcal ({{why}})",
+      "NEXT_WEEK_ROW_KEEP": "{{name}}: stays on {{kcal}} kcal ({{why}})"
     },
     "SUGGEST": {
       "WORKOUT_CONTINUE": "Carry on with {{workout}}",
@@ -3692,6 +3718,14 @@
       "intake_submitted_trainer": "Intake form received",
       "checkin_responded": "Check-in answered",
       "nutrition_preferences_updated": "Food preferences updated"
+    },
+    "WEEK_REASONS": {
+      "said": "the kcal you said",
+      "no_weight": "without two weights the pace can't be measured",
+      "low_adherence": "with the plan barely followed, changing the kcal has no basis: better repeat",
+      "on_track": "the weight is on the expected pace",
+      "below": "the weight is below the expected pace: more kcal",
+      "above": "the weight is above the expected pace: fewer kcal"
     }
   }
 }

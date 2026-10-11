@@ -58,6 +58,7 @@ test('asistente: el vocabulario de los datos (sexo, actividad, idioma, tema, há
   assert.deepEqual(front('ASSISTANT_HABIT_TYPES'), [...catalog.HABIT_TYPES]);
   assert.deepEqual(front('ASSISTANT_CHECKIN_FREQUENCIES'), [...catalog.CHECKIN_FREQUENCIES]);
   assert.deepEqual(front('ASSISTANT_PAYMENT_METHODS'), [...catalog.PAYMENT_METHODS]);
+  assert.deepEqual(front('ASSISTANT_WEEK_REASONS'), [...require(path.join(BACK, 'components/assistant/assistant-week-plan.js')).REASONS]);
   const Notification = require(path.join(BACK, 'components/notifications/notification-schema.js'));
   assert.deepEqual(front('ASSISTANT_NOTIFICATION_TYPES'), Notification.schema.path('type').enumValues);
 });
