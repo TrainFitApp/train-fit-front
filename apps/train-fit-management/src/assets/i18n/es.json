@@ -15,7 +15,9 @@
       "MAINTENANCE": "Mantenimiento y versiones",
       "MAINTENANCE_DESC": "Modo mantenimiento y actualización obligatoria",
       "TRAINER_BILLING": "Facturación Trainers",
-      "TRAINER_BILLING_DESC": "Reembolsos, disputas e intervenciones sobre suscripciones"
+      "TRAINER_BILLING_DESC": "Reembolsos, disputas e intervenciones sobre suscripciones",
+      "ASSISTANT_USAGE": "Consumo de trAInfit",
+      "ASSISTANT_USAGE_DESC": "Mensajes, ATP y coste estimado del asistente por mes"
     },
     "CONFIRM_RESTART": {
       "HEADER": "Reiniciar Servidor",
@@ -204,7 +206,45 @@
       "ERROR_INVALID_VERSION_WEB": "La versión mínima de Web no tiene un formato válido (X.Y.Z)",
       "PREVIEW_NORMAL": "Ahora mismo: normal, no se muestra nada",
       "PREVIEW_WARNING": "Ahora mismo: aviso previo (banner descartable)",
-      "PREVIEW_ACTIVE": "Ahora mismo: mantenimiento activo (pantalla completa)"
+      "PREVIEW_ACTIVE": "Ahora mismo: mantenimiento activo (pantalla completa)",
+      "SECTION_ASSISTANT": "Asistente trAInfit",
+      "ASSISTANT_ENABLED_LABEL": "Asistente encendido",
+      "ASSISTANT_HINT": "Apagado, la mascota se duerme en las apps y no sale ninguna llamada a la IA.",
+      "ASSISTANT_USAGE_LINK": "Ver consumo"
+    },
+    "ASSISTANT_USAGE": {
+      "LOADING": "Cargando…",
+      "LOAD_ERROR": "No se pudo cargar el consumo del asistente",
+      "PREVIOUS_MONTH": "Mes anterior",
+      "NEXT_MONTH": "Mes siguiente",
+      "NOT_CONFIGURED": "Sin ANTHROPIC_API_KEY en el servidor",
+      "NOT_CONFIGURED_HELP": "El asistente está apagado en las apps hasta que se ponga la clave en el .env y se reinicie la API.",
+      "COST": "Coste estimado",
+      "MESSAGES": "Mensajes",
+      "USERS": "Personas",
+      "ATP": "ATP",
+      "AVG_ATP": "ATP medio por mensaje",
+      "AVG_ATP_SHORT": "Medio",
+      "CACHE_SHARE": "Prompt leído de la caché",
+      "AVG_LATENCY": "Tiempo medio de respuesta",
+      "SECONDS": "{{value}} s",
+      "NOT_UNDERSTOOD": "Respuestas que no valían",
+      "REFUSALS": "Rechazadas por seguridad",
+      "COST_HINT": "Coste calculado con la tarifa de {{model}}. No se guarda el texto de nadie.",
+      "UNPRICED": " {{count}} mensajes de un modelo sin tarifa conocida no suman.",
+      "BY_APP": "Por app",
+      "BY_INTENT": "Por caso",
+      "HISTORY": "Últimos 6 meses",
+      "EMPTY": "Nadie lo ha usado este mes.",
+      "APPS": {
+        "client": "Cliente",
+        "trainer": "Profesional"
+      },
+      "LOCAL": "Resueltas sin IA (0 ATP)",
+      "IMAGES": "Con foto del plato",
+      "FEEDBACK": "Valoraciones",
+      "FEEDBACK_VALUE": "👍 {{up}} · 👎 {{down}}",
+      "DOWN_COUNT": "👎 {{count}}"
     },
     "BILLING": {
       "MODE_LIVE": "Real",

@@ -18,9 +18,16 @@ export interface RemoteConfigForceUpdate {
   message: string;
 }
 
+// Interruptor del asistente trAInfit: apagado, las mascotas duermen y no sale
+// ninguna llamada a la IA.
+export interface RemoteConfigAssistant {
+  enabled: boolean;
+}
+
 export interface RemoteConfig {
   maintenance: RemoteConfigMaintenance;
   forceUpdate: RemoteConfigForceUpdate;
+  assistant?: RemoteConfigAssistant;
   updatedBy: string;
   updatedAt: string;
 }

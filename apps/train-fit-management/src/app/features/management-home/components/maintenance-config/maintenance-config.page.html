@@ -93,6 +93,26 @@
       </ion-card>
     </div>
 
+    <!-- Asistente trAInfit -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+        <span>{{ 'MANAGEMENT.MAINTENANCE.SECTION_ASSISTANT' | translate }}</span>
+      </div>
+
+      <ion-card class="maintenance-card">
+        <div class="maintenance-item toggle-row">
+          <ion-label>{{ 'MANAGEMENT.MAINTENANCE.ASSISTANT_ENABLED_LABEL' | translate }}</ion-label>
+          <ion-toggle [(ngModel)]="assistantEnabled"></ion-toggle>
+        </div>
+        <p class="maintenance-hint">{{ 'MANAGEMENT.MAINTENANCE.ASSISTANT_HINT' | translate }}</p>
+        <ion-button class="maintenance-link" fill="clear" size="small" (click)="goToAssistantUsage()">
+          {{ 'MANAGEMENT.MAINTENANCE.ASSISTANT_USAGE_LINK' | translate }}
+          <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+        </ion-button>
+      </ion-card>
+    </div>
+
     <!-- Guardar -->
     <div class="section-group">
       <ion-button expand="block" [disabled]="saving" (click)="save()">

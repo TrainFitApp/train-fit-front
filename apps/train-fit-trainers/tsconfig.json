@@ -21,6 +21,9 @@
       "src/app/features/exercises/*": [
         "../../packages/shared-features/src/app/features/exercises/*"
       ],
+      "src/app/features/assistant/*": [
+        "../../packages/shared-features/src/app/features/assistant/*"
+      ],
       "src/app/features/premium/*": [
         "../../packages/shared-features/src/app/features/premium/*"
       ],

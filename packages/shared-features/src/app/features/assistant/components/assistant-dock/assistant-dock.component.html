@@ -1,0 +1,62 @@
+<ng-container *ngIf="assistant.visible()">
+  <!-- Menú contraído: solo la mascota -->
+  <button
+    *ngIf="collapsed; else wide"
+    type="button"
+    class="dock-icon"
+    [class.dock-icon--active]="assistant.open()"
+    (click)="toggleChat()"
+    (mouseenter)="greet()"
+    [attr.aria-label]="'ASSISTANT.OPEN' | translate"
+    [attr.aria-expanded]="assistant.open()"
+    [attr.title]="'ASSISTANT.NAME' | translate"
+  >
+    <app-assistant-mascot [mood]="assistant.mood()" [level]="assistant.energy()?.level" [size]="40"></app-assistant-mascot>
+  </button>
+
+  <ng-template #wide>
+    <!-- Oculta: una fila más del menú -->
+    <div class="dock-row" *ngIf="hidden; else full">
+      <button
+        type="button"
+        class="dock-row__main"
+        [class.dock-row__main--active]="assistant.open()"
+        (click)="toggleChat()"
+        [attr.aria-expanded]="assistant.open()"
+      >
+        <app-assistant-mascot [mood]="assistant.mood()" [level]="assistant.energy()?.level" [size]="30"></app-assistant-mascot>
+        <span class="dock-row__name">tr<span class="dock__ai">AI</span>nfit</span>
+      </button>
+      <button type="button" class="dock-row__toggle" (click)="setHidden(false)" [attr.aria-label]="'ASSISTANT.DOCK.SHOW' | translate" [attr.title]="'ASSISTANT.DOCK.SHOW' | translate">
+        <ion-icon name="chevron-up-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+
+    <ng-template #full>
+      <div class="dock" [class.dock--active]="assistant.open()">
+        <button
+          type="button"
+          class="dock__mascot"
+          (click)="toggleChat()"
+          (mouseenter)="greet()"
+          [attr.aria-label]="'ASSISTANT.OPEN' | translate"
+          [attr.aria-expanded]="assistant.open()"
+        >
+          <app-assistant-mascot [mood]="assistant.mood()" [level]="assistant.energy()?.level" [size]="76"></app-assistant-mascot>
+        </button>
+        <div class="dock__meta">
+          <button type="button" class="dock__open" (click)="toggleChat()">
+            <span class="dock__name">tr<span class="dock__ai">AI</span>nfit</span>
+            <span class="dock__hint">{{ hintKey | translate: { date: resetsOn } }}</span>
+          </button>
+          <span class="dock__energy" *ngIf="assistant.energy() as energy" [attr.title]="'ASSISTANT.ENERGY.REMAINING' | translate: { atp: text.number(energy.remaining) }">
+            <span class="dock__energy-fill" [ngClass]="'dock__energy-fill--' + tone" [style.width.%]="energy.level * 100"></span>
+          </span>
+        </div>
+        <button type="button" class="dock__hide" (click)="setHidden(true)" [attr.aria-label]="'ASSISTANT.DOCK.HIDE' | translate" [attr.title]="'ASSISTANT.DOCK.HIDE' | translate">
+          <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </ng-template>
+  </ng-template>
+</ng-container>

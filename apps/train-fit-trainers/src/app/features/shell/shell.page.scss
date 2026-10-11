@@ -211,6 +211,11 @@
   margin-top: auto;
   padding-top: var(--tf-space-4);
   border-top: 1px solid var(--tf-border);
+
+  // El asistente va encima de Configuración, con su aire.
+  app-assistant-dock {
+    margin: 0 0 var(--tf-space-3);
+  }
 }
 
 .footer-user {

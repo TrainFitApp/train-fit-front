@@ -8,6 +8,7 @@ import { DietSuggestionDrawerComponent } from '../../components/diet-suggestion-
 import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
 import { DietTemplate } from '../../models/diet-template.model';
 import { DietTemplateApiService } from '../../services/diet-template-api.service';
+import { targetFromQuery } from 'src/app/features/assistant/assistant-view.util';
 
 // Sugerencias de dieta — "Empezar fase" (ficha del cliente) trae AQUÍ, a la
 // biblioteca de dietas, en vez de pintar la lista rankeada dentro de la
@@ -29,6 +30,9 @@ export class DietPhasePickerPage {
 
   public clientId = '';
   public clientName = this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
+  // Macros con los que arranca el panel (?kcal=&protein=… al llegar desde el
+  // asistente: «dieta para Ana de 2.000 kcal»). Sin ellos, el calculado.
+  private initialTarget: { kcal: number; protein: number; carbs: number; fat: number } | null = null;
 
   private drawer: HTMLIonModalElement | null = null;
 
@@ -56,6 +60,13 @@ export class DietPhasePickerPage {
   public ionViewWillEnter(): void {
     this.clientId = this.route.snapshot.paramMap.get('clientId') || '';
     this.clientName = this.route.snapshot.queryParamMap.get('name') || this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
+    const query = this.route.snapshot.queryParamMap;
+    this.initialTarget = targetFromQuery({
+      kcal: query.get('kcal'),
+      protein: query.get('protein'),
+      carbs: query.get('carbs'),
+      fat: query.get('fat'),
+    });
     this.leaving = false;
     this.closePreview();
     void this.openDrawer();
@@ -103,6 +114,7 @@ export class DietPhasePickerPage {
       componentProps: {
         clientId: this.clientId,
         clientName: this.clientName,
+        initialTarget: this.initialTarget,
       },
     });
     this.drawer = modal;

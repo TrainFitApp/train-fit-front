@@ -1,0 +1,163 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ 'MANAGEMENT.HOME.ASSISTANT_USAGE' | translate }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="usage-content">
+  <div class="usage-sections">
+    <!-- Mes -->
+    <div class="month-switch">
+      <button type="button" class="month-switch__arrow" (click)="shift(-1)" [attr.aria-label]="'MANAGEMENT.ASSISTANT_USAGE.PREVIOUS_MONTH' | translate">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+      <span class="month-switch__label" aria-live="polite">{{ monthLabel(month) }}</span>
+      <button
+        type="button"
+        class="month-switch__arrow"
+        (click)="shift(1)"
+        [disabled]="month >= currentMonth"
+        [attr.aria-label]="'MANAGEMENT.ASSISTANT_USAGE.NEXT_MONTH' | translate"
+      >
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+    </div>
+
+    <p class="state-line" *ngIf="loading && !report" role="status">{{ 'MANAGEMENT.ASSISTANT_USAGE.LOADING' | translate }}</p>
+
+    <ng-container *ngIf="report as data">
+      <div class="usage-card warning-card" *ngIf="!data.status.configured" role="status">
+        <strong>{{ 'MANAGEMENT.ASSISTANT_USAGE.NOT_CONFIGURED' | translate }}</strong>
+        <p>{{ 'MANAGEMENT.ASSISTANT_USAGE.NOT_CONFIGURED_HELP' | translate }}</p>
+      </div>
+
+      <!-- Cifras del mes -->
+      <div class="kpis" [class.kpis--loading]="loading">
+        <div class="kpi kpi--lead">
+          <span class="kpi__value">{{ usd(data.totals.usd) }}</span>
+          <span class="kpi__label">{{ 'MANAGEMENT.ASSISTANT_USAGE.COST' | translate }}</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__value">{{ data.totals.messages | localNumber: '1.0-0' }}</span>
+          <span class="kpi__label">{{ 'MANAGEMENT.ASSISTANT_USAGE.MESSAGES' | translate }}</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__value">{{ data.totals.users | localNumber: '1.0-0' }}</span>
+          <span class="kpi__label">{{ 'MANAGEMENT.ASSISTANT_USAGE.USERS' | translate }}</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__value">{{ data.totals.atp | localNumber: '1.0-0' }}</span>
+          <span class="kpi__label">{{ 'MANAGEMENT.ASSISTANT_USAGE.ATP' | translate }}</span>
+        </div>
+      </div>
+
+      <div class="usage-card">
+        <div class="stat-row">
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.AVG_ATP' | translate }}</span>
+          <strong>{{ data.totals.avgAtp | localNumber: '1.0-0' }}</strong>
+        </div>
+        <div class="stat-row">
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.CACHE_SHARE' | translate }}</span>
+          <strong>{{ percent(data.totals.cacheShare) }}</strong>
+        </div>
+        <div class="stat-row">
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.AVG_LATENCY' | translate }}</span>
+          <strong>{{ 'MANAGEMENT.ASSISTANT_USAGE.SECONDS' | translate: { value: (data.totals.avgLatencyMs / 1000 | localNumber: '1.1-1') } }}</strong>
+        </div>
+        <div class="stat-row" [class.stat-row--alert]="data.totals.notUnderstood > 0">
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.NOT_UNDERSTOOD' | translate }}</span>
+          <strong>{{ data.totals.notUnderstood | localNumber: '1.0-0' }}</strong>
+        </div>
+        <div class="stat-row">
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.REFUSALS' | translate }}</span>
+          <strong>{{ data.totals.refusals | localNumber: '1.0-0' }}</strong>
+        </div>
+        <div class="stat-row">
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.LOCAL' | translate }}</span>
+          <strong>{{ data.totals.local | localNumber: '1.0-0' }}</strong>
+        </div>
+        <div class="stat-row">
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.IMAGES' | translate }}</span>
+          <strong>{{ data.totals.images | localNumber: '1.0-0' }}</strong>
+        </div>
+        <div class="stat-row" [class.stat-row--alert]="data.totals.feedback.down > data.totals.feedback.up">
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.FEEDBACK' | translate }}</span>
+          <strong>{{ 'MANAGEMENT.ASSISTANT_USAGE.FEEDBACK_VALUE' | translate: { up: (data.totals.feedback.up | localNumber: '1.0-0'), down: (data.totals.feedback.down | localNumber: '1.0-0') } }}</strong>
+        </div>
+        <p class="usage-hint">
+          {{ 'MANAGEMENT.ASSISTANT_USAGE.COST_HINT' | translate: { model: data.status.model } }}
+          <ng-container *ngIf="data.totals.unpriced > 0">{{ 'MANAGEMENT.ASSISTANT_USAGE.UNPRICED' | translate: { count: data.totals.unpriced } }}</ng-container>
+        </p>
+      </div>
+
+      <!-- Por app -->
+      <div class="section-header">
+        <ion-icon name="apps-outline"></ion-icon>
+        <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.BY_APP' | translate }}</span>
+      </div>
+      <div class="usage-card">
+        <div class="table-row table-row--head">
+          <span></span>
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.MESSAGES' | translate }}</span>
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.USERS' | translate }}</span>
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.ATP' | translate }}</span>
+        </div>
+        <div class="table-row" *ngFor="let row of data.byApp">
+          <span class="table-row__name">{{ 'MANAGEMENT.ASSISTANT_USAGE.APPS.' + row.app | translate }}</span>
+          <span>{{ row.messages | localNumber: '1.0-0' }}</span>
+          <span>{{ row.users | localNumber: '1.0-0' }}</span>
+          <span>{{ row.atp | localNumber: '1.0-0' }}</span>
+        </div>
+      </div>
+
+      <!-- Por caso -->
+      <div class="section-header">
+        <ion-icon name="list-outline"></ion-icon>
+        <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.BY_INTENT' | translate }}</span>
+      </div>
+      <div class="usage-card">
+        <p class="usage-hint usage-hint--empty" *ngIf="!data.byIntent.length">{{ 'MANAGEMENT.ASSISTANT_USAGE.EMPTY' | translate }}</p>
+        <div class="table-row table-row--head" *ngIf="data.byIntent.length">
+          <span></span>
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.MESSAGES' | translate }}</span>
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.AVG_ATP_SHORT' | translate }}</span>
+          <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.ATP' | translate }}</span>
+        </div>
+        <div class="table-row" *ngFor="let row of data.byIntent">
+          <span class="table-row__name">
+            <code *ngIf="row.intent; else notUnderstood">{{ row.intent }}</code>
+            <ng-template #notUnderstood>{{ 'MANAGEMENT.ASSISTANT_USAGE.NOT_UNDERSTOOD' | translate }}</ng-template>
+            <small class="app-chip">{{ 'MANAGEMENT.ASSISTANT_USAGE.APPS.' + row.app | translate }}</small>
+            <small class="app-chip app-chip--down" *ngIf="row.down">{{ 'MANAGEMENT.ASSISTANT_USAGE.DOWN_COUNT' | translate: { count: row.down } }}</small>
+          </span>
+          <span>{{ row.messages | localNumber: '1.0-0' }}</span>
+          <span>{{ row.avgAtp | localNumber: '1.0-0' }}</span>
+          <span>{{ row.atp | localNumber: '1.0-0' }}</span>
+        </div>
+      </div>
+
+      <!-- Evolución -->
+      <div class="section-header">
+        <ion-icon name="bar-chart-outline"></ion-icon>
+        <span>{{ 'MANAGEMENT.ASSISTANT_USAGE.HISTORY' | translate }}</span>
+      </div>
+      <div class="usage-card">
+        <div class="bar-row" *ngFor="let entry of bars" [class.bar-row--current]="entry.month === data.month">
+          <span class="bar-row__month">{{ shortMonth(entry.month) }}</span>
+          <span class="bar-row__track"><span class="bar-row__fill" [style.width.%]="entry.width"></span></span>
+          <span class="bar-row__value">{{ usd(entry.usd) }}</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>

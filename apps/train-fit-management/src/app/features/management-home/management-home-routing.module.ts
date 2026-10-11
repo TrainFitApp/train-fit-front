@@ -36,6 +36,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'assistant-usage',
+    loadChildren: () =>
+      import('./components/assistant-usage/assistant-usage.module').then(
+        (m) => m.AssistantUsagePageModule
+      ),
+  },
+  {
     path: 'trainer-billing',
     loadChildren: () =>
       import('./components/trainer-billing/trainer-billing.module').then(

@@ -41,6 +41,10 @@ export class ManagementHomePage {
     void this.navController.navigateForward(['/management-home', 'trainer-billing']);
   }
 
+  public goToAssistantUsage(): void {
+    void this.navController.navigateForward(['/management-home', 'assistant-usage']);
+  }
+
   public goBack(): void {
     this.navigationService.goBack();
   }
