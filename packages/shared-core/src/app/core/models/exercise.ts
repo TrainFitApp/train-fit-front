@@ -10,7 +10,10 @@ export class Exercise {
   muscles?: ExerciseMuscle[];
   category?: string[] | string;
   equipment: string[];
-  gifUrl: string;
+  // Imagen animada del catálogo: ruta dentro de la app
+  // ("assets/exercises/<clave>.webp", ver scripts/exercise-images.cjs). Los
+  // ejercicios propios no tienen.
+  imageUrl?: string;
   isCardio?: boolean;
   isIsometric?: boolean;
   userId?: string;

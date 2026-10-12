@@ -699,7 +699,7 @@
 // Versión web (escritorio) — 3 ejercicios por fila en vez de 1 solo,
 // aprovechando el ancho sobrante. La card se queda en fila horizontal
 // (imagen+info+acción en línea, igual que en móvil) con el mismo thumbnail
-// pequeño y cuadrado — un GIF de demostración no es una foto recortable:
+// pequeño y cuadrado — una imagen animada de demostración no es una foto recortable:
 // a todo lo ancho de la celda (banner) el object-fit: cover lo deja
 // desencuadrado. El ancho lo gana el texto, no la imagen.
 @media (min-width: 900px) {

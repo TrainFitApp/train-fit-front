@@ -4,7 +4,8 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ModalController } from '@ionic/angular';
 import { Exercise } from 'src/app/core/models/exercise';
 import { UserService } from 'src/app/core/services/user/user.service';
-import { parseYouTubeId, youTubeEmbedUrl } from '../../utils/youtube-embed';
+import { parseYouTubeId } from 'src/app/core/utils/youtube-id.util';
+import { youTubeEmbedUrl } from 'src/app/core/utils/youtube-embed.util';
 import {
   MUSCLE_ROLES,
   MUSCLE_ROLE_LABEL,

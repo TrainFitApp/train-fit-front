@@ -325,16 +325,6 @@ public enum WorkoutActivityStore {
         return defaults?.data(forKey: imageKey(key)) != nil
     }
 
-    /// Borra las miniaturas que las versiones anteriores dejaron dentro de las
-    /// preferencias. Se vuelven a descargar como ficheros.
-    public static func migrateImagesOutOfDefaults() {
-        guard let defaults = defaults, imagesDirectory != nil else { return }
-        let keys = defaults.dictionaryRepresentation().keys.filter { $0.hasPrefix("liveActivity.image.") }
-        guard !keys.isEmpty else { return }
-        for key in keys { defaults.removeObject(forKey: key) }
-        trace("miniaturas sacadas de preferencias: \(keys.count)")
-    }
-
     // MARK: - Instalación
 
     private static let installStampKey = "liveActivity.installStamp"

@@ -355,26 +355,6 @@ public actor WorkoutSessionMutator {
         }
     }
 
-    /// Pone las miniaturas recién descargadas sobre la sesión **actual** y
-    /// republica. Hacerlo sobre una copia leída antes de la descarga
-    /// devolvía la tarjeta a la serie de hace unos segundos.
-    public func applyImageKeys(_ keysBySet: [String: String], workoutId: String) async {
-        await enqueue {
-            guard var session = WorkoutActivityStore.loadSession(),
-                  session.workoutId == workoutId else { return }
-            var changed = false
-            for index in session.items.indices {
-                guard let key = keysBySet[session.items[index].setId],
-                      session.items[index].imageKey != key else { continue }
-                session.items[index].imageKey = key
-                changed = true
-            }
-            guard changed else { return }
-            WorkoutActivityStore.saveSession(session)
-            await WorkoutLiveActivityController.refresh(session: session)
-        }
-    }
-
     /// Trabajo suelto que toca el App Group (p. ej. borrar acciones
     /// pendientes) sin competir con los botones.
     public func run(_ work: @escaping @Sendable () async -> Void) async {

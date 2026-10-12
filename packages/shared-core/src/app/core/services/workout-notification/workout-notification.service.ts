@@ -160,10 +160,10 @@ export class WorkoutNotificationService {
       name: exerciseName,
       target,
     });
-    const attachments = exercise.exercise?.gifUrl
-      ? [{ id: 'exercise-image', url: exercise.exercise.gifUrl }]
-      : undefined;
-
+    // Sin imagen adjunta: iOS solo adjunta ficheros locales en JPEG, GIF o
+    // PNG, y la imagen del ejercicio es un WebP de la app. Si iOS rechaza un
+    // adjunto, lo hace después de que el plugin haya resuelto y la
+    // notificación se pierde entera.
     try {
       await LocalNotifications.schedule({
         notifications: [
@@ -172,28 +172,12 @@ export class WorkoutNotificationService {
             title: workout.name || this.translate.instant('WORKOUT_NOTIFICATION.WORKOUT'),
             body,
             actionTypeId: SET_ACTION_TYPE_ID,
-            attachments,
             extra: { setId: set._id },
           },
         ],
       });
     } catch {
-      // Un adjunto remoto (gifUrl es una URL http, no un archivo local)
-      // puede fallar en la creación nativa del attachment — reintenta sin
-      // él en vez de dejar al usuario sin notificación.
-      if (attachments) {
-        await LocalNotifications.schedule({
-          notifications: [
-            {
-              id: SET_NOTIFICATION_ID,
-              title: workout.name || this.translate.instant('WORKOUT_NOTIFICATION.WORKOUT'),
-              body,
-              actionTypeId: SET_ACTION_TYPE_ID,
-              extra: { setId: set._id },
-            },
-          ],
-        });
-      }
+      // Sin permiso u otro fallo del sistema: la sesión sigue sin el aviso.
     }
   }
 
