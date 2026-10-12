@@ -18,6 +18,8 @@ import { AssistantTextService } from '../../services/assistant-text.service';
 import { AssistantApiService } from '../../services/assistant-api.service';
 import { chosenFoodTotal, energyTone, validFoodGrams } from '../../assistant-view.util';
 import { shrinkPhoto } from '../../assistant-photo';
+import { AssistantDevMessage, devMessagesFor, isLocalApi } from '../../assistant-dev-messages';
+import { environment } from 'src/environments/environment';
 import {
   AssistantBubble,
   AssistantDietOption,
@@ -255,6 +257,25 @@ export class AssistantChatComponent implements OnInit, AfterViewChecked, OnDestr
   public get quickChips(): string[] {
     const suggested = new Set((this.assistant.state()?.suggestions || []).map((suggestion) => suggestion.intent));
     return (this.assistant.state()?.quickActions || []).filter((intent) => !suggested.has(intent));
+  }
+
+  // En escritorio la rueda del ratón solo mueve en vertical y la barra de los
+  // atajos está oculta: la rueda los desplaza en horizontal.
+  public chipsWheel(event: WheelEvent): void {
+    const row = event.currentTarget as HTMLElement;
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX) || row.scrollWidth <= row.clientWidth) return;
+    event.preventDefault();
+    row.scrollLeft += event.deltaY;
+  }
+
+  /** Mensajes de prueba: solo con la API en localhost (nada en PRE ni PRO). */
+  public readonly devMessages: AssistantDevMessage[] = isLocalApi(environment.API_URL) ? devMessagesFor(this.assistant.app) : [];
+
+  public sendDevMessage(select: HTMLSelectElement): void {
+    const text = select.value;
+    select.value = '';
+    if (!text || !this.canWrite || this.assistant.busy()) return;
+    void this.assistant.send(text);
   }
 
   public suggest(suggestion: AssistantSuggestion): void {

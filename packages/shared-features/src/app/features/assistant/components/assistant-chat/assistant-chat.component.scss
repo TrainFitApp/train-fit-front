@@ -939,6 +939,9 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: 8px;
   scrollbar-width: none;
 
@@ -974,6 +977,29 @@
 .chip--suggestion {
   border-color: rgba(var(--chat-accent-rgb), 0.55);
   background: rgba(var(--chat-accent-rgb), 0.1);
+}
+
+// Selector de mensajes de prueba (solo con la API en localhost).
+.dev-pick {
+  width: 100%;
+  min-height: 34px;
+  margin-bottom: 8px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px dashed rgba(var(--chat-text-rgb), 0.3);
+  background: transparent;
+  color: var(--chat-muted);
+  font: inherit;
+  font-size: 13px;
+
+  &:disabled {
+    opacity: 0.45;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--chat-accent);
+    outline-offset: 1px;
+  }
 }
 
 .chat__status {

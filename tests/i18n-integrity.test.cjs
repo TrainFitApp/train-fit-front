@@ -226,6 +226,12 @@ const DYNAMIC_KEYS = [
   },
   { prefix: 'OBJETIVES.KEYWORD_', layer: 'common', keys: () => ['0', '1', '2'] },
   { prefix: 'MANAGEMENT.MAINTENANCE.PREVIEW_', layer: 'train-fit-management', keys: () => ['NORMAL', 'WARNING', 'ACTIVE'] },
+  // Frases del selector de pruebas del chat (assistant-dev-messages.ts).
+  {
+    prefix: 'ASSISTANT.UI.DEV_MSG_',
+    layer: 'common',
+    keys: () => [...fs.readFileSync(path.join(ROOT, 'packages/shared-features/src/app/features/assistant/assistant-dev-messages.ts'), 'utf8').matchAll(/key: '(\w+)'/g)].map((m) => m[1]),
+  },
   // Consumo del asistente: las dos apps que lo tienen (assistant-usage-report.js#APPS).
   { prefix: 'MANAGEMENT.ASSISTANT_USAGE.APPS.', layer: 'train-fit-management', keys: () => ['client', 'trainer'] },
   {

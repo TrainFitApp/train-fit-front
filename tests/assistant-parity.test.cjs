@@ -79,3 +79,12 @@ test('asistente: cada error de negocio del asistente y de las invitaciones tiene
   assert.ok(thrown.size > 5, 'el escáner no encuentra códigos');
   assert.deepEqual([...thrown].filter((code) => !known.has(code)).sort(), []);
 });
+
+test('mensajes de prueba del selector local: cada uno apunta a un caso del catálogo del back de su app', { skip: !HAS_BACK && 'sin el back al lado' }, async () => {
+  const { INTENTS } = require(path.join(BACK, 'components/assistant/assistant-catalog.js'));
+  const dev = await import(path.join(ROOT, 'packages/shared-features/src/app/features/assistant/assistant-dev-messages.ts'));
+  for (const app of ['client', 'trainer']) {
+    const names = new Set(Object.values(INTENTS).filter((intent) => intent.app === app || intent.app === 'both').map((intent) => intent.name));
+    for (const message of dev.devMessagesFor(app)) assert.ok(names.has(message.intent), `${app}: «${message.key}» apunta a ${message.intent}, que no existe`);
+  }
+});

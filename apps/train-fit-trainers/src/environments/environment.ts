@@ -13,6 +13,8 @@ export const environment = {
   API_URL_BASE_BACKEND: API_URL_BASE,
   API_URL: API_URL_BASE + '/api',
   lang: 'ES',
+  // Asistente trAInfit: false lo oculta en toda la app (ni se pregunta al back).
+  assistantVisible: true,
   auth: {
     clientFamily: 'trainfit-trainers',
     google: {

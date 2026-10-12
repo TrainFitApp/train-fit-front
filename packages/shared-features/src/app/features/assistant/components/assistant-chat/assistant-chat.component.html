@@ -406,7 +406,7 @@
   </div>
 
   <footer class="chat__composer" *ngIf="!assistant.needsConsent()">
-    <div class="chips" *ngIf="assistant.available() && (assistant.state()?.quickActions?.length || assistant.state()?.suggestions?.length)">
+    <div class="chips" (wheel)="chipsWheel($event)" *ngIf="assistant.available() && (assistant.state()?.quickActions?.length || assistant.state()?.suggestions?.length)">
       <!-- Sugerencias del momento (con sus datos) y atajos fijos: ninguno gasta -->
       <button
         type="button"
@@ -427,6 +427,21 @@
         {{ 'ASSISTANT.QUICK.' + intent | translate }}
       </button>
     </div>
+
+    <!-- Solo en local: frases de prueba, una por caso (assistant-dev-messages.ts) -->
+    <select
+      #devPick
+      class="dev-pick"
+      *ngIf="devMessages.length && assistant.available()"
+      [disabled]="!canWrite || assistant.busy()"
+      [attr.aria-label]="'ASSISTANT.UI.DEV_PICK' | translate"
+      (change)="sendDevMessage(devPick)"
+    >
+      <option value="">{{ 'ASSISTANT.UI.DEV_PICK' | translate }}</option>
+      <option *ngFor="let message of devMessages" [value]="'ASSISTANT.UI.DEV_MSG_' + message.key | translate">
+        {{ message.intent }} · {{ 'ASSISTANT.UI.DEV_MSG_' + message.key | translate }}
+      </option>
+    </select>
 
     <p class="chat__status" *ngIf="assistant.available() && tone === 'empty'">
       {{ 'ASSISTANT.ENERGY.EMPTY' | translate: { date: resetsOn } }}
