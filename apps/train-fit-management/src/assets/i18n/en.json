@@ -15,7 +15,9 @@
       "MAINTENANCE": "Maintenance & versions",
       "MAINTENANCE_DESC": "Maintenance mode and forced update",
       "TRAINER_BILLING": "Trainers billing",
-      "TRAINER_BILLING_DESC": "Refunds, disputes and subscription interventions"
+      "TRAINER_BILLING_DESC": "Refunds, disputes and subscription interventions",
+      "ASSISTANT_USAGE": "trAInfit usage",
+      "ASSISTANT_USAGE_DESC": "Assistant messages, ATP and estimated cost per month"
     },
     "CONFIRM_RESTART": {
       "HEADER": "Restart Server",
@@ -204,7 +206,45 @@
       "ERROR_INVALID_VERSION_WEB": "The minimum Web version isn't a valid format (X.Y.Z)",
       "PREVIEW_NORMAL": "Right now: normal, nothing shown",
       "PREVIEW_WARNING": "Right now: pre-warning (dismissable banner)",
-      "PREVIEW_ACTIVE": "Right now: maintenance active (full screen)"
+      "PREVIEW_ACTIVE": "Right now: maintenance active (full screen)",
+      "SECTION_ASSISTANT": "trAInfit assistant",
+      "ASSISTANT_ENABLED_LABEL": "Assistant on",
+      "ASSISTANT_HINT": "When off, the mascot sleeps in the apps and no call reaches the AI.",
+      "ASSISTANT_USAGE_LINK": "See usage"
+    },
+    "ASSISTANT_USAGE": {
+      "LOADING": "Loading…",
+      "LOAD_ERROR": "Couldn't load the assistant usage",
+      "PREVIOUS_MONTH": "Previous month",
+      "NEXT_MONTH": "Next month",
+      "NOT_CONFIGURED": "No ANTHROPIC_API_KEY on the server",
+      "NOT_CONFIGURED_HELP": "The assistant stays off in the apps until the key is set in .env and the API restarts.",
+      "COST": "Estimated cost",
+      "MESSAGES": "Messages",
+      "USERS": "People",
+      "ATP": "ATP",
+      "AVG_ATP": "Average ATP per message",
+      "AVG_ATP_SHORT": "Avg",
+      "CACHE_SHARE": "Prompt read from cache",
+      "AVG_LATENCY": "Average response time",
+      "SECONDS": "{{value}} s",
+      "NOT_UNDERSTOOD": "Unusable replies",
+      "REFUSALS": "Refused for safety",
+      "COST_HINT": "Cost worked out with {{model}}'s pricing. Nobody's text is stored.",
+      "UNPRICED": " {{count}} messages from a model with no known pricing are left out.",
+      "BY_APP": "By app",
+      "BY_INTENT": "By case",
+      "HISTORY": "Last 6 months",
+      "EMPTY": "Nobody used it this month.",
+      "APPS": {
+        "client": "Client",
+        "trainer": "Professional"
+      },
+      "LOCAL": "Answered without AI (0 ATP)",
+      "IMAGES": "With a plate photo",
+      "FEEDBACK": "Ratings",
+      "FEEDBACK_VALUE": "👍 {{up}} · 👎 {{down}}",
+      "DOWN_COUNT": "👎 {{count}}"
     },
     "BILLING": {
       "MODE_LIVE": "Live",

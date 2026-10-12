@@ -1,0 +1,10 @@
+<button
+  type="button"
+  class="mascot-button"
+  *ngIf="assistant.app === 'client' && assistant.visible()"
+  (click)="open($event)"
+  (mouseenter)="greet()"
+  [attr.aria-label]="'ASSISTANT.OPEN' | translate"
+>
+  <app-assistant-mascot [mood]="assistant.mood()" [level]="assistant.energy()?.level" [size]="44"></app-assistant-mascot>
+</button>

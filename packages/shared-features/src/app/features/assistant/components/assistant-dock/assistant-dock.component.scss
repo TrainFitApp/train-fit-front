@@ -1,0 +1,191 @@
+// En el menú lateral de trainers: sus tokens (--tf-*).
+:host {
+  display: block;
+  margin-top: var(--tf-space-3, 12px);
+}
+
+.dock__ai {
+  color: var(--tf-accent, #fe9000);
+}
+
+// --- Completa ------------------------------------------------------------------------
+
+.dock {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3, 12px);
+  padding: var(--tf-space-3, 12px);
+  border-radius: var(--tf-radius-lg, 12px);
+  background: var(--tf-surface-3, #1e1e1e);
+  border: 1px solid var(--tf-border-subtle, rgba(255, 255, 255, 0.08));
+  transition: border-color var(--tf-duration-fast, 120ms) var(--tf-ease-out, ease-out);
+}
+
+.dock--active {
+  border-color: var(--tf-accent-soft-border, rgba(254, 144, 0, 0.4));
+}
+
+.dock__mascot,
+.dock__open,
+.dock__hide,
+.dock-icon,
+.dock-row__main,
+.dock-row__toggle {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent, #fe9000);
+    outline-offset: 2px;
+  }
+}
+
+.dock__mascot {
+  flex: none;
+  padding: 0;
+  border-radius: var(--tf-radius-md, 10px);
+  line-height: 0;
+}
+
+.dock__meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dock__open {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 0;
+  text-align: left;
+}
+
+.dock__name {
+  font-size: var(--tf-font-size-md, 0.95rem);
+  font-weight: 700;
+  color: var(--tf-text, #fff);
+  letter-spacing: 0.02em;
+}
+
+.dock__hint {
+  font-size: var(--tf-font-size-sm, 0.82rem);
+  color: var(--tf-text-muted, #8b8b8b);
+  line-height: 1.3;
+}
+
+.dock__energy {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--tf-surface-5, #252525);
+  overflow: hidden;
+}
+
+.dock__energy-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-accent, #fe9000);
+  transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dock__energy-fill--low {
+  background: var(--tf-warning, #ffc409);
+}
+
+.dock__hide {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--tf-radius-sm, 8px);
+  color: var(--tf-text-muted, #8b8b8b);
+  font-size: 16px;
+
+  &:hover {
+    background: var(--tf-surface-4, #222);
+    color: var(--tf-text, #fff);
+  }
+}
+
+// --- Oculta: una fila del menú --------------------------------------------------------
+
+.dock-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-1, 4px);
+}
+
+.dock-row__main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3, 12px);
+  min-height: 48px;
+  padding: 0 var(--tf-space-3, 12px);
+  border-radius: var(--tf-radius-md, 10px);
+  color: var(--tf-text-secondary, #c7c7c7);
+  text-align: left;
+  transition: background-color var(--tf-duration-fast, 120ms) var(--tf-ease-out, ease-out);
+
+  &:hover {
+    background: var(--tf-surface-3, #1e1e1e);
+    color: var(--tf-text, #fff);
+  }
+}
+
+.dock-row__main--active {
+  background: var(--tf-accent-soft, rgba(254, 144, 0, 0.1));
+  color: var(--tf-text, #fff);
+}
+
+.dock-row__name {
+  font-weight: 600;
+}
+
+.dock-row__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--tf-radius-sm, 8px);
+  color: var(--tf-text-muted, #8b8b8b);
+  font-size: 16px;
+
+  &:hover {
+    background: var(--tf-surface-3, #1e1e1e);
+    color: var(--tf-text, #fff);
+  }
+}
+
+// --- Menú contraído ------------------------------------------------------------------
+
+.dock-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  border-radius: var(--tf-radius-md, 10px);
+
+  &:hover {
+    background: var(--tf-surface-3, #1e1e1e);
+  }
+}
+
+.dock-icon--active {
+  background: var(--tf-accent-soft, rgba(254, 144, 0, 0.1));
+}

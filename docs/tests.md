@@ -1,14 +1,19 @@
 # Tests del front
 
-Estado a **2026-10-01**. La parte del backend está en `train-fit-back/docs/tests.md`.
+Estado a **2026-10-11**. La parte del backend está en `train-fit-back/docs/tests.md`.
+Qué test lleva cada desarrollo: `TrainFit/docs/CONTEXT.md` › «Tests de cada
+desarrollo».
 
 ## Cómo se ejecutan
 
 ```
-npm test                                          # todo: 358 casos
+npm test                                          # todo
 node --experimental-strip-types --test <fichero>  # uno solo
 npm run verify                                    # lint + test (lo que corre el hook pre-push)
 ```
+
+No se apuntan cifras aquí: cambian con cada desarrollo (la última suite
+completa en verde, 744 casos, 2026-10-11 en la rama `trAInfit`).
 
 `npm test` **descubre los ficheros por glob** (`packages/**`, `apps/*/src/**`,
 `tests/**`). No hay lista a mano que mantener, y `tests/test-discovery.test.cjs`
@@ -101,49 +106,34 @@ alguien cambia un lado. Hoy hay dos:
 
 ## Qué está cubierto
 
-| Área | Líneas TS | Ficheros de test |
-|---|---|---|
-| `shared-core/services` | 12801 | 5 |
-| `shared-features/diets` | 13772 | 1 |
-| `shared-features/tables` | 12223 | 1 |
-| `shared-features/coach` | 1217 | 2 |
-| `shared-core/utils` | 620 | 3 |
-| `shared-ui/pipes` | 316 | 1 |
-| `shared-core/models` | 1180 | 1 |
-| `shared-ui/directives` | 55 | 1 |
+95 ficheros de test (2026-10-11). Por zona:
 
-Dentro de esas áreas, lo cubierto es la aritmética nutricional, los totales del
-día, la carrera de creación del día, el pipe de medidas, la tarjeta de comida,
-la edición en línea de la tabla del microciclo, las notificaciones del coach y
-la comparación de microciclos del planificador. El resto de esos miles de líneas
-son componentes de pantalla todavía sin probar.
+| Zona | Ficheros | Qué cubren |
+|---|---|---|
+| `tests/` (raíz) | 10 | Contrato con la API (`api-contract`), integridad de i18n (claves, prefijos dinámicos, capas), paridades con el back (asistente, cuestionario, enlaces de vídeo), descubrimiento de tests |
+| `shared-core` (utils, services, models, interceptors, constants) | 22 | Aritmética nutricional, fechas locales, números, totales del día, RIR, renovación del token |
+| `shared-features` (diets, coach, tables, assistant, checkins, onboarding, auth, supplements) | 18 | Tarjeta de comida, creación del día, tabla del microciclo, notificaciones del coach, utilidades del asistente, check-ins, alta guiada |
+| `shared-ui` (pipes, directives, components, constants) | 7 | Pipes de medidas y números, teclado numérico, catálogos |
+| `train-fit-trainers` | 36 | Plantillas de dieta, ficha del cliente, rutinas, Planner, suscripción, cobros, invitaciones, bandeja «Por revisar» |
+| `train-fit-management` | 2 | Consumo del asistente, facturación de trainers |
+
+Lo que más se prueba es lógica pura (utilidades `*.util.ts`, catálogos y
+servicios) cargada con `ng-harness.cjs`; los componentes de pantalla, poco.
 
 ## Qué NO está cubierto
 
-| Área | Líneas TS | Por qué importa |
-|---|---|---|
-| `shared-ui/components` | 5499 | Teclado numérico, selector de RIR, antropometría, media |
-| `shared-features/profile` | 4897 | Configuración, objetivos nutricionales, editor |
-| `shared-features/authentication` | 2646 | Alta, verificación y recuperación de contraseña |
-| `shared-features/exercises` | 2596 | Buscador de ejercicios y notas del entrenador |
-| `shared-ui/constants` | 1774 | Catálogos de pantalla |
-| `shared-core/models` | 1180 | `rir.ts` ya está cubierto; el resto son tipos |
-| `shared-features/onboarding-status` | 867 | Alta guiada (intake) |
-| `shared-core/constants` | 853 | Traducciones de BD y catálogos |
-| `shared-features/diet-days` | 692 | Peso y medidas del día |
-| `shared-features/checkins` | 628 | Respuesta a check-ins |
-| `shared-features/premium` | 524 | Límites de plan y RevenueCat |
-| Otras 10 áreas | ~2700 | Dolor, suplementos, preferencias, lista de la compra, i18n, validadores |
+Sin ningún test: `shared-features/profile` (configuración, objetivos,
+editor), `shared-features/exercises` (buscador y notas del entrenador),
+`shared-features/premium` (límites de plan y RevenueCat),
+`shared-features/diet-days` (peso y medidas del día), `shared-core/validators`
+y casi todos los componentes de `shared-ui` (selector de RIR, antropometría,
+media).
 
 **Por dónde seguir**, en orden de lo que más duele que falle en silencio:
 
-1. `shared-core/validators` y `shared-core/interceptors` — validación de
-   formularios y renovación del token. Puros o casi.
-2. `shared-features/premium` — decide qué puede hacer cada plan; un fallo abre
+1. `shared-features/premium` — decide qué puede hacer cada plan; un fallo abre
    funciones de pago o bloquea a quien ha pagado.
-3. `shared-ui/components/rir-picker` y `numeric-keypad` — por donde entra lo que
-   el cliente apunta serie a serie. El modelo que hay detrás (`models/rir.ts`)
-   ya está cubierto; falta el componente.
-4. `shared-features/authentication` — verificación y recuperación de contraseña.
-5. `shared-features/checkins` y `onboarding-status` — formularios con reglas por
-   campo.
+2. `shared-core/validators` — validación de formularios. Puro.
+3. `shared-ui/components/rir-picker` — por donde entra lo que el cliente
+   apunta serie a serie (el modelo `models/rir.ts` ya está cubierto).
+4. `shared-features/profile` — objetivos nutricionales y editor del perfil.

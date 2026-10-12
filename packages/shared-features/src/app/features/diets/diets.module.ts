@@ -1,3 +1,4 @@
+import { AssistantModule } from 'src/app/features/assistant/assistant.module';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { NgChartsModule } from 'ng2-charts';
 import { SharedModule } from 'src/app/shared/shared.module';
@@ -29,6 +30,7 @@ import { SupplementSheetComponent } from './components/supplement-sheet/suppleme
   ],
   imports: [
     SharedModule,
+    AssistantModule,
     MacrosBarsModule,
     PautadoItemViewModule,
     QuickAddSheetModule,

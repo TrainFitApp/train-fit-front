@@ -58,6 +58,9 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   @ViewChild('enterSubmitTarget', { read: ElementRef }) public enterSubmitButton?: ElementRef<HTMLButtonElement>;
   @Input() public clientId!: string;
   @Input() public clientName = this.translate.instant('DIET_TEMPLATES.ESTE_CLIENTE');
+  // Macros ya decididos al abrir (el asistente los pone): el panel arranca
+  // en manual con ellos, como si el entrenador los hubiera tecleado.
+  @Input() public initialTarget: { kcal: number; protein: number; carbs: number; fat: number } | null = null;
 
   public state: ViewState = 'loading';
   // Barra de carga bajo la cabecera. Sube en cuanto se toca un filtro (no
@@ -133,6 +136,10 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.session.reset();
+    if (this.initialTarget?.kcal) {
+      this.targetMode = 'manual';
+      this.targetDraft = { ...this.initialTarget };
+    }
     this.subs.add(this.refetch$.pipe(debounceTime(350)).subscribe(() => this.fetch()));
     this.subs.add(
       this.session.selectedId$.subscribe((id) => {

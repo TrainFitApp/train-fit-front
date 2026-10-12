@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { NavController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -18,6 +19,7 @@ type PreviewState = 'normal' | 'warning' | 'active';
 })
 export class MaintenanceConfigPage implements OnInit {
   private readonly navigationService = inject(NavigationService);
+  private readonly navController = inject(NavController);
   private readonly ionicUtil = inject(IonicUtilService);
   private readonly translate = inject(TranslateService);
   private readonly maintenanceApi = inject(MaintenanceConfigApiService);
@@ -43,6 +45,8 @@ export class MaintenanceConfigPage implements OnInit {
   public minVersionWeb = '';
   public forceUpdateMessage = '';
 
+  public assistantEnabled = true;
+
   public updatedBy = '';
   public updatedAt = '';
 
@@ -52,6 +56,10 @@ export class MaintenanceConfigPage implements OnInit {
 
   public goBack(): void {
     this.navigationService.goBack();
+  }
+
+  public goToAssistantUsage(): void {
+    void this.navController.navigateForward(['/management-home', 'assistant-usage']);
   }
 
   public loadConfig(): void {
@@ -83,6 +91,8 @@ export class MaintenanceConfigPage implements OnInit {
     this.minVersionAndroid = forceUpdate.minVersionAndroid || '';
     this.minVersionWeb = forceUpdate.minVersionWeb || '';
     this.forceUpdateMessage = forceUpdate.message || '';
+    // Sin el campo (configuración de antes), encendido.
+    this.assistantEnabled = config?.assistant?.enabled !== false;
 
     this.updatedBy = config?.updatedBy || '';
     this.updatedAt = config?.updatedAt || '';
@@ -200,6 +210,7 @@ export class MaintenanceConfigPage implements OnInit {
         minVersionWeb: this.minVersionWeb,
         message: this.forceUpdateMessage,
       },
+      assistant: { enabled: this.assistantEnabled },
     };
 
     this.maintenanceApi.updateConfig(patch).subscribe({

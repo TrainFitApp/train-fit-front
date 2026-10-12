@@ -95,6 +95,19 @@
         </div>
       </ion-card>
 
+      <ion-card class="management-card" (click)="goToAssistantUsage()" tappable>
+        <div class="management-item">
+          <div class="item-icon-container users-icon">
+            <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'MANAGEMENT.HOME.ASSISTANT_USAGE' | translate }}</h3>
+            <p>{{ 'MANAGEMENT.HOME.ASSISTANT_USAGE_DESC' | translate }}</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+        </div>
+      </ion-card>
+
       <ion-card class="management-card" (click)="confirmRestart()" tappable>
         <div class="management-item">
           <div class="item-icon-container restart-icon">

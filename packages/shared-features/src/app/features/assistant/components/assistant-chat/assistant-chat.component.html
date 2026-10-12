@@ -1,0 +1,483 @@
+<section class="chat" [class.chat--panel]="layout === 'panel'" [attr.aria-label]="'ASSISTANT.NAME' | translate">
+  <header class="chat__header">
+    <app-assistant-mascot
+      class="chat__mascot"
+      [mood]="assistant.mood()"
+      [level]="level"
+      [size]="56"
+      [label]="'ASSISTANT.MASCOT_LABEL' | translate: { percent: text.number(level * 100) }"
+    ></app-assistant-mascot>
+
+    <div class="chat__heading">
+      <h2 class="chat__name">tr<span class="chat__ai">AI</span>nfit</h2>
+      <button
+        type="button"
+        class="energy"
+        *ngIf="assistant.energy() as energy"
+        (click)="toggleEnergy()"
+        [attr.aria-expanded]="showEnergy"
+        [attr.aria-label]="'ASSISTANT.ENERGY.OPEN' | translate"
+      >
+        <span class="energy__track" aria-hidden="true">
+          <span class="energy__fill" [ngClass]="'energy__fill--' + tone" [style.width.%]="level * 100"></span>
+        </span>
+        <span class="energy__value">{{ 'ASSISTANT.ENERGY.REMAINING' | translate: { atp: text.number(energy.remaining) } }}</span>
+        <span class="energy__cost" *ngIf="assistant.lastCost() as cost">{{ 'ASSISTANT.ENERGY.COST' | translate: { atp: text.number(cost) } }}</span>
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="chat__icon"
+      *ngIf="assistant.bubbles().length"
+      (click)="reset()"
+      [attr.aria-label]="'ASSISTANT.RESET' | translate"
+      [attr.title]="'ASSISTANT.RESET' | translate"
+    >
+      <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+    </button>
+    <button type="button" class="chat__icon" (click)="closed.emit()" [attr.aria-label]="'ASSISTANT.CLOSE' | translate">
+      <ion-icon [name]="layout === 'panel' ? 'chevron-down-outline' : 'close'" aria-hidden="true"></ion-icon>
+    </button>
+  </header>
+
+  <!-- Energía: qué es el ATP, cuándo se recarga e invitar -->
+  <div class="energy-panel" *ngIf="showEnergy && assistant.energy() as energy">
+    <p class="energy-panel__figure">
+      <strong>{{ text.number(energy.remaining) }}</strong>
+      <span>{{ 'ASSISTANT.ENERGY.OF' | translate: { atp: text.number(energy.allowance) } }}</span>
+    </p>
+    <p class="energy-panel__line">{{ 'ASSISTANT.ENERGY.RESETS' | translate: { date: resetsOn } }}</p>
+    <p class="energy-panel__line" *ngIf="energy.today as today">{{ 'ASSISTANT.ENERGY.TODAY' | translate: { atp: text.number(today.remaining) } }}</p>
+    <p class="energy-panel__line" *ngIf="energy.bonus > 0">{{ 'ASSISTANT.ENERGY.BONUS' | translate: { atp: text.number(energy.bonus) } }}</p>
+    <p class="energy-panel__explain">{{ 'ASSISTANT.ENERGY.EXPLAIN' | translate }}</p>
+
+    <div class="invite" *ngIf="referral">
+      <h3 class="invite__title">{{ 'ASSISTANT.INVITE.TITLE' | translate }}</h3>
+      <p class="invite__body">{{ 'ASSISTANT.INVITE.BODY' | translate: { atp: text.number(referral.bonusAtp) } }}</p>
+      <div class="invite__code">
+        <span class="invite__code-value">{{ referral.code }}</span>
+        <button type="button" class="chat-button chat-button--ghost" (click)="copyCode()">
+          {{ (copied ? 'ASSISTANT.INVITE.COPIED' : 'ASSISTANT.INVITE.SHARE') | translate }}
+        </button>
+      </div>
+      <p class="invite__line" *ngIf="referral.invited > 0">{{ 'ASSISTANT.INVITE.INVITED' | translate: { count: text.number(referral.invited) } }}</p>
+
+      <form class="invite__redeem" *ngIf="referral.canRedeem" (ngSubmit)="redeem()">
+        <label class="invite__label" for="tf-redeem-code">{{ 'ASSISTANT.INVITE.REDEEM' | translate }}</label>
+        <div class="invite__redeem-row">
+          <input
+            id="tf-redeem-code"
+            name="redeemCode"
+            class="invite__input"
+            [(ngModel)]="redeemCode"
+            autocomplete="off"
+            autocapitalize="characters"
+            maxlength="12"
+            [placeholder]="'ASSISTANT.INVITE.REDEEM_PLACEHOLDER' | translate"
+          />
+          <button type="submit" class="chat-button" [disabled]="!redeemCode.trim()">{{ 'ASSISTANT.INVITE.REDEEM_ACTION' | translate }}</button>
+        </div>
+      </form>
+      <p class="invite__result" *ngIf="redeemMessage" [class.invite__result--error]="redeemError" role="status">{{ redeemMessage }}</p>
+    </div>
+  </div>
+
+  <div class="chat__scroll" #scroll>
+    <!-- Primera vez: qué hace y cómo trata lo que escribes -->
+    <div class="consent" *ngIf="assistant.needsConsent(); else conversation">
+      <h3 class="consent__title">{{ 'ASSISTANT.CONSENT.TITLE' | translate }}</h3>
+      <p>{{ (assistant.app === 'trainer' ? 'ASSISTANT.CONSENT.BODY_TRAINER' : 'ASSISTANT.CONSENT.BODY_CLIENT') | translate }}</p>
+      <p class="consent__privacy">{{ 'ASSISTANT.CONSENT.PRIVACY' | translate }}</p>
+      <button type="button" class="chat-button chat-button--wide" [disabled]="accepting" (click)="accept()">
+        {{ 'ASSISTANT.CONSENT.ACCEPT' | translate }}
+      </button>
+    </div>
+
+    <ng-template #conversation>
+      <p class="chat__greeting" *ngIf="!assistant.bubbles().length">
+        {{ greetingKey | translate }}
+      </p>
+
+      <div
+        *ngFor="let bubble of assistant.bubbles(); trackBy: trackById"
+        class="bubble"
+        [class.bubble--user]="bubble.from === 'user'"
+        [class.bubble--error]="!!bubble.error"
+      >
+        <img class="bubble__photo" *ngIf="bubble.photo" [src]="bubble.photo" [alt]="'ASSISTANT.UI.PHOTO_SENT' | translate" />
+        <p class="bubble__text" *ngIf="bubble.from === 'user'">{{ bubble.text }}</p>
+        <p class="bubble__text" *ngIf="bubble.error">{{ bubble.error }}</p>
+
+        <ng-container *ngIf="bubble.turn as turn">
+          <p class="bubble__text" *ngIf="turn.kind === 'text'">{{ turn.text }}</p>
+          <p class="bubble__text" *ngIf="turn.message">{{ text.message(turn.message) }}</p>
+
+          <!-- Datos de un resumen (semana, cliente, lista de la compra…) -->
+          <ul class="data-lines" *ngIf="turn.lines?.length">
+            <li *ngFor="let line of turn.lines">{{ text.line(line) }}</li>
+          </ul>
+
+          <!-- Datos: el día (comido frente al objetivo) -->
+          <div class="data-card" *ngIf="turn.data?.totals as totals">
+            <div class="macro-row">
+              <span class="macro macro--kcal">
+                <strong>{{ text.number(totals.kcal) }}</strong>
+                <small *ngIf="turn.data.goal">/ {{ text.number(turn.data.goal.kcal) }}</small>
+                kcal
+              </span>
+              <span class="macro" *ngFor="let key of macroKeys" [ngClass]="'macro--' + key">
+                <strong>{{ text.number(totals[key]) }}</strong>
+                <small *ngIf="turn.data.goal">/ {{ text.number(turn.data.goal[key]) }}</small>
+                {{ 'ASSISTANT.MACROS.' + key | translate }}
+              </span>
+            </div>
+            <div class="meter" *ngIf="turn.data.goal" aria-hidden="true">
+              <span class="meter__fill" [style.width.%]="share(totals.kcal, turn.data.goal.kcal)"></span>
+            </div>
+          </div>
+
+          <!-- Datos: macros de un alimento -->
+          <div class="data-card" *ngIf="turn.data?.macros as macros">
+            <p class="data-card__title">
+              {{ turn.data.food.name }}<span *ngIf="turn.data.food.brand"> · {{ turn.data.food.brand }}</span>
+              <small>{{ 'ASSISTANT.UNITS.GRAMS' | translate: { grams: text.number(turn.data.grams) } }}</small>
+            </p>
+            <div class="macro-row">
+              <span class="macro macro--kcal"><strong>{{ text.number(macros.kcal) }}</strong> kcal</span>
+              <span class="macro" *ngFor="let key of macroKeys" [ngClass]="'macro--' + key">
+                <strong>{{ text.number(macros[key], 1) }}</strong> {{ 'ASSISTANT.MACROS.' + key | translate }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Vista previa: lo que se va a guardar al CONFIRMAR -->
+          <div class="preview" *ngIf="turn.kind === 'preview' && turn.preview as preview" [class.preview--settled]="!!bubble.settled">
+            <ng-container [ngSwitch]="turn.action?.intent">
+              <!-- Apuntar comida -->
+              <ng-container *ngSwitchCase="'log_food'">
+                <p class="preview__meta">{{ text.meal(preview.meal || '') }} · {{ text.day(preview.date || '') }}</p>
+                <p class="preview__note preview__note--lead" *ngIf="hasFoodAlternatives(bubble)">{{ 'ASSISTANT.PREVIEW.SWAP_HINT' | translate }}</p>
+                <ul class="preview__list">
+                  <li *ngFor="let item of foodLines(bubble); let line = index" class="food-line">
+                    <div class="preview__item preview__item--food" *ngIf="item.options[foodPick(bubble, line)] || item.options[0] as chosen">
+                      <span class="preview__item-name">
+                        {{ chosen.name }}<span class="preview__brand" *ngIf="chosen.brand"> · {{ chosen.brand }}</span>
+                        <small *ngIf="item.estimated || item.assumed" class="preview__tag">{{ (item.estimated ? 'ASSISTANT.PREVIEW.ESTIMATED' : 'ASSISTANT.PREVIEW.ASSUMED') | translate }}</small>
+                      </span>
+                      <span class="preview__item-figure preview__item-figure--kcal">{{ text.number(foodKcal(bubble, line, chosen.kcal)) }} kcal</span>
+                      <span class="grams" *ngIf="!bubble.settled; else gramsFixed">
+                        <button
+                          type="button"
+                          class="grams__step"
+                          (click)="stepFood(bubble, line, -1)"
+                          [attr.aria-label]="'ASSISTANT.UI.GRAMS_LESS' | translate: { food: chosen.name }"
+                        >
+                          <ion-icon name="remove" aria-hidden="true"></ion-icon>
+                        </button>
+                        <input
+                          class="grams__input"
+                          type="number"
+                          inputmode="numeric"
+                          min="1"
+                          max="3000"
+                          [value]="foodGrams(bubble, line)"
+                          (change)="setFoodGrams(bubble, line, $any($event.target).value)"
+                          [attr.aria-label]="'ASSISTANT.UI.GRAMS_INPUT' | translate: { food: chosen.name }"
+                        />
+                        <span class="grams__unit" aria-hidden="true">g</span>
+                        <button
+                          type="button"
+                          class="grams__step"
+                          (click)="stepFood(bubble, line, 1)"
+                          [attr.aria-label]="'ASSISTANT.UI.GRAMS_MORE' | translate: { food: chosen.name }"
+                        >
+                          <ion-icon name="add" aria-hidden="true"></ion-icon>
+                        </button>
+                      </span>
+                      <ng-template #gramsFixed>
+                        <span class="preview__item-figure grams">{{ 'ASSISTANT.UNITS.GRAMS' | translate: { grams: text.number(foodGrams(bubble, line)) } }}</span>
+                      </ng-template>
+                    </div>
+                    <!-- Otros productos del buscador para lo que dijo: si no era ese, se cambia aquí -->
+                    <div
+                      class="food-line__options"
+                      role="radiogroup"
+                      *ngIf="item.options.length > 1 && !bubble.settled"
+                      [attr.aria-label]="'ASSISTANT.PREVIEW.FOOD_OPTIONS' | translate: { food: item.food }"
+                    >
+                      <button
+                        type="button"
+                        role="radio"
+                        *ngFor="let option of item.options; let index = index"
+                        class="food-chip"
+                        [class.food-chip--selected]="foodPick(bubble, line) === index"
+                        [attr.aria-checked]="foodPick(bubble, line) === index"
+                        (click)="pickFood(bubble, line, index)"
+                      >
+                        <span class="food-chip__name">{{ option.name }}</span>
+                        <span class="food-chip__kcal">{{ text.number(option.kcal) }} kcal</span>
+                      </button>
+                    </div>
+                  </li>
+                </ul>
+                <p class="preview__note" *ngIf="preview.missing?.length">
+                  {{ 'ASSISTANT.PREVIEW.MISSING' | translate: { foods: preview.missing?.join(', ') } }}
+                </p>
+                <div class="macro-row macro-row--total" *ngIf="foodTotal(bubble) as total">
+                  <span class="macro macro--kcal"><strong>{{ text.number(total.kcal) }}</strong> kcal</span>
+                  <span class="macro" *ngFor="let key of macroKeys" [ngClass]="'macro--' + key">
+                    <strong>{{ text.number(total[key]) }}</strong> {{ 'ASSISTANT.MACROS.' + key | translate }}
+                  </span>
+                </div>
+              </ng-container>
+
+              <!-- Dieta con sus macros -->
+              <ng-container *ngSwitchCase="'build_diet'">
+                <p class="preview__meta" *ngIf="preview.target as target">
+                  {{ 'ASSISTANT.PREVIEW.TARGET' | translate: { kcal: text.number(target.kcal), protein: text.number(target.protein), carbs: text.number(target.carbs), fat: text.number(target.fat) } }}
+                  · {{ 'ASSISTANT.PREVIEW.RANGE' | translate: { start: text.day(preview.startDate || ''), end: text.day(preview.endDate || '') } }}
+                </p>
+                <div class="options" role="radiogroup" [attr.aria-label]="'ASSISTANT.PREVIEW.CHOOSE' | translate">
+                  <button
+                    type="button"
+                    role="radio"
+                    *ngFor="let option of dietOptions(bubble); let index = index"
+                    class="option"
+                    [class.option--selected]="choiceOf(bubble).option === index"
+                    [attr.aria-checked]="choiceOf(bubble).option === index"
+                    [disabled]="!!bubble.settled"
+                    (click)="pick(bubble, index)"
+                  >
+                    <span class="option__mark" aria-hidden="true"></span>
+                    <span class="option__body">
+                      <span class="option__name">{{ option.name }}</span>
+                      <span class="macro-row macro-row--compact">
+                        <span class="macro macro--kcal"><strong>{{ text.number(option.kcal) }}</strong> kcal</span>
+                        <span class="macro" *ngFor="let key of macroKeys" [ngClass]="'macro--' + key">
+                          <strong>{{ text.number(option[key]) }}</strong> {{ 'ASSISTANT.MACROS.' + key | translate }}
+                        </span>
+                      </span>
+                      <span class="option__note" *ngIf="option.missingFlags.length">
+                        {{ 'ASSISTANT.PREVIEW.NOT_SUITABLE' | translate: { flags: flagLabels(option.missingFlags) } }}
+                      </span>
+                    </span>
+                  </button>
+                </div>
+                <label class="preview__check" *ngIf="preview.setGoal">
+                  <input
+                    type="checkbox"
+                    [ngModel]="choiceOf(bubble).setGoal"
+                    (ngModelChange)="setGoalChoice(bubble, $event)"
+                    [disabled]="!!bubble.settled"
+                  />
+                  {{ 'ASSISTANT.PREVIEW.SET_GOAL' | translate }}
+                </label>
+                <p class="preview__note">{{ 'ASSISTANT.PREVIEW.ONLY_EMPTY' | translate }}</p>
+              </ng-container>
+
+              <!-- Rutina -->
+              <ng-container *ngSwitchCase="'create_routine'">
+                <div class="options" role="radiogroup" [attr.aria-label]="'ASSISTANT.PREVIEW.CHOOSE' | translate">
+                  <button
+                    type="button"
+                    role="radio"
+                    *ngFor="let option of routineOptions(bubble); let index = index"
+                    class="option"
+                    [class.option--selected]="choiceOf(bubble).option === index"
+                    [attr.aria-checked]="choiceOf(bubble).option === index"
+                    [disabled]="!!bubble.settled"
+                    (click)="pick(bubble, index)"
+                  >
+                    <span class="option__mark" aria-hidden="true"></span>
+                    <span class="option__body">
+                      <span class="option__name">{{ option.name }}</span>
+                      <span class="option__note">
+                        {{ 'ASSISTANT.PREVIEW.ROUTINE_SHAPE' | translate: { days: text.number(option.daysPerWeek), weeks: text.number(option.weeks) } }}
+                      </span>
+                    </span>
+                  </button>
+                </div>
+              </ng-container>
+
+              <!-- El resto: objetivo, peso, suplemento, líneas de datos y, si hay que elegir, opciones -->
+              <ng-container *ngSwitchDefault>
+                <div class="macro-row macro-row--total" *ngIf="preview.goal as goal">
+                  <span class="macro macro--kcal"><strong>{{ text.number(goal.kcal) }}</strong> kcal</span>
+                  <span class="macro" *ngFor="let key of macroKeys" [ngClass]="'macro--' + key">
+                    <strong>{{ text.number(goal[key]) }}</strong> {{ 'ASSISTANT.MACROS.' + key | translate }}
+                  </span>
+                </div>
+                <p class="preview__figure" *ngIf="preview.kg">
+                  <strong>{{ text.number(preview.kg, 1) }} kg</strong> · {{ text.day(preview.date || '') }}
+                </p>
+                <p class="preview__figure" *ngIf="preview.supplement as supplement">
+                  <strong>{{ supplement.name }}</strong> · {{ supplement.dose }} · {{ timingLabel(supplement.timing) }}
+                </p>
+                <ul class="data-lines data-lines--preview" *ngIf="preview.lines?.length">
+                  <li *ngFor="let line of preview.lines">{{ text.line(line) }}</li>
+                </ul>
+                <div class="options" role="radiogroup" *ngIf="preview.choices?.length" [attr.aria-label]="'ASSISTANT.PREVIEW.CHOOSE' | translate">
+                  <button
+                    type="button"
+                    role="radio"
+                    *ngFor="let option of preview.choices; let index = index"
+                    class="option"
+                    [class.option--selected]="choiceOf(bubble).option === index"
+                    [attr.aria-checked]="choiceOf(bubble).option === index"
+                    [disabled]="!!bubble.settled"
+                    (click)="pick(bubble, index)"
+                  >
+                    <span class="option__mark" aria-hidden="true"></span>
+                    <span class="option__body">
+                      <span class="option__name">{{ option.label ? text.line(option.label) : option.name }}</span>
+                      <span class="macro-row macro-row--compact" *ngIf="option.macros as macros">
+                        <span class="macro" *ngIf="option.grams">{{ 'ASSISTANT.UNITS.GRAMS' | translate: { grams: text.number(option.grams) } }}</span>
+                        <span class="macro macro--kcal"><strong>{{ text.number(macros.kcal) }}</strong> kcal</span>
+                        <span class="macro" *ngFor="let key of macroKeys" [ngClass]="'macro--' + key">
+                          <strong>{{ text.number(macros[key]) }}</strong> {{ 'ASSISTANT.MACROS.' + key | translate }}
+                        </span>
+                      </span>
+                    </span>
+                  </button>
+                </div>
+              </ng-container>
+            </ng-container>
+
+            <div class="preview__actions" *ngIf="!bubble.settled; else settledState">
+              <button type="button" class="chat-button chat-button--ghost" [disabled]="assistant.busy()" (click)="discard(bubble)">
+                {{ 'ASSISTANT.PREVIEW.DISCARD' | translate }}
+              </button>
+              <button type="button" class="chat-button" [disabled]="assistant.busy()" (click)="confirm(bubble)">
+                {{ 'ASSISTANT.PREVIEW.CONFIRM' | translate }}
+              </button>
+            </div>
+            <ng-template #settledState>
+              <p class="preview__state">{{ settledKey(bubble) | translate }}</p>
+            </ng-template>
+          </div>
+
+          <!-- Botones del turno -->
+          <div class="links" *ngIf="turn.links?.length">
+            <button type="button" class="chat-button chat-button--ghost" *ngFor="let link of turn.links" (click)="follow(link)">
+              {{ text.link(link) }}
+            </button>
+          </div>
+
+          <!-- Lo recién hecho se puede deshacer un rato -->
+          <div class="links" *ngIf="turn.undo && !bubble.undone">
+            <button type="button" class="chat-button chat-button--ghost" [disabled]="assistant.busy()" (click)="undo(bubble)">
+              <ion-icon name="arrow-undo-outline" aria-hidden="true"></ion-icon>
+              {{ 'ASSISTANT.UI.UNDO' | translate }}
+            </button>
+          </div>
+
+          <!-- ¿Le ha servido? -->
+          <div class="rate" *ngIf="turn.ref">
+            <button
+              type="button"
+              class="rate__button"
+              [class.rate__button--on]="bubble.feedback === 'up'"
+              [attr.aria-pressed]="bubble.feedback === 'up'"
+              [attr.aria-label]="'ASSISTANT.UI.FEEDBACK_UP' | translate"
+              (click)="rate(bubble, 'up')"
+            >
+              <ion-icon [name]="bubble.feedback === 'up' ? 'thumbs-up' : 'thumbs-up-outline'" aria-hidden="true"></ion-icon>
+            </button>
+            <button
+              type="button"
+              class="rate__button"
+              [class.rate__button--on]="bubble.feedback === 'down'"
+              [attr.aria-pressed]="bubble.feedback === 'down'"
+              [attr.aria-label]="'ASSISTANT.UI.FEEDBACK_DOWN' | translate"
+              (click)="rate(bubble, 'down')"
+            >
+              <ion-icon [name]="bubble.feedback === 'down' ? 'thumbs-down' : 'thumbs-down-outline'" aria-hidden="true"></ion-icon>
+            </button>
+            <span class="rate__thanks" *ngIf="bubble.feedback" role="status">{{ 'ASSISTANT.UI.FEEDBACK_THANKS' | translate }}</span>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="bubble bubble--typing" *ngIf="assistant.busy()" role="status" [attr.aria-label]="'ASSISTANT.THINKING' | translate">
+        <span></span><span></span><span></span>
+      </div>
+    </ng-template>
+  </div>
+
+  <footer class="chat__composer" *ngIf="!assistant.needsConsent()">
+    <div class="chips" *ngIf="assistant.available() && (assistant.state()?.quickActions?.length || assistant.state()?.suggestions?.length)">
+      <!-- Sugerencias del momento (con sus datos) y atajos fijos: ninguno gasta -->
+      <button
+        type="button"
+        class="chip chip--suggestion"
+        *ngFor="let suggestion of assistant.state()?.suggestions"
+        [disabled]="assistant.busy()"
+        (click)="suggest(suggestion)"
+      >
+        {{ text.suggestion(suggestion) }}
+      </button>
+      <button
+        type="button"
+        class="chip"
+        *ngFor="let intent of quickChips"
+        [disabled]="assistant.busy()"
+        (click)="quick(intent)"
+      >
+        {{ 'ASSISTANT.QUICK.' + intent | translate }}
+      </button>
+    </div>
+
+    <p class="chat__status" *ngIf="assistant.available() && tone === 'empty'">
+      {{ 'ASSISTANT.ENERGY.EMPTY' | translate: { date: resetsOn } }}
+    </p>
+
+    <form class="composer" (ngSubmit)="send()">
+      <input #photoInput class="composer__file" type="file" accept="image/*" capture="environment" (change)="sendPhoto($event)" tabindex="-1" aria-hidden="true" />
+      <button
+        type="button"
+        class="composer__tool"
+        *ngIf="assistant.canSendPhoto()"
+        [disabled]="!canWrite || assistant.busy()"
+        (click)="photoInput.click()"
+        [attr.aria-label]="'ASSISTANT.UI.PHOTO' | translate"
+      >
+        <ion-icon name="camera-outline" aria-hidden="true"></ion-icon>
+      </button>
+      <textarea
+        #input
+        name="draft"
+        class="composer__input"
+        rows="1"
+        maxlength="500"
+        [(ngModel)]="draft"
+        [disabled]="!canWrite"
+        [placeholder]="(assistant.app === 'trainer' ? 'ASSISTANT.PLACEHOLDER_TRAINER' : 'ASSISTANT.PLACEHOLDER_CLIENT') | translate"
+        [attr.aria-label]="'ASSISTANT.INPUT_LABEL' | translate"
+        (keydown.enter)="onEnter($event)"
+        (input)="autosize()"
+      ></textarea>
+      <button
+        type="button"
+        class="composer__tool"
+        *ngIf="speechSupported && !draft.trim()"
+        [class.composer__tool--live]="listening"
+        [disabled]="!canWrite"
+        (click)="toggleDictation()"
+        [attr.aria-pressed]="listening"
+        [attr.aria-label]="(listening ? 'ASSISTANT.UI.MIC_LISTENING' : 'ASSISTANT.UI.MIC') | translate"
+      >
+        <ion-icon [name]="listening ? 'stop' : 'mic-outline'" aria-hidden="true"></ion-icon>
+      </button>
+      <button
+        type="submit"
+        class="composer__send"
+        [disabled]="!draft.trim() || !canWrite || assistant.busy()"
+        [attr.aria-label]="'ASSISTANT.SEND' | translate"
+      >
+        <ion-icon name="arrow-up" aria-hidden="true"></ion-icon>
+      </button>
+    </form>
+    <p class="composer__count" *ngIf="draft.length > 400">{{ text.number(500 - draft.length) }}</p>
+  </footer>
+</section>

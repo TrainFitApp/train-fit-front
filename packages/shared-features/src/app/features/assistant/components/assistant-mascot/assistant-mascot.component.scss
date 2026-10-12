@@ -1,0 +1,221 @@
+// La mascota tiene colores propios (es un personaje, no una superficie del
+// tema): cuerpo de acero oscuro, la carga en el naranja de la marca. Se ve
+// igual sobre la cabecera oscura de la app y sobre el menú de trainers.
+:host {
+  display: inline-block;
+  flex-shrink: 0;
+  line-height: 0;
+
+  --mascot-plate-outer: #1c1c20;
+  --mascot-plate: #2a2a30;
+  --mascot-rim: rgba(255, 255, 255, 0.14);
+  --mascot-collar: #4a4a52;
+  --mascot-bar: #35353c;
+  --mascot-charge: var(--ion-color-primary, #fe9000);
+  --mascot-eye: #ffffff;
+  --mascot-pupil: #141414;
+  --mascot-mouth: var(--ion-color-primary, #fe9000);
+}
+
+.mascot {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.mascot__plate-outer {
+  fill: var(--mascot-plate-outer);
+  stroke: var(--mascot-rim);
+  stroke-width: 0.8;
+}
+
+.mascot__plate {
+  fill: var(--mascot-plate);
+  stroke: var(--mascot-rim);
+  stroke-width: 0.8;
+}
+
+.mascot__charge {
+  fill: var(--mascot-charge);
+  transition:
+    y 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    height 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mascot__shine {
+  fill: rgba(255, 255, 255, 0.12);
+}
+
+.mascot__collar {
+  fill: var(--mascot-collar);
+}
+
+.mascot__bar {
+  fill: var(--mascot-bar);
+  stroke: var(--mascot-rim);
+  stroke-width: 0.8;
+}
+
+.mascot__eye {
+  fill: var(--mascot-eye);
+}
+
+.mascot__pupil {
+  fill: var(--mascot-pupil);
+}
+
+.mascot__glint {
+  fill: var(--mascot-eye);
+}
+
+.mascot__eye-arc,
+.mascot__mouth,
+.mascot__z {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mascot__eye-arc {
+  stroke: var(--mascot-eye);
+  stroke-width: 1.9;
+}
+
+.mascot__mouth {
+  stroke: var(--mascot-mouth);
+  stroke-width: 1.7;
+}
+
+.mascot__mouth-open,
+.mascot__mouth-dot {
+  fill: var(--mascot-mouth);
+}
+
+.mascot__drop {
+  fill: rgba(255, 255, 255, 0.85);
+}
+
+.mascot__z {
+  stroke: var(--mascot-eye);
+  stroke-width: 1.2;
+}
+
+// --- Movimiento: solo de estado ---------------------------------------------------
+
+.mascot__body,
+.mascot__eyes,
+.mascot__z {
+  transform-box: fill-box;
+}
+
+.mascot__eyes {
+  transform-origin: 50% 50%;
+}
+
+.mascot__body {
+  transform-origin: 50% 80%;
+}
+
+// Parpadeo de vez en cuando, en reposo y cansada.
+.mascot--idle .mascot__eyes,
+.mascot--tired .mascot__eyes {
+  animation: tf-mascot-blink 6.2s infinite;
+}
+
+.mascot--tired .mascot__eyes {
+  animation-duration: 4.2s;
+}
+
+// Pensando: hace series (sube y baja la mancuerna).
+.mascot--thinking .mascot__body {
+  animation: tf-mascot-rep 0.8s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+
+// Hecho: un salto.
+.mascot--happy .mascot__body {
+  animation: tf-mascot-pop 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+// Saludo al tocarla.
+.mascot--waving .mascot__body {
+  animation: tf-mascot-wave 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mascot__zzz .mascot__z {
+  animation: tf-mascot-float 2.6s ease-out infinite;
+}
+
+.mascot__zzz .mascot__z--late {
+  animation-delay: 1.3s;
+}
+
+@keyframes tf-mascot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.12);
+  }
+}
+
+@keyframes tf-mascot-rep {
+  from {
+    transform: translateY(1.5px);
+  }
+  to {
+    transform: translateY(-2.5px);
+  }
+}
+
+@keyframes tf-mascot-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.1) translateY(-2px);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes tf-mascot-wave {
+  0% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: rotate(-9deg);
+  }
+  65% {
+    transform: rotate(6deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+
+@keyframes tf-mascot-float {
+  0% {
+    transform: translate(0, 2px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(2px, -4px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot__eyes,
+  .mascot__body,
+  .mascot__z,
+  .mascot__charge {
+    animation: none !important;
+    transition: none !important;
+  }
+}

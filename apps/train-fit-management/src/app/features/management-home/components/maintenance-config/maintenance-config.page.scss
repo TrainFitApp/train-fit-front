@@ -38,6 +38,17 @@
   overflow: hidden;
   padding: 4px 16px;
 
+  .maintenance-link {
+    margin: -6px 0 6px -10px;
+  }
+
+  .maintenance-hint {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ion-color-medium);
+  }
+
   .maintenance-item {
     padding: 12px 0;
     border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.12);

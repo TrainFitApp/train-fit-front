@@ -226,6 +226,8 @@ const DYNAMIC_KEYS = [
   },
   { prefix: 'OBJETIVES.KEYWORD_', layer: 'common', keys: () => ['0', '1', '2'] },
   { prefix: 'MANAGEMENT.MAINTENANCE.PREVIEW_', layer: 'train-fit-management', keys: () => ['NORMAL', 'WARNING', 'ACTIVE'] },
+  // Consumo del asistente: las dos apps que lo tienen (assistant-usage-report.js#APPS).
+  { prefix: 'MANAGEMENT.ASSISTANT_USAGE.APPS.', layer: 'train-fit-management', keys: () => ['client', 'trainer'] },
   {
     prefix: 'MEDIA.ERRORS.',
     layer: 'common',
@@ -285,9 +287,42 @@ const DYNAMIC_KEYS = [
     layer: 'train-fit-management',
     keys: () => [...new Set([...read(MANAGEMENT_BILLING_UTIL).matchAll(/\bproblem\('([A-Z_]+)'\)/g)].map((m) => m[1]))],
   },
+  // Asistente trAInfit: los códigos que manda el back (assistant-catalog.ts,
+  // con su test de paridad) y las listas cerradas de la app.
+  { prefix: 'ASSISTANT.MESSAGES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_MESSAGE_CODES') },
+  { prefix: 'ASSISTANT.LINKS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_LINK_CODES') },
+  { prefix: 'ASSISTANT.ERRORS.', layer: 'common', keys: () => [...arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_ERROR_CODES'), 'GENERIC', 'OFFLINE'] },
+  {
+    prefix: 'ASSISTANT.SCREENS.',
+    layer: 'common',
+    keys: () => [...arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_CLIENT_SCREENS'), ...arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_TRAINER_SCREENS')],
+  },
+  { prefix: 'ASSISTANT.QUICK.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_QUICK_ACTIONS') },
+  { prefix: 'ASSISTANT.MEALS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_MEAL_SLOTS') },
+  { prefix: 'ASSISTANT.MACROS.', layer: 'common', keys: () => ['protein', 'carbs', 'fat'] },
+  { prefix: 'ASSISTANT.FLAGS.', layer: 'common', keys: () => ['vegan', 'vegetarian', 'lactoseFree', 'glutenFree'] },
+  { prefix: 'ASSISTANT.LINES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_LINE_CODES') },
+  { prefix: 'ASSISTANT.SUGGEST.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_SUGGESTION_CODES') },
+  { prefix: 'ASSISTANT.MEASURES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_MEASURES') },
+  { prefix: 'ASSISTANT.OBJECTIVES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_OBJECTIVES') },
+  // Ámbitos de una invitación y tipos de la bandeja (assistant-text.service.ts).
+  { prefix: 'ASSISTANT.SCOPES.', layer: 'common', keys: () => ['training', 'nutrition'] },
+  { prefix: 'ASSISTANT.REVIEW_TYPES.', layer: 'common', keys: () => ['checkin', 'form_check', 'intake'] },
+  // Vocabulario de los datos de las líneas (assistant-text.service.ts#VOCABULARY).
+  { prefix: 'ASSISTANT.SEX.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_SEXES') },
+  { prefix: 'ASSISTANT.ACTIVITY.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_ACTIVITIES') },
+  { prefix: 'ASSISTANT.LANGS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_LANGS') },
+  { prefix: 'ASSISTANT.THEMES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_THEMES') },
+  { prefix: 'ASSISTANT.TIERS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_TIERS') },
+  { prefix: 'ASSISTANT.HABITS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_HABIT_TYPES') },
+  { prefix: 'ASSISTANT.FREQUENCIES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_CHECKIN_FREQUENCIES') },
+  { prefix: 'ASSISTANT.PAYMENT_METHODS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_PAYMENT_METHODS') },
+  { prefix: 'ASSISTANT.NOTIFICATION_TYPES.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_NOTIFICATION_TYPES') },
+  { prefix: 'ASSISTANT.WEEK_REASONS.', layer: 'common', keys: () => arrayLiteral(ASSISTANT_CATALOG, 'ASSISTANT_WEEK_REASONS') },
 ];
 
 const MANAGEMENT_BILLING_UTIL = 'apps/train-fit-management/src/app/features/management-home/components/trainer-billing/trainer-billing-view.util.ts';
+const ASSISTANT_CATALOG = 'packages/shared-features/src/app/features/assistant/assistant-catalog.ts';
 
 /** Prefijos dinámicos que usa el código (concatenación o plantilla). */
 function dynamicPrefixesInCode() {

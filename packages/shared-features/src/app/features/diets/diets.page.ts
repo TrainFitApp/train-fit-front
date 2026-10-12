@@ -1,6 +1,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  OnDestroy,
   OnInit,
   ViewChild,
   effect,
@@ -8,8 +9,9 @@ import {
 } from '@angular/core';
 import { AlertOptions, ModalController, ModalOptions, ToastOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { forkJoin, of, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { forkJoin, of, Subject, Subscription } from 'rxjs';
+import { catchError, filter, takeUntil } from 'rxjs/operators';
+import { AssistantService } from 'src/app/features/assistant/services/assistant.service';
 import {
   CUSTOM_PRODUCT_VALUES,
   CustomProduct,
@@ -59,9 +61,12 @@ import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
   styleUrls: ['diets.page.scss'],
   animations: [fadeIn, fadeOut],
 })
-export class DietsPage implements OnInit {
+export class DietsPage implements OnInit, OnDestroy {
   @ViewChild('ionContent')
   public ionContent: any;
+
+  private readonly assistantService = inject(AssistantService);
+  private readonly destroy$ = new Subject<void>();
 
   public user: User;
   public meal: Meal;
@@ -182,6 +187,12 @@ export class DietsPage implements OnInit {
     }
 
     this.utilService.setCurrentDate = this.selectedDate;
+    this.assistantService.setDiaryDate(this.selectedDate);
+
+    // El asistente escribió en el diario mientras esta pantalla no estaba
+    // a la vista (apuntar comida, montar la dieta, un suplemento).
+    const pending = this.assistantService.takeRefresh('diets');
+    if (pending) this.setDietDayByDate(pending.date || this.selectedDate);
   }
 
   public ngOnInit(): void {
@@ -190,6 +201,25 @@ export class DietsPage implements OnInit {
         this.setDietDayByDate(this.selectedDate)
       )
     );
+    // Y si ya estaba abierta, en el momento.
+    this.assistantService.refreshes$
+      .pipe(
+        filter((refresh) => refresh.target === 'diets'),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((refresh) => {
+        this.assistantService.markRefreshHandled('diets');
+        this.setDietDayByDate(refresh.date || this.selectedDate);
+      });
+  }
+
+  public ionViewWillLeave(): void {
+    this.assistantService.setDiaryDate(null);
+  }
+
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // La comida solo avisa cuando el pegado se ha completado: cancelar no toca el
@@ -459,6 +489,8 @@ export class DietsPage implements OnInit {
     this.load = false;
     this.selectedDate = dateStr;
     this.currentAnthropometry = null;
+    // «Apunta aquí…» en el asistente va al día que se está mirando.
+    this.assistantService.setDiaryDate(dateStr);
 
     this.utilService.setCurrentDate = this.selectedDate;
     if (this.dietDay$) this.dietDay$.unsubscribe();

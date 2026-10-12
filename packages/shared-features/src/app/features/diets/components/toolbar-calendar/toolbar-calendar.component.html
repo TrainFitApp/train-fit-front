@@ -4,10 +4,14 @@
       <!-- Sección del título -->
       <div class="title-section" (click)="selectToday()">
         <div class="title-content">
-          <span class="month-year" @fadeIn *ngIf="!load">{{ month }} {{ year }}</span>
-          <strong class="brand-name" @fadeIn *ngIf="load">
-            <span class="train-text">TRAIN</span><span class="fit-text">FIT</span>
-          </strong>
+          <!-- La mascota no depende de la carga: no parpadea al cambiar de día. -->
+          <span class="brand-with-assistant">
+            <span class="month-year" @fadeIn *ngIf="!load">{{ month }} {{ year }}</span>
+            <strong class="brand-name" @fadeIn *ngIf="load">
+              <span class="train-text">TRAIN</span><span class="fit-text">FIT</span>
+            </strong>
+            <app-assistant-header-button class="brand-assistant"></app-assistant-header-button>
+          </span>
         </div>
       </div>
 

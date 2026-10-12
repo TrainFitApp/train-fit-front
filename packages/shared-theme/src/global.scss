@@ -1759,3 +1759,54 @@ ion-alert.custom-alert {
     }
   }
 }
+
+// --- Asistente trAInfit (features/assistant) ------------------------------------------
+
+// La mascota cuelga a la derecha del logo TRAINFIT de las cabeceras de la app
+// cliente sin descentrarlo: el envoltorio mide lo que mide el logo y la
+// mascota sale de él.
+.brand-with-assistant {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.brand-assistant {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-left: 2px;
+  transform: translateY(-50%);
+}
+
+// El chat a pantalla completa en el móvil; en pantallas anchas, una hoja
+// alta centrada.
+ion-modal.tf-assistant-modal {
+  --background: var(--ion-background-color, #ffffff);
+}
+
+@media (min-width: 768px) {
+  ion-modal.tf-assistant-modal {
+    --width: 440px;
+    --height: min(720px, 90vh);
+    --border-radius: 16px;
+  }
+}
+
+// Lo que acaba de hacer, contado al llegar a la pantalla.
+ion-toast.tf-assistant-toast {
+  --background: var(--ion-color-step-100, #f0f0f0);
+  --color: var(--ion-text-color, #000000);
+  --border-radius: 14px;
+  --box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --max-width: 420px;
+  --button-color: var(--ion-color-primary);
+  font-weight: 500;
+
+  // DESHACER: como el resto de botones de la app, en mayúsculas.
+  &::part(button) {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+}
