@@ -49,7 +49,7 @@
       <div class="app-menu-footer">
         <!-- trAInfit abajo a la izquierda: no tapa el contenido y se puede
              dejar como una fila más del menú. -->
-        <app-assistant-dock [collapsed]="collapsed"></app-assistant-dock>
+        <!-- trAInfit oculto de momento (docs/pendientes.md §8): <app-assistant-dock [collapsed]="collapsed"></app-assistant-dock> -->
         <a class="footer-user" routerLink="/tabs/account" [attr.aria-label]="'SHELL.CONFIGURACION' | translate" [attr.title]="collapsed ? ('SHELL.CONFIGURACION' | translate) : null">
           <span class="footer-user-avatar"><ion-icon name="person" aria-hidden="true"></ion-icon></span>
           <span class="footer-user-label" *ngIf="!collapsed">{{ 'SHELL.CONFIGURACION' | translate }}</span>
@@ -64,4 +64,4 @@
 </ion-split-pane>
 
 <!-- Fuera del menú para que no lo recorte: se pega a su borde derecho. -->
-<app-assistant-panel [sidebarWidth]="collapsed ? 72 : 268"></app-assistant-panel>
+<!-- trAInfit oculto de momento (docs/pendientes.md §8): <app-assistant-panel [sidebarWidth]="collapsed ? 72 : 268"></app-assistant-panel> -->
