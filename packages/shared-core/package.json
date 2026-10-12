@@ -3,6 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "dependencies": {
+    "@revenuecat/purchases-capacitor": "^11.3.2",
+    "@revenuecat/purchases-capacitor-ui": "^11.3.2",
     "xlsx": "^0.18.5"
   }
 }

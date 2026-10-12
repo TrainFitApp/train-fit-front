@@ -32,14 +32,6 @@
 		"classpath": "ee.forgr.capacitor.social.login.SocialLoginPlugin"
 	},
 	{
-		"pkg": "@revenuecat/purchases-capacitor",
-		"classpath": "com.revenuecat.purchases.capacitor.PurchasesPlugin"
-	},
-	{
-		"pkg": "@revenuecat/purchases-capacitor-ui",
-		"classpath": "com.revenuecat.purchases.capacitor.ui.RevenueCatUIPlugin"
-	},
-	{
 		"pkg": "capacitor-secure-storage-plugin",
 		"classpath": "com.whitestein.securestorage.SecureStoragePluginPlugin"
 	}
