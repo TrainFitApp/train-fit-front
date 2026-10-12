@@ -4,7 +4,7 @@
 // app y el cliente lo ve en la otra, así que las tres entienden exactamente
 // las mismas URLs (tests/youtube-id-parity.test.cjs lo vigila).
 //
-// El id acaba en la URL del iframe (youtube-embed.html?v=…): solo vale algo
+// El id acaba en la URL del reproductor (youtube-embed.util, ?v=…): solo vale algo
 // con forma de id real, 11 caracteres [A-Za-z0-9_-]. Antes se devolvía
 // cualquier texto que viniera detrás de v=.
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;

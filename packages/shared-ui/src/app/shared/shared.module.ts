@@ -52,7 +52,6 @@ import { ClientTechniqueVideoPickerComponent } from './components/media/client-t
 import { CategoryPipe } from './pipes/category.pipe';
 import { ExpectedPipe } from './pipes/expected-reps.pipe';
 import { MeasurePipe } from './pipes/measure.pipe';
-import { SafePipe } from './pipes/safe.pipe';
 import { TranslateDbPipe } from './pipes/translate-db.pipe';
 import { TranslateDescPipe } from './pipes/translate-desc.pipe';
 import { LocalDatePipe } from './pipes/local-date.pipe';
@@ -81,7 +80,6 @@ import { HorizontalScrollDirective } from './directives/horizontal-scroll.direct
     RirPickerComponent,
     TimePickerComponent,
     SkeletonLoaderComponent,
-    SafePipe,
     ExpectedPipe,
     CategoryPipe,
     TranslateDbPipe,
@@ -152,7 +150,6 @@ import { HorizontalScrollDirective } from './directives/horizontal-scroll.direct
     TimePickerComponent,
     MeasurePipe,
     SkeletonLoaderComponent,
-    SafePipe,
     ExpectedPipe,
     CategoryPipe,
     TranslateDbPipe,

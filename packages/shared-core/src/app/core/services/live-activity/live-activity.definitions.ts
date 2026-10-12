@@ -13,7 +13,10 @@ export interface LiveActivitySetItem {
   rir: number | null;
   /** Serie ya completada: el widget pinta el check encendido. */
   doned: boolean;
-  /** URL remota; el plugin la descarga al App Group (el widget no tiene red). */
+  /**
+   * Ruta de la imagen dentro de la app ("assets/exercises/…"); el plugin
+   * guarda su miniatura en el App Group (el widget no lee la app).
+   */
   imageUrl?: string;
 }
 

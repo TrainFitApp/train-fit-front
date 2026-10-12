@@ -4,14 +4,12 @@ const path = require('node:path');
 
 // Pequeñas piezas de presentación que se repiten por muchas pantallas de las
 // tres apps: cómo se pinta lo pautado (reps/RIR con FALLO), los números en
-// español, las imágenes de ejercicio, las restricciones dietéticas y el dolor
-// más reciente por zona en el Planificador. Un fallo en cualquiera se ve en
-// todas partes a la vez.
+// español, las restricciones dietéticas y el dolor más reciente por zona en
+// el Planificador. Un fallo en cualquiera se ve en todas partes a la vez.
 
 const { loadFromSource } = require(path.join(__dirname, 'support/ng-harness.cjs'));
 const shared = loadFromSource(__filename, path.join(__dirname, '../packages/shared-ui/src/app/shared'), {
   ExpectedPipe: 'src/app/shared/pipes/expected-reps.pipe',
-  resolveExerciseImageUrl: 'src/app/core/utils/exercise-image-url.util',
   EsNumberPipe: 'src/app/features/tables/components/summary/components/statistics/es-number.pipe',
   applyCatalogTranslations: 'src/app/core/i18n/localized-catalog',
 });
@@ -57,22 +55,6 @@ test('números: formato español (coma decimal, punto de miles) y decimales conf
   assert.equal(pipe.transform(null), '');
   assert.equal(pipe.transform('abc'), '');
   assert.equal(pipe.transform(Infinity), '');
-});
-
-// --- Imágenes de ejercicio --------------------------------------------------------------
-
-test('imagen de ejercicio: las rutas antiguas del bundle se sirven desde la web, las absolutas se respetan', () => {
-  assert.equal(
-    shared.resolveExerciseImageUrl('/assets/img/exercises/press banca.gif'),
-    'https://www.trainfit.net/resources/img/exercises/press%20banca.gif',
-  );
-  assert.equal(shared.resolveExerciseImageUrl('https://cdn.example.com/a.png'), 'https://cdn.example.com/a.png');
-  assert.equal(shared.resolveExerciseImageUrl('  '), undefined);
-  assert.equal(shared.resolveExerciseImageUrl(null), undefined);
-  assert.equal(
-    shared.resolveExerciseImageUrl('assets/img/exercises/sentadilla_búlgara.jpg'),
-    'https://www.trainfit.net/resources/img/exercises/sentadilla_b%C3%BAlgara.jpg',
-  );
 });
 
 // --- Restricciones dietéticas -----------------------------------------------------------

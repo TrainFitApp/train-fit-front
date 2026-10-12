@@ -6,7 +6,6 @@ export class Table {
     type: string;
     userId?: string;
     splits: Split[];
-    urlImage?: string;
     description?: string;
     // Light search payload fields (search-tables)
     microcyclesCount?: number;

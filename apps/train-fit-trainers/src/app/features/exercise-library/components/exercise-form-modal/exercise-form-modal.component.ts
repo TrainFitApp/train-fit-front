@@ -18,7 +18,8 @@ import {
   muscleFullLabel,
   normalizeMuscles,
 } from 'src/app/core/constants/muscle-catalog';
-import { parseYouTubeId, youTubeEmbedUrl } from '../../utils/youtube-embed';
+import { parseYouTubeId } from 'src/app/core/utils/youtube-id.util';
+import { youTubeEmbedUrl } from 'src/app/core/utils/youtube-embed.util';
 
 type ExerciseMode = 'fuerza' | 'cardio' | 'isometrico';
 

@@ -108,11 +108,10 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly preserveFinishedWorkoutSplitKey =
     'preserveFinishedWorkoutSplit';
 
-  protected readonly GIF_LOCAL_ROUTE_LIGHT =
-    '../../../../../assets/img/logo/login_light.svg';
+  // Miniatura de los ejercicios sin imagen (los propios), según el tema.
+  protected readonly EXERCISE_PLACEHOLDER_LIGHT = 'assets/exercises/placeholder-light.svg';
 
-  protected readonly GIF_LOCAL_ROUTE_DARK =
-    '../../../../../assets/img/logo/login_dark.svg';
+  protected readonly EXERCISE_PLACEHOLDER_DARK = 'assets/exercises/placeholder-dark.svg';
 
   public THEMES = THEMES;
 

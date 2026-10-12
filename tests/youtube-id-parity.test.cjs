@@ -4,9 +4,12 @@ const path = require('node:path');
 
 // El id de un vídeo de YouTube se saca de la URL en TRES sitios distintos: la
 // ficha del ejercicio (config-exercise, cliente), el reproductor de la sesión
-// (video-modal, cliente) y la biblioteca de ejercicios de trainers
-// (youtube-embed.ts). El entrenador pega un enlace en una app y el cliente lo
-// ve en la otra: los tres tienen que entender exactamente las mismas URLs.
+// (video-modal, cliente) y la biblioteca de ejercicios de trainers. El
+// entrenador pega un enlace en una app y el cliente lo ve en la otra: los tres
+// tienen que entender exactamente las mismas URLs.
+//
+// Y todos lo reproducen con la página de la API (GET /api/embed/youtube), no
+// con la de la web pública: las apps no dependen de la web.
 
 const { loadFromSource } = require(path.join(__dirname, 'support/ng-harness.cjs'));
 
@@ -16,6 +19,9 @@ const shared = loadFromSource(
   {
     VideoModalComponent: 'src/app/features/tables/components/summary/components/current-workout/video-modal/video-modal.component',
     ConfigExercisePage: 'src/app/features/exercises/components/config-exercise/config-exercise.page',
+    TechniqueVideoPlayerComponent: 'src/app/shared/components/media/technique-video-player.component',
+    youTubeEmbedUrl: 'src/app/core/utils/youtube-embed.util',
+    environment: 'src/environments/environment',
   },
   {
     requires: {
@@ -28,7 +34,11 @@ const shared = loadFromSource(
 const trainers = loadFromSource(
   __filename,
   path.join(__dirname, '../apps/train-fit-trainers/src/app/features'),
-  { parseYouTubeId: 'src/app/features/exercise-library/utils/youtube-embed' },
+  {
+    parseYouTubeId: 'src/app/core/utils/youtube-id.util',
+    youTubeEmbedUrl: 'src/app/core/utils/youtube-embed.util',
+    environment: 'src/environments/environment',
+  },
   { app: 'train-fit-trainers' },
 );
 
@@ -78,4 +88,40 @@ test('YouTube: el id que sale de la URL solo puede ser un id válido (11 caracte
     const id = parse('https://youtube.com/watch?v="><img src=x onerror=alert(1)>');
     assert.ok(id === '' || /^[A-Za-z0-9_-]{11}$/.test(id), `${name}: ${id}`);
   }
+});
+
+// --- Reproductor -----------------------------------------------------------------------
+
+const sanitizer = { bypassSecurityTrustResourceUrl: (url) => url };
+
+test('reproductor de YouTube: la página la sirve la API de cada app, con autoplay opcional', () => {
+  for (const app of [shared, trainers]) {
+    const api = app.environment.API_URL;
+    assert.equal(app.youTubeEmbedUrl('dQw4w9WgXcQ'), `${api}/embed/youtube?v=dQw4w9WgXcQ`);
+    assert.equal(app.youTubeEmbedUrl('dQw4w9WgXcQ', { autoplay: true }), `${api}/embed/youtube?v=dQw4w9WgXcQ&autoplay=1`);
+  }
+});
+
+test('reproductor de YouTube: sesión (con autoplay), ficha del ejercicio y vídeo de técnica usan el de la API', () => {
+  const api = shared.environment.API_URL;
+
+  const modal = Object.assign(Object.create(shared.VideoModalComponent.prototype), {
+    sanitizer,
+    videoUrl: 'https://youtu.be/dQw4w9WgXcQ',
+  });
+  modal.updateVideoEmbedSrc();
+  assert.equal(modal.videoEmbedSrcSafe, `${api}/embed/youtube?v=dQw4w9WgXcQ&autoplay=1`);
+
+  const page = Object.assign(Object.create(shared.ConfigExercisePage.prototype), {
+    sanitizer,
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  });
+  page.updateVideoEmbedSrc();
+  assert.equal(page.videoEmbedSrcSafe, `${api}/embed/youtube?v=dQw4w9WgXcQ`);
+
+  const player = new shared.TechniqueVideoPlayerComponent(sanitizer);
+  player.video = { source: 'youtube', youtubeId: 'dQw4w9WgXcQ' };
+  player.autoplay = true;
+  player.ngOnChanges();
+  assert.equal(player.embedUrl, `${api}/embed/youtube?v=dQw4w9WgXcQ&autoplay=1`);
 });

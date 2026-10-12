@@ -91,9 +91,9 @@
       [ngClass]="{'t-exercise': i === 0}"
       (click)="addExerciseModal(exercise)"
     >
-      <div class="exercise-image" [class.exercise-image--placeholder]="!exercise?.gifUrl">
+      <div class="exercise-image" [class.exercise-image--placeholder]="!exercise?.imageUrl">
         <img
-          [src]="(exercise?.gifUrl || EXERCISE_PLACEHOLDER) | safe"
+          [src]="exercise?.imageUrl || EXERCISE_PLACEHOLDER"
           alt="{{ exercise?.name | translateDb }}"
         />
       </div>

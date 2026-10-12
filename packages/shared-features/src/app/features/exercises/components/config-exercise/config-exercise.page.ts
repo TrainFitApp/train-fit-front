@@ -52,6 +52,7 @@ import { splitTextIntoSteps } from "src/app/shared/utils";
 import { EXERCISE_DESCRIPTIONS_ES_EN } from "src/app/shared/constants/db-translations/exercise-descriptions-es-en.map";
 import { environment } from "src/environments/environment";
 import { parseYouTubeId } from "src/app/core/utils/youtube-id.util";
+import { youTubeEmbedUrl } from "src/app/core/utils/youtube-embed.util";
 
 @Component({
   selector: "app-config-exercise",
@@ -517,9 +518,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       this.videoEmbedSrcSafe = null;
       return;
     }
-    const proxyUrl = `https://trainfit.net/youtube-embed.html?v=${id}`;
     this.videoEmbedSrcSafe =
-      this.sanitizer.bypassSecurityTrustResourceUrl(proxyUrl);
+      this.sanitizer.bypassSecurityTrustResourceUrl(youTubeEmbedUrl(id));
   }
 
   public ionViewWillEnter(): void {
@@ -566,7 +566,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         muscles: [],
         category: [],
         equipment: [],
-        gifUrl: "",
         isCardio: false,
         isIsometric: false,
         userId: this.user?._id,

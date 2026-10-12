@@ -15,6 +15,7 @@ import { MediaGateService } from 'src/app/shared/components/media/media-gate.ser
 import { FormCheckSubmitModalComponent } from 'src/app/shared/components/media/form-check-submit-modal.component';
 import { FormCheckListComponent } from 'src/app/shared/components/media/form-check-list.component';
 import { parseYouTubeId } from 'src/app/core/utils/youtube-id.util';
+import { youTubeEmbedUrl } from 'src/app/core/utils/youtube-embed.util';
 
 export interface VideoModalFormCheckContext {
   exerciseId: string | null;
@@ -97,9 +98,9 @@ export class VideoModalComponent implements OnInit {
       this.videoEmbedSrcSafe = null;
       return;
     }
-    const proxyUrl = `https://trainfit.net/youtube-embed.html?v=${id}&autoplay=1`;
-    this.videoEmbedSrcSafe =
-      this.sanitizer.bypassSecurityTrustResourceUrl(proxyUrl);
+    this.videoEmbedSrcSafe = this.sanitizer.bypassSecurityTrustResourceUrl(
+      youTubeEmbedUrl(id, { autoplay: true }),
+    );
   }
 
   public close(): void {

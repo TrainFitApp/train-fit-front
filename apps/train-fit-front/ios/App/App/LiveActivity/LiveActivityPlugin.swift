@@ -57,10 +57,10 @@ public class LiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         WorkoutActivityStore.trace("start workout=\(incoming.workoutId) series=\(incoming.items.count)")
 
         Task {
-            // Se abre con las miniaturas que ya estén guardadas; las que falten
-            // se descargan después, fuera del camino crítico.
+            // Las miniaturas salen de las imágenes que van dentro de la app:
+            // sin red, la tarjeta se abre ya con ellas.
             let presence = await WorkoutSessionMutator.shared.sync(
-                self.cachedImages(for: incoming),
+                self.bundledImages(for: incoming),
                 labels: labels,
                 open: true
             )
@@ -82,8 +82,6 @@ public class LiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
                     call.reject("No se pudo iniciar la Live Activity: \(message)")
                 }
             }
-
-            self.downloadImages(for: incoming)
         }
     }
 
@@ -106,7 +104,7 @@ public class LiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
         Task {
             let presence = await WorkoutSessionMutator.shared.sync(
-                self.cachedImages(for: incoming),
+                self.bundledImages(for: incoming),
                 labels: labels,
                 open: mayReopen
             )
@@ -116,7 +114,6 @@ public class LiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
             case .reused, .missing:
                 break
             }
-            self.downloadImages(for: incoming)
             call.resolve()
         }
     }
@@ -205,8 +202,8 @@ public class LiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
                 // Ausente o null = sin dato.
                 rir: (raw["rir"] as? NSNumber)?.intValue,
                 doned: raw["doned"] as? Bool ?? false,
-                // Aquí es la URL remota; cachedImages/downloadImages la
-                // sustituyen por la clave de la miniatura guardada.
+                // Aquí es la ruta de la imagen dentro de la app; bundledImages
+                // la sustituye por la clave de la miniatura guardada.
                 imageKey: raw["imageUrl"] as? String
             )
         }
@@ -248,68 +245,37 @@ public class LiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         )
     }
 
-    /// Cambia las URLs por las claves de las miniaturas **que ya están
-    /// guardadas**. Sin red: es lo que se publica al instante.
-    private func cachedImages(for session: WorkoutSession) -> WorkoutSession {
+    /// Cambia las rutas de las imágenes por las claves de sus miniaturas y
+    /// crea las que falten. Las imágenes van dentro de la app
+    /// (`public/assets/exercises/`): sin red, la tarjeta sale ya con ellas.
+    private func bundledImages(for session: WorkoutSession) -> WorkoutSession {
         var updated = session
         for index in updated.items.indices {
-            guard let remote = updated.items[index].imageKey, remote.hasPrefix("http") else { continue }
-            let key = Self.stableKey(for: remote)
+            guard let path = updated.items[index].imageKey, Self.isBundledImage(path) else { continue }
+            let key = Self.stableKey(for: path)
+            if !WorkoutActivityStore.hasImage(forKey: key) {
+                Self.saveThumbnail(ofBundled: path, key: key)
+            }
             updated.items[index].imageKey = WorkoutActivityStore.hasImage(forKey: key) ? key : nil
         }
         return updated
     }
 
-    /// Descarga las miniaturas que falten y, si alguna llega, refresca la
-    /// notificación. Va fuera del camino crítico: la tarjeta ya está en
-    /// pantalla y la imagen aparece cuando esté.
-    ///
-    /// `session` conserva las URLs originales (la sesión guardada ya no).
-    private func downloadImages(for session: WorkoutSession) {
-        let remotes = Set(session.items.compactMap { item -> String? in
-            guard let value = item.imageKey, value.hasPrefix("http") else { return nil }
-            return value
-        })
-        let pending = remotes.filter { !WorkoutActivityStore.hasImage(forKey: Self.stableKey(for: $0)) }
-        guard !pending.isEmpty else { return }
-
-        Task.detached(priority: .utility) {
-            // En paralelo y una sola vez por URL: varias series comparten
-            // ejercicio, antes se descargaba en serie una por serie.
-            await withTaskGroup(of: Void.self) { group in
-                for remote in pending {
-                    guard let url = URL(string: remote) else { continue }
-                    group.addTask { await Self.downloadThumbnail(from: url, key: Self.stableKey(for: remote)) }
-                }
-            }
-
-            // Las claves se copian por setId sobre la sesión del momento: el
-            // usuario ha podido seguir entrenando mientras se descargaba.
-            var keysBySet: [String: String] = [:]
-            for item in session.items {
-                guard let remote = item.imageKey, remote.hasPrefix("http") else { continue }
-                let key = Self.stableKey(for: remote)
-                if WorkoutActivityStore.hasImage(forKey: key) { keysBySet[item.setId] = key }
-            }
-            guard !keysBySet.isEmpty else { return }
-
-            if #available(iOS 16.2, *) {
-                await WorkoutSessionMutator.shared.applyImageKeys(keysBySet, workoutId: session.workoutId)
-            }
-        }
+    /// Ruta de la web de la app ("assets/exercises/x.webp"), no la clave de
+    /// una miniatura ya guardada (esas son alfanuméricas, sin barras).
+    private static func isBundledImage(_ value: String) -> Bool {
+        value.hasPrefix("assets/")
     }
 
-    /// El widget no tiene red: la app descarga la imagen, la reescala a
-    /// miniatura y guarda los BYTES en el store compartido. En el item queda
-    /// solo la clave — el ContentState de una Live Activity tiene 4 KB de
-    /// límite, así que la imagen no puede viajar ahí dentro.
-    private static func downloadThumbnail(from url: URL, key: String) async {
-        var request = URLRequest(url: url)
-        // Tope corto: la notificación no puede depender de la red del gimnasio.
-        request.timeoutInterval = 6
-        guard let (data, _) = try? await URLSession.shared.data(for: request),
-              // UIImage(data:) de un GIF devuelve el primer frame, que es
-              // justo lo que necesita un widget (no anima).
+    /// El widget no lee la carpeta de la app: se reescala la imagen a
+    /// miniatura y se guardan los BYTES en el store compartido. En el item
+    /// queda solo la clave — el ContentState de una Live Activity tiene 4 KB
+    /// de límite, así que la imagen no puede viajar ahí dentro.
+    private static func saveThumbnail(ofBundled path: String, key: String) {
+        guard let webRoot = Bundle.main.url(forResource: "public", withExtension: nil),
+              let data = try? Data(contentsOf: webRoot.appendingPathComponent(path)),
+              // UIImage(data:) de un WebP animado devuelve el primer frame,
+              // que es justo lo que necesita un widget (no anima).
               let image = UIImage(data: data),
               let thumbnail = Self.thumbnail(from: image, maxSide: 120),
               let png = thumbnail.pngData() else { return }
@@ -319,9 +285,9 @@ public class LiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     /// hashValue de Swift lleva semilla aleatoria por proceso: la clave
     /// cambiaría en cada arranque y se acumularían miniaturas huérfanas.
     /// djb2 es estable entre ejecuciones (y no desborda como abs(Int.min)).
-    private static func stableKey(for url: String) -> String {
+    private static func stableKey(for source: String) -> String {
         var hash: UInt64 = 5381
-        for byte in url.utf8 {
+        for byte in source.utf8 {
             hash = (hash &* 33) &+ UInt64(byte)
         }
         return String(hash, radix: 36)

@@ -5,7 +5,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { Set as WorkoutSet } from '../../models/set';
 import { Workout } from '../../models/workout';
-import { resolveExerciseImageUrl } from '../../utils/exercise-image-url.util';
 import { SetService } from '../set/set.service';
 import { TableService } from '../table/table.service';
 import { WorkoutService } from '../workout/workout.service';
@@ -230,10 +229,7 @@ export class LiveActivityService {
           // desde la tarjeta guardase un «RIR 0» que nadie había indicado.
           rir: doned ? this.firstRir(set.rir) : this.firstRir(set.expectedRir),
           doned,
-          // gifUrl en BD es una ruta relativa ("/assets/img/exercises/...")
-          // resuelta contra un CDN aparte del backend — misma lógica que ya
-          // usa SafePipe para pintarla en el resto de la app.
-          imageUrl: resolveExerciseImageUrl(exercise.exercise?.gifUrl),
+          imageUrl: exercise.exercise?.imageUrl,
         });
       });
     });
