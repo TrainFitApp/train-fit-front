@@ -20,12 +20,6 @@ export class ProductAPIService {
       .pipe(take(1));
   }
 
-  public getProductsCount(): Observable<number> {
-    return this.http.get<number>(
-      `${ProductAPIService.PRODUCTS_ENDPOINT}/count`
-    );
-  }
-
   /** Crear un producto. Si se incluye userId en el objeto, será un producto del usuario. */
   public saveProduct(product: IProduct): Observable<IProduct> {
     return this.http.post<IProduct>(

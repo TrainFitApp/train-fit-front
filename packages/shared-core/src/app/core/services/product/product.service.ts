@@ -15,10 +15,6 @@ export class ProductService {
     return this.productAPIService.getProductByCode(code);
   }
 
-  public getProductsCount(): Observable<number> {
-    return this.productAPIService.getProductsCount();
-  }
-
   /** Crear un producto. Si incluye userId, será un producto del usuario. */
   public saveProduct(product: IProduct): Observable<IProduct> {
     return this.productAPIService.saveProduct(product);
