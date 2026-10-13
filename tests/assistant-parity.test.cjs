@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 // Paridad del asistente trAInfit: los códigos de mensaje, los botones, las
 // pantallas, las comidas y los atajos que manda el back
@@ -82,7 +83,7 @@ test('asistente: cada error de negocio del asistente y de las invitaciones tiene
 
 test('mensajes de prueba del selector local: cada uno apunta a un caso del catálogo del back de su app', { skip: !HAS_BACK && 'sin el back al lado' }, async () => {
   const { INTENTS } = require(path.join(BACK, 'components/assistant/assistant-catalog.js'));
-  const dev = await import(path.join(ROOT, 'packages/shared-features/src/app/features/assistant/assistant-dev-messages.ts'));
+  const dev = await import(pathToFileURL(path.join(ROOT, 'packages/shared-features/src/app/features/assistant/assistant-dev-messages.ts')).href);
   for (const app of ['client', 'trainer']) {
     const names = new Set(Object.values(INTENTS).filter((intent) => intent.app === app || intent.app === 'both').map((intent) => intent.name));
     for (const message of dev.devMessagesFor(app)) assert.ok(names.has(message.intent), `${app}: «${message.key}» apunta a ${message.intent}, que no existe`);

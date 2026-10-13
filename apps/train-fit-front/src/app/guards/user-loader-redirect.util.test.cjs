@@ -45,7 +45,7 @@ test('el guard no lleva returnUrl: recargar no recuerda dónde se estaba', () =>
 
 test('las rutas privadas de la app cliente usan el guard del usuario cargado, y solo el cargador el compartido', () => {
   const routing = fs.readFileSync(path.join(__dirname, '../app-routing.module.ts'), 'utf8');
-  const routes = routing.split(/\n {2}\{\n/).filter((block) => block.includes('canMatch'));
+  const routes = routing.split(/\r?\n {2}\{\r?\n/).filter((block) => block.includes('canMatch'));
   assert.ok(routes.length > 10);
   for (const block of routes) {
     const route = /path: '([^']*)'/.exec(block)?.[1];
