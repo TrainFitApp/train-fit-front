@@ -3040,7 +3040,8 @@
     }
   },
   "RIR": {
-    "FAIL": "FALLO"
+    "FAIL": "FALLO",
+    "SHEET_HINT": "Repeticiones en reserva. El segundo valor es opcional (rango)."
   },
   "ASSISTANT": {
     "NAME": "trAInfit",

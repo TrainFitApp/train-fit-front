@@ -1,0 +1,92 @@
+// Rueda del registro (sign-up: peso, altura, fecha de nacimiento) como
+// componente. Mismos números que allí: filas de 52px, cinco a la vista, la
+// elegida a tamaño completo con un brillo suave y las demás más pequeñas y
+// apagadas cuanto más lejos. El alto de fila y los colores llegan de
+// <app-wheel-group>; los de aquí son el respaldo oscuro.
+$ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+:host {
+  display: block;
+  position: relative;
+  flex: none;
+  height: calc(var(--wheel-item-height, 52px) * 5);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%);
+}
+
+.wheel-scroll {
+  height: 100%;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  // Solo con teclado: al tocar no hay aro, y con él se ve que la rueda es
+  // un control y no una lista suelta.
+  &:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--wheel-accent, #fe9000);
+    border-radius: 12px;
+  }
+}
+
+// Dos filas vacías arriba y abajo: dejan la primera y la última opción en el
+// centro al llegar a los extremos.
+.wheel-pad {
+  height: calc(var(--wheel-item-height, 52px) * 2);
+}
+
+.wheel-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--wheel-item-height, 52px);
+  scroll-snap-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--wheel-text-far, #5c5c5c);
+  opacity: 0.32;
+  transform: scale(0.82);
+  transition: color 0.2s $ease, opacity 0.2s $ease, transform 0.2s $ease, text-shadow 0.2s $ease;
+
+  &.is-near {
+    opacity: 0.58;
+    color: var(--wheel-text-near, #9ca3af);
+    transform: scale(0.92);
+  }
+
+  &.is-active {
+    opacity: 1;
+    color: var(--wheel-text, #ffffff);
+    transform: scale(1);
+    text-shadow: 0 0 20px var(--wheel-glow, rgba(255, 255, 255, 0.22));
+  }
+
+  // FALLO: gris como las demás filas, y el naranja de marca solo cuando es la
+  // elegida (apagado y a medio tono se leía como un tinte naranja en la rueda).
+  &.is-accent.is-active {
+    color: var(--wheel-accent, #fe9000);
+  }
+
+  // El hueco («sin dato»): nunca más protagonista que un número.
+  &.is-muted.is-active {
+    color: var(--wheel-text-near, #9ca3af);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

@@ -40,6 +40,7 @@ export class NumericKeypadComponent implements OnInit, OnDestroy {
 
   private visible = false;
   private visibleSubscription?: Subscription;
+  private ionAppTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private el: ElementRef<HTMLElement>,
@@ -52,18 +53,31 @@ export class NumericKeypadComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.visibleSubscription = this.visible$.subscribe((visible) => {
       this.visible = visible;
-      const ionApp = document.querySelector('ion-app');
-      if (!ionApp) return;
-      if (visible) {
-        this.renderer.addClass(ionApp, ION_APP_KEYPAD_OPEN_CLASS);
-      } else {
-        this.renderer.removeClass(ionApp, ION_APP_KEYPAD_OPEN_CLASS);
-      }
+      // El foco llega en el mousedown del toque y el click en su mouseup, los
+      // dos seguidos en la misma tarea. Si ion-app se encogiera aquí, un
+      // input de la franja inferior (la que va a ocupar el teclado) quedaría
+      // fuera de ion-app antes del mouseup: el click se redirigiría al
+      // ancestro común (body), onDocumentClick lo tomaría por un toque en
+      // otro sitio y cerraría el teclado recién abierto. Por eso se encoge
+      // en la tarea siguiente, ya despachado el click.
+      clearTimeout(this.ionAppTimer);
+      this.ionAppTimer = setTimeout(() => this.syncIonAppClass());
     });
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.ionAppTimer);
     this.visibleSubscription?.unsubscribe();
+  }
+
+  private syncIonAppClass(): void {
+    const ionApp = document.querySelector('ion-app');
+    if (!ionApp) return;
+    if (this.visible) {
+      this.renderer.addClass(ionApp, ION_APP_KEYPAD_OPEN_CLASS);
+    } else {
+      this.renderer.removeClass(ionApp, ION_APP_KEYPAD_OPEN_CLASS);
+    }
   }
 
   // Cerrar al tocar cualquier cosa que no sea el propio teclado ni otro

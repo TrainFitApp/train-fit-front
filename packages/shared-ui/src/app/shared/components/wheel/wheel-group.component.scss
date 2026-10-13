@@ -1,0 +1,35 @@
+:host {
+  --wheel-item-height: 52px;
+  --wheel-text: #ffffff;
+  --wheel-text-near: #9ca3af;
+  --wheel-text-far: #5c5c5c;
+  // El naranja queda para lo que es marca (FALLO); el brillo de la fila
+  // elegida y su banda son grises, no el tinte naranja de las ruedas del
+  // registro.
+  --wheel-accent: var(--ion-color-primary, #fe9000);
+  --wheel-glow: rgba(255, 255, 255, 0.22);
+  --wheel-line: rgba(255, 255, 255, 0.1);
+  --wheel-band: rgba(255, 255, 255, 0.07);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: calc(var(--wheel-item-height) * 5);
+}
+
+// La fila elegida es la tercera de cinco: dos líneas y un brillo gris que se
+// funde hacia arriba y hacia abajo. Va detrás de las ruedas (que son
+// position: relative y vienen después) y no recibe toques.
+.wheel-highlight {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--wheel-item-height) * 2);
+  height: var(--wheel-item-height);
+  pointer-events: none;
+  border-top: 1px solid var(--wheel-line);
+  border-bottom: 1px solid var(--wheel-line);
+  background: linear-gradient(180deg, transparent, var(--wheel-band), transparent);
+}

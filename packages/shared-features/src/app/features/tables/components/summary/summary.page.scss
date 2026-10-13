@@ -843,6 +843,15 @@
       }
     }
 
+    // Cabecera pulsable que abre el mesociclo: feedback de pulsación (táctil).
+    .routine-summary {
+      -webkit-tap-highlight-color: transparent;
+
+      &:active {
+        opacity: 0.7;
+      }
+    }
+
     // 17px/700/margin-bottom 2px medidos en el diseño de referencia.
     .routine-name {
       font-size: 17px;

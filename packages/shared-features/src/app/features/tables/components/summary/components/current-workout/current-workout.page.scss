@@ -391,6 +391,13 @@ img {
         border-radius: 8px;
         object-fit: cover;
         border: 2px solid rgba(255, 255, 255, 0.2);
+
+        // Logo del user-loader (blanco y naranja): sobre negro, como allí.
+        &.premium-thumbnail-placeholder {
+          background: #000;
+          object-fit: contain;
+          padding: 4px;
+        }
       }
     }
 

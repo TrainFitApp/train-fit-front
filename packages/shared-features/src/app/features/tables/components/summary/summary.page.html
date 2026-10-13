@@ -195,10 +195,13 @@
              progreso, y solo entonces las acciones (mesociclo/estadísticas
              agrupadas, salir como enlace discreto al final). -->
         <div *ngIf="tableInUse; else notTableInUse">
+          <!-- Cabecera de la rutina en uso: entera pulsable, mismo destino
+               que "Ver mesociclo". El glosario no navega (stopPropagation). -->
+          <div class="routine-summary" role="button" tabindex="0" (click)="openMesocycle()" (keydown.enter)="openMesocycle()">
           <div class="routine-name">{{ tableInUse.name | translateDb }}</div>
           <div class="routine-description">
             {{ 'TABLES.MICROCYCLE_OF' | translate:{ current: currentMicrocycle(), total: tableInUse.splits.length } }}
-            <app-glossary-info term="MICROCYCLE" size="sm"></app-glossary-info>
+            <span (click)="$event.stopPropagation()"><app-glossary-info term="MICROCYCLE" size="sm"></app-glossary-info></span>
           </div>
 
           <!-- Indicadores de splits -->
@@ -208,6 +211,7 @@
               *ngFor="let split of tableInUse.splits"
               [ngClass]="getSplitClass(split)"
             ></div>
+          </div>
           </div>
 
           <!-- Separador entre la barra de splits y las acciones — presente

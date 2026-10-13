@@ -5,17 +5,11 @@ import {
   transition,
   trigger,
 } from '@angular/animations';
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
-import { buildRirValue,
-  formatRirValue,
-  getRirNumberOptions,
-  isRirFail,
-  parseRirSelection,
-  RIR_FAIL_VALUE,
-  RirValue, rirFailLabel } from 'src/app/core/models/rir';
+import { formatRirValue, isRirFail, RirValue } from 'src/app/core/models/rir';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { RIR_SHEET_OPTIONS } from './rir-sheet.component';
 
 @Component({
   selector: 'app-rir-picker',
@@ -58,9 +52,9 @@ export class RirPickerComponent implements OnInit {
   @Output() rirChange = new EventEmitter<RirValue>();
 
   public shimmerAnimationState = 'idle';
-  public selectedRirValue: RirValue = null;
 
-  private readonly translate = inject(TranslateService);
+  // Un doble toque no debe apilar dos hojas.
+  private sheetOpen = false;
 
   constructor(private ionicUtilService: IonicUtilService) {}
 
@@ -68,7 +62,6 @@ export class RirPickerComponent implements OnInit {
     if (!this.rirControl) {
       this.rirControl = new FormControl(null);
     }
-    this.selectedRirValue = this.rirControl.value;
   }
 
   public onRirClick(): void {
@@ -79,73 +72,22 @@ export class RirPickerComponent implements OnInit {
     }, 1200);
   }
 
-  public openRirPicker(): void {
-    this.selectedRirValue = this.rirControl.value;
-    this.openWithController();
-  }
-
-  private async openWithController(): Promise<void> {
-    const selection = parseRirSelection(this.selectedRirValue);
-    const firstOptions = this.getFirstRirOptions().map((o) => ({
-      text: o.text,
-      value: o.value,
-      cssClass:
-        o.value === RIR_FAIL_VALUE
-          ? 'rir-option-fallo'
-          : 'rir-option-number',
-    }));
-    const secondOptions = this.getSecondRirOptions().map((o) => ({
-      text: o.text,
-      value: o.value,
-      cssClass:
-        o.value === null
-          ? 'rir-option-empty'
-          : o.value === RIR_FAIL_VALUE
-          ? 'rir-option-fallo'
-          : 'rir-option-number',
-    }));
-    const selectedFirstIndex = Math.max(
-      0,
-      firstOptions.findIndex((o) => o.value === selection.first)
-    );
-    const selectedSecondIndex = Math.max(
-      0,
-      secondOptions.findIndex((o) => o.value === selection.second)
-    );
-
-    await this.ionicUtilService.showPicker({
-      columns: [
-        {
-          name: 'rirFirst',
-          options: firstOptions,
-          selectedIndex: selectedFirstIndex,
-        },
-        {
-          name: 'rirSecond',
-          options: secondOptions,
-          selectedIndex: selectedSecondIndex,
-        },
-      ],
-      buttons: [
-        {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-        },
-        {
-          text: this.translate.instant('COMMON.OK'),
-          handler: (value: any) => {
-            const firstValue = value?.rirFirst?.value ?? null;
-            const secondValue = value?.rirSecond?.value ?? null;
-            const newValue = buildRirValue(firstValue, secondValue);
-            this.rirControl.patchValue(newValue);
-            this.rirChange.emit(newValue);
-            return true;
-          },
-        },
-      ],
-      mode: 'ios',
-      cssClass: 'rir-picker-modal',
-    });
+  // Hoja con las ruedas del RIR (RirSheetComponent). Solo el OK cambia la
+  // serie: cancelar, tocar fuera o deslizar la hoja la dejan como estaba.
+  public async openRirPicker(): Promise<void> {
+    if (this.sheetOpen) return;
+    this.sheetOpen = true;
+    try {
+      const { data, role } = await this.ionicUtilService.showModal({
+        ...RIR_SHEET_OPTIONS,
+        componentProps: { value: this.rirControl.value },
+      });
+      if (role !== 'confirm') return;
+      this.rirControl.patchValue(data);
+      this.rirChange.emit(data);
+    } finally {
+      this.sheetOpen = false;
+    }
   }
 
   public get displayValue(): string {
@@ -154,27 +96,5 @@ export class RirPickerComponent implements OnInit {
 
   public get displayIsFail(): boolean {
     return isRirFail(this.rirControl.value);
-  }
-
-  public getFirstRirOptions(): Array<{ text: string; value: number | null }> {
-    return [
-      { text: '-', value: null },
-      { text: rirFailLabel(), value: RIR_FAIL_VALUE },
-      ...getRirNumberOptions().map((value) => ({
-        text: value.toString(),
-        value,
-      })),
-    ];
-  }
-
-  public getSecondRirOptions(): Array<{ text: string; value: number | null }> {
-    return [
-      { text: '-', value: null },
-      { text: rirFailLabel(), value: RIR_FAIL_VALUE },
-      ...getRirNumberOptions().map((value) => ({
-        text: value.toString(),
-        value,
-      })),
-    ];
   }
 }

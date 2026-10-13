@@ -102,9 +102,12 @@ export class NumericKeypadService {
   // con cualquier cosa que NO sea otro input del teclado (ese caso ya lo
   // cubre su propio focus -> show(); cerrarlo aquí también pisaría esa
   // apertura, porque el click llega DESPUÉS del focus del nuevo input).
+  // Tocar la etiqueta (o el marco) de un campo vale como tocar el campo: el
+  // navegador reenvía el foco a su input, y cerrar aquí lo dejaría sin teclado.
   public hideKeyboardIfInteractingElsewhere(target: EventTarget | null): void {
-    if (target instanceof Element && target.closest(NUMERIC_KEYPAD_HOST_SELECTOR)) {
-      return;
+    if (target instanceof Element) {
+      if (target.closest(NUMERIC_KEYPAD_HOST_SELECTOR)) return;
+      if (this.isKeypadInput(target.closest('label')?.control ?? null)) return;
     }
     this.hideKeyboard();
   }

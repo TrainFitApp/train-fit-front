@@ -1,0 +1,27 @@
+<section class="rs-sheet">
+  <header class="rs-head">
+    <h2 class="rs-title">{{ 'TABLES.RIR' | translate }}</h2>
+    <p class="rs-hint">{{ 'RIR.SHEET_HINT' | translate }}</p>
+  </header>
+
+  <app-wheel-group class="rs-wheels">
+    <app-wheel
+      [options]="options"
+      [(index)]="firstIndex"
+      [width]="wheelWidth"
+      [ariaLabel]="('TABLES.RIR' | translate) + ' ' + ('TABLES.RANGE_MIN' | translate)"
+    ></app-wheel>
+    <span class="rs-sep" [class.is-off]="secondIndex === 0" aria-hidden="true">–</span>
+    <app-wheel
+      [options]="options"
+      [(index)]="secondIndex"
+      [width]="wheelWidth"
+      [ariaLabel]="('TABLES.RIR' | translate) + ' ' + ('TABLES.RANGE_MAX' | translate)"
+    ></app-wheel>
+  </app-wheel-group>
+
+  <div class="rs-actions">
+    <ion-button class="rs-cancel" (click)="cancel()">{{ 'COMMON.CANCEL' | translate }}</ion-button>
+    <ion-button class="rs-ok" (click)="confirm()">{{ 'COMMON.OK' | translate }}</ion-button>
+  </div>
+</section>

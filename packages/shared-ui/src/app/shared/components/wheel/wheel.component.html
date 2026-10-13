@@ -1,0 +1,24 @@
+<div
+  #scroller
+  class="wheel-scroll"
+  role="listbox"
+  tabindex="0"
+  aria-orientation="vertical"
+  [attr.aria-label]="ariaLabel || null"
+  [attr.aria-activedescendant]="options.length ? optionId(activeIndex) : null"
+>
+  <div class="wheel-pad" aria-hidden="true"></div>
+  <div
+    *ngFor="let option of options; let i = index; trackBy: trackByIndex"
+    class="wheel-item"
+    role="option"
+    [id]="optionId(i)"
+    [class.is-active]="i === activeIndex"
+    [class.is-near]="i === activeIndex - 1 || i === activeIndex + 1"
+    [class.is-accent]="option.tone === 'accent'"
+    [class.is-muted]="option.tone === 'muted'"
+    [attr.aria-selected]="i === activeIndex"
+    (click)="select(i)"
+  >{{ option.label }}</div>
+  <div class="wheel-pad" aria-hidden="true"></div>
+</div>

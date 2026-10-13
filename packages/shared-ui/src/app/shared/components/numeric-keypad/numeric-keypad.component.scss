@@ -77,6 +77,22 @@
   }
 }
 
+// Ocultar teclado: gris más claro que el resto para que se localice de un
+// vistazo sin llegar a competir con el acento de intro.
+.numeric-keypad__key--hide {
+  background: #3a3a3a;
+  border-color: #4a4a4a;
+
+  ion-icon {
+    font-size: 20px;
+    color: #d0d0d0;
+  }
+
+  &:active {
+    background: #474747;
+  }
+}
+
 // Intro/siguiente: única acción "positiva" del teclado, en el color de
 // acento de la app en vez del azul de la referencia.
 .numeric-keypad__key--accent {

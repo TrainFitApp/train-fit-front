@@ -265,7 +265,8 @@
             <div class="premium-exercise-thumbnail">
               <img
                 class="premium-thumbnail-img"
-                [src]="exercise?.exercise.imageUrl || (theme === THEMES.dark.id ? EXERCISE_PLACEHOLDER_DARK : EXERCISE_PLACEHOLDER_LIGHT)"
+                [class.premium-thumbnail-placeholder]="!exercise?.exercise.imageUrl"
+                [src]="exercise?.exercise.imageUrl || EXERCISE_PLACEHOLDER"
                 (click)="navigateYTVideo(exercise.exercise.videoUrl, exercise); $event.stopPropagation()"
               />
               <!-- 2026-09 — aviso del entrenador (nota de esta sesión o

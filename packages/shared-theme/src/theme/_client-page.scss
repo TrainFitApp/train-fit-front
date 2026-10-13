@@ -20,6 +20,11 @@
     --background: #141414;
     --color: #ffffff;
     --border-width: 0;
+    // global.scss ya le da al ion-header el hueco de la barra de estado
+    // (margin-top) y Ionic suma otro igual al primer ion-toolbar: en un
+    // iPhone con isla la barra bajaba el doble. Con padding-top: 0 queda un
+    // solo hueco, como en el resto de cabeceras (ver menu-preview-modal).
+    padding-top: 0;
   }
 
   .back-btn {

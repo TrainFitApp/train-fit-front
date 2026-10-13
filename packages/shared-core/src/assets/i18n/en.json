@@ -3040,7 +3040,8 @@
     }
   },
   "RIR": {
-    "FAIL": "FAILURE"
+    "FAIL": "FAILURE",
+    "SHEET_HINT": "Reps in reserve. The second value is optional (range)."
   },
   "ASSISTANT": {
     "NAME": "trAInfit",

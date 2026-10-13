@@ -32,6 +32,9 @@ import { NumericKeypadModule } from './components/numeric-keypad/numeric-keypad.
 import { PopoverActionsComponent } from './components/popover-actions/popover-actions.component';
 import { SearchExercisesPage } from './components/search-exercises/search-exercises.page';
 import { RirPickerComponent } from './components/rir-picker/rir-picker.component';
+import { RirSheetComponent } from './components/rir-picker/rir-sheet.component';
+import { WheelComponent } from './components/wheel/wheel.component';
+import { WheelGroupComponent } from './components/wheel/wheel-group.component';
 import { TimePickerComponent } from './components/time-picker/time-picker.component';
 import { SkeletonLoaderComponent } from './components/skeleton-loader/skeleton-loader.component';
 import { MediaVideoPlayerComponent } from './components/media/media-video-player.component';
@@ -78,6 +81,9 @@ import { HorizontalScrollDirective } from './directives/horizontal-scroll.direct
     ActionsFabComponent,
     MeasurePipe,
     RirPickerComponent,
+    RirSheetComponent,
+    WheelComponent,
+    WheelGroupComponent,
     TimePickerComponent,
     SkeletonLoaderComponent,
     ExpectedPipe,
@@ -147,6 +153,8 @@ import { HorizontalScrollDirective } from './directives/horizontal-scroll.direct
     SearchExercisesPage,
     ActionsFabComponent,
     RirPickerComponent,
+    WheelComponent,
+    WheelGroupComponent,
     TimePickerComponent,
     MeasurePipe,
     SkeletonLoaderComponent,

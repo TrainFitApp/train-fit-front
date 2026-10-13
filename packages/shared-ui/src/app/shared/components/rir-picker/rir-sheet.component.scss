@@ -1,0 +1,114 @@
+// Hoja oscura como la de los alerts (ion-alert.custom-alert, global.scss):
+// mismo fondo, título, texto de apoyo y botones. Fija sus colores y no sigue
+// el tema, igual que el selector que sustituye. Las ruedas traen los suyos
+// (app-wheel-group).
+:host {
+  --rs-text: #ffffff;
+  --rs-text-3: #8b8b8b;
+  --rs-soft: rgba(255, 255, 255, 0.07);
+  --rs-soft-pressed: rgba(255, 255, 255, 0.12);
+  --rs-accent: var(--ion-color-primary, #fe9000);
+  // Negro sobre naranja: el blanco da 2:1.
+  --rs-on-accent: #0f0f0f;
+
+  // Margen lateral de la hoja; las ruedas lo deshacen para que su banda llegue
+  // de borde a borde.
+  --rs-pad-x: 20px;
+
+  display: block;
+  color: var(--rs-text);
+}
+
+.rs-sheet {
+  // El tirador de Ionic ocupa los primeros 20px.
+  padding: 22px var(--rs-pad-x) calc(env(safe-area-inset-bottom) + 16px);
+}
+
+.rs-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.rs-hint {
+  margin: 4px 0 0;
+  color: var(--rs-text-3);
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+// Sin el margen lateral de la hoja: la banda de la fila elegida ocupa todo el
+// ancho del modal y las ruedas siguen centradas.
+.rs-wheels {
+  margin: 12px calc(var(--rs-pad-x) * -1) 0;
+}
+
+// Ventana baja (móvil en horizontal, escritorio pequeño): con filas de 52px la
+// hoja mide unos 440px y se saldría por arriba. Las filas se achican (la rueda
+// mide su fila del DOM) y, muy bajo, se quita el texto de apoyo.
+@media (max-height: 600px) {
+  .rs-wheels {
+    --wheel-item-height: 40px;
+  }
+}
+
+@media (max-height: 460px) {
+  .rs-wheels {
+    --wheel-item-height: 34px;
+  }
+
+  .rs-hint {
+    display: none;
+  }
+}
+
+// El guion del rango, del tamaño de los números de las ruedas. Apagado
+// mientras la segunda rueda está en «-»: sin rango no hay nada que unir.
+.rs-sep {
+  align-self: center;
+  color: var(--rs-text);
+  font-size: 20px;
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+
+  &.is-off {
+    opacity: 0.3;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.rs-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+
+  ion-button {
+    margin: 0;
+    min-height: 48px;
+    --border-radius: 12px;
+    --box-shadow: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+}
+
+.rs-cancel {
+  --background: var(--rs-soft);
+  --background-activated: var(--rs-soft-pressed);
+  --color: var(--rs-text);
+}
+
+.rs-ok {
+  --background: var(--rs-accent);
+  --background-activated: var(--rs-accent);
+  --color: var(--rs-on-accent);
+}

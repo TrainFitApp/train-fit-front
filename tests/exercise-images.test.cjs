@@ -13,7 +13,7 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..');
 const { exerciseImageKey, OUT } = require('../scripts/exercise-images.cjs');
 const APPS = ['train-fit-front', 'train-fit-trainers', 'train-fit-management'];
-const PLACEHOLDERS = ['placeholder-dark.svg', 'placeholder-light.svg'];
+const PLACEHOLDERS = ['placeholder.png'];
 const KEY = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 // 242 imágenes ocupaban 6,7 MB al convertirlas (2026-10-12; en GIF, 67 MB).
 const BUDGET_BYTES = 8 * 1024 * 1024;
@@ -29,7 +29,7 @@ test('clave de la imagen: la misma regla que la migración del back', () => {
   assert.equal(exerciseImageKey('Extensión de cuádriceps ñ.gif'), 'extension-de-cuadriceps-n');
 });
 
-test('imágenes: solo WebP animados con nombre de clave, más las dos miniaturas de reserva', () => {
+test('imágenes: solo WebP animados con nombre de clave, más la miniatura de reserva', () => {
   assert.ok(images.length >= 242, `${images.length} imágenes`);
   assert.deepEqual(files.filter((name) => !name.endsWith('.webp')).sort(), PLACEHOLDERS);
   for (const name of images) {

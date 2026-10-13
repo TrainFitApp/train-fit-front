@@ -1,4 +1,7 @@
-<div
+<!-- <label>: el input solo ocupa una franja de la caja (la etiqueta y el
+     padding quedan fuera), y un toque ahí no abría el teclado. Con la caja
+     entera como etiqueta, cualquier toque enfoca el input. -->
+<label
   class="numeric-input-wrapper"
   [ngClass]="{ completed: isDone }"
   [@shimmerAnimation]="shimmerAnimationState"
@@ -20,4 +23,4 @@
     (click)="onInputClick()"
     [placeholder]="placeholder || '-'"
   />
-</div>
+</label>

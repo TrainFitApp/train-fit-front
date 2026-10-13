@@ -107,10 +107,9 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly preserveFinishedWorkoutSplitKey =
     'preserveFinishedWorkoutSplit';
 
-  // Miniatura de los ejercicios sin imagen (los propios), según el tema.
-  protected readonly EXERCISE_PLACEHOLDER_LIGHT = 'assets/exercises/placeholder-light.svg';
-
-  protected readonly EXERCISE_PLACEHOLDER_DARK = 'assets/exercises/placeholder-dark.svg';
+  // Miniatura de los ejercicios sin imagen (los propios): el logo del
+  // user-loader recortado al dibujo.
+  protected readonly EXERCISE_PLACEHOLDER = 'assets/exercises/placeholder.png';
 
   public THEMES = THEMES;
 
@@ -948,7 +947,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   public async navigateYTVideo(url: string, exercise?: any) {
     const exerciseId: string | undefined = exercise?.exercise?._id;
     const techniqueVideo = exerciseId ? this.techniqueVideos[exerciseId] || null : null;
-    if (!url && !techniqueVideo && !this.canSendFormCheck) return;
     await this.ionicUtilService.showModal({
       component: VideoModalComponent,
       componentProps: {

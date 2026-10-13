@@ -47,7 +47,8 @@ ion-button {
 }
 
 /*
- * Selectores de rueda (ion-picker: RIR, tiempo…). Ionic les da 260px fijos
+ * Selectores de rueda de Ionic (ion-picker: tiempo…; el RIR ya usa su propia
+ * hoja con app-wheel). Ionic les da 260px fijos
  * más la barra de botones; en una ventana baja (horizontal, escritorio
  * pequeño) la hoja se salía por arriba (QA 2026-10-09). Nunca más alta que
  * la ventana: las columnas siguen haciendo scroll.
@@ -1212,6 +1213,22 @@ ion-modal.confirm-sheet-modal {
 ion-modal.trainer-note-sheet-modal {
   --height: auto;
   --border-radius: 20px 20px 0 0;
+
+  .ion-page {
+    position: relative;
+    display: block;
+    contain: content;
+  }
+}
+
+/* Selector de RIR (RirSheetComponent) — hoja de alto automático con dos
+   ruedas (app-wheel); el scroll es de cada rueda. Fondo oscuro fijo, como el
+   de los alerts: el selector que sustituye tampoco seguía el tema. */
+ion-modal.rir-sheet-modal {
+  --height: auto;
+  --width: min(520px, 100%);
+  --border-radius: 20px 20px 0 0;
+  --background: #1a1a1a;
 
   .ion-page {
     position: relative;

@@ -68,7 +68,7 @@
     </div>
   </div>
 
-  <div *ngIf="videoEmbedSrcSafe && (!techniqueVideo || showCatalogVideo); else noVideoOrTrainer" class="elegant-card video-card">
+  <div *ngIf="videoEmbedSrcSafe && (!techniqueVideo || showCatalogVideo)" class="elegant-card video-card">
     <div class="video-header">
       <div class="video-info">
         <div class="video-icon">
@@ -85,10 +85,6 @@
       </iframe>
     </div>
   </div>
-
-  <ng-template #noVideoOrTrainer>
-    <div class="no-video" *ngIf="!videoEmbedSrcSafe && !techniqueVideo">{{ 'TABLES.VIDEO_NOT_AVAILABLE' | translate }}</div>
-  </ng-template>
 
   <!-- Historical Stats Section -->
   <div class="elegant-card historical-stats-card" *ngIf="exercise">

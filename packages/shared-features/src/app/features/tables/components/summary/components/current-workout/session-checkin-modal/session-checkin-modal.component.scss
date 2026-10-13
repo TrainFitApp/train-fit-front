@@ -16,9 +16,13 @@
   color: #ffffff;
 }
 
+/* Cabecera propia, sin ion-header: global.scss no le suma la barra de estado.
+   En iOS el webview va por debajo del reloj y de la isla/notch, así que el
+   título quedaba tapado. Mismo criterio que el pie con el safe-area inferior;
+   donde env() vale 0 (navegador, escritorio) queda como antes. */
 .session-checkin__header {
   flex-shrink: 0;
-  padding: 20px 20px 12px;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
