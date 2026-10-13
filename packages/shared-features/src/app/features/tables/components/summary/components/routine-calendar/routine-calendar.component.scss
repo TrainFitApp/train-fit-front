@@ -143,6 +143,12 @@
     }
   }
 
+  // Día elegido en Estadísticas (selectOnTap).
+  &.selected {
+    border-color: var(--orange, #fe9000);
+    box-shadow: inset 0 0 0 1px var(--orange, #fe9000);
+  }
+
   .day-number {
     z-index: 1;
     font-size: 11px;

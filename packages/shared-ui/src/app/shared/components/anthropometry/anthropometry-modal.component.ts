@@ -52,7 +52,13 @@ export class AnthropometryModalComponent implements OnInit {
     { title: 'ANTHROPOMETRY.GROUP_LEGS', icon: 'walk-outline', fields: ['thighRelaxed', 'thighContracted', 'calfL', 'calfR'] },
   ];
 
+  // El click programático sobre el botón del selector burbujea hasta la fila
+  // de fecha, que vuelve a llamar a openDatePicker: con el formulario sucio
+  // el aviso de descartar salía en bucle.
+  private openingDatePicker = false;
+
   async openDatePicker(): Promise<void> {
+    if (this.openingDatePicker) return;
     if (this.form.dirty) {
       const result = await this.ionicUtilService.showAlert({
         header: this.translate.instant('COMMON.UNSAVED_CHANGES'),
@@ -65,7 +71,13 @@ export class AnthropometryModalComponent implements OnInit {
       if (result.role !== 'discard') return;
     }
     const btn = document.getElementById('anthropometry-date-btn');
-    if (btn) btn.click();
+    if (!btn) return;
+    this.openingDatePicker = true;
+    try {
+      btn.click();
+    } finally {
+      this.openingDatePicker = false;
+    }
   }
 
   onDateChange(event: any): void {

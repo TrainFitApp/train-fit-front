@@ -1,4 +1,12 @@
-import { Component, DoCheck, Input, OnDestroy, OnInit } from "@angular/core";
+import {
+  Component,
+  DoCheck,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from "@angular/core";
 import { Subscription } from "rxjs";
 import { TranslateService } from "@ngx-translate/core";
 import { Table } from "src/app/core/models/table";
@@ -13,7 +21,7 @@ interface CalendarWorkoutDot {
 // Sesión concreta hecha un día: su posición exacta dentro de la rutina
 // (microciclo + hueco de workout). Al pulsar el día del calendario se pasa
 // esto a Mesociclo para abrir justo esa sesión.
-interface DaySession {
+export interface DaySession {
   splitIndex: number; // 0-based
   splitNumber: number; // 1-based (badge "M1", "M2"...)
   workoutIndex: number; // posición dentro de split.workouts
@@ -39,6 +47,13 @@ interface CalendarDay {
 // MesocyclePage.ionViewDidEnter para posicionarse en la sesión pulsada.
 export const OPEN_WORKOUT_FROM_CALENDAR_KEY = "openWorkoutFromCalendar";
 
+// Día pulsado con selectOnTap: la fecha (yyyy-MM-dd) y lo que se hizo ese
+// día, casi siempre una sola sesión.
+export interface CalendarDaySelection {
+  date: string;
+  sessions: DaySession[];
+}
+
 export interface OpenWorkoutFromCalendarState {
   tableId: string;
   splitIndex: number;
@@ -61,6 +76,11 @@ export class RoutineCalendarComponent implements OnInit, OnDestroy, DoCheck {
   @Input() public openMesocycleOnTap = true;
   // Leyenda de tipos de entrenamiento bajo la rejilla.
   @Input() public showLegend = true;
+  // Estadísticas: tocar un día con sesión lo selecciona (daySelected) en vez
+  // de navegar, y el host marca cuál con selectedDate.
+  @Input() public selectOnTap = false;
+  @Input() public selectedDate: string | null = null;
+  @Output() public daySelected = new EventEmitter<CalendarDaySelection>();
 
   public calendarCurrentDate: Date = new Date();
   public calendarDays: CalendarDay[] = [];
@@ -135,9 +155,14 @@ export class RoutineCalendarComponent implements OnInit, OnDestroy, DoCheck {
   // microciclo + su workout). Varias sesiones el mismo día es raro (dos
   // splits cerrados en la misma fecha) — se abre la primera.
   public openDay(day: CalendarDay): void {
-    if (!this.openMesocycleOnTap) return;
     const session = day.sessions[0];
     if (!session) return;
+
+    if (this.selectOnTap) {
+      this.daySelected.emit({ date: day.date, sessions: day.sessions });
+      return;
+    }
+    if (!this.openMesocycleOnTap) return;
 
     const table = this.tableService.currentTable();
     if (!table?._id) return;

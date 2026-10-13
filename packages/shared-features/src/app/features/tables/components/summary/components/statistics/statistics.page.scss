@@ -143,6 +143,13 @@ ion-card {
   ion-card-content {
     overflow: visible;
   }
+
+  .calendar-hint {
+    margin: 12px 0 0;
+    font-size: 12px;
+    text-align: center;
+    color: var(--text-secondary);
+  }
 }
 
 /* Disabled Card */

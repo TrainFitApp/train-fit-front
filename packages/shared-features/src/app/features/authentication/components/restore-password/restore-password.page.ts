@@ -2,6 +2,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
+import { finalize } from 'rxjs/operators';
+import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -53,6 +55,7 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
     private matchPasswords: MatchPasswords,
     public modalController: ModalController,
     private userService: UserService,
+    private authService: AuthService,
     private ionicUtilService: IonicUtilService,
     private translate: TranslateService
   ) {}
@@ -192,14 +195,14 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
-          this.loading = false;
           this.ionicUtilService.showSuccessToast(
             this.translate.instant('RESTORE_PASSWORD.TOAST_PASSWORD_CHANGED'),
             2000
           );
           if (this.userService.getLocalUser) {
-            this.navigationService.goBack();
+            this.reopenSession(email, password);
           } else {
+            this.loading = false;
             this.codeAccepted = true;
           }
         },
@@ -211,6 +214,20 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
             3000
           );
         },
+      });
+  }
+
+  // El back cierra todas las sesiones al cambiar la contraseña (sube
+  // passwordVersion y borra auth), así que los tokens guardados ya no valen:
+  // con la sesión abierta se entra de nuevo con la contraseña nueva. Si el
+  // login falla, se cierra la sesión para no dejar la app con tokens muertos.
+  private reopenSession(email: string, password: string): void {
+    this.authService
+      .login(email, password)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: () => this.navigationService.goBack(),
+        error: () => this.authService.logout(),
       });
   }
 

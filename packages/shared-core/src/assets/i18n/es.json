@@ -1360,6 +1360,12 @@
     "STATS_SELECT_HINT": "Para ver estadísticas detalladas de tu progreso.",
     "STATS_NO_DATA": "Sin Datos",
     "STATS_NO_DATA_HINT": "No se ha registrado actividad para este ejercicio aún.",
+    "STATS_PULSE_TITLE": "Cómo llegaste y cómo acabaste",
+    "STATS_PULSE_READINESS": "Al llegar",
+    "STATS_PULSE_EFFORT": "Esfuerzo",
+    "STATS_PULSE_SORENESS": "Agujetas",
+    "STATS_PULSE_EMPTY": "En este entrenamiento no respondiste cómo llegabas ni cómo de duro fue.",
+    "STATS_PULSE_CALENDAR_HINT": "Toca un día entrenado para ver cómo llegaste y cómo acabaste.",
     "VIDEO_DEMO": "Video demostrativo",
     "VIDEO_NOT_AVAILABLE": "Video no disponible",
     "MUSCLE_GROUPS": "Grupos musculares",
@@ -1855,7 +1861,11 @@
     "ALERT_MESSAGE": "¿Deseas guardar los cambios en el orden de los ejercicios?",
     "ALERT_CANCEL": "Cancelar",
     "ALERT_CONFIRM": "Confirmar",
-    "TOAST_RESET": "Has restablecido el orden de los ejercicios"
+    "TOAST_RESET": "Has restablecido el orden de los ejercicios",
+    "HINT_BLOCKS": "Arrastra el asa para mover un ejercicio o un bloque entero. Dentro de un bloque, usa las flechas",
+    "A11Y_MOVE_BLOCK": "Mover el bloque entero",
+    "A11Y_MOVE_UP": "Subir ejercicio dentro del bloque",
+    "A11Y_MOVE_DOWN": "Bajar ejercicio dentro del bloque"
   },
   "ORDER_SETS": {
     "TITLE": "Ordenar Series",

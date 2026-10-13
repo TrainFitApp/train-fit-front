@@ -29,6 +29,10 @@ import { take } from "rxjs/operators";
 import { formatSecondsAsTime, parseTimeToSeconds } from "src/app/shared/utils";
 import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
 import { PinnedExerciseNote } from "src/app/core/models/pinned-exercise-note";
+import {
+  CalendarDaySelection,
+  DaySession,
+} from "../routine-calendar/routine-calendar.component";
 
 Chart.register(...registerables);
 
@@ -197,6 +201,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
   // <app-routine-calendar> (componente compartido con el resumen).
   private langChangeSubscription: any;
 
+  // Día pulsado en el calendario: debajo se ve cómo llegó y cómo acabó ese
+  // entrenamiento (<app-session-pulse>). Volver a pulsarlo lo cierra.
+  public selectedCalendarDate: string | null = null;
+  public selectedCalendarSessions: DaySession[] = [];
+
   public historicalStats: ExerciseHistoryStats | null = null;
   public historicalStatsLoading = false;
 
@@ -295,6 +304,12 @@ export class StatisticsPage implements OnInit, OnDestroy {
   }
 
   // --- Events ---
+
+  public onCalendarDaySelected(selection: CalendarDaySelection) {
+    const isSameDay = selection.date === this.selectedCalendarDate;
+    this.selectedCalendarDate = isSameDay ? null : selection.date;
+    this.selectedCalendarSessions = isSameDay ? [] : selection.sessions;
+  }
 
   public onWorkoutChange(event: any) {
     const workoutName = event.detail.value;

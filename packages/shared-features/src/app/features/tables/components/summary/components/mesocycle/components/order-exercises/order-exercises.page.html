@@ -30,44 +30,23 @@
     <!-- Warning Message -->
     <div class="warning-section">
       <ion-icon name="swap-vertical" class="warning-icon"></ion-icon>
-      <p class="warning-text">{{ 'ORDER_EXERCISES.HINT' | translate }}</p>
+      <p class="warning-text">
+        {{ (hasBlocks ? 'ORDER_EXERCISES.HINT_BLOCKS' : 'ORDER_EXERCISES.HINT') | translate }}
+      </p>
     </div>
 
-    <!-- Exercise List -->
-    <ion-list class="list-elegant">
-      <ion-reorder-group
-        *ngIf="showReorderGroup"
-        [disabled]="false"
-        (ionItemReorder)="handleReorder($any($event))"
-        class="reorder-group-modern"
-      >
-        <ion-item
-          *ngFor="let customExercise of auxCustomExercises; let i = index"
-          class="exercise-card"
-          lines="none"
-        >
-          <div class="exercise-card-content">
-            <div class="exercise-number">{{ i + 1 }}</div>
-            <div class="exercise-info">
-              <div class="exercise-name">
-                {{ customExercise.exercise.name | translateDb }}
-              </div>
-            </div>
-            <div class="exercise-icons">
-              <ion-reorder class="reorder-modern">
-                <ion-icon name="swap-vertical" class="reorder-icon"></ion-icon>
-              </ion-reorder>
-            </div>
-          </div>
-        </ion-item>
-      </ion-reorder-group>
-    </ion-list>
+    <!-- Exercise List: ejercicios sueltos y bloques enteros -->
+    <app-exercise-order-list
+      [workout]="orderSource"
+      [disabled]="loading"
+      (orderChange)="onOrderChange($event)"
+    ></app-exercise-order-list>
   </div>
 </ion-content>
 
 <ion-footer
   ><!-- Action Button -->
-  <div *ngIf="showReorderGroup" class="action-section">
+  <div class="action-section">
     <ion-button
       *ngIf="!loading"
       expand="block"

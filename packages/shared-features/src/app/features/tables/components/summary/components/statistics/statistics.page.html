@@ -30,7 +30,30 @@
         <app-routine-calendar
           [openMesocycleOnTap]="false"
           [showLegend]="false"
+          [selectOnTap]="true"
+          [selectedDate]="selectedCalendarDate"
+          (daySelected)="onCalendarDaySelected($event)"
         ></app-routine-calendar>
+        <p class="calendar-hint" *ngIf="!selectedCalendarDate">
+          {{ 'TABLES.STATS_PULSE_CALENDAR_HINT' | translate }}
+        </p>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Readiness al empezar, esfuerzo al terminar y agujetas del día pulsado en el calendario -->
+    <ion-card class="pulse-card" *ngIf="selectedCalendarDate">
+      <ion-card-header>
+        <ion-card-subtitle>
+          <span class="section-icon"></span>
+          {{ 'TABLES.STATS_PULSE_TITLE' | translate }}
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <app-session-pulse
+          [table]="table"
+          [sessions]="selectedCalendarSessions"
+        ></app-session-pulse>
       </ion-card-content>
     </ion-card>
 

@@ -1,0 +1,38 @@
+<div class="pulse-session" *ngFor="let pulse of pulses">
+  <div class="pulse-session__head">
+    <span class="pulse-session__workout">{{ pulse.workoutName | translateDb }}</span>
+    <span class="pulse-session__meta">
+      {{ pulse.date | date: 'dd/MM/yyyy' }} · {{ 'TABLES.STATS_MICROCYCLE' | translate: { n: pulse.microcycle } }}
+    </span>
+  </div>
+
+  <ng-container *ngIf="hasPulse(pulse); else noAnswers">
+    <div class="pulse-metric" *ngIf="pulse.readiness !== null">
+      <span class="pulse-metric__label">{{ 'TABLES.STATS_PULSE_READINESS' | translate }}</span>
+      <span class="pulse-metric__value">{{ pulse.readiness }}<small>/5</small></span>
+      <span class="pulse-metric__anchor">{{ readinessAnchor(pulse.readiness) }}</span>
+    </div>
+
+    <div class="pulse-metric" *ngIf="pulse.effort !== null">
+      <span class="pulse-metric__label">{{ 'TABLES.STATS_PULSE_EFFORT' | translate }}</span>
+      <span class="pulse-metric__value">{{ pulse.effort }}<small>/5</small></span>
+      <span class="pulse-metric__anchor">{{ effortAnchor(pulse.effort) }}</span>
+    </div>
+
+    <div class="pulse-metric" *ngIf="pulse.soreness.length > 0">
+      <span class="pulse-metric__label">{{ 'TABLES.STATS_PULSE_SORENESS' | translate }}</span>
+      <span class="pulse-metric__anchor pulse-metric__anchor--wide">
+        <ng-container *ngFor="let entry of pulse.soreness; let last = last">
+          {{ entry.muscle | translateDb }} {{ entry.level }}<ng-container *ngIf="!last"> · </ng-container>
+        </ng-container>
+      </span>
+    </div>
+  </ng-container>
+
+  <ng-template #noAnswers>
+    <p class="pulse-empty">{{ 'TABLES.STATS_PULSE_EMPTY' | translate }}</p>
+  </ng-template>
+</div>
+
+<!-- Solo descansos pautados ese día: no hay entrenamiento con pulso. -->
+<p class="pulse-empty" *ngIf="pulses.length === 0">{{ 'TABLES.STATS_PULSE_EMPTY' | translate }}</p>

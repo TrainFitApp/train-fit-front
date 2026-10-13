@@ -256,7 +256,7 @@ export class TableCardPage {
            cssClass: 'alert-button-primary',
          },
          {
-            text: this.translate.instant(this.ownFilter ? 'TABLES.START_ROUTINE' : 'COMMON.CONFIRM', this.ownFilter ? { name: this.translateDbValue(this.tableCard.name) } : {}),
+            text: this.translate.instant(this.ownFilter ? 'TABLES.START' : 'COMMON.CONFIRM'),
            cssClass: 'alert-button-success',
            handler: () => {
             if (!isPremiumActive(this.user?.premium)) {

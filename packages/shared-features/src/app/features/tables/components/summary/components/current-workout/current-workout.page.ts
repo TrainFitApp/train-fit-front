@@ -10,7 +10,6 @@ import {
 import {
   AlertOptions,
   IonAccordionGroup,
-  ItemReorderEventDetail,
   PopoverOptions,
   ToastOptions,
 } from '@ionic/angular';
@@ -122,6 +121,9 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   // se rastrea a qué índice original corresponde cada posición, y el array
   // real solo se remapea una vez al confirmar.
   public reorderExercisesMode = false;
+  // Copia de ejercicios y bloques al entrar en el modo: la lista de orden
+  // trabaja sobre ella y no se reconstruye si currentWorkout se refresca.
+  public reorderSnapshot: Pick<Workout, 'exercises' | 'blocks'> | null = null;
   public savingExercisesOrder = false;
   private exercisesReorderIndices: number[] = [];
 
@@ -872,6 +874,10 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     ) return;
 
     this.exercisesReorderIndices = this.currentWorkout.exercises.map((_, index) => index);
+    this.reorderSnapshot = {
+      exercises: [...this.currentWorkout.exercises],
+      blocks: this.currentWorkout.blocks || [],
+    };
     this.reorderExercisesMode = true;
     // Cerrar cualquier accordion abierto: en modo mover no debe poder desplegarse.
     this.accordionGroups?.forEach((group) => (group.value = undefined));
@@ -880,22 +886,17 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   public cancelReorderExercisesMode(): void {
     if (!this.reorderExercisesMode) return;
     this.reorderExercisesMode = false;
+    this.reorderSnapshot = null;
     this.savingExercisesOrder = false;
     this.exercisesReorderIndices = [];
   }
 
-  public handleExerciseReorder(event: CustomEvent<ItemReorderEventDetail>): void {
-    if (!this.reorderExercisesMode) {
-      event.detail.complete();
-      return;
-    }
-
-    const movedIndex = this.exercisesReorderIndices.splice(event.detail.from, 1)[0];
-    this.exercisesReorderIndices.splice(event.detail.to, 0, movedIndex);
-    // Sin argumento: ion-reorder-group ya reubicó los nodos del DOM por su
-    // cuenta, solo hace falta confirmar la animación (mismo patrón que
-    // OrderExercisesPage.handleReorder, que tampoco reordena su array fuente).
-    event.detail.complete();
+  // app-exercise-order-list ya devuelve la permutación completa
+  // (order[posición] = índice original). Mueve ejercicios sueltos y bloques
+  // enteros; el array real solo se remapea una vez al confirmar.
+  public onExercisesOrderChange(order: number[]): void {
+    if (!this.reorderExercisesMode) return;
+    this.exercisesReorderIndices = order;
   }
 
   public confirmReorderExercises(): void {
@@ -918,6 +919,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
           this.syncFullWorkoutWithTable();
 
           this.reorderExercisesMode = false;
+          this.reorderSnapshot = null;
           this.savingExercisesOrder = false;
           this.exercisesReorderIndices = [];
 
@@ -1239,7 +1241,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   }
 
   public trackByBlockGroup(_index: number, group: WorkoutExerciseGroup): string {
-    return group.block?._id || 'ungrouped';
+    return group.key;
   }
 
   public blockTypeLabel(type: WorkoutBlock['type']): string {

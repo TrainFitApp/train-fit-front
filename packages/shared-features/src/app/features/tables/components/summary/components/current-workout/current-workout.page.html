@@ -166,12 +166,22 @@
   </ng-template>
 
   <ng-container *ngIf="currentWorkout">
+    <!-- Modo "Mover ejercicios": ejercicios sueltos y bloques enteros en una
+         lista compacta (los bloques se mueven con todos sus ejercicios). -->
+    <app-exercise-order-list
+      *ngIf="reorderExercisesMode"
+      [workout]="reorderSnapshot"
+      [disabled]="savingExercisesOrder"
+      (orderChange)="onExercisesOrderChange($event)"
+    ></app-exercise-order-list>
+
+    <ng-container *ngIf="!reorderExercisesMode">
     <!-- Con bloques, los ejercicios van agrupados como en el Planner: cada
          bloque en un contenedor del color de su tipo, con su nombre, tipo,
-         rondas y descansos. Para reordenar ejercicios (ion-reorder necesita
-         la lista plana) vuelve a la lista de siempre. `i` sigue siendo el
-         índice GLOBAL en currentWorkout.exercises (globalExerciseIndex). -->
-    <ng-container *ngIf="showsBlocks && !reorderExercisesMode; else flatExercises">
+         rondas y descansos, en la posición que ocupan en la sesión. `i` sigue
+         siendo el índice GLOBAL en currentWorkout.exercises
+         (globalExerciseIndex). -->
+    <ng-container *ngIf="showsBlocks; else flatExercises">
       <ng-container *ngFor="let group of exerciseGroups; trackBy: trackByBlockGroup">
         <div
           class="workout-block-group"
@@ -208,12 +218,10 @@
         </div>
       </ng-container>
     </ng-container>
+    </ng-container>
 
     <ng-template #flatExercises>
-      <ion-reorder-group
-        [disabled]="!reorderExercisesMode"
-        (ionItemReorder)="handleExerciseReorder($event)"
-      >
+      <ion-reorder-group [disabled]="true">
         <ng-container *ngFor="let exercise of currentWorkout.exercises; let i = index; trackBy: trackByCustomExercise">
           <ng-container *ngTemplateOutlet="exerciseItem; context: { $implicit: exercise, i: i }"></ng-container>
         </ng-container>
@@ -313,9 +321,6 @@
             </div>
           </div>
 
-          <ion-reorder *ngIf="reorderExercisesMode" slot="end" class="exercise-reorder-handle">
-            <ion-icon name="reorder-three-outline"></ion-icon>
-          </ion-reorder>
           <ion-icon
             *ngIf="!reorderExercisesMode"
             slot="end"

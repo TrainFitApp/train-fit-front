@@ -16,7 +16,8 @@
       *ngFor="let day of calendarDays"
       [class.inactive]="day.inactive"
       [class.completed]="day.completed"
-      [class.clickable]="openMesocycleOnTap && day.sessions.length"
+      [class.clickable]="(openMesocycleOnTap || selectOnTap) && day.sessions.length"
+      [class.selected]="selectedDate && day.date === selectedDate"
       (click)="openDay(day)"
     >
       <!-- Badge de microciclo arriba a la derecha: M1 (microciclo 1), M2... -->

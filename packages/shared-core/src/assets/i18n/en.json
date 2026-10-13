@@ -1360,6 +1360,12 @@
     "STATS_SELECT_HINT": "To see detailed statistics of your progress.",
     "STATS_NO_DATA": "No Data",
     "STATS_NO_DATA_HINT": "No activity has been recorded for this exercise yet.",
+    "STATS_PULSE_TITLE": "How you arrived and how you finished",
+    "STATS_PULSE_READINESS": "On arrival",
+    "STATS_PULSE_EFFORT": "Effort",
+    "STATS_PULSE_SORENESS": "Soreness",
+    "STATS_PULSE_EMPTY": "You didn't answer how you felt or how hard it was in this workout.",
+    "STATS_PULSE_CALENDAR_HINT": "Tap a training day to see how you arrived and how you finished.",
     "VIDEO_DEMO": "Demo video",
     "VIDEO_NOT_AVAILABLE": "Video not available",
     "MUSCLE_GROUPS": "Muscle groups",
@@ -1855,7 +1861,11 @@
     "ALERT_MESSAGE": "Do you want to save the changes to the exercise order?",
     "ALERT_CANCEL": "Cancel",
     "ALERT_CONFIRM": "Confirm",
-    "TOAST_RESET": "You have reset the exercise order"
+    "TOAST_RESET": "You have reset the exercise order",
+    "HINT_BLOCKS": "Drag the handle to move an exercise or a whole block. Inside a block, use the arrows",
+    "A11Y_MOVE_BLOCK": "Move the whole block",
+    "A11Y_MOVE_UP": "Move exercise up within the block",
+    "A11Y_MOVE_DOWN": "Move exercise down within the block"
   },
   "ORDER_SETS": {
     "TITLE": "Sort Sets",

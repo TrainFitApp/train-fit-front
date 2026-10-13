@@ -664,10 +664,17 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public openOrderModal(): void {
+    // El panel guarda sobre tableService.tableInUse: en el Planner la tabla
+    // que se edita es la del cliente, no la que el servicio tuviera.
+    if (this.plannerMode && this.tableInUse) {
+      this.tableService.setCurrentTable = this.tableInUse;
+    }
+
     const modalOptions: ModalOptions = {
       component: OrderExercisesPage,
       componentProps: {
         customExercises: this.workout.exercises,
+        blocks: this.workout.blocks || [],
         idWorkout: this.workout._id,
         idTable: this.tableInUse._id,
       },
@@ -928,10 +935,12 @@ export class WorkoutComponent implements OnDestroy {
   // resto de la plantilla (notas ancladas, borrar, seleccionar, ids del DOM)
   // depende de ese índice plano, no del índice dentro del grupo.
   public get exerciseGroupEntries(): {
+    key: string;
     block: WorkoutBlock | null;
     entries: { exercise: CustomExercise; index: number }[];
   }[] {
     return groupExercisesByBlock(this.workout).map((group) => ({
+      key: group.key,
       block: group.block,
       entries: group.exercises.map((exercise) => ({
         exercise,
@@ -944,11 +953,8 @@ export class WorkoutComponent implements OnDestroy {
     return hasRenderableBlocks(this.workout);
   }
 
-  public trackByBlockGroup(
-    _index: number,
-    group: { block: WorkoutBlock | null },
-  ): string {
-    return group.block?._id || "ungrouped";
+  public trackByBlockGroup(_index: number, group: { key: string }): string {
+    return group.key;
   }
 
   public trackByExerciseEntry(
@@ -1708,8 +1714,10 @@ export class WorkoutComponent implements OnDestroy {
     if (this.workout.exercises.length > 0) {
       actions.push(ACTIONS[this.ACTION_TYPES.copyExercises]);
       // En el Planner se reordena arrastrando el asa de cada ejercicio
-      // (onExercisesDropped): el modal de ordenar sobra.
-      if (!this.plannerMode) {
+      // (onExercisesDropped), pero eso solo mueve dentro de un grupo: con
+      // bloques hace falta el panel de ordenar, que mueve también bloques
+      // enteros y ejercicios sueltos entre ellos.
+      if (!this.plannerMode || this.showsBlocks) {
         actions.push(ACTIONS[this.ACTION_TYPES.moveExercises]);
       }
 
@@ -2370,11 +2378,12 @@ export class WorkoutComponent implements OnDestroy {
 
   // --- Reordenar ejercicios arrastrando (Fase C, solo plannerMode) ---
 
-  // Mismo CDK que ya reordena microciclos y tarjetas en el tablero, en vez
-  // del modal OrderExercisesPage (que en plannerMode ya no se ofrece). Cada
-  // grupo de exerciseGroupEntries (bloque o "sin agrupar") es su propia
-  // lista: se reordena DENTRO del bloque; para cambiar de bloque sigue el
-  // botón de capas.
+  // Mismo CDK que ya reordena microciclos y tarjetas en el tablero. Cada
+  // grupo de exerciseGroupEntries (bloque o tanda de sueltos) es su propia
+  // lista: se reordena DENTRO del grupo; para cambiar de bloque sigue el
+  // botón de capas, y para mover un bloque entero o colocar un suelto entre
+  // bloques, "Mover ejercicios" (OrderExercisesPage), que en plannerMode solo
+  // se ofrece si hay bloques.
   public get canReorderExercises(): boolean {
     return this.plannerMode;
   }

@@ -1,0 +1,65 @@
+<ion-list class="order-list">
+  <ion-reorder-group
+    *ngIf="showReorderGroup"
+    [disabled]="disabled"
+    (ionItemReorder)="handleReorder($any($event))"
+    class="order-group"
+  >
+    <ion-item
+      *ngFor="let item of items; let i = index; trackBy: trackByItem"
+      class="order-item"
+      [ngClass]="item.block ? 'order-item--block workout-block workout-block--' + item.block.type : 'order-item--single'"
+      lines="none"
+    >
+      <!-- Ejercicio suelto -->
+      <div class="order-row" *ngIf="!item.block">
+        <div class="order-number">{{ startNumber(item) }}</div>
+        <div class="order-name">
+          {{ (item.exercises[0].exercise.exercise?.name || '') | translateDb }}
+        </div>
+        <ion-reorder class="order-handle">
+          <ion-icon name="swap-vertical" aria-hidden="true"></ion-icon>
+        </ion-reorder>
+      </div>
+
+      <!-- Bloque entero: se mueve con todos sus ejercicios -->
+      <div class="order-block" *ngIf="item.block">
+        <div class="order-row order-block-header">
+          <ion-icon name="layers-outline" class="order-block-icon" aria-hidden="true"></ion-icon>
+          <div class="order-name">
+            <span class="order-block-name">{{ blockLabel(item) }}</span>
+            <span class="order-block-type">{{ blockTypeLabel(item.block.type) }}</span>
+          </div>
+          <ion-reorder class="order-handle" [attr.aria-label]="'ORDER_EXERCISES.A11Y_MOVE_BLOCK' | translate">
+            <ion-icon name="swap-vertical" aria-hidden="true"></ion-icon>
+          </ion-reorder>
+        </div>
+
+        <ol class="order-block-exercises">
+          <li class="order-member" *ngFor="let entry of item.exercises; let j = index; let last = last">
+            <span class="order-number order-number--small">{{ startNumber(item) + j }}</span>
+            <span class="order-name">{{ (entry.exercise.exercise?.name || '') | translateDb }}</span>
+            <button
+              type="button"
+              class="order-step"
+              [disabled]="disabled || j === 0"
+              [attr.aria-label]="'ORDER_EXERCISES.A11Y_MOVE_UP' | translate"
+              (click)="moveWithinBlock(i, j, j - 1)"
+            >
+              <ion-icon name="chevron-up-outline" aria-hidden="true"></ion-icon>
+            </button>
+            <button
+              type="button"
+              class="order-step"
+              [disabled]="disabled || last"
+              [attr.aria-label]="'ORDER_EXERCISES.A11Y_MOVE_DOWN' | translate"
+              (click)="moveWithinBlock(i, j, j + 1)"
+            >
+              <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </li>
+        </ol>
+      </div>
+    </ion-item>
+  </ion-reorder-group>
+</ion-list>

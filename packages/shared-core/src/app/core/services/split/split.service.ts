@@ -15,9 +15,10 @@ export class SplitService {
   public addSplitToTable(
     idTable: string,
     idSplit?: string,
-    withSets?: boolean
+    withSets?: boolean,
+    withValues?: boolean
   ): Observable<Split> {
-    return this.splitAPIService.addSplitToTable(idTable, idSplit, withSets);
+    return this.splitAPIService.addSplitToTable(idTable, idSplit, withSets, withValues);
   }
 
   public updateSplit(id: string, patch: Partial<Split>): Observable<any> {

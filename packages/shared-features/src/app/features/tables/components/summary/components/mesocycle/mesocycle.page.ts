@@ -1526,8 +1526,10 @@ export class MesocyclePage implements OnInit, AfterViewInit, OnDestroy {
               this.loadingSplit = true;
               const idSplit =
                 this.tableInUse.splits[this._currentSplitIndex]?._id;
+              // Completo = pauta y también lo levantado (peso, reps, RIR):
+              // el microciclo nuevo arranca con las cifras del copiado.
               this.splitService
-                .addSplitToTable(this.tableInUse._id, idSplit, true)
+                .addSplitToTable(this.tableInUse._id, idSplit, true, true)
                 .subscribe(
                   (resSplit) => {
                     this.tableInUse.splits.splice(

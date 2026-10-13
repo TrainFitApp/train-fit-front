@@ -15,13 +15,16 @@ export class SplitAPIService {
 
   constructor(private http: HttpService) {}
 
+  // `withValues`: con series, además de la pauta se copia lo levantado (peso,
+  // repeticiones, RIR…) — duplicar "completo" en la app del cliente.
   public addSplitToTable(
     idTable: string,
     idSplit?: string,
-    withSets?: boolean
+    withSets?: boolean,
+    withValues?: boolean
   ): Observable<Split> {
     return this.http
-      .put<Split>(`splits/add/to/table`, { idTable, idSplit, withSets })
+      .put<Split>(`splits/add/to/table`, { idTable, idSplit, withSets, withValues })
       .pipe(take(1));
   }
 
