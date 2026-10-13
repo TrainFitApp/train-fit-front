@@ -226,7 +226,7 @@ ion-header.copy-mode-locked {
   margin: var(--diets-gap) 7px 0;
   padding: 6px 14px 4px;
   border-radius: 14px;
-  border: 1px solid #2a2a2a;
+  border: 1px solid rgba(254, 144, 0, 0.24);
   background: #111111;
 
   &.copy-mode-locked {
@@ -244,12 +244,29 @@ ion-header.copy-mode-locked {
 }
 
 .day-supplements__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--ion-color-medium);
+  color: var(--ion-color-primary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.day-supplements__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(var(--ion-color-primary-rgb), 0.18);
+
+  ion-icon {
+    font-size: 16px;
+  }
 }
 
 // Acción de texto en naranja, como «Salir del menú» pero sin subrayado:
@@ -308,16 +325,11 @@ ion-header.copy-mode-locked {
   font-family: inherit;
   text-align: left;
 
-  > ion-icon:first-child {
-    flex-shrink: 0;
-    font-size: 20px;
-    color: var(--ion-color-medium);
-  }
 }
 
-.day-supplements__row--prescribed > ion-icon:first-child,
 .day-supplements__by {
   color: var(--ion-color-alternative);
+  font-weight: 600;
 }
 
 .day-supplements__row--own {

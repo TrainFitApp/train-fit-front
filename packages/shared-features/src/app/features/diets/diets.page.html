@@ -161,6 +161,9 @@
   >
     <div class="day-supplements__header">
       <h2 class="day-supplements__title" id="day-supplements-title">
+        <span class="day-supplements__badge" aria-hidden="true">
+          <ion-icon name="flask-outline"></ion-icon>
+        </span>
         {{ 'DIETS.SUPPLEMENTS' | translate }}
       </h2>
       <button
@@ -183,7 +186,6 @@
         class="day-supplements__row day-supplements__row--prescribed"
         *ngIf="!supplement.own"
       >
-        <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
         <span class="day-supplements__text">
           <strong>{{ supplement.name }} · {{ supplement.dose }}</strong>
           <small
@@ -204,7 +206,6 @@
         [attr.aria-label]="'SUPPLEMENTS.EDIT_ARIA' | translate: { name: supplement.name }"
         (click)="openSupplementSheet(supplement)"
       >
-        <ion-icon name="flask-outline" aria-hidden="true"></ion-icon>
         <span class="day-supplements__text">
           <strong>{{ supplement.name }} · {{ supplement.dose }}</strong>
           <small>{{ supplementTiming(supplement) }}</small>
