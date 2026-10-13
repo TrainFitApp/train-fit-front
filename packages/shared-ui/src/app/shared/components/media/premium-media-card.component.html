@@ -1,26 +1,93 @@
-<div class="premium-media" [class.premium-media--showcase]="showcase">
-  <!-- Muestra del comparador: dos marcos vacíos y el divisor. Es la forma de
-       la herramienta, no la foto de nadie. -->
-  <div class="premium-media-sample" *ngIf="showcase" aria-hidden="true">
-    <div class="sample-frame sample-frame--before">
-      <span class="sample-tag">{{ 'MEDIA.PREMIUM_SAMPLE_BEFORE' | translate }}</span>
-    </div>
-    <div class="sample-frame sample-frame--after">
-      <span class="sample-tag">{{ 'MEDIA.PREMIUM_SAMPLE_AFTER' | translate }}</span>
-    </div>
-    <span class="sample-divider"><span class="sample-handle"><ion-icon name="code-outline"></ion-icon></span></span>
-  </div>
-
+<!-- Con material ya subido: banner compacto (lo subido se sigue viendo). -->
+<div class="premium-media" *ngIf="!showcase">
   <button type="button" class="premium-banner" (click)="goToPremium()">
     <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
     <span class="premium-banner__text">
       <span class="premium-banner__title">
-        {{ (variant === 'videos' ? 'MEDIA.PREMIUM_VIDEOS_TITLE' : 'MEDIA.PREMIUM_PHOTOS_TITLE') | translate }}
+        {{ (isVideos ? 'MEDIA.PREMIUM_VIDEOS_TITLE' : 'MEDIA.PREMIUM_PHOTOS_TITLE') | translate }}
       </span>
       <span class="premium-banner__sub">
-        {{ (variant === 'videos' ? 'MEDIA.PREMIUM_VIDEOS_SUB' : 'MEDIA.PREMIUM_PHOTOS_SUB') | translate }}
+        {{ (isVideos ? 'MEDIA.PREMIUM_VIDEOS_SUB' : 'MEDIA.PREMIUM_PHOTOS_SUB') | translate }}
       </span>
     </span>
     <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
   </button>
 </div>
+
+<!-- Sin nada subido: la herramienta, qué se gana y un botón. -->
+<section class="paywall" *ngIf="showcase">
+  <!-- Muestra de la herramienta. Es su forma, no la foto ni el vídeo de nadie. -->
+  <div class="stage" aria-hidden="true">
+    <span class="stage-badge">{{ 'MEDIA.PREMIUM_SAMPLE_BADGE' | translate }}</span>
+
+    <ng-container *ngIf="!isVideos">
+      <div class="stage-compare">
+        <div class="stage-frame stage-frame--before"><ion-icon name="body"></ion-icon></div>
+        <div class="stage-frame stage-frame--after"><ion-icon name="body"></ion-icon></div>
+        <span class="stage-tag stage-tag--left">{{ 'MEDIA.PREMIUM_SAMPLE_BEFORE' | translate }}</span>
+        <span class="stage-tag stage-tag--right">{{ 'MEDIA.PREMIUM_SAMPLE_AFTER' | translate }}</span>
+        <span class="stage-divider"
+          ><span class="stage-handle"><ion-icon name="swap-horizontal-outline"></ion-icon></span
+        ></span>
+      </div>
+      <div class="stage-footer stage-footer--deltas">
+        <span class="stage-delta">{{ 'MEDIA.PREMIUM_SAMPLE_WEIGHT' | translate }}</span>
+        <span class="stage-delta">{{ 'MEDIA.PREMIUM_SAMPLE_WAIST' | translate }}</span>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="isVideos">
+      <div class="stage-video">
+        <span class="stage-tag stage-tag--left">{{ 'MEDIA.PREMIUM_SAMPLE_MID' | translate }}</span>
+        <span class="stage-play"><ion-icon name="play"></ion-icon></span>
+        <span class="stage-duration">0:48</span>
+        <span class="stage-scrub"><span class="stage-scrub-fill"></span></span>
+      </div>
+      <div class="stage-footer stage-footer--strip">
+        <span class="stage-thumb">
+          <ion-icon name="play"></ion-icon>
+          <span>{{ 'MEDIA.PREMIUM_SAMPLE_BEFORE' | translate }}</span>
+        </span>
+        <span class="stage-thumb stage-thumb--active">
+          <ion-icon name="play"></ion-icon>
+          <span>{{ 'MEDIA.PREMIUM_SAMPLE_MID' | translate }}</span>
+        </span>
+        <span class="stage-thumb">
+          <ion-icon name="play"></ion-icon>
+          <span>{{ 'MEDIA.PREMIUM_SAMPLE_AFTER' | translate }}</span>
+        </span>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="paywall-copy">
+    <p class="paywall-eyebrow"><ion-icon name="diamond-outline"></ion-icon> Premium</p>
+    <h2 class="paywall-title">
+      {{ (isVideos ? 'MEDIA.PREMIUM_VIDEOS_HEADLINE' : 'MEDIA.PREMIUM_PHOTOS_HEADLINE') | translate }}
+    </h2>
+    <p class="paywall-lead">
+      {{ (isVideos ? 'MEDIA.PREMIUM_VIDEOS_LEAD' : 'MEDIA.PREMIUM_PHOTOS_LEAD') | translate }}
+    </p>
+  </div>
+
+  <div class="paywall-action">
+    <button type="button" class="paywall-cta" (click)="goToPremium()">
+      <ion-icon name="diamond-outline"></ion-icon>
+      <span>{{ 'MEDIA.PREMIUM_CTA' | translate }}</span>
+    </button>
+    <p class="paywall-included">
+      <ion-icon name="people-outline"></ion-icon>
+      {{ 'MEDIA.PREMIUM_INCLUDED_TRAINER' | translate }}
+    </p>
+  </div>
+
+  <ul class="perks">
+    <li class="perk" *ngFor="let perk of perks; trackBy: trackPerk">
+      <span class="perk-icon"><ion-icon [name]="perk.icon"></ion-icon></span>
+      <span class="perk-text">
+        <span class="perk-title">{{ perk.title | translate }}</span>
+        <span class="perk-sub">{{ perk.text | translate }}</span>
+      </span>
+    </li>
+  </ul>
+</section>

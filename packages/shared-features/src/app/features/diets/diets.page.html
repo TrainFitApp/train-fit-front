@@ -170,10 +170,10 @@
         type="button"
         class="day-supplements__add"
         *ngIf="canAddSupplements"
+        [attr.aria-label]="'DIETS.SUPPLEMENTS_ADD' | translate"
         (click)="openSupplementSheet()"
       >
         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-        {{ 'DIETS.SUPPLEMENTS_ADD' | translate | uppercase }}
       </button>
     </div>
 

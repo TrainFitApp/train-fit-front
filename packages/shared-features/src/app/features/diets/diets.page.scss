@@ -269,38 +269,47 @@ ion-header.copy-mode-locked {
   }
 }
 
-// Acción de texto en naranja, como «Salir del menú» pero sin subrayado:
-// aquí es la acción principal de la sección. Área de 44px con margen
-// negativo para que no empuje la cabecera.
+// Botón «+» con el estilo de los botones de la cabecera (toolbar-calendar:
+// fondo tenue, esquinas redondeadas, icono naranja) pero más pequeño: la
+// baldosa visible es de 32px y la zona pulsable sigue siendo de 44px.
 .day-supplements__add {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  min-height: 44px;
-  margin: 0 -10px 0 0;
-  padding: 0 10px;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin: 0 -6px 0 0;
+  padding: 0;
   border: none;
-  border-radius: 10px;
   background: none;
-  color: var(--ion-color-primary);
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  color: rgba(254, 144, 0, 0.9);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: background 0.2s ease;
+  }
+
   ion-icon {
+    position: relative;
     font-size: 18px;
   }
 
-  &:active {
-    background: rgba(var(--ion-color-primary-rgb), 0.1);
+  &:active::before {
+    background: rgba(255, 255, 255, 0.15);
   }
 
   &:focus-visible {
     outline: 2px solid var(--ion-color-primary);
     outline-offset: -2px;
+    border-radius: 12px;
   }
 }
 

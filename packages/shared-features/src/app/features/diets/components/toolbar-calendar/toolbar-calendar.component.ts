@@ -10,12 +10,12 @@ import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { dietDayHasContent } from 'src/app/core/utils/diet-day.util';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
   ACTIONS,
   ACTION_TYPE,
   ACTION_TYPES,
-  ACTION_VALUES,
 } from 'src/app/shared/constants/actions';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 
@@ -64,7 +64,6 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
   public actionsPopover: ACTION_TYPE[];
 
   public ACTION_TYPES = ACTION_TYPES;
-  public ACTION_VALUES = ACTION_VALUES;
   public ACTIONS = ACTIONS;
 
   public readonly coachService = inject(CoachService);
@@ -125,17 +124,13 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
   }
 
   private getActionsPopover(): void {
-    this.actionsPopover = [];
-    if (this.dietDay?._id) {
+    this.actionsPopover = [ACTIONS[this.ACTION_TYPES.note]];
+    // Copiar y borrar solo tienen sentido sobre un día guardado y con algo
+    // dentro: el back crea el día al abrirlo, así que `_id` solo no basta.
+    if (this.dietDay?._id && dietDayHasContent(this.dietDay)) {
       // Orden visual coherente: acciones de contenido y finalmente la destructiva.
-      this.actionsPopover.push(ACTIONS[this.ACTION_TYPES.note]);
       this.actionsPopover.push(ACTIONS[this.ACTION_TYPES.copy]);
       this.actionsPopover.push(ACTIONS[this.ACTION_TYPES.delete]);
-    } else {
-      // Only show Note option when diet-day doesn't exist yet
-      this.actionsPopover = this.ACTION_VALUES.filter(
-        (actionTemp) => actionTemp.id === ACTIONS[this.ACTION_TYPES.note].id
-      );
     }
   }
 
