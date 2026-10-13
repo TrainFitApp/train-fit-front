@@ -245,6 +245,13 @@ export class CoachPage implements OnInit {
     return this.professionalsResolved && !this.inviteOnly;
   }
 
+  // La lista de la compra se calcula del plan de dieta que pauta el
+  // profesional: sin nutricionista activo no existe (mismo criterio que el
+  // botón de la cabecera de Dietas).
+  public get showShoppingList(): boolean {
+    return this.coachService.hasNutritionCoach();
+  }
+
   public get pendingCount(): number {
     if (!this.dashboard) return 0;
     return (

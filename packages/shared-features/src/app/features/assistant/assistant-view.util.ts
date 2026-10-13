@@ -62,7 +62,6 @@ const CLIENT_ROUTES: Record<string, string[]> = {
   configuration: ['/configuration'],
   coach: ['/tabs/coach'],
   pain: ['/my-pain'],
-  shopping_list: ['/my-shopping-list'],
 };
 
 const TRAINER_ROUTES: Record<string, string[]> = {

@@ -358,7 +358,6 @@ export const ASSISTANT_CLIENT_SCREENS = [
   'configuration',
   'coach',
   'pain',
-  'shopping_list',
 ];
 export const ASSISTANT_TRAINER_SCREENS = [
   'today',

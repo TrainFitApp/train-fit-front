@@ -165,7 +165,9 @@
         <span class="coach-menu-name">{{ 'COACH.SUPPLEMENTS' | translate }}</span>
       </button>
 
-      <button type="button" class="coach-menu-card" (click)="goToShoppingList()">
+      <!-- La lista sale del plan de dieta que pauta el profesional: con uno
+           que solo lleve el entreno (o sin ninguno) no habría nada que comprar. -->
+      <button type="button" class="coach-menu-card" *ngIf="showShoppingList" (click)="goToShoppingList()">
         <div class="coach-menu-icon"><ion-icon name="cart-outline"></ion-icon></div>
         <span class="coach-menu-name">{{ 'COACH.SHOPPING_LIST' | translate }}</span>
       </button>

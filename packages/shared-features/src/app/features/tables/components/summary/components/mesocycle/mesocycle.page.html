@@ -23,9 +23,9 @@
         </div>
         <div class="actions-section">
           <button
-            *ngIf="stateSelected !== STATES.move && !isReadonly"
+            *ngIf="stateSelected !== STATES.move && !isReadonly && (currentSplit?.workouts?.length ?? 0) > 1"
             class="action-button ripple-effect"
-            [disabled]="loadingSplit || !currentSplit?.workouts?.length || exerciseCopyActive"
+            [disabled]="loadingSplit || exerciseCopyActive"
             (click)="enterWorkoutMoveMode()"
           >
             <ion-icon name="swap-vertical" color="primary"></ion-icon>

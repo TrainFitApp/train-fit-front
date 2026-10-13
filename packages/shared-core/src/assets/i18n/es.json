@@ -412,7 +412,7 @@
     "NAME_PLACEHOLDER": "Nombre",
     "NAME_REQUIRED": "El nombre es obligatorio",
     "LASTNAME_PLACEHOLDER": "Apellido",
-    "LASTNAME_REQUIRED": "Apellidos obligatorios",
+    "LASTNAME_REQUIRED": "Apellido obligatorio",
     "BIRTH_DATE": "Fecha de nacimiento",
     "SELECT_BIRTH_DATE": "Selecciona tu fecha de nacimiento.",
     "BIRTH_REQUIRED": "La fecha de nacimiento es obligatoria",
@@ -3149,7 +3149,6 @@
       "account": "tu cuenta",
       "coach": "tu profesional",
       "pain": "tu registro de dolor",
-      "shopping_list": "la lista de la compra",
       "automations": "tus automatizaciones",
       "checkin_templates": "las plantillas de check-in",
       "protocols": "los protocolos"

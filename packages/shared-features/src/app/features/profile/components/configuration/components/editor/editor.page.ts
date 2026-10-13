@@ -2,7 +2,9 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { IonContent, IonModal, ToastOptions } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
-import { Subscription, merge } from "rxjs";
+import { Observable, Subscription, merge, of } from "rxjs";
+import { map, switchMap } from "rxjs/operators";
+import { NutritionalGoal } from "src/app/core/models/nutritional-goal";
 import { User } from "src/app/core/models/user";
 import { CoachService } from "src/app/core/services/coach/coach.service";
 import { NutritionalGoalService } from "src/app/core/services/nutritional-goal/nutritional-goal.service";
@@ -34,6 +36,20 @@ import {
 import { USER_VALIDATIONS } from "src/app/shared/constants/user-validations";
 import { MACROS_VALUES, MacrosData } from "src/app/shared/models/macros-data";
 import { environment } from "src/environments/environment";
+
+// Campos del perfil que entran en el cálculo de calorías y macros: al cambiar
+// uno se recalcula la vista, y al guardar también el objetivo en uso.
+const MACRO_INPUTS = [
+  "weight",
+  "height",
+  "birth",
+  "sex",
+  "steps",
+  "activity",
+  "objetive",
+  "objetiveType",
+  "training",
+];
 
 @Component({
   selector: "app-editor",
@@ -149,19 +165,11 @@ export class EditorPage implements OnInit {
     // Verificar validación inicial del campo activity
     this.checkActivityValidation();
 
-    const observables = [
-      this.userForm.controls.weight.valueChanges,
-      this.userForm.controls.height.valueChanges,
-      this.userForm.controls.birth.valueChanges,
-      this.userForm.controls.sex.valueChanges,
-      this.userForm.controls.steps.valueChanges,
-      this.userForm.controls.activity.valueChanges,
-      this.userForm.controls.objetive.valueChanges,
-      this.userForm.controls.objetiveType.valueChanges,
-      this.userForm.controls.training.valueChanges,
-    ];
-
-    merge(...observables).subscribe(() => this.autoCalculate());
+    // Cada pulsación recalcula lo que se ve en pantalla; nada se envía al
+    // servidor hasta que se guarda (updateUser).
+    merge(
+      ...MACRO_INPUTS.map((name) => this.userForm.controls[name].valueChanges),
+    ).subscribe(() => this.autoCalculate());
 
     Object.keys(this.userForm.value).forEach((controlName) => {
       this.initialFormUser.addControl(
@@ -297,7 +305,6 @@ export class EditorPage implements OnInit {
               handler: () => {
                 this.objetiveSelected = this.initialObjetiveType;
                 this.userForm.reset(this.initialFormUser.value);
-                this.autoCalculate();
                 this.ionicUtilService.closeModal();
               },
             },
@@ -320,24 +327,13 @@ export class EditorPage implements OnInit {
     }
   }
 
+  // Se llama en cada pulsación, así que solo recalcula lo que se ve (macros del
+  // formulario) y no toca el servidor. Guardar es updateUser().
   public autoCalculate(): void {
     this.setFinalObjetive();
     setTimeout(() => {
-      const userWithFormValues = {
-        ...this.user,
-        ...this.userForm.value,
-        objetive: this.objetiveFinal,
-      };
-      const computedUser = this.userService.setUserMacrosAndKcal(userWithFormValues) as any;
-      Object.assign(this.user, computedUser);
+      Object.assign(this.user, this.computeUser());
       this.calculate();
-
-      const kcalTotal = Math.round(computedUser.kcalTotal || 0);
-      const proteinsGTotal = parseFloat((computedUser.proteinsGTotal || 0).toFixed(2));
-      const carbohydratesGTotal = parseFloat((computedUser.carbohydratesGTotal || 0).toFixed(2));
-      const fatGTotal = parseFloat((computedUser.fatGTotal || 0).toFixed(2));
-
-      this.syncActiveGoal(kcalTotal, proteinsGTotal, carbohydratesGTotal, fatGTotal);
 
       this.userForm.controls.kcalTotal.setValue(
         this.userForm.controls.kcalTotal.value,
@@ -345,25 +341,45 @@ export class EditorPage implements OnInit {
     });
   }
 
-  private syncActiveGoal(kcalTotal: number, proteins: number, carbs: number, fat: number): void {
-    // El objetivo lo pauta el profesional que lleva su nutrición: cambiar el
-    // perfil no debe pisarlo.
-    if (this.coachService.hasNutritionCoach()) return;
-    if (this.user.goalInUse) {
-      this.nutritionalGoalService.update(this.user.goalInUse, {
-        kcalTotal, proteinsGTotal: proteins, carbohydratesGTotal: carbs, fatGTotal: fat,
-      }).subscribe();
-    } else {
-      this.nutritionalGoalService.create({
-        name: 'Default', kcalTotal, proteinsGTotal: proteins, carbohydratesGTotal: carbs, fatGTotal: fat,
-      }).subscribe((goal) => {
-        this.nutritionalGoalService.setActive(goal._id).subscribe({
-          next: () => {
-            this.user.goalInUse = goal._id;
-          },
-        });
-      });
-    }
+  // El usuario con los macros que salen del formulario tal como está ahora.
+  private computeUser(): any {
+    return this.userService.setUserMacrosAndKcal({
+      ...this.user,
+      ...this.userForm.value,
+      objetive: this.objetiveFinal,
+    });
+  }
+
+  // Macros del perfil para el objetivo en uso. null = no tocarlo: cambió solo
+  // el nombre, o lo pauta el profesional que lleva la nutrición (cambiar el
+  // perfil no debe pisarlo).
+  private macrosForActiveGoal(
+    changedFields: string[],
+  ): Partial<NutritionalGoal> | null {
+    if (this.coachService.hasNutritionCoach()) return null;
+    if (!MACRO_INPUTS.some((name) => changedFields.includes(name))) return null;
+
+    const computed = this.computeUser();
+    return {
+      kcalTotal: Math.round(computed.kcalTotal || 0),
+      proteinsGTotal: parseFloat((computed.proteinsGTotal || 0).toFixed(2)),
+      carbohydratesGTotal: parseFloat((computed.carbohydratesGTotal || 0).toFixed(2)),
+      fatGTotal: parseFloat((computed.fatGTotal || 0).toFixed(2)),
+    };
+  }
+
+  // Escribe esos macros en el objetivo en uso, o crea el primero si no hay.
+  private saveActiveGoal(
+    macros: Partial<NutritionalGoal> | null,
+  ): Observable<unknown> {
+    if (!macros) return of(null);
+
+    const goalId = this.userService.getLocalUser?.goalInUse;
+    if (goalId) return this.nutritionalGoalService.update(goalId, macros);
+
+    return this.nutritionalGoalService
+      .create({ name: 'Default', ...macros })
+      .pipe(switchMap((goal) => this.nutritionalGoalService.setActive(goal._id)));
   }
 
   public setStepsDescription(): void {
@@ -449,6 +465,10 @@ export class EditorPage implements OnInit {
       return;
     }
 
+    // Si cambió algo del cálculo, el objetivo en uso se actualiza ahora y una
+    // sola vez, junto con el perfil.
+    const goalMacros = this.macrosForActiveGoal(Object.keys(userToUpdate));
+
     // Incluir el _id del usuario para la actualización
     userToUpdate._id = this.user._id;
 
@@ -463,27 +483,35 @@ export class EditorPage implements OnInit {
       userToUpdate.goalInUse = this.user.goalInUse;
     }
 
-    this.userService.updateUser(userToUpdate as User).subscribe({
-      next: (user: User) => {
-        this.user = user;
-        this.userService.setLocalUser = user; // Actualizar el usuario local
-        this.ionicUtilService.showToast({
-          message: this.translate.instant('EDITOR.UPDATE_SUCCESS'),
-          color: "success",
-          duration: 2000,
-        } as ToastOptions);
-        this.ionicUtilService.closeModal();
-        this.loading = false;
-      },
-      error: () => {
-        this.ionicUtilService.showToast({
-          message: this.translate.instant('EDITOR.UPDATE_ERROR'),
-          color: "danger",
-          duration: 2000,
-        } as ToastOptions);
-        this.loading = false;
-      },
-    });
+    // UserService.updateUser ya deja el usuario local al día; no se vuelve a
+    // asignar después del objetivo, que puede haberle puesto goalInUse.
+    this.userService
+      .updateUser(userToUpdate as User)
+      .pipe(
+        switchMap((user) =>
+          this.saveActiveGoal(goalMacros).pipe(map(() => user)),
+        ),
+      )
+      .subscribe({
+        next: (user: User) => {
+          this.user = user;
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('EDITOR.UPDATE_SUCCESS'),
+            color: "success",
+            duration: 2000,
+          } as ToastOptions);
+          this.ionicUtilService.closeModal();
+          this.loading = false;
+        },
+        error: () => {
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('EDITOR.UPDATE_ERROR'),
+            color: "danger",
+            duration: 2000,
+          } as ToastOptions);
+          this.loading = false;
+        },
+      });
   }
 
   private initObjetive(): void {
@@ -651,7 +679,6 @@ export class EditorPage implements OnInit {
           handler: () => {
             this.objetiveSelected = this.initialObjetiveType;
             this.userForm.reset(this.initialFormUser.value);
-            this.autoCalculate();
             this.ionicUtilService.closeModal();
           },
         });
