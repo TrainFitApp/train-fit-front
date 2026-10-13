@@ -5,6 +5,13 @@ import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 import {
+  DEFAULT_DOSE_UNIT,
+  DoseLang,
+  doseUnitOptions,
+  formatDose,
+  parseDose,
+} from 'src/app/core/utils/supplement-dose.util';
+import {
   MySupplement,
   MySupplementsApiService,
   OwnSupplementInput,
@@ -36,6 +43,10 @@ const ERROR_KEYS: Record<string, string> = {
  * hasta que lo quite. Lo pautado por un profesional no pasa por aquí: es de
  * solo lectura.
  *
+ * La dosis se escribe como la pauta el profesional, cantidad + unidad de una
+ * lista, y se guarda junta como texto ("5 g"). El momento es una lista
+ * cerrada; solo "otro momento" abre un texto libre.
+ *
  * Guarda o quita ella misma y devuelve `{ changed: true }`: así un nombre
  * repetido se explica sin cerrar la hoja ni perder lo escrito.
  */
@@ -53,6 +64,8 @@ export class SupplementSheetComponent implements OnInit {
   @Input() public startDate = localIsoDate();
 
   public form!: FormGroup;
+  /** Unidades del desplegable de la dosis; si se edita una dosis con otra, esa también. */
+  public doseUnits: string[] = [];
   public saving = false;
   public removing = false;
   public errorKey: string | null = null;
@@ -75,20 +88,36 @@ export class SupplementSheetComponent implements OnInit {
     return this.saving || this.removing;
   }
 
+  /** La dosis como se guarda ("5 g"); '' mientras la cantidad no sea un número mayor que 0. */
+  public get doseText(): string {
+    const { doseAmount, doseUnit } = this.form.value;
+    return formatDose(doseAmount, doseUnit, this.doseLang);
+  }
+
   public get canSubmit(): boolean {
-    const { name, dose } = this.form.value;
-    return !this.busy && !!name?.trim() && !!dose?.trim();
+    return !this.busy && !!this.form.value.name?.trim() && !!this.doseText;
   }
 
   public get isCustomTiming(): boolean {
     return this.form.value.timing === 'custom';
   }
 
+  /** La unidad se escribe en el idioma de la app ("2 cápsulas" / "2 capsules"). */
+  private get doseLang(): DoseLang {
+    return this.translate.currentLang === 'en' ? 'en' : 'es';
+  }
+
   public ngOnInit(): void {
     const current = this.supplement;
+    const dose = parseDose(current?.dose ?? '', this.doseLang);
+    const doseUnit = dose.unit || DEFAULT_DOSE_UNIT;
+    // Una dosis con una unidad fuera de la lista ("1 medida rasa", o la que
+    // escribió el asistente) se ofrece como una opción más: editar no la pierde.
+    this.doseUnits = doseUnitOptions(doseUnit, this.doseLang);
     this.form = this.formBuilder.group({
       name: [current?.name ?? ''],
-      dose: [current?.dose ?? ''],
+      doseAmount: [dose.amount],
+      doseUnit: [doseUnit],
       timing: [current?.timing ?? 'with_meal'],
       customTiming: [current?.customTiming ?? ''],
     });
@@ -105,17 +134,12 @@ export class SupplementSheetComponent implements OnInit {
     return label === key ? timing.label : label;
   }
 
-  public selectTiming(key: string): void {
-    this.form.patchValue({ timing: key });
-    this.clearError();
-  }
-
   public submit(): void {
     if (!this.canSubmit) return;
-    const { name, dose, timing, customTiming } = this.form.value;
+    const { name, timing, customTiming } = this.form.value;
     const body: OwnSupplementInput = {
       name: name.trim(),
-      dose: dose.trim(),
+      dose: this.doseText,
       timing,
       customTiming: timing === 'custom' ? (customTiming || '').trim() : '',
     };

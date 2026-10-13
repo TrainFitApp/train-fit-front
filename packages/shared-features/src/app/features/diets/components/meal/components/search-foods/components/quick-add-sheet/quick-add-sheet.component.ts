@@ -7,6 +7,7 @@ import {
 } from 'src/app/core/models/customProduct';
 import {
   canSubmitQuickAdd,
+  enteredKcal,
   kcalFromMacros,
   parseQuickAddNumber,
   shouldOfferKcalFromMacros,
@@ -73,16 +74,24 @@ export class QuickAddSheetComponent implements OnInit {
     this.kcalEdited = this.isEditMode;
   }
 
-  /** kcal de los macros escritos, para el atajo bajo el campo. */
+  /** kcal que suman los macros escritos, para el aviso bajo los campos. */
   public get kcalFromMacros(): number {
     return kcalFromMacros(this.form.value);
+  }
+
+  /** kcal escritas por el cliente (0 si el campo está vacío), para el aviso. */
+  public get enteredKcal(): number {
+    return enteredKcal(this.form.value);
   }
 
   public get canSubmit(): boolean {
     return canSubmitQuickAdd(this.form.value);
   }
 
-  /** El atajo solo sale si ya hay kcal propias que no cuadran con los macros. */
+  /**
+   * El aviso (con su atajo para igualar las kcal) solo sale si ya hay kcal
+   * propias que no cuadran con los macros.
+   */
   public get showKcalHint(): boolean {
     return this.kcalEdited && shouldOfferKcalFromMacros(this.form.value);
   }

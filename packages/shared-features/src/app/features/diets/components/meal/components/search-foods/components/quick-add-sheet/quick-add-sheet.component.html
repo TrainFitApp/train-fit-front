@@ -120,15 +120,24 @@
     </div>
   </div>
 
-  <button
-    *ngIf="showKcalHint"
-    type="button"
-    class="quick-add__kcal-hint"
-    (click)="applyKcalFromMacros()"
-  >
+  <!-- Las kcal escritas no cuadran con la suma de los macros: el texto dice
+       qué suma cada cosa y el botón ofrece igualarlas, sin bloquear nada (una
+       etiqueta real no siempre cuadra). Con el campo vacío no hay cifra con la
+       que compararlas y solo dice lo que suman los macros. -->
+  <div *ngIf="showKcalHint" class="quick-add__kcal-hint">
     <ion-icon name="calculator-outline" aria-hidden="true"></ion-icon>
-    {{ 'SEARCH_FOODS.QUICK_ADD_KCAL_FROM_MACROS' | translate : { kcal: kcalFromMacros } }}
-  </button>
+    <p class="quick-add__kcal-hint-text">
+      {{
+        (enteredKcal > 0
+          ? 'SEARCH_FOODS.QUICK_ADD_KCAL_MISMATCH'
+          : 'SEARCH_FOODS.QUICK_ADD_KCAL_SUM')
+          | translate : { sum: (kcalFromMacros | localNumber : 0), entered: (enteredKcal | localNumber : 0) }
+      }}
+    </p>
+    <button type="button" class="quick-add__kcal-hint-action" (click)="applyKcalFromMacros()">
+      {{ 'SEARCH_FOODS.QUICK_ADD_KCAL_USE' | translate : { sum: (kcalFromMacros | localNumber : 0) } }}
+    </button>
+  </div>
 
   <footer class="quick-add__actions">
     <ion-button class="quick-add__action quick-add__action--secondary" expand="block" type="button" (click)="cancel()">

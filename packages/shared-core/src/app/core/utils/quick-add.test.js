@@ -50,10 +50,37 @@ test("canSubmitQuickAdd rechaza la línea que no suma nada", () => {
   assert.equal(util.canSubmitQuickAdd({ kcal: "0", protein: "-5" }), false);
 });
 
+test("enteredKcal devuelve las kcal escritas redondeadas", () => {
+  assert.equal(util.enteredKcal({ kcal: "300" }), 300);
+  assert.equal(util.enteredKcal({ kcal: 300.4 }), 300);
+  assert.equal(util.enteredKcal({ kcal: "300,6" }), 301);
+});
+
+test("enteredKcal es 0 con el campo vacío o inválido: el aviso no puede decir «no 0»", () => {
+  for (const kcal of ["", "  ", "abc", "-5", "0", null, undefined]) {
+    assert.equal(util.enteredKcal({ kcal }), 0, `valor: ${String(kcal)}`);
+  }
+  // Solo mira las kcal, no los macros.
+  assert.equal(util.enteredKcal({ protein: 30, carbs: 50, fat: 10 }), 0);
+});
+
 test("shouldOfferKcalFromMacros solo cuando hay macros y no cuadran con lo escrito", () => {
   assert.equal(util.shouldOfferKcalFromMacros({ kcal: 300, protein: 30, carbs: 50, fat: 10 }), true);
-  // Ya coinciden: el atajo no tiene nada que corregir.
+  // Ya coinciden: el aviso no tiene nada que corregir.
   assert.equal(util.shouldOfferKcalFromMacros({ kcal: 410, protein: 30, carbs: 50, fat: 10 }), false);
   // Sin macros no hay nada que proponer, aunque las kcal estén vacías.
   assert.equal(util.shouldOfferKcalFromMacros({ kcal: "" }), false);
+});
+
+test("shouldOfferKcalFromMacros compara con las kcal redondeadas: 410,4 ya cuadra con 410", () => {
+  assert.equal(util.shouldOfferKcalFromMacros({ kcal: "410,4", protein: 30, carbs: 50, fat: 10 }), false);
+});
+
+test("shouldOfferKcalFromMacros con las kcal vaciadas y macros sigue ofreciendo la suma", () => {
+  // El cliente escribió kcal y las borró: el aviso sale, y entonces solo dice
+  // lo que suman los macros (enteredKcal vale 0).
+  const values = { kcal: "", protein: 30, carbs: 50, fat: 10 };
+  assert.equal(util.shouldOfferKcalFromMacros(values), true);
+  assert.equal(util.enteredKcal(values), 0);
+  assert.equal(util.kcalFromMacros(values), 410);
 });

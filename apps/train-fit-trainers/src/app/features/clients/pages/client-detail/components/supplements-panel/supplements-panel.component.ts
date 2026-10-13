@@ -13,13 +13,7 @@ import { sanitizeDecimalString } from 'src/app/core/directives/decimal-input.dir
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ClientDetailApiService } from '../../services/client-detail-api.service';
 import { Supplement, SupplementTiming } from '../../models/client-detail.model';
-import {
-  DEFAULT_DOSE_UNIT,
-  DOSE_UNIT_VALUES,
-  formatDose,
-  isKnownDoseUnit,
-  parseDose,
-} from './supplement-dose.util';
+import { DEFAULT_DOSE_UNIT, doseUnitOptions, formatDose, parseDose } from 'src/app/core/utils/supplement-dose.util';
 import { uiLocale } from 'src/app/core/i18n/localized-catalog';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
 
@@ -90,7 +84,7 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
   // guarda junta como texto ("5 g"), que es lo que lee el cliente.
   public formDoseAmount = '';
   public formDoseUnit = DEFAULT_DOSE_UNIT;
-  public doseUnits: string[] = DOSE_UNIT_VALUES;
+  public doseUnits: string[] = doseUnitOptions();
   public formTiming = 'with_meal';
   public formCustomTiming = '';
   public formReason = '';
@@ -193,9 +187,7 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
     this.formDoseUnit = dose.unit || DEFAULT_DOSE_UNIT;
     // Una dosis antigua con una unidad fuera de la lista ("1 medida rasa")
     // se ofrece como una opción más para no perderla al guardar.
-    this.doseUnits = isKnownDoseUnit(this.formDoseUnit)
-      ? DOSE_UNIT_VALUES
-      : [...DOSE_UNIT_VALUES, this.formDoseUnit];
+    this.doseUnits = doseUnitOptions(this.formDoseUnit);
     this.formTiming = supplement?.timing || 'with_meal';
     this.formCustomTiming = supplement?.customTiming || '';
     this.formReason = supplement?.reason || '';

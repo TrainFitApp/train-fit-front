@@ -18,6 +18,7 @@ import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service'
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
+import { dietDayHasContent } from 'src/app/core/utils/diet-day.util';
 import { WEEK_DAYS } from 'src/app/shared/constants/week-days';
 import { Anthropometry } from '../../../diet-days/components/weight-info/models/anthropometry';
 import { AnthropometryModalComponent } from 'src/app/shared/components/anthropometry';
@@ -160,6 +161,17 @@ export class DailyWeightComponent implements OnInit, OnChanges {
 
   public toggleChart(): void {
     this.showChart = !this.showChart;
+  }
+
+  // La gráfica semanal y el botón que la abre solo salen si el día de la
+  // fecha existe de verdad: guardado y con algo, sea lo que se anotó en él o
+  // un peso. El back crea el día al abrir la fecha, así que `_id` solo no lo
+  // dice (ver diet-day.util#dietDayHasContent). El día de otra fecha, el que
+  // queda mientras carga el nuevo, tampoco cuenta.
+  public get hasDietDay(): boolean {
+    const day = this.dietDay;
+    if (!day?._id || day.date !== this.selectedDate) return false;
+    return dietDayHasContent(day) || !!day.weight;
   }
 
   private initForm(): void {

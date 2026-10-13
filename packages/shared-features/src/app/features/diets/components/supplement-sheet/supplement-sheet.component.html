@@ -21,57 +21,81 @@
     </p>
   </header>
 
-  <!-- Qué y cuánto: dos cajas como las de la adición rápida, etiqueta
-       encima y la caja entera pulsable. La dosis es texto libre ("5 g",
-       "2 cápsulas", "1 medida"), igual que en la pauta del profesional. -->
-  <div class="supplement-sheet__row">
-    <label class="supplement-sheet__field supplement-sheet__field--name">
-      <span class="supplement-sheet__label">{{ 'SUPPLEMENTS.NAME' | translate }}</span>
-      <ion-input
-        class="supplement-sheet__input"
-        type="text"
-        maxlength="120"
-        autocapitalize="sentences"
-        formControlName="name"
-        [attr.aria-label]="'SUPPLEMENTS.NAME' | translate"
-        [placeholder]="'SUPPLEMENTS.NAME_PLACEHOLDER' | translate"
-        (ionInput)="clearError()"
-      ></ion-input>
-    </label>
+  <!-- Qué y cuánto: cajas como las de la adición rápida, etiqueta encima y
+       la caja entera pulsable. La dosis se parte en cantidad (teclado
+       numérico) y unidad de una lista cerrada, la misma que usa el
+       profesional al pautarla; se guarda junta como texto ("5 g"). -->
+  <label class="supplement-sheet__field">
+    <span class="supplement-sheet__label">{{ 'SUPPLEMENTS.NAME' | translate }}</span>
+    <ion-input
+      class="supplement-sheet__input"
+      type="text"
+      maxlength="120"
+      autocapitalize="sentences"
+      formControlName="name"
+      [attr.aria-label]="'SUPPLEMENTS.NAME' | translate"
+      [placeholder]="'SUPPLEMENTS.NAME_PLACEHOLDER' | translate"
+      (ionInput)="clearError()"
+    ></ion-input>
+  </label>
 
-    <label class="supplement-sheet__field supplement-sheet__field--dose">
+  <div class="supplement-sheet__row">
+    <label class="supplement-sheet__field">
       <span class="supplement-sheet__label">{{ 'SUPPLEMENTS.DOSE' | translate }}</span>
       <ion-input
-        class="supplement-sheet__input"
+        class="supplement-sheet__input supplement-sheet__input--number"
         type="text"
-        maxlength="60"
+        inputmode="decimal"
+        maxlength="8"
         autocomplete="off"
-        formControlName="dose"
+        appNumericKeypad
+        appDecimalInput
+        [maxDecimals]="2"
+        formControlName="doseAmount"
         [attr.aria-label]="'SUPPLEMENTS.DOSE' | translate"
         [placeholder]="'SUPPLEMENTS.DOSE_PLACEHOLDER' | translate"
         (ionInput)="clearError()"
       ></ion-input>
     </label>
+
+    <div class="supplement-sheet__field">
+      <span class="supplement-sheet__label">{{ 'SUPPLEMENTS.DOSE_UNIT' | translate }}</span>
+      <ion-select
+        class="supplement-sheet__select"
+        interface="action-sheet"
+        mode="ios"
+        toggleIcon="chevron-down-outline"
+        formControlName="doseUnit"
+        [cancelText]="'COMMON.CANCEL' | translate"
+        [interfaceOptions]="{ header: ('SUPPLEMENTS.DOSE_UNIT' | translate) }"
+        [attr.aria-label]="'SUPPLEMENTS.DOSE_UNIT' | translate"
+        (ionChange)="clearError()"
+      >
+        <ion-select-option *ngFor="let unit of doseUnits" [value]="unit">{{ unit }}</ion-select-option>
+      </ion-select>
+    </div>
   </div>
 
   <!-- Cuándo: el mismo vocabulario cerrado que usa el profesional, de la
        mañana a la noche. "Otro momento" abre un texto libre. -->
-  <fieldset class="supplement-sheet__timings">
-    <legend class="supplement-sheet__label">{{ 'SUPPLEMENTS.WHEN' | translate }}</legend>
-    <div class="supplement-sheet__chips" role="radiogroup" [attr.aria-label]="'SUPPLEMENTS.WHEN' | translate">
-      <button
-        type="button"
-        role="radio"
-        class="supplement-sheet__chip"
-        *ngFor="let timing of timings"
-        [class.is-selected]="form.value.timing === timing.key"
-        [attr.aria-checked]="form.value.timing === timing.key"
-        (click)="selectTiming(timing.key)"
-      >
+  <div class="supplement-sheet__field">
+    <span class="supplement-sheet__label">{{ 'SUPPLEMENTS.WHEN' | translate }}</span>
+    <ion-select
+      class="supplement-sheet__select"
+      interface="action-sheet"
+      mode="ios"
+      toggleIcon="chevron-down-outline"
+      formControlName="timing"
+      [cancelText]="'COMMON.CANCEL' | translate"
+      [interfaceOptions]="{ header: ('SUPPLEMENTS.WHEN' | translate) }"
+      [attr.aria-label]="'SUPPLEMENTS.WHEN' | translate"
+      (ionChange)="clearError()"
+    >
+      <ion-select-option *ngFor="let timing of timings" [value]="timing.key">
         {{ timingLabel(timing) }}
-      </button>
-    </div>
-  </fieldset>
+      </ion-select-option>
+    </ion-select>
+  </div>
 
   <label class="supplement-sheet__field" *ngIf="isCustomTiming">
     <span class="supplement-sheet__label">{{ 'SUPPLEMENTS.CUSTOM_TIMING' | translate }}</span>

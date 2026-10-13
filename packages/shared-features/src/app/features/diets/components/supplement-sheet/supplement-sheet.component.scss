@@ -38,11 +38,12 @@
   color: var(--ion-color-medium);
 }
 
-// Nombre ancho y dosis estrecha en una fila: se leen como un dato,
-// "Creatina · 5 g", igual que luego en la lista del día.
+// Cantidad y unidad lado a lado: se leen como un dato, "5 | g", y la lista del
+// día los junta luego como "Creatina · 5 g". La unidad lleva más ancho que la
+// cantidad: "comprimidos" y "cucharaditas" tienen que caber enteras.
 .supplement-sheet__row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.55fr);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
   gap: 8px;
 }
 
@@ -96,52 +97,63 @@
   font-weight: 600;
 }
 
-.supplement-sheet__timings {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  margin: 6px 0 0;
-  padding: 0;
-  border: none;
-
-  > .supplement-sheet__label {
-    margin: 0 2px;
-  }
+// La cantidad se lee como una cifra (la misma que las de la adición rápida):
+// cifras de ancho fijo, para que 5 y 15 no bailen al escribir.
+.supplement-sheet__input--number {
+  font-size: 1.25rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
-.supplement-sheet__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-// Un toque elige: sin confirmar. El elegido, en el naranja de la marca.
-.supplement-sheet__chip {
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.14);
-  border-radius: 12px;
-  background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
+// Lista cerrada (unidad, momento): la misma caja con la etiqueta encima y el
+// valor con su flecha donde iría el texto. Se le quita la caja propia que
+// global.scss da a todo ion-select (borde, fondo y alto) para no meter una
+// caja dentro de otra, y la zona pulsable se extiende a la caja entera, la
+// etiqueta incluida, como en los campos de texto.
+.supplement-sheet__select {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --background: transparent;
+  --placeholder-color: var(--ion-color-medium);
+  --placeholder-opacity: 1;
+  min-height: 32px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--ion-text-color);
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 500;
-  line-height: 1.2;
-  text-align: center;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  font-size: 1rem;
+  font-weight: 600;
 
-  &.is-selected {
-    border-color: var(--ion-color-primary);
-    background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.14);
-    color: var(--ion-color-primary);
-    font-weight: 650;
+  // Al abrir o enfocar, global.scss repinta el fondo y el borde del select:
+  // aquí el que reacciona es el campo de fuera (:focus-within).
+  &.select-expanded,
+  &:focus-within {
+    border-color: transparent;
+    background: transparent;
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--ion-color-primary);
-    outline-offset: 2px;
+  // global.scss esconde la flecha de todos los selects.
+  &::part(icon) {
+    display: block;
+    width: 16px;
+    height: 16px;
+    color: var(--ion-color-medium);
+    opacity: 1;
+  }
+
+  // Hasta el borde del campo: por encima del valor hay 1px de borde, 8px de
+  // relleno, la etiqueta (~15px) y 2px de hueco; por los lados y por debajo,
+  // el borde y el relleno.
+  &::after {
+    content: '';
+    position: absolute;
+    top: -26px;
+    right: -13px;
+    bottom: -9px;
+    left: -13px;
   }
 }
 

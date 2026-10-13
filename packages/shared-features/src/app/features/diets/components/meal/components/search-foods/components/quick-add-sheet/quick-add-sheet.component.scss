@@ -113,28 +113,68 @@
   color: var(--ion-color-medium);
 }
 
-// Atajo para cuadrar las kcal con los macros escritos. Solo sale cuando las
-// dos cifras no coinciden (ver showKcalHint), así que nunca es ruido.
+// Aviso de que las kcal escritas no cuadran con la suma de los macros, con el
+// atajo para igualarlas. Solo sale cuando las dos cifras no coinciden (ver
+// showKcalHint), así que nunca es ruido. Informa y no bloquea: una etiqueta
+// real no siempre cuadra con Atwater y mandan las kcal del cliente. El texto
+// va en el color de lectura y solo la acción lleva el acento; si no cabe a su
+// lado, la acción baja a su propia línea.
 .quick-add__kcal-hint {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  align-self: flex-start;
-  min-height: 44px;
-  padding: 0 12px;
+  gap: 0 8px;
+  padding: 4px 4px 4px 12px;
   border: 1px solid rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.35);
   border-radius: 12px;
   background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.08);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: var(--ion-color-primary);
+  }
+}
+
+.quick-add__kcal-hint-text {
+  flex: 1 1 9rem;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 0;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  text-wrap: balance;
+  color: var(--ion-text-color);
+}
+
+// Caja de 44px entera pulsable y con tono propio, para que se lea como botón y
+// no como parte del texto.
+.quick-add__kcal-hint-action {
+  flex-shrink: 0;
+  min-height: 44px;
+  margin-inline-start: auto;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.14);
   color: var(--ion-color-primary);
   font-family: inherit;
   font-size: 0.85rem;
-  font-weight: 600;
-  text-align: start;
-  cursor: pointer;
+  font-weight: 700;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color 100ms ease-out;
 
-  ion-icon {
-    font-size: 16px;
+  &:active {
+    background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.28);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 }
 

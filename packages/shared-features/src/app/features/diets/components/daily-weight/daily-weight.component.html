@@ -52,13 +52,13 @@
         <ion-icon name="remove-outline" class="trend-icon stable" *ngIf="getTrend() === 'stable'"></ion-icon>
         <span class="trend-text">{{ getTrendText() }}</span>
       </div>
-      <button class="chart-toggle-button" (click)="toggleChart()" [class.active]="showChart">
+      <button class="chart-toggle-button" *ngIf="hasDietDay" (click)="toggleChart()" [class.active]="showChart">
         <ion-icon [name]="showChart ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
       </button>
     </div>
   </div>
 
-  <div class="chart-card" [class.hidden]="!showChart">
+  <div class="chart-card" [class.hidden]="!showChart || !hasDietDay">
     <div class="chart-content">
       <canvas id="dailyWeight"></canvas>
     </div>

@@ -48,11 +48,20 @@ export function canSubmitQuickAdd(values: QuickAddMacroInput): boolean {
 }
 
 /**
- * Si merece la pena ofrecer "usar N kcal según los macros": solo cuando hay
- * macros que sumen algo y la cifra escrita no es ya esa. Si no, el atajo
- * sería ruido permanente debajo del campo.
+ * Las kcal que el cliente ha escrito, redondeadas como se comparan con las de
+ * los macros (0 si el campo está vacío). Es la cifra con la que el aviso dice
+ * "los macros suman N kcal, no M".
+ */
+export function enteredKcal(values: QuickAddMacroInput): number {
+  return Math.round(parseQuickAddNumber(values?.kcal));
+}
+
+/**
+ * Si merece la pena avisar de que los macros suman otras kcal y ofrecer
+ * igualarlas: solo cuando hay macros que sumen algo y la cifra escrita no es
+ * ya esa. Si no, el aviso sería ruido permanente debajo de los campos.
  */
 export function shouldOfferKcalFromMacros(values: QuickAddMacroInput): boolean {
   const computed = kcalFromMacros(values);
-  return computed > 0 && computed !== Math.round(parseQuickAddNumber(values?.kcal));
+  return computed > 0 && computed !== enteredKcal(values);
 }
