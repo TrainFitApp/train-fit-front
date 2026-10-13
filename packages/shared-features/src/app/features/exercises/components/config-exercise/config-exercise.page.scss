@@ -1349,6 +1349,12 @@
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+// Pie del resto de apps: botón de guardar con el mismo radio que los demás
+// (antes shape="round", que lo dejaba en píldora).
+.exercise-save-button {
+  --border-radius: 12px;
+}
+
 // Pie de la app de entrenadores: el mismo que «Serie objetivo»
 // (manage-set.component.scss, .manage-set-footer-trainer). Solo se pinta con
 // isTrainerApp, así que los tokens --tf-* existen.

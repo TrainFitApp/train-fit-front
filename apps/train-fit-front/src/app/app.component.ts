@@ -10,10 +10,10 @@ import { PendingEmailVerificationService } from 'src/app/core/services/auth/pend
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { NotificationService } from 'src/app/core/services/util/notification.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
+import { UserService } from 'src/app/core/services/user/user.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { WorkoutNotificationService } from 'src/app/core/services/workout-notification/workout-notification.service';
 import { LiveActivityService } from 'src/app/core/services/live-activity/live-activity.service';
-import { startupReturnUrl } from 'src/app/core/utils/startup-return-url.util';
 
 register();
 @Component({
@@ -37,7 +37,8 @@ export class AppComponent implements OnDestroy {
     private notificationService: NotificationService,
     private workoutService: WorkoutService,
     private workoutNotificationService: WorkoutNotificationService,
-    private liveActivityService: LiveActivityService
+    private liveActivityService: LiveActivityService,
+    private userService: UserService
   ) {
     void this.initializeApp();
   }
@@ -92,14 +93,11 @@ export class AppComponent implements OnDestroy {
     console.info('[AUTH] auth_bootstrap_refresh_attempt');
     this.authService.restoreSessionSilently().subscribe({
       next: (restored) => {
-        if (restored && !this.router.url.includes('/user-loader')) {
-          // De vuelta a donde estaba al recargar (la navegación inicial aún
-          // puede no haber terminado: se lee de la barra de direcciones).
-          const returnUrl = startupReturnUrl(`${window.location.pathname}${window.location.search}`);
-          void this.router.navigate(['/user-loader'], {
-            replaceUrl: true,
-            queryParams: returnUrl ? { returnUrl } : undefined,
-          });
+        // Las rutas privadas ya pasan por el cargador desde su guard
+        // (userLoadedMatchGuard); esto cubre las públicas, como /sign-in con
+        // la sesión aún viva. Recargar nunca vuelve a la pantalla anterior.
+        if (restored && !this.userService.getLocalUser && !this.router.url.includes('/user-loader')) {
+          void this.router.navigate(['/user-loader'], { replaceUrl: true });
         }
       },
       error: (error) => {

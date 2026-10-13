@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, ElementR
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { TranslateService } from '@ngx-translate/core';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
+import { parseLocalIsoDate } from 'src/app/core/utils/local-date.util';
 
 @Component({
   selector: 'app-anthropometry-chart',
@@ -110,11 +111,15 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
   }
 
   private getChartData(): ChartData<'line', (number | null)[], string> {
-    const labels: string[] = this.data.map((d) => this.formatDate(d.date));
+    // El back devuelve las medidas de la más nueva a la más antigua; el eje va
+    // de la más antigua (izquierda) a la más nueva (derecha). Se ordena una
+    // copia: `data` es el array de la página.
+    const entries = [...this.data].sort((a, b) => a.date.localeCompare(b.date));
+    const labels: string[] = entries.map((d) => this.formatDate(d.date));
     const datasets: ChartData<'line', (number | null)[], string>['datasets'] = this.metricConfig
       .filter((m) => this.selectedMetrics.has(m.key))
       .map((m) => {
-        const values: (number | null)[] = this.data.map((d): number | null => {
+        const values: (number | null)[] = entries.map((d): number | null => {
           const value = d[m.key as keyof Anthropometry];
           return value !== undefined && value !== null ? Number(value) : null;
         });
@@ -287,7 +292,9 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
   }
 
   private formatDate(dateStr: string): string {
-    const date = new Date(dateStr);
+    // `new Date('YYYY-MM-DD')` es medianoche UTC: en América salía el día anterior.
+    const date = parseLocalIsoDate(dateStr);
+    if (!date) return dateStr;
     return date.toLocaleDateString(this.translate.currentLang, {
       day: '2-digit',
       month: '2-digit',

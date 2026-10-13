@@ -809,6 +809,7 @@ export class MesocyclePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public editTableName(): void {
+    if (this.exercisePasteMode || this.exerciseCopyActive) return;
     const alertOptions = {
       header: this.translate.instant('TABLES.EDIT_ROUTINE_NAME'),
       inputs: [

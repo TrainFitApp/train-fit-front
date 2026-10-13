@@ -428,6 +428,12 @@
     }
 }
 
+// Pie del resto de apps: botón de guardar con el mismo radio que los demás
+// (antes shape="round", que lo dejaba en píldora).
+.set-save-button {
+    --border-radius: 12px;
+}
+
 // Pie de la app de entrenadores (solo se pinta con isTrainerApp, así que los
 // tokens --tf-* existen). Mismo trazo que tf-gradient-button (theme/_buttons.scss
 // de trainers, no importable desde shared): blanco en negrita sobre el

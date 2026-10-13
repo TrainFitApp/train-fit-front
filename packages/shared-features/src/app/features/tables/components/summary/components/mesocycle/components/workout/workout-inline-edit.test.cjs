@@ -186,3 +186,11 @@ test('carga: se recorta a los límites del editor de series y rechaza texto', ()
   junk.component.commitEditCell(junk.exercise, junk.set, 'weight');
   assert.equal(junk.saved.length, 0);
 });
+
+test('plantilla: tf-editable-cell (hover y cursor de mano) solo con canInlineEditSet, nunca fija: el cliente no edita en línea', () => {
+  const html = fs.readFileSync(path.join(__dirname, 'workout.component.html'), 'utf8');
+  assert.ok(!/class="[^"]*\btf-editable-cell\b/.test(html), 'la clase no puede ir fija en ninguna celda');
+  const bound = [...html.matchAll(/\[class\.tf-editable-cell\]="([^"]*)"/g)].map((m) => m[1]);
+  assert.equal(bound.length, 4, 'peso, reps, RIR y descanso');
+  for (const expr of bound) assert.equal(expr, 'canInlineEditSet(entry.exercise, set)');
+});

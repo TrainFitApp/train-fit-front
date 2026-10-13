@@ -767,6 +767,15 @@ form.doned
   background: #141414;
   font-size: 0.72rem;
 
+  // Abre «Serie objetivo» (editSet): feedback al pulsar, sin transición ni
+  // adorno, y ninguno cuando la pauta es de solo lectura y no abre nada.
+  &:not(.readonly):active {
+    background-image: linear-gradient(
+      rgba(var(--ion-color-primary-rgb), 0.1),
+      rgba(var(--ion-color-primary-rgb), 0.1)
+    );
+  }
+
   ion-icon {
     font-size: 0.85rem;
     color: var(--ion-color-primary);

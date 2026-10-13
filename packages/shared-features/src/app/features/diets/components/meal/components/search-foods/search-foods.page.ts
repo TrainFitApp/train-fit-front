@@ -580,12 +580,19 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.navigationService.getTempData<CustomProduct>("newIngredient");
 
     if (state.ingredientMode) {
+      // Al volver de la ficha de un producto (add-product) el estado de
+      // navegación sigue diciendo ingredientMode, pero la página ya estaba
+      // dentro: la lista buscada se conserva. Solo al ENTRAR en modo
+      // ingrediente se reinicia la búsqueda.
+      const enteringIngredientMode = !this.ingredientMode;
       this.ingredientMode = true;
       // Force mode to products when in ingredient mode
       this.currentMode = "products";
-      // Reset search state so loadRecentProductsForMeal runs (page may be reused)
-      this.hasStartedFoodSearch = false;
-      this.recentProductsPrefetched = false;
+      if (enteringIngredientMode) {
+        // Reset search state so loadRecentProductsForMeal runs (page may be reused)
+        this.hasStartedFoodSearch = false;
+        this.recentProductsPrefetched = false;
+      }
 
       // Store ingredient mode state in tempData for back button handler
       // This ensures the state persists even if ionViewWillEnter is called multiple times

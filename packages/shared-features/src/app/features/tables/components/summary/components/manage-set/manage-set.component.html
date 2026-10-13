@@ -518,23 +518,6 @@
         </div>
       </div>
     </ng-template>
-
-
-    <!-- Card explicativo -->
-    <div class="info-explainer">
-      <div class="info-card">
-        <ion-icon
-          name="information-circle-outline"
-          class="info-icon"
-        ></ion-icon>
-        <div class="info-text">
-          <span class="info-title">{{ 'TABLES.SET_OBJECTIVE_CARD_TITLE' | translate }}</span>
-          <p>
-            {{ 'TABLES.SET_OBJECTIVE_CARD_DESC' | translate }}
-          </p>
-        </div>
-      </div>
-    </div>
   </form>
 </ion-content>
 
@@ -574,8 +557,7 @@
   <ion-footer>
     <ion-button
       expand="block"
-      shape="round"
-      class="ion-margin t-add-workout"
+      class="ion-margin t-add-workout set-save-button"
       (click)="submit()"
       #enterSubmitTarget
     >

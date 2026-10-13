@@ -243,14 +243,15 @@
           </button>
 
           <!-- Confirmación INLINE, no alert nativo — sin pregunta, solo
-               las dos acciones, mismo sitio donde estaba "Salir". -->
+               las dos acciones, mismo sitio donde estaba "Salir". Un toque
+               fuera la cierra y vuelve el enlace (ver requestExit). -->
           <div *ngIf="isConfirmingExit" class="exit-confirm" (click)="$event.stopPropagation()">
             <span class="exit-confirm__actions">
               <button class="exit-confirm__btn exit-confirm__btn--cancel" (click)="cancelExit()">
                 {{ 'COMMON.CANCEL' | translate }}
               </button>
               <button class="exit-confirm__btn exit-confirm__btn--danger" (click)="confirmExit()">
-                {{ 'COMMON.CONFIRM' | translate }}
+                {{ 'COMMON.DELETE' | translate }}
               </button>
             </span>
           </div>

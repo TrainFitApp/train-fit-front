@@ -273,6 +273,7 @@ export class WorkoutComponent implements OnDestroy {
         this.loadPinnedNotes();
       },
     );
+    this.restoreExerciseSelection();
     this.clipboardSub = this.workoutService.exerciseClipboard$.subscribe(
       (clipboard) => {
         if (!this.exerciseSelectionMode || !this.workout) return;
@@ -280,15 +281,43 @@ export class WorkoutComponent implements OnDestroy {
           this.selectedExerciseIndices = new Set();
           return;
         }
-        const newIndices = new Set<number>();
-        this.workout.exercises.forEach((ex, i) => {
-          if (clipboard.selectedExercises.some((ce) => ce._id === ex._id)) {
-            newIndices.add(i);
-          }
-        });
-        this.selectedExerciseIndices = newIndices;
+        this.selectedExerciseIndices = this.indicesInClipboard(clipboard);
       },
     );
+  }
+
+  // «Copiar ejercicios» guarda aquí, en la card de origen, que se está
+  // marcando (exerciseSelectionMode) y qué (selectedExerciseIndices). Pero al
+  // cambiar de microciclo mesocycle.page.html destruye todas las cards y, al
+  // volver, pinta otras nuevas: la de origen nacía sin casillas aunque la
+  // página siguiera en modo copiar (botón de cancelar a la vista, «Pegar» en
+  // el resto) y sin salida, porque el menú ⋮ se bloquea en ese modo. Lo que no
+  // se pierde es el modo copiar de la página (exerciseCopyActive) ni el
+  // portapapeles del WorkoutService, con su workout de origen y lo marcado:
+  // la card nueva se reconstruye de ahí. Solo la de origen y solo con el modo
+  // activo: un portapapeles suelto no abre casillas en ningún sitio.
+  private restoreExerciseSelection(): void {
+    const clipboard = this.workoutService.getExerciseClipboard;
+    if (
+      !this.exerciseCopyActive ||
+      !this.workout ||
+      clipboard?.sourceWorkoutId !== this.workout._id
+    ) {
+      return;
+    }
+    this.exerciseSelectionMode = true;
+    this.selectedExerciseIndices = this.indicesInClipboard(clipboard);
+  }
+
+  // Posiciones, en este workout, de los ejercicios que hay en el portapapeles.
+  private indicesInClipboard(clipboard: ExerciseClipboard): Set<number> {
+    const indices = new Set<number>();
+    this.workout.exercises.forEach((exercise, index) => {
+      if (clipboard.selectedExercises.some((selected) => selected._id === exercise._id)) {
+        indices.add(index);
+      }
+    });
+    return indices;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -1907,6 +1936,17 @@ export class WorkoutComponent implements OnDestroy {
       !exercise.exercise.isIsometric &&
       !set.doned
     );
+  }
+
+  // Columna «Desc.» (descanso pautado tras cada serie). En el Planner va
+  // siempre en los ejercicios de peso y repeticiones porque ahí se edita en
+  // línea; en el resto (el cliente, cardio, isométrico) solo sale si alguna
+  // serie tiene descanso, para no gastar ancho de móvil en una columna de
+  // guiones.
+  public showsRestColumn(exercise: CustomExercise): boolean {
+    const editableInline =
+      this.plannerMode && !exercise?.exercise?.isCardio && !exercise?.exercise?.isIsometric;
+    return editableInline || !!exercise?.sets?.some((set) => !!set.restSeconds);
   }
 
   public isEditingCell(set: ExerciseSet, field: string): boolean {

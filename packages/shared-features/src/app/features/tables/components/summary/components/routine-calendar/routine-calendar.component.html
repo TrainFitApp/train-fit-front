@@ -9,43 +9,15 @@
     </ion-button>
   </div>
 
-  <div class="range-controls" *ngIf="enableRangeSelector">
-    <button
-      type="button"
-      class="preset-btn"
-      *ngFor="let preset of rangePresets"
-      [class.is-active]="activePreset === preset"
-      (click)="selectPresetRange(preset)"
-    >
-      {{ preset }}d
-    </button>
-    <button
-      type="button"
-      class="preset-btn range-toggle-btn"
-      [class.is-active]="isRangeMode"
-      (click)="toggleRangeMode()"
-    >
-      <ion-icon name="calendar-outline"></ion-icon>
-      {{ isRangeMode ? ('TABLES.STATS_RANGE_PICKING' | translate) : ('TABLES.STATS_CUSTOM_RANGE' | translate) }}
-    </button>
-    <span class="range-label" *ngIf="rangeStart && rangeEnd">
-      {{ rangeStart }} → {{ rangeEnd }}
-      <button type="button" class="clear-range-btn" (click)="clearRange()" [attr.aria-label]="'TABLES.STATS_CLEAR_RANGE' | translate">×</button>
-    </span>
-  </div>
-
-  <div class="calendar-grid" (mouseleave)="onGridMouseLeave()">
+  <div class="calendar-grid">
     <div class="day-header" *ngFor="let d of weekDaysHeader">{{ d }}</div>
     <div
       class="day-cell"
       *ngFor="let day of calendarDays"
       [class.inactive]="day.inactive"
       [class.completed]="day.completed"
-      [class.clickable]="isRangeMode ? !day.inactive : day.sessions.length"
-      [class.is-in-range]="enableRangeSelector && isInRange(day.date)"
-      [class.is-range-endpoint]="enableRangeSelector && (day.date === rangeStart || day.date === rangeEnd)"
-      (click)="onCellClick(day)"
-      (mouseenter)="onCellHover(day)"
+      [class.clickable]="openMesocycleOnTap && day.sessions.length"
+      (click)="openDay(day)"
     >
       <!-- Badge de microciclo arriba a la derecha: M1 (microciclo 1), M2... -->
       <span class="microcycle-badges" *ngIf="day.microcycles.length">
@@ -65,7 +37,7 @@
 
   <div
     class="calendar-legend"
-    *ngIf="hasCompletedWorkouts && uniqueWorkoutTypes.length > 0"
+    *ngIf="showLegend && hasCompletedWorkouts && uniqueWorkoutTypes.length > 0"
   >
     <div class="legend-items">
       <ion-chip

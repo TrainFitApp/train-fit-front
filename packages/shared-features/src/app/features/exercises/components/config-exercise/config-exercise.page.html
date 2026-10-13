@@ -844,8 +844,7 @@
   <ion-footer>
     <ion-button
       expand="block"
-      shape="round"
-      class="ion-margin"
+      class="ion-margin exercise-save-button"
       [disabled]="!load || !canSaveExercise"
       (click)="isEditingOwnExercise ? saveOwnExerciseOnly() : addCustomExercise()"
       #enterSubmitTarget

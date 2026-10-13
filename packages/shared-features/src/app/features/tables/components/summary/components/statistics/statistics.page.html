@@ -28,8 +28,8 @@
 
       <ion-card-content>
         <app-routine-calendar
-          [enableRangeSelector]="true"
-          (rangeSelected)="onStatsRangeSelected($event)"
+          [openMesocycleOnTap]="false"
+          [showLegend]="false"
         ></app-routine-calendar>
       </ion-card-content>
     </ion-card>
@@ -259,7 +259,7 @@
     <!-- Comparison Card -->
     <ion-card
       class="comparison-card"
-      *ngIf="filteredHistory.length >= 2 && selectedExerciseId"
+      *ngIf="historyData.length >= 2 && selectedExerciseId"
     >
       <ion-card-header>
         <div class="comparison-header">
@@ -684,7 +684,7 @@
         </div>
 
         <ion-list lines="none" class="history-list">
-          <div *ngFor="let session of filteredHistory">
+          <div *ngFor="let session of historyData">
             <!-- Session Header Row -->
             <div class="session-divider">
               <!-- Contenedor izquierdo: label + fecha separados por CSS gap,

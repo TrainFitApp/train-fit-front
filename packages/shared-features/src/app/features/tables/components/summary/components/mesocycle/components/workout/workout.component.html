@@ -286,9 +286,9 @@
                       <th>{{ 'TABLES.WEIGHT_LABEL' | translate }}</th>
                       <th>{{ 'TABLES.REPS' | translate }}</th>
                       <th>{{ 'TABLES.RIR' | translate }}<app-glossary-info term="RIR" size="sm"></app-glossary-info></th>
-                      <th *ngIf="plannerMode">{{ 'TABLES.REST_LABEL' | translate }}</th>
                     </ng-template>
                   </ng-template>
+                  <th *ngIf="showsRestColumn(entry.exercise)">{{ 'TABLES.REST_LABEL' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -323,7 +323,7 @@
                          Fase A (planner-audit) — en plannerMode, con la serie sin ejecutar,
                          la celda se vuelve editable en línea (canInlineEditSet); el resto de
                          apps/casos conserva exactamente el mismo texto de siempre. -->
-                    <td class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'weight')"
+                    <td [class.tf-editable-cell]="canInlineEditSet(entry.exercise, set)" [class.tf-editing]="isEditingCell(set, 'weight')"
                       (click)="startEditCell(entry.exercise, set, 'weight', $event)">
                       <ng-container *ngIf="!isEditingCell(set, 'weight')">{{ shownWeight(set) !== null ? (shownWeight(set) | localNumber : 2) + " kg" : "—"
                         }}</ng-container>
@@ -335,7 +335,7 @@
                         (keydown.escape)="cancelEditCell()"
                         (blur)="commitEditCell(entry.exercise, set, 'weight')" />
                     </td>
-                    <td class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'reps')"
+                    <td [class.tf-editable-cell]="canInlineEditSet(entry.exercise, set)" [class.tf-editing]="isEditingCell(set, 'reps')"
                       (click)="startEditCell(entry.exercise, set, 'reps', $event)">
                       <ng-container *ngIf="!isEditingCell(set, 'reps')">{{
                         set.doned
@@ -359,13 +359,12 @@
                           (blur)="onRangeInputBlur(entry.exercise, set, 'reps')" />
                       </div>
                     </td>
-                    <td class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'rir')"
+                    <td [class.tf-editable-cell]="canInlineEditSet(entry.exercise, set)" [class.tf-editing]="isEditingCell(set, 'rir')"
                       (click)="startEditCell(entry.exercise, set, 'rir', $event)">
                       <ng-container *ngIf="!isEditingCell(set, 'rir')">
-                        <!-- Planner: abreviado (F, DS, RP n s) para que quepa en la celda;
-                             el nombre completo va en el title. -->
-                        <span *ngIf="isFail(set)" class="fail-label" [attr.title]="'TABLES.FAIL' | translate">{{
-                          plannerMode ? 'F' : ('TABLES.FAIL' | translate) }}</span>
+                        <!-- Abreviado (F, DS, RP n s) en planner y en cliente, igual que en
+                             trainers; el nombre completo va en el title. -->
+                        <span *ngIf="isFail(set)" class="fail-label" [attr.title]="'TABLES.FAIL' | translate">F</span>
                         <!-- Mostrar RIR esperado si no está doned, RIR real si está doned -->
                         <span *ngIf="
                             !isFail(set) &&
@@ -379,10 +378,8 @@
                           ? formatPerformedRir(set.rir)
                           : formatExpectedRir(set.expectedRir)
                           }}</span><span *ngIf="set.drop">&nbsp;</span><span *ngIf="set.drop" class="intensity-drop"
-                          [attr.title]="'TABLES.DROP_SET' | translate">{{
-                          plannerMode ? 'DS' : ('TABLES.DROP_SET' | translate) }}</span><span *ngIf="set.restPause">&nbsp;</span><span
-                          *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }} {{ plannerMode ? 's' : ('TABLES.SEG' | translate)
-                          }}</span>
+                          [attr.title]="'TABLES.DROP_SET' | translate">DS</span><span *ngIf="set.restPause">&nbsp;</span><span
+                          *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }} s</span>
                         <span *ngIf="
                             !isFail(set) &&
                             ((set.doned &&
@@ -410,19 +407,24 @@
                           (blur)="onRangeInputBlur(entry.exercise, set, 'rir')" />
                       </div>
                     </td>
-                    <td *ngIf="plannerMode" class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'rest')"
-                      (click)="startEditCell(entry.exercise, set, 'rest', $event)">
-                      <ng-container *ngIf="!isEditingCell(set, 'rest')">{{ set.restSeconds ? set.restSeconds + "s" :
-                        "—" }}</ng-container>
-                      <input *ngIf="isEditingCell(set, 'rest')" type="text" inputmode="numeric" appNumericKeypad
-                        class="tf-inline-input" [id]="'tf-cell-' + set._id + '-rest'" placeholder="90"
-                        [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput()"
-                        (click)="$event.stopPropagation()"
-                        (keydown.enter)="commitEditCell(entry.exercise, set, 'rest')"
-                        (keydown.escape)="cancelEditCell()"
-                        (blur)="commitEditCell(entry.exercise, set, 'rest')" />
-                    </td>
                   </ng-template>
+
+                  <!-- Descanso pautado tras la serie: igual para peso, cardio e
+                       isométrico. En el Planner se edita en línea; fuera de él
+                       (el cliente) es solo lectura. -->
+                  <td *ngIf="showsRestColumn(entry.exercise)" [class.tf-editable-cell]="canInlineEditSet(entry.exercise, set)"
+                    [class.tf-editing]="isEditingCell(set, 'rest')"
+                    (click)="startEditCell(entry.exercise, set, 'rest', $event)">
+                    <ng-container *ngIf="!isEditingCell(set, 'rest')">{{ set.restSeconds ? set.restSeconds + "s" :
+                      "—" }}</ng-container>
+                    <input *ngIf="isEditingCell(set, 'rest')" type="text" inputmode="numeric" appNumericKeypad
+                      class="tf-inline-input" [id]="'tf-cell-' + set._id + '-rest'" placeholder="90"
+                      [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput()"
+                      (click)="$event.stopPropagation()"
+                      (keydown.enter)="commitEditCell(entry.exercise, set, 'rest')"
+                      (keydown.escape)="cancelEditCell()"
+                      (blur)="commitEditCell(entry.exercise, set, 'rest')" />
+                  </td>
                 </tr>
               </tbody>
             </table>

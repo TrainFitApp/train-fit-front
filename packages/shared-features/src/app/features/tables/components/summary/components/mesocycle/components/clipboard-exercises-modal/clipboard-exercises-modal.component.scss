@@ -60,6 +60,45 @@
   --background: #0a0a0b;
 }
 
+.info-explainer {
+  margin: 12px 16px 0;
+
+  .info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(var(--ion-color-primary-rgb), 0.06);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
+
+    .info-icon {
+      font-size: 1.25rem;
+      color: var(--ion-color-warning);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .info-text {
+      .info-title {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--ion-color-warning);
+        letter-spacing: 0.2px;
+        margin-bottom: 4px;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+    }
+  }
+}
+
 .selection-summary {
   min-height: 56px;
   padding: 14px 20px 8px;

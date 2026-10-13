@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { authMatchGuard } from 'src/app/core/guards/auth.guard';
+import { userLoadedMatchGuard } from 'src/app/guards/user-loaded.guard';
 import { biometricDataGuard } from 'src/app/guards/biometric-data.guard';
 import { DisconnectedComponent } from 'src/app/shared/components/disconnected/disconnected.component';
 
@@ -12,7 +13,7 @@ const routes: Routes = [
   },
   {
     path: 'search-foods',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/diets/components/meal/components/search-foods/search-foods.module'
@@ -22,7 +23,7 @@ const routes: Routes = [
     // MVP-trainers F27 — gate de datos biométricos diferido: esta pantalla
     // depende de calculateKcal (peso/altura/sexo/actividad/objetivo/nacimiento).
     path: 'nutritional-objectives',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     canActivate: [biometricDataGuard],
     loadChildren: () =>
       import(
@@ -39,7 +40,7 @@ const routes: Routes = [
   },
   {
     path: 'current-workout',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/tables/components/summary/components/current-workout/current-workout.module'
@@ -47,7 +48,7 @@ const routes: Routes = [
   },
   {
     path: 'mesocycle',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/tables/components/summary/components/mesocycle/mesocycle.module'
@@ -55,7 +56,7 @@ const routes: Routes = [
   },
   {
     path: 'statistics',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/tables/components/summary/components/statistics/statistics.module'
@@ -63,7 +64,7 @@ const routes: Routes = [
   },
   {
     path: 'rm-calculator',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/tables/components/summary/components/rm-calculator/rm-calculator.module'
@@ -71,7 +72,7 @@ const routes: Routes = [
   },
   {
     path: 'search-tables',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/tables/components/summary/components/search-tables/search-tables.module'
@@ -79,7 +80,7 @@ const routes: Routes = [
   },
   {
     path: 'tabs',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import('src/app/features/tabs/tabs.module').then((m) => m.TabsPageModule),
   },
@@ -88,7 +89,7 @@ const routes: Routes = [
     // desde ahí). Nunca bloquea: se llega desde Coach, al aceptar o desde su
     // aviso.
     path: 'onboarding-status',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import('src/app/features/onboarding-status/onboarding-status.module').then(
         (m) => m.OnboardingStatusPageModule
@@ -104,7 +105,7 @@ const routes: Routes = [
   },
   {
     path: 'configuration',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/profile/components/configuration/configuration.module'
@@ -114,7 +115,7 @@ const routes: Routes = [
     // Revisiones de técnica: los vídeos que el cliente manda a su entrenador
     // y sus respuestas (docs/plan-medidas-multimedia.md).
     path: 'my-form-checks',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/tables/components/my-form-checks/my-form-checks.module'
@@ -123,7 +124,7 @@ const routes: Routes = [
   {
     // MVP-trainers F17 — check-ins periódicos pedidos por profesionales activos.
     path: 'my-checkins',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/checkins/my-checkins/my-checkins.module'
@@ -133,7 +134,7 @@ const routes: Routes = [
     // Movimiento 5 Coach Pro — lo que le ha pautado su profesional: qué,
     // cuánto, cuándo y por qué. Solo lectura.
     path: 'my-supplements',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import('src/app/features/supplements/my-supplements.module').then(
         (m) => m.MySupplementsPageModule
@@ -143,7 +144,7 @@ const routes: Routes = [
     // Movimiento 5 Coach Pro — qué comprar para cumplir el plan. No hay
     // modelo nuevo detrás: son los mismos días de dieta sumados por producto.
     path: 'my-shopping-list',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import('src/app/features/shopping-list/my-shopping-list.module').then(
         (m) => m.MyShoppingListPageModule
@@ -154,7 +155,7 @@ const routes: Routes = [
     // Pantalla propia y no un campo del check-in: aquél es semanal, y una
     // molestia va por días. Ver core/constants/pain.ts.
     path: 'my-pain',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import('src/app/features/pain/my-pain.module').then((m) => m.MyPainPageModule),
   },
@@ -163,7 +164,7 @@ const routes: Routes = [
     // favoritos, no le gusta, si cocina en casa), solicitadas por su
     // nutricionista y rellenadas/editadas por el propio cliente.
     path: 'nutrition-preferences',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/nutrition-preferences/nutrition-preferences.module'
@@ -171,7 +172,7 @@ const routes: Routes = [
   },
   {
     path: 'premium',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import('src/app/features/premium/premium.module').then(
         (m) => m.PremiumPageModule
@@ -179,7 +180,7 @@ const routes: Routes = [
   },
   {
     path: 'weight-info',
-    canMatch: [authMatchGuard],
+    canMatch: [userLoadedMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/diet-days/components/weight-info/weight-info.module'

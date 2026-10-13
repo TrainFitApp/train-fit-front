@@ -95,6 +95,7 @@ export class SummaryPage {
   }
 
   public ionViewWillLeave(): void {
+    this.cancelExit();
     this.pinnedNoteCacheSub?.unsubscribe();
   }
 
@@ -351,16 +352,28 @@ export class SummaryPage {
   // dentro de la propia tarjeta, calcada del diseño de referencia.
   public isConfirmingExit = false;
 
+  // Un toque fuera de la confirmación la cierra y vuelve "Salir de rutina".
+  // Escucha en captura: los toques de la tarjeta hacen stopPropagation y no
+  // llegarían a un listener normal. Se añade durante el click que abre la
+  // confirmación, así que ese mismo toque no la cierra.
+  private readonly onTapOutsideExit = (event: Event): void => {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.exit-confirm')) return;
+    this.cancelExit();
+  };
+
   public requestExit(): void {
     this.isConfirmingExit = true;
+    document.addEventListener('click', this.onTapOutsideExit, true);
   }
 
   public cancelExit(): void {
     this.isConfirmingExit = false;
+    document.removeEventListener('click', this.onTapOutsideExit, true);
   }
 
   public confirmExit(): void {
-    this.isConfirmingExit = false;
+    this.cancelExit();
     this.tableInUse = undefined;
     this.user.tableInUse = undefined;
     this.user.workoutInUse = undefined;

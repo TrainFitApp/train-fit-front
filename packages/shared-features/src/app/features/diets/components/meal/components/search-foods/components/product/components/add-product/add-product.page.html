@@ -91,7 +91,7 @@
                 class="serving-hint"
                 *ngIf="hasPortions && selectedUnit === 'portions'"
               >
-                {{ 'ADD_PRODUCT.PER_SERVING' | translate:{ value: product?.servingQuantity || customProduct?.product?.servingQuantity } }}<small>g</small>
+                {{ 'ADD_PRODUCT.PER_SERVING' | translate:{ value: ((product?.servingQuantity || customProduct?.product?.servingQuantity) | localNumber : 1) } }}
               </span>
             </div>
 

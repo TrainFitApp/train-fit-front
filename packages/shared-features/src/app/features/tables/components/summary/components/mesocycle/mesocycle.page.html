@@ -95,26 +95,6 @@
             class="workout-reorder-row"
             *ngFor="let workout of currentSplit?.workouts; let ind = index; trackBy: trackByWorkout"
           >
-            <div
-              class="info-explainer"
-              *ngIf="exercisePasteMode && exerciseClipboard"
-            >
-              <div class="info-card">
-                <ion-icon
-                  name="information-circle-outline"
-                  class="info-icon"
-                ></ion-icon>
-                <div class="info-text">
-                  <span class="info-title"
-                    >{{ 'TABLES.EXERCISE_PASTE_MODE' | translate }}</span
-                  >
-                  <p>
-                    {{ 'TABLES.EXERCISE_PASTE_WARNING' | translate }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
             <ion-accordion-group
               [id]="'workout-' + ind"
               [multiple]="true"

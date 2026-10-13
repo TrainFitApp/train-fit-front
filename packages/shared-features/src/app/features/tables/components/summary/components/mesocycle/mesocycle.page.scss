@@ -1189,51 +1189,6 @@ ion-accordion-group.highlight-workout {
   }
 }
 
-// Info Explainer Card
-.info-explainer {
-  margin: 1rem 1rem 1rem 1rem;
-
-  .info-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    background: linear-gradient(
-      135deg,
-      rgba(var(--ion-color-primary-rgb), 0.08) 0%,
-      rgba(var(--ion-color-primary-rgb), 0.04) 100%
-    );
-    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-
-    .info-icon {
-      font-size: 1.25rem;
-      color: var(--ion-color-warning);
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .info-text {
-      .info-title {
-        display: block;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: var(--ion-color-warning);
-        letter-spacing: 0.2px;
-        margin-bottom: 6px;
-      }
-
-      p {
-        margin: 0;
-        font-size: 0.85rem;
-        line-height: 1.5;
-        color: var(--ion-color-medium);
-      }
-    }
-  }
-}
-
 // ─── Floating Clipboard Bar ────────────────────────────────────────────────────
 // La barra flota sobre el contenido (absolute encima del footer), así que se
 // reserva su alto (~64px con margen) más aire para que el último workout se

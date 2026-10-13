@@ -22,6 +22,25 @@ ion-tabs {
         transition: color 0.2s ease;
       }
 
+      // Entreno en curso: play verde en la esquina superior derecha del
+      // barbell, fuera de su trazo. Se coloca desde el centro del botón para
+      // no depender de su alto; no recibe toques, el tab los lleva. El color
+      // va dentro del span para que el verde se mantenga con el tab
+      // seleccionado (ahí todo ion-icon se pone naranja).
+      .tab-workout-play {
+        position: absolute;
+        top: calc(50% - 14px);
+        left: calc(50% + 7px);
+        display: flex;
+        pointer-events: none;
+
+        ion-icon {
+          margin: 0;
+          font-size: 12px;
+          color: var(--ion-color-success);
+        }
+      }
+
       &.tab-selected {
         --color: var(--ion-color-primary);
         ion-icon {

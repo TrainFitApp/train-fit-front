@@ -148,10 +148,9 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   // Data State
   public historyData: SessionData[] = [];
-  public filteredHistory: SessionData[] = [];
   public comparisonData: ComparisonData | null = null;
 
-  // Comparison selectors (index within filteredHistory, desc order)
+  // Comparison selectors (index within historyData, desc order)
   public compareIndexA: number = 1; // "de" (origen, más antiguo)
   public compareIndexB: number = 0; // "a"  (destino, más reciente)
 
@@ -310,7 +309,6 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.selectedExerciseName = null;
       this.pinnedNote = null;
       this.historyData = [];
-      this.filteredHistory = [];
       this.comparisonData = null;
       this.compareIndexA = 1;
       this.compareIndexB = 0;
@@ -388,26 +386,6 @@ export class StatisticsPage implements OnInit, OnDestroy {
       });
   }
 
-  // Rango del calendario de arriba (app-routine-calendar,
-  // enableRangeSelector) — única fuente de verdad para acotar fechas en
-  // esta página, sin selector de rango propio duplicado. null = sin
-  // acotar, se ve el historial completo (comportamiento de siempre).
-  public selectedRange: { start: string; end: string } | null = null;
-
-  public onStatsRangeSelected(range: { start: string; end: string } | null): void {
-    this.selectedRange = range;
-    if (this.selectedWorkoutName && this.selectedExerciseId) {
-      this.generateHistoryData();
-    }
-  }
-
-  private toIsoDate(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-
   public onChartModeChange(event: any) {
     this.chartMode = event.detail.value;
     setTimeout(() => this.updateChart());
@@ -427,12 +405,12 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   private refreshCompareOptions() {
     // optionsForA: solo microciclos con índice > compareIndexB (más antiguos que B)
-    this.optionsForA = this.filteredHistory
+    this.optionsForA = this.historyData
       .map((s, i) => ({ idx: i, splitIndex: s.splitIndex, date: s.date }))
       .filter((o) => o.idx > this.compareIndexB);
 
     // optionsForB: solo microciclos con índice < compareIndexA (más recientes que A)
-    this.optionsForB = this.filteredHistory
+    this.optionsForB = this.historyData
       .map((s, i) => ({ idx: i, splitIndex: s.splitIndex, date: s.date }))
       .filter((o) => o.idx < this.compareIndexA);
   }
@@ -598,16 +576,6 @@ export class StatisticsPage implements OnInit, OnDestroy {
     });
 
     this.historyData.sort((a, b) => b.splitIndex - a.splitIndex);
-    // historyData se queda SIEMPRE completo (lo usan los récords "de
-    // siempre" vía ExerciseHistoryStats, que son otra fuente aparte) —
-    // filteredHistory es lo único que respeta el rango del calendario de
-    // arriba (selectedRange), y de ahí leen tabla/comparación/gráfico.
-    this.filteredHistory = this.selectedRange
-      ? this.historyData.filter((h) => {
-          const iso = this.toIsoDate(h.date);
-          return iso >= this.selectedRange!.start && iso <= this.selectedRange!.end;
-        })
-      : [...this.historyData];
 
     // Calcular cuántas series máximas hay para este ejercicio en el historial
     const maxSets = Math.max(...this.historyData.map((h) => h.sets.length), 0);
@@ -615,7 +583,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
     this.calculateMetrics();
     // Reset compare indices to last two by default
-    this.compareIndexA = Math.min(1, this.filteredHistory.length - 1);
+    this.compareIndexA = Math.min(1, this.historyData.length - 1);
     this.compareIndexB = 0;
     this.refreshCompareOptions();
     this.calculateComparison();
@@ -625,11 +593,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   private calculateComparison() {
     this.comparisonData = null;
-    if (this.filteredHistory.length < 2) return;
+    if (this.historyData.length < 2) return;
 
     // Use selected indices; A = "from", B = "to"
-    const prev = this.filteredHistory[this.compareIndexA];
-    const curr = this.filteredHistory[this.compareIndexB];
+    const prev = this.historyData[this.compareIndexA];
+    const curr = this.historyData[this.compareIndexB];
     if (!prev || !curr) return;
 
     const weightDiff = curr.maxWeight - prev.maxWeight;
@@ -770,7 +738,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.chart = null;
     }
 
-    const data = [...this.filteredHistory].reverse();
+    const data = [...this.historyData].reverse();
     if (data.length === 0) return;
 
     if (this.chartMode === "evolution") {

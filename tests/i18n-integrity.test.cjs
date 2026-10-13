@@ -181,6 +181,33 @@ test('i18n: una clave de la capa de una app no redefine una común con OTROS par
   assert.deepEqual(conflicts, []);
 });
 
+// --- Unidad duplicada ----------------------------------------------------------------
+//
+// Si la traducción ya lleva la unidad («1 ración = {{value}}g») y la plantilla
+// le pega otra detrás (`}}<small>g</small>`), en pantalla sale «112gg». Pasó
+// en 2026-10 con ADD_PRODUCT.PER_SERVING.
+
+test('i18n: ninguna plantilla pega una unidad detrás de una traducción que ya la lleva', () => {
+  const pattern =
+    /\{\{[^{}]*?'([A-Z][A-Z0-9_]*(?:\.[A-Z0-9_]+)+)'\s*\|\s*translate(?:\s*:\s*\{[^{}]*\})?\s*\}\}\s*(?:<small[^>]*>\s*([^<{]+?)\s*<\/small>|([a-zA-Z%°]{1,5})\b(?![\w-]))/g;
+  const templates = [...walk(path.join(ROOT, 'packages')), ...APPS.flatMap((app) => walk(path.join(ROOT, 'apps', app, 'src')))].filter((file) =>
+    file.endsWith('.html'),
+  );
+  const duplicated = [];
+  for (const file of templates) {
+    for (const match of fs.readFileSync(file, 'utf8').matchAll(pattern)) {
+      const unit = (match[2] || match[3]).trim();
+      const texts = Object.values(tables)
+        .flatMap((byLang) => LANGS.map((lang) => byLang[lang][match[1]]))
+        .filter((text) => typeof text === 'string');
+      if (texts.some((text) => text.replace(/\{\{[^}]*\}\}/g, '').trim().endsWith(unit))) {
+        duplicated.push(`${match[1]} + «${unit}»  (${path.relative(ROOT, file)})`);
+      }
+    }
+  }
+  assert.deepEqual(duplicated, []);
+});
+
 // --- Claves dinámicas ----------------------------------------------------------------
 //
 // Las claves que se montan en ejecución ('MEDIA.POSE_' + pose,

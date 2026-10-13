@@ -199,8 +199,10 @@
     </div>
   </div>
 
-  <!-- Descanso tras esta serie — debajo de los inputs, universal -->
-  <div class="rest-objective-row" *ngIf="set.restSeconds">
+  <!-- Descanso tras esta serie — debajo de los inputs, universal. Tocarlo abre
+       «Serie objetivo», igual que «Objetivo» (con la pauta de solo lectura no
+       abre nada, ver editSet). -->
+  <div class="rest-objective-row" *ngIf="set.restSeconds" [class.readonly]="isReadonly" (click)="editSet()">
     <ion-icon name="timer-outline"></ion-icon>
     <span class="rest-objective-label">{{ 'TABLES.REST_OBJECTIVE_LABEL' | translate }}:</span>
     <span class="rest-objective-value">{{ set.restSeconds }}{{ 'TABLES.SEG' | translate }}</span>

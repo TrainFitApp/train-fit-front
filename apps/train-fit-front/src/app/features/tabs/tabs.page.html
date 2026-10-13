@@ -2,6 +2,15 @@
   <ion-tab-bar slot="bottom">
     <ion-tab-button [tab]="TABS.summary">
       <ion-icon name="barbell-outline"></ion-icon>
+      <!-- Entreno empezado y sin terminar: play verde en la esquina del icono. -->
+      <span
+        *ngIf="hasWorkoutInUse"
+        class="tab-workout-play"
+        role="img"
+        [attr.aria-label]="'TABS.WORKOUT_IN_PROGRESS' | translate"
+      >
+        <ion-icon name="play" aria-hidden="true"></ion-icon>
+      </span>
     </ion-tab-button>
 
     <ion-tab-button [tab]="TABS.diets">

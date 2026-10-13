@@ -14,6 +14,20 @@
 </ion-header>
 
 <ion-content class="modal-content">
+  <div class="info-explainer" *ngIf="mode === 'paste'">
+    <div class="info-card">
+      <ion-icon
+        name="information-circle-outline"
+        class="info-icon"
+        aria-hidden="true"
+      ></ion-icon>
+      <div class="info-text">
+        <span class="info-title">{{ 'TABLES.EXERCISE_PASTE_MODE' | translate }}</span>
+        <p>{{ 'TABLES.EXERCISE_PASTE_WARNING' | translate }}</p>
+      </div>
+    </div>
+  </div>
+
   <div class="selection-summary">
     <strong>{{ 'TABLES.CLIPBOARD_SELECT_EXERCISES' | translate }}</strong>
     <span class="selection-chip" [class.has-selection]="selectedCount > 0">
