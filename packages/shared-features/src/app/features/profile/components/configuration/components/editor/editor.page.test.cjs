@@ -171,6 +171,16 @@ async function typeSomething(component) {
   await tick();
 }
 
+test('al abrir, la vista ya muestra los macros del perfil (no ceros) y no cuenta como cambio', () => {
+  const { component, ui } = setup();
+  assert.equal(component.userForm.controls.kcalTotal.value, 2100);
+  assert.equal(component.userForm.controls.proteinsGTotal.value, 140);
+  assert.equal(component.userForm.controls.carbohydratesGTotal.value, 245);
+  assert.equal(component.userForm.controls.fatGTotal.value, 62);
+  component.close();
+  assert.equal(ui.alerts.length, 0);
+});
+
 test('teclear recalcula las kcal y los macros de la vista', async () => {
   const { component } = setup();
   await typeSomething(component);

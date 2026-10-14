@@ -21,7 +21,6 @@ import { OnboardingService } from "src/app/core/services/onboarding/onboarding.s
 import { TableService } from "src/app/core/services/table/table.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
-import { ThemeService } from "src/app/core/services/util/theme.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
 
 @Component({
@@ -59,7 +58,6 @@ export class UserLoaderPage implements OnInit {
     private readonly userService: UserService,
     private readonly tableService: TableService,
     private readonly workoutService: WorkoutService,
-    private readonly themeService: ThemeService,
     private readonly navigationService: NavigationService,
     private readonly i18nService: I18nService,
     private readonly authService: AuthService,
@@ -110,8 +108,6 @@ export class UserLoaderPage implements OnInit {
           if (!this.isUserRegistrationComplete(resUser)) {
             throw new Error("INCOMPLETE_USER");
           }
-
-          this.themeService.toggleColorMode(resUser.theme || "dark");
 
           // Tab Coach (Fases 1/3) y TAREA 3 (onboarding) — endpoints del
           // lado CLIENTE (auth(["user", ...]) en el backend). Una cuenta

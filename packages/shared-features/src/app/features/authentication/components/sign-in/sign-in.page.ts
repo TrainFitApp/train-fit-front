@@ -19,16 +19,11 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { TranslateService } from '@ngx-translate/core';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import {
-  ColorMode,
-  ThemeService,
-} from 'src/app/core/services/util/theme.service';
-import {
   SOCIAL_NETWORKS,
   SOCIAL_NETWORK_TYPE,
   SOCIAL_NETWORK_TYPES,
   SOCIAL_NETWORK_VALUES,
 } from 'src/app/shared/constants/social-network';
-import { Theme } from 'src/app/shared/models/theme';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -42,7 +37,6 @@ export class SignInPage implements OnInit {
   public loginForm: FormGroup;
   public user: User;
   public loading: boolean;
-  public theme: Theme;
   public showPass: boolean;
   public isLoginModalOpen = false;
 
@@ -58,7 +52,6 @@ export class SignInPage implements OnInit {
   public loginErrorKind: LoginErrorKind | null;
   public isLoginErrorRetryable: boolean;
 
-  public THEMES = Theme;
   public SOCIAL_NETWORKS = SOCIAL_NETWORKS;
   public SOCIAL_NETWORK_TYPES = SOCIAL_NETWORK_TYPES;
   public SOCIAL_NETWORK_VALUES = SOCIAL_NETWORK_VALUES;
@@ -69,7 +62,6 @@ export class SignInPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
-    private themeService: ThemeService,
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService,
     private authErrorService: AuthErrorService,
@@ -126,10 +118,6 @@ export class SignInPage implements OnInit {
       this._platform.is('ios') ||
       this._platform.is('iphone') ||
       this._platform.is('ipad');
-
-    this.themeService.theme.subscribe(
-      (resTheme: Theme) => (this.theme = resTheme)
-    );
   }
 
   public navigateSocialNetwork(socialNetwork: SOCIAL_NETWORK_TYPE): void {
@@ -303,8 +291,6 @@ export class SignInPage implements OnInit {
         this.userService.setLocalUser = response.user;
 
         if (this.isUserRegistrationComplete(response.user)) {
-          const colorMode: ColorMode = response.user.theme || 'dark';
-          this.themeService.toggleColorMode(colorMode);
           this.navigationService.goToUserLoader(this.getReturnUrl());
         } else {
           this.navigationService.goToSignUp();
@@ -468,8 +454,6 @@ export class SignInPage implements OnInit {
       .subscribe({
         next: async (resUser) => {
           this.userService.setLocalUser = resUser;
-          const colorMode: ColorMode = resUser.theme;
-          this.themeService.toggleColorMode(colorMode);
           // Mismo motivo que goToRestorePass/navigateSignUp: hay que esperar
           // el dismiss() real del modal antes de navegar, si no se queda
           // "vivo" superpuesto encima de la pantalla de carga.

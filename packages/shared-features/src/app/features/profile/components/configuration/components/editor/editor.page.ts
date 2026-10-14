@@ -157,6 +157,11 @@ export class EditorPage implements OnInit {
     });
 
     this.initObjetive();
+    // El usuario guardado puede no traer macros (viven en el objetivo): se
+    // calculan del perfil al abrir, antes de la foto inicial del formulario,
+    // para no enseñar ceros ni contar esto como un cambio.
+    Object.assign(this.user, this.computeUser());
+    this.calculate();
     this.initActivity();
     this.initTraining();
     this.initDescriptions();

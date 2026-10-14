@@ -28,8 +28,6 @@ export class AppComponent implements OnDestroy {
     private themeService: ThemeService
   ) {
     void this.billingService.initialize();
-    // Force dark theme regardless of OS preference
-    this.themeService.toggleColorMode('dark');
     this.initSessionTracking();
     this.routeOnStartup();
     this.restoreSessionOnStartup();

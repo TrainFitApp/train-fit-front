@@ -259,29 +259,27 @@
 }
 
 // Dark theme support (copia exacta)
-@media (prefers-color-scheme: dark) {
-  .minimal-header {
-    --background: rgba(20, 20, 20, 0.98);
-    --border-color: rgba(255, 255, 255, 0.1);
+.minimal-header {
+  --background: rgba(20, 20, 20, 0.98);
+  --border-color: rgba(255, 255, 255, 0.1);
+}
+
+.exercises-content {
+  background: var(--bg-primary);
+
+  &::before {
+    background: rgba(255, 255, 255, 0.1);
   }
+}
 
-  .exercises-content {
-    background: var(--bg-primary);
+.translucent-card {
+  background: #141414;
+  border-color: #252525;
+}
 
-    &::before {
-      background: rgba(255, 255, 255, 0.1);
-    }
-  }
-
-  .translucent-card {
-    background: #141414;
-    border-color: #252525;
-  }
-
-  .empty-state {
-    .empty-title {
-      color: #ffffff;
-    }
+.empty-state {
+  .empty-title {
+    color: #ffffff;
   }
 }
 

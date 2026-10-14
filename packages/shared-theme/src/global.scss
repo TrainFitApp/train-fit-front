@@ -439,34 +439,32 @@ ion-icon[name="arrow-undo-outline"] {
 }
 
 /* Dark theme macro colors */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --protein-color: #007aff;
-    --carbs-color: #34c759;
-    --fat-color: #ff9500;
-  }
+:root {
+  --protein-color: #007aff;
+  --carbs-color: #34c759;
+  --fat-color: #ff9500;
+}
 
-  // Desactivar ripple effect y todos los efectos de interacción en botones
-  ion-button {
-    --ripple-color: transparent !important;
-    --background-hover: var(--background) !important;
-    --background-activated: var(--background) !important;
-    --background-focused: var(--background) !important;
-    --color-hover: var(--color) !important;
-    --color-activated: var(--color) !important;
-    --color-focused: var(--color) !important;
-    --box-shadow: none !important;
-    --box-shadow-activated: none !important;
-    --box-shadow-focused: none !important;
-  }
+// Desactivar ripple effect y todos los efectos de interacción en botones
+ion-button {
+  --ripple-color: transparent !important;
+  --background-hover: var(--background) !important;
+  --background-activated: var(--background) !important;
+  --background-focused: var(--background) !important;
+  --color-hover: var(--color) !important;
+  --color-activated: var(--color) !important;
+  --color-focused: var(--color) !important;
+  --box-shadow: none !important;
+  --box-shadow-activated: none !important;
+  --box-shadow-focused: none !important;
+}
 
-  swiper-container {
-    --swiper-pagination-bullet-inactive-color: var(--ion-color-step-200, #cccccc);
-    --swiper-pagination-color: var(--ion-color-primary, #3880ff);
-    --swiper-pagination-progressbar-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.25);
-    --swiper-scrollbar-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.1);
-    --swiper-scrollbar-drag-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.5);
-  }
+swiper-container {
+  --swiper-pagination-bullet-inactive-color: var(--ion-color-step-200, #cccccc);
+  --swiper-pagination-color: var(--ion-color-primary, #3880ff);
+  --swiper-pagination-progressbar-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.25);
+  --swiper-scrollbar-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.1);
+  --swiper-scrollbar-drag-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.5);
 }
 
 /* Force dark macro colors when color-theme="dark" regardless of OS */

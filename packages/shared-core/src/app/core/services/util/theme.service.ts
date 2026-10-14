@@ -4,33 +4,22 @@ import { THEMES, Theme } from 'src/app/shared/models/theme';
 
 export type ColorMode = 'auto' | 'dark' | 'light';
 
+/**
+ * La app es siempre oscura, sea cual sea el modo del sistema operativo o lo
+ * que el usuario tenga guardado. No hay selector de tema.
+ */
 @Injectable()
 export class ThemeService {
-  private renderer: Renderer2;
-  private readonly THEME_KEY = 'theme';
-
-  private _theme$ = new BehaviorSubject<ColorMode>(THEMES.light.id);
+  private _theme$ = new BehaviorSubject<Theme>(THEMES.dark.id);
 
   public get getTheme(): Theme {
-    return this._theme$.value as Theme;
+    return this._theme$.value;
   }
 
   constructor(rendererFactory: RendererFactory2) {
-    this.renderer = rendererFactory.createRenderer(null, null);
-
-    const colorMode: ColorMode = localStorage.getItem(
-      this.THEME_KEY
-    ) as ColorMode;
-    if (colorMode) {
-      this._theme$.next(colorMode);
-      this.renderer.setAttribute(document.body, 'color-theme', colorMode);
-    }
-  }
-
-  public toggleColorMode(color: ColorMode) {
-    localStorage.setItem(this.THEME_KEY, color);
-    this._theme$.next(color);
-    this.renderer.setAttribute(document.body, 'color-theme', color);
+    rendererFactory
+      .createRenderer(null, null)
+      .setAttribute(document.body, 'color-theme', THEMES.dark.id);
   }
 
   public get theme(): Observable<string> {

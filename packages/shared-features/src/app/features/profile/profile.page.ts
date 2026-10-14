@@ -485,10 +485,6 @@ export class ProfilePage implements OnInit {
     this.macrosData.fat = this.dietDayService.getDietDayFat(this.dietDay);
   }
 
-  public toggleColor(event): void {
-    this.themeService.toggleColorMode(event.detail.value);
-  }
-
   public edit(): void {
     const modal: ModalOptions = {
       component: EditorPage,

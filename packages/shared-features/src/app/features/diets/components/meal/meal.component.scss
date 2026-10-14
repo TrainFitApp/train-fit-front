@@ -510,12 +510,10 @@ ion-spinner {
 }
 
 // Tema oscuro
-@media (prefers-color-scheme: dark) {
-  .macros-grid {
-    .macro-col {
-      .macro-chip {
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
+.macros-grid {
+  .macro-col {
+    .macro-chip {
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
   }
 }

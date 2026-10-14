@@ -443,33 +443,31 @@
 }
 
 // Dark theme support
-@media (prefers-color-scheme: dark) {
-  .minimal-header {
-    --background: rgba(20, 20, 20, 0.98);
-    --border-color: rgba(255, 255, 255, 0.1);
-  }
+.minimal-header {
+  --background: rgba(20, 20, 20, 0.98);
+  --border-color: rgba(255, 255, 255, 0.1);
+}
 
-  .exercises-content {
-    background: var(--bg-primary);
-  }
+.exercises-content {
+  background: var(--bg-primary);
+}
 
-  .exercise-card {
-    background: #141414;
-    /*  border-color: #252525; */
+.exercise-card {
+  background: #141414;
+  /*  border-color: #252525; */
 
-    .exercise-info {
-      .exercise-header {
-        .exercise-name {
-          color: #ffffff;
-        }
+  .exercise-info {
+    .exercise-header {
+      .exercise-name {
+        color: #ffffff;
       }
     }
   }
+}
 
-  .empty-state {
-    .empty-title {
-      color: #ffffff;
-    }
+.empty-state {
+  .empty-title {
+    color: #ffffff;
   }
 }
 

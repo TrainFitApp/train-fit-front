@@ -6,7 +6,6 @@ import { environment } from "src/environments/environment";
 import { UserService } from "src/app/core/services/user/user.service";
 import { TableService } from "src/app/core/services/table/table.service";
 import { NutritionalGoalService } from "src/app/core/services/nutritional-goal/nutritional-goal.service";
-import { ThemeService } from "src/app/core/services/util/theme.service";
 import { I18nService } from "src/app/core/i18n/i18n.service";
 import { AssistantApiService } from "./assistant-api.service";
 import { AssistantTextService } from "./assistant-text.service";
@@ -52,7 +51,6 @@ export class AssistantService {
   private readonly tableService = inject(TableService);
   private readonly nutritionalGoalService = inject(NutritionalGoalService);
   private readonly translate = inject(TranslateService);
-  private readonly themeService = inject(ThemeService);
   private readonly i18nService = inject(I18nService);
 
   private readonly family = environment.auth?.clientFamily;
@@ -334,7 +332,6 @@ export class AssistantService {
     if (!user) return;
     this.userService.setLocalUser = user;
     if (user.lang) this.i18nService.switchLang(user.lang);
-    if (user.theme) this.themeService.toggleColorMode(user.theme);
   }
 
   private async reloadGoals(goalId: string | null | undefined): Promise<void> {

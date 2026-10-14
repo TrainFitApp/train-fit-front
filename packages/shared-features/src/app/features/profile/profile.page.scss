@@ -94,11 +94,9 @@
 }
 
 // Tema oscuro específico
-@media (prefers-color-scheme: dark) {
-  .toolbar-calendar-container {
-    background: #141414;
-    border-bottom-color: rgba(37, 37, 37, 0.5);
-  }
+.toolbar-calendar-container {
+  background: #141414;
+  border-bottom-color: rgba(37, 37, 37, 0.5);
 }
 
 .arrow-up {
@@ -123,13 +121,11 @@
 }
 
 // Tema oscuro (idéntico a summary)
-@media (prefers-color-scheme: dark) {
-  .app-title {
-    color: #ffffff;
+.app-title {
+  color: #ffffff;
 
-    .fit-primary {
-      color: var(--ion-color-primary);
-    }
+  .fit-primary {
+    color: var(--ion-color-primary);
   }
 }
 

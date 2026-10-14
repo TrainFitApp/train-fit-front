@@ -11,9 +11,7 @@ import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { NotificationService, NotificationFrequency } from 'src/app/core/services/util/notification.service';
-import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
-import { Theme } from 'src/app/shared/models/theme';
 import { AdPreferencesPage } from './components/ad-preferences/ad-preferences.page';
 import { EditorPage } from './components/editor/editor.page';
 import { GoalListPage } from './components/goal-list/goal-list.page';
@@ -27,10 +25,7 @@ import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 export class ConfigurationPage {
   public user: User;
 
-  public theme: Theme;
   public isPremium: boolean = false;
-
-  public THEMES = Theme;
 
   public currentLang: string = 'es';
 
@@ -48,7 +43,6 @@ export class ConfigurationPage {
   constructor(
     private readonly router: Router,
     private readonly userService: UserService,
-    private readonly themeService: ThemeService,
     private readonly ionicUtilService: IonicUtilService,
     private readonly authService: AuthService,
     public readonly coachService: CoachService,
@@ -59,7 +53,6 @@ export class ConfigurationPage {
     private readonly translate: TranslateService,
     private readonly i18nService: I18nService,
   ) {
-    this.theme = this.themeService.getTheme;
     this.user = this.userService.getLocalUser;
     this.isPremium = isPremiumActive(this.user?.premium);
     this.currentLang = this.i18nService.current;
@@ -143,17 +136,6 @@ export class ConfigurationPage {
     this.userService.updateUser(this.user).subscribe(() => {
       this.navigationService.goToUserLoader();
     });
-  }
-
-  public toggleColor(): void {
-    this.theme =
-      this.theme === this.THEMES.light ? this.THEMES.dark : this.THEMES.light;
-    this.themeService.toggleColorMode(this.theme);
-
-    this.user.theme = this.theme;
-    this.userService
-      .updateUser(this.user)
-      .subscribe((resUser) => (this.user = resUser));
   }
 
   public logout(): void {

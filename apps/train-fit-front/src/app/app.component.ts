@@ -49,8 +49,6 @@ export class AppComponent implements OnDestroy {
     // Mantenimiento/actualización obligatoria BEFORE any routing (Inicio Total)
     await this.remoteConfigGate.checkAndPresent();
 
-    // Force dark theme regardless of OS preference
-    this.themeService.toggleColorMode('dark');
     void this.notificationService.initialize();
     void this.initWorkoutSetNotifications();
     this.initSessionTracking();
