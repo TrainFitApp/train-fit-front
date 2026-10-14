@@ -27,6 +27,7 @@ import {
 } from '../../validators/user-validation-errors';
 import { IonicUtilService } from './ionic-util.service';
 import { localIsoDate } from 'src/app/core/utils/local-date.util';
+import { isSplitFinished } from 'src/app/core/utils/microcycle-progress.util';
 
 @Injectable({
   providedIn: 'root',
@@ -306,9 +307,10 @@ export class UtilService {
     );
   }
 
+  // Un microciclo sin entrenamientos no está terminado: si no, el último
+  // vacío ofrecería «añadir otro microciclo» nada más crearlo.
   public isSplitDoned(split: Split): boolean {
-    if (!split?.workouts) return false;
-    return split.workouts.every((wTemp) => wTemp.rest || wTemp.date || wTemp.isPlannedRestDay);
+    return isSplitFinished(split);
   }
 
   public getCurrentPlayingSplit(table: Table): number {
