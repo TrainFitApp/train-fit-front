@@ -6,8 +6,8 @@ import {
   MediaApiError,
   MediaAssetView,
   MediaPurpose,
-  UploadTarget,
 } from '../../models/media';
+import { apiError, putWithProgress, tusUpload } from '../../utils/media-transport.util';
 import { MediaApiService } from './media-api.service';
 
 export interface UploadProgress {
@@ -24,13 +24,6 @@ const PHOTO_MAX_SIDE = 1600;
 const PHOTO_QUALITY = 0.82;
 const THUMB_MAX_SIDE = 400;
 const THUMB_QUALITY = 0.75;
-// Trozos de la subida TUS: si se corta la conexión, se reanuda desde el último.
-const TUS_CHUNK_BYTES = 8 * 1024 * 1024;
-const TUS_MAX_RETRIES = 5;
-
-function apiError(code: string, message = ''): MediaApiError {
-  return { code, message };
-}
 
 function loadImage(file: Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -134,87 +127,6 @@ function inspectVideo(file: Blob): Promise<VideoInfo> {
     };
     video.src = url;
   });
-}
-
-function putWithProgress(target: UploadTarget, body: Blob, onProgress?: (loaded: number) => void): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('PUT', target.url);
-    Object.entries(target.headers || {}).forEach(([key, value]) => xhr.setRequestHeader(key, value));
-    xhr.upload.onprogress = (event) => onProgress?.(event.loaded);
-    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(apiError('MEDIA_UPLOAD_FAILED')));
-    xhr.onerror = () => reject(apiError('MEDIA_UPLOAD_FAILED'));
-    xhr.onabort = () => reject(apiError('MEDIA_UPLOAD_ABORTED'));
-    xhr.send(body);
-  });
-}
-
-function base64(value: string): string {
-  return btoa(unescape(encodeURIComponent(value)));
-}
-
-/** PATCH de un trozo TUS. Devuelve el nuevo offset. */
-function tusPatch(location: string, headers: Record<string, string>, chunk: Blob, offset: number, onProgress: (loaded: number) => void): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('PATCH', location);
-    Object.entries(headers).forEach(([key, value]) => xhr.setRequestHeader(key, value));
-    xhr.setRequestHeader('Tus-Resumable', '1.0.0');
-    xhr.setRequestHeader('Upload-Offset', String(offset));
-    xhr.setRequestHeader('Content-Type', 'application/offset+octet-stream');
-    xhr.upload.onprogress = (event) => onProgress(offset + event.loaded);
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(Number(xhr.getResponseHeader('Upload-Offset')) || offset + chunk.size);
-      } else {
-        reject(apiError('MEDIA_UPLOAD_FAILED'));
-      }
-    };
-    xhr.onerror = () => reject(apiError('MEDIA_UPLOAD_FAILED'));
-    xhr.send(chunk);
-  });
-}
-
-async function tusOffset(location: string, headers: Record<string, string>): Promise<number> {
-  const response = await fetch(location, { method: 'HEAD', headers: { ...headers, 'Tus-Resumable': '1.0.0' } });
-  if (!response.ok) throw apiError('MEDIA_UPLOAD_FAILED');
-  return Number(response.headers.get('Upload-Offset')) || 0;
-}
-
-/**
- * Subida TUS reanudable (Bunny Stream). Implementación mínima del protocolo:
- * crear, subir por trozos y, si un trozo falla, preguntar el offset y seguir.
- */
-async function tusUpload(target: UploadTarget, file: Blob, onProgress: (loaded: number) => void): Promise<void> {
-  const metadata = Object.entries(target.metadata || {})
-    .map(([key, value]) => `${key} ${base64(value)}`)
-    .join(',');
-  const created = await fetch(target.url, {
-    method: 'POST',
-    headers: {
-      ...target.headers,
-      'Tus-Resumable': '1.0.0',
-      'Upload-Length': String(file.size),
-      'Upload-Metadata': metadata,
-    },
-  });
-  const locationHeader = created.headers.get('Location');
-  if (!created.ok || !locationHeader) throw apiError('MEDIA_UPLOAD_FAILED');
-  const location = new URL(locationHeader, target.url).toString();
-
-  let offset = 0;
-  let retries = 0;
-  while (offset < file.size) {
-    try {
-      offset = await tusPatch(location, target.headers, file.slice(offset, offset + TUS_CHUNK_BYTES), offset, onProgress);
-      retries = 0;
-    } catch (error) {
-      retries += 1;
-      if (retries > TUS_MAX_RETRIES) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 1000 * retries));
-      offset = await tusOffset(location, target.headers).catch(() => offset);
-    }
-  }
 }
 
 /**
