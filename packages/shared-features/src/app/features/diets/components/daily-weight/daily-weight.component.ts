@@ -174,6 +174,11 @@ export class DailyWeightComponent implements OnInit, OnChanges {
     return dietDayHasContent(day) || !!day.weight;
   }
 
+  // La gráfica semanal (y su ojito) solo salen en un día con peso anotado.
+  public get canShowChart(): boolean {
+    return this.hasDietDay && !!this.weightForm?.get('weight')?.value;
+  }
+
   private initForm(): void {
     const weight =
       this.anthropometry?.weight ??

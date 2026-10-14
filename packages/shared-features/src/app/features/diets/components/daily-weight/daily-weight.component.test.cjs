@@ -74,3 +74,22 @@ test('el día de otra fecha, el que queda mientras carga el nuevo, no cuenta', (
   assert.equal(hasDietDay(previous, '2026-11-03'), false);
   assert.equal(hasDietDay(previous, DATE), true);
 });
+
+/** `canShowChart` con el peso que haya en el formulario. */
+function canShowChart(dietDay, formWeight) {
+  const component = Object.create(DailyWeightComponent.prototype);
+  component.dietDay = dietDay;
+  component.selectedDate = DATE;
+  component.weightForm = { get: () => ({ value: formWeight }) };
+  return component.canShowChart;
+}
+
+test('un día con comida pero sin peso no enseña la gráfica ni su ojito', () => {
+  const withFood = withMeal(1, { customProducts: [{ _id: 'cp-1' }] });
+  assert.equal(canShowChart(withFood, null), false);
+  assert.equal(canShowChart(withFood, ''), false);
+});
+
+test('un día con peso anotado enseña la gráfica', () => {
+  assert.equal(canShowChart(day({ weight: 80.4 }), 80.4), true);
+});
