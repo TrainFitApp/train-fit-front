@@ -19,46 +19,54 @@
 </ion-header>
 
 <ion-content>
-  <!-- Profile Section -->
-  <div class="profile-section">
-    <header class="profile-header">
-      <div class="avatar-wrapper">
-        <div class="avatar" [class.avatar--pro]="isPremiumActive">{{ getUserInitials() }}</div>
-        <div class="avatar-pro-badge" *ngIf="isPremiumActive">
-          <ion-icon name="diamond"></ion-icon>
-        </div>
+  <!-- Cabecera de perfil -->
+  <header class="profile-header">
+    <div class="avatar-wrapper">
+      <div class="avatar" [class.avatar--pro]="isPremiumActive" aria-hidden="true">{{ getUserInitials() }}</div>
+      <div class="avatar-pro-badge" *ngIf="isPremiumActive" aria-hidden="true">
+        <ion-icon name="diamond"></ion-icon>
       </div>
-      <div class="user-info">
-        <h1 class="user-name">{{ user?.name }} {{ user?.lastname }}</h1>
-        <div class="user-goal" *ngIf="!user?.roles?.includes('trainer')">
-          <ion-icon
-            [name]="iconArrowObjetive"
-            [color]="colorObjetive"
-          ></ion-icon>
-          <ion-text [color]="colorObjetive">{{ objetiveMessage }}</ion-text>
-        </div>
+    </div>
+    <div class="user-info">
+      <h1 class="user-name">{{ user?.name }} {{ user?.lastname }}</h1>
+      <div
+        class="user-goal"
+        *ngIf="!user?.roles?.includes('trainer')"
+        [style.--goal-rgb]="'var(--ion-color-' + colorObjetive + '-rgb)'"
+      >
+        <ion-icon [name]="iconArrowObjetive" aria-hidden="true"></ion-icon>
+        <span>{{ objetiveMessage }}</span>
       </div>
-      <div class="profile-actions">
-        <button class="settings-btn" (click)="goToConfiguration()">
-          <ion-icon name="settings-outline"></ion-icon>
-        </button>
-        <button
-          *ngIf="isImpersonating"
-          class="settings-btn"
-          (click)="revertImpersonation()"
-        >
-          <ion-icon color="danger" name="log-out-outline"></ion-icon>
-        </button>
-        <button
-          *ngIf="showManagementEntry && !isImpersonating"
-          class="settings-btn"
-          (click)="goToUsers()"
-        >
-          <ion-icon color="secondary" name="apps-outline"></ion-icon>
-        </button>
-      </div>
-    </header>
-  </div>
+    </div>
+    <div class="profile-actions">
+      <button
+        type="button"
+        class="icon-btn"
+        [attr.aria-label]="'PROFILE.ARIA_SETTINGS' | translate"
+        (click)="goToConfiguration()"
+      >
+        <ion-icon name="settings-outline"></ion-icon>
+      </button>
+      <button
+        type="button"
+        *ngIf="isImpersonating"
+        class="icon-btn"
+        [attr.aria-label]="'PROFILE.REVERT_IMP_HEADER' | translate"
+        (click)="revertImpersonation()"
+      >
+        <ion-icon color="danger" name="log-out-outline"></ion-icon>
+      </button>
+      <button
+        type="button"
+        *ngIf="showManagementEntry && !isImpersonating"
+        class="icon-btn"
+        [attr.aria-label]="'PROFILE.ARIA_MANAGEMENT' | translate"
+        (click)="goToUsers()"
+      >
+        <ion-icon color="secondary" name="apps-outline"></ion-icon>
+      </button>
+    </div>
+  </header>
 
   <!-- Resumen del tab Coach: solo con un profesional activo. -->
   <app-profile-coach-card
@@ -73,244 +81,256 @@
   ></app-maintenance-warning-banner>
 
   <!-- Premium upgrade banner (solo free, solo consumidor — el profesional tiene su propio flujo en Suscripción, MVP-trainers F02) -->
-  <button class="premium-banner" *ngIf="!isPremiumActive && !user?.roles?.includes('trainer') && !coachService.hasActiveTrainer()" (click)="goToPremium()">
-    <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
-    <div class="premium-banner__text">
+  <button
+    type="button"
+    class="premium-banner"
+    *ngIf="!isPremiumActive && !user?.roles?.includes('trainer') && !coachService.hasActiveTrainer()"
+    (click)="goToPremium()"
+  >
+    <ion-icon name="diamond-outline" class="premium-banner__icon" aria-hidden="true"></ion-icon>
+    <span class="premium-banner__text">
       <span class="premium-banner__title">{{ 'PROFILE.GO_PRO' | translate }}</span>
       <span class="premium-banner__sub">{{ 'PROFILE.PREMIUM_SUBTITLE' | translate }}</span>
-    </div>
-    <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
+    </span>
+    <ion-icon name="chevron-forward-outline" class="premium-banner__arrow" aria-hidden="true"></ion-icon>
   </button>
 
-  <!-- Nutrition Section (solo consumidor — el profesional no tiene datos nutricionales propios) -->
-  <div class="nutrition-section" *ngIf="!user?.roles?.includes('trainer')">
-    <div class="section-header">
-      <h3 class="section-title">
-        <ion-icon name="restaurant-outline" color="primary"></ion-icon>
-        {{ showRemainingNutrition ? ('PROFILE.MACROS_REMAINING' | translate) : ('PROFILE.MACROS_CONSUMED' | translate) }}
-      </h3>
-      <div class="section-actions">
-        <ion-toggle
-          [checked]="showRemainingNutrition"
-          (ionChange)="toggleNutritionView()"
-          class="nutrition-toggle"
-        >
-        </ion-toggle>
+  <!-- Nutrición (solo consumidor — el profesional no tiene datos nutricionales propios) -->
+  <section class="section nutrition-section" *ngIf="!user?.roles?.includes('trainer')">
+    <header class="section-header">
+      <h2 class="section-title">
+        <ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon>
+        {{ 'PROFILE.TODAY_MACROS' | translate }}
+      </h2>
+      <div class="segmented" role="group" [attr.aria-label]="'PROFILE.TODAY_MACROS' | translate">
+        <button
+          type="button"
+          class="segmented__btn"
+          [class.segmented__btn--on]="!showRemainingNutrition"
+          [attr.aria-pressed]="!showRemainingNutrition"
+          (click)="showRemainingNutrition && toggleNutritionView()"
+        >{{ 'PROFILE.VIEW_CONSUMED' | translate }}</button>
+        <button
+          type="button"
+          class="segmented__btn"
+          [class.segmented__btn--on]="showRemainingNutrition"
+          [attr.aria-pressed]="showRemainingNutrition"
+          (click)="!showRemainingNutrition && toggleNutritionView()"
+        >{{ 'PROFILE.VIEW_REMAINING' | translate }}</button>
       </div>
-    </div>
+    </header>
 
     <div class="nutrition-content">
-      <div class="nutrition-overview">
-        <div class="nutrition-card">
-          <div class="nutrition-value" [ngClass]="getKcalValueClass()">
-            {{ getNutritionValue() }}
-          </div>
-          <div class="nutrition-label">{{ getNutritionLabel() }}</div>
+      <div class="kcal">
+        <div class="kcal-value" [ngClass]="getKcalValueClass()">
+          {{ getNutritionValue() }}
+        </div>
+        <div class="kcal-label">
+          <ion-icon name="flame" aria-hidden="true"></ion-icon>
+          {{ getNutritionLabel() }}
         </div>
       </div>
 
-      <div class="nutrition-progress">
-        <div class="macro-row">
-          <div class="macro-info">
-            <div class="macro-color protein"></div>
-            <span class="macro-name">{{ 'PROFILE.PROTEIN' | translate }}</span>
+      <div class="macros">
+        <div class="macro">
+          <div class="macro-row">
+            <span class="macro-name">
+              <ion-icon class="macro-icon macro-icon--protein" name="egg-outline" aria-hidden="true"></ion-icon>
+              {{ 'PROFILE.PROTEIN' | translate }}
+            </span>
+            <span
+              class="macro-values"
+              [ngClass]="getProteinValueClass()"
+              [innerHTML]="getProteinValues()"
+            ></span>
           </div>
-          <div
-            class="macro-values"
-            [ngClass]="getProteinValueClass()"
-            [innerHTML]="getProteinValues()"
-          ></div>
-        </div>
-        <div class="progress-bar">
-          <div
-            class="progress-fill protein"
-            [style.width.%]="proteinPercentage"
-          ></div>
+          <div class="macro-track macro-track--protein">
+            <div class="macro-fill" [style.width.%]="proteinPercentage || 0"></div>
+          </div>
         </div>
 
-        <div class="macro-row">
-          <div class="macro-info">
-            <div class="macro-color carbs"></div>
-            <span class="macro-name">{{ 'PROFILE.CBH' | translate }}</span>
+        <div class="macro">
+          <div class="macro-row">
+            <span class="macro-name">
+              <ion-icon class="macro-icon macro-icon--carbs" name="leaf-outline" aria-hidden="true"></ion-icon>
+              {{ 'PROFILE.CBH' | translate }}
+            </span>
+            <span
+              class="macro-values"
+              [ngClass]="getCarbValueClass()"
+              [innerHTML]="getCarbValues()"
+            ></span>
           </div>
-          <div
-            class="macro-values"
-            [ngClass]="getCarbValueClass()"
-            [innerHTML]="getCarbValues()"
-          ></div>
-        </div>
-        <div class="progress-bar">
-          <div
-            class="progress-fill carbs"
-            [style.width.%]="carbohydratesPercentage"
-          ></div>
+          <div class="macro-track macro-track--carbs">
+            <div class="macro-fill" [style.width.%]="carbohydratesPercentage || 0"></div>
+          </div>
         </div>
 
-        <div class="macro-row">
-          <div class="macro-info">
-            <div class="macro-color fats"></div>
-            <span class="macro-name">{{ 'PROFILE.FATS' | translate }}</span>
+        <div class="macro">
+          <div class="macro-row">
+            <span class="macro-name">
+              <ion-icon class="macro-icon macro-icon--fats" name="water-outline" aria-hidden="true"></ion-icon>
+              {{ 'PROFILE.FATS' | translate }}
+            </span>
+            <span
+              class="macro-values"
+              [ngClass]="getFatValueClass()"
+              [innerHTML]="getFatValues()"
+            ></span>
           </div>
-          <div
-            class="macro-values"
-            [ngClass]="getFatValueClass()"
-            [innerHTML]="getFatValues()"
-          ></div>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill fats" [style.width.%]="fatPercentage"></div>
+          <div class="macro-track macro-track--fats">
+            <div class="macro-fill" [style.width.%]="fatPercentage || 0"></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Weight Progress Section (solo consumidor) -->
-  <div class="weight-progress-section" *ngIf="!user?.roles?.includes('trainer')">
-    <div class="section-header">
-      <h3 class="section-title">
-        <ion-icon name="scale-outline" color="primary"></ion-icon>
+  <!-- Progreso de peso (solo consumidor) -->
+  <section class="section weight-section" *ngIf="!user?.roles?.includes('trainer')">
+    <header class="section-header">
+      <h2 class="section-title">
+        <ion-icon name="scale-outline" aria-hidden="true"></ion-icon>
         {{ 'PROFILE.WEIGHT_PROGRESS' | translate }}
-      </h3>
-      <div class="section-actions">
-        <button class="weight-progress-btn" (click)="goToWeightInfo()">
-          <ion-icon name="stats-chart-outline"></ion-icon>
-        </button>
-      </div>
-    </div>
+      </h2>
+      <button type="button" class="section-link" (click)="goToWeightInfo()">
+        {{ 'PROFILE.SEE_WEIGHT_TREND' | translate }}
+        <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </header>
 
     <div class="weight-grid">
-      <div class="weight-metric" (click)="showInfo('PROFILE.TODAY_WEIGHT_INFO')">
-        <div class="weight-metric-label">{{ 'PROFILE.TODAY_WEIGHT' | translate }}</div>
-        <div class="weight-metric-value">
-          {{ getTodayWeight() ? ((getTodayWeight() | localNumber:'1.0-2') + ' kg') :
-          '-' }}
-        </div>
-      </div>
-      <div class="weight-metric" (click)="showInfo('PROFILE.PREV_WEEK_AVG_INFO')">
-        <div class="weight-metric-label">{{ 'PROFILE.PREV_WEEK_AVG' | translate }}</div>
-        <div class="weight-metric-value">
-          {{ prevWeightAverage ? (prevWeightAverage | localNumber:'1.0-2') + ' kg' : '—' }}
-        </div>
-      </div>
+      <button
+        type="button"
+        class="weight-metric"
+        (click)="showInfo('PROFILE.TODAY_WEIGHT_INFO')"
+      >
+        <span class="weight-metric-label">
+          <ion-icon name="today-outline" aria-hidden="true"></ion-icon>
+          {{ 'PROFILE.TODAY_WEIGHT' | translate }}
+        </span>
+        <span class="weight-metric-value">
+          {{ getTodayWeight() ? ((getTodayWeight() | localNumber:'1.0-2') + ' kg') : '—' }}
+        </span>
+      </button>
 
-      <div
-        class="weight-metric full-width"
+      <button
+        type="button"
+        class="weight-metric"
+        (click)="showInfo('PROFILE.PREV_WEEK_AVG_INFO')"
+      >
+        <span class="weight-metric-label">
+          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+          {{ 'PROFILE.PREV_WEEK_AVG' | translate }}
+        </span>
+        <span class="weight-metric-value">
+          {{ prevWeightAverage ? (prevWeightAverage | localNumber:'1.0-2') + ' kg' : '—' }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="weight-metric weight-metric--main"
         (click)="showInfo('PROFILE.CURR_WEEK_AVG_INFO')"
       >
-        <div class="weight-metric-label">{{ 'PROFILE.CURR_WEEK_AVG' | translate }}</div>
-        <div class="weight-metric-value">
+        <span class="weight-metric-label">{{ 'PROFILE.CURR_WEEK_AVG' | translate }}</span>
+        <span class="weight-metric-value">
           {{ currWeightAverage ? (currWeightAverage | localNumber:'1.0-2') + ' kg' : '—' }}
           <span
             class="weight-change"
             [ngClass]="getWeightChangeClass(currWeightAverage, prevWeightAverage)"
             *ngIf="currWeightAverage && prevWeightAverage"
           >
-            {{ getWeightChangeIcon(currWeightAverage, prevWeightAverage) }}{{
+            <ion-icon [name]="getWeightChangeIcon(currWeightAverage, prevWeightAverage)" aria-hidden="true"></ion-icon>{{
             getWeightChangeText(currWeightAverage, prevWeightAverage) }}
           </span>
-        </div>
-      </div>
+        </span>
+      </button>
     </div>
+  </section>
 
-    <div class="weight-stats"></div>
-  </div>
-
-  <!-- Routine Section (solo consumidor — el profesional gestiona rutinas de sus clientes, no una propia) -->
-  <div class="routine-section" *ngIf="!user?.roles?.includes('trainer')">
-    <!-- Workout Card Structure -->
-    <div
-      class="card workout-card clickable-card"
-      *ngIf="tableInUse; else noRoutine"
-      (click)="goToSummary()"
-    >
-      <div class="card-header">
-        <h2 class="card-title">
-          <ion-icon name="barbell-outline" color="primary"></ion-icon> {{ 'PROFILE.ACTIVE_ROUTINE' | translate }}
+  <!-- Rutina (solo consumidor — el profesional gestiona rutinas de sus clientes, no una propia) -->
+  <section class="section routine-section" *ngIf="!user?.roles?.includes('trainer')">
+    <div class="routine" *ngIf="tableInUse; else noRoutine" (click)="goToSummary()">
+      <header class="section-header">
+        <h2 class="section-title">
+          <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+          {{ 'PROFILE.ACTIVE_ROUTINE' | translate }}
         </h2>
-      </div>
-      <div class="workout-status">
-        <p class="workout-title">{{ tableInUse.name | translateDb }}</p>
-        <p class="workout-subtitle" *ngIf="user?.workoutInUse && workoutInUse">
-          {{ 'PROFILE.MICROCYCLE' | translate:{ split: getCurrentPlayingSplit() } }}
-        </p>
-        <p class="workout-subtitle" *ngIf="!user?.workoutInUse">
-          {{ (tableInUse.splits?.length === 1 ? 'PROFILE.MICROCYCLES_AVAILABLE_ONE' : 'PROFILE.MICROCYCLES_AVAILABLE') | translate:{ count: tableInUse.splits?.length || 0 } }}
-        </p>
-      </div>
-      <div class="workout-progress" *ngIf="user?.workoutInUse && workoutInUse">
-        <div class="progress-info">
-          <span>{{ workoutInUse.name }}</span>
+        <span class="section-link">
+          {{ 'PROFILE.SEE_ROUTINE' | translate }}
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </span>
+      </header>
+
+      <p class="routine-name">{{ tableInUse.name | translateDb }}</p>
+      <p class="routine-sub" *ngIf="user?.workoutInUse && workoutInUse">
+        {{ 'PROFILE.MICROCYCLE' | translate:{ split: getCurrentPlayingSplit() } }}
+      </p>
+      <p class="routine-sub" *ngIf="!user?.workoutInUse">
+        {{ (tableInUse.splits?.length === 1 ? 'PROFILE.MICROCYCLES_AVAILABLE_ONE' : 'PROFILE.MICROCYCLES_AVAILABLE') | translate:{ count: tableInUse.splits?.length || 0 } }}
+      </p>
+
+      <div class="routine-progress" *ngIf="user?.workoutInUse && workoutInUse">
+        <div class="routine-progress__head">
+          <span class="routine-progress__workout">{{ workoutInUse.name }}</span>
           <span
-            class="workout-state"
-            [ngClass]="{
-            'active': !isWorkoutInUseEnded,
-            'completed': isWorkoutInUseEnded
-          }"
+            class="routine-progress__state"
+            [class.routine-progress__state--done]="isWorkoutInUseEnded"
             >{{ isWorkoutInUseEnded ? ('PROFILE.COMPLETED' | translate) : ('PROFILE.ACTIVE' | translate) }}</span
           >
         </div>
-        <div class="progress-indicator">
-          <span class="progress-text"
-            >{{ 'PROFILE.EXERCISES_COMPLETED' | translate:{ completed: completedExercises, total: workoutInUse.exercises.length } }}</span
-          >
-        </div>
-        <div class="progress-bar-bg">
+        <div class="routine-progress__track">
           <div
-            class="progress-bar"
+            class="routine-progress__fill"
+            [class.routine-progress__fill--done]="isWorkoutInUseEnded"
             [style.width.%]="(completedExercises / workoutInUse.exercises.length) * 100"
-            [style.background-color]="isWorkoutInUseEnded ? 'var(--pe-accent)' : 'var(--ion-color-success)'"
           ></div>
         </div>
+        <span class="routine-progress__text">{{ 'PROFILE.EXERCISES_COMPLETED' | translate:{ completed: completedExercises, total: workoutInUse.exercises.length } }}</span>
 
-        <div
-          class="info-card info-card--orange summary-info-card"
+        <button
+          type="button"
+          class="routine-link"
           (click)="goToStatistics(); $event.stopPropagation()"
         >
-          <ion-icon name="bar-chart-outline" class="info-icon"></ion-icon>
-          <div class="info-text">
-            <span class="info-title">{{ 'PROFILE.STATISTICS' | translate }}</span>
-          </div>
-        </div>
+          <span class="routine-link__icon">
+            <ion-icon name="bar-chart-outline" aria-hidden="true"></ion-icon>
+          </span>
+          <span class="routine-link__text">{{ 'PROFILE.STATISTICS' | translate }}</span>
+          <ion-icon class="routine-link__chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </button>
       </div>
     </div>
 
-    <!-- No Routine Selected -->
+    <!-- Sin rutina elegida -->
     <ng-template #noRoutine>
-      <div class="card workout-card">
-        <div class="no-routine-card">
-          <div class="no-routine-icon">
-            <ion-icon name="calendar-outline" color="primary"></ion-icon>
-          </div>
-          <p class="no-routine-text">{{ 'PROFILE.NO_ROUTINE_TITLE' | translate }}</p>
-          <p class="no-routine-subtext">
-            {{ 'PROFILE.NO_ROUTINE_SUBTITLE' | translate }}
-          </p>
-          <ion-button class="primary-action-btn" (click)="goToSummary()"
-            >{{ 'PROFILE.SELECT_ROUTINE' | translate }}</ion-button
-          >
-        </div>
+      <div class="routine-empty">
+        <span class="routine-empty__icon">
+          <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+        </span>
+        <p class="routine-empty__title">{{ 'PROFILE.NO_ROUTINE_TITLE' | translate }}</p>
+        <p class="routine-empty__text">{{ 'PROFILE.NO_ROUTINE_SUBTITLE' | translate }}</p>
+        <ion-button class="primary-action-btn" (click)="goToSummary()"
+          >{{ 'PROFILE.SELECT_ROUTINE' | translate }}</ion-button
+        >
       </div>
     </ng-template>
-  </div>
+  </section>
 
-
-
-  <!-- TODO -->
-
-  <ion-grid class="social-networks-section" *ngIf="!user?.roles?.includes('trainer')">
-    <ion-row
-      ><ion-col class="ion-text-center"
-        ><ion-label color="medium">{{ 'PROFILE.SOCIAL_NETWORKS' | translate }}</ion-label></ion-col
+  <!-- Redes sociales -->
+  <section class="social-section" *ngIf="!user?.roles?.includes('trainer')">
+    <p class="social-title">{{ 'PROFILE.SOCIAL_NETWORKS' | translate }}</p>
+    <div class="social-links">
+      <button
+        type="button"
+        class="social-link"
+        *ngFor="let socialNetWork of SOCIAL_NETWORK_VALUES"
+        [attr.aria-label]="socialNetWork.value"
+        (click)="navigateSocialNetwork(socialNetWork)"
       >
-    </ion-row>
-    <ion-row class="ion-justify-content-center">
-      <ion-buttons>
-        <ion-button *ngFor="let socialNetWork of SOCIAL_NETWORK_VALUES">
-          <ion-button (click)="navigateSocialNetwork(socialNetWork)">
-            <ion-icon slot="icon-only" [name]="socialNetWork.icon"></ion-icon>
-          </ion-button>
-        </ion-button>
-      </ion-buttons>
-    </ion-row>
-  </ion-grid>
+        <ion-icon [name]="socialNetWork.icon"></ion-icon>
+      </button>
+    </div>
+  </section>
 </ion-content>

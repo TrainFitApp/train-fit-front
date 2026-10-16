@@ -279,9 +279,9 @@ export class ProfilePage implements OnInit {
   getWeightChangeIcon(current: number, previous: number): string {
     if (!current || !previous) return '';
 
-    if (current < previous) return '↓ ';
-    if (current > previous) return '↑ ';
-    return '→ ';
+    if (current < previous) return 'arrow-down';
+    if (current > previous) return 'arrow-up';
+    return 'remove';
   }
 
   getWeightTrendClass(): string {
