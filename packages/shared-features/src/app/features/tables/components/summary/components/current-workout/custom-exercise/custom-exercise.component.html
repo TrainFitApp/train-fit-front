@@ -9,7 +9,7 @@
     <div class="previous-title-center">
       <span class="previous-title-text">{{ getMicrocycleLabel() }}</span>
       <div class="previous-subtitle-row">
-        <span class="previous-subtitle-text">{{ 'TABLES.SESSION' | translate }} </span>
+        <span class="previous-subtitle-text">{{ (historicalWorkout?.rest ? 'TABLES.WORKOUT_LABEL' : 'TABLES.SESSION') | translate }} </span>
         <span class="previous-subtitle-date"
           [style.color]="historicalWorkout?.rest ? 'var(--ion-color-alternative)' : ''">
           {{

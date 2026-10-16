@@ -277,20 +277,13 @@
     padding: 10px 12px;
   }
 
+  // El alto (38px) lo fijan los botones con !important; el input no baja de ahí
+  // o quedaría más bajo que ✓, medidas y gráfica.
   .input-wrapper {
-    height: 34px;
     padding: 0 8px;
 
     .weight-input { font-size: 13px; }
     .input-unit { font-size: 11px; }
-  }
-
-  .save-button, .calendar-button {
-    flex: 0 0 34px;
-    width: 34px;
-    max-width: 34px;
-    min-width: 34px;
-    height: 34px;
   }
 
   .chart-card .chart-content {
