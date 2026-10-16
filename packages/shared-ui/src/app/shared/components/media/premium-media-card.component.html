@@ -16,14 +16,19 @@
 
 <!-- Sin nada subido: la herramienta, qué se gana y un botón. -->
 <section class="paywall" *ngIf="showcase">
-  <!-- Muestra de la herramienta. Es su forma, no la foto ni el vídeo de nadie. -->
+  <!-- Muestra de la herramienta: fotos de ejemplo (assets/media-sample), no de
+       ningún cliente; la insignia lo deja claro. -->
   <div class="stage" aria-hidden="true">
     <span class="stage-badge">{{ 'MEDIA.PREMIUM_SAMPLE_BADGE' | translate }}</span>
 
     <ng-container *ngIf="!isVideos">
       <div class="stage-compare">
-        <div class="stage-frame stage-frame--before"><ion-icon name="body"></ion-icon></div>
-        <div class="stage-frame stage-frame--after"><ion-icon name="body"></ion-icon></div>
+        <div class="stage-frame stage-frame--before">
+          <img src="assets/media-sample/before.webp" alt="" width="511" height="941" decoding="async" />
+        </div>
+        <div class="stage-frame stage-frame--after">
+          <img src="assets/media-sample/after.webp" alt="" width="512" height="939" decoding="async" />
+        </div>
         <span class="stage-tag stage-tag--left">{{ 'MEDIA.PREMIUM_SAMPLE_BEFORE' | translate }}</span>
         <span class="stage-tag stage-tag--right">{{ 'MEDIA.PREMIUM_SAMPLE_AFTER' | translate }}</span>
         <span class="stage-divider"

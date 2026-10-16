@@ -67,8 +67,9 @@ export class ProgressVideosComponent implements OnInit, OnChanges {
     return this.mode === 'client';
   }
 
+  // Sin profesional activo el cliente no sube vídeos de progreso.
   public get canUpload(): boolean {
-    return !!this.status?.enabled && !!this.status?.canUpload;
+    return !!this.status?.enabled && !!this.status?.canUpload && !!this.status?.hasActiveTrainer;
   }
 
   public async load(): Promise<void> {

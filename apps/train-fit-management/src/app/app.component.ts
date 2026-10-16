@@ -7,6 +7,7 @@ import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { PendingEmailVerificationService } from 'src/app/core/services/auth/pending-email-verification.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
 import { startupReturnUrl } from 'src/app/core/utils/startup-return-url.util';
 
 register();
@@ -25,9 +26,11 @@ export class AppComponent implements OnDestroy {
     private authService: AuthService,
     private pendingEmailVerificationService: PendingEmailVerificationService,
     private billingService: BillingService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private hapticsService: HapticsService
   ) {
     void this.billingService.initialize();
+    this.hapticsService.listenTyping();
     this.initSessionTracking();
     this.routeOnStartup();
     this.restoreSessionOnStartup();

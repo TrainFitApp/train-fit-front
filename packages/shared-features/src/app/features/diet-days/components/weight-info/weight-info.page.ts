@@ -10,6 +10,7 @@ import { Anthropometry } from './models/anthropometry';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { AnthropometryModalComponent } from 'src/app/shared/components/anthropometry';
 import { CalendarComponent } from '../calendar/calendar.component';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 
 @Component({
   selector: 'app-weight-info',
@@ -45,6 +46,13 @@ export class WeightInfoPage implements OnDestroy {
   public chartRange: string;
 
   private translate = inject(TranslateService);
+  private coachService = inject(CoachService);
+
+  // Los vídeos de progreso son para que los revise el profesional: sin uno
+  // activo no se ofrecen.
+  public get showVideos(): boolean {
+    return this.coachService.hasActiveTrainer();
+  }
 
   constructor(
     public utilService: UtilService,
@@ -69,6 +77,7 @@ export class WeightInfoPage implements OnDestroy {
   }
 
   public ionViewWillEnter(): void {
+    if (this.section === 'videos' && !this.showVideos) this.section = 'numbers';
     const d = this.utilService.parseYYYYMMDD(this.selectedDate);
     this.monthYear = `${this.months[d.getMonth()]} ${d.getFullYear()}`;
     this.chartRange = CHART_RANGES.month;
@@ -78,7 +87,7 @@ export class WeightInfoPage implements OnDestroy {
 
   public onSectionChange(event: any): void {
     const value = event?.detail?.value;
-    if (value === 'numbers' || value === 'photos' || value === 'videos') this.section = value;
+    if (value === 'numbers' || value === 'photos' || (value === 'videos' && this.showVideos)) this.section = value;
   }
 
   public chartRangeChange(event: any): void {

@@ -8,7 +8,7 @@ import {
   isTypingTarget,
 } from './haptics.util';
 
-// Solo vibra en nativo y si la app lleva el plugin (hoy, la del cliente): en
+// Solo vibra en nativo y si la app lleva el plugin (cliente y Gestión): en
 // web y en las apps sin `@capacitor/haptics` todas las llamadas son no-op.
 @Injectable({
   providedIn: 'root',
