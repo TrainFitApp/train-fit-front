@@ -31,25 +31,12 @@
     ></app-maintenance-warning-banner>
 
     <!-- Premium upgrade banner (solo free) -->
-    <button
-      class="premium-banner"
+    <app-premium-banner
       *ngIf="!isPremiumActive && !coachService.hasActiveTrainer()"
-      (click)="goToPremium()"
-    >
-      <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
-      <div class="premium-banner__text">
-        <span class="premium-banner__title"
-          >{{ 'DIETS.GO_PRO' | translate }}</span
-        >
-        <span class="premium-banner__sub"
-          >{{ 'DIETS.GO_PRO_SUB' | translate }}</span
-        >
-      </div>
-      <ion-icon
-        name="chevron-forward-outline"
-        class="premium-banner__arrow"
-      ></ion-icon>
-    </button>
+      [title]="'DIETS.GO_PRO' | translate"
+      [subtitle]="'DIETS.GO_PRO_SUB' | translate"
+      (pressed)="goToPremium()"
+    ></app-premium-banner>
 
     <app-notes
       *ngIf="dietDay?.notes"

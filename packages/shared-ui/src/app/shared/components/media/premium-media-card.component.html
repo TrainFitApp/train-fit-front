@@ -1,17 +1,10 @@
 <!-- Con material ya subido: banner compacto (lo subido se sigue viendo). -->
 <div class="premium-media" *ngIf="!showcase">
-  <button type="button" class="premium-banner" (click)="goToPremium()">
-    <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
-    <span class="premium-banner__text">
-      <span class="premium-banner__title">
-        {{ (isVideos ? 'MEDIA.PREMIUM_VIDEOS_TITLE' : 'MEDIA.PREMIUM_PHOTOS_TITLE') | translate }}
-      </span>
-      <span class="premium-banner__sub">
-        {{ (isVideos ? 'MEDIA.PREMIUM_VIDEOS_SUB' : 'MEDIA.PREMIUM_PHOTOS_SUB') | translate }}
-      </span>
-    </span>
-    <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
-  </button>
+  <app-premium-banner
+    [title]="(isVideos ? 'MEDIA.PREMIUM_VIDEOS_TITLE' : 'MEDIA.PREMIUM_PHOTOS_TITLE') | translate"
+    [subtitle]="(isVideos ? 'MEDIA.PREMIUM_VIDEOS_SUB' : 'MEDIA.PREMIUM_PHOTOS_SUB') | translate"
+    (pressed)="goToPremium()"
+  ></app-premium-banner>
 </div>
 
 <!-- Sin nada subido: la herramienta, qué se gana y un botón. -->

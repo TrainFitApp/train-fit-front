@@ -40,6 +40,7 @@ import { SkeletonLoaderComponent } from './components/skeleton-loader/skeleton-l
 import { MediaVideoPlayerComponent } from './components/media/media-video-player.component';
 import { PhotoCompareComponent } from './components/media/photo-compare.component';
 import { PremiumMediaCardComponent } from './components/media/premium-media-card.component';
+import { PremiumBannerComponent } from './components/premium-banner/premium-banner.component';
 import { MediaConsentSheetComponent } from './components/media/media-consent-sheet.component';
 import { PhotoSessionModalComponent } from './components/media/photo-session-modal.component';
 import { MediaCameraModalComponent } from './components/media/media-camera-modal.component';
@@ -108,6 +109,7 @@ import { HorizontalScrollDirective } from './directives/horizontal-scroll.direct
     MediaVideoPlayerComponent,
     PhotoCompareComponent,
     PremiumMediaCardComponent,
+    PremiumBannerComponent,
     MediaConsentSheetComponent,
     PhotoSessionModalComponent,
     MediaCameraModalComponent,
@@ -178,6 +180,7 @@ import { HorizontalScrollDirective } from './directives/horizontal-scroll.direct
     MediaVideoPlayerComponent,
     PhotoCompareComponent,
     PremiumMediaCardComponent,
+    PremiumBannerComponent,
     MediaConsentSheetComponent,
     PhotoSessionModalComponent,
     MediaCameraModalComponent,

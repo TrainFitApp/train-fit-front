@@ -23,8 +23,8 @@ const VIDEO_PERKS: readonly MediaPerk[] = [
  * Venta para quien no puede subir fotos ni vídeos (decisión 1 del plan:
  * gratis para entrenadores, premium y clientes con entrenador activo).
  *
- *   showcase=false: banner compacto, el mismo `premium-banner` de perfil y
- *     dieta. Sale cuando ya hay material subido (que se sigue viendo).
+ *   showcase=false: banner compacto (`app-premium-banner`, el mismo de toda
+ *     la app). Sale cuando ya hay material subido (que se sigue viendo).
  *   showcase=true: ocupa el estado vacío. Enseña la herramienta con una
  *     muestra (sin fotos ni vídeos de nadie), qué se gana y un botón.
  */

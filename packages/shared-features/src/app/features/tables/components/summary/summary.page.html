@@ -34,14 +34,12 @@
   <div class="container">
     <div class="main-content">
       <!-- Premium upgrade banner (solo free) -->
-      <button class="premium-banner" *ngIf="!isPremiumActive && !coachService.hasActiveTrainer()" (click)="goToPremium()">
-        <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
-        <div class="premium-banner__text">
-          <span class="premium-banner__title">{{ 'TABLES.GO_PRO' | translate }}</span>
-          <span class="premium-banner__sub">{{ 'TABLES.GO_PRO_SUBTITLE' | translate }}</span>
-        </div>
-        <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
-      </button>
+      <app-premium-banner
+        *ngIf="!isPremiumActive && !coachService.hasActiveTrainer()"
+        [title]="'TABLES.GO_PRO' | translate"
+        [subtitle]="'TABLES.GO_PRO_SUBTITLE' | translate"
+        (pressed)="goToPremium()"
+      ></app-premium-banner>
 
       <!-- Buscar/crear rutina: siempre arriba del todo, haya o no rutina
            activa (antes bajaban a secundarias al final de la página con

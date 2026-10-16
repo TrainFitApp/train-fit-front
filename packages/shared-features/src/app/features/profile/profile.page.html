@@ -81,19 +81,12 @@
   ></app-maintenance-warning-banner>
 
   <!-- Premium upgrade banner (solo free, solo consumidor — el profesional tiene su propio flujo en Suscripción, MVP-trainers F02) -->
-  <button
-    type="button"
-    class="premium-banner"
+  <app-premium-banner
     *ngIf="!isPremiumActive && !user?.roles?.includes('trainer') && !coachService.hasActiveTrainer()"
-    (click)="goToPremium()"
-  >
-    <ion-icon name="diamond-outline" class="premium-banner__icon" aria-hidden="true"></ion-icon>
-    <span class="premium-banner__text">
-      <span class="premium-banner__title">{{ 'PROFILE.GO_PRO' | translate }}</span>
-      <span class="premium-banner__sub">{{ 'PROFILE.PREMIUM_SUBTITLE' | translate }}</span>
-    </span>
-    <ion-icon name="chevron-forward-outline" class="premium-banner__arrow" aria-hidden="true"></ion-icon>
-  </button>
+    [title]="'PROFILE.GO_PRO' | translate"
+    [subtitle]="'PROFILE.PREMIUM_SUBTITLE' | translate"
+    (pressed)="goToPremium()"
+  ></app-premium-banner>
 
   <!-- Nutrición (solo consumidor — el profesional no tiene datos nutricionales propios) -->
   <section class="section nutrition-section" *ngIf="!user?.roles?.includes('trainer')">
@@ -205,10 +198,7 @@
         class="weight-metric"
         (click)="showInfo('PROFILE.TODAY_WEIGHT_INFO')"
       >
-        <span class="weight-metric-label">
-          <ion-icon name="today-outline" aria-hidden="true"></ion-icon>
-          {{ 'PROFILE.TODAY_WEIGHT' | translate }}
-        </span>
+        <span class="weight-metric-label">{{ 'PROFILE.TODAY_WEIGHT' | translate }}</span>
         <span class="weight-metric-value">
           {{ getTodayWeight() ? ((getTodayWeight() | localNumber:'1.0-2') + ' kg') : '—' }}
         </span>
@@ -219,10 +209,7 @@
         class="weight-metric"
         (click)="showInfo('PROFILE.PREV_WEEK_AVG_INFO')"
       >
-        <span class="weight-metric-label">
-          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-          {{ 'PROFILE.PREV_WEEK_AVG' | translate }}
-        </span>
+        <span class="weight-metric-label">{{ 'PROFILE.PREV_WEEK_AVG' | translate }}</span>
         <span class="weight-metric-value">
           {{ prevWeightAverage ? (prevWeightAverage | localNumber:'1.0-2') + ' kg' : '—' }}
         </span>
