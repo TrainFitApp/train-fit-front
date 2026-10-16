@@ -3,6 +3,9 @@ import { BehaviorSubject } from 'rxjs';
 import { AppUpdateService } from '../app-update/app-update.service';
 import { MaintenanceModalService } from '../maintenance/maintenance-modal.service';
 import { RemoteConfigService } from './remote-config.service';
+import { environment } from 'src/environments/environment';
+
+const IS_TRAINER_APP = environment.auth?.clientFamily === 'trainfit-trainers';
 
 export interface MaintenanceWarningBanner {
   message: string;
@@ -33,7 +36,9 @@ export class RemoteConfigGateService {
       return;
     }
 
-    if (status.forceUpdate.required) {
+    // La app de entrenadores no muestra la pantalla de actualización forzada;
+    // el mantenimiento sí le aplica.
+    if (status.forceUpdate.required && !IS_TRAINER_APP) {
       this.warningBannerSubject.next(null);
       await this.appUpdateService.presentRequiredUpdate(status.forceUpdate);
       return;
