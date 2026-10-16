@@ -15,6 +15,7 @@ import { UserService } from 'src/app/core/services/user/user.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { WorkoutNotificationService } from 'src/app/core/services/workout-notification/workout-notification.service';
 import { LiveActivityService } from 'src/app/core/services/live-activity/live-activity.service';
+import { SupplementReminderService } from 'src/app/features/supplements/services/supplement-reminder.service';
 
 register();
 @Component({
@@ -40,7 +41,8 @@ export class AppComponent implements OnDestroy {
     private workoutNotificationService: WorkoutNotificationService,
     private liveActivityService: LiveActivityService,
     private userService: UserService,
-    private hapticsService: HapticsService
+    private hapticsService: HapticsService,
+    private supplementReminderService: SupplementReminderService
   ) {
     void this.initializeApp();
   }
@@ -54,6 +56,7 @@ export class AppComponent implements OnDestroy {
     void this.notificationService.initialize();
     this.hapticsService.listenTyping();
     void this.initWorkoutSetNotifications();
+    void this.supplementReminderService.initialize();
     this.initSessionTracking();
     this.routeOnStartup();
     this.restoreSessionOnStartup();
@@ -79,6 +82,10 @@ export class AppComponent implements OnDestroy {
 
   private initSessionTracking(): void {
     this.authService.user$.subscribe((user) => {
+      // Recordatorios de suplementos: se rehacen al abrir sesión y dejan de
+      // sonar al cerrarla (user$ emite también con cada cambio del usuario).
+      if (user && !this.hasAuthenticatedSession) void this.supplementReminderService.sync();
+      else if (!user && this.hasAuthenticatedSession) void this.supplementReminderService.cancelScheduled();
       this.hasAuthenticatedSession = Boolean(user);
     });
   }
@@ -124,6 +131,9 @@ export class AppComponent implements OnDestroy {
       if (this.shouldDeferAuthWorkForCurrentRoute()) {
         return;
       }
+
+      // Avisos con fecha: al volver a la app se programan los días siguientes.
+      if (this.hasAuthenticatedSession) void this.supplementReminderService.sync();
 
       if (!this.authService.isAccessTokenExpiringSoon()) {
         void this.billingService.getBackendEntitlements().catch((error) => {

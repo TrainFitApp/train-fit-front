@@ -16,6 +16,8 @@ import { DietsPage } from './diets.page';
 import { MacrosBarsModule } from './components/macros-bars/macros-bars.module';
 import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-preview-modal.component';
 import { SupplementSheetComponent } from './components/supplement-sheet/supplement-sheet.component';
+import { SupplementReminderComponent } from './components/supplement-reminder/supplement-reminder.component';
+import { SupplementsOverviewComponent } from './components/supplements-overview/supplements-overview.component';
 
 @NgModule({
   declarations: [
@@ -27,6 +29,8 @@ import { SupplementSheetComponent } from './components/supplement-sheet/suppleme
     ClipboardMealModalComponent,
     MenuPreviewModalComponent,
     SupplementSheetComponent,
+    SupplementReminderComponent,
+    SupplementsOverviewComponent,
   ],
   imports: [
     SharedModule,

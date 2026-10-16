@@ -71,6 +71,59 @@
   }
 }
 
+// Días de la semana: siete botones iguales en una fila, de lunes a domingo.
+// Marcado = naranja; la zona pulsable es de 44px de alto.
+.supplement-sheet__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin: 4px 0 2px;
+}
+
+.supplement-sheet__weekday {
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.14);
+  border-radius: 10px;
+  background: none;
+  color: var(--ion-color-medium);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+
+  &.is-selected {
+    border-color: var(--ion-color-primary);
+    background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.16);
+    color: var(--ion-color-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.supplement-sheet__field-hint {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--ion-color-medium);
+
+  // "Sin marcar ninguno, todos los días": el naranja de la marca.
+  &--accent {
+    color: var(--ion-color-primary);
+  }
+}
+
 .supplement-sheet__label {
   padding: 0;
   font-size: 0.72rem;
@@ -184,6 +237,52 @@
     height: 20px;
     color: currentColor;
   }
+}
+
+// Lo pautado solo tiene "Cerrar".
+.supplement-sheet__actions--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+// Ficha de lo pautado: etiqueta pequeña encima y el dato debajo, en la misma
+// caja que los campos del editor.
+.supplement-sheet__details {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 4px 12px;
+  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.12);
+  border-radius: 14px;
+  background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
+}
+
+.supplement-sheet__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+
+  & + & {
+    border-top: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.08);
+  }
+
+  dt {
+    font-size: 0.75rem;
+    color: var(--ion-color-medium);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+}
+
+.supplement-sheet__purchase {
+  --color: var(--ion-color-primary);
+  margin: 0;
+  min-height: 44px;
 }
 
 // Los mismos botones que las alertas en hoja inferior de toda la app

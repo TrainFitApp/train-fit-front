@@ -48,11 +48,18 @@ import {
   SupplementTiming,
 } from '../supplements/services/my-supplements-api.service';
 import { supplementsForDay } from '../supplements/supplement-day.util';
+import { SupplementReminderService } from '../supplements/services/supplement-reminder.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
+import { localIsoDate } from 'src/app/core/utils/local-date.util';
 import {
   SUPPLEMENT_SHEET_OPTIONS,
   SupplementSheetComponent,
   SupplementSheetResult,
 } from './components/supplement-sheet/supplement-sheet.component';
+import {
+  SupplementsOverviewComponent,
+  SupplementsOverviewResult,
+} from './components/supplements-overview/supplements-overview.component';
 import { isPremiumActive } from 'src/app/core/utils/premium-status.util';
 
 @Component({
@@ -120,6 +127,10 @@ export class DietsPage implements OnInit, OnDestroy {
   private readonly userService = inject(UserService);
   private readonly remoteConfigGate = inject(RemoteConfigGateService);
   public readonly coachService = inject(CoachService);
+  private readonly supplementReminders = inject(SupplementReminderService);
+  private readonly hapticsService = inject(HapticsService);
+  // Checks de "tomado" en vuelo: un segundo toque no lanza otra petición.
+  private readonly savingIntakes = new Set<string>();
 
   get locale(): string {
     return this.translate.currentLang === 'en' ? 'en-US' : 'es-ES';
@@ -210,6 +221,15 @@ export class DietsPage implements OnInit, OnDestroy {
       .subscribe((refresh) => {
         this.assistantService.markRefreshHandled('diets');
         this.setDietDayByDate(refresh.date || this.selectedDate);
+      });
+
+    // "Tomado" pulsado en la notificación del recordatorio con Dietas abierta.
+    this.supplementReminders.takenFromNotification$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ supplementId, date, taken }) => {
+        if (date !== this.selectedDate) return;
+        const supplement = this.supplements.find((s) => s._id === supplementId);
+        if (supplement) supplement.taken = taken;
       });
   }
 
@@ -563,19 +583,88 @@ export class DietsPage implements OnInit, OnDestroy {
     return this.supplementTimings.find((timing) => timing.key === supplement.timing)?.label || supplement.timing;
   }
 
-  public async openSupplementSheet(supplement?: MySupplement): Promise<void> {
-    if (this.isSupplementSheetOpen || (supplement && !supplement.own)) return;
+  // Lo pautado abre la hoja en solo lectura, con su recordatorio; lo propio,
+  // su editor (también con recordatorio).
+  // `takenToday` cuando el suplemento no viene del día que se está mirando
+  // (desde la lista completa, que es la de hoy).
+  public async openSupplementSheet(supplement?: MySupplement, takenToday?: boolean): Promise<void> {
+    if (this.isSupplementSheetOpen) return;
     this.isSupplementSheetOpen = true;
     try {
       const { data } = await this.ionicUtilService.showModal({
         component: SupplementSheetComponent,
-        componentProps: { supplement, timings: this.supplementTimings, startDate: this.selectedDate },
+        componentProps: {
+          supplement,
+          timings: this.supplementTimings,
+          startDate: this.selectedDate,
+          takenToday: takenToday ?? (this.selectedDate === localIsoDate() && !!supplement?.taken),
+          timingText: supplement ? this.supplementTiming(supplement) : '',
+        },
         ...SUPPLEMENT_SHEET_OPTIONS,
       });
-      if ((data as SupplementSheetResult | undefined)?.changed) this.loadSupplements(this.selectedDate);
+      if ((data as SupplementSheetResult | undefined)?.changed) {
+        this.loadSupplements(this.selectedDate);
+        // Nombre, dosis o el propio suplemento han cambiado: los avisos también.
+        void this.supplementReminders.sync();
+      }
     } finally {
       this.isSupplementSheetOpen = false;
     }
+  }
+
+  /** Toda la suplementación (la de hoy, con todos sus días); tocar una abre su hoja. */
+  public async openSupplementsOverview(): Promise<void> {
+    if (this.isSupplementSheetOpen) return;
+    this.isSupplementSheetOpen = true;
+    let picked: MySupplement | undefined;
+    try {
+      const { data } = await this.ionicUtilService.showModal({
+        component: SupplementsOverviewComponent,
+        componentProps: { timingText: (supplement: MySupplement) => this.supplementTiming(supplement) },
+        ...SUPPLEMENT_SHEET_OPTIONS,
+      });
+      picked = (data as SupplementsOverviewResult | undefined)?.open;
+    } finally {
+      this.isSupplementSheetOpen = false;
+    }
+    if (picked) await this.openSupplementSheet(picked, picked.taken);
+  }
+
+  // Hoy y días pasados; un día que aún no ha llegado no se marca.
+  public get canMarkSupplements(): boolean {
+    return this.selectedDate <= localIsoDate();
+  }
+
+  public isSavingIntake(supplement: MySupplement): boolean {
+    return this.savingIntakes.has(supplement._id);
+  }
+
+  /** Check de "tomado": se ve marcado al instante y vuelve atrás si falla. */
+  public toggleSupplementTaken(supplement: MySupplement): void {
+    if (!this.canMarkSupplements || this.savingIntakes.has(supplement._id)) return;
+    const date = this.selectedDate;
+    const taken = !supplement.taken;
+    supplement.taken = taken;
+    this.savingIntakes.add(supplement._id);
+    if (taken) this.hapticsService.success();
+    const request = taken
+      ? this.mySupplementsApi.markTaken(supplement._id, date)
+      : this.mySupplementsApi.unmarkTaken(supplement._id, date);
+    request.subscribe({
+      next: () => {
+        this.savingIntakes.delete(supplement._id);
+        void this.supplementReminders.onTakenChanged(supplement._id, date, taken);
+      },
+      error: () => {
+        this.savingIntakes.delete(supplement._id);
+        supplement.taken = !taken;
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('SUPPLEMENTS.TAKEN_ERROR'),
+          duration: 2000,
+          color: 'danger',
+        });
+      },
+    });
   }
 
   public trackSupplement(_index: number, supplement: MySupplement): string {

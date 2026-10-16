@@ -32,6 +32,15 @@ export interface MySupplement {
   // Quién se lo pautó: un cliente puede tener entrenador y nutricionista.
   // Solo en los pautados.
   trainerName?: string;
+  // Marcado como tomado el día pedido en getMine.
+  taken: boolean;
+}
+
+/** Respuesta de marcar o desmarcar una toma. */
+export interface SupplementIntakeResult {
+  supplementId: string;
+  date: string;
+  taken: boolean;
 }
 
 // Lo que el cliente decide de sus propios suplementos. `startDate` solo al
@@ -41,6 +50,8 @@ export interface OwnSupplementInput {
   dose: string;
   timing: string;
   customTiming: string;
+  // Días de la semana (0 = domingo). Vacío = todos los días.
+  weekdays: number[];
   startDate?: string;
 }
 
@@ -72,5 +83,15 @@ export class MySupplementsApiService {
 
   public removeMine(id: string): Observable<void> {
     return this.http.delete<void>(`supplements/mine/${id}`);
+  }
+
+  // Check de "tomado" de un día (hoy o pasado, y solo un día que tocaba).
+  // Vale para los propios y para los pautados.
+  public markTaken(id: string, date: string): Observable<SupplementIntakeResult> {
+    return this.http.put<SupplementIntakeResult>(`supplements/mine/${id}/intakes/${date}`, {});
+  }
+
+  public unmarkTaken(id: string, date: string): Observable<SupplementIntakeResult> {
+    return this.http.delete<SupplementIntakeResult>(`supplements/mine/${id}/intakes/${date}`);
   }
 }

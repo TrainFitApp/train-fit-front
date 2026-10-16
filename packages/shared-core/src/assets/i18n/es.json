@@ -2638,7 +2638,11 @@
     "REST_CHANNEL": "Descanso entre series",
     "REST_CHANNEL_DESC": "Avisa cuando termina el descanso pautado de una serie",
     "REST_DONE": "¡Descanso terminado! Hora de la siguiente serie.",
-    "WEIGHT_REMINDER": "¡No olvides registrar tu peso hoy!"
+    "WEIGHT_REMINDER": "¡No olvides registrar tu peso hoy!",
+    "SUPPLEMENT_CHANNEL": "Recordatorio de suplementos",
+    "SUPPLEMENT_CHANNEL_DESC": "Avisa a la hora de tomar cada suplemento",
+    "SUPPLEMENT_REMINDER": "Es la hora de tomarlo.",
+    "SUPPLEMENT_TAKEN": "Tomado"
   },
   "HTTP_ERRORS": {
     "400": "Solicitud inválida. Verifica los datos.",
@@ -3008,8 +3012,8 @@
     ],
     "ADD_TITLE": "Añadir suplemento",
     "EDIT_TITLE": "Editar suplemento",
-    "ADD_HINT_TODAY": "Lo verás bajo tus comidas cada día, desde hoy hasta que lo quites.",
-    "ADD_HINT_FROM": "Lo verás bajo tus comidas cada día, desde el {{date}} hasta que lo quites.",
+    "ADD_HINT_TODAY": "Lo verás bajo tus comidas los días que lo tomes, desde hoy hasta que lo quites.",
+    "ADD_HINT_FROM": "Lo verás bajo tus comidas los días que lo tomes, desde el {{date}} hasta que lo quites.",
     "EDIT_HINT_SINCE": "Lo tomas desde el {{date}}.",
     "NAME": "Nombre",
     "NAME_PLACEHOLDER": "Creatina",
@@ -3038,7 +3042,26 @@
       "with_meal": "Con una comida principal",
       "before_bed": "Antes de dormir",
       "custom": "Otro momento"
-    }
+    },
+    "CLOSE": "Cerrar",
+    "DAYS": "Qué días",
+    "UNTIL": "Hasta",
+    "REASON": "Por qué",
+    "VIEW_ARIA": "Ver {{name}}",
+    "TAKEN_ARIA": "{{name}} tomado",
+    "TAKEN_ERROR": "No se pudo guardar la toma. Inténtalo de nuevo.",
+    "REMINDER": "Recordatorio",
+    "REMINDER_HINT": "Te avisamos a esta hora los días que toca, salvo si ya lo has marcado.",
+    "REMINDER_WEB_PREVIEW": "Vista previa: en web no se guarda ni avisa; solo funciona en la app móvil.",
+    "WHICH_DAYS": "Qué días",
+    "ONLY_DAYS_MARKED": "Solo los días marcados.",
+    "EVERY_DAY_HINT": "Sin marcar ninguno, todos los días.",
+    "OVERVIEW_TITLE": "Tu suplementación",
+    "OVERVIEW_HINT": "Todo lo que tomas ahora, también lo que no toca hoy. Toca uno para verlo.",
+    "OVERVIEW_EMPTY": "No tienes ningún suplemento.",
+    "OVERVIEW_ARIA": "Ver toda tu suplementación",
+    "EVERY_DAY": "Todos los días",
+    "OWN": "Añadido por ti"
   },
   "RIR": {
     "FAIL": "FALLO",

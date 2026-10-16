@@ -143,6 +143,45 @@
   }
 }
 
+// Lo que marca el cliente: hoy (verde si lo ha tomado) y la última semana
+// con el color de su porcentaje.
+.supplement-intake {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.supplement-intake__today {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &.is-taken {
+    color: var(--tf-success);
+  }
+}
+
+.supplement-intake__week--good {
+  color: var(--tf-success);
+}
+
+.supplement-intake__week--fair {
+  color: var(--tf-warning);
+}
+
+.supplement-intake__week--poor {
+  color: var(--tf-danger-text);
+}
+
 // La dosis con el acento: es el dato que se consulta.
 .supplement-dose {
   display: inline-flex;

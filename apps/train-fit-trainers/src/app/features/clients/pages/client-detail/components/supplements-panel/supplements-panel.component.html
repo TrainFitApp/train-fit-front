@@ -49,6 +49,26 @@
               · <ion-icon name="calendar-clear-outline" aria-hidden="true"></ion-icon> {{ days }}
             </span>
           </span>
+          <!-- Lo que marca el cliente en Dietas: hoy y la última semana. -->
+          <span class="supplement-intake" *ngIf="todayIntakeKey(supplement) as todayKey">
+            <span
+              class="supplement-intake__today"
+              [class.is-taken]="supplement.adherence?.takenToday"
+            >
+              <ion-icon
+                [name]="supplement.adherence?.takenToday ? 'checkmark-circle' : 'ellipse-outline'"
+                aria-hidden="true"
+              ></ion-icon>
+              {{ todayKey | translate }}
+            </span>
+            <span
+              *ngIf="weekIntake(supplement) as week"
+              class="supplement-intake__week"
+              [ngClass]="'supplement-intake__week--' + week.tone"
+            >
+              · {{ 'CLIENTS.SUPPLEMENT_LAST_WEEK' | translate: { taken: week.taken, expected: week.expected } }}
+            </span>
+          </span>
         </div>
 
         <span class="supplement-dose">

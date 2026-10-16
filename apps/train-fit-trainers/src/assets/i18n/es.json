@@ -1473,7 +1473,11 @@
     "PESO_COLUMNA_DETALLE": "Variación de peso en los últimos {{periodDays}} días (primera medida frente a la última)",
     "UNA_SOLA_MEDIDA_EN_DIAS": "{{weight}} kg · una sola medida en {{periodDays}} días: aún no hay variación",
     "VARIACION_DE_PESO_DETALLE": "{{from}} → {{to}} kg · {{count}} medidas",
-    "ELIGE_RUTINA_PARA_PROGRAMAR": "Elige arriba la rutina que quieres programar."
+    "ELIGE_RUTINA_PARA_PROGRAMAR": "Elige arriba la rutina que quieres programar.",
+    "SUPPLEMENT_TODAY_TAKEN": "Hoy, tomado",
+    "SUPPLEMENT_TODAY_PENDING": "Hoy, sin marcar",
+    "SUPPLEMENT_TODAY_NOT_DUE": "Hoy no toca",
+    "SUPPLEMENT_LAST_WEEK": "Última semana: {{taken}} de {{expected}} días"
   },
   "CLIENT_SUMMARY": {
     "DIMENSIONS": {

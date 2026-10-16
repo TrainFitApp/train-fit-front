@@ -1,0 +1,52 @@
+<section class="supplement-reminder" *ngIf="supported || preview" aria-labelledby="supplement-reminder-title">
+  <div class="supplement-reminder__row">
+    <span class="supplement-reminder__icon" aria-hidden="true">
+      <ion-icon name="alarm-outline"></ion-icon>
+    </span>
+    <span class="supplement-reminder__text">
+      <strong id="supplement-reminder-title">{{ 'SUPPLEMENTS.REMINDER' | translate }}</strong>
+      <small>{{ 'SUPPLEMENTS.REMINDER_HINT' | translate }}</small>
+      <small class="supplement-reminder__preview" *ngIf="preview">{{ 'SUPPLEMENTS.REMINDER_WEB_PREVIEW' | translate }}</small>
+    </span>
+    <ion-toggle
+      [checked]="enabled"
+      [disabled]="busy"
+      [attr.aria-label]="'SUPPLEMENTS.REMINDER' | translate"
+      (ionChange)="onToggle($event.detail.checked)"
+    ></ion-toggle>
+  </div>
+
+  <button
+    type="button"
+    class="supplement-reminder__time"
+    *ngIf="enabled"
+    [disabled]="busy"
+    (click)="pickerOpen = true"
+  >
+    <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+    <span>{{ 'NOTIFICATIONS.TIME' | translate }}</span>
+    <strong>{{ timeLabel }}</strong>
+  </button>
+
+  <!-- El mismo selector de hora que el recordatorio de peso (estilos en global.scss). -->
+  <ion-modal class="time-datetime-modal" [isOpen]="pickerOpen" [showBackdrop]="true" (didDismiss)="pickerOpen = false">
+    <ng-template>
+      <ion-datetime
+        mode="ios"
+        presentation="time"
+        [preferWheel]="true"
+        [locale]="locale"
+        [showDefaultButtons]="true"
+        [doneText]="'COMMON.OK' | translate"
+        [cancelText]="'COMMON.CANCEL' | translate"
+        [value]="timeLabel"
+        (ionChange)="onTimeChange($event.detail.value)"
+      >
+        <div slot="title" class="datetime-title">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ 'NOTIFICATIONS.TIME' | translate }}</span>
+        </div>
+      </ion-datetime>
+    </ng-template>
+  </ion-modal>
+</section>

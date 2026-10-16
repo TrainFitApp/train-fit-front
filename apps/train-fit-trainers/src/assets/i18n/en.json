@@ -1473,7 +1473,11 @@
     "PESO_COLUMNA_DETALLE": "Weight change over the last {{periodDays}} days (first measurement vs. last)",
     "UNA_SOLA_MEDIDA_EN_DIAS": "{{weight}} kg · only one measurement in {{periodDays}} days: no change yet",
     "VARIACION_DE_PESO_DETALLE": "{{from}} → {{to}} kg · {{count}} measurements",
-    "ELIGE_RUTINA_PARA_PROGRAMAR": "Choose the routine you want to schedule above."
+    "ELIGE_RUTINA_PARA_PROGRAMAR": "Choose the routine you want to schedule above.",
+    "SUPPLEMENT_TODAY_TAKEN": "Today, taken",
+    "SUPPLEMENT_TODAY_PENDING": "Today, not ticked",
+    "SUPPLEMENT_TODAY_NOT_DUE": "Not due today",
+    "SUPPLEMENT_LAST_WEEK": "Last week: {{taken}} of {{expected}} days"
   },
   "CLIENT_SUMMARY": {
     "DIMENSIONS": {

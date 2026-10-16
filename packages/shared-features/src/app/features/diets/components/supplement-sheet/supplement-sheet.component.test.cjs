@@ -94,7 +94,7 @@ test('guarda la dosis junta (cantidad + unidad) y cierra avisando del cambio', (
   sheet.submit();
 
   assert.deepEqual(calls.create, [
-    { name: 'Creatina', dose: '2 cápsulas', timing: 'with_meal', customTiming: '', startDate: START },
+    { name: 'Creatina', dose: '2 cápsulas', timing: 'with_meal', customTiming: '', weekdays: [], startDate: START },
   ]);
   assert.deepEqual(calls.dismiss, [{ changed: true }]);
 });
@@ -133,7 +133,7 @@ test('editar parte la dosis guardada y la vuelve a escribir igual', () => {
 
   sheet.submit();
   assert.deepEqual(calls.update, [
-    { id: 's1', body: { name: 'Creatina', dose: '1,5 g', timing: 'post_workout', customTiming: '' } },
+    { id: 's1', body: { name: 'Creatina', dose: '1,5 g', timing: 'post_workout', customTiming: '', weekdays: [] } },
   ]);
   assert.deepEqual(calls.create, []);
 });
@@ -168,4 +168,20 @@ test('una dosis guardada en otro idioma se ofrece con la unidad del idioma de la
   const spanish = openSheet({ supplement: own({ dose: '2 capsules' }) }).sheet;
   assert.equal(spanish.form.value.doseUnit, 'cápsulas');
   assert.equal(spanish.doseText, '2 cápsulas');
+});
+
+test('días de la semana: se marcan y desmarcan; los siete es lo mismo que ninguno', () => {
+  const { sheet, calls } = openSheet({ supplement: own({ weekdays: [1] }) });
+  assert.deepEqual(sheet.weekdays, [1], 'arranca con los guardados');
+  sheet.toggleWeekday(3);
+  sheet.toggleWeekday(0);
+  sheet.toggleWeekday(1);
+  assert.equal(sheet.isWeekdaySelected(1), false);
+  sheet.submit();
+  assert.deepEqual(calls.update[0].body.weekdays, [0, 3], 'ordenados, 0 = domingo');
+
+  const all = openSheet({ supplement: own() });
+  for (const day of [0, 1, 2, 3, 4, 5, 6]) all.sheet.toggleWeekday(day);
+  all.sheet.submit();
+  assert.deepEqual(all.calls.update[0].body.weekdays, [], 'todos los días');
 });

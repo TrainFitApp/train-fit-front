@@ -1,3 +1,58 @@
+<!-- Pautado por un profesional: solo lectura, y su recordatorio. -->
+<section class="supplement-sheet" *ngIf="isPrescribed && supplement; else editor" aria-labelledby="supplement-sheet-title">
+  <header class="supplement-sheet__head">
+    <h2 class="supplement-sheet__title" id="supplement-sheet-title">{{ supplement.name }} · {{ supplement.dose }}</h2>
+    <p class="supplement-sheet__hint">
+      {{ 'SUPPLEMENTS.PRESCRIBED_BY' | translate: { name: supplement.trainerName } }}
+    </p>
+  </header>
+
+  <dl class="supplement-sheet__details">
+    <div class="supplement-sheet__detail">
+      <dt>{{ 'SUPPLEMENTS.WHEN' | translate }}</dt>
+      <dd>{{ timingText }}</dd>
+    </div>
+    <div class="supplement-sheet__detail" *ngIf="weekdaysLabel">
+      <dt>{{ 'SUPPLEMENTS.DAYS' | translate }}</dt>
+      <dd>{{ 'SUPPLEMENTS.ONLY_DAYS' | translate: { days: weekdaysLabel } }}</dd>
+    </div>
+    <div class="supplement-sheet__detail" *ngIf="supplement.endDate">
+      <dt>{{ 'SUPPLEMENTS.UNTIL' | translate }}</dt>
+      <dd>{{ supplement.endDate | localDate: 'longDate' }}</dd>
+    </div>
+    <div class="supplement-sheet__detail" *ngIf="supplement.reason">
+      <dt>{{ 'SUPPLEMENTS.REASON' | translate }}</dt>
+      <dd>{{ supplement.reason }}</dd>
+    </div>
+  </dl>
+
+  <ion-button
+    *ngIf="supplement.purchaseUrl"
+    class="supplement-sheet__purchase"
+    expand="block"
+    fill="clear"
+    type="button"
+    (click)="openPurchase()"
+  >
+    <ion-icon name="open-outline" slot="start" aria-hidden="true"></ion-icon>
+    {{ 'SUPPLEMENTS.WHERE_TO_BUY' | translate }}
+  </ion-button>
+
+  <app-supplement-reminder [supplement]="supplement" [takenToday]="takenToday"></app-supplement-reminder>
+
+  <footer class="supplement-sheet__actions supplement-sheet__actions--single">
+    <ion-button
+      class="supplement-sheet__action supplement-sheet__action--secondary"
+      expand="block"
+      type="button"
+      (click)="cancel()"
+    >
+      {{ 'SUPPLEMENTS.CLOSE' | translate | uppercase }}
+    </ion-button>
+  </footer>
+</section>
+
+<ng-template #editor>
 <form
   class="supplement-sheet"
   [formGroup]="form"
@@ -111,6 +166,33 @@
     ></ion-input>
   </label>
 
+  <!-- Qué días de la semana: ninguno marcado = todos, como en la pauta del
+       profesional. El recordatorio solo avisa los días marcados. -->
+  <div class="supplement-sheet__field" role="group" aria-labelledby="supplement-sheet-weekdays">
+    <span class="supplement-sheet__label" id="supplement-sheet-weekdays">{{ 'SUPPLEMENTS.WHICH_DAYS' | translate }}</span>
+    <div class="supplement-sheet__weekdays">
+      <button
+        type="button"
+        class="supplement-sheet__weekday"
+        *ngFor="let day of week"
+        [class.is-selected]="isWeekdaySelected(day.value)"
+        [attr.aria-pressed]="isWeekdaySelected(day.value)"
+        (click)="toggleWeekday(day.value)"
+      >
+        {{ day.label }}
+      </button>
+    </div>
+    <span class="supplement-sheet__field-hint" [class.supplement-sheet__field-hint--accent]="!weekdays.length">
+      {{ (weekdays.length ? 'SUPPLEMENTS.ONLY_DAYS_MARKED' : 'SUPPLEMENTS.EVERY_DAY_HINT') | translate }}
+    </span>
+  </div>
+
+  <app-supplement-reminder
+    *ngIf="isEditMode && supplement"
+    [supplement]="supplement"
+    [takenToday]="takenToday"
+  ></app-supplement-reminder>
+
   <p class="supplement-sheet__error" role="alert" *ngIf="errorKey">
     <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
     {{ errorKey | translate }}
@@ -153,3 +235,4 @@
     {{ (removing ? 'SUPPLEMENTS.REMOVING' : 'SUPPLEMENTS.REMOVE') | translate | uppercase }}
   </ion-button>
 </form>
+</ng-template>

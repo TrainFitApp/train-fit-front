@@ -1,0 +1,53 @@
+<section class="supplements-overview" aria-labelledby="supplements-overview-title">
+  <header class="supplements-overview__head">
+    <h2 class="supplements-overview__title" id="supplements-overview-title">{{ 'SUPPLEMENTS.OVERVIEW_TITLE' | translate }}</h2>
+    <p class="supplements-overview__hint">{{ 'SUPPLEMENTS.OVERVIEW_HINT' | translate }}</p>
+  </header>
+
+  <div class="supplements-overview__state" *ngIf="state === 'loading'">
+    <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+  </div>
+
+  <div class="supplements-overview__state" *ngIf="state === 'error'">
+    <p>{{ 'SUPPLEMENTS.LOAD_ERROR' | translate }}</p>
+    <ion-button fill="clear" type="button" (click)="load()">{{ 'COMMON.RETRY' | translate }}</ion-button>
+  </div>
+
+  <p class="supplements-overview__state" *ngIf="state === 'loaded' && !supplements.length">
+    {{ 'SUPPLEMENTS.OVERVIEW_EMPTY' | translate }}
+  </p>
+
+  <ul class="supplements-overview__list" *ngIf="state === 'loaded' && supplements.length">
+    <li *ngFor="let supplement of supplements; trackBy: trackById">
+      <button
+        type="button"
+        class="supplements-overview__item"
+        [attr.aria-label]="
+          (supplement.own ? 'SUPPLEMENTS.EDIT_ARIA' : 'SUPPLEMENTS.VIEW_ARIA') | translate: { name: supplement.name }
+        "
+        (click)="open(supplement)"
+      >
+        <span class="supplements-overview__text">
+          <strong>{{ supplement.name }} · {{ supplement.dose }}</strong>
+          <small>
+            {{ timingText(supplement) }} ·
+            {{
+              weekdaysLabel(supplement)
+                ? ('SUPPLEMENTS.ONLY_DAYS' | translate: { days: weekdaysLabel(supplement) })
+                : ('SUPPLEMENTS.EVERY_DAY' | translate)
+            }}
+          </small>
+          <small class="supplements-overview__by" *ngIf="!supplement.own">
+            {{ 'SUPPLEMENTS.PRESCRIBED_BY' | translate: { name: supplement.trainerName } }}
+          </small>
+          <small *ngIf="supplement.own">{{ 'SUPPLEMENTS.OWN' | translate }}</small>
+        </span>
+        <ion-icon name="chevron-forward-outline" class="supplements-overview__chevron" aria-hidden="true"></ion-icon>
+      </button>
+    </li>
+  </ul>
+
+  <ion-button class="supplements-overview__close" expand="block" type="button" (click)="close()">
+    {{ 'SUPPLEMENTS.CLOSE' | translate | uppercase }}
+  </ion-button>
+</section>

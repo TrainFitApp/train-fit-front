@@ -1,17 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { localizeList } from 'src/app/core/i18n/localized-catalog';
 import {
   MySupplement,
   MySupplementsApiService,
   SupplementTiming,
 } from './services/my-supplements-api.service';
+import { supplementWeekdaysLabel } from './supplement-weekdays';
 
 type ViewState = 'loading' | 'error' | 'loaded';
-
-const WEEKDAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-localizeList(WEEKDAY_LABELS, 'SUPPLEMENTS.WEEKDAYS_SHORT');
 
 interface TimingGroup {
   key: string;
@@ -124,9 +121,7 @@ export class MySupplementsPage implements OnInit {
   // Vacío = todos los días, que es el caso normal. Se dice solo cuando NO lo
   // es: escribir "todos los días" en cada tarjeta sería ruido.
   public weekdaysLabel(supplement: MySupplement): string {
-    const days = supplement.weekdays || [];
-    if (!days.length) return '';
-    return days.map((day) => WEEKDAY_LABELS[day] || '').filter(Boolean).join(', ');
+    return supplementWeekdaysLabel(supplement.weekdays);
   }
 
   public openPurchase(supplement: MySupplement): void {

@@ -2638,7 +2638,11 @@
     "REST_CHANNEL": "Rest between sets",
     "REST_CHANNEL_DESC": "Lets you know when the prescribed rest of a set is over",
     "REST_DONE": "Rest is over! Time for the next set.",
-    "WEIGHT_REMINDER": "Don't forget to log your weight today!"
+    "WEIGHT_REMINDER": "Don't forget to log your weight today!",
+    "SUPPLEMENT_CHANNEL": "Supplement reminders",
+    "SUPPLEMENT_CHANNEL_DESC": "Reminds you when to take each supplement",
+    "SUPPLEMENT_REMINDER": "It's time to take it.",
+    "SUPPLEMENT_TAKEN": "Taken"
   },
   "HTTP_ERRORS": {
     "400": "Invalid request. Check the data.",
@@ -3008,8 +3012,8 @@
     ],
     "ADD_TITLE": "Add supplement",
     "EDIT_TITLE": "Edit supplement",
-    "ADD_HINT_TODAY": "You'll see it under your meals every day, from today until you remove it.",
-    "ADD_HINT_FROM": "You'll see it under your meals every day, from {{date}} until you remove it.",
+    "ADD_HINT_TODAY": "You'll see it under your meals on the days you take it, from today until you remove it.",
+    "ADD_HINT_FROM": "You'll see it under your meals on the days you take it, from {{date}} until you remove it.",
     "EDIT_HINT_SINCE": "You've been taking it since {{date}}.",
     "NAME": "Name",
     "NAME_PLACEHOLDER": "Creatine",
@@ -3038,7 +3042,26 @@
       "with_meal": "With a main meal",
       "before_bed": "Before bed",
       "custom": "Other time"
-    }
+    },
+    "CLOSE": "Close",
+    "DAYS": "Which days",
+    "UNTIL": "Until",
+    "REASON": "Why",
+    "VIEW_ARIA": "View {{name}}",
+    "TAKEN_ARIA": "{{name}} taken",
+    "TAKEN_ERROR": "Couldn't save it. Please try again.",
+    "REMINDER": "Reminder",
+    "REMINDER_HINT": "We'll remind you at this time on the days it's due, unless you've already ticked it.",
+    "REMINDER_WEB_PREVIEW": "Preview: on the web it isn't saved and won't notify; it only works in the mobile app.",
+    "WHICH_DAYS": "Which days",
+    "ONLY_DAYS_MARKED": "Only on the ticked days.",
+    "EVERY_DAY_HINT": "With none ticked, every day.",
+    "OVERVIEW_TITLE": "Your supplements",
+    "OVERVIEW_HINT": "Everything you take right now, including what isn't due today. Tap one to see it.",
+    "OVERVIEW_EMPTY": "You don't have any supplements.",
+    "OVERVIEW_ARIA": "See all your supplements",
+    "EVERY_DAY": "Every day",
+    "OWN": "Added by you"
   },
   "RIR": {
     "FAIL": "FAILURE",

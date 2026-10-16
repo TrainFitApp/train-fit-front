@@ -1,0 +1,121 @@
+// Misma hoja inferior que SupplementSheetComponent (supplement-sheet-modal):
+// alto automático, scroll dentro si no cabe y colores de Ionic.
+:host {
+  display: block;
+  max-height: 88vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 26px 16px calc(env(safe-area-inset-bottom) + 12px);
+}
+
+.supplements-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.supplements-overview__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 2px 4px;
+}
+
+.supplements-overview__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.supplements-overview__hint,
+.supplements-overview__state {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--ion-color-medium);
+}
+
+.supplements-overview__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 0;
+  text-align: center;
+}
+
+.supplements-overview__list {
+  margin: 0;
+  padding: 4px 12px;
+  list-style: none;
+  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.12);
+  border-radius: 14px;
+  background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
+
+  li + li {
+    border-top: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.08);
+  }
+}
+
+.supplements-overview__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  color: var(--ion-text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+}
+
+.supplements-overview__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  small {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: var(--ion-color-medium);
+  }
+
+  .supplements-overview__by {
+    color: var(--ion-color-alternative);
+    font-weight: 600;
+  }
+}
+
+.supplements-overview__chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--ion-color-medium);
+}
+
+.supplements-overview__close {
+  margin: 6px 0 0;
+  min-height: 48px;
+}

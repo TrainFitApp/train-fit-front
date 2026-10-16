@@ -147,6 +147,23 @@ export class SupplementsPanelComponent implements AfterViewInit, OnChanges, OnDe
       : `desde ${fmt(supplement.startDate)}`;
   }
 
+  // --- Lo que marca el cliente ---
+  // Hoy: tomado, pendiente o no toca. Sin dato (respuesta antigua), nada.
+  public todayIntakeKey(supplement: Supplement): string {
+    const adherence = supplement.adherence;
+    if (!adherence || !supplement.active) return '';
+    if (!adherence.dueToday) return 'CLIENTS.SUPPLEMENT_TODAY_NOT_DUE';
+    return adherence.takenToday ? 'CLIENTS.SUPPLEMENT_TODAY_TAKEN' : 'CLIENTS.SUPPLEMENT_TODAY_PENDING';
+  }
+
+  // Última semana: verde desde el 80 %, ámbar desde el 50 %, rojo por debajo.
+  public weekIntake(supplement: Supplement): { taken: number; expected: number; tone: 'good' | 'fair' | 'poor' } | null {
+    const week = supplement.active ? supplement.adherence?.lastWeek : undefined;
+    if (!week?.expected) return null;
+    const ratio = week.taken / week.expected;
+    return { ...week, tone: ratio >= 0.8 ? 'good' : ratio >= 0.5 ? 'fair' : 'poor' };
+  }
+
   public weekdaysLabel(supplement: Supplement): string {
     const days = supplement.weekdays || [];
     if (!days.length) return '';

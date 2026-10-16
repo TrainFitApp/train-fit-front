@@ -11,9 +11,9 @@ import { RestTimerService } from '../rest-timer/rest-timer.service';
 import { SetService } from '../set/set.service';
 import { WorkoutService } from '../workout/workout.service';
 import { formatLocalNumber } from 'src/app/core/utils/local-number.util';
+import { registerNotificationActionTypes, SET_ACTION_TYPE_ID } from '../util/notification-action-types';
 
 const SET_NOTIFICATION_ID = 888888;
-const SET_ACTION_TYPE_ID = 'CURRENT_SET_ACTIONS';
 
 interface PendingSetInfo {
   exercise: CustomExercise;
@@ -56,17 +56,7 @@ export class WorkoutNotificationService {
     if (this.listenerRegistered) return;
     this.listenerRegistered = true;
 
-    await LocalNotifications.registerActionTypes({
-      types: [
-        {
-          id: SET_ACTION_TYPE_ID,
-          actions: [
-            { id: 'done', title: this.translate.instant('WORKOUT_NOTIFICATION.DONE') },
-            { id: 'skip', title: this.translate.instant('WORKOUT_NOTIFICATION.SKIP') },
-          ],
-        },
-      ],
-    });
+    await registerNotificationActionTypes(this.translate);
 
     LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
       void this.handleAction(action);
@@ -188,6 +178,9 @@ export class WorkoutNotificationService {
   }
 
   private async handleAction(action: ActionPerformed): Promise<void> {
+    // Solo las de la serie: tocar el recordatorio de un suplemento o del
+    // peso a mitad de entreno no lleva al entreno.
+    if (action.notification.id !== SET_NOTIFICATION_ID) return;
     const workout = this.workoutService.currentWorkout;
     if (!workout) return;
 

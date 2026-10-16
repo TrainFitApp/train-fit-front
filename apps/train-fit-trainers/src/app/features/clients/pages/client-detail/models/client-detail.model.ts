@@ -247,6 +247,16 @@ export interface Supplement {
   startDate: string;
   endDate: string | null;
   active: boolean;
+  // Lo que marca el cliente (supplement-schedule.js#adherenceSummary).
+  adherence?: SupplementAdherence;
+}
+
+// Si hoy le toca y lo ha marcado, y de los días que tocaba en la última
+// semana (sin hoy), en cuántos lo marcó. `expected` 0 = no tocaba ninguno.
+export interface SupplementAdherence {
+  dueToday: boolean;
+  takenToday: boolean;
+  lastWeek: { taken: number; expected: number };
 }
 
 // F20-bis — un día del calendario de nutrición: cumplimiento (% de items

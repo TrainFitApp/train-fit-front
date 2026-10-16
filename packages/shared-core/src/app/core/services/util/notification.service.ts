@@ -154,14 +154,12 @@ export class NotificationService {
     }
   }
 
+  // Solo los del peso (id 1 y 100-129, ver scheduleReminder): cancelar
+  // todos los pendientes se llevaba también los recordatorios de suplementos.
   public async cancelAll(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
-    const pending = await LocalNotifications.getPending();
-    if (pending.notifications.length > 0) {
-      await LocalNotifications.cancel({
-        notifications: pending.notifications.map((n) => ({ id: n.id })),
-      });
-    }
+    const ids = [1, ...Array.from({ length: 30 }, (_, i) => 100 + i)];
+    await LocalNotifications.cancel({ notifications: ids.map((id) => ({ id })) });
   }
 
   private async scheduleReminder(settings: NotificationSettings): Promise<void> {

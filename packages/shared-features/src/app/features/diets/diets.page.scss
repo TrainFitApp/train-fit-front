@@ -255,6 +255,34 @@ ion-header.copy-mode-locked {
   letter-spacing: 0.04em;
 }
 
+.day-supplements__title-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+}
+
+.day-supplements__title-chevron {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
 .day-supplements__badge {
   display: flex;
   align-items: center;
@@ -269,9 +297,9 @@ ion-header.copy-mode-locked {
   }
 }
 
-// Botón «+» con el estilo de los botones de la cabecera (toolbar-calendar:
-// fondo tenue, esquinas redondeadas, icono naranja) pero más pequeño: la
-// baldosa visible es de 32px y la zona pulsable sigue siendo de 44px.
+// Botón «+»: baldosa del mismo gris que los demás botones (rgb 32) con el
+// icono naranja entero. La baldosa visible es de 32px y la zona pulsable,
+// de 44px.
 .day-supplements__add {
   position: relative;
   display: inline-flex;
@@ -284,7 +312,7 @@ ion-header.copy-mode-locked {
   padding: 0;
   border: none;
   background: none;
-  color: rgba(254, 144, 0, 0.9);
+  color: var(--ion-color-primary);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 
@@ -293,17 +321,17 @@ ion-header.copy-mode-locked {
     position: absolute;
     inset: 6px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgb(32 32 32);
     transition: background 0.2s ease;
   }
 
   ion-icon {
     position: relative;
-    font-size: 18px;
+    font-size: 20px;
   }
 
   &:active::before {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgb(48 48 48);
   }
 
   &:focus-visible {
@@ -323,17 +351,11 @@ ion-header.copy-mode-locked {
 .day-supplements__row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 2px;
   width: 100%;
   min-height: 52px;
-  padding: 8px 0;
-  border: none;
   border-top: 1px solid #1d1d1d;
-  background: none;
   color: var(--ion-text-color);
-  font-family: inherit;
-  text-align: left;
-
 }
 
 .day-supplements__by {
@@ -341,7 +363,55 @@ ion-header.copy-mode-locked {
   font-weight: 600;
 }
 
-.day-supplements__row--own {
+// Check de "tomado": zona pulsable de 44px, círculo vacío o marcado.
+.day-supplements__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin-left: -10px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ion-color-medium);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  ion-icon {
+    font-size: 24px;
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+
+  &:active ion-icon {
+    transform: scale(0.88);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: -4px;
+    border-radius: 50%;
+  }
+
+  .is-taken & {
+    color: var(--ion-color-success);
+  }
+}
+
+.day-supplements__open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 

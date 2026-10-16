@@ -17,6 +17,7 @@ import {
   OwnSupplementInput,
   SupplementTiming,
 } from '../../../supplements/services/my-supplements-api.service';
+import { SUPPLEMENT_WEEK, supplementWeekdaysLabel } from '../../../supplements/supplement-weekdays';
 
 export const SUPPLEMENT_SHEET_OPTIONS = {
   cssClass: 'supplement-sheet-modal',
@@ -38,10 +39,14 @@ const ERROR_KEYS: Record<string, string> = {
 
 /**
  * Suplemento propio del cliente: lo que se apunta él mismo desde Dietas,
- * debajo de las comidas, cuando no le lleva un profesional. Solo nombre,
- * dosis y momento; se toma desde el día que estaba mirando, todos los días,
- * hasta que lo quite. Lo pautado por un profesional no pasa por aquí: es de
- * solo lectura.
+ * debajo de las comidas, cuando no le lleva un profesional. Nombre, dosis,
+ * momento y qué días de la semana (ninguno marcado = todos, como en la pauta
+ * del profesional); se toma desde el día que estaba mirando hasta que lo
+ * quite. Lo pautado por un profesional se abre aquí en solo
+ * lectura (dosis, momento, días, motivo, dónde comprarlo).
+ *
+ * En los dos casos, una vez existe, lleva su recordatorio de la hora de toma
+ * (SupplementReminderComponent), que guarda al momento y solo en el móvil.
  *
  * La dosis se escribe como la pauta el profesional, cantidad + unidad de una
  * lista, y se guarda junta como texto ("5 g"). El momento es una lista
@@ -62,6 +67,10 @@ export class SupplementSheetComponent implements OnInit {
   @Input() public timings: SupplementTiming[] = [];
   /** Día que se está mirando en Dietas: desde él se toma. */
   @Input() public startDate = localIsoDate();
+  /** Ya marcado como tomado hoy: el recordatorio no programa el aviso de hoy. */
+  @Input() public takenToday = false;
+  /** Cuándo tomarlo, ya en texto (DietsPage#supplementTiming): para lo pautado. */
+  @Input() public timingText = '';
 
   public form!: FormGroup;
   /** Unidades del desplegable de la dosis; si se edita una dosis con otra, esa también. */
@@ -69,6 +78,9 @@ export class SupplementSheetComponent implements OnInit {
   public saving = false;
   public removing = false;
   public errorKey: string | null = null;
+  /** Días de la semana elegidos (0 = domingo). Vacío = todos los días. */
+  public weekdays: number[] = [];
+  public readonly week = SUPPLEMENT_WEEK;
 
   public readonly today = localIsoDate();
 
@@ -82,6 +94,16 @@ export class SupplementSheetComponent implements OnInit {
 
   public get isEditMode(): boolean {
     return !!this.supplement;
+  }
+
+  /** Pautado por un profesional: se ve, no se edita. */
+  public get isPrescribed(): boolean {
+    return !!this.supplement && !this.supplement.own;
+  }
+
+  /** Solo cuando NO son todos los días, como en Coach > Suplementos. */
+  public get weekdaysLabel(): string {
+    return supplementWeekdaysLabel(this.supplement?.weekdays);
   }
 
   public get busy(): boolean {
@@ -121,6 +143,16 @@ export class SupplementSheetComponent implements OnInit {
       timing: [current?.timing ?? 'with_meal'],
       customTiming: [current?.customTiming ?? ''],
     });
+    this.weekdays = [...(current?.weekdays ?? [])];
+  }
+
+  public isWeekdaySelected(day: number): boolean {
+    return this.weekdays.includes(day);
+  }
+
+  public toggleWeekday(day: number): void {
+    this.weekdays = this.isWeekdaySelected(day) ? this.weekdays.filter((d) => d !== day) : [...this.weekdays, day];
+    this.clearError();
   }
 
   /** Escribir de nuevo borra el aviso de un intento anterior. */
@@ -142,6 +174,8 @@ export class SupplementSheetComponent implements OnInit {
       dose: this.doseText,
       timing,
       customTiming: timing === 'custom' ? (customTiming || '').trim() : '',
+      // Los siete es lo mismo que ninguno: todos los días (el backend lo guarda vacío).
+      weekdays: this.weekdays.length === 7 ? [] : [...this.weekdays].sort(),
     };
 
     this.saving = true;
@@ -172,6 +206,11 @@ export class SupplementSheetComponent implements OnInit {
 
   public cancel(): void {
     void this.modalController.dismiss();
+  }
+
+  public openPurchase(): void {
+    // El backend solo guarda enlaces http(s) (supplement-controller.js#sanitizeUrl).
+    if (this.supplement?.purchaseUrl) window.open(this.supplement.purchaseUrl, '_blank', 'noopener');
   }
 
   private remove(): void {
