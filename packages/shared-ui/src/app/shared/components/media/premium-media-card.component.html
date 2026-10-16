@@ -26,14 +26,18 @@
         <div class="stage-frame stage-frame--before">
           <img src="assets/media-sample/before.webp" alt="" width="511" height="941" decoding="async" />
         </div>
-        <div class="stage-frame stage-frame--after">
-          <img src="assets/media-sample/after.webp" alt="" width="512" height="939" decoding="async" />
+        <!-- El deslizador entero se mueve con transform; la foto "después" se
+             contramueve dentro de su recorte para quedarse quieta. -->
+        <div class="stage-slider">
+          <div class="stage-clip">
+            <img src="assets/media-sample/after.webp" alt="" width="512" height="939" decoding="async" />
+          </div>
+          <span class="stage-divider"
+            ><span class="stage-handle"><ion-icon name="swap-horizontal-outline"></ion-icon></span
+          ></span>
         </div>
         <span class="stage-tag stage-tag--left">{{ 'MEDIA.PREMIUM_SAMPLE_BEFORE' | translate }}</span>
         <span class="stage-tag stage-tag--right">{{ 'MEDIA.PREMIUM_SAMPLE_AFTER' | translate }}</span>
-        <span class="stage-divider"
-          ><span class="stage-handle"><ion-icon name="swap-horizontal-outline"></ion-icon></span
-        ></span>
       </div>
       <div class="stage-footer stage-footer--deltas">
         <span class="stage-delta">{{ 'MEDIA.PREMIUM_SAMPLE_WEIGHT' | translate }}</span>

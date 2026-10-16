@@ -142,7 +142,8 @@
 
 // Las dos fotos van encuadradas igual (cabeza a cintura) para que el
 // deslizador compare el mismo plano.
-.stage-frame {
+.stage-frame,
+.stage-clip {
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -155,10 +156,24 @@
     object-fit: cover;
     object-position: center 6%;
   }
+}
 
-  &--after {
-    clip-path: inset(0 0 0 50%);
-    animation: stage-reveal 6s ease-in-out infinite alternate;
+// Todo con transform (compositor): animar clip-path o left falla o va a tirones
+// en WebViews antiguos. El deslizador cubre el marco entero y se desplaza; el
+// recorte oculta lo que sobra por la derecha y la foto, a contramarcha, no se
+// mueve. Sin animación queda partido por la mitad.
+.stage-slider {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  transform: translate3d(50%, 0, 0);
+  will-change: transform;
+  animation: stage-slide 6s ease-in-out infinite alternate;
+
+  .stage-clip img {
+    transform: translate3d(-50%, 0, 0);
+    will-change: transform;
+    animation: stage-counter 6s ease-in-out infinite alternate;
   }
 }
 
@@ -167,11 +182,10 @@
   z-index: 2;
   top: 0;
   bottom: 0;
-  left: 50%;
+  left: 0;
   width: 2px;
   margin-left: -1px;
   background: rgba(255, 255, 255, 0.85);
-  animation: stage-slide 6s ease-in-out infinite alternate;
 }
 
 .stage-handle {
@@ -190,21 +204,21 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
-@keyframes stage-reveal {
+@keyframes stage-slide {
   from {
-    clip-path: inset(0 0 0 30%);
+    transform: translate3d(30%, 0, 0);
   }
   to {
-    clip-path: inset(0 0 0 70%);
+    transform: translate3d(70%, 0, 0);
   }
 }
 
-@keyframes stage-slide {
+@keyframes stage-counter {
   from {
-    left: 30%;
+    transform: translate3d(-30%, 0, 0);
   }
   to {
-    left: 70%;
+    transform: translate3d(-70%, 0, 0);
   }
 }
 
@@ -337,8 +351,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stage-frame--after,
-  .stage-divider,
+  .stage-slider,
+  .stage-slider .stage-clip img,
   .stage-scrub-fill {
     animation: none;
   }
