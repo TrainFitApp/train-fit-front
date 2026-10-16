@@ -1653,8 +1653,11 @@
     "CURR_WEEK_AVG": "Current week average",
     "GO_PRO": "Go Pro",
     "PREMIUM_SUBTITLE": "Unlimited routines, no ads and more",
-    "MACROS_CONSUMED": "Consumed macros",
-    "MACROS_REMAINING": "Remaining macros",
+    "TODAY_MACROS": "Today's macros",
+    "VIEW_CONSUMED": "Consumed",
+    "VIEW_REMAINING": "Remaining",
+    "SEE_WEIGHT_TREND": "View trend",
+    "SEE_ROUTINE": "View routine",
     "WEIGHT_PROGRESS": "Weight Progress",
     "ACTIVE_ROUTINE": "Active Routine",
     "MICROCYCLE": "Micro-cycle {{split}}",
@@ -1684,7 +1687,9 @@
     "TODAY_WEIGHT_INFO": "Today's weight",
     "PREV_WEEK_AVG_INFO": "Previous week average",
     "CURR_WEEK_AVG_INFO": "Current week average",
-    "MICROCYCLES_AVAILABLE_ONE": "1 microcycle available"
+    "MICROCYCLES_AVAILABLE_ONE": "1 microcycle available",
+    "ARIA_SETTINGS": "Settings",
+    "ARIA_MANAGEMENT": "Management"
   },
   "EDITOR": {
     "TITLE": "Edit",

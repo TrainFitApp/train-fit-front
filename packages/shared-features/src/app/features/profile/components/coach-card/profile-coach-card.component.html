@@ -1,7 +1,7 @@
 <section class="coach-card" [attr.aria-busy]="state === 'loading'">
   <header class="coach-card__header">
     <h3 class="coach-card__title">
-      <ion-icon name="people-outline" color="primary" aria-hidden="true"></ion-icon>
+      <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
       {{ 'PROFILE.COACH_CARD.TITLE' | translate }}
       <span class="coach-card__count" *ngIf="state === 'loaded' && items.length">{{ items.length }}</span>
     </h3>

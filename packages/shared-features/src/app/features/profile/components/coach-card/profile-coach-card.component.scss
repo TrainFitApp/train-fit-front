@@ -1,6 +1,6 @@
-// Misma superficie que el resto de secciones del perfil (.nutrition-section).
-// Lo que le toca hacer al cliente lleva el icono en naranja; las
-// notificaciones, neutras y con punto de "sin leer".
+// Sección del perfil sin caja: título discreto como el resto de secciones y
+// filas separadas por una línea fina. Lo que le toca hacer al cliente lleva el
+// icono en naranja; las notificaciones, neutras y con punto de "sin leer".
 $ease-out: cubic-bezier(0.2, 0, 0, 1);
 
 :host {
@@ -8,12 +8,7 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
 }
 
 .coach-card {
-  margin: 16px 16px 24px;
-  padding: 0.75rem 1.25rem;
-  background: #141414;
-  border: 1px solid #252525;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  margin: 20px 20px 0;
 }
 
 .coach-card__header {
@@ -21,7 +16,8 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  min-height: 32px;
+  margin-bottom: 4px;
 }
 
 .coach-card__title {
@@ -30,9 +26,17 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
   gap: 8px;
   min-width: 0;
   margin: 0;
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--ion-color-primary-contrast);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pe-muted);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1.125rem;
+    color: var(--pe-accent);
+  }
 }
 
 .coach-card__count {
@@ -55,14 +59,14 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
   align-items: center;
   gap: 2px;
   min-height: 44px;
+  margin-right: -4px;
   padding: 0 0 0 8px;
   background: none;
   border: none;
   color: var(--pe-accent);
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  cursor: pointer;
   flex-shrink: 0;
 
   ion-icon {
@@ -104,7 +108,6 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
   border: none;
   font-family: inherit;
   text-align: left;
-  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: opacity 120ms $ease-out;
 
@@ -127,8 +130,8 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #1f1f1f;
-  color: #c7c7c7;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--pe-muted);
 
   ion-icon {
     font-size: 19px;
@@ -153,7 +156,7 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
   height: 9px;
   border-radius: 50%;
   background: var(--pe-accent);
-  box-shadow: 0 0 0 2px #141414;
+  box-shadow: 0 0 0 2px var(--ion-background-color, #111);
 }
 
 .coach-card__text {
@@ -212,9 +215,8 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
   border: none;
   color: var(--pe-accent);
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .coach-card__skeleton {

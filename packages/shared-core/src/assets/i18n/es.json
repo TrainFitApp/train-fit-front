@@ -1653,8 +1653,11 @@
     "CURR_WEEK_AVG": "Media semanal actual",
     "GO_PRO": "Hazte Pro",
     "PREMIUM_SUBTITLE": "Rutinas ilimitadas, sin anuncios y más",
-    "MACROS_CONSUMED": "Macros consumidos",
-    "MACROS_REMAINING": "Macros restantes",
+    "TODAY_MACROS": "Macros de hoy",
+    "VIEW_CONSUMED": "Consumido",
+    "VIEW_REMAINING": "Restante",
+    "SEE_WEIGHT_TREND": "Ver evolución",
+    "SEE_ROUTINE": "Ver rutina",
     "WEIGHT_PROGRESS": "Progreso de Peso",
     "ACTIVE_ROUTINE": "Rutina Activa",
     "MICROCYCLE": "Micro-ciclo {{split}}",
@@ -1684,7 +1687,9 @@
     "TODAY_WEIGHT_INFO": "Peso de hoy",
     "PREV_WEEK_AVG_INFO": "Media semanal anterior",
     "CURR_WEEK_AVG_INFO": "Media semanal actual",
-    "MICROCYCLES_AVAILABLE_ONE": "1 microciclo disponible"
+    "MICROCYCLES_AVAILABLE_ONE": "1 microciclo disponible",
+    "ARIA_SETTINGS": "Ajustes",
+    "ARIA_MANAGEMENT": "Gestión"
   },
   "EDITOR": {
     "TITLE": "Editar",
