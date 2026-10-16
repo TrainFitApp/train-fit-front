@@ -1653,6 +1653,8 @@
     "CURR_WEEK_AVG": "Current week average",
     "GO_PRO": "Go Pro",
     "PREMIUM_SUBTITLE": "Unlimited routines, no ads and more",
+    "MACROS_CONSUMED": "Consumed macros",
+    "MACROS_REMAINING": "Remaining macros",
     "TODAY_MACROS": "Today's macros",
     "VIEW_CONSUMED": "Consumed",
     "VIEW_REMAINING": "Remaining",
