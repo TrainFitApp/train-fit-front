@@ -2,13 +2,14 @@
   <div class="weight-card">
     <div class="weight-row">
       <form [formGroup]="weightForm" class="weight-form">
+        <span class="weight-label">{{ 'DAILY_WEIGHT.TITLE' | translate }}</span>
         <div class="input-wrapper">
-          <span class="input-prefix">{{ 'DAILY_WEIGHT.TITLE' | translate }}</span>
           <ion-input
             #inputWeight
             formControlName="weight"
             type="text" inputmode="decimal" appNumericKeypad
             class="weight-input"
+            placeholder="0.0"
             step="0.1"
             min="0"
             max="300"
@@ -29,20 +30,22 @@
           <ion-icon [name]="getCheckIconName()"></ion-icon>
         </button>
       </form>
-      <button
-        class="calendar-button"
-        (click)="openAnthropometryModal(); $event.stopPropagation()"
-        [attr.aria-label]="'DAILY_WEIGHT.MEASUREMENTS_ARIA' | translate"
-      >
-        <ion-icon name="accessibility-outline"></ion-icon>
-      </button>
-      <button
-        class="calendar-button"
-        (click)="openWeightInfo(); $event.stopPropagation()"
-        [attr.aria-label]="'DAILY_WEIGHT.CALENDAR_ARIA' | translate"
-      >
-        <ion-icon name="stats-chart-outline"></ion-icon>
-      </button>
+      <div class="tools-group">
+        <button
+          class="calendar-button"
+          (click)="openAnthropometryModal(); $event.stopPropagation()"
+          [attr.aria-label]="'DAILY_WEIGHT.MEASUREMENTS_ARIA' | translate"
+        >
+          <ion-icon name="accessibility-outline"></ion-icon>
+        </button>
+        <button
+          class="calendar-button"
+          (click)="openWeightInfo(); $event.stopPropagation()"
+          [attr.aria-label]="'DAILY_WEIGHT.CALENDAR_ARIA' | translate"
+        >
+          <ion-icon name="stats-chart-outline"></ion-icon>
+        </button>
+      </div>
     </div>
 
     <div class="progress-section" *ngIf="weightForm.get('weight')?.value">

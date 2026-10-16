@@ -37,6 +37,7 @@ function page() {
     expandedTrainerId: null,
     translate: { instant: (key) => key },
     ionicUtilService: { showToast() {}, showErrorToast() {}, showModal: async () => ({ data: true }) },
+    hapticsService: { success() {} },
     myCheckinsApi: {
       respond: (scheduleId, values) => {
         sent.push({ scheduleId, values });

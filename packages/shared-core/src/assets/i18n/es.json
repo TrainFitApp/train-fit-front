@@ -2907,7 +2907,7 @@
     "DUE_DATE": "Vencimiento: {{date}}"
   },
   "DAILY_WEIGHT": {
-    "TITLE": "PESO DIARIO",
+    "TITLE": "PESO",
     "SAVE_ARIA": "Guardar peso",
     "MEASUREMENTS_ARIA": "Apuntar medidas corporales",
     "CALENDAR_ARIA": "Ver calendario de pesos"

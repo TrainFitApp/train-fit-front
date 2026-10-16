@@ -20,6 +20,7 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { NavigationBar } from '@capgo/capacitor-navigation-bar';
 import { ErrorHandlerService } from './error-handler.service';
+import { HapticsService } from './haptics.service';
 import { environment } from 'src/environments/environment';
 import { submitOnEnter } from 'src/app/shared/directives/submit-on-enter.util';
 import { alertEnterSubmitIndex } from './alert-enter-submit.util';
@@ -54,6 +55,7 @@ export class IonicUtilService {
     private pickerController: PickerController,
     private platform: Platform,
     private errorHandlerService: ErrorHandlerService,
+    private hapticsService: HapticsService,
     private injector: Injector
   ) {
     this.configureStatusBar();
@@ -471,6 +473,7 @@ export class IonicUtilService {
     });
 
     showToast.present();
+    this.hapticsService.forToastColor(toast.color);
     return showToast.onDidDismiss();
   }
 
@@ -533,6 +536,7 @@ export class IonicUtilService {
     });
 
     await showToast.present();
+    this.hapticsService.forToastColor(toastColor);
   }
 
   /**
@@ -561,6 +565,7 @@ export class IonicUtilService {
     });
 
     await showToast.present();
+    this.hapticsService.success();
   }
 
   /**
@@ -589,6 +594,7 @@ export class IonicUtilService {
     });
 
     await showToast.present();
+    this.hapticsService.warning();
   }
 
   public async closePicker(): Promise<void> {

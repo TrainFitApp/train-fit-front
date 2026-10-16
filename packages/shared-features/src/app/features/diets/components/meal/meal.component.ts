@@ -41,6 +41,7 @@ import {
 import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-meal-modal.component';
 import { PAUTADO_QUANTITY_SAVED, PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view.component';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 import {
   QUICK_ADD_SHEET_OPTIONS,
@@ -104,6 +105,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   public isChoosingAlternative = false;
 
   private readonly coachService = inject(CoachService);
+  private readonly hapticsService = inject(HapticsService);
 
   constructor(
     private utilService: UtilService,
@@ -195,6 +197,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public openSearchFoods(): void {
+    this.hapticsService.light();
     this.navigationService.goToSearchFoods({
       state: {
         user: this.user,
@@ -739,6 +742,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   // de macros cuando está consumido (ver DietDayService#countsAsIntake).
   public toggleProductConsumed(product: CustomProduct): void {
     const consumed = !product.consumed;
+    if (consumed) this.hapticsService.light();
     product.consumed = consumed;
     this.emitDietDay();
     this.mealService.setCustomProductConsumed(this.meal._id, product._id, consumed).subscribe({
@@ -756,6 +760,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
 
   public toggleRecipeConsumed(instance: CustomRecipe): void {
     const consumed = !instance.consumed;
+    if (consumed) this.hapticsService.light();
     instance.consumed = consumed;
     this.emitDietDay();
     this.mealService.setCustomRecipeConsumed(this.meal._id, instance._id, consumed).subscribe({

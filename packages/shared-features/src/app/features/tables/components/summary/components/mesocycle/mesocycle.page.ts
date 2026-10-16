@@ -48,6 +48,7 @@ import {
 } from "../routine-calendar/routine-calendar.component";
 import { isPremiumActive } from "src/app/core/utils/premium-status.util";
 import { CoachService } from 'src/app/core/services/coach/coach.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -238,6 +239,7 @@ export class MesocyclePage implements OnInit, AfterViewInit, OnDestroy {
   public applyingTemplate = false;
 
   private readonly coachService = inject(CoachService);
+  private readonly hapticsService = inject(HapticsService);
 
   constructor(
     public utilService: UtilService,
@@ -335,6 +337,7 @@ export class MesocyclePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public ionViewDidEnter(): void {
+    this.hapticsService.light();
     void this.loadMicrocycleLimit();
     this.maybeOfferNewMicrocycle();
 

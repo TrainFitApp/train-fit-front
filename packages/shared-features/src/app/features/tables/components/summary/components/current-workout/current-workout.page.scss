@@ -652,6 +652,17 @@ ion-content.has-rest-timer {
   --padding-bottom: 92px;
 }
 
+// Mientras se guarda el cierre del entreno (esfuerzo + finishWorkout) no se
+// puede tocar nada: ni series, ni notas, ni la fila de terminar.
+ion-content.is-finishing {
+  pointer-events: none;
+}
+
+.finish-workout-row--busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 // Barra de descanso: fija, nunca modal — no debe tapar la serie siguiente.
 .rest-timer-bar {
   position: fixed;

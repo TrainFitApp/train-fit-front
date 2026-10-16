@@ -44,6 +44,7 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ExerciseHistoryService } from 'src/app/core/services/exercise-history/exercise-history.service';
 import { RestTimerService } from 'src/app/core/services/rest-timer/rest-timer.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
 import { Set } from 'src/app/core/models/set';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
@@ -150,6 +151,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly adMobService = inject(AdMobService);
   private readonly exerciseHistoryService = inject(ExerciseHistoryService);
   public readonly restTimerService = inject(RestTimerService);
+  private readonly hapticsService = inject(HapticsService);
   private readonly pinnedExerciseNoteService = inject(PinnedExerciseNoteService);
   private readonly mediaApi = inject(MediaApiService);
   private readonly mediaGate = inject(MediaGateService);
@@ -374,6 +376,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   }
 
   private proceedStartWorkoutFlow(): void {
+    this.hapticsService.medium();
     // If the workout was completed (has a date), reset everything
     const wasCompleted = !!this.currentWorkout.date;
 
@@ -496,8 +499,9 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   }
 
   public async endWorkout(): Promise<void> {
-    // Evitar múltiples alerts superpuestos
-    if (this.sweetAlertOpened) return;
+    // Evitar múltiples alerts superpuestos, y no reabrir mientras se guarda
+    // el cierre (la hoja ya se ha cerrado y `sweetAlertOpened` vuelve a false).
+    if (this.sweetAlertOpened || this.loading) return;
     this.sweetAlertOpened = true;
     const alertOptions = {
       header: this.translate.instant('TABLES.FINISH_ALERT'),
@@ -555,10 +559,15 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
         {
           text: this.translate.instant('COMMON.CONFIRM'),
           handler: (value: number) => {
+            // La carga empieza ya: el guardado del esfuerzo también cuenta.
+            this.loading = true;
             this.currentWorkout.perceivedEffortPost = value ?? null;
             this.workoutService
               .modifyWorkout(this.currentWorkout)
-              .subscribe(() => this.proceedFinishWorkout());
+              .subscribe({
+                next: () => this.proceedFinishWorkout(),
+                error: (err) => this.onFinishWorkoutError(err),
+              });
           },
         },
       ],
@@ -573,6 +582,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
       .finishWorkout(this.currentWorkout._id, finishDate)
       .subscribe({
                 next: (result) => {
+                  this.hapticsService.success();
                   // Un PR recién hecho debe verse sin esperar a recargar la app.
                   this.exerciseHistoryService.invalidateCache();
 
@@ -616,9 +626,11 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
                   this.stopElapsedTicker();
                   this.restTimerService.skip();
-                  this.loading = false;
 
+                  // La pantalla sigue bloqueada tras el resumen hasta salir:
+                  // el entreno ya está cerrado y no debe tocarse.
                   const finishAndNavigateBack = () => {
+                    this.loading = false;
                     this.currentWorkout = undefined;
                     this.workoutService.setCurrentWorkout = null;
                     this.navigationService.goBack();
@@ -649,16 +661,19 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                       .then(finishAndNavigateBack);
                   }
                 },
-                error: (err) => {
-                  console.error('Error finishing workout:', err);
-                  this.loading = false;
-                  this.ionicUtilService.showAlert({
-                    header: this.translate.instant('TABLES.FINISH_ERROR_TITLE'),
-                    message: this.translate.instant('TABLES.FINISH_ERROR'),
-                    buttons: [this.translate.instant('COMMON.OK')],
-                  });
-                },
+                error: (err) => this.onFinishWorkoutError(err),
               });
+  }
+
+  private onFinishWorkoutError(err: unknown): void {
+    console.error('Error finishing workout:', err);
+    this.hapticsService.error();
+    this.loading = false;
+    this.ionicUtilService.showAlert({
+      header: this.translate.instant('TABLES.FINISH_ERROR_TITLE'),
+      message: this.translate.instant('TABLES.FINISH_ERROR'),
+      buttons: [this.translate.instant('COMMON.OK')],
+    });
   }
 
   private preserveFinishedWorkoutSplitIfCompleted(workoutId: string): void {

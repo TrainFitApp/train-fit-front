@@ -21,9 +21,10 @@
 }
 
 .weight-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--ion-color-secondary);
+  letter-spacing: 0.04em;
+  color: #9ca3af;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -42,25 +43,29 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  // Hundido respecto a la tarjeta (#141414): fondo más oscuro, borde claro y sombra interior.
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
   padding: 0 10px;
   height: 38px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 
   &:focus-within {
     border-color: #fe9000;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(254, 144, 0, 0.3);
   }
 
   .weight-input {
     --background: transparent;
     --color: #ffffff;
-    --placeholder-color: #6b7280;
+    --placeholder-color: #8a91a0;
+    --placeholder-opacity: 1;
     --padding-start: 0;
     --padding-end: 0;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     flex: 1;
     min-width: 0;
 
@@ -74,17 +79,11 @@
     font-size: 12px;
     color: #9ca3af;
     font-weight: 500;
-    margin-left: 4px;
+    margin-left: 8px;
+    padding-left: 8px;
+    border-left: 1px solid rgba(255, 255, 255, 0.14);
+    line-height: 1.6;
     flex-shrink: 0;
-  }
-
-  .input-prefix {
-    font-size: 12px;
-    color: var(--ion-color-secondary);
-    font-weight: 500;
-    margin-right: 6px;
-    flex-shrink: 0;
-    white-space: nowrap;
   }
 }
 
@@ -167,6 +166,25 @@
   }
 
   &:active { transform: scale(0.92); }
+}
+
+// Medidas y gráfica como un solo bloque: un borde, un divisor, sin competir con el ✓ naranja.
+.tools-group {
+  display: flex;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+
+  .calendar-button {
+    background: transparent;
+    border-radius: 0;
+
+    & + .calendar-button {
+      box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.12);
+    }
+  }
 }
 
 .progress-section {
@@ -257,10 +275,6 @@
 @media (max-width: 480px) {
   .weight-card {
     padding: 10px 12px;
-  }
-
-  .weight-label {
-    font-size: 12px;
   }
 
   .input-wrapper {

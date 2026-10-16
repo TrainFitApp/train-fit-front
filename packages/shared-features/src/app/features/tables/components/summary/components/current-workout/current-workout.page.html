@@ -33,6 +33,7 @@
             <ion-button
               fill="clear"
               class="action-btn back-btn"
+              [disabled]="loading"
               (click)="goToSummary()"
             >
               <ion-icon
@@ -46,6 +47,7 @@
               *ngIf="!user.workoutInUse && currentWorkout?.exercises?.length > 0"
               fill="clear"
               class="action-btn play-btn"
+              [disabled]="loading"
               (click)="playWorkout()"
             >
               <ion-icon slot="icon-only" name="play-outline"></ion-icon>
@@ -54,6 +56,7 @@
             <ion-button
               fill="clear"
               class="action-btn options-btn"
+              [disabled]="loading"
               (click)="openWorkoutOptions($event)"
             >
               <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
@@ -100,6 +103,8 @@
         <div
           *ngIf="user?.workoutInUse === currentWorkout._id"
           class="finish-workout-row"
+          [class.finish-workout-row--busy]="loading"
+          [attr.aria-disabled]="loading"
           (click)="endWorkout()"
         >
           <ion-icon name="stopwatch-outline" class="finish-icon"></ion-icon>
@@ -112,7 +117,11 @@
   </div>
 </ion-header>
 
-<ion-content [class.has-rest-timer]="restTimerService.active()">
+<ion-content
+  [class.has-rest-timer]="restTimerService.active()"
+  [class.is-finishing]="loading"
+  [attr.aria-busy]="loading"
+>
   <ion-item *ngIf="currentWorkout?.exercises.length === 0">
     <ion-label color="medium">{{ 'TABLES.NO_EXERCISES' | translate }}</ion-label>
   </ion-item>

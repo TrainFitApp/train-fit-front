@@ -9,6 +9,7 @@ import { NotificationsService } from 'src/app/core/services/notifications/notifi
 import { OPEN_INTAKE_TRAINER_KEY, OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
 import {
   CoachDashboard,
   CoachNotification,
@@ -140,7 +141,8 @@ export class CoachPage implements OnInit {
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService,
     private modalController: ModalController,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private hapticsService: HapticsService
   ) {}
 
   public ngOnInit(): void {
@@ -506,6 +508,7 @@ export class CoachPage implements OnInit {
   public toggleTask(task: CoachTask): void {
     if (this.togglingTaskId) return;
     this.togglingTaskId = task._id;
+    if (!task.completedToday) this.hapticsService.light();
     this.habitsService.toggle(task, this.tasksDate).subscribe({
       next: () => {
         this.togglingTaskId = null;

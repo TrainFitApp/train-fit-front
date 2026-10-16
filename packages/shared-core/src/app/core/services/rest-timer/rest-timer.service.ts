@@ -2,6 +2,7 @@ import { Injectable, computed, signal } from '@angular/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { NotificationService } from '../util/notification.service';
+import { HapticsService } from '../util/haptics.service';
 
 export interface ActiveRestTimer {
   workoutId: string;
@@ -48,7 +49,10 @@ export class RestTimerService {
     () => !!this._active() && this.remainingSeconds() === 0
   );
 
-  constructor(private notificationService: NotificationService) {
+  constructor(
+    private notificationService: NotificationService,
+    private hapticsService: HapticsService
+  ) {
     this.restoreFromStorage();
     this.listenAppStateChange();
   }
@@ -123,7 +127,11 @@ export class RestTimerService {
     this.stopTicker();
     this.tickHandle = setInterval(() => {
       this._now.set(Date.now());
-      if (this.remainingSeconds() === 0) this.stopTicker();
+      if (this.remainingSeconds() === 0) {
+        this.stopTicker();
+        // Con la app abierta; fuera de ella avisa la notificación local.
+        this.hapticsService.warning();
+      }
     }, 1000);
   }
 

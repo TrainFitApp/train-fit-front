@@ -8,6 +8,7 @@ import {
   scaleLevelsFor,
 } from 'src/app/core/constants/checkin-fields';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
 import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 import {
   CheckinHistoryEntry,
@@ -56,6 +57,7 @@ export class MyCheckinsPage implements OnInit {
   // filas sin parar.
   private historyRows = new Map<string, HistoryRow[]>();
   private readonly translate = inject(TranslateService);
+  private readonly hapticsService = inject(HapticsService);
 
   constructor(
     private myCheckinsApi: MyCheckinsApiService,
@@ -477,6 +479,7 @@ export class MyCheckinsPage implements OnInit {
         this.editingKey = null;
         this.submittedTrainerIds.add(this.checkinKey(checkin));
         this.load();
+        this.hapticsService.success();
         this.ionicUtilService.showToast({
           message: this.translate.instant('MY_CHECKINS.SENT_TO', { name: this.trainerName(checkin) }),
           duration: 3000,

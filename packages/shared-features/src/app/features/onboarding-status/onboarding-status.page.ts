@@ -12,6 +12,7 @@ import {
   OnboardingService,
 } from 'src/app/core/services/onboarding/onboarding.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { NutritionPreferencesApiService } from '../nutrition-preferences/services/nutrition-preferences-api.service';
@@ -105,7 +106,8 @@ export class OnboardingStatusPage {
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
     private userService: UserService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private hapticsService: HapticsService
   ) {}
 
   public ionViewWillEnter(): void {
@@ -341,6 +343,7 @@ export class OnboardingStatusPage {
         next: () => {
           this.isSubmitting = false;
           this.fillingTrainerId = null;
+          this.hapticsService.success();
           this.ionicUtilService.showToast({
             message: isEdit
               ? this.translate.instant('ONBOARDING.UPDATED')

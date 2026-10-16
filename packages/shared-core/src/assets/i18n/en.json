@@ -2907,7 +2907,7 @@
     "DUE_DATE": "Due: {{date}}"
   },
   "DAILY_WEIGHT": {
-    "TITLE": "DAILY WEIGHT",
+    "TITLE": "WEIGHT",
     "SAVE_ARIA": "Save weight",
     "MEASUREMENTS_ARIA": "Log body measurements",
     "CALENDAR_ARIA": "View weight calendar"

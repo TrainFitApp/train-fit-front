@@ -14,6 +14,7 @@ import { Set } from 'src/app/core/models/set';
 import { RirValue } from 'src/app/core/models/rir';
 import { Workout } from 'src/app/core/models/workout';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
 import { TranslateService } from '@ngx-translate/core';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
@@ -75,7 +76,8 @@ export class SetComponent implements OnInit, OnChanges {
     private setService: SetService,
     private workoutService: WorkoutService,
     private ionicUtilService: IonicUtilService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private hapticsService: HapticsService
   ) {}
 
   public ngOnInit(): void {
@@ -138,6 +140,11 @@ export class SetComponent implements OnInit, OnChanges {
       velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
       time: new FormControl(this.set?.time ?? null),
       distance: new FormControl(this.set?.distance, [Validators.min(0), Validators.max(100000)]),
+    });
+
+    // El toque va al instante, sin esperar al debounce ni al guardado.
+    this.getFormControl('doned').valueChanges.subscribe((doned) => {
+      if (doned === true && !this.set?.doned) this.hapticsService.light();
     });
 
     this.setForm.valueChanges

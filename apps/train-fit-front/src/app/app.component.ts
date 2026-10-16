@@ -9,6 +9,7 @@ import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { PendingEmailVerificationService } from 'src/app/core/services/auth/pending-email-verification.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { NotificationService } from 'src/app/core/services/util/notification.service';
+import { HapticsService } from 'src/app/core/services/util/haptics.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
@@ -38,7 +39,8 @@ export class AppComponent implements OnDestroy {
     private workoutService: WorkoutService,
     private workoutNotificationService: WorkoutNotificationService,
     private liveActivityService: LiveActivityService,
-    private userService: UserService
+    private userService: UserService,
+    private hapticsService: HapticsService
   ) {
     void this.initializeApp();
   }
@@ -50,6 +52,7 @@ export class AppComponent implements OnDestroy {
     await this.remoteConfigGate.checkAndPresent();
 
     void this.notificationService.initialize();
+    this.hapticsService.listenTyping();
     void this.initWorkoutSetNotifications();
     this.initSessionTracking();
     this.routeOnStartup();
