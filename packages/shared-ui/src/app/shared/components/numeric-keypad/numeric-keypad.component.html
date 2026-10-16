@@ -9,12 +9,10 @@
     >{{ digit }}</button>
     <button
       type="button"
-      class="numeric-keypad__key numeric-keypad__key--hide"
+      class="numeric-keypad__key numeric-keypad__key--muted"
       (mousedown)="$event.preventDefault()"
-      (click)="tapHideKeyboard()"
-    >
-      <ion-icon name="chevron-down-outline"></ion-icon>
-    </button>
+      (click)="tapIncrement()"
+    >+</button>
   </div>
 
   <div class="numeric-keypad__row">
@@ -29,8 +27,8 @@
       type="button"
       class="numeric-keypad__key numeric-keypad__key--muted"
       (mousedown)="$event.preventDefault()"
-      (click)="tapIncrement()"
-    >+</button>
+      (click)="tapDecrement()"
+    >-</button>
   </div>
 
   <div class="numeric-keypad__row">
@@ -43,10 +41,12 @@
     >{{ digit }}</button>
     <button
       type="button"
-      class="numeric-keypad__key numeric-keypad__key--muted"
+      class="numeric-keypad__key"
       (mousedown)="$event.preventDefault()"
-      (click)="tapDecrement()"
-    >-</button>
+      (click)="tapBackspace()"
+    >
+      <ion-icon name="backspace-outline"></ion-icon>
+    </button>
   </div>
 
   <div class="numeric-keypad__row">
@@ -64,11 +64,11 @@
     >0</button>
     <button
       type="button"
-      class="numeric-keypad__key"
+      class="numeric-keypad__key numeric-keypad__key--hide"
       (mousedown)="$event.preventDefault()"
-      (click)="tapBackspace()"
+      (click)="tapHideKeyboard()"
     >
-      <ion-icon name="backspace-outline"></ion-icon>
+      <ion-icon name="chevron-down-outline"></ion-icon>
     </button>
     <button
       type="button"

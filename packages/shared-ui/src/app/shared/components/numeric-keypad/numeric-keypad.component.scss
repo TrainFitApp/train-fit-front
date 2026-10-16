@@ -66,8 +66,8 @@
   }
 }
 
-// Ocultar teclado, +1, -1: acciones secundarias de la fila, un pelín más
-// apagadas que los dígitos para no competir con ellos visualmente.
+// +1, -1: acciones secundarias de la columna derecha, un pelín más apagadas
+// que los dígitos para no competir con ellos visualmente.
 .numeric-keypad__key--muted {
   background: #1a1a1a;
   color: var(--text-secondary);
