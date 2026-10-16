@@ -34,6 +34,8 @@
   align-items: center;
   text-align: center;
   padding: 32px 32px 0;
+  // El lienzo del logo (transparente) puede pasar del ancho de pantalla.
+  overflow-x: clip;
 }
 
 .welcome-hero-block {
@@ -45,9 +47,12 @@
   min-height: 0;
 }
 
+// logo_light.png es un lienzo 1920×1080 transparente con el dibujo (866×602)
+// en el centro: la caja puede ser casi tan ancha como la pantalla y comerse el
+// padding del shell sin que se vea nada pegado al borde.
 .welcome-hero {
   position: relative;
-  width: min(78vw, 320px);
+  width: min(120vw, 500px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,7 +65,7 @@
   left: 50%;
   top: 50%;
   width: 130%;
-  height: 340px;
+  height: 460px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle, var(--accent-glow) 0%, rgba(254, 144, 0, 0) 70%);
