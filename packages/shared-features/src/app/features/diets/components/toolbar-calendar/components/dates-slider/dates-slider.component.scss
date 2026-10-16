@@ -39,6 +39,7 @@ ion-row {
 
 // Estilos para cada día
 ion-col {
+  border: none;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -47,10 +48,8 @@ ion-col {
   max-width: 45px;
   height: 55px;
   border-radius: 12px;
-  border: 1px solid #2a2a2a; // --border-primary
-  background: #111111; // --bg-secondary
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
   padding: 8px 4px;
 
   // Estado normal
@@ -69,8 +68,7 @@ ion-col {
   // Estado seleccionado/activo
   &.selected,
   &.active {
-    border-color: #FE9000; // --accent-primary
-    background: #392610; // Color específico para día activo (del dietas.html)
+    background: rgba(254, 144, 0, 0.26);
 
     .day-name {
       color: #FE9000; // --accent-primary
@@ -83,8 +81,7 @@ ion-col {
 
   // Estado para el día de hoy (si es diferente del seleccionado)
   &.today:not(.selected):not(.active) {
-    background: rgba(254, 144, 0, 0.1);
-    border-color: rgba(254, 144, 0, 0.3);
+    background: rgba(254, 144, 0, 0.12);
 
     .day-number {
       color: #FE9000; // --accent-primary
@@ -185,17 +182,14 @@ ion-col {
   // `:not(.selected)` pisaba el estado seleccionado y el día con ciclo no se
   // distinguía al pulsarlo.
   &.has-week:not(.selected):not(.active) {
-    border-color: color-mix(in srgb, var(--week-color) 55%, #2a2a2a);
-    background: color-mix(in srgb, var(--week-color) 12%, #111111);
+    background: color-mix(in srgb, var(--week-color) 16%, #161616);
   }
 
   // Seleccionado con ciclo: color del ciclo a tope (borde sólido + fondo
   // más cargado + resplandor) para que se note frente a los vecinos.
   &.has-week.selected,
   &.has-week.active {
-    border-color: var(--week-color);
-    background: color-mix(in srgb, var(--week-color) 32%, #111111);
-    box-shadow: 0 0 0 1px var(--week-color), 0 0 10px color-mix(in srgb, var(--week-color) 45%, transparent);
+    background: color-mix(in srgb, var(--week-color) 42%, #161616);
   }
 
 }

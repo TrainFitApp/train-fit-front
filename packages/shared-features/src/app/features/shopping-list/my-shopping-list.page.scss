@@ -35,12 +35,12 @@
 // A todo el ancho y en tercios iguales: en móvil la cápsula ajustada al
 // texto quedaba descolgada a la izquierda.
 .range-picker {
+  border: none;
   display: flex;
   gap: 2px;
   margin-bottom: 10px;
   padding: 2px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
   border-radius: 999px;
 }
 
@@ -88,13 +88,13 @@
 // controles de 36 px (44 de zona pulsable), para que en el móvil el bloque
 // no se coma media pantalla antes de llegar a la lista.
 .choices {
+  border: none;
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 12px;
   padding: 10px;
   background: #161616;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
 }
 
@@ -167,12 +167,12 @@ ion-select.choice-select {
 }
 
 .stepper {
+  border: none;
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
   height: 36px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--ion-color-step-200, #252525);
   border-radius: 10px;
 }
 
@@ -219,6 +219,7 @@ ion-select.choice-select {
 // Superficie teñida del naranja de marca, con el texto sacado del mismo tono
 // (no gris). Al completarse pasa entera a verde.
 .cart-progress {
+  border: none;
   --cart-accent: #fe9000;
   --cart-surface: #2a1a06;
   --cart-edge: rgba(254, 144, 0, 0.3);
@@ -231,7 +232,6 @@ ion-select.choice-select {
   margin-bottom: 12px;
   padding: 12px;
   background: var(--cart-surface);
-  border: 1px solid var(--cart-edge);
   border-radius: 12px;
 
   &--done {
@@ -293,6 +293,7 @@ ion-select.choice-select {
 
 // --- Filas ---
 .item {
+  border: none;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -301,7 +302,6 @@ ion-select.choice-select {
   margin-bottom: 6px;
   padding: 8px 12px;
   background: #161616;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   color: #ffffff;
   font-family: inherit;
@@ -323,7 +323,6 @@ ion-select.choice-select {
   // check conserva el color: es la confirmación del toque.
   &--checked {
     background: #111111;
-    border-color: rgba(255, 255, 255, 0.04);
 
     .item-name {
       color: #7d7d7d;
@@ -355,7 +354,6 @@ ion-select.choice-select {
 
   .item--checked & {
     background: #fe9000;
-    border-color: #fe9000;
   }
 
   ion-icon {
@@ -429,7 +427,6 @@ ion-select.choice-select {
 
 .retry-button {
   background: #fe9000;
-  border-color: #fe9000;
   color: #1a0e00;
   font-weight: 700;
 }

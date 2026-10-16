@@ -1,11 +1,10 @@
 // Contenedor principal del calendario
 .calendar-container {
-  background-color: #141414;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 16px;
   margin: 8px 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 // Encabezado del calendario con días de la semana
@@ -15,7 +14,7 @@
   gap: 4px;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #d4af37;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.35);
 }
 
 .weekday-header {
@@ -74,6 +73,7 @@
 
 // Días del calendario
 .calendar-day {
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -82,12 +82,10 @@
   padding: 6px 2px;
   border-radius: 8px;
   background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   
   &.selected-day {
     background-color: #d4af37;
     color: #141414;
-    border-color: #d4af37;
     font-weight: 600;
     
     .day-weight {
@@ -95,14 +93,26 @@
     }
   }
   
+  // Hoy: el dorado del calendario, en tono y no en aro.
   &.current-day {
-    border: 2px solid #d4af37;
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+    border: none;
+    background-color: rgba(212, 175, 55, 0.22);
+
+    .day-number {
+      color: #d4af37;
+    }
+  }
+
+  &.current-day.selected-day {
+    background-color: #d4af37;
+
+    .day-number {
+      color: #141414;
+    }
   }
   
   &.empty-day {
     background-color: transparent;
-    border-color: transparent;
   }
 }
 
@@ -123,13 +133,13 @@
 
 // Media semanal
 .week-average {
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 52px;
   padding: 6px 8px;
   background-color: rgba(212, 175, 55, 0.1);
-  border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;

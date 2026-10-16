@@ -41,8 +41,8 @@
 }
 
 .zone {
+  border: none;
   background: #161616;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -138,13 +138,11 @@
   }
 
   &.selected {
-    border-color: #fe9000;
     background: rgba(254, 144, 0, 0.14);
     color: #ffffff;
   }
 
   &.selected.limiting {
-    border-color: #ed576b;
     background: rgba(235, 68, 90, 0.16);
     color: #ed576b;
   }
@@ -167,10 +165,10 @@
 }
 
 .note-input {
+  border: none;
   width: 100%;
   padding: 10px 12px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
   border-radius: 10px;
   color: #ffffff;
   font-family: inherit;
@@ -179,16 +177,16 @@
 
   &:focus {
     outline: none;
-    border-color: #fe9000;
+    box-shadow: 0 0 0 2px #fe9000;
   }
 }
 
 .clear-button {
+  border: none;
   min-height: 44px;
   margin-top: 10px;
   padding: 0 14px;
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
   border-radius: 10px;
   color: #9a9a9a;
   font-family: inherit;

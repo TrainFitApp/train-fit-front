@@ -60,12 +60,11 @@ ion-content {
 }
 
 ion-card {
+  border: none;
   --background: var(--dark-gray);
   --color: var(--text-primary);
-  border: 1px solid var(--medium-gray);
   border-radius: 16px;
   margin: 0 0 12px 0;
-  box-shadow: none;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -121,7 +120,6 @@ ion-card {
   height: 6px;
   background: var(--orange);
   border-radius: 50%;
-  box-shadow: 0 0 12px var(--orange-glow);
   flex-shrink: 0;
 }
 
@@ -331,9 +329,9 @@ ion-grid {
 }
 
 .chart-tabs {
+  border: none;
   display: flex;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
@@ -512,8 +510,8 @@ ion-grid {
 }
 
 .comparison-item {
+  border: none;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 12px;
 
@@ -590,6 +588,7 @@ ion-grid {
 }
 
 .chart-container {
+  border: none;
   background: linear-gradient(
     135deg,
     rgba(20, 20, 20, 0.95) 0%,
@@ -598,7 +597,6 @@ ion-grid {
   border-radius: 16px;
   padding: 24px;
   margin: 16px 0;
-  border: 1px solid rgba(212, 175, 55, 0.2);
   position: relative;
   min-height: 350px;
   width: 100%;
@@ -829,21 +827,21 @@ ion-grid {
     justify-content: center;
 
     &.drop {
+      border: none;
       color: #ef4444;
       background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
     &.rest {
+      border: none;
       color: #2563eb;
       background: rgba(37, 99, 235, 0.1);
-      border: 1px solid rgba(37, 99, 235, 0.2);
     }
 
     &.fail {
+      border: none;
       color: var(--orange);
       background: rgba(254, 144, 0, 0.1);
-      border: 1px solid rgba(254, 144, 0, 0.2);
     }
   }
 }
@@ -1081,8 +1079,8 @@ ion-item:has(.type-dot.rest) ~ .subseries-container {
   }
 
   &.ds {
+    border: none;
     background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.2);
     color: rgba(239, 68, 68, 0.9);
 
     .t-label {
@@ -1092,8 +1090,8 @@ ion-item:has(.type-dot.rest) ~ .subseries-container {
   }
 
   &.rp {
+    border: none;
     background: rgba(37, 99, 235, 0.08);
-    border: 1px solid rgba(37, 99, 235, 0.2);
     color: rgba(56, 128, 255, 0.9);
 
     .t-label {
@@ -1112,21 +1110,21 @@ ion-item:has(.type-dot.rest) ~ .subseries-container {
 }
 
 .intensity-drop {
+  border: none;
   font-size: 0.7rem;
   font-weight: 600;
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
   padding: 2px 6px;
   border-radius: 4px;
 }
 
 .intensity-rp {
+  border: none;
   font-size: 0.7rem;
   font-weight: 600;
   color: #2563eb;
   background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(37, 99, 235, 0.2);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -1187,6 +1185,7 @@ ion-item:has(.type-dot.rest) ~ .subseries-container {
   margin: 12px 8px;
 
   .pinned-note-card {
+    border: none;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -1197,8 +1196,6 @@ ion-item:has(.type-dot.rest) ~ .subseries-container {
       rgba(56, 128, 255, 0.10) 0%,
       rgba(56, 128, 255, 0.04) 100%
     );
-    border: 1px solid rgba(56, 128, 255, 0.20);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
     .card-header {
       display: flex;
@@ -1246,4 +1243,26 @@ ion-item:has(.type-dot.rest) ~ .subseries-container {
   align-items: center;
   width: 100%;
   gap: 12px;
+}
+
+// Sin elevación: el lenguaje del cliente no lleva sombras de tarjeta.
+ion-card {
+  box-shadow: none;
+}
+
+// El calendario de rutina es compartido con trainers y no se toca: desde aquí
+// solo se le quitan los bordes (los días hechos y las leyendas).
+:host ::ng-deep app-routine-calendar {
+  .day-cell.completed {
+    border-color: transparent;
+  }
+
+  .calendar-legend {
+    border-top-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .legend-chip {
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.06);
+  }
 }

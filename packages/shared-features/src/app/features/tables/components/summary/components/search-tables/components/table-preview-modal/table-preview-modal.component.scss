@@ -82,10 +82,10 @@
 
 // Stats Bar
 .stats-bar {
+  border: none;
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
   padding: 16px;
 }
@@ -162,8 +162,8 @@
 }
 
 .split-card {
+  border: none;
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -243,12 +243,12 @@
 }
 
 .same-content-hint {
+  border: none;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.45);

@@ -430,7 +430,6 @@ export class SummaryPage {
   }
 
   // Nuevos métodos para la interfaz móvil
-  public backgroundClass: string = "light-theme";
   public theme: Theme;
 
   public getWorkoutProgress(): number {

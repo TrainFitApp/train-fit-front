@@ -13,11 +13,11 @@
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 .hero-card {
+  border: none;
   margin-top: 12px;
   border-radius: 20px;
   padding: 28px 20px 24px;
   background: linear-gradient(145deg, #1a1208 0%, #241800 55%, #1f1400 100%);
-  border: 1px solid rgba(254, 144, 0, 0.25);
   color: #fff;
   position: relative;
   overflow: hidden;
@@ -25,12 +25,9 @@
 
   &--active {
     background: linear-gradient(145deg, #0a1f10 0%, #0d2814 55%, #0b2210 100%);
-    border-color: rgba(45, 211, 111, 0.25);
 
     .hero-icon-wrap {
       background: rgba(45, 211, 111, 0.12);
-      border-color: rgba(45, 211, 111, 0.35);
-      box-shadow: 0 0 32px rgba(45, 211, 111, 0.15);
     }
 
     .hero-diamond { color: var(--ion-color-success); }
@@ -58,12 +55,11 @@
 }
 
 .hero-icon-wrap {
+  border: none;
   width: 68px;
   height: 68px;
   border-radius: 20px;
   background: rgba(254, 144, 0, 0.12);
-  border: 1.5px solid rgba(254, 144, 0, 0.35);
-  box-shadow: 0 0 32px rgba(254, 144, 0, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -93,13 +89,13 @@
 
 // Badge "Premium activo"
 .hero-status-badge {
+  border: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 5px 12px;
   border-radius: 999px;
   background: rgba(45, 211, 111, 0.12);
-  border: 1px solid rgba(45, 211, 111, 0.3);
   font-size: 12px;
   font-weight: 700;
   color: var(--ion-color-success);
@@ -113,10 +109,10 @@
 
 // Info de plan (solo premium)
 .hero-plan-info {
+  border: none;
   width: 100%;
   margin-top: 4px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(45, 211, 111, 0.15);
   border-radius: 14px;
   overflow: hidden;
 }
@@ -155,13 +151,13 @@
 }
 
 .hero-chip {
+  border: none;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 5px 11px;
   border-radius: 999px;
   background: rgba(254, 144, 0, 0.1);
-  border: 1px solid rgba(254, 144, 0, 0.2);
   font-size: 12px;
   font-weight: 600;
   color: var(--ion-color-primary);
@@ -179,11 +175,11 @@
 }
 
 .plan-btn {
+  border: none;
   width: 100%;
   min-height: 72px;
-  border: 1.5px solid #252525;
   border-radius: 16px;
-  background: #141414;
+  background: rgba(255, 255, 255, 0.07);
   padding: 14px 16px;
   display: flex;
   align-items: center;
@@ -204,7 +200,6 @@
   }
 
   &--selected {
-    border-color: rgba(254, 144, 0, 0.5);
     background: rgba(254, 144, 0, 0.07);
 
     .plan-name {
@@ -216,7 +211,7 @@
     }
 
     .plan-radio {
-      border-color: var(--ion-color-primary);
+      background: rgba(var(--ion-color-primary-rgb), 0.18);
     }
 
     .plan-radio__dot {
@@ -319,7 +314,6 @@
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(254, 144, 0, 0.28);
   transition: opacity 140ms ease, transform 140ms ease;
 
   ion-icon {
@@ -334,7 +328,6 @@
   &[disabled] {
     opacity: 0.4;
     cursor: not-allowed;
-    box-shadow: none;
   }
 }
 
@@ -355,10 +348,10 @@
 }
 
 .legal-card {
+  border: none;
   margin-top: 10px;
   border-radius: 12px;
   padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
 }
 
@@ -390,10 +383,10 @@
 // ─── Compare Card ─────────────────────────────────────────────────────────────
 
 .compare-card {
+  border: none;
   margin-top: 20px;
   border-radius: 16px;
-  background: #141414;
-  border: 1px solid #252525;
+  background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
 
@@ -500,11 +493,11 @@
 // ─── Status Card (premium activo) ─────────────────────────────────────────────
 
 .status-card {
+  border: none;
   margin-top: 14px;
   position: relative;
   border-radius: 16px;
-  background: #141414;
-  border: 1px solid #252525;
+  background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
 
@@ -513,8 +506,6 @@
   background:
     linear-gradient(135deg, rgba(45, 211, 111, 0.08), transparent 42%),
     #141414;
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
 
   &::before {
     content: "";
@@ -585,10 +576,10 @@
   ion-icon { font-size: 16px; color: rgba(255, 255, 255, 0.3); }
 
   &--active {
+    border: none;
     padding: 7px 10px;
     border-radius: 999px;
     background: rgba(45, 211, 111, 0.12);
-    border: 1px solid rgba(45, 211, 111, 0.24);
     color: var(--ion-color-success);
     white-space: nowrap;
 
@@ -599,6 +590,7 @@
 // ─── Runtime Note ─────────────────────────────────────────────────────────────
 
 .runtime-note {
+  border: none;
   margin-top: 16px;
   display: flex;
   align-items: flex-start;
@@ -606,7 +598,6 @@
   padding: 12px 14px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
 
   ion-icon {
     font-size: 15px;

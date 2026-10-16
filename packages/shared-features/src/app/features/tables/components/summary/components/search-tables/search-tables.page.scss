@@ -198,16 +198,14 @@
 
 // Table Cards (adaptado de .translucent-card / .exercise-card)
 .translucent-card {
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 
   &.selected {
-    border-color: var(--ion-color-primary);
     background-color: rgba(var(--ion-color-primary-rgb), 0.04);
   }
 
@@ -274,7 +272,6 @@
 
 .translucent-card {
   background: #141414;
-  border-color: #252525;
 }
 
 .empty-state {

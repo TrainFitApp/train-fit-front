@@ -29,10 +29,10 @@
 }
 
 .supplement {
+  border: none;
   margin-bottom: 8px;
   padding: 12px 14px;
   background: #161616;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
 }
 
@@ -100,8 +100,7 @@
 
 .supplement-reason {
   margin: 8px 0 0;
-  padding-left: 10px;
-  border-left: 2px solid rgba(255, 255, 255, 0.14);
+  padding-left: 10px;background: rgba(255, 255, 255, 0.12);
   font-size: 0.82rem;
   line-height: 1.45;
   color: #c7c7c7;

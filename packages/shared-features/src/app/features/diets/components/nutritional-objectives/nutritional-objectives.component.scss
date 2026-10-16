@@ -26,44 +26,22 @@ ion-content {
 
 /* Calorías Hero */
 .calories-hero {
-    background: #141414;
-    border: 1px solid #252525;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     margin: 20px 20px 24px 20px;
     padding: 24px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
+    // Sin marco degradado: la tarjeta es una superficie tonal.
     &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 16px;
-        padding: 1px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
-        mask:
-            linear-gradient(#fff 0 0) content-box,
-            linear-gradient(#fff 0 0);
-        mask-composite: exclude;
-        pointer-events: none;
-        z-index: 1;
+        display: none;
     }
 
+    // El color ya lo llevan el título y la barra de progreso.
     &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--primary);
-        opacity: 0.8;
-        box-shadow: 0 1px 10px var(--primary-glow);
-        z-index: 10;
+        display: none;
     }
 
     &.danger {
@@ -75,7 +53,6 @@ ion-content {
 
         &::after {
             background: var(--danger);
-            box-shadow: 0 1px 10px rgba(var(--ion-color-danger-rgb), 0.4);
         }
 
         .calories-number {
@@ -84,7 +61,6 @@ ion-content {
 
         .calories-bar-fill {
             background: var(--danger);
-            box-shadow: 0 0 10px rgba(var(--ion-color-danger-rgb), 0.4);
         }
     }
 }
@@ -137,7 +113,6 @@ ion-content {
     background: var(--primary);
     border-radius: 4px;
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 10px var(--primary-glow);
     position: relative;
     overflow: hidden;
 
@@ -202,6 +177,7 @@ ion-content {
 }
 
 .macro-card {
+  border: none;
     &.protein {
         --macro-color: #3880ff;
         --macro-glow: rgba(56, 128, 255, 0.2);
@@ -231,50 +207,26 @@ ion-content {
         --macro-color: #94a3b8;
         --macro-glow: rgba(148, 163, 184, 0.2);
     }
-
-    background: #141414;
-    border: 1px solid #252525;
+  background: rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     padding: 20px;
     position: relative;
     animation: fadeInUp 0.6s ease backwards;
     overflow: hidden;
 
+    // Sin marco degradado: la tarjeta es una superficie tonal.
     &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 16px;
-        padding: 1px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
-        mask:
-            linear-gradient(#fff 0 0) content-box,
-            linear-gradient(#fff 0 0);
-        mask-composite: exclude;
-        pointer-events: none;
-        z-index: 1;
+        display: none;
     }
 
+    // El color ya lo llevan el título y la barra de progreso.
     &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--macro-color, var(--primary));
-        opacity: 0.8;
-        box-shadow: 0 1px 10px var(--macro-glow);
-        z-index: 10;
+        display: none;
     }
 
     &.danger::after {
         opacity: 1;
         background: var(--danger);
-        box-shadow: 0 1px 10px rgba(var(--ion-color-danger-rgb), 0.4);
     }
 }
 
@@ -359,8 +311,8 @@ ion-content {
 }
 
 .micro-item {
-    background: #141414;
-    border: 1px solid #252525;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     padding: 16px 18px;
     display: flex;
@@ -370,22 +322,9 @@ ion-content {
     position: relative;
     overflow: hidden;
 
+    // Sin marco degradado: la tarjeta es una superficie tonal.
     &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 16px;
-        padding: 1px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
-        mask:
-            linear-gradient(#fff 0 0) content-box,
-            linear-gradient(#fff 0 0);
-        mask-composite: exclude;
-        pointer-events: none;
-        z-index: 1;
+        display: none;
     }
 
     &::after {
@@ -564,9 +503,9 @@ ion-content {
 }
 
 .goal-trigger {
+  border: none;
     width: 100%;
     padding: 12px 16px;
-    border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.25);
     background: rgba(var(--ion-color-secondary-rgb), 0.06);
     color: var(--text-primary);
     border-radius: 12px;
@@ -578,7 +517,6 @@ ion-content {
     font-size: 0.88rem;
     font-weight: 600;
     pointer-events: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
     .trigger-title {
         flex: 1;

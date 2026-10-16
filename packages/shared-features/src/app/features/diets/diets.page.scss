@@ -1,3 +1,5 @@
+@import '../../../../../shared-theme/src/theme/client-ui';
+
 // Distancia vertical única de la pantalla de dieta: entre la línea de fase y
 // los días, entre los días y las macros, entre tarjetas y entre comidas.
 // Los componentes hijos la leen con `var(--diets-gap, 8px)`; cambiarla aquí
@@ -12,7 +14,7 @@ ion-spinner {
 
 .fused-header-section {
   background: rgba(28, 28, 30, 0.85);
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid $cu-hairline;
 }
 
 ion-content {
@@ -72,22 +74,21 @@ ion-header.copy-mode-locked {
 // sección "Pautado" de las comidas (meal.component.scss). Bloque compacto:
 // cabecera de una línea y una sola fila de chips con scroll horizontal.
 .menu-chips {
+  border: none;
   display: flex;
   flex-direction: column;
   gap: 6px;
   width: calc(100% - 14px);
   margin: var(--diets-gap) 7px 0;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-radius: 14px;
-  background: rgba(var(--ion-color-alternative-rgb), 0.08);
-  border: 1px solid rgba(var(--ion-color-alternative-rgb), 0.22);
+  background: rgba(var(--ion-color-alternative-rgb), 0.1);
 }
 
 // Día saltado por el profesional: mismo bloque, en tono neutro — no es una
 // acción pendiente del cliente, es información.
 .menu-chips--skipped {
-  background: rgba(148, 163, 184, 0.08);
-  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(148, 163, 184, 0.1);
 }
 
 .menu-chips__note {
@@ -161,22 +162,22 @@ ion-header.copy-mode-locked {
   min-height: 36px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid #2a2a2a;
-  background: #111111;
+  border: none;
+  background: $cu-wash;
   color: #ffffff;
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
   white-space: nowrap;
-  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 
   ion-icon {
     font-size: 14px;
   }
 
+  // El menú elegido: azul de lo pautado, más cargado que el resto.
   &.is-selected {
-    border-color: var(--ion-color-alternative);
-    background: rgba(var(--ion-color-alternative-rgb), 0.18);
+    background: rgba(var(--ion-color-alternative-rgb), 0.3);
     color: var(--ion-color-alternative-tint);
   }
 
@@ -222,12 +223,12 @@ ion-header.copy-mode-locked {
 // la tarjeta de cada comida; lo pautado lleva el azul de la sección Pautado
 // y lo propio, el gris neutro con chevron porque se toca para editar.
 .day-supplements {
+  border: none;
   width: calc(100% - 14px);
   margin: var(--diets-gap) 7px 0;
   padding: 6px 14px 4px;
   border-radius: 14px;
-  border: 1px solid rgba(254, 144, 0, 0.24);
-  background: #111111;
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
 
   &.copy-mode-locked {
     pointer-events: none;
@@ -354,7 +355,7 @@ ion-header.copy-mode-locked {
   gap: 2px;
   width: 100%;
   min-height: 52px;
-  border-top: 1px solid #1d1d1d;
+  border-top: 1px solid $cu-hairline;
   color: var(--ion-text-color);
 }
 
@@ -464,13 +465,12 @@ app-premium-banner {
     cursor: default;
 
     .pinned-note-card {
+      border: none;
       flex-direction: column;
       gap: 8px;
       padding: 12px 16px;
       border-radius: 12px;
-      background: linear-gradient(135deg, rgba(56, 128, 255, 0.1) 0%, rgba(56, 128, 255, 0.04) 100%);
-      border: 1px solid rgba(56, 128, 255, 0.2);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      background: rgba(56, 128, 255, 0.1);
       transition: transform 0.2s ease;
       position: relative;
 
@@ -561,13 +561,13 @@ ion-content.has-clipboard-bar {
 }
 
 .clipboard-floating-bar {
+  border: none;
   position: fixed;
   bottom: calc(10px + env(safe-area-inset-bottom));
   left: 12px;
   right: 12px;
   z-index: 1000;
-  background: #151515;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1a1a1a;
   border-radius: 14px;
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
   animation: slideUp 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
@@ -588,18 +588,17 @@ ion-content.has-clipboard-bar {
     transition: transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
+  // Qué hay copiado: el color del aro dice si es una comida o una selección.
   &.full-meal {
-    border-color: rgba(var(--ion-color-primary-rgb), 0.38);
     box-shadow:
       0 14px 34px rgba(0, 0, 0, 0.42),
-      0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.08);
+      0 0 0 1.5px rgba(var(--ion-color-primary-rgb), 0.45);
   }
 
   &.partial-selection {
-    border-color: rgba(var(--ion-color-success-rgb), 0.36);
     box-shadow:
       0 14px 34px rgba(0, 0, 0, 0.42),
-      0 0 0 1px rgba(var(--ion-color-success-rgb), 0.08);
+      0 0 0 1.5px rgba(var(--ion-color-success-rgb), 0.45);
   }
 
   .clipboard-bar-content {
@@ -665,14 +664,14 @@ ion-content.has-clipboard-bar {
     flex-shrink: 0;
 
     .macro {
+      border: none;
       display: flex;
       align-items: center;
       gap: 4px;
       min-height: 24px;
       padding: 3px 7px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.055);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.07);
       font-size: 0.67rem;
       font-weight: 700;
       color: #d1d5db;

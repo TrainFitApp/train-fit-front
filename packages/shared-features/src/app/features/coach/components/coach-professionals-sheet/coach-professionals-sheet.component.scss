@@ -59,6 +59,7 @@
 }
 
 .pp-pro-row {
+  border: none;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -67,7 +68,6 @@
   margin-bottom: 8px;
   padding: 12px 10px 12px 12px;
   background: var(--cs-surface);
-  border: 1px solid var(--cs-line);
   border-radius: 14px;
   color: inherit;
   font-family: inherit;
@@ -81,7 +81,6 @@
 
   @media (hover: hover) {
     &:hover {
-      border-color: rgba(255, 255, 255, 0.22);
     }
   }
 
@@ -281,18 +280,17 @@
 
 // Lo que debe: la cifra manda. Sin deuda, el bloque no existe.
 .pp-balance {
+  border: none;
   display: flex;
   flex-direction: column;
   gap: 2px;
   margin-bottom: 10px;
   padding: 14px 16px;
   background: rgba(254, 144, 0, 0.06);
-  border: 1px solid rgba(254, 144, 0, 0.28);
   border-radius: 14px;
 
   &--overdue {
     background: rgba(var(--cs-danger-rgb), 0.07);
-    border-color: rgba(var(--cs-danger-rgb), 0.35);
 
     .pp-balance-label {
       color: var(--cs-danger-text);
@@ -314,13 +312,13 @@
 }
 
 .pp-fee {
+  border: none;
   display: flex;
   flex-direction: column;
   gap: 4px;
   margin-bottom: 14px;
   padding: 12px 14px;
   background: var(--cs-surface);
-  border: 1px solid var(--cs-line);
   border-radius: 14px;
 }
 

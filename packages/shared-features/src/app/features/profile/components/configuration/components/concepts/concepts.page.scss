@@ -78,17 +78,15 @@
 // Card: una única capa de profundidad (borde, sin sombra) para que no lea
 // como "ghost card" — coherente con el resto de listados de la app.
 .concept-card {
+  border: none;
   --background: rgba(255, 255, 255, 0.03);
   margin: 0;
   padding: 14px 16px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: none;
+  border-radius: 14px;background: rgba(255, 255, 255, 0.05);
   transition: border-color 180ms ease, background-color 180ms ease, transform 120ms ease;
 
   &:hover {
     --background: rgba(255, 255, 255, 0.045);
-    border-color: rgba(255, 255, 255, 0.16);
   }
 
   &:active {
@@ -202,4 +200,9 @@
   .concepts-container {
     padding: 4px 16px 32px;
   }
+}
+
+// Sin elevación: el lenguaje del cliente no lleva sombras de tarjeta.
+ion-card {
+  box-shadow: none;
 }

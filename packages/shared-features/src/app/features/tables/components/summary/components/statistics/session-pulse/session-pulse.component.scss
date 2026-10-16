@@ -36,6 +36,7 @@
 }
 
 .pulse-metric {
+  border: none;
   display: grid;
   grid-template-columns: 88px auto 1fr;
   align-items: baseline;
@@ -43,7 +44,6 @@
   padding: 10px 12px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--medium-gray, #2a2a2a);
 
   &__label {
     font-size: 12px;

@@ -94,15 +94,14 @@
 }
 
 .info-section {
+  border: none;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
   padding: 16px 20px;
-  background: #141414;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  border: 1px solid #252525;
   flex: 1;
 
   .info-content {
@@ -154,7 +153,8 @@
   }
 
   .set-card {
-    --background: #141414;
+    border: none;
+    --background: rgba(255, 255, 255, 0.05);
     --border-radius: 12px;
     --padding-start: 0;
     --padding-end: 0;
@@ -165,12 +165,10 @@
     --min-height: auto;
 
     margin-bottom: 12px;
-    border: 1px solid #252525;
     border-radius: 12px;
     transition: all 0.3s ease;
 
     &.set-done {
-      border-color: rgba(var(--ion-color-success-rgb), 0.3);
       background: rgba(var(--ion-color-success-rgb), 0.05);
     }
 

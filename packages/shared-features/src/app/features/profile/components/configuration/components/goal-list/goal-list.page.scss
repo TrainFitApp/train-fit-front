@@ -26,41 +26,22 @@
 }
 
 .create-goal-card {
-  background: #141414;
-  border: 1px solid #252525;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   padding: 16px 20px;
   margin-bottom: 16px;
   position: relative;
   overflow: hidden;
 
+  // Sin marco degradado: la tarjeta es una superficie tonal.
   &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 16px;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
-    mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: 1;
+    display: none;
   }
 
+  // El color lo lleva el contenido, no una barra encima.
   &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #373737;
-    z-index: 10;
+    display: none;
   }
 }
 
@@ -159,8 +140,8 @@
 }
 
 .goal-card {
-  background: #141414;
-  border: 1px solid #252525;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   padding: 20px;
   cursor: pointer;
@@ -168,37 +149,17 @@
   position: relative;
   overflow: hidden;
 
+  // Sin marco degradado: la tarjeta es una superficie tonal.
   &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 16px;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
-    mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: 1;
+    display: none;
   }
 
+  // El color lo lleva el contenido, no una barra encima.
   &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #373737;
-    z-index: 10;
+    display: none;
   }
 
   &:hover {
-    border-color: #373737;
   }
 
   &.read-only {
@@ -211,12 +172,11 @@
 
   &::after {
     background: var(--ion-color-success, #2dd36f);
-    box-shadow: 0 1px 10px rgba(var(--ion-color-success-rgb), 0.3);
   }
 }
 
 .goal-card.locked {
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.12);
 
   &::after {
     background: #6b7280;

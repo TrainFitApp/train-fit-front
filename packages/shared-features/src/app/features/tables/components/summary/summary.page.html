@@ -1,4 +1,4 @@
-<ion-header class="t-init-tables" [ngClass]="backgroundClass">
+<ion-header>
   <div class="toolbar-calendar-container">
     <div class="main-toolbar">
       <div class="toolbar-content">
@@ -18,12 +18,7 @@
   </div>
 </ion-header>
 
-<ion-content
-  #ionContent
-  class="t-init-tables"
-  [ngClass]="backgroundClass"
-  id="background-content"
->
+<ion-content #ionContent id="background-content">
   <!-- Aviso previo de mantenimiento -->
   <app-maintenance-warning-banner
     *ngIf="maintenanceWarning$ | async as maintenanceBanner"
@@ -45,11 +40,11 @@
            activa (antes bajaban a secundarias al final de la página con
            rutina activa — se quita esa segunda copia de más abajo). -->
       <div class="nav-buttons">
-        <button class="nav-btn nav-btn--search" (click)="openSearchTables()">
+        <button type="button" class="nav-btn nav-btn--search" (click)="openSearchTables()">
           <ion-icon name="search-outline" class="nav-icon"></ion-icon>
           {{ 'TABLES.SEARCH_ROUTINES' | translate }}
         </button>
-        <button class="nav-btn nav-btn--create" (click)="createTableAndAddToUser()">
+        <button type="button" class="nav-btn nav-btn--create" (click)="createTableAndAddToUser()">
           <ion-icon name="add-circle-outline" class="nav-icon"></ion-icon>
           {{ 'TABLES.CREATE_ROUTINE_BTN' | translate }}
         </button>
@@ -196,6 +191,13 @@
           <!-- Cabecera de la rutina en uso: entera pulsable, mismo destino
                que "Ver mesociclo". El glosario no navega (stopPropagation). -->
           <div class="routine-summary" role="button" tabindex="0" (click)="openMesocycle()" (keydown.enter)="openMesocycle()">
+          <div class="section-header">
+            <h2 class="section-title">
+              <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+              {{ 'TABLES.ROUTINE_IN_USE' | translate }}
+            </h2>
+            <ion-icon class="routine-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+          </div>
           <div class="routine-name">{{ tableInUse.name | translateDb }}</div>
           <div class="routine-description">
             {{ 'TABLES.MICROCYCLE_OF' | translate:{ current: currentMicrocycle(), total: tableInUse.splits.length } }}
@@ -223,19 +225,20 @@
           <app-routine-calendar></app-routine-calendar>
 
           <div class="bottom-cards-row">
-            <div class="bottom-card bottom-card--orange" (click)="openMesocycle(); $event.stopPropagation()">
-              <ion-icon name="calendar-outline" class="bottom-card__icon"></ion-icon>
+            <button type="button" class="bottom-card bottom-card--orange" (click)="openMesocycle(); $event.stopPropagation()">
+              <ion-icon name="calendar-outline" class="bottom-card__icon" aria-hidden="true"></ion-icon>
               <span class="bottom-card__label">{{ 'TABLES.VIEW_MESOCYCLE' | translate }}</span>
-            </div>
-            <div class="bottom-card bottom-card--warning" (click)="goToStatistics(); $event.stopPropagation()">
-              <ion-icon name="bar-chart-outline" class="bottom-card__icon"></ion-icon>
+            </button>
+            <button type="button" class="bottom-card bottom-card--warning" (click)="goToStatistics(); $event.stopPropagation()">
+              <ion-icon name="bar-chart-outline" class="bottom-card__icon" aria-hidden="true"></ion-icon>
               <span class="bottom-card__label">{{ 'TABLES.STATISTICS' | translate }}</span>
-            </div>
+            </button>
           </div>
 
           <!-- Enlace de texto discreto, no botón: acción destructiva y poco
                frecuente, no debe competir visualmente con mesociclo/estadísticas. -->
           <button
+            type="button"
             *ngIf="!isConfirmingExit"
             class="exit-link"
             (click)="requestExit(); $event.stopPropagation()"
@@ -249,10 +252,10 @@
                fuera la cierra y vuelve el enlace (ver requestExit). -->
           <div *ngIf="isConfirmingExit" class="exit-confirm" (click)="$event.stopPropagation()">
             <span class="exit-confirm__actions">
-              <button class="exit-confirm__btn exit-confirm__btn--cancel" (click)="cancelExit()">
+              <button type="button" class="exit-confirm__btn exit-confirm__btn--cancel" (click)="cancelExit()">
                 {{ 'COMMON.CANCEL' | translate }}
               </button>
-              <button class="exit-confirm__btn exit-confirm__btn--danger" (click)="confirmExit()">
+              <button type="button" class="exit-confirm__btn exit-confirm__btn--danger" (click)="confirmExit()">
                 {{ 'COMMON.DELETE' | translate }}
               </button>
             </span>

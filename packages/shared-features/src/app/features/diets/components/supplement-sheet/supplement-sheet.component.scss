@@ -48,13 +48,13 @@
 }
 
 .supplement-sheet__field {
+  border: none;
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
   min-height: 64px;
   padding: 8px 12px;
-  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.12);
   border-radius: 14px;
   background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
   transition:
@@ -62,7 +62,7 @@
     background-color 140ms ease;
 
   &:focus-within {
-    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 0 2px var(--ion-color-primary);
     background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.06);
   }
 
@@ -81,9 +81,9 @@
 }
 
 .supplement-sheet__weekday {
+  border: none;
   min-height: 44px;
   padding: 0;
-  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.14);
   border-radius: 10px;
   background: none;
   color: var(--ion-color-medium);
@@ -98,7 +98,6 @@
     color 140ms ease;
 
   &.is-selected {
-    border-color: var(--ion-color-primary);
     background: rgba(var(--ion-color-primary-rgb, 254, 144, 0), 0.16);
     color: var(--ion-color-primary);
   }
@@ -184,7 +183,7 @@
   // aquí el que reacciona es el campo de fuera (:focus-within).
   &.select-expanded,
   &:focus-within {
-    border-color: transparent;
+    box-shadow: 0 0 0 2px transparent;
     background: transparent;
   }
 
@@ -247,11 +246,11 @@
 // Ficha de lo pautado: etiqueta pequeña encima y el dato debajo, en la misma
 // caja que los campos del editor.
 .supplement-sheet__details {
+  border: none;
   display: flex;
   flex-direction: column;
   margin: 0;
   padding: 4px 12px;
-  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.12);
   border-radius: 14px;
   background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
 }

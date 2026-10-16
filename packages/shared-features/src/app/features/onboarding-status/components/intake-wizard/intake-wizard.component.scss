@@ -184,7 +184,7 @@ swiper-slide {
   }
 
   &:focus {
-    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-primary);
   }
 }
 
@@ -246,7 +246,6 @@ input.field-input {
 
   &.is-selected {
     background: var(--accent-soft);
-    border-color: var(--accent-primary);
 
     .option-icon {
       background: var(--accent-primary);
@@ -255,7 +254,6 @@ input.field-input {
 
     .option-check {
       background: var(--accent-primary);
-      border-color: var(--accent-primary);
 
       ion-icon {
         opacity: 1;
@@ -354,7 +352,7 @@ input.field-input {
   transition: border-color 0.2s var(--ease);
 
   &:focus-within {
-    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-primary);
   }
 
   &.is-invalid {
@@ -426,7 +424,7 @@ input.field-input {
     }
 
     &:focus {
-      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px var(--accent-primary);
     }
   }
 }

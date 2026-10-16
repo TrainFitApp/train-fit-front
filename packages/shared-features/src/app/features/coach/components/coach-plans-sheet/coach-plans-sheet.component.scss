@@ -3,12 +3,12 @@
 // El plan de hoy: lo único con peso propio en la hoja. Superficie y borde
 // naranja tenue, sin sombra: es lo que rige, el resto es contexto.
 .ps-current {
+  border: none;
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 16px;
   background: rgba(254, 144, 0, 0.06);
-  border: 1px solid rgba(254, 144, 0, 0.28);
   border-radius: 14px;
 }
 

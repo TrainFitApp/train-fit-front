@@ -78,13 +78,13 @@
 }
 
 .requested-banner {
+  border: none;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
   margin-bottom: 14px;
   background: rgba(254, 144, 0, 0.1);
-  border: 1px solid rgba(254, 144, 0, 0.3);
   border-radius: 12px;
   color: #fe9b1a;
   font-size: 0.85rem;
@@ -117,9 +117,9 @@
 // Alergias: superficie propia en rojo suave. Es el único bloque que puede
 // hacer daño si se pasa por alto, así que no compite en igualdad con el resto.
 .form-group--critical {
+  border: none;
   padding: 12px;
   background: rgba(235, 68, 90, 0.1);
-  border: 1px solid rgba(235, 68, 90, 0.35);
   border-radius: 12px;
 }
 
@@ -182,14 +182,14 @@
 }
 
 .note-field {
+  border: none;
   display: block;
   width: 100%;
   // Con content-box, el relleno y el borde se suman al 100% y el textarea
   // se sale por la derecha.
   box-sizing: border-box;
   padding: 10px 12px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
   color: #ffffff;
   font-family: inherit;
@@ -204,16 +204,15 @@
 
   &:focus {
     outline: none;
-    border-color: #fe9000;
+    box-shadow: 0 0 0 2px #fe9000;
   }
 }
 
 .note-field--critical {
   background: #141414;
-  border-color: rgba(235, 68, 90, 0.35);
 
   &:focus {
-    border-color: #eb445a;
+    box-shadow: 0 0 0 2px #eb445a;
   }
 }
 
@@ -226,14 +225,14 @@
   gap: 8px;
 
   button {
+    border: none;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     min-height: 44px;
     padding: 0 14px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: #1a1a1a;
+    background: rgba(255, 255, 255, 0.07);
     font-family: inherit;
     font-size: 0.85rem;
     font-weight: 600;
@@ -254,25 +253,21 @@
 
   button.flag-vegan.is-active {
     background: rgba(52, 211, 153, 0.14);
-    border-color: #34d399;
     color: #34d399;
   }
 
   button.flag-vegetarian.is-active {
     background: rgba(45, 212, 191, 0.14);
-    border-color: #2dd4bf;
     color: #2dd4bf;
   }
 
   button.flag-lactose-free.is-active {
     background: rgba(96, 165, 250, 0.14);
-    border-color: #60a5fa;
     color: #60a5fa;
   }
 
   button.flag-gluten-free.is-active {
     background: rgba(255, 196, 85, 0.16);
-    border-color: #ffc455;
     color: #ffc455;
   }
 }
@@ -284,6 +279,7 @@
 }
 
 .option-card {
+  border: none;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -292,8 +288,7 @@
   gap: 4px;
   min-height: 60px;
   padding: 8px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
   color: #c7c7c7;
   font-family: inherit;
@@ -310,7 +305,6 @@
 
   &.is-active {
     background: rgba(254, 144, 0, 0.1);
-    border-color: #fe9000;
     color: #fe9b1a;
 
     ion-icon {

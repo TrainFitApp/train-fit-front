@@ -227,9 +227,52 @@ $ease-out: cubic-bezier(0.2, 0, 0, 1);
 }
 
 // ─── Banner Pro ──────────────────────────────────────────────────────────────
-// El banner es `app-premium-banner` (shared-ui); aquí solo su hueco.
-app-premium-banner {
+.premium-banner {
+  @include reset-button;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 2 * var(--profile-gutter));
   margin: 8px var(--profile-gutter) 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  transition: background-color 150ms $ease-out, transform 130ms $ease-out;
+
+  &:active {
+    transform: scale(0.985);
+    background: rgba(var(--ion-color-primary-rgb), 0.16);
+  }
+}
+
+.premium-banner__icon {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--ion-color-primary);
+}
+
+.premium-banner__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.premium-banner__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.premium-banner__sub {
+  font-size: 0.8125rem;
+  color: var(--pe-muted);
+}
+
+.premium-banner__arrow {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--pe-muted);
 }
 
 // ─── Secciones ───────────────────────────────────────────────────────────────
@@ -486,42 +529,46 @@ app-premium-banner {
   @include reset-button;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
   min-width: 0;
   min-height: 44px;
-  text-align: center;
   transition: opacity 120ms $ease-out;
 
   &:active {
     opacity: 0.6;
   }
 
-  // La media actual va en una sola línea: etiqueta, cifra y variación.
   &--main {
     grid-column: 1 / -1;
+    align-items: center;
+    text-align: center;
 
     .weight-metric-value {
-      flex-wrap: nowrap;
-      white-space: nowrap;
+      justify-content: center;
       font-size: 2rem;
       letter-spacing: -0.03em;
     }
   }
 }
 
-// Las etiquetas nunca saltan de línea («Media semanal anterior» cabe en su columna).
 .weight-metric-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.8125rem;
   color: var(--pe-muted);
-  white-space: nowrap;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
 }
 
 .weight-metric-value {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  justify-content: center;
   column-gap: 8px;
   font-size: 1.375rem;
   font-weight: 700;
@@ -774,10 +821,6 @@ app-premium-banner {
 
 // ─── Pantallas pequeñas y anchas ─────────────────────────────────────────────
 @media (max-width: 360px) {
-  .weight-metric-label {
-    font-size: 0.75rem;
-  }
-
   .nutrition-content {
     gap: 18px;
   }
@@ -803,7 +846,7 @@ app-premium-banner {
     margin-right: auto;
   }
 
-  app-premium-banner {
+  .premium-banner {
     max-width: 680px;
     margin-left: auto;
     margin-right: auto;
@@ -814,7 +857,7 @@ app-premium-banner {
 // crearse la página (las pestañas se conservan, no se repite al volver).
 .profile-header,
 app-profile-coach-card,
-app-premium-banner,
+.premium-banner,
 .section,
 .social-section {
   animation: profile-in 420ms $ease-out backwards;
@@ -822,7 +865,7 @@ app-premium-banner,
 }
 
 app-profile-coach-card,
-app-premium-banner {
+.premium-banner {
   --i: 1;
 }
 
@@ -858,11 +901,15 @@ app-premium-banner {
 @media (prefers-reduced-motion: reduce) {
   .profile-header,
   app-profile-coach-card,
-  app-premium-banner,
+  .premium-banner,
   .section,
   .social-section,
   .macro-fill,
   .routine-progress__fill {
     animation: none;
+  }
+
+  .premium-banner {
+    transition: none;
   }
 }

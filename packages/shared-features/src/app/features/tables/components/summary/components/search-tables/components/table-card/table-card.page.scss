@@ -1,5 +1,6 @@
 // Table Card
 .table-card {
+  border: none;
   --background: #141414;
   --color: #ffffff;
   --border-color: #252525;
@@ -7,12 +8,9 @@
   margin: 0 0 10px;
   padding: 0;
   border-radius: 16px;
-  border: 1px solid var(--border-color);
   background: var(--background);
-  box-shadow: none;
 
   &.selected {
-    border-color: rgba(var(--ion-color-primary-rgb), 0.35);
     background: rgba(var(--ion-color-primary-rgb), 0.04);
   }
 
@@ -83,12 +81,12 @@
 
 // Stats Section
 .card-stats {
+  border: none;
   display: flex;
   gap: 0;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
   padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .stat {
@@ -354,4 +352,9 @@
       font-size: 15px;
     }
   }
+}
+
+// Sin elevación: el lenguaje del cliente no lleva sombras de tarjeta.
+ion-card {
+  box-shadow: none;
 }

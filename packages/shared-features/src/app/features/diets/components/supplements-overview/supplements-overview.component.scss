@@ -46,10 +46,10 @@
 }
 
 .supplements-overview__list {
+  border: none;
   margin: 0;
   padding: 4px 12px;
   list-style: none;
-  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.12);
   border-radius: 14px;
   background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
 

@@ -36,7 +36,6 @@ ion-input {
 // Main Form Container
 form {
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   position: relative;
 }
 
@@ -45,7 +44,6 @@ form {
   background: #141414;
   border: none;
   margin-bottom: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 0 16px;
 
   &.doned {
@@ -222,7 +220,6 @@ form {
     padding: 0.25rem 0.75rem;
     background: #141414;
     border: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
     ion-col {
       ion-input {

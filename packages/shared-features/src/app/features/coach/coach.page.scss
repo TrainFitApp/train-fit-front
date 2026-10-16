@@ -38,6 +38,7 @@
 // pero a lo ancho y con el estado en la línea de dato. Antes tenía
 // width:100% MÁS margen lateral y se salía 32px por la derecha.
 .onboarding-reminder {
+  border: none;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -46,8 +47,7 @@
   min-height: 64px;
   margin: 16px 16px 0;
   padding: 12px 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   font-family: inherit;
   text-align: left;
@@ -60,7 +60,6 @@
 
   @media (hover: hover) {
     &:hover {
-      border-color: rgba(255, 255, 255, 0.22);
     }
   }
 
@@ -81,7 +80,6 @@
   // antes de que su profesional pueda empezar.
   &--pending {
     background: rgba(254, 144, 0, 0.08);
-    border-color: rgba(254, 144, 0, 0.35);
 
     .onboarding-reminder-stat {
       color: #fe9b1a;
@@ -89,7 +87,6 @@
 
     @media (hover: hover) {
       &:hover {
-        border-color: rgba(254, 144, 0, 0.6);
       }
     }
   }
@@ -167,13 +164,13 @@
 }
 
 .coach-menu-card {
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
   padding: 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   text-align: left;
   cursor: pointer;
@@ -187,7 +184,6 @@
   // Solo mouse/trackpad — en touch, :hover se quedaría "pegado" tras el tap.
   @media (hover: hover) {
     &:hover {
-      border-color: rgba(255, 255, 255, 0.22);
     }
   }
 }
@@ -281,16 +277,23 @@
   }
 }
 
+// Título de sección: el del perfil (mayúsculas pequeñas en gris, icono naranja).
 .section-heading {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
-  font-weight: 700;
+  gap: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #8b8b8b;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
   margin: 8px 0 10px;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1.125rem;
+    color: var(--ion-color-primary);
+  }
 }
 
 // Contador de no leídas junto al título — mismo acento naranja que el
@@ -356,6 +359,7 @@
 }
 
 .action-card {
+  border: none;
   width: 100%;
   display: flex;
   align-items: center;
@@ -363,7 +367,6 @@
   padding: 14px;
   margin-bottom: 8px;
   background: rgba(254, 144, 0, 0.08);
-  border: 1px solid rgba(254, 144, 0, 0.25);
   border-radius: 14px;
   cursor: pointer;
   text-align: left;
@@ -377,7 +380,6 @@
   &--static {
     cursor: default;
     background: #141414;
-    border-color: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -551,14 +553,14 @@
 }
 
 .notification-card {
+  border: none;
   position: relative;
   width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   // Mismo radio que .notification-sliding-item — si solo redondea el
   // contenedor exterior (overflow:hidden) y esta tarjeta se queda cuadrada
   // por dentro, las dos curvas de recorte no coinciden en el borde recto de
@@ -575,7 +577,6 @@
 
   &--unread {
     background: rgba(254, 144, 0, 0.06);
-    border-color: rgba(254, 144, 0, 0.2);
 
     .action-title {
       font-weight: 700;
@@ -629,14 +630,14 @@
 }
 
 .task-row {
+  border: none;
   width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
   margin-bottom: 8px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 14px;
   cursor: pointer;
   text-align: left;
@@ -674,11 +675,14 @@
 .tasks-card--done {
   .section-heading {
     color: #2dd36f;
+
+    ion-icon {
+      color: inherit;
+    }
   }
 
   .task-row {
     background: rgba(45, 211, 111, 0.1);
-    border-color: rgba(45, 211, 111, 0.35);
   }
 
   .task-row--done .action-title {
@@ -692,9 +696,9 @@
 // color reservado para la acción principal (Aceptar) — nada de chips-
 // pastilla ni iconos multicolor compitiendo entre sí por la atención.
 .pro-card {
+  border: none;
   padding: 16px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   margin-bottom: 10px;
   animation: card-in 300ms var(--ease-out) backwards;
@@ -958,7 +962,6 @@
 
 .skeleton-block.pro-avatar {
   background: #1e1e1e;
-  border-color: transparent;
 }
 
 .skeleton-line {

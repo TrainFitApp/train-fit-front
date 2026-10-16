@@ -33,13 +33,11 @@
 
       .config-card--premium {
         border: 1px solid rgba(254, 144, 0, 0.45);
-        box-shadow: 0 2px 16px rgba(254, 144, 0, 0.12);
       }
 
       .config-card {
         margin: 0;
         border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         overflow: hidden;
 
         .config-item {
@@ -210,7 +208,6 @@
     }
 
     .plan-btn--featured {
-      border-color: rgba(var(--ion-color-primary-rgb), 0.5);
       background: rgba(var(--ion-color-primary-rgb), 0.08);
     }
   }
@@ -230,7 +227,6 @@ body[color-theme="dark"] {
     .config-sections {
       .section-group {
         .config-card {
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 
           .config-item .item-icon-container {
             &.theme-icon {
@@ -372,9 +368,9 @@ ion-modal.time-datetime-modal {
 }
 
 ion-modal.time-datetime-modal::part(content) {
+  border: none;
   border-radius: 22px;
-  border: 1px solid rgba(254, 144, 0, 0.25);
-  background: #121212;
+  background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
 
@@ -389,13 +385,13 @@ ion-modal.time-datetime-modal ion-datetime {
 }
 
 ion-modal.time-datetime-modal .datetime-title {
+  border: none;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(254, 144, 0, 0.2);
 }
 
 ion-modal.time-datetime-modal .datetime-title span,
@@ -430,13 +426,13 @@ ion-modal.time-datetime-modal ion-button {
 }
 
 .time-display {
+  border: none;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
   border-radius: 12px;
   background: rgba(254, 144, 0, 0.12);
-  border: 1px solid rgba(254, 144, 0, 0.25);
   cursor: pointer;
   transition: background 0.2s ease;
 
@@ -455,4 +451,9 @@ ion-modal.time-datetime-modal ion-button {
     color: #fe9000;
     letter-spacing: 0.5px;
   }
+}
+
+// Sin elevación: el lenguaje del cliente no lleva sombras de tarjeta.
+ion-card {
+  box-shadow: none;
 }

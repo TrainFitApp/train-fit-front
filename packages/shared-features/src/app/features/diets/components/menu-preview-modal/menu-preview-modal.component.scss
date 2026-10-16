@@ -70,11 +70,11 @@
   }
 
   &__meal {
+    border: none;
     margin-bottom: 12px;
     padding: 10px 12px;
-    border: 1px solid #2a2a2a;
     border-radius: 12px;
-    background: #111111;
+    background: rgba(255, 255, 255, 0.05);
   }
 
   &__meal-name {

@@ -1,27 +1,28 @@
+@import '../../../../../../../shared-theme/src/theme/client-ui';
+
 // Contenedor principal de la tarjeta de comida
 .meal-card {
-  background: #141414;
-  border: 1px solid #252525;
-  border-radius: 12px;
+  border: none;
+  background: $cu-wash;
+  border-radius: 16px;
   // Distancia con lo de arriba (cabecera, tarjeta u otra comida): una sola,
   // la de la pantalla. Abajo no hay margen: lo pone el siguiente elemento.
   margin: var(--diets-gap, 8px) 2px 0;
   padding: 0;
   overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease;
   position: relative;
 
   // Barra de progreso dentro de la tarjeta
   ion-progress-bar {
-    border-radius: 12px 12px 0 0;
+    border-radius: 16px 16px 0 0;
     overflow: hidden;
   }
 
   // Accordion dentro de la tarjeta
   ion-accordion {
     background: transparent;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
     border: none;
 
@@ -54,18 +55,22 @@
       }
 
       // Elementos del listado (recetas y productos)
+      // Filas abiertas separadas por una línea fina; solo lo pautado por el
+      // profesional lleva superficie (azul, o verde si ya está consumido).
       .meal-item {
+        border: none;
         position: relative;
         display: flex;
         align-items: center;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(37, 37, 37, 0.6);
-        border-radius: 8px;
-        margin: 8px 0;
-        padding: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
+        margin: 0;
+        padding: 12px 0;
+        border-radius: 12px;
+        transition: background-color 0.2s ease;
         min-height: 60px;
+
+        & + .meal-item {
+          border-top: 1px solid $cu-hairline;
+        }
 
         // Contenido principal del elemento
         .item-content {
@@ -87,6 +92,18 @@
             font-weight: 500;
             margin: 0;
             line-height: 1.2;
+          }
+
+          // Marca de qué es: producto (amarillo) o receta (naranja).
+          .item-name::before {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            margin-right: 8px;
+            border-radius: 50%;
+            vertical-align: middle;
+            background: var(--item-dot, transparent);
           }
 
           .item-quantity {
@@ -218,14 +235,12 @@
           }
         }
 
-        // Estilos específicos para productos
         &.product-item {
-          border-left: 3px solid var(--ion-color-secondary);
+          --item-dot: var(--ion-color-secondary);
         }
 
-        // Estilos específicos para recetas
         &.recipe-item {
-          border-left: 3px solid var(--ion-color-primary);
+          --item-dot: var(--ion-color-primary);
         }
 
         // Pautado — mismo azul "alternative" que ya usa la nota anclada de
@@ -234,8 +249,19 @@
         // "esto lo pautó tu profesional" se lea con el mismo lenguaje
         // visual en toda la app.
         &.pautado-item {
-          background: rgba(var(--ion-color-alternative-rgb), 0.06);
-          border-color: rgba(var(--ion-color-alternative-rgb), 0.22);
+          --item-dot: transparent;
+          margin: 6px 0;
+          padding: 12px;
+          background: rgba(var(--ion-color-alternative-rgb), 0.1);
+          border-top: none;
+
+          & + .meal-item {
+            border-top: none;
+          }
+
+          .item-name::before {
+            display: none;
+          }
         }
       }
 
@@ -244,28 +270,24 @@
       // simple línea), para que destaque de un vistazo sin convertirse en
       // una card enorme.
       .pautado-header {
+        border: none;
         display: flex;
         flex-direction: column;
         gap: 4px;
-        padding: 12px 14px;
-        margin: 16px 0 12px 0;
-        border-radius: 12px;
-        background: linear-gradient(
-          135deg,
-          rgba(var(--ion-color-alternative-rgb), 0.1) 0%,
-          rgba(var(--ion-color-alternative-rgb), 0.04) 100%
-        );
-        border: 1px solid rgba(var(--ion-color-alternative-rgb), 0.2);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 0 4px;
+        margin: 16px 0 8px 0;
 
         ion-label {
           display: flex;
           align-items: center;
           gap: 6px;
+          font-size: 0.75rem;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
           color: var(--ion-color-alternative);
 
           ion-icon {
-            font-size: 15px;
+            font-size: 16px;
             color: var(--ion-color-alternative);
           }
         }
@@ -491,21 +513,12 @@ ion-spinner {
   }
 }
 
-// Tema oscuro
-.macros-grid {
-  .macro-col {
-    .macro-chip {
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-  }
-}
-
 // Selection Mode Styles
 .meal-item {
   &.selected {
-    background: rgba(var(--ion-color-primary-rgb), 0.12);
-    border-color: var(--ion-color-primary);
-    border-width: 2px;
+    padding-left: 12px;
+    padding-right: 12px;
+    background: rgba(var(--ion-color-primary-rgb), 0.16);
 
     .item-header .item-name {
       color: var(--ion-color-primary);
@@ -517,12 +530,7 @@ ion-spinner {
   // suave + borde translúcido, no un borde sólido plano. Mismo verde que el
   // checkbox (color="success"), extendido a toda la fila.
   &.pautado-item.consumed {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--ion-color-success-rgb), 0.1) 0%,
-      rgba(var(--ion-color-success-rgb), 0.03) 100%
-    );
-    border-color: rgba(var(--ion-color-success-rgb), 0.3);
+    background: rgba(var(--ion-color-success-rgb), 0.12);
 
     .item-header .item-name {
       color: var(--ion-color-success);
@@ -567,26 +575,19 @@ ion-spinner {
   // borde translúcido + sombra tenue), no un borde sólido plano encima del
   // fondo oscuro de la card.
   &.pautado-complete {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--ion-color-success-rgb), 0.08) 0%,
-      rgba(var(--ion-color-success-rgb), 0.02) 100%
-    ),
-    #141414;
-    border-color: rgba(var(--ion-color-success-rgb), 0.28);
-    box-shadow: 0 2px 10px rgba(var(--ion-color-success-rgb), 0.1);
+    background: rgba(var(--ion-color-success-rgb), 0.1);
   }
 }
 
 // Estilos para skeleton loader del meal component
 .meal-skeleton-accordion {
-  background: #141414;
+  background: transparent;
   margin-bottom: 1px;
 }
 
 .skeleton-meal-header {
   padding: 9px;
-  background: #141414;
+  background: transparent;
 }
 
 .skeleton-meal-name {
@@ -643,18 +644,17 @@ ion-skeleton-text {
 
 // Estilos existentes del meal component
 .meal-copied {
+  border: none;
   font-size: 0.7rem;
   font-weight: 700;
   margin: 4px 0;
-  color: #ffffff;
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  padding: 4px 8px;
-  border-radius: 12px;
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.16);
+  padding: 4px 10px;
+  border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   animation: fadeInSuccess 0.3s ease-out;
-  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
-  border: 1px solid rgba(34, 197, 94, 0.4);
 }
 
 @keyframes fadeInSuccess {
@@ -673,7 +673,7 @@ ion-skeleton-text {
 // Neutro de base; el naranja, tenue, solo marca la opción elegida.
 .meal-proposal-banner {
   padding: 10px 12px;
-  border-bottom: 1px solid #222222;
+  border-bottom: 1px solid $cu-hairline;
 }
 
 .meal-proposal-item + .meal-proposal-item {
@@ -699,21 +699,20 @@ ion-skeleton-text {
   gap: 6px;
 
   ion-chip {
+    border: none;
     --background: rgba(255, 255, 255, 0.06);
     --color: #b5b5b5;
     font-weight: 500;
     cursor: pointer;
     margin: 0;
-    border: 1px solid transparent;
     // La regla global de este componente anula la interacción de TODOS los
     // ion-chip (chips de macros); estos sí se pulsan.
     pointer-events: auto;
 
     // Opción elegida: tinte suave y borde fino, sin relleno sólido.
     &.meal-proposal-chip--active {
-      --background: rgba(254, 144, 0, 0.1);
-      --color: #f0b060;
-      border-color: rgba(254, 144, 0, 0.35);
+      --background: rgba(254, 144, 0, 0.22);
+      --color: #ffc27a;
       font-weight: 600;
     }
 

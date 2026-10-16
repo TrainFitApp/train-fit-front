@@ -5,10 +5,10 @@
 }
 
 .supplement-reminder {
+  border: none;
   display: flex;
   flex-direction: column;
   padding: 4px 12px;
-  border: 1px solid rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.12);
   border-radius: 14px;
   background: rgba(var(--ion-text-color-rgb, 255, 255, 255), 0.04);
 }

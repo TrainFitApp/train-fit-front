@@ -108,7 +108,10 @@
     [class.tasks-card--done]="completedTasksCount === tasks.length"
   >
     <div class="section-header-row">
-      <h2 class="section-heading">{{ 'COACH.TODAY_HABITS' | translate }}</h2>
+      <h2 class="section-heading">
+        <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+        {{ 'COACH.TODAY_HABITS' | translate }}
+      </h2>
       <span class="tasks-progress" [class.tasks-progress--done]="completedTasksCount === tasks.length">
         {{ completedTasksCount }}/{{ tasks.length }}
       </span>
@@ -195,7 +198,10 @@
       id="section-pending"
       *ngIf="d.pendingCheckins.length || d.nutritionPreferences?.pending || d.pendingPayments.length"
     >
-      <h2 class="section-heading">{{ 'COACH.PENDING_TITLE' | translate }}</h2>
+      <h2 class="section-heading">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+        {{ 'COACH.PENDING_TITLE' | translate }}
+      </h2>
 
       <button
         class="action-card"
@@ -234,6 +240,7 @@
   <div class="section-card" id="section-notifications">
     <div class="section-header-row notifications-header">
       <h2 class="section-heading">
+        <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
         {{ 'COACH_NOTIFICATIONS.TITLE' | translate }}
         <span class="unread-badge" *ngIf="unreadNotificationsCount">{{ unreadNotificationsCount }}</span>
       </h2>
@@ -354,7 +361,10 @@
 
   <ng-container *ngIf="state === 'loaded'">
     <div class="section-card" *ngIf="pendingInvites.length">
-      <h2 class="section-heading">{{ 'COACH.PENDING_INVITES' | translate }}</h2>
+      <h2 class="section-heading">
+        <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
+        {{ 'COACH.PENDING_INVITES' | translate }}
+      </h2>
 
       <article class="pro-card pro-card--invite" *ngFor="let invite of pendingInvites; trackBy: trackByPendingInvite">
         <header class="pro-card-header">

@@ -52,11 +52,10 @@
 
 // Cards
 .card {
+  border: none;
   background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
@@ -88,7 +87,7 @@
     transition: border-color 0.2s ease;
 
     &:focus-within {
-      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px var(--accent-primary);
     }
   }
 
@@ -132,8 +131,8 @@
 // Macros card
 .macros-card {
   .macro-adjuster-card {
+    border: none;
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-primary);
     border-radius: 14px;
     padding: 12px 14px;
     margin-bottom: 12px;
@@ -149,7 +148,6 @@
 
     &.locked {
       background: rgba(0, 0, 0, 0.15);
-      border-color: rgba(255, 255, 255, 0.05);
 
       .macro-dot,
       .macro-name,
@@ -187,7 +185,6 @@
       height: 10px;
       border-radius: 50%;
       background: var(--macro-color);
-      box-shadow: 0 0 8px var(--macro-bg-glow);
     }
 
     .macro-text {
@@ -282,9 +279,7 @@
 
     &.is-locked {
       background: var(--macro-color);
-      border-color: var(--macro-color);
       color: white;
-      box-shadow: 0 2px 8px var(--macro-bg-glow);
     }
 
     &:active {
@@ -371,7 +366,6 @@
     transform: translate(-50%, -50%);
     z-index: 10;
     cursor: grab;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -446,7 +440,6 @@
   &.locked {
     background: var(--accent-primary);
     color: var(--text-primary);
-    border-color: var(--accent-primary);
   }
 
   i {
@@ -458,12 +451,12 @@
 
 .distribution-card {
   .distribution-chart {
+    border: none;
     height: 20px;
     border-radius: 10px;
     overflow: hidden;
     display: flex;
     background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
   }
 
   .chart-bar-segment {
@@ -912,6 +905,7 @@
 
 // Info/Warning Card (Style matching manage-set)
 .info-card {
+  border: none;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -921,14 +915,11 @@
   background: linear-gradient(135deg,
       rgba(var(--ion-color-primary-rgb), 0.08) 0%,
       rgba(var(--ion-color-primary-rgb), 0.04) 100%);
-  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   &.warning-card {
     background: linear-gradient(135deg,
         rgba(var(--ion-color-warning-rgb), 0.1) 0%,
         rgba(var(--ion-color-warning-rgb), 0.05) 100%);
-    border-color: rgba(var(--ion-color-warning-rgb), 0.25);
 
     .info-icon,
     .info-title {
