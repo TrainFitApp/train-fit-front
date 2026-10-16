@@ -278,6 +278,11 @@ ion-header.copy-mode-locked {
   }
 }
 
+// Texto del título en blanco; el icono de la baldosa conserva el naranja.
+.day-supplements__label {
+  color: #fff;
+}
+
 .day-supplements__title-chevron {
   font-size: 14px;
   opacity: 0.8;
