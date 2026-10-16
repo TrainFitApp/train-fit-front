@@ -52,12 +52,14 @@ import {
 } from 'src/app/core/services/auth/pending-email-verification.service';
 import { SignUpStateService } from 'src/app/core/services/auth/sign-up-state.service';
 import { PasswordComplexity } from 'src/app/core/validators/password-complexity';
+import { notBlank } from 'src/app/core/validators/not-blank';
 import Swiper from 'swiper';
 import { calculateTrainingValues } from 'src/app/shared/constants/training';
 import { EmailExistValidator } from 'src/app/core/validators/email-exist';
 import { TranslateService } from '@ngx-translate/core';
 import { resendCodeErrorMessage, verificationMailFailed } from 'src/app/core/utils/verification-mail.util';
 import { signupErrorMessage } from 'src/app/core/utils/signup-errors.util';
+import { signupFormErrorKeys } from 'src/app/core/utils/signup-form-errors.util';
 
 @Component({
   selector: 'app-sign-up',
@@ -101,10 +103,12 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public registerSocialPending: boolean;
 
-  public error: string;
-  // El resumen de errores sale tras intentar registrarse, no antes de tocar
-  // nada (QA 2026-10-09: «Este campo es obligatorio» al llegar al último paso).
-  public registerAttempted = false;
+  // Resumen apilado de errores en el último paso (además del aviso de cada
+  // campo). Solo lo ya tocado: QA 2026-10-09, «Este campo es obligatorio»
+  // salía al llegar al último paso sin haber hecho nada.
+  public get formErrorKeys(): string[] {
+    return signupFormErrorKeys(this.signUpForm);
+  }
 
   private backButton$: Subscription;
   private destroy$ = new Subject<void>();
@@ -214,7 +218,6 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.initializeBackButtonCustomHandler();
 
     this.signUpForm.valueChanges.subscribe((res) => {
-      this.error = this.utilService.handleErrors(this.signUpForm);
       this.name = res.name;
       this.lastname = res.lastname;
       this.steps = res.steps;
@@ -512,8 +515,8 @@ export class SignUpPage implements OnInit, OnDestroy {
   public initForm(): void {
     this.signUpForm = new FormGroup(
       {
-        name: new FormControl(null, Validators.required),
-        lastname: new FormControl(null, Validators.required),
+        name: new FormControl(null, notBlank),
+        lastname: new FormControl(null, notBlank),
         weight: new FormControl(
           null,
           Validators.compose([
@@ -789,7 +792,6 @@ export class SignUpPage implements OnInit, OnDestroy {
   }
 
   public register(): void {
-    this.registerAttempted = true;
     if (this.signUpForm.invalid) {
       // Antes se quedaba sin hacer nada y sin decir por qué.
       this.signUpForm.markAllAsTouched();
@@ -1128,7 +1130,11 @@ export class SignUpPage implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.signUpForm.invalid) return;
+    if (this.signUpForm.invalid) {
+      // Saca todos los errores pendientes en el resumen del último paso.
+      this.signUpForm.markAllAsTouched();
+      return;
+    }
     if (!this.objetiveSelected) return;
 
     const activity: number = this.signUpForm.controls.activity.value

@@ -643,10 +643,12 @@
                   <span>{{ 'SIGN_UP.PRIVACY_REQUIRED' | translate }}</span>
                 </div>
               </div>
-              <div *ngIf="registerAttempted && signUpForm.invalid && error" class="error-message">
-                <ion-icon color="danger" name="alert-circle-outline"></ion-icon>
-                <span class="error-text">{{ error | translate }}</span>
-              </div>
+              <ul *ngIf="formErrorKeys.length" class="error-message error-summary">
+                <li *ngFor="let key of formErrorKeys">
+                  <ion-icon color="danger" name="alert-circle-outline"></ion-icon>
+                  <span class="error-text">{{ key | translate }}</span>
+                </li>
+              </ul>
             </div>
           </swiper-slide>
 
@@ -828,7 +830,6 @@
       fill="clear"
       (click)="showSheet()"
       *ngIf="isLastFormSlide && !isLastDataSlide"
-      [disabled]="signUpForm.invalid"
     >
       <strong>{{ 'SIGN_UP.VIEW_SHEET' | translate }}</strong>
       <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
